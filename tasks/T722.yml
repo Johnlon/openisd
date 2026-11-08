@@ -13,6 +13,7 @@ plan:
   - Green but main moved meanwhile: rebase onto the new main. No clash (the tasks changed disjoint files and the rebase is clean): push without a new run. Clash (shared files or a rebase conflict): run again on the rebased candidate, then push.
   - Red: refused with its run link, as today.
   - Fail fast (John, 8 Nov ~02:20, via cover (2)): the task-file checks (done_test kind, allowlist) run before any gate; T720 spent 285 s on gates and was then refused for naming a browser spec in done_test.
+  - The visual SOURCES.sha256 check also runs first: T717 and T712 were each refused late by it on 8 Nov (no picture changed, only the hash).
   - Gates in parallel (John, via cover (2)): lint, typecheck, unit, architecture tests and done_test run side by side; the first red kills the rest (about 30 s instead of 90 s).
   - GitHub at once (John, via cover (2): "why not run the tests on gh already"): right after the rebase, land.sh pushes land/<task> and starts the suite, with the local gates running alongside; the first red from either side refuses the landing and cancels the other; main moves only when all are green.
   - Find and cut the ~190 s before the first gate (lock, rebase, setup), measured from the land logs.
