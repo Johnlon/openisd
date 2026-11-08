@@ -15,9 +15,11 @@ export function prSpec(
     marks?: () => readonly DqIssue[],
     /** The other half of a linked pair: typing this field drops the partner's entered value (typed last wins). */
     partner?: PassiveRadiatorFieldName,
+    /** The entry the charts work out for this field, on demand; reads shadow the stored entry, writes still go to it. */
+    shown?: () => SpecEntryJson | undefined,
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
     const slot: SimpleField<SpecEntryJson | undefined> = {
-        get value() { return section.value[key]; },
+        get value() { return shown?.() ?? section.value[key]; },
         set: (entry) => {
             if (partner !== undefined && entry?.state === 'E' && section.value[partner]?.state === 'E') {
                 const {[partner]: _partner, ...others} = section.value;

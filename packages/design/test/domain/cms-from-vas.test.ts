@@ -43,7 +43,7 @@ function cmsFromVasSwitch(): CompatSwitch {
 }
 
 function rig(kind: Kind, stated: Record<string, number>, engine: Engine = createEngine()): Rig {
-  const driverSpec = kind === 'driver' ? {...DRIVER_BASE, ...stated} : {...DRIVER_BASE, Vas_m3: 0.05, Cms_m_per_N: 0.0005};
+  const driverSpec = kind === 'driver' ? {...DRIVER_BASE, ...stated} : {...DRIVER_BASE, Vas_m3: 0.05};
   const project = new ProjectBuilder(driverFromSpec(engine, driverSpec), engine).sealed().volume_m3(0.03).build();
   if (kind === 'radiator') {
     project.box.boxType.set('box-passive-radiator');

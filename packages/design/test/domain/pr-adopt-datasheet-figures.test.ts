@@ -82,9 +82,9 @@ describe('the "can\'t calculate" warning marks only the empty box', () => {
 
 describe('a radiator edited before the project exists (the New Project wizard)', () => {
   const edited = (engine: Engine) => {
-    const radiator = radiatorFromSpec(engine, {...p173, Qms: 5});
+    // The record states a Cms that contradicts its Vas.
+    const radiator = radiatorFromSpec(engine, {...p173, Qms: 5, Cms_m_per_N: 0.01});
     radiator.spec.adoptDatasheetFigures();
-    radiator.spec.Cms_m_per_N.set(0.01);
     return radiator;
   };
 
@@ -97,15 +97,16 @@ describe('a radiator edited before the project exists (the New Project wizard)',
     expect(radiator.spec.Vas_m3.dq.length).toBeGreaterThan(0);
   });
 
-  it('the builder takes it as it stands: a typed Cms stays beside a stated Vas', () => {
+  it('the builder takes it as it stands: Cms and Vas stay stated, and the box shows the Cms the charts use, with a warning', () => {
     const engine = createEngine();
     const driver = driverFromSpec(engine, {
       Fs_hz: 30, Qes: 0.4, Qms: 4, Qts: 1 / (1 / 4 + 1 / 0.4), Re_ohm: 6.4,
       Sd_m2: 0.02, Cms_m_per_N: 0.0005, Vas_m3: 0.05, BL_Tm: 8, Mms_kg: 0.05, Xmax_m: 0.008, Pe_W: 100,
     });
     const spec = new ProjectBuilder(driver, engine).passiveRadiator().volume_m3(0.03).editedRadiator(edited(engine)).build().box.passiveRadiator.radiator.spec;
-    expect(spec.Cms_m_per_N.entered).toBe(true);
-    expect(spec.Cms_m_per_N.value).toBe(0.01);
     expect(spec.Vas_m3.entered).toBe(true);
+    expect(spec.Cms_m_per_N.calculated).toBe(true);
+    expect(spec.Cms_m_per_N.value).toBeCloseTo(0.00101, 4);
+    expect(spec.Cms_m_per_N.dq.map(i => i.text).join(' ')).toMatch(/^Datasheet Cms is [\d.]+ mm\/N\./);
   });
 });

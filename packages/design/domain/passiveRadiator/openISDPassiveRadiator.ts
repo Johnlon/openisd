@@ -3,6 +3,7 @@ import type { PrSpecIssue } from '../../engine/index.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
 import { OpenISDDevice } from '../driver/openISDDevice.js';
 import { OpenIsdPassiveRadiatorSpec } from './openIsdPassiveRadiatorSpec.js';
+import type { PrChart } from './openIsdPassiveRadiatorSpec.js';
 
 /**
  * What every radiator has, wherever the radiator lives: a lens onto ITS OWN record.
@@ -26,10 +27,10 @@ export abstract class OpenISDPassiveRadiator extends OpenISDDevice {
     // is, so a field list that differed between them was describing nothing real. The six identity
     // fields are not here: every device has those, so they live on `OpenISDDevice`.
 
-    protected constructor(slot: SimpleField<RadiatorDeviceJson>, conflicts?: () => readonly PrSpecIssue[]) {
+    protected constructor(slot: SimpleField<RadiatorDeviceJson>, conflicts?: () => readonly PrSpecIssue[], chart?: PrChart) {
         super(slot);
         this.slot = slot;
-        this.spec = new OpenIsdPassiveRadiatorSpec(slot, conflicts);
+        this.spec = new OpenIsdPassiveRadiatorSpec(slot, conflicts, chart);
     }
 
     /**
