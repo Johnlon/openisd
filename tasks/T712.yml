@@ -9,3 +9,5 @@ files:
   - tasks/T712.yml
   - bugs/BUG_20261108_desktop-whatif-wide-gap-between-labels-and-boxes.md
   - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
+  - packages/ui/test/fixtures/fieldLayoutAudit.ts
+  - packages/ui/test/ui/field-layout-rules.browser.spec.ts
