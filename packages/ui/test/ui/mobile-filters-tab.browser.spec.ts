@@ -1,6 +1,6 @@
 /**
  * The mobile Filters tab (PHONE_CLASSIC_BUILD_SPEC screen 10): a card per filter with standard field
- * rows, a one-line chip carousel, filter frequencies in whole hertz. The filter chain itself is the
+ * rows, wrapping filter chips, filter frequencies in whole hertz. The filter chain itself is the
  * desktop's logic (OriginalFilters); its own spec files cover how it behaves.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
@@ -66,21 +66,18 @@ test('Options "Show WinISD difference markers (≠W)" hides the cue, and ticking
   }
 });
 
-test('the chips sit on one line, and the arrows show that more filter types are off screen', async ({ appPage: page }) => {
+test('the chips wrap onto lines: none is cut at the right edge and the strip does not scroll sideways', async ({ appPage: page }) => {
   const strip = page.locator('.mob-fstrip');
-  const tops = await strip.locator('button').evaluateAll(els => els.map(e => Math.round(e.getBoundingClientRect().top)));
-  expect(new Set(tops).size, 'all chips on one line').toBe(1);
-  expect(await strip.evaluate(el => el.scrollWidth > el.clientWidth), 'more chips than fit').toBe(true);
-  const next = page.getByRole('button', { name: 'More filter types' });
-  await expect(next).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Earlier filter types' })).toBeHidden();
-  await next.click();
-  await expect(page.getByRole('button', { name: 'Earlier filter types' })).toBeVisible();
+  expect(await strip.evaluate(el => el.scrollWidth <= el.clientWidth), 'no sideways scroll').toBe(true);
+  const rights = await strip.locator('button').evaluateAll(els => els.map(e => Math.round(e.getBoundingClientRect().right)));
+  expect(rights).toHaveLength(PHONE_FILTER_CHIPS.length);
+  for (const right of rights) expect(right).toBeLessThanOrEqual(page.viewportSize()?.width ?? 0);
+  expect(new Set(await strip.locator('button').evaluateAll(els => els.map(e => Math.round(e.getBoundingClientRect().top)))).size, 'more than one line').toBeGreaterThan(1);
 });
 
-test('the chips and the arrows are the one phone button, PhoneRowSizes.BUTTON_PX tall', async ({ appPage: page }) => {
-  const buttons = page.locator('.mob-fstrip-wrap .phone-btn:visible');
-  await expect(buttons).toHaveCount(PHONE_FILTER_CHIPS.length + 1);   // the ‹ hides at the start
+test('the chips are the one phone button, PhoneRowSizes.BUTTON_PX tall', async ({ appPage: page }) => {
+  const buttons = page.locator('.mob-fstrip .phone-btn:visible');
+  await expect(buttons).toHaveCount(PHONE_FILTER_CHIPS.length);
   const heights = await buttons.evaluateAll(els => els.map(e => e.getBoundingClientRect().height));
   for (const h of heights) expect(h).toBeCloseTo(PhoneRowSizes.BUTTON_PX, 0);
 });

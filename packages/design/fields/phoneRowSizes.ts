@@ -67,9 +67,10 @@ export class PhoneRowColumns {
 
   static chipIsWide(label: string): boolean { return label.length > 3; }
 
-  static readonly STANDARD = new PhoneRowColumns(82, 90, 40, 16);
-  /** The Advanced page's air rows: wide enough for "Temperature" on one line, narrow enough to leave room for a pressure in Pa. */
-  static readonly MEDIUM_LABEL = new PhoneRowColumns(96, 90, 40, 16);
+  /** The common label column: wide enough for the longest phone label ("1st port resonance") on one line. */
+  static readonly STANDARD = new PhoneRowColumns(132, 90, 40, 16);
+  /** Advanced air rows and Options: the same column as STANDARD, so a page never mixes label widths. */
+  static readonly MEDIUM_LABEL = new PhoneRowColumns(132, 90, 40, 16);
   /** The driver editor's General tab, whose labels are longer. */
   static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 16);
 
