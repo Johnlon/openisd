@@ -5,7 +5,13 @@
 ## Symptom
 On desktop, the What-if panel puts a wide empty gap between each label and its box: "Fs", "Qes",
 "Vb" and the rest sit far to the left of their boxes. John, 8 Nov 2026, on QO449 (the README
-What-if picture): "there is too much space between labels and cells".
+What-if picture): "there is too much space between labels and cells". Then, QO449.c16: "fix the gaps on all fields".
+
+The common field's own label column is a fixed width too: `--ctl-label-w` 150px
+(`packages/design/fields/desktopSizes.ts`, `DesktopSizes.LABEL_COL_PX`, read by `UIFieldBody.vue`,
+`UIPickField.vue` and `joined-fields.css`), and screens override it with about 15 hand-set
+`--label-w` values. So the gap shows on other desktop screens as well (e.g. the Box tab: "Volume"
+label, box about 95 px to its right). Scope (What-if only or every screen) is with the leader.
 
 ## Evidence
 - README picture `ui-gallery/T696-readme-docs/whatif.after.png` (1600×950, main at f13022f42):
