@@ -40,7 +40,7 @@ describe('winisdCmsFromVas (option "Cms from Vas")', () => {
   it('missing in the file reads as ticked', () => {
     const p = build();
     p.winisdCmsFromVas.set(false);
-    const json = JSON.parse(p.toOwprText());
+    const json: unknown = JSON.parse(p.toOwprText());
     const strip = (node: unknown): void => {
       if (typeof node !== 'object' || node === null) return;
       Reflect.deleteProperty(node, 'winisdCmsFromVas');
