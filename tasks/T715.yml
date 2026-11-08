@@ -8,4 +8,5 @@ done_test: bash scripts/test.sh packages/ui/test/ui/original-shell-layout.browse
 files:
   - packages/ui/src/ui/shells/original/OriginalShell.vue
   - packages/ui/test/ui/original-shell-layout.browser.spec.ts
+  - bugs/BUG_20261108_desktop-abc-hint-clipped-in-box-notes.md
   - tasks/T715.yml

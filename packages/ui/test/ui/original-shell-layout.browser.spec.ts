@@ -392,3 +392,25 @@ test.describe('Save and Revert sit under What-if with a one-button gap (QO453.c7
     });
   }
 });
+
+test.describe('Box notes column shows every hint in full', () => {
+  const BOXES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const;
+  for (const vp of [{ width: 1366, height: 768 }, { width: 1920, height: 1080 }]) {
+    test(`at ${vp.width}x${vp.height}, no box type clips or scrolls its notes`, async ({ appPage: page }) => {
+      await page.setViewportSize(vp);
+      for (const b of BOXES) {
+        await setFocusedBoxType(page, b);
+        const m = await page.evaluate(() => {
+          const col = document.querySelector('.box-notes-col');
+          if (!col) throw new Error('.box-notes-col');
+          const hints = col.querySelectorAll('.hint');
+          const last = hints[hints.length - 1];
+          if (!last) throw new Error('no hint');
+          return { hidden: col.scrollHeight - col.clientHeight, lastBottom: last.getBoundingClientRect().bottom, colBottom: col.getBoundingClientRect().bottom };
+        });
+        expect(m.hidden, `${b} notes column hides no text`).toBeLessThanOrEqual(1);
+        expect(m.lastBottom, `${b} last hint inside the notes column`).toBeLessThanOrEqual(m.colBottom + 1);
+      }
+    });
+  }
+});

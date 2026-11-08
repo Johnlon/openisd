@@ -1287,7 +1287,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* The field span is fixed at the WIDEST box layout (the dual-chamber types: two field
    columns + the gap), so the diagram column starts at the same x for every box type
    instead of being pushed to the far right whenever the fields need less room. */
-.box-tab-row { display:flex; gap:24px; align-items:flex-start; --box-col-w:302px; --box-col-gap:24px; }
+.box-tab-row { display:flex; gap:24px; align-items:flex-start; min-height:100%; --box-col-w:302px; --box-col-gap:24px; }
 .box-tab-row .field-row { margin-bottom: 4px; }
 .box-tab-row .section-header { margin-bottom: 4px; padding: 2px 8px; }
 .box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }
