@@ -270,8 +270,9 @@ test('desktop Passive Radiator tab: Num. of PRs keeps the number-box width, not 
   expect((await dropdown(page, 'og-pr-count')).width).toBeCloseTo(150, 0);
 });
 
-/** The widest blank allowed between the longest label of a What-if column and that column's boxes. */
-const WHAT_IF_LABEL_GAP_MAX_PX = 16;
+/** The widest blank allowed between the longest label of a What-if column and that column's boxes:
+ *  the desktop's 22px warning slot after every label, and a few px. */
+const WHAT_IF_LABEL_GAP_MAX_PX = 22 + 8;
 
 for (const box of ['vented', 'bandpass6', 'abc'] as const) {
   // John, 8 Nov 2026, QO449.c11/c16: "there is too much space between labels and cells"; "the what if on the desktop".
@@ -286,7 +287,8 @@ for (const box of ['vented', 'bandpass6', 'abc'] as const) {
       if (label === null || control === null) return [];
       const text = field.ownerDocument.createRange();
       text.selectNodeContents(label);
-      return [{label: (label.textContent ?? '').trim(), labelX: Math.round(label.getBoundingClientRect().x), textRight: Math.round(text.getBoundingClientRect().right), boxX: Math.round(control.getBoundingClientRect().x)}];
+      const textRight = text.getBoundingClientRect().right;
+      return [{label: (label.textContent ?? '').trim(), labelX: Math.round(label.getBoundingClientRect().x), textRight: Math.round(textRight), boxX: Math.round(control.getBoundingClientRect().x)}];
     }));
     const columns = [...new Set(fields.map(f => f.labelX))];
     expect(columns.length, JSON.stringify(fields)).toBe(2);
