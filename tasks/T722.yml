@@ -4,6 +4,15 @@ repo: openisd
 owner: leader
 status: open
 goal: land.sh is a merge queue: every waiting task goes into one candidate and one GitHub run; a red run is split to find the bad task
-done_test: bash scripts/quiet-test.sh npm run typecheck
+why: John, 8 Nov 2026, "stop wasting my time with sequentia stuff" (a one-change release waited behind an unrelated landing; each task gets its own ~10 min run).
+starts: after OpenISD 7.0.960 is out (John: release first).
+plan:
+  - Each task's fast gates still run on its own (lint, typecheck, architecture tests, done_test); passing tasks join a queue instead of each starting a GitHub run.
+  - The queue head takes every queued task, stacks them on origin/main in queue order as one candidate land/batch-<n>, and starts ONE suite run.
+  - Green: main moves to the candidate, every task in it is landed (same records as today, one per task).
+  - Red: split the batch in two and run each half (bisect) until the bad task is found; the good tasks land, the bad one is refused with its run link, as today.
+  - A task that does not stack on the others (conflict) leaves the batch and waits for the next one.
+  - Proven first in a scratch repo with real processes and two concurrent queuers (rule processes.md 7), wired in only when no landing or post-land run is active.
+done_test: bash scripts/land/test/land-merge-queue.e2e.test.sh
 files:
   - tasks/T722.yml
