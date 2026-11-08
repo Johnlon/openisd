@@ -457,7 +457,8 @@ test.describe('Options dialog', () => {
           const panel = page.getByRole('dialog', {name: 'Help: Vented design limits'});
           await expect(panel).toBeVisible();
           await expect(page.locator('.mob-help-sheet')).toHaveCount(0);
-          await expect(panel).toContainText('Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark. OpenISD never changes your numbers.');
+          await expect(panel).toContainText('Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark.');
+          await expect(panel, 'QO473.c17: no "never changes your numbers"').not.toContainText('never changes your numbers');
           await expect(panel).not.toContainText('WinISD');
           await expect(panel).toContainText('Min box volume: a box smaller than this gets a warning mark.');
           // Nothing sits on top of the help: its corners and middle are the help itself.

@@ -171,7 +171,8 @@ for (const size of PHONE_SIZES) {
       for (const help of [lineHelp, bandHelp]) {
         await help.click();
         const sheet = page.locator('.mob-help-sheet');
-        await expect(sheet).toContainText('Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark. OpenISD never changes your numbers.');
+        await expect(sheet).toContainText('Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark.');
+        await expect(sheet, 'QO473.c17: no "never changes your numbers"').not.toContainText('never changes your numbers');
         await expect(sheet).not.toContainText('WinISD');
         await expect(sheet).toContainText('Min box volume: a box smaller than this gets a warning mark.');
         await sheet.getByRole('button', {name: 'Close help'}).click();
