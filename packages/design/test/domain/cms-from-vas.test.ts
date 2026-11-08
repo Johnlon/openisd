@@ -11,9 +11,11 @@ import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {CompatSwitch} from '../../domain/project/compatSwitch.js';
-import type {OpenISDProject} from '../../domain/project/openISDProject.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
+import {driverSpecsOf} from '../../domain/openisdSchema.js';
 import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
 import {driverFromSpec, radiatorFromSpec} from '../fixtures/recordBuilders.js';
+import {fixedAppContext} from '../fixtures/domainBuilders.js';
 
 const GRID: FrequencyGrid = {fmin: 10, fmax: 2000, N: 40};
 
@@ -27,6 +29,7 @@ interface Rig {
   readonly project: OpenISDProject;
   readonly cms: () => number | null;
   readonly vas: () => number | null;
+  readonly cmsNotes: () => readonly string[];
   readonly cmsWarned: () => boolean;
   readonly setCms: (v: number) => void;
   readonly spl: () => readonly number[];
@@ -52,6 +55,7 @@ function rig(kind: Kind, stated: Record<string, number>, engine: Engine = create
     project,
     cms: () => spec().Cms_m_per_N.value,
     vas: () => spec().Vas_m3.value,
+    cmsNotes: () => spec().Cms_m_per_N.dq.map(i => i.text),
     cmsWarned: () => spec().Cms_m_per_N.dq.some(i => i.kind === 'inconsistent-inputs'),
     setCms: v => spec().Cms_m_per_N.set(v),
     spl: () => {
@@ -120,5 +124,23 @@ describe.each<Kind>(['driver', 'radiator'])('Cms from Vas: %s', (kind) => {
     expect(worst(r.spl(), statedOnly.spl())).toBeLessThan(1e-9);
     expect(r.cmsWarned()).toBe(true);
     expectBoxIsSweep(kind, r);
+  });
+
+  it('(g) the warning says the datasheet value, the value the charts use and what to untick', () => {
+    const r = rig(kind, disagreeing());
+    expect(r.cmsNotes()).toHaveLength(1);
+    expect(r.cmsNotes()[0]).toMatch(/^Datasheet Cms is [\d.]+ mm\/N\. It does not agree with Vas, so the charts use [\d.]+ mm\/N, worked out from Vas\. Untick Cms from Vas to use the datasheet value\.$/);
+  });
+
+  it('(h) saved and reloaded, the datasheet Cms is still the stated, entered figure and the box still shows the charts\' Cms', () => {
+    if (kind === 'radiator') return; // the radiator's record is read in step 6/7
+    const r = rig(kind, disagreeing());
+    const shown = r.cms();
+    r.project.save();
+    const reloaded = OpenISDProject.wrap(r.project.cloneSavedProject(), createEngine(), fixedAppContext('cms-from-vas'));
+    const stored = driverSpecsOf(r.project.cloneSavedProject().driverEmbedding.device)?.woofer.Cms_m_per_N;
+    expect(stored).toEqual({state: 'E', value: consistentCms() * 1.5});
+    expect(reloaded.driver.specs.Cms_m_per_N.value).toBeCloseTo(shown!, 12);
+    expect(reloaded.driver.specs.Cms_m_per_N.calculated).toBe(true);
   });
 });
