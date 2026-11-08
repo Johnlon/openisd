@@ -187,8 +187,8 @@ export class WinisdDeviation {
   static readonly PR_MMS_CMS_TYPING = new WinisdDeviation({
     title: 'WinISD has no Mms or Cms on the Passive Radiator tab',
     winisd: 'WinISD takes the passive radiator as Vas, Fs, Qms, Sd and Xmax. It works Mms and Cms out from them and shows neither.',
-    openisd: 'OpenISD shows Mms and Cms, and lets you type them, as a datasheet gives them. Vas and Fs are then worked out from them.',
-    size: 'No chart differs: the same radiator gives the same curves. Only what you can type differs.',
+    openisd: 'OpenISD shows Mms and Cms, and lets you type them, as a datasheet gives them. A picked radiator keeps the Mms and Cms its datasheet states; a Vas or Fs it does not state is worked out from them.',
+    size: 'Charts differ only when a datasheet\'s Mms or Cms disagrees with its Fs or Vas: OpenISD uses the stated Mms and Cms, WinISD works them out from Fs and Vas. Past the datasheet\'s rounding, both boxes show the conflict mark.',
     fix: {kind: 'ignoredInput', seenIn: 'the Mms and Cms fields on the Passive Radiator tab.', remedy: 'WinISD has no way to type these, so OpenISD has no switch to copy it. Type Vas and Fs to work the way WinISD does.'},
     charts: [],
   });

@@ -1,6 +1,7 @@
 /**
  * A radiator's Mms, Cms and Rms are calculated values: the project's resolve fills them from the
- * radiator's Fs, Qms, Vas and Sd through the driver consistency relations, and a typed value wins.
+ * radiator's Fs, Qms, Vas and Sd through the driver consistency relations, and a typed or stated
+ * value wins: a record's stated Mms, Cms and Rms stay entered (John, QO451, 8 Nov 2026).
  */
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
@@ -40,18 +41,19 @@ describe('radiator Mms, Cms and Rms are calculated', () => {
     }
   });
 
-  it('a record carrying entered Mms, Cms and Rms embeds them as calculated, driven by the four', () => {
+  it('a record carrying entered Mms, Cms and Rms keeps them entered; disagreeing with the four, each is marked', () => {
     const spec = prProject(createEngine(), {...four, Mms_kg: 1, Cms_m_per_N: 1, Rms_kg_per_s: 1}).box.passiveRadiator.radiator.spec;
     for (const f of [spec.Mms_kg, spec.Cms_m_per_N, spec.Rms_kg_per_s]) {
-      expect(f.entered).toBe(false);
-      expect(f.value).not.toBe(1);
+      expect(f.entered).toBe(true);
+      expect(f.value).toBe(1);
+      expect(f.dq.some(i => i.kind === 'inconsistent-inputs')).toBe(true);
     }
   });
 
-  // John, 2026-10-05: "PR Vas is disconnected" — the New Project wizard builds the project through
-  // ProjectBuilder.radiator(); a catalogue radiator (ND140-PR) also states Mms and Cms, and those
-  // must not freeze the radiator against a later Vas, Fs, Qms or Sd edit.
-  it('a project built with a radiator stating Mms, Cms and Rms lets the four drive them', () => {
+  // John, 2026-10-05: "PR Vas is disconnected" — a later Vas edit must never do nothing visible.
+  // A catalogue radiator (ND140-PR) states Mms and Cms, which stay as stated (QO451): the edit
+  // marks the stated Cms and the new Vas as disagreeing; clearing Cms lets Vas drive it.
+  it('a project built with a radiator stating Mms and Cms marks a later Vas edit as disagreeing; cleared, Cms follows Vas', () => {
     const engine = createEngine();
     const driver = driverFromSpec(engine, {
       Fs_hz: 30, Qes: 0.4, Qms: 4, Qts: 1 / (1 / 4 + 1 / 0.4), Re_ohm: 6.4,
@@ -63,10 +65,17 @@ describe('radiator Mms, Cms and Rms are calculated', () => {
     const project = new ProjectBuilder(driver, engine).passiveRadiator().volume_m3(0.01).radiator(nd140).build();
     const pr = project.box.passiveRadiator;
     const grid = {fmin: 10, fmax: 1000, N: 50};
-    const cms = pr.radiator.spec.Cms_m_per_N.value;
+    const spec = pr.radiator.spec;
+    expect(spec.Cms_m_per_N.entered).toBe(true);
+    expect(spec.Cms_m_per_N.value).toBe(0.00079);
     const plan = JSON.stringify(project.sweepPlan(grid));
-    pr.radiator.spec.Vas_m3.set(0.02);
-    expect(pr.radiator.spec.Cms_m_per_N.value).not.toBe(cms);
+    spec.Vas_m3.set(0.02);
+    expect(spec.Cms_m_per_N.value).toBe(0.00079);
+    expect(spec.Cms_m_per_N.dq.some(i => i.kind === 'inconsistent-inputs')).toBe(true);
+    expect(spec.Vas_m3.dq.some(i => i.kind === 'inconsistent-inputs')).toBe(true);
+    spec.Cms_m_per_N.clear();
+    expect(spec.Cms_m_per_N.calculated).toBe(true);
+    expect(spec.Cms_m_per_N.value).not.toBe(0.00079);
     expect(JSON.stringify(project.sweepPlan(grid))).not.toBe(plan);
   });
 

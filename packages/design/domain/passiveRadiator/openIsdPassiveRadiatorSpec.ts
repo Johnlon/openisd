@@ -101,18 +101,10 @@ export class OpenIsdPassiveRadiatorSpec {
         return pr.checkSpec(stated, this.#precisions(), air);
     }
 
-    /** A record just adopted into a project: its Xlim becomes its Xmax when it has none; each of Cms, Mms and Rms is dropped (reads N, and
-     *  `resolve` fills it) when the record states its other half - Vas, Fs, Qms - so the four
-     *  WinISD figures drive it; one whose other half is absent stays entered. Nothing is ever
-     *  copied and then flipped to calculated (BUG_20261031_phone-pr-p173-cms-display, John
-     *  31 Oct 2026). */
+    /** A record just adopted into a project: its Xlim becomes its Xmax when it has none. Every
+     *  stated figure stays entered as stated; `resolve` fills only the ones it does not state and
+     *  marks stated pairs that disagree (John, QO451, 8 Nov 2026). */
     adoptDatasheetFigures(): void {
-        const drop = (field: Entered & Clearable, otherHalf: Entered): void => {
-            if (field.entered && otherHalf.entered) field.clear();
-        };
-        drop(this.Cms_m_per_N, this.Vas_m3);
-        drop(this.Mms_kg, this.Fs_hz);
-        drop(this.Rms_kg_per_s, this.Qms);
         const picked = this.pickedXmax_m;
         if (!this.Xmax_m.entered && picked !== null) this.Xmax_m.set(picked, this.Xlim_m.precision ?? undefined);
     }

@@ -905,7 +905,8 @@ describe('useOgNewProject — passive-radiator step', () => {
     await wizard.loadBundledPassiveRadiator('e150he-pr');
     const full = { ...wizard.passiveRadiatorView.value };
     wizard.passiveRadiatorCells.Vas_m3.clear();
-    expect(wizard.passiveRadiatorView.value?.Vas_m3).toBeNull();
+    // The record's stated Cms stays (QO451), so the cleared Vas is worked out from it.
+    expect(wizard.passiveRadiatorCells.Vas_m3.provenance).toBe('C');
 
     await wizard.loadBundledPassiveRadiator('e150he-pr');
 
@@ -1011,10 +1012,13 @@ describe('the radiator step holds all eight figures, stated or calculated (T703)
     return wizard;
   }
 
-  it('SP22R, which states no Qms and no Fs: both are calculated', async () => {
+  it('SP22R, which states no Qms and no Fs: both are calculated from its stated Mms, Cms and Rms', async () => {
     const {passiveRadiatorCells: cells} = await pickedThenBack('seas/sp22r');
-    expect(cells.Qms.value).toBeCloseTo(4.813, 2);
-    expect(cells.Fs_hz.value).toBeCloseTo(23.22, 1);
+    // Qms = √(Mms/Cms)/Rms = √(0.0289/0.00161)/0.876; Fs = 1/(2π√(Mms·Cms)).
+    expect(cells.Qms.value).toBeCloseTo(4.837, 2);
+    expect(cells.Fs_hz.value).toBeCloseTo(23.33, 1);
+    expect(cells.Cms_m_per_N.provenance).toBe('E');
+    expect(cells.Mms_kg.provenance).toBe('E');
     expect(cells.Qms.provenance).toBe('C');
     expect(cells.Fs_hz.provenance).toBe('C');
     expect(cells.Vas_m3.provenance).toBe('E');
