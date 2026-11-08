@@ -84,6 +84,37 @@ test.describe('Options dialog', () => {
         await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
         await expect(page.locator('.opt-modal input[type="number"]')).toHaveCount(0);
       });
+
+      // BUG_20261108_desktop-options-dialog-taller-than-short-window (QO471.c21): the windows a 1366x768,
+      // 1536x864 and 1440x900 screen leave after the browser bars, and a 1440x900 window. Every control,
+      // the footer's included, is on screen on every tab with nothing to scroll.
+      for (const size of [{width: 1366, height: 657}, {width: 1536, height: 754}, {width: 1440, height: 790}, {width: 1440, height: 900}]) {
+        test(`at ${size.width}x${size.height} every Options control shows on every tab, nothing to scroll`, async ({ page }) => {
+          await page.setViewportSize(size);
+          await page.locator('.tb-btn[title="Options"]').click();
+          for (const tabName of ['General', 'Plot Window', 'Your data']) {
+            await page.locator('.opt-tab', { hasText: tabName }).click();
+            const faults = await page.locator('.opt-modal').evaluate((modal) => {
+              const out: string[] = [];
+              const vw = window.innerWidth;
+              const vh = window.innerHeight;
+              const doc = document.documentElement;
+              if (doc.scrollHeight > vh) out.push(`page scrolls down: ${doc.scrollHeight} > ${vh}`);
+              const body = modal.querySelector('.opt-body');
+              if (body !== null && body.scrollHeight > body.clientHeight + 1) out.push(`dialog body scrolls: ${body.scrollHeight} > ${body.clientHeight}`);
+              for (const el of Array.from(modal.querySelectorAll('button, input, select, textarea'))) {
+                const r = el.getBoundingClientRect();
+                if (r.width === 0 || r.height === 0) continue;
+                if (r.top < 0 || r.left < 0 || r.bottom > vh || r.right > vw) {
+                  out.push(`${el.tagName.toLowerCase()} "${(el.textContent ?? '').trim() || el.getAttribute('aria-label') || ''}" at ${Math.round(r.left)},${Math.round(r.top)}..${Math.round(r.right)},${Math.round(r.bottom)}`);
+                }
+              }
+              return out;
+            });
+            expect(faults, tabName).toEqual([]);
+          }
+        });
+      }
     });
 
     /** What the Options dialog holds: opened, read, and cancelled. */
