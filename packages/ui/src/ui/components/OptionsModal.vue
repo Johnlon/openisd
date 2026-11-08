@@ -57,6 +57,7 @@ import UIFixedField from './UIFixedField.vue';
 import MobilePaneDialog from '../shells/mobile/MobilePaneDialog.vue';
 import PhoneBand from '../shells/mobile/PhoneBand.vue';
 import PhoneHelpSheet from '../shells/mobile/PhoneHelpSheet.vue';
+import DesktopHelpPanel from './DesktopHelpPanel.vue';
 import {inputValue} from '../../logic/domEvents.js';
 
 const emit = defineEmits<{ close: [] }>();
@@ -234,7 +235,8 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
           <button type="button" data-testid="env-reset" :disabled="envIsFactory" @click="resetEnv">Reset to defaults</button>
         </div>
         <PhoneBand :section="PhoneDialogHelp.OPTIONS_VENTED_LIMITS" />
-        <p class="mob-dhint">This panel allows you to set limits on acceptable ranges for certain values, open the help (?) for more info.</p>
+        <p class="mob-dhint">This panel allows you to set limits on acceptable ranges for certain values, open the help <button type="button" class="mob-band-help opt-line-help" aria-label="Help: Vented design limits" @click="limitsHelpOpen = true">?</button> for more info.</p>
+        <PhoneHelpSheet v-if="limitsHelpOpen" :section="PhoneDialogHelp.OPTIONS_VENTED_LIMITS" @close="limitsHelpOpen = false" />
         <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Min box volume" :field="NumberField.BOX_VB_L" :value="minVolume_m3" stepper @update:value="v => minVolume_m3 = v" />
         <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Min tuning" :field="NumberField.BOX_FB_HZ" :value="minTuning_hz" stepper @update:value="v => minTuning_hz = v" />
         <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Max box volume" :field="NumberField.BOX_VB_L" :value="maxVolume_m3" stepper @update:value="v => maxVolume_m3 = v" />
@@ -343,8 +345,7 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
 
           <fieldset class="opt-group">
             <legend>Vented design limits <button type="button" class="desk-band-help" aria-label="Help: Vented design limits" @click="limitsHelpOpen = true">?</button></legend>
-            <p class="opt-help">This panel allows you to set limits on acceptable ranges for certain values, open the help (?) for more info.</p>
-            <PhoneHelpSheet v-if="limitsHelpOpen" :section="PhoneDialogHelp.OPTIONS_VENTED_LIMITS" @close="limitsHelpOpen = false" />
+            <p class="opt-help">This panel allows you to set limits on acceptable ranges for certain values, open the help <button type="button" class="desk-band-help opt-line-help" aria-label="Help: Vented design limits" @click="limitsHelpOpen = true">?</button> for more info.</p>
             <div class="opt-env-grid">
               <div class="opt-fld"><UIFixedField input-id="set-min-volume" label="Min box volume" :field="NumberField.BOX_VB_L" :value="minVolume_m3" @update:value="v => minVolume_m3 = v" /></div>
               <div class="opt-fld"><UIFixedField input-id="set-min-tuning" label="Min tuning" :field="NumberField.BOX_FB_HZ" :value="minTuning_hz" @update:value="v => minTuning_hz = v" /></div>
@@ -441,6 +442,8 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
         <button @click="close">Cancel</button>
       </div>
     </div>
+    <!-- The desktop help, as every desktop ? opens it: down the right of the window, on top of this dialog. -->
+    <DesktopHelpPanel v-if="limitsHelpOpen" :title="PhoneDialogHelp.OPTIONS_VENTED_LIMITS.title" :sections="[PhoneDialogHelp.OPTIONS_VENTED_LIMITS]" @close="limitsHelpOpen = false" />
   </div>
 </template>
 
@@ -476,6 +479,9 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
 .opt-group { border: 1px solid var(--line); border-radius: 5px; padding: 10px 12px; margin: 0; }
 .opt-group legend { padding: 0 6px; font-size: 11px; color: var(--mut); }
 .opt-help { margin: 0 0 8px; font-size: 11px; color: var(--mut); line-height: 1.4; }
+/* The ? inside a line of text: centred on the text, and it does not make its line taller. */
+.opt-line-help { display: inline-block; vertical-align: middle; }
+.opt-phone .opt-line-help { margin: -2px 0; }
 .opt-error { color: #8a1f1f; background: #fdeeee; border: 1px solid #e8b0b0; border-radius: 3px;
   padding: 4px 8px; font-size: 11px; margin-top: 8px; }
 /* A phone-width window (the desktop skin at 374 px): the dialog takes the window and its padding shrinks so the 318 px field rows and the Reset button stay inside it. */

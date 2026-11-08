@@ -19,4 +19,5 @@ rulings:
   - Options More info under Vented design limits goes, both skins; a static line stays and a (?) opens the longer help (John, QO467.c33, c35, c45).
   - The static line, John's words: 'This panel allows you to set limits on acceptable ranges for certain values, open the help (?) for more info.' (QO467.c43).
   - The (?) first line as proposed on QO467.c39, approved on c40; the setting is OpenISD only.
+  - The (?) in the static line is the same ? button as the heading's, and opens the help (QO473.c4). Desktop ? opens the desktop help panel, never the phone sheet (QO473.c1). No WinISD remark in the help (QO473.c6).
   - Backlog to-do: which other app limits belong on the Options page (QO467.c49).
