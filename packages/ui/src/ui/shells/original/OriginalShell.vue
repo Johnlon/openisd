@@ -601,8 +601,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="two-col">
             <div style="--label-w:60px;">
               <DesktopBand :section="listeningPlaceHelp" @help="openSectionHelp" />
-              <div class="field-row"><div class="field"><label>Distance</label><input type="text" class="greyed" value="1.000" disabled><span class="unit">{{ NumberField.SIGNAL_DISTANCE_M.unitLabel() }}</span></div></div>
-              <div class="field-row"><div class="field"><label>{{ DesktopLabels.ANGLE }}</label><input type="text" class="greyed" value="0.0000" disabled><span class="unit">{{ NumberField.SIGNAL_ANGLE_RAD.unitLabel() }}</span></div></div>
+              <div class="field-row"><div class="field"><label>Distance</label><input type="text" class="greyed" :value="NumberField.SIGNAL_DISTANCE_M.format(1)" disabled><span class="unit">{{ NumberField.SIGNAL_DISTANCE_M.unitLabel() }}</span></div></div>
+              <div class="field-row"><div class="field"><label>{{ DesktopLabels.ANGLE }}</label><input type="text" class="greyed" :value="NumberField.SIGNAL_ANGLE_RAD.format(0)" disabled><span class="unit">{{ NumberField.SIGNAL_ANGLE_RAD.unitLabel() }}</span></div></div>
               <p class="hint">Listening distance/angle are not modelled yet.</p>
             </div>
             <div style="--label-w:208px;">

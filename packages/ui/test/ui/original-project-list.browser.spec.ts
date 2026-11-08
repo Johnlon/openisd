@@ -57,6 +57,17 @@ test.describe('Original project list', () => {
     expect(fits).toBe(true);
   });
 
+  test('no cell text in the project list is truncated at 1366 wide, and the page does not scroll sideways', async ({ appPage: page }) => {
+    await page.setViewportSize({width: 1366, height: 768});
+    await duplicateFocusedProject(page, 'AS168-9-470 vented with a long extra name');
+    await expect(page.locator('.project-row')).toHaveCount(2);
+    const cells = page.locator('.project-row .project-name, .project-row .project-box-type, .project-row .project-volumes, .project-row .col-edited, .project-row .col-size');
+    await expect(cells.first()).toBeVisible();
+    const cut = await cells.evaluateAll(els => els.filter(e => e instanceof HTMLElement && e.offsetParent !== null && (e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1)).map(e => e.textContent));
+    expect(cut).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+
   test('a saved project that is not open is listed and a click opens it', async ({ appPage: page }) => {
     await page.locator('.tb-btn[title^="Save - "]').click();
     await page.locator('.project-row.selected .row-menu-btn').click();

@@ -78,6 +78,16 @@ test('an unsaved project remains marked and unchanged without a warning on every
   await expect(page.locator('.mob-project-dirty')).toHaveText('Unsaved');
 });
 
+test('a driver name too long for the phone width wraps instead of being cut with an ellipsis', async ({page}) => {
+  await page.setViewportSize({width: 230, height: 705});
+  const names = page.locator('.mob-np-library .dl-name');
+  await expect(names.first()).toBeVisible();
+  const cut = await names.evaluateAll(els => els.filter(e => e.scrollWidth > e.clientWidth + 1).map(e => e.textContent));
+  expect(cut).toEqual([]);
+  const wrapped = await names.evaluateAll(els => els.some(e => e.getBoundingClientRect().height > 24));
+  expect(wrapped).toBe(true);
+});
+
 test('the wizard driver list keeps the same phone inset as Manage Drivers', async ({page}) => {
   const library = page.locator('.mob-np-library');
   await expect(library).toHaveClass(/dl-phone/);

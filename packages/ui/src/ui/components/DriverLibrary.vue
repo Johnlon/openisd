@@ -1108,7 +1108,7 @@ onMounted(openedLibrary);
 .driver-library.dl-phone .ditem { display: flex; align-items: center; min-height: 52px; padding: 4px 0 4px 16px; border-bottom: 1px solid #eef0f2; cursor: pointer; }
 .driver-library.dl-phone .dl-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .driver-library.dl-phone .dl-head { display: flex; align-items: center; min-width: 0; }
-.driver-library.dl-phone .dl-name { display: block; min-width: 0; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.driver-library.dl-phone .dl-name { display: block; min-width: 0; font-size: 15px; font-weight: 600; white-space: normal; overflow-wrap: anywhere; }
 .driver-library.dl-phone .dl-sub { font-size: 12px; color: #666; min-height: 16px; }
 .driver-library.dl-phone .dl-sub .dpdf { color: #666; text-decoration: none; }
 .driver-library.dl-phone .dl-sub .dpdf + .dpdf::before { content: ' · '; }

@@ -3,6 +3,7 @@ release_note: "The default chart frequency range now ends at 1000 Hz instead of 
 repo: openisd
 owner: cover
 status: done
+landed: 92faaeb26e793e3a79ffbdd315bcdf9d82ec7f65
 goal: App options: the default chart frequency range ends at 1000 Hz, not 20000
 done_test: bash scripts/test.sh packages/ui/test/logic/presentationState-skin.test.ts
 why: John, 8 Nov 2026 (chat): "change the default freq range top end from 20k to 1000 - app options". The default was typed in four places; now one constant, NumberField.PLOT_RANGE_DEFAULT_HZ.
