@@ -381,6 +381,11 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdFlatModel;
     }
 
+    /** WinISD Compatibility "Cms from Vas" — see `ProjectAdvanced.winisdCmsFromVas`. */
+    get winisdCmsFromVas(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdCmsFromVas;
+    }
+
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.
      *  Empty when absent (a project saved before S10, or a fresh one). Plain strings, not
      *  `ChartId`: this is PERSISTED project data (`.owpr`), so it must stay readable across a

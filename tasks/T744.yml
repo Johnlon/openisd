@@ -67,3 +67,13 @@ done_test: bash scripts/test.sh packages/design/test/domain/cms-from-vas.test.ts
 files:
   - tasks/T744.yml
   - packages/design/test/domain/cms-from-vas.test.ts
+  - packages/design/test/domain/winisd-cms-from-vas-switch.test.ts
+  - packages/design/test/domain/every-input-recalculates.test.ts
+  - packages/design/test/domain/compat-switch.test.ts
+  - packages/design/fields/field.ts
+  - packages/design/fields/winisdOption.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/openisdTransforms.ts
+  - packages/design/domain/project/compatSwitch.ts
+  - packages/design/domain/project/projectAdvanced.ts
+  - packages/design/domain/project/openISDProject.ts

@@ -186,4 +186,14 @@ export class ProjectAdvanced {
             set: (on: boolean) => lens.set(on),
         };
     }
+
+    /** WinISD Compatibility "Cms from Vas": ticked, a datasheet that states both Cms and Vas gets the Cms
+     *  worked out from Vas (WinISD); unticked, the stated Cms. On where a project does not say. */
+    get winisdCmsFromVas(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdCmsFromVas');
+        return {
+            get value() { return lens.value ?? CompatSwitch.CMS_FROM_VAS.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
 }
