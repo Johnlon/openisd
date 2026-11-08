@@ -1,5 +1,5 @@
 id: T712
-release_note: internal
+release_note: The desktop What-if panel puts each box next to its label, with no wide gap.
 repo: openisd
 owner: maryu
 status: open
