@@ -15,6 +15,15 @@ plan:
   - Before (test.openisd.app) and after (this branch preview, lap:4742) pictures at phone 374x705 and desktop 1366x768 for Box tab, Driver Editor Parameters and Advanced, Options; mark-diff boxed, agy-checked, Look at / Recommend / Checked, impact line; on a page passing check-answerable.mjs, to John BEFORE landing.
 done_test: bash scripts/test.sh packages/ui/test/ui/font-glyph-coverage.test.ts packages/ui/test/ui/app-font-bundled.browser.spec.ts packages/ui/test/ui/font-sources.test.ts packages/ui/test/ui/font-precache.test.ts packages/ui/test/ui/field-layout-rules.browser.spec.ts
 files:
+  - bugs/BUG_20261108_desktop-whatif-wide-gap-between-labels-and-boxes.md
+  - packages/design/fields/desktopSizes.ts
+  - packages/design/test/fields/desktopSizes.test.ts
+  - packages/ui/src/hooks/labelColumns.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/shells/original/OriginalFilters.vue
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/test/fixtures/fieldLayoutAudit.ts
+  - packages/ui/test/ui/field-layout-rules.browser.spec.ts
   - tasks/T742.yml
   - packages/design/fields/appFonts.ts
   - packages/ui/src/fonts.css

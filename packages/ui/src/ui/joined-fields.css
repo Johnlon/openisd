@@ -128,11 +128,11 @@
 
 /* A unit's spelling must not change the outline or the unit rail within these groups. */
 .joined-fields:not(.app-root-mobile) .driver-advanced-fields .ui-field.ui-field[data-field] {--joined-box:134px;--joined-chip:60px;}
-.joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] {--joined-label:130px;--joined-box:134px;--joined-chip:60px;}
+.joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] {--joined-box:134px;--joined-chip:60px;}
 /* One box width for every row of each group: the widest unit (kg/m3) needs 134px, so all rows take it and the outlines stay equal. */
 /* Two sixth-order port groups have room for the usual labels beside their controls. */
 .joined-fields:not(.app-root-mobile) .vent-labels-left .ui-field.ui-field[data-field] {
- --joined-label:72px;grid-template-columns:var(--joined-label) var(--joined-box) var(--joined-buttons) var(--joined-model);grid-template-rows:var(--joined-height);
+ --joined-label:var(--label-w,var(--ctl-label-w,150px));grid-template-columns:var(--joined-label) var(--joined-box) var(--joined-buttons) var(--joined-model);grid-template-rows:var(--joined-height);
 }
 .joined-fields:not(.app-root-mobile) .vent-labels-left .ui-field.ui-field[data-field] > label {grid-column:1;grid-row:1;}
 .joined-fields:not(.app-root-mobile) .vent-labels-left .ui-field.ui-field[data-field] .ui-field-value .num-input-wrap,
@@ -144,7 +144,7 @@
 .joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] .ui-field-unit:not(.unit-toggle) {width:var(--joined-chip);}
 
 /* All ported panels share one full field per row and one label/value column contract. */
-.joined-fields:not(.app-root-mobile) .port-columns .ui-field.ui-field[data-field] {--joined-label:120px;--joined-box:93px;--joined-inset:4px;}
+.joined-fields:not(.app-root-mobile) .port-columns .ui-field.ui-field[data-field] {--joined-box:93px;--joined-inset:4px;}
 
 /* Reserve the DQ rail before any warning exists. Showing it must not resize the label. */
 .joined-fields:not(.app-root-mobile) .ui-field.ui-field:is([data-field],.joined-field):not(.signal-gen-field) {
@@ -152,14 +152,16 @@
 }
 
 
-.joined-fields:not(.app-root-mobile) .ui-field.ui-field:is([data-field],.joined-field) > label {margin-right:22px;max-width:calc(100% - 22px);}
+/* Every desktop label is one line, in a column as wide as its group's longest label plus the warning slot
+   (labelColumns.ts, DesktopSizes.labelColumnPx): the slot is the only blank before the box (QO466.c12). */
+.joined-fields:not(.app-root-mobile) .ui-field.ui-field:is([data-field],.joined-field) > label {margin-right:var(--ctl-label-slot,22px);max-width:calc(100% - var(--ctl-label-slot,22px));white-space:nowrap;}
 
 /* Text and choice rows reserve the same warning rail as numeric rows. */
 .joined-fields:not(.app-root-mobile) .ui-pick-field:not(.mob-ui-field) {
   grid-template-columns:var(--label-w,var(--ctl-label-w,150px)) var(--pick-width,max-content) 16px;
   column-gap:2px;
 }
-.joined-fields:not(.app-root-mobile) .ui-pick-field > label {padding-right:22px;box-sizing:border-box;}
+.joined-fields:not(.app-root-mobile) .ui-pick-field > label {padding-right:var(--ctl-label-slot,22px);box-sizing:border-box;white-space:nowrap;}
 
 /* Give the requested larger port captions their glyph width plus one warning slot. */
 .joined-fields:not(.app-root-mobile) .port-columns .field > label {font-size:12px;line-height:14px;}
