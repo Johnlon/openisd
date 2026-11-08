@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { Air, DriverIssue } from '../../engine/index.js';
+import type { Air, CmsSource, DriverIssue } from '../../engine/index.js';
 import type { SimpleField } from '../cell.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
 import { OpenISDDriver, OpenISDDriverStandalone } from './openISDDriver.js';
@@ -14,10 +14,11 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
         airProvider: () => Air,
+        cmsSource: () => CmsSource,
         durableIssues: () => readonly DriverIssue[],
         private readonly newId: () => string,
     ) {
-        super(record, engine, airProvider, durableIssues);
+        super(record, engine, airProvider, cmsSource, durableIssues);
     }
 
     /** Takes the lens onto the project's `driver` slot and the project's air — the air every
@@ -27,6 +28,8 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         slot: SimpleField<DriverDeviceJson>,
         engine: Engine,
         airProvider: () => Air,
+        /** The project's "Cms from Vas" choice, read on demand. */
+        cmsSource: () => CmsSource,
         /** The PROJECT's cached driver issues. This object does not outlive one access, so the
          *  dq a resolve wrote into its fields is gone before anything reads it; the project's
          *  cache is what survives. */
@@ -34,7 +37,7 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         /** The app's id source: a driver leaving the project becomes an entity and gets an id. */
         newId: () => string,
     ): OpenISDDriverEmbedded {
-        return new OpenISDDriverEmbedded(slot, engine, airProvider, durableIssues, newId);
+        return new OpenISDDriverEmbedded(slot, engine, airProvider, cmsSource, durableIssues, newId);
     }
 
     /** A standalone copy of this driver with a NEW id: the driver in a project has no id of its

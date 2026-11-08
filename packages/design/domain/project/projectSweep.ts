@@ -4,7 +4,6 @@ import type {
 } from '../../engine/index.js';
 import { FixedAir } from '../../engine/index.js';
 import type { Filter, EnclosureParams } from '../../engine/index.js';
-import type { CmsSource } from '../../engine/driver/cmsResolver.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell } from '../cell.js';
 import type { Calculated, Readable, SimpleField } from '../cell.js';
 import type { Box } from '../box/box.js';
@@ -40,7 +39,6 @@ export interface ProjectSweepSource {
     readonly winisdPrNprResonance: SimpleField<boolean>;
     readonly winisdBesselHighpass: SimpleField<boolean>;
     readonly winisdAbcGroupDelay: SimpleField<boolean>;
-    readonly cmsSource: CmsSource;
     readonly winisdTlPortNoEndCorrection: SimpleField<boolean>;
     readonly rgAtDriverSide: SimpleField<boolean>;
     readonly useTransmissionLinePortModel: SimpleField<boolean>;
@@ -346,8 +344,7 @@ export type SweepPlan =
  *  push while Qes sets the damping. Unticked there is one BL, the one Re, Fs, Qes and Vas imply, and a typed BL is not read. */
 function sweepDriverOf(source: ProjectSweepSource, air: Air): SweepDriver {
     const entered = source.driver.specs.sweepDriverIn(air);
-    const figures = source.winisdDriverModel.value ? entered : {...entered, winisdBL_Tm: null};
-    return {...figures, cmsSource: source.cmsSource};
+    return source.winisdDriverModel.value ? entered : {...entered, winisdBL_Tm: null};
 }
 
 export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): SweepPlan {

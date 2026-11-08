@@ -1,4 +1,4 @@
-import type {CmsSource} from '../../engine/driver/cmsResolver.js';
+import type {CmsSource} from '../../engine/index.js';
 import {CompatSwitch} from './compatSwitch.js';
 import type {OpenISDProject} from './openISDProject.js';
 
