@@ -273,6 +273,8 @@ test('desktop Passive Radiator tab: Num. of PRs keeps the number-box width, not 
 /** The widest blank allowed between the longest label of a What-if column and that column's boxes:
  *  the desktop's 22px warning slot after every label, and a few px. */
 const WHAT_IF_LABEL_GAP_MAX_PX = 22 + 8;
+/** The What-if number box, 25% narrower than the 124px it had (John, 8 Nov 2026: "reduce the field widths by 25%"). */
+const WHAT_IF_BOX_PX = 93;
 
 for (const box of ['vented', 'bandpass6', 'abc'] as const) {
   // John, 8 Nov 2026, QO449.c11/c16: "there is too much space between labels and cells"; "the what if on the desktop".
@@ -298,5 +300,8 @@ for (const box of ['vented', 'bandpass6', 'abc'] as const) {
       const gap = Math.min(...column.map(f => f.boxX)) - Math.max(...column.map(f => f.textRight));
       expect(gap, JSON.stringify(column)).toBeLessThanOrEqual(WHAT_IF_LABEL_GAP_MAX_PX);
     }
+    const boxWidths = await panel.locator('.ui-field .num-input-wrap').evaluateAll(all => all.map(w => Math.round(w.getBoundingClientRect().width)));
+    expect(boxWidths.length).toBeGreaterThan(0);
+    expect(new Set(boxWidths), JSON.stringify(boxWidths)).toEqual(new Set([WHAT_IF_BOX_PX]));
   });
 }
