@@ -259,7 +259,10 @@ export class OpenIsdDriverSpec {
         /** One `SpecEntryJson` slot inside this section — deletes the key when set to `undefined`
          *  (T11: absence is 'N', not a stored null). */
         const sectionLens = driverSection(record, section);
-        const sectionSlot = (key: DriverSpecFieldName, partner?: DriverSpecFieldName): SimpleField<SpecEntryJson | undefined> => ({
+        const sectionSlot = (
+            key: DriverSpecFieldName,
+            partner?: DriverSpecFieldName,
+        ): SimpleField<SpecEntryJson | undefined> => ({
             get value() {
                 return sectionLens.value[key];
             },

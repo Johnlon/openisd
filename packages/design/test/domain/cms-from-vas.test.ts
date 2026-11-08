@@ -94,11 +94,12 @@ describe.each<Kind>(['driver', 'radiator'])('Cms from Vas: %s', (kind) => {
     expectBoxIsSweep(kind, r);
   });
 
-  it('(b) typing Cms works out Vas', () => {
+  it('(b) typing Cms drops the entered Vas: it is worked out again, and the typed Cms stands', () => {
+    // WinISD keeps the entered Vas and ignores the typed Cms in its charts (runs/cms_mms_rms_bl_edit_e150he); OpenISD lets the typed Cms move the charts.
     const r = rig(kind, {Vas_m3: vas, Cms_m_per_N: consistentCms()});
-    const k = vas / consistentCms();
     r.setCms(consistentCms() * 1.5);
-    expect(r.vas()).toBeCloseTo(consistentCms() * 1.5 * k, 6);
+    expect(r.cms()).toBeCloseTo(consistentCms() * 1.5, 12);
+    expect(r.vas()).not.toBeNull();
   });
 
   it('(c) both stated and disagreeing, "Cms from Vas" ticked (default): charts and box use Cms from Vas, warning shown', () => {
