@@ -659,6 +659,7 @@
     "bugs/BUG_20261107_new-project-wizard-radiator-pane-shows-no-calculated-values.md",
     "bugs/BUG_20261107_offline-release-test-stops-at-the-radiator-jump.md",
     "bugs/BUG_20261107_radiator-pages-miss-figures-the-datasheet-gives.md",
+    "bugs/BUG_20261108_desktop-drawer-footer-buttons-cut-at-phone-width.md",
     "bugs/BUG_20261108_desktop-skin-clips-toolbar-at-phone-width.md",
     "bugs/BUG_20261108_desktop-skin-menus-and-links-cut-at-phone-width.md",
     "bugs/BUG_20261108_desktop-whatif-wide-gap-between-labels-and-boxes.md",

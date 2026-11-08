@@ -1164,7 +1164,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   line-height: 1.15;
 }
 .panel-title { color:#7d9fc9; font-weight:600; margin-bottom:4px; font-size:14px; }
-.quad-projects-wrap { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
+/* In a short window the nav column scrolls rather than squeezing the project drawer until its footer buttons are cut (T737). */
+.quad-projects-wrap { flex:1 1 auto; min-height:180px; display:flex; flex-direction:column; }
 .quad-signalgen-wrap { flex:none; }
 /* Action row under the list — stands in for WinISD's right-click project menu. */
 .close-actions { display:flex; flex-direction:column; gap:6px; margin-top:10px; }

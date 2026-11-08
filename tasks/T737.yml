@@ -1,0 +1,14 @@
+id: T737
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Desktop skin at phone width: project drawer footer buttons Bin and Export all are cut by the drawer (AI live review, T736 build)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T737.yml
+  - bugs/BUG_20261108_desktop-drawer-footer-buttons-cut-at-phone-width.md
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/original/OriginalProjectList.vue
+  - packages/ui/test/ui/desktop-drawer-footer-fits.browser.spec.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
