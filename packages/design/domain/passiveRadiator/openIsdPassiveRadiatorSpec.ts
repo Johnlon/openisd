@@ -84,6 +84,57 @@ export class OpenIsdPassiveRadiatorSpec {
         this.weight_kg = prSpec(section, 'weight_kg');
     }
 
+    // The figure typed last wins (QO463, John 8 Nov 2026; docs/design/FIELD_CLEAR_RULE.md
+    // "Passive radiator pairs"). The charts read Cms, Mms and Rms; Vas, Fs and Qms reach them only
+    // through those. Each method names the stated figures a typed one moves; `prSpec` drops them in
+    // the same write and `resolve` works them out again. A figure is named only when its inputs are there.
+
+    /** Vas typed: Cms follows Vas and Sd; Mms (Fs stated) and Rms (Qms stated) follow Cms. */
+    #vasMoves(): PassiveRadiatorFieldName[] {
+        return this.Sd_m2.value === null ? [] : this.#cmsFollowers();
+    }
+
+    /** Sd typed: with Vas stated, as Vas typed; else Vas follows the stated Cms and nothing is dropped. */
+    #sdMoves(): PassiveRadiatorFieldName[] {
+        return this.Vas_m3.entered ? this.#cmsFollowers() : [];
+    }
+
+    /** Cms, and the stated Mms and Rms that follow it once Cms is worked out from Vas and Sd. */
+    #cmsFollowers(): PassiveRadiatorFieldName[] {
+        return ['Cms_m_per_N', ...(this.Fs_hz.entered ? ['Mms_kg' as const] : []), ...(this.Qms.entered ? ['Rms_kg_per_s' as const] : [])];
+    }
+
+    /** Fs typed: Mms follows Fs and Cms; Rms (Qms stated) follows Mms. */
+    #fsMoves(): PassiveRadiatorFieldName[] {
+        if (this.Cms_m_per_N.value === null) return [];
+        return ['Mms_kg', ...(this.Qms.entered ? ['Rms_kg_per_s' as const] : [])];
+    }
+
+    /** Qms typed: Rms follows Qms, Mms and Cms. */
+    #qmsMoves(): PassiveRadiatorFieldName[] {
+        return this.Mms_kg.value === null || this.Cms_m_per_N.value === null ? [] : ['Rms_kg_per_s'];
+    }
+
+    /** Cms typed: Vas follows Cms and Sd; Fs (Mms stated) and Qms (Rms stated) follow Cms. */
+    #cmsMoves(): PassiveRadiatorFieldName[] {
+        return [
+            ...(this.Sd_m2.value !== null ? ['Vas_m3' as const] : []),
+            ...(this.Mms_kg.entered ? ['Fs_hz' as const] : []),
+            ...(this.Rms_kg_per_s.entered && this.Mms_kg.value !== null ? ['Qms' as const] : []),
+        ];
+    }
+
+    /** Mms typed: Fs follows Mms and Cms; Qms (Rms stated) follows Mms. */
+    #mmsMoves(): PassiveRadiatorFieldName[] {
+        if (this.Cms_m_per_N.value === null) return [];
+        return ['Fs_hz', ...(this.Rms_kg_per_s.entered ? ['Qms' as const] : [])];
+    }
+
+    /** Rms typed: Qms follows Rms, Mms and Cms. */
+    #rmsMoves(): PassiveRadiatorFieldName[] {
+        return this.Mms_kg.value === null || this.Cms_m_per_N.value === null ? [] : ['Qms'];
+    }
+
     /** The Xmax this radiator has once picked into a project: its own, else its Xlim ("Xmech"). A
      *  radiator has no voice coil, so a record that states a mechanical limit and no Xmax has that
      *  limit as its Xmax (QO327, John 31 Oct 2026: "stick xmech in the Xmax field as that's what a

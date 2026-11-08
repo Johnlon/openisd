@@ -1,6 +1,7 @@
 /**
- * A radiator's typed figures that disagree with the ones they imply are marked on every field in
- * the relation, as a driver's are, and the mark clears when one is corrected or cleared.
+ * A radiator's stated figures that disagree with the ones they imply are marked on every field in
+ * the relation, as a driver's are, and the mark clears when one is corrected or cleared. A typed
+ * figure works out the ones it moves (QO463), so a conflict comes from a datasheet stating both.
  */
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
@@ -30,18 +31,20 @@ describe('radiator figure conflicts reach the fields', () => {
     }
   });
 
-  it('a typed Mms that disagrees marks Mms, Fs and Cms', () => {
-    const spec = prProject(createEngine(), four).box.passiveRadiator.radiator.spec;
-    spec.Mms_kg.set(spec.Mms_kg.value! * 1.5);
+  const offMms = (engine: Engine) => ({...four, Mms_kg: prProject(engine, four).box.passiveRadiator.radiator.spec.Mms_kg.value! * 1.5});
+
+  it('a stated Mms that disagrees marks Mms, Fs and Cms', () => {
+    const engine = createEngine();
+    const spec = prProject(engine, offMms(engine)).box.passiveRadiator.radiator.spec;
     expect(marked(spec.Mms_kg)).toBe(true);
     expect(marked(spec.Fs_hz)).toBe(true);
     expect(marked(spec.Cms_m_per_N)).toBe(true);
     expect(marked(spec.Qms)).toBe(false);
   });
 
-  it('clearing the typed Mms removes the mark', () => {
-    const spec = prProject(createEngine(), four).box.passiveRadiator.radiator.spec;
-    spec.Mms_kg.set(spec.Mms_kg.value! * 1.5);
+  it('clearing the stated Mms removes the mark', () => {
+    const engine = createEngine();
+    const spec = prProject(engine, offMms(engine)).box.passiveRadiator.radiator.spec;
     spec.Mms_kg.clear();
     for (const f of [spec.Fs_hz, spec.Mms_kg, spec.Cms_m_per_N]) expect(marked(f)).toBe(false);
   });

@@ -53,10 +53,11 @@ export function driverFromSpec(engine: Engine, spec: Record<string, number | Voi
 
 /** A conforming passive-radiator record, same structural plumbing as `driverFromSpec()` but under
  *  the `passive-radiator` section `conformingRecordToPassiveRadiator()` requires. */
-export function radiatorFromSpec(engine: Engine, spec: Record<string, number>): OpenISDPassiveRadiatorStandalone {
-  const pr: Record<string, { state: 'E'; value: number; origin: string; readings: Record<string, { read_value: number }> }> = {};
+export function radiatorFromSpec(engine: Engine, spec: Record<string, number>, halfWidths: Record<string, number> = {}): OpenISDPassiveRadiatorStandalone {
+  const pr: Record<string, { state: 'E'; value: number; origin: string; readings: Record<string, { read_value: number; read_precision?: number }> }> = {};
   for (const [k, v] of Object.entries(spec)) {
-    pr[k] = { state: 'E', value: v, origin: 'scraped', readings: { scraped: { read_value: v } } };
+    const width = halfWidths[k];
+    pr[k] = { state: 'E', value: v, origin: 'scraped', readings: { scraped: width === undefined ? { read_value: v } : { read_value: v, read_precision: width } } };
   }
   const result = OpenISDPassiveRadiatorStandalone.fromConformingRecord({
     brand: scraped('SB Acoustics'), model: scraped('SB23PACS'), manufacturer: scraped('SB Acoustics'),
