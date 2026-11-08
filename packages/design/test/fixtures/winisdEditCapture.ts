@@ -525,7 +525,7 @@ export function editorDeviations(project: OpenISDProject, capture: Capture, only
 /** A typed Cms (QO463): WinISD ignores it in every chart and keeps the entered Vas; OpenISD's charts follow it, so its
  *  charts differ from WinISD's, the saved record keeps the typed Cms as E, and the Vas is no longer entered.
  *  (cms-from-vas.test.ts holds the rule itself.) */
-export function assertTypedCmsStands(project: OpenISDProject, capture: Capture, swept: ReturnType<typeof sweepAfterEdit>, rules: ReturnType<typeof chartRules>): void {
+export function assertTypedCmsStands(project: OpenISDProject, capture: EditCapture, swept: ReturnType<typeof sweepAfterEdit>, rules: ReturnType<typeof chartRules>): void {
   assert.throws(() => assertChartMatches(capture, swept, 'spl', rules), 'WinISD ignores a typed Cms; OpenISD does not');
   const saved = savedEntry(project, 'Cms_m_per_N');
   assert.ok(saved !== undefined && saved.state === 'E' && saved.value === capture.typed, 'the typed Cms is saved as entered');
