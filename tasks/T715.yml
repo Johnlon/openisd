@@ -1,9 +1,11 @@
 id: T715
-release_note: internal
+release_note: On the desktop, Save and Revert sit under the What-if button, away from the bottom of the box.
 repo: openisd
-owner: cover
+owner: leader
 status: open
-goal: Desktop Save and Revert sit one row higher, so Revert no longer sticks out at the bottom
-done_test: bash scripts/quiet-test.sh npm run typecheck
+goal: "I want the Save/Revert button moved away from the bottom of the box - place them under what-if with a one button gap (John, QO453.c7)"
+done_test: bash scripts/test.sh packages/ui/test/ui/original-shell-layout.browser.spec.ts
 files:
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/original-shell-layout.browser.spec.ts
   - tasks/T715.yml
