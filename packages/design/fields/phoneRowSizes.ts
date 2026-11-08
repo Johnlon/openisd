@@ -62,6 +62,8 @@ export class PhoneRowColumns {
   static readonly WARNING_PX = 26;
   static readonly MODEL_CUE_PX = 24;
   static readonly CONTROL_GAP_PX = 8;
+  /** The Signal tab's typing box takes this share of the width a Box-tab box has (John, 8 Nov 2026, T720: 60%). */
+  static readonly SIGNAL_INPUT_SHARE = 0.6;
 
   static chipIsWide(label: string): boolean { return label.length > 3; }
 
@@ -93,6 +95,7 @@ export class PhoneRowColumns {
       ['--mob-col-model', `${PhoneRowColumns.MODEL_CUE_PX}px`],
       ['--mob-col-gap', `${PhoneRowColumns.CONTROL_GAP_PX}px`],
       ['--mob-col-gutter', `${this.textGutterPx}px`],
+      ['--mob-col-input-share', `${PhoneRowColumns.SIGNAL_INPUT_SHARE}`],
     ]);
   }
 }

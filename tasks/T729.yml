@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 5f916e9ecc80af59bd098c21868555329a2c15c4
 goal: Field notes are popups everywhere; a note never changes the grid
 done_test: bash scripts/test.sh packages/ui/test/hooks/fieldNotePlacement.test.ts
 why: |

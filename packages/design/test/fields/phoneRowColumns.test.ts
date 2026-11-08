@@ -17,4 +17,8 @@ describe('PhoneRowColumns', () => {
     for (const unit of ['mm/N', 'Ns/m', '1000/K', 'kg/m³']) expect(PhoneRowColumns.chipIsWide(unit)).toBe(true);
     for (const unit of ['Hz', 'L', 'Ω', 'mm']) expect(PhoneRowColumns.chipIsWide(unit)).toBe(false);
   });
+
+  it('gives the phone Signal tab typing box 60% of its column (T720)', () => {
+    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-input-share')).toBe('0.6');
+  });
 });
