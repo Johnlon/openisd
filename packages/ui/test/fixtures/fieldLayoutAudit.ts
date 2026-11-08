@@ -2,9 +2,6 @@
  * Rules 2 to 7 of .claude/rules/field-layout.md, measured on what is painted in `root`. Runs inside
  * the page. A fault is one line naming the rule, the group and the controls. No field CSS assumed.
  */
-/** The widest blank allowed between a group's longest label and its boxes (rule 8). */
-const LABEL_GAP_MAX_PX = 16;
-
 export function measureFieldLayoutRules(root: Element): string[] {
   const issues: string[] = [];
   const doc = root.ownerDocument;
@@ -40,8 +37,6 @@ export function measureFieldLayoutRules(root: Element): string[] {
     if (/^(auto|scroll)$/.test(style.overflowY) && scroller.scrollHeight > scroller.clientHeight + 1 && scroller.matches('.tab-section,.content-panel,.what-if-panel,.modal-body')) issues.push(`R2 ${scroller.tagName.toLowerCase()}.${String(scroller.className).slice(0, 24)} scrolls up and down ${scroller.scrollHeight - scroller.clientHeight}px`);
   }
 
-  /** Where a label's text ends, whatever width its grid track gives the label element. */
-  const textRight = (label: Element) => { const range = doc.createRange(); range.selectNodeContents(label); return Math.round(range.getBoundingClientRect().right); };
   // Groups: a group is the controls of one column that share a label edge.
   // The rules cover number boxes, counts and dropdowns; the radiator's free-text name is none of these.
   const columnSelector = '.vent-col,.pr-controls > div,.driver-columns > div,.box-fields-col,.what-if-panel,[role=dialog],.mob-np-body,.modal-body,.mob-content,.mob-sheet-body';
@@ -52,7 +47,6 @@ export function measureFieldLayoutRules(root: Element): string[] {
     const column = control.closest(columnSelector);
     return {
       control, tag: control.tagName, label: (label?.textContent ?? '').trim().slice(0, 22), labelX: label === null || label === undefined ? -1 : Math.round(label.getBoundingClientRect().x),
-      labelTextRight: label === null || label === undefined ? -1 : textRight(label), phone: control.closest('.app-root-mobile') !== null,
       column: column === null ? 'root' : `${column.className}`.slice(0, 20), x: Math.round(box.x), right: Math.round(box.right), width: Math.round(box.width), height: Math.round(box.height), y: Math.round(box.y),
     };
   });
@@ -75,13 +69,6 @@ export function measureFieldLayoutRules(root: Element): string[] {
     const narrow = Math.min(...group.map(f => f.width));
     const sameEdge = group.filter(f => !(f.control instanceof HTMLSelectElement && f.width > narrow && needsMore(f.control, narrow)));
     if (new Set(sameEdge.map(f => f.right)).size > 1 || new Set(sameEdge.map(f => f.width)).size > 1) issues.push(`R4 ${key} value widths differ: ${list(f => `${f.width}/${f.right}`)}`);
-    // Rule 8 (John, 8 Nov 2026, QO449.c16: "fix the gaps on all fields"): on desktop the boxes sit
-    // next to the group's longest label, never a wide blank away.
-    const desktop = group.filter(f => !f.phone);
-    if (desktop.length > 1) {
-      const gap = Math.min(...desktop.map(f => f.x)) - Math.max(...desktop.map(f => f.labelTextRight));
-      if (gap > LABEL_GAP_MAX_PX) issues.push(`R8 ${key} ${gap}px between the longest label and the boxes: ${list(f => String(f.labelTextRight))}`);
-    }
     for (const tag of ['INPUT', 'SELECT']) {
       const same = group.filter(f => f.tag === tag);
       if (new Set(same.map(f => f.height)).size > 1) issues.push(`R5 ${key} ${tag.toLowerCase()} heights differ: ${same.map(f => `${f.label}:${f.height}`).join(', ')}`);

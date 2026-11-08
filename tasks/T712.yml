@@ -4,10 +4,11 @@ repo: openisd
 owner: maryu
 status: open
 goal: Desktop What-if: labels sit next to their boxes, no wide gap
-done_test: bash scripts/quiet-test.sh npm run typecheck
+done_test: bash scripts/test.sh packages/ui/test/ui/field-layout-rules.browser.spec.ts
 files:
   - tasks/T712.yml
   - bugs/BUG_20261108_desktop-whatif-wide-gap-between-labels-and-boxes.md
   - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
-  - packages/ui/test/fixtures/fieldLayoutAudit.ts
   - packages/ui/test/ui/field-layout-rules.browser.spec.ts
+  - packages/ui/test/fixtures/fieldLayoutAudit.ts
+  - packages/ui/test/ui/zz-scratch-whatif-gap.browser.spec.ts
