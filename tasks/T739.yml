@@ -1,13 +1,17 @@
 id: T739
 release_note: internal
+priority: high
 repo: openisd
 owner: leader
 status: open
 goal: One reliable list of every view and popup; the live review visits it and reports each visited or not
 why: John, 8 Nov 2026 - "a summary to confirm that all screens or views or popup were checked is ok as long as we have a reliable list of all views and popup (no matter how small) and can state which were or were not visited, without that list of visual components to check then none of our testing is reliable".
 found: There are three lists, the declared phone list (157 views, mobileSurfaceManifest.ts), the declared desktop list (130, desktopSurfaceManifest.ts) and a source scan of 608 conditional popups and branches (mobileSurfaceSourceIndex.json). The scan only proves its own list has not changed; nothing ties each scanned popup to a declared view. The live review (ui-gallery/bin/steps/live) visits a hand-written set and reads none of them.
+ruling: John, 8 Nov 2026 - "we need a single comprehensive index that is automatically maintained as a high priority so tests remain valid, agent must not mod the screens with[out] recording as DD or removal of views (inc warning popups), and inline expansion sections are imho considered views in scope".
 plan:
-  - The declared phone and desktop lists are the one inventory of views and popups.
+  - One index of every view, for both skins: pages, tabs, dialogs, menus, sheets, warning and error popups, field-note popups and inline expansion sections. It replaces the separate phone list, desktop list and source scan.
+  - Maintained automatically: built from the source scan, so a new, changed or removed view shows up in the index without an agent typing it.
+  - Agents cannot change a screen silently: adding, changing or removing a view fails a unit test (and so land.sh) until the index carries the change with its design decision (who ruled it, when).
   - A unit test fails when a popup or branch found by the source scan has no declared view (or is not named as part of one). A new popup cannot ship unlisted.
   - The live review drives its sweep from the inventory and writes a coverage table (table data-coverage) with one row per view and skin, marked visited or not visited, with the reason if not.
   - A view the review cannot reach is a red row, never left out.
