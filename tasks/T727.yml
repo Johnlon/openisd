@@ -3,6 +3,7 @@ release_note: "The Info menu's About item shows the version."
 repo: openisd
 owner: cover
 status: done
+landed: f5d27ba0c4ee2fbfc3471a42c1745dcc35a393bb
 goal: Edit Driver number boxes accept a typed value cleanly; the old text never stays in front of the new, and an error message never covers a label
 done_test: bash scripts/test.sh packages/ui/test/hooks/NumInput-hooks.test.ts
 files:

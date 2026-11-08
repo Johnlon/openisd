@@ -36,7 +36,6 @@
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field) .ui-field-dev {grid-column:4;grid-row:1;justify-self:start;align-self:center;margin:0;width:auto;min-width:0;}
 /* Without spinners the model cue hugs the joined box or dropdown. */
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field):not(:has(.num-stepper)) .ui-field-dev {grid-column:3 / 5;}
-.joined-fields .ui-field.ui-field:is([data-field],.joined-field) .ui-field-note {grid-column:1 / -1;}
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field).signal-gen-field {
   --joined-label:0px;--joined-chip:20px;--joined-box:96px;--joined-buttons:24px;
   width:auto;flex:1 1 auto;min-width:0;
@@ -55,7 +54,6 @@
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .num-stepper-btn {width:40px;height:36px;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-dev {padding-left:2px;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field):not(:has(.num-stepper)) .ui-field-dev {margin-left:0;}
-.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field).ui-field-note-open {height:auto;padding-top:4px;padding-bottom:4px;}
 /* The chosen inverse cursor remains behaviourally identical after the paint rollback. */
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field) .num-mark-overlay {font:inherit;line-height:normal;padding:0; padding-left:calc(var(--joined-inset) + var(--joined-border-width));text-align:left;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .num-mark-overlay {font:15px/18px Arial,sans-serif;}
