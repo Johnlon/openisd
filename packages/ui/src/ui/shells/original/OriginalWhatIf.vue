@@ -98,11 +98,11 @@ useEscToClose(() => presentationState.editDriver, close);
       <span>What-if</span>
       <div class="what-if-title-actions">
         <button type="button" class="collapse-btn" :aria-expanded="!collapsed" :aria-label="collapsed ? 'Expand What-if panel' : 'Collapse What-if panel to reveal the chart'" :title="collapsed ? 'Expand the What-if controls' : 'Collapse the controls; What-if stays active'" @click="collapsed = !collapsed">{{ collapsed ? 'Expand' : 'Collapse' }}</button>
-        <button type="button" class="close-btn" aria-label="Close What-if" title="Close. The design is not changed." @click="close">✕</button>
+        <button type="button" class="close-btn" aria-label="Close What-if" title="Close. Your project will not be updated." @click="close">✕</button>
       </div>
     </div>
     <div class="what-if-content" v-show="!collapsed">
-      <p class="what-if-hint">Try values and watch the charts. The design is not changed.</p>
+      <p class="what-if-hint">Experiment - Try values &amp; watch the charts. Your project will not be updated.</p>
 
       <div class="what-if-subsect">Driver</div>
       <div class="what-if-grid">
@@ -137,7 +137,7 @@ useEscToClose(() => presentationState.editDriver, close);
 
     <div class="what-if-btns">
       <button title="Back to the design's values" @click="reset">Reset</button>
-      <button class="footer-buttons-pri" title="Close. The design is not changed." @click="close">Close</button>
+      <button class="footer-buttons-pri" title="Close. Your project will not be updated." @click="close">Close</button>
     </div>
       <ProvenanceLegend class="what-if-legend" />
     </div>

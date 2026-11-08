@@ -725,7 +725,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <!-- Save rail — stacked on the right edge so the buttons consume no vertical space. -->
         <div class="save-rail">
           <button v-if="projectOpen && tabHelpShown" type="button" class="tab-help-btn" aria-label="Help: this tab" title="What this tab is for" @click="openTabHelp">?</button>
-          <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try other values and watch the charts. The design is not changed." @click="startWhatIf">&#9835; What-if</button>
+          <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try values &amp; watch the charts. Your project will not be updated." @click="startWhatIf">&#9835; What-if</button>
           <button v-if="projectOpen" class="edit-btn project-save-btn" title="Save the project to browser storage" @click="saveProject">Save</button>
           <button v-if="projectOpen" class="edit-btn revert-btn" :disabled="!isModified" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="resetProjectToGround(confirmDiscard)">Revert</button>
         </div>
