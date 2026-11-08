@@ -38,8 +38,10 @@ async function fontFilesFromOurOrigin(page: Page): Promise<string[]> {
   return page.evaluate(() => performance.getEntriesByType('resource').map(entry => entry.name).filter(name => /\.woff2?(\?|$)/.test(name)).map(name => new URL(name).origin));
 }
 
-const DESKTOP_ALLOWED = [SkinFonts.DESKTOP.family, SkinFonts.MONO.family];
-const PHONE_ALLOWED = [SkinFonts.PHONE.family, SkinFonts.MONO.family];
+/** What getComputedStyle reports for a skin's font stack: the text face, then the symbols face, nothing else. */
+const stackOf = (text: typeof SkinFonts.DESKTOP): string => SkinFonts.stack(text).replace(/"/g, '');
+const DESKTOP_ALLOWED = [stackOf(SkinFonts.DESKTOP), stackOf(SkinFonts.MONO)];
+const PHONE_ALLOWED = [stackOf(SkinFonts.PHONE), stackOf(SkinFonts.MONO)];
 
 test.describe('desktop skin 1366x768', () => {
   test.use({viewport: {width: 1366, height: 768}});

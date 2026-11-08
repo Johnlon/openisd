@@ -9,8 +9,8 @@ import {describe, expect, it} from 'vitest';
 import {SkinFonts} from '../../../design/fields/appFonts.js';
 
 const ROOT = new URL('../../../../', import.meta.url).pathname;
-const FILES = execFileSync('git', ['ls-files', 'packages/ui/src', 'packages/ui/about', 'packages/ui/index.html', 'packages/design/chart/layout.ts'], {cwd: ROOT, encoding: 'utf8'})
-  .split('\n').filter(f => /\.(css|vue|html|ts)$/.test(f));
+const FILES = execFileSync('git', ['ls-files', 'packages/ui/src', 'packages/ui/about', 'packages/ui/index.html', 'packages/ui/public/about/refresh/index.html', 'packages/ui/public/logo-wide.svg', 'packages/design/chart/layout.ts'], {cwd: ROOT, encoding: 'utf8'})
+  .split('\n').filter(f => /\.(css|vue|html|ts|svg)$/.test(f));
 const VARIABLES = new Set([...SkinFonts.cssVars().keys(), '--font-ui'].map(name => `var(${name})`));
 const KEYWORDS = new Set(['inherit', 'initial', 'unset', 'revert', ...VARIABLES, ...SkinFonts.all().map(font => font.family)]);
 const FAMILY_DECLARATION = /font-family\s*[:=]\s*"?([^;}"\n]+)/g;

@@ -9,6 +9,8 @@ export class AppFont {
   static readonly SELAWIK = new AppFont('Selawik');
   static readonly ROBOTO = new AppFont('Roboto');
   static readonly MONO = new AppFont('JetBrains Mono');
+  /** The symbols, arrows, Greek letters and subscripts the three text faces lack: small subsets of Noto Sans and Roboto, one family. */
+  static readonly SYMBOLS = new AppFont('AppSymbols');
 
   private constructor(
     /** The family name the @font-face rule gives the bundled files. */
@@ -23,16 +25,20 @@ export class SkinFonts {
   static readonly DESKTOP = AppFont.SELAWIK;
   static readonly PHONE = AppFont.ROBOTO;
   static readonly MONO = AppFont.MONO;
+  static readonly SYMBOLS = AppFont.SYMBOLS;
 
   /** Every bundled family, and so every family the app may name. */
-  static all(): readonly AppFont[] { return [SkinFonts.DESKTOP, SkinFonts.PHONE, SkinFonts.MONO]; }
+  static all(): readonly AppFont[] { return [SkinFonts.DESKTOP, SkinFonts.PHONE, SkinFonts.MONO, SkinFonts.SYMBOLS]; }
+
+  /** A skin's font as the font-family value the UI uses: the text face, then the symbols face for glyphs it lacks. No system font. */
+  static stack(text: AppFont): string { return `${text.cssValue()}, ${SkinFonts.SYMBOLS.cssValue()}`; }
 
   /** The fonts as CSS custom properties. */
   static cssVars(): ReadonlyMap<string, string> {
     return new Map([
-      ['--font-desktop', SkinFonts.DESKTOP.cssValue()],
-      ['--font-phone', SkinFonts.PHONE.cssValue()],
-      ['--font-mono', SkinFonts.MONO.cssValue()],
+      ['--font-desktop', SkinFonts.stack(SkinFonts.DESKTOP)],
+      ['--font-phone', SkinFonts.stack(SkinFonts.PHONE)],
+      ['--font-mono', SkinFonts.stack(SkinFonts.MONO)],
     ]);
   }
 }
