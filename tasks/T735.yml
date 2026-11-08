@@ -1,0 +1,30 @@
+id: T735
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Phone header: a long project name ('AS168-9-470 passive radiator') is cut in a 90 px cell; it wraps onto three lines (AI live review, T733 build)
+done_test: bash scripts/test.sh packages/design/test/fields/phoneHeaderSizes.test.ts
+files:
+  - tasks/T735.yml
+  - bugs/BUG_20261108_phone-project-name-cut-in-list.md
+  - packages/design/fields/phoneHeaderSizes.ts
+  - packages/design/test/fields/phoneHeaderSizes.test.ts
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/ui/mobile-header-classic.browser.spec.ts
+  - packages/ui/test/ui/mobile-long-project-name-wraps.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-signal.png
+visual:
+  - mobile-menu
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-filters
+  - mobile-tab-signal

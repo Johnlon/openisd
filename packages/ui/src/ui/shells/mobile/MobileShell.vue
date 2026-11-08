@@ -351,7 +351,7 @@ const diagnostics = injectDiagnosticsModal();
 }
 .mob-brand { display: flex; align-items: center; gap: 8px; margin-left: 4px; font-weight: 600; font-size: 17px; }
 .mob-brand img { width: 24px; height: 24px; display: block; }
-/* The focused project's name: takes the rest of the bar and wraps to two lines (ellipsis only past two). */
+/* The focused project's name: takes the rest of the bar and wraps to three lines (ellipsis only past three). */
 .mob-project-title {
   all: unset;
   box-sizing: border-box;

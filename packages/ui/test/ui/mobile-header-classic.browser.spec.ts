@@ -30,7 +30,7 @@ for (const size of PHONE_SIZES) {
       }
     });
 
-    test('a long project name is 14 px on at most two lines, right-aligned, inside the bar', async ({appPage: page}) => {
+    test('a long project name is 12 px on at most three lines, right-aligned, inside the bar', async ({appPage: page}) => {
       await openAMobileProject(page, undefined, LONG_NAME);
       const title = page.locator('.mob-project-title');
       const m = await title.evaluate(el => {
@@ -41,10 +41,10 @@ for (const size of PHONE_SIZES) {
         return {font: cs.fontSize, line: cs.lineHeight, align: cs.textAlign, h: r.height, top: r.top, bottom: r.bottom, right: r.right,
           barTop: bar.top, barBottom: bar.bottom, saveLeft: save.left, lines: Math.round(r.height / parseFloat(cs.lineHeight))};
       });
-      expect(m.font).toBe('14px');
-      expect(m.line).toBe('17px');
+      expect(m.font).toBe('12px');
+      expect(m.line).toBe('14px');
       expect(m.align).toBe('right');
-      expect(m.lines).toBeLessThanOrEqual(2);
+      expect(m.lines).toBeLessThanOrEqual(3);
       expect(m.h).toBeLessThanOrEqual(CONTROL + 0.5);
       expect(m.top).toBeGreaterThanOrEqual(m.barTop);
       expect(m.bottom).toBeLessThanOrEqual(m.barBottom);

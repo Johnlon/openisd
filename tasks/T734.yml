@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 6f2f5305d0fcdac3c13c78dbcae780fc1426396e
 goal: Phone labels on one line, phone Filters strip and Box type width, desktop skin clipping at phone width (AI live review findings, round 3)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
