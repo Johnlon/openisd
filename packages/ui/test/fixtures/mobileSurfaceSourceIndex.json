@@ -663,6 +663,7 @@
     "bugs/BUG_20261108_desktop-skin-chart-collapses-at-phone-width.md",
     "bugs/BUG_20261108_desktop-skin-clips-toolbar-at-phone-width.md",
     "bugs/BUG_20261108_desktop-skin-menus-and-links-cut-at-phone-width.md",
+    "bugs/BUG_20261108_desktop-splitter-button-cut-when-panel-hidden.md",
     "bugs/BUG_20261108_desktop-whatif-wide-gap-between-labels-and-boxes.md",
     "bugs/BUG_20261108_driver-editor-field-labels-wrap.md",
     "bugs/BUG_20261108_driver-editor-warning-note-widens-grid-boxes-off-screen.md",
