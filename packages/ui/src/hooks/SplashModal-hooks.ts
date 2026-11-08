@@ -1,6 +1,6 @@
 import type {ComputedRef, InjectionKey, Ref} from 'vue';
 import {computed, inject, provide, ref, watch} from 'vue';
-import type {VersionsView} from '../logic/versionIndex.js';
+import {aboutMenuLabel, type VersionsView} from '../logic/versionIndex.js';
 
 /** The persisted flag the splash reads and writes — a member of `presentationState.ui`, named
  *  here so the hook takes the narrow surface it uses rather than the whole presentation
@@ -22,7 +22,7 @@ export interface SplashCatalogue {
   passiveRadiatorCount(): Promise<number>;
 }
 
-/** The hosted builds, for the Versions list. Asked only when the splash is on screen. */
+/** The hosted builds, for the Versions list and the About menu label. Asked once, at start. */
 export interface SplashVersions {
   view(): Promise<VersionsView>;
 }
@@ -36,6 +36,8 @@ export interface SplashModalAPI {
   readonly passiveRadiatorCount: Ref<number | null>;
   /** The Versions list; null until the list of hosted builds has been read. */
   readonly versions: Ref<VersionsView | null>;
+  /** The Info menu's About item text: "About OpenISD 7.0.959", or "About OpenISD" while no number is known. */
+  readonly aboutLabel: ComputedRef<string>;
   /** Close it and record that it was seen — it stays shut on every later visit. */
   dismiss(): void;
   /** Open it again: the Info menu's "About OpenISD". */
@@ -60,11 +62,14 @@ export function useSplashModal(state: SplashState, catalogue?: SplashCatalogue, 
   const passiveRadiatorCount = ref<number | null>(null);
   const versions = ref<VersionsView | null>(null);
 
+  // Asked at start: the Info menu names the version before About is ever opened.
+  if (builds !== undefined) void builds.view().then(v => { versions.value = v; }, () => { /* no list, no section */ });
+  const aboutLabel = computed(() => aboutMenuLabel(versions.value));
+
   let asked = false;
   watch(open, isOpen => {
     if (!isOpen || asked) return;
     asked = true;
-    if (builds !== undefined) void builds.view().then(v => { versions.value = v; }, () => { /* no list, no section */ });
     if (catalogue === undefined) return;
     void catalogue.driverCount().then(n => { driverCount.value = n; }, () => { /* no count, no sentence */ });
     void catalogue.passiveRadiatorCount().then(n => { passiveRadiatorCount.value = n; }, () => { /* as above */ });
@@ -79,7 +84,7 @@ export function useSplashModal(state: SplashState, catalogue?: SplashCatalogue, 
     forced.value = true;
   }
 
-  return {open, driverCount, passiveRadiatorCount, versions, dismiss, show};
+  return {open, driverCount, passiveRadiatorCount, versions, aboutLabel, dismiss, show};
 }
 
 /** Build the one splash the app has and hand it to every descendant. Called by the composition

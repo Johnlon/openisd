@@ -36,7 +36,7 @@ const headerVars = Object.fromEntries(PhoneHeaderSizes.CLASSIC.cssVars());
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, flashMessage, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, dismissReconnect, revertProject, projectTitle,
-  browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, sheetTyping, pinSpacePx, onContentScroll,
+  browseDrivers, optionsOpen, openOptions, about, aboutLabel, goToProject, goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, sheetTyping, pinSpacePx, onContentScroll,
   contentEl, canScrollUp, canScrollDown,
   username, appVersion, projectsPaneOpen, openProjectsPane, closeProjectsPane, projectRows, openProjectRows, selectOpenProject, closeOpenProject, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel, chooseProject,
   setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
@@ -215,7 +215,7 @@ const diagnostics = injectDiagnosticsModal();
           </button>
           <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
           <button type="button" class="mob-menu-item" @click="diagnostics.show(); closeMenu()">Diagnostics</button>
-          <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
+          <button type="button" class="mob-menu-item" @click="about(); closeMenu()">{{ aboutLabel }}</button>
           <button type="button" class="mob-menu-item" @click="announcements.showList(); closeMenu()">Announcements</button>
           <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
           <button v-if="!skinIsAutomatic" type="button" class="mob-menu-item" @click="useAutomaticSkin">Automatic view</button>

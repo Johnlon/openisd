@@ -160,7 +160,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { engine, designIO, selection, driverBrowsing, myPassiveRadiators, bundledPassiveRadiators, confirmPort, appUpdate } = useApp();
   const { saveProject, saveProjectRecord, saveAllProjects, saveProjectAs, importFile } = designIO;
   // The Info menu's "About OpenISD" opens the splash — the one place that text lives.
-  const { show: about } = injectSplashModal();
+  const { show: about, aboutLabel } = injectSplashModal();
   // The Info menu's manual, persisted skin switch — the auto-by-viewport half lives in
   // `App.vue`'s `activeSkin` (`presentationState.narrowViewport`), which this override beats.
   function switchToMobile(): void { setSkinOverride('mobile'); }
@@ -810,7 +810,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
     projectListRef, duplicateProject, exportProject, cycleProjectColor, setProjectColor, copyProjectCharts, saveProjectRow, renameProject,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
-    saveProject: handleSaveProject, saveAllProjects: handleSaveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
+    saveProject: handleSaveProject, saveAllProjects: handleSaveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, aboutLabel, optionsOpen,
     chartLabel, chartItems, selectChart, toggleChart,
     hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
     startNudge, stopNudge, cursorHz, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectValue, selectedOption,

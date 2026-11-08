@@ -51,7 +51,7 @@ const {
   projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
   projectListRef, duplicateProject, exportProject, cycleProjectColor, setProjectColor, copyProjectCharts, saveProjectRow, renameProject,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
-  saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
+  saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, aboutLabel, optionsOpen,
   chartLabel, chartItems, selectChart, toggleChart,
   hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
   startNudge, stopNudge, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectedOption,
@@ -140,7 +140,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <span class="caret">&#9662;</span>
           </button>
           <div class="dropdown-menu" :class="{ open: openDd === 'info-dropdown' }" @click.stop>
-            <div class="menu-item" @click="about(); closeDropdown()">About OpenISD</div>
+            <div class="menu-item" @click="about(); closeDropdown()">{{ aboutLabel }}</div>
             <div class="menu-item" @click="announcements.showList(); closeDropdown()">Announcements</div>
             <a class="menu-item" :href="INSTALL_URL" target="_blank" rel="noopener" title="How to add OpenISD to your desktop or dock as an app." @click="closeDropdown()">Add to desktop as an app</a>
             <div

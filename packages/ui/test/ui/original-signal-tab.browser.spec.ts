@@ -97,8 +97,8 @@ test.describe('Original Signal tab', () => {
   });
 
   test.describe('series resistance', () => {
-    test('shows WinISD 3-dp precision (0.100 ohm)', async ({ appPage: page }) => {
-      await expect(signalInput(page, 'Series resistance')).toHaveValue(/^\d+\.\d{3}$/);
+    test('shows 0.100 ohm as 0.10 (two decimals, no trailing zeros past the second)', async ({ appPage: page }) => {
+      await expect(signalInput(page, 'Series resistance')).toHaveValue('0.10');
     });
 
     test('holds a typed value instead of resetting to 0', async ({ appPage: page }) => {

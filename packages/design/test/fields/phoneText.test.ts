@@ -98,7 +98,7 @@ describe('phone text', () => {
   });
 
   it('an inspector badge shows the label, the value to the field\'s precision and its unit', () => {
-    expect(PhoneEditorText.valueBadge('Qes', 0.42)).toBe('Qes = 0.420');
+    expect(PhoneEditorText.valueBadge('Qes', 0.42)).toBe('Qes = 0.42');
     expect(PhoneEditorText.valueBadge('Fs_hz', 45)).toBe('Fs = 45.00 Hz');
     expect(PhoneEditorText.valueBadge('Fs_hz', null)).toBe('Fs');
     expect(PhoneEditorText.valueBadge('no_such_key', 1)).toBe('no_such_key');

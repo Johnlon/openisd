@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {
-  describeVersions, fetchVersionIndex, parseVersionIndex, startVersionIndex, type BuildEntry,
+  aboutMenuLabel, describeVersions, fetchVersionIndex, parseVersionIndex, startVersionIndex, type BuildEntry,
 } from '../../src/logic/versionIndex.js';
 
 function entry(stamp: string, kind: 'release' | 'snap', over: Partial<BuildEntry> = {}): BuildEntry {
@@ -99,5 +99,19 @@ describe('startVersionIndex', () => {
     await index.view();
     expect(fetchFn).toHaveBeenCalledTimes(1);
     expect((await index.view()).running?.stamp).toBe('20260101T0102Z');
+  });
+});
+
+describe('aboutMenuLabel', () => {
+  it('names the public number when the running build has one', () => {
+    const view = describeVersions('20260201T1000Z', [entry('20260201T1000Z', 'release', {version: '7.0.959'})]);
+    expect(aboutMenuLabel(view)).toBe('About OpenISD 7.0.959');
+  });
+
+  it('is plain "About OpenISD" while the list is not read, or has no number for this build', () => {
+    expect(aboutMenuLabel(null)).toBe('About OpenISD');
+    expect(aboutMenuLabel(describeVersions('20260201T1000Z', null))).toBe('About OpenISD');
+    expect(aboutMenuLabel(describeVersions('20260201T1000Z', [R2]))).toBe('About OpenISD');
+    expect(aboutMenuLabel({running: null})).toBe('About OpenISD');
   });
 });

@@ -4,6 +4,18 @@ export function formatFixed(v: number, decimals: number): string {
   return v.toFixed(decimals);
 }
 
+/**
+ * `v` to `decimals` places with trailing zeros dropped down to two decimals (or `decimals` when
+ * fewer): 14.7 at 5 is "14.70", 7.1734 is "7.1734", 0.57 at 3 is "0.57" (John, QO454, 8 Nov 2026).
+ */
+export function formatTrimmed(v: number, decimals: number): string {
+  const out = v.toFixed(decimals);
+  const floor = Math.min(decimals, 2);
+  let end = out.length;
+  for (let d = decimals; d > floor && out.charAt(end - 1) === '0'; d--) end--;
+  return out.slice(0, end);
+}
+
 /** `v` to `decimals` places; a dash when `v` is missing or not finite. */
 export function formatFixedOrDash(v: number | null, decimals: number): string {
   return v != null && isFinite(v) ? v.toFixed(decimals) : '—';

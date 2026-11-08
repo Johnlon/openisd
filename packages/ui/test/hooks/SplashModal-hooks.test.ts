@@ -88,16 +88,22 @@ describe('useSplashModal — catalogue counts', () => {
 describe('useSplashModal — versions', () => {
   const view = {running: {version: '7.0.951', heading: 'OpenISD 7.0.951 · 1 Jan 2026', stamp: '20260101T0102Z'}};
 
-  it('asks for the hosted builds only once the splash is on screen', async () => {
+  it('reads the hosted builds once, at start, for the Info menu label and the Versions list', async () => {
     let asked = 0;
     const api = useSplashModal(state(true), undefined, {view: async () => { asked++; return view; }});
     await flush();
-    expect(asked).toBe(0);
-    expect(api.versions.value).toBeNull();
+    expect(asked).toBe(1);
+    expect(api.versions.value).toEqual(view);
+    expect(api.aboutLabel.value).toBe('About OpenISD 7.0.951');
     api.show();
     await flush();
     expect(asked).toBe(1);
-    expect(api.versions.value).toEqual(view);
+  });
+
+  it('says plain "About OpenISD" until the list is read', async () => {
+    const api = useSplashModal(state(true));
+    await flush();
+    expect(api.aboutLabel.value).toBe('About OpenISD');
   });
 
   it('leaves the section out when the list cannot be described', async () => {

@@ -136,7 +136,7 @@ test.describe('Original Advanced tab', () => {
     test('relative humidity moves both readouts — the input is not inert', async ({ appPage: page }) => {
       await humidity(page).fill('100');
       await humidity(page).blur();
-      await expect(airDensity(page)).toHaveValue('1.19360');
+      await expect(airDensity(page)).toHaveValue('1.1936');
       await expect(soundVelocity(page)).not.toHaveValue('343.99');
     });
 

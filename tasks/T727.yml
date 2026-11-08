@@ -1,0 +1,48 @@
+id: T727
+release_note: "The Info menu's About item shows the version."
+repo: openisd
+owner: cover
+status: done
+goal: Edit Driver number boxes accept a typed value cleanly; the old text never stays in front of the new, and an error message never covers a label
+done_test: bash scripts/test.sh packages/ui/test/hooks/NumInput-hooks.test.ts
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/ui/driver-browser.browser.spec.ts
+  - packages/ui/test/ui/mobile-driver-editor.browser.spec.ts
+  - packages/ui/test/ui/unit-toggle.browser.spec.ts
+  - packages/ui/test/ui/num-input-rendition.browser.spec.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/original-signal-tab.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - tasks/T727.yml
+  - packages/ui/src/hooks/NumInput-hooks.ts
+  - packages/ui/test/ui/qes-cut-tab-undo.browser.spec.ts
+  - packages/ui/src/logic/versionIndex.ts
+  - packages/ui/test/logic/versionIndex.test.ts
+  - packages/ui/src/hooks/SplashModal-hooks.ts
+  - packages/ui/test/hooks/SplashModal-hooks.test.ts
+  - packages/ui/test/hooks/OriginalShell-hooks.test.ts
+  - packages/ui/test/hooks/MobileShell-hooks.test.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/test/ui/driver-editor-label-nowrap.browser.spec.ts
+  - bugs/BUG_20261108_driver-editor-field-labels-wrap.md
+  - bugs/BUG_20261108_edit-driver-typed-digits-append-to-old-value.md
+  - bugs/BUG_20261108_trailing-zeros-past-two-decimals.md
+  - packages/design/fields/format.ts
+  - packages/design/fields/field.ts
+  - packages/design/test/fields/format.test.ts
+why: "John, 8 Nov 2026: serious ui bug ... its the error boxes; cut, Tab, Ctrl-Z in any number box joins old and new text | John, 8 Nov 2026 04:45: Can we get the version into the menu here 'About OpenISD A.B.CCC'; QO454 decimals rule: at least 2 decimals, no trailing zeros past 2; Field labels are wrapping (USPL shown as USP over L in the driver editor)"
+visual:
+  - desktop-tab-driver
+  - desktop-tab-signal
+  - mobile-tab-driver
+  - mobile-tab-signal

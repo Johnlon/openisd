@@ -301,10 +301,10 @@ test.describe('New Project wizard', () => {
       // Navigate to Driver tab
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
 
-      // Voice coil resistance TC should default to copper (3.9000 in 1000/K)
+      // Voice coil resistance TC should default to copper (3.90 in 1000/K)
       const tcField = page.locator('.field', { hasText: 'AlfaVC' });
       const tc = tcField.locator('input');
-      await expect(tc).toHaveValue('3.9000');
+      await expect(tc).toHaveValue('3.90');
     });
 
     test('a new sealed project drives the sealed alignment towards Qt 0.707 and derives its volume', async ({ appPage: page }) => {

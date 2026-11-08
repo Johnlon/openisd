@@ -229,6 +229,37 @@ describe('useNumInput', () => {
     app.unmount();
   });
 
+  it('has its own one-step undo: Ctrl-Z after a committed edit restores and commits the old value, again swaps back', () => {
+    const {api, app, props, input, emissions} = setup({modelValue: 12});
+    const undo = () => api.onBeforeInput(beforeInputEvt('beforeinput', {inputType: 'historyUndo'}));
+    focusIn(api);
+    input.value = '15';
+    api.onInput(eventTargeted('input', input));
+    props.modelValue = 15;
+    api.onBlur(focusEvent('blur'));
+    focusIn(api);
+    undo();
+    expect(emissions.at(-1)).toEqual({event: 'update:modelValue', args: [12, undefined]});
+    expect(input.value).toBe('12.00');
+    props.modelValue = 12;
+    undo();
+    expect(emissions.at(-1)).toEqual({event: 'update:modelValue', args: [15, undefined]});
+    expect(input.value).toBe('15.00');
+    app.unmount();
+  });
+
+  it('Ctrl-Z while typing reverts the text to the stored value and emits nothing', () => {
+    const {api, app, input, emissions} = setup({modelValue: 12});
+    focusIn(api);
+    input.value = '1.';
+    api.onInput(eventTargeted('input', input));
+    const before = emissions.length;
+    api.onBeforeInput(beforeInputEvt('beforeinput', {inputType: 'historyUndo'}));
+    expect(input.value).toBe('12.00');
+    expect(emissions.length).toBe(before);
+    app.unmount();
+  });
+
   it('keeps an emptied mandatory box refused, and accepts a genuinely optional empty value', async () => {
     const mandatory = setup({modelValue: 10, mandatory: true, blankRefused: true});
     mandatory.api.onFocus(focusEvent('focus'));

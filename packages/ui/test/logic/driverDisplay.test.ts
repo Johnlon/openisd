@@ -99,8 +99,8 @@ describe('previewSpecsOf — reported readings with no usable simulation value',
 
     const specs = previewSpecsOf(driver);
     assert.deepEqual(specs.filter(spec => spec.label === 'Re' || spec.label === 'BL'), [
-      {kind: PreviewSpecKind.Number, label: 'Re', value: '3.400', unit: 'Ω'},
-      {kind: PreviewSpecKind.Number, label: 'BL', value: '7.17000', unit: 'Tm'},
+      {kind: PreviewSpecKind.Number, label: 'Re', value: '3.40', unit: 'Ω'},
+      {kind: PreviewSpecKind.Number, label: 'BL', value: '7.17', unit: 'Tm'},
     ]);
   });
 
@@ -189,7 +189,7 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
 
     assert.equal(rows[0].sd, '250.00cm²');
     assert.equal(rows[0].mms, '60.00g');
-    assert.equal(rows[0].cms, '1.1000mm/N');
+    assert.equal(rows[0].cms, '1.10mm/N');
   });
 
   it('shows an em dash for a number the radiator does not state', () => {

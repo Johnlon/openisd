@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: backlog
 status: done
+landed: 23c4450e7bcf61b6ee8ef0d37ec218b4ad0f583b
 goal: BACKLOG: agent ideas - phone chat AI drives OpenISD; in-app agent on a server using John's AI keys, edits the project by tool call
 done_test: grep -Fq "An AI agent inside OpenISD (John, 8 Nov 2026)" BACKLOG.md
 files:

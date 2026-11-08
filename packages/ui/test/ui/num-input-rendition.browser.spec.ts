@@ -240,12 +240,12 @@ test('changing display units drops the old spin place before the next keyboard s
   await expect(unit).toBeFocused();
   await unit.press('Enter');
   await expect(unit).toHaveText('kHz');
-  await expect(input).toHaveValue('0.2000000');
+  await expect(input).toHaveValue('0.20');
   await expect(row.locator('.num-mark-underline')).toHaveCount(0);
   await unit.press('Tab');
   await expect(up).toBeFocused();
   await up.press('ArrowUp');
-  await expect(input).toHaveValue('0.3000000');
+  await expect(input).toHaveValue('0.30');
 });
 
 
@@ -256,15 +256,15 @@ test('reverse Tab after a unit change restores an end digit instead of selecting
   await input.press('Tab');
   await expect(unit).toBeFocused();
   await unit.press('Enter');
-  await expect(input).toHaveValue('0.1000000');
+  await expect(input).toHaveValue('0.10');
   await expect(row.locator('.num-mark-underline')).toHaveCount(0);
   await unit.press('Shift+Tab');
   await expect(input).toBeFocused();
-  await expect(row.locator('.num-mark-pre')).toHaveText('0.100000');
+  await expect(row.locator('.num-mark-pre')).toHaveText('0.1');
   await expect(row.locator('.num-mark-underline')).toHaveText('0');
-  expect(await input.evaluate(element => element instanceof HTMLInputElement ? [element.selectionStart, element.selectionEnd] : null)).toEqual([8, 9]);
+  expect(await input.evaluate(element => element instanceof HTMLInputElement ? [element.selectionStart, element.selectionEnd] : null)).toEqual([3, 4]);
   await input.press('ArrowUp');
-  await expect(input).toHaveValue('0.1000001');
+  await expect(input).toHaveValue('0.11');
 });
 
 

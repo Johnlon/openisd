@@ -18,9 +18,9 @@ test.describe('Driver browser', () => {
     const specification = (label: string) => preview.locator('.spec-row').filter({
       has: page.locator('.spec-lbl', {hasText: new RegExp(`^${label}$`)}),
     });
-    await expect(specification('Re').locator('.spec-val b')).toHaveText('3.400');
+    await expect(specification('Re').locator('.spec-val b')).toHaveText('3.40');
     await expect(specification('Re').locator('.spec-unit')).toHaveText('Ω');
-    await expect(specification('BL').locator('.spec-val b')).toHaveText('7.17000');
+    await expect(specification('BL').locator('.spec-val b')).toHaveText('7.17');
     await expect(specification('BL').locator('.spec-unit')).toHaveText('Tm');
   });
 

@@ -43,7 +43,7 @@ import {
   toSI as toSIDim, UNIT_GROUPS, unitFor,
 } from './dimensions.js';
 import {knownDecimals} from './precision.js';
-import {formatFixed} from './format.js';
+import {formatFixed, formatTrimmed} from './format.js';
 import type {FieldLimits} from './filterLimits.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
@@ -227,7 +227,7 @@ export class NumberField extends Field {
 
     decimals = Math.max(0, Math.min(20, decimals));
     const sanitizedVal = valDisp === 0 ? 0 : valDisp;
-    return sanitizedVal.toFixed(decimals);
+    return formatTrimmed(sanitizedVal, decimals);
   }
 
   /** Parse raw typed string input into a Quantity or Text discriminant for this field. */

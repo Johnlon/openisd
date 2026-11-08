@@ -225,7 +225,7 @@ test.describe('ƒ marks and value badges on the phone', () => {
     const card = page.locator('.eq-inspector-card');
     await expect(card).toBeVisible();
     await expect(card).toContainText('Provenance: Qts');
-    await expect(card.locator('.eq-in-badge', {hasText: 'Qes = 0.420'})).toBeVisible();
+    await expect(card.locator('.eq-in-badge', {hasText: 'Qes = 0.42'})).toBeVisible();
     for (const b of await card.locator('.eq-in-badge').all()) expect(await b.textContent()).toMatch(/^\s*\S+( = \S+( \S+)?)?\s*$/);
   });
 });
