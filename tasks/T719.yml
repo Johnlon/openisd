@@ -1,0 +1,9 @@
+id: T719
+release_note: internal
+repo: openisd
+owner: cover
+status: open
+goal: WinISD findings live in docs/research/winisd-findings, not in bugs/
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T719.yml
