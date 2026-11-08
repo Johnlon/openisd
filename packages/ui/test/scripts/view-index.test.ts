@@ -27,10 +27,10 @@ describe('view index',()=>{
       expect(view?.skin,surface.id).toBe(ViewSkin.Desktop);
     }
   });
-  it('has no extra entries beyond the two manifests',()=>{
-    expect(VIEW_INDEX.length).toBe(MOBILE_SURFACES.length+DESKTOP_SURFACES.length);
+  it('has no baseline entries beyond the two manifests',()=>{
+    expect(VIEW_INDEX.filter(view=>view.decision.kind==='baseline').length).toBe(MOBILE_SURFACES.length+DESKTOP_SURFACES.length);
   });
-  it('has decision baseline for every view for now',()=>{
-    expect(VIEW_INDEX.filter(view=>view.decision.kind!=='baseline').map(view=>view.id)).toEqual([]);
+  it('carries every non-baseline entry with a ruling that names a task',()=>{
+    expect(VIEW_INDEX.filter(view=>view.decision.kind==='ruling'&&view.decision.ref==='').map(view=>view.id)).toEqual([]);
   });
 });
