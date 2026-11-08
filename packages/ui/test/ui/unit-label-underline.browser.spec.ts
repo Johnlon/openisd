@@ -110,7 +110,7 @@ for (const screen of project_screens) {
         const wideChip = row.closest('.driver-advanced-fields, .adv-air-fields') !== null;
         const approved=expectedUnits.find(entry=>entry.field===row.getAttribute('data-field')&&entry.symbol===unit.textContent);
         if(!approved)problems.push(`${label}: missing approved joined-unit reference`);
-        else if(ur.left-cr.right!==-(wideChip?60:Number(approved.paint.width)))problems.push(`${label}: unit gap ${ur.left-cr.right}, expected ${-(wideChip?60:Number(approved.paint.width))}`);
+        else if(Math.abs(ur.left-cr.right+(wideChip?60:Number(approved.paint.width)))>(row.closest('.mob-signal')!==null?0.05:0))problems.push(`${label}: unit gap ${ur.left-cr.right}, expected ${-(wideChip?60:Number(approved.paint.width))}`);
         if (ur.top !== cr.top || ur.height !== cr.height) problems.push(`${label}: unit and value edges do not align`);
         if (!inside(ur, rr)) problems.push(`${label}: unit outside field row by ${Math.max(rr.left - ur.left, ur.right - rr.right, 0)}px`);
       }

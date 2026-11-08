@@ -44,7 +44,9 @@ export function measureCompactFields(root: Element, reference: {intrinsic:readon
     if (value instanceof HTMLInputElement && value.readOnly !== readonly) fail('native readonly does not match binding access');
     const box = value.getBoundingClientRect();
     const rowBox = row.getBoundingClientRect();
-    if (Math.abs(box.width-approved.valueWidth)>0.5)fail(`value width ${box.width}, expected ${approved.valueWidth}`);
+    // T720: the phone Signal tab's typing box is 60% of the approved width (PhoneRowColumns.SIGNAL_INPUT_SHARE).
+    const expectedWidth = approved.valueWidth * (value instanceof HTMLInputElement && row.closest('.mob-signal') !== null ? 0.6 : 1);
+    if (Math.abs(box.width-expectedWidth)>0.5)fail(`value width ${box.width}, expected ${expectedWidth}`);
     if (box.left < rowBox.left || box.right > rowBox.right + 0.5) fail('value leaves the row');
     if (!row.classList.contains('ui-field-note-open') && Math.abs(rowBox.height-approved.rowHeight)>0.5)fail(`row depth ${rowBox.height}, expected ${approved.rowHeight}`);
     const style = getComputedStyle(value);

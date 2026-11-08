@@ -284,6 +284,11 @@ a { color:var(--acc) }
   height: var(--mob-input-h); margin-right: calc(var(--mob-tail) + 1px); display: flex; align-items: center; justify-content: center;
   font-size: 13px;
 }
+/* Signal tab (T720): the typing box takes a share (PhoneRowColumns.SIGNAL_INPUT_SHARE) of its column,
+   left edge unchanged; the unit chip stays on the box's right edge. */
+.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-value .num-input-wrap { width: calc(100% * var(--mob-col-input-share)); justify-self: start; }
+.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-unit { margin-right: calc(100% * (1 - var(--mob-col-input-share))); }
+.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-value .num-stepper { grid-column: 2; grid-row: 1; justify-self: start; margin-left: calc(100% * var(--mob-col-input-share)) !important; }
 /* Phone chips sit inside the value box and retain their own divider. A mandatory
    value's stronger top/bottom outline must continue through the unit segment. */
 .mob-classic .mob-ui-field.ui-field .ui-field-unit.unit-toggle { height: var(--mob-input-h); }

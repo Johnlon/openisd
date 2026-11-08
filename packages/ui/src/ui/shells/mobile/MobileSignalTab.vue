@@ -12,7 +12,7 @@ const { project, powerLocked, rsOhm } = useMobileSignalTab();
 </script>
 
 <template>
-  <PhoneClassicPage>
+  <PhoneClassicPage class="mob-signal">
     <PhoneBand :section="PhoneHelp.SIGNAL" />
     <UIField class="mob-ui-field" :field="NumberField.SIGNAL_PIN_W" :label="PhoneLabels.POWER" :cell="project.powerDrive_W" :readonly="powerLocked" stepper />
     <UIField class="mob-ui-field" :field="NumberField.SIGNAL_DRIVEV_V" :label="PhoneLabels.VOLTS" :cell="project.driveVoltage_V" stepper />
