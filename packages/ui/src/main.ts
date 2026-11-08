@@ -94,9 +94,9 @@ import {DesktopSizes, PhoneRowSizes, trailOfLocation} from '@openisd/design/fiel
 import {createEngine} from '@openisd/design/engine';
 import {basicUtc, browserNameOf, formatDateTime, persistenceLine} from '@openisd/design/fields';
 import {announceLostKeys} from './logic/lostKeyNotice.js';
-import '@fontsource/inter/400.css';
-import '@fontsource/inter/600.css';
-import '@fontsource/inter/700.css';
+import '@fontsource/inter/latin-400.css';
+import '@fontsource/inter/latin-600.css';
+import '@fontsource/inter/latin-700.css';
 import './style.css';
 
 /** The browser's storage under this deployment's prefix: the /test/ build keeps a store of its own. */

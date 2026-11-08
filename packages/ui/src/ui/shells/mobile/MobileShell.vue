@@ -292,7 +292,7 @@ const diagnostics = injectDiagnosticsModal();
   flex-direction: column;
   background: var(--bg);
   color: var(--fg);
-  font: 15px/1.5 "Inter", system-ui, sans-serif;
+  font: 15px/1.5 Inter;
   font-variant-numeric: tabular-nums;
 }
 /* Typing in a Graph sheet's box with the keyboard up (MobileShell-hooks sheetTyping): the rows get the

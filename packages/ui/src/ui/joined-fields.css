@@ -10,7 +10,7 @@
 }
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field):has(.ui-field-dev) {--joined-model:24px;}
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field):has(.unit-wide) {--joined-chip:60px;}
-.joined-fields .ui-field.ui-field:is([data-field],.joined-field) > label {grid-column:1;grid-row:1;white-space:normal;overflow-wrap:anywhere;line-height:normal;padding-right:4px;justify-self:start;width:fit-content;max-width:100%;box-sizing:border-box;}
+.joined-fields .ui-field.ui-field:is([data-field],.joined-field) > label {grid-column:1;grid-row:1;white-space:normal;overflow-wrap:normal;line-height:normal;padding-right:4px;justify-self:start;width:fit-content;max-width:100%;box-sizing:border-box;}
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field):has(.ui-field-dq-btn) > label {padding-right:4px;margin-right:22px;max-width:calc(100% - 22px);}
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field) .ui-field-value {display:contents;}
 .joined-fields .ui-field:is([data-field],.joined-field) .num-unit {display:contents;}
@@ -48,15 +48,15 @@
   width:100%;max-width:100%;min-height:40px;height:auto;padding:0 16px;column-gap:0;
 }
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field):has(.unit-wide) {--joined-chip:60px;}
-.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) > label {font-size:14px;line-height:16px;white-space:normal;overflow-wrap:anywhere;}
-.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-value :is(input,select) {font:15px Arial,sans-serif;border-radius:4px;}
+.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) > label {font-size:14px;line-height:16px;white-space:normal;overflow-wrap:normal;}
+.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-value :is(input,select) {font:15px Inter;border-radius:4px;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .num-stepper {padding-left:6px;gap:4px;box-sizing:border-box;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .num-stepper-btn {width:40px;height:36px;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-dev {padding-left:2px;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field):not(:has(.num-stepper)) .ui-field-dev {margin-left:0;}
 /* The chosen inverse cursor remains behaviourally identical after the paint rollback. */
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field) .num-mark-overlay {font:inherit;line-height:normal;padding:0; padding-left:calc(var(--joined-inset) + var(--joined-border-width));text-align:left;}
-.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .num-mark-overlay {font:15px/18px Arial,sans-serif;}
+.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .num-mark-overlay {font:15px/18px Inter;}
 .joined-fields.joined-fields .num-mark-underline {font:inherit;text-decoration:none;border:0;animation:joined-inverse-blink 1s step-end infinite;}
 .joined-fields input[data-numinput]::selection {background:Highlight;color:HighlightText;}
 .joined-fields .num-input-wrap:has(.num-mark-overlay) input[data-numinput]::selection {background:transparent;color:inherit;}
@@ -80,7 +80,7 @@
 /* The shared subgrid owns the full box width; wide unit caps must not enlarge only the input. */
 /* Sheet inputs share the control inset; account for their resting/focused borders. */
 /* Readouts retain production's UI typeface while remaining native readonly inputs. */
-.joined-fields.app-root-mobile .ui-field.ui-field-readout:is([data-field],.joined-field) .ui-field-value input[readonly] {font-family:Inter,system-ui,sans-serif;line-height:1.5;}
+.joined-fields.app-root-mobile .ui-field.ui-field-readout:is([data-field],.joined-field) .ui-field-value input[readonly] {font-family:Inter;line-height:1.5;}
 
 /* Numeric entries use the same typeface in sheets as in tab/dialog fields. */
 

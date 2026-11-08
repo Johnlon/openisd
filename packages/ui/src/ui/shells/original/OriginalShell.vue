@@ -890,7 +890,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   --chart-cross:#00000055; --chart-band:rgba(0,0,0,0.05); --chart-band-line:rgba(0,0,0,0.3);
   --readout-bg:rgba(248,250,252,0.92);
   display:flex; flex-direction:column; width:100%; height:100vh; background:#f2f2f2;
-  overflow:hidden; color:#1a1a1a; font-family:"Segoe UI", Tahoma, Arial, sans-serif; font-size:14px;
+  overflow:hidden; color:#1a1a1a; font-family:Inter; font-size:14px;
 }
 .original-root button, .original-root select, .original-root input, .original-root textarea { font-family:inherit; font-size:14px; }
 

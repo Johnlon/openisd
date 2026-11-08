@@ -9,7 +9,9 @@
   --chart-cross: #00000033; --chart-band: rgba(0,0,0,0.03); --chart-band-line: rgba(0,0,0,0.15);
 }
 * { box-sizing: border-box }
-body { margin:0; font:13px/1.45 "Inter",system-ui,sans-serif; background:var(--bg); color:var(--fg) }
+body { margin:0; font:13px/1.45 Inter; background:var(--bg); color:var(--fg) }
+/* Form controls do not inherit the page font by default: they take the browser's own. They use the bundled Inter (T742, QO466). */
+input, select, textarea, button { font-family: inherit }
 h1 { font-size:15px; margin:0; font-weight:600; letter-spacing:.3px }
 h1 small { color:var(--mut); font-weight:400; font-size:11px }
 header { display:flex; align-items:center; gap:14px; padding:8px 14px; background:var(--panel); border-bottom:1px solid var(--line) }

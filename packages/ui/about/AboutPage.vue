@@ -87,7 +87,7 @@ onMounted(async () => {
   box-sizing: border-box;
   max-width: 780px; margin: 0 auto; padding: 8px 20px 48px;
   background: #11151c; min-height: 100vh;
-  font-family: Inter, system-ui, sans-serif;
+  font-family: Inter;
 }
 .about-logo { display: block; width: 100%; height: auto; margin: 18px 0 14px; }
 .about-cta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 20px; }

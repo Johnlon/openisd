@@ -78,7 +78,7 @@ const hasModel = (cue: FieldCue) => cue === FieldCue.Model || cue === FieldCue.B
 </template>
 
 <style scoped>
-.field-catalogue {height:100dvh;overflow:auto;background:#fff;color:#222;font:14px/1.4 Arial,sans-serif;}
+.field-catalogue {height:100dvh;overflow:auto;background:#fff;color:#222;font:14px/1.4 Inter;}
 header {padding:12px;}h1{font-size:22px;}h2{font-size:12px;overflow-wrap:anywhere;margin:0;padding:8px 6px;}
 article {border-top:1px solid #bbb;padding-bottom:8px;} .catalogue-note,.catalogue-diagnostic{margin:4px 6px;font-size:12px;}
 .catalogue-bug {accent-color:#d6a600;background:#fff1aa !important;border:2px solid #d6a600 !important;} .catalogue-check-readout{grid-column:2;grid-row:1;display:inline-flex;width:20px;height:20px;border:1px solid #777;align-items:center;justify-content:center;} .catalogue-colour-readout{grid-column:2;grid-row:1;display:block;width:36px;height:26px;background:#2678a8;border:1px solid #777;} .catalogue-range :deep(meter){grid-column:2;grid-row:1;width:100%;min-width:0;height:34px;box-sizing:border-box;} .catalogue-other textarea{height:64px !important;}.catalogue-other:has(textarea){height:70px !important;}
@@ -88,5 +88,5 @@ article {border-top:1px solid #bbb;padding-bottom:8px;} .catalogue-note,.catalog
 .catalogue-other :deep(input[type=checkbox]) {width:20px !important;height:20px !important;min-height:20px !important;padding:0;justify-self:start;align-self:center;}
 .catalogue-other :deep(input[type=color]) {width:36px !important;height:26px !important;min-height:26px !important;padding:0;justify-self:start;align-self:center;}
 .catalogue-range:has(.ui-field-unit:not(:empty)) :deep(meter) {padding-right:var(--joined-chip);}
-.catalogue-other :deep(textarea) {grid-column:2;grid-row:1;width:100%;min-width:0;box-sizing:border-box;border:1px solid #c4c4c4;border-radius:4px;font:15px Arial,sans-serif;padding:4px 16px;}
+.catalogue-other :deep(textarea) {grid-column:2;grid-row:1;width:100%;min-width:0;box-sizing:border-box;border:1px solid #c4c4c4;border-radius:4px;font:15px Inter;padding:4px 16px;}
 </style>

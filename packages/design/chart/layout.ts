@@ -26,10 +26,9 @@ export class ChartLayout {
     return this.margin.t - 1 + this.levelLabelBaselinePx - this.tickFontPx;
   }
 
-  /** The chart text's font stack: the page's own (`body`, style.css). A bare `Inter` has no generic fallback,
-   *  so a browser without Inter drew the chart's text in whatever default face it chose, a serif on the test
-   *  machines, and the choice differed from one run to the next. */
-  static readonly FONT_FAMILY = '"Inter", system-ui, sans-serif';
+  /** The chart text's font: the app's own bundled Inter (style.css, main.ts), with no system fallback, so a chart
+   *  is drawn in the same face on every device (John, QO466). */
+  static readonly FONT_FAMILY = 'Inter';
 
   /** The canvas font shorthand for a size and weight, in this stack. */
   font(px: number, bold: boolean = false): string {

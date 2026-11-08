@@ -44,7 +44,7 @@
 
 /* Paint is fixed by the reviewed rendition, independent of either skin's theme and old field CSS. */
 .compact-fields.compact-fields .ui-field.ui-field :is(input,select,textarea,.mob-readonly) {
-  font-family:Arial,sans-serif !important; font-size:15px !important; font-weight:400 !important; line-height:normal !important;
+  font-family:Inter !important; font-size:15px !important; font-weight:400 !important; line-height:normal !important;
   border:1px solid #c4c4c4 !important; border-radius:4px !important; background:#fff !important; box-shadow:none !important;
 }
 .compact-fields.compact-fields .ui-field.ui-field input {color:#078200 !important;}
@@ -52,7 +52,7 @@
 .compact-fields.compact-fields .ui-field.ui-field :is(input.defaulted,.ui-field-defaulted input) {color:#23548f !important;}
 .compact-fields.compact-fields .ui-field.ui-field :is(input[readonly],.mob-readonly) {background:#f1f1f1 !important;color:#06f !important;}
 .compact-fields.compact-fields .ui-field.ui-field .ui-field-unit {
-  font:13px Arial,sans-serif !important; color:#555 !important; background:transparent !important; border:0 !important; border-radius:3px !important;
+  font:13px Inter !important; color:#555 !important; background:transparent !important; border:0 !important; border-radius:3px !important;
   text-decoration:none !important; text-align:start !important; margin:0 !important;
 }
 .compact-fields.compact-fields .ui-field.ui-field .ui-field-unit.unit-toggle {
@@ -61,20 +61,20 @@
 }
 .compact-fields.compact-fields .ui-field.ui-field .num-stepper-btn {
   border:1px solid #999 !important; border-radius:5px !important; background:linear-gradient(#fff,#ddd) !important;
-  font:18px Arial,sans-serif !important; text-align:center !important; color:#000 !important; padding:0 !important;
+  font:18px Inter !important; text-align:center !important; color:#000 !important; padding:0 !important;
 }
 .compact-fields.compact-fields .ui-field.ui-field .winisd-deviation-cue {
   display:inline-flex !important;align-items:center !important;justify-content:center !important;width:22px !important;min-width:22px !important;height:18px !important;
-  font:600 9px Arial,sans-serif !important;border:1px solid #3a6fb0 !important;border-radius:3px !important;background:#e6f0fb !important;color:#23548f !important;padding:0 !important;
+  font:600 9px Inter !important;border:1px solid #3a6fb0 !important;border-radius:3px !important;background:#e6f0fb !important;color:#23548f !important;padding:0 !important;
 }
-.compact-fields.compact-fields .ui-field.ui-field .ui-field-dq-btn {font:15px Arial,sans-serif !important;color:#ba7800 !important;background:transparent !important;border:0 !important;}
+.compact-fields.compact-fields .ui-field.ui-field .ui-field-dq-btn {font:15px Inter !important;color:#ba7800 !important;background:transparent !important;border:0 !important;}
 .compact-fields.compact-fields .ui-field.ui-field input.de-input-mandatory {border:2px solid #777 !important;}
 .compact-fields.compact-fields .ui-field.ui-field :is(input.de-input-empty,input.inp-bad) {border:2px solid #c62828 !important;}
 .compact-fields.compact-fields .ui-field.ui-field input:disabled {background:#e8e8e8 !important;color:#777 !important;}
 .compact-fields.compact-fields .ui-field.ui-field :is(input,select,textarea,button):focus-visible {outline:2px solid #1868c9 !important;outline-offset:1px !important;}
 
 /* E: the selected digit blinks in inverse video; native touch carets remain collapsed. */
-.compact-fields .num-mark-overlay {font:15px Arial,sans-serif !important;line-height:18px !important;padding:0 7px !important;text-align:left !important;}
+.compact-fields .num-mark-overlay {font:15px Inter !important;line-height:18px !important;padding:0 7px !important;text-align:left !important;}
 .compact-fields .num-mark-underline {font:inherit !important;text-decoration:none !important;border:0 !important;animation:spin-inverse-blink 1s step-end infinite;}
 .compact-fields input[data-numinput]::selection {background:transparent;color:inherit;}
 .compact-fields .num-stepper-btn {touch-action:none !important;}
@@ -100,5 +100,5 @@
 .compact-fields .tab-section .field-row:has(> .ui-field) {margin-bottom:0 !important;}
 /* Label typography is part of the reference, while its available width follows the parent group. */
 .compact-fields.compact-fields .ui-field.ui-field > label {
-  font:400 13px/16px Arial,sans-serif !important;color:#555 !important;text-align:start !important;width:auto !important;margin:0 !important;
+  font:400 13px/16px Inter !important;color:#555 !important;text-align:start !important;width:auto !important;margin:0 !important;
 }

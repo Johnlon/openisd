@@ -299,7 +299,7 @@ function handleCreate() {
   position: fixed; inset: 0; z-index: 100;
   background: var(--m-bg, #EEF1F0);
   display: flex; flex-direction: column;
-  font: 15px/1.4 "Inter", system-ui, sans-serif;
+  font: 15px/1.4 Inter;
 }
 .mob-np-head {
   flex: none; height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between;
