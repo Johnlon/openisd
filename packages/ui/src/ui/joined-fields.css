@@ -115,8 +115,6 @@
 .joined-fields:not(.app-root-mobile) .vent-pane-tight .ui-field.ui-field[data-field]:not(:has(.num-stepper)) .ui-field-dev {grid-column:2 / 4;}
 /* PR columns retain one complete box width even when a symbol needs a wider unit cap. */
 .joined-fields:not(.app-root-mobile) .pr-controls .ui-field.ui-field[data-field] {--joined-box:150px;}
-/* User options labels have no cue to leave room for: they use their whole 162px column, so the longest ("Target tuning freq (Fp)") stays on one line in Inter. */
-.joined-fields:not(.app-root-mobile) .pr-controls .ui-field.ui-field:is([data-field],.joined-field):not(:has(.ui-field-dq-btn)) > label {margin-right:0;max-width:100%;}
 /* The desktop wizard's radiator step: the same 150 as the project page, so a wider unit cap does not widen one row. */
 .joined-fields:not(.app-root-mobile) .np-pr-fields .ui-field.ui-field[data-field] {--joined-box:150px;}
 /* The Num. of drivers and Voice coil connection dropdowns (desktop Driver tab Placement panel, wizard step 2) have
@@ -130,7 +128,7 @@
 
 /* A unit's spelling must not change the outline or the unit rail within these groups. */
 .joined-fields:not(.app-root-mobile) .driver-advanced-fields .ui-field.ui-field[data-field] {--joined-box:134px;--joined-chip:60px;}
-.joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] {--joined-label:124px;--joined-box:134px;--joined-chip:60px;}
+.joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] {--joined-label:130px;--joined-box:134px;--joined-chip:60px;}
 /* One box width for every row of each group: the widest unit (kg/m3) needs 134px, so all rows take it and the outlines stay equal. */
 /* Two sixth-order port groups have room for the usual labels beside their controls. */
 .joined-fields:not(.app-root-mobile) .vent-labels-left .ui-field.ui-field[data-field] {
