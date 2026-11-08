@@ -1,0 +1,20 @@
+id: T712
+release_note: The desktop What-if panel puts each box next to its label, with no wide gap, and its boxes are a quarter narrower. What-if now says "Your project will not be updated".
+repo: openisd
+owner: maryu
+status: done
+goal: Desktop What-if: labels sit next to their boxes, no wide gap
+done_test: bash scripts/test.sh packages/ui/test/hooks/OriginalWhatIf-hooks.test.ts
+files:
+  - tasks/T712.yml
+  - bugs/BUG_20261108_desktop-whatif-wide-gap-between-labels-and-boxes.md
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
+  - packages/ui/test/ui/field-layout-rules.browser.spec.ts
+  - packages/ui/test/fixtures/fieldLayoutAudit.ts
+  - packages/ui/test/ui/zz-scratch-whatif-gap.browser.spec.ts
+  - packages/ui/test/ui/zz-scratch-whatif-beforeafter.browser.spec.ts
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet.browser.spec.ts
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/visual/SOURCES.sha256
