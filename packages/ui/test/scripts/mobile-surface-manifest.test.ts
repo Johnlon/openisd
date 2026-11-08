@@ -3,7 +3,7 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync,readFileSync,existsSync} from
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {discoverMobileSources} from '../../../../scripts/mobile-surface-discovery.js';
+import {discoverMobileSources,SourceSkin} from '../../../../scripts/mobile-surface-discovery.js';
 import {MOBILE_SURFACES,MobileRoute} from '../fixtures/mobileSurfaceManifest.js';
 import {mobileSurfaceFlow,MobileFlowChapter} from '../fixtures/mobileSurfaceFlow.js';
 import {mobileSurfaceIdentity} from '../fixtures/mobileSurfaceIdentity.js';
@@ -97,6 +97,47 @@ describe('mobile surface manifest',()=>{
     expect(MOBILE_SURFACES.filter(surface=>surface.route===MobileRoute.Editor).map(surface=>surface.parameter)).toEqual(['General','Parameters','Advanced','Dimensions']);
   });
 
+  describe('stable source keys and skins',()=>{
+    function scan(files:Record<string,string>){
+      const root=mkdtempSync(join(tmpdir(),'surface-keys-'));
+      try{
+        for(const [path,text] of Object.entries(files)){mkdirSync(join(root,path,'..'),{recursive:true});writeFileSync(join(root,path),text);}
+        return discoverMobileSources(root).surfaces;
+      }finally{rmSync(root,{recursive:true,force:true});}
+    }
+    const FILE='packages/ui/src/ui/Keys.vue';
+    const target='<div class="panel" id="a"><div v-if="flag" aria-label="Target"></div></div>';
+    const keyOf=(rows:ReturnType<typeof scan>,condition:string)=>rows.filter(row=>row.condition===condition).map(row=>row.id);
+    it('keeps a key when the branch moves down the file',()=>{
+      const before=scan({[FILE]:'<template><div>'+target+'<p v-if="other">x</p></div></template>'});
+      const after=scan({[FILE]:'<template><div><p v-if="other">x</p>\n\n'+target+'</div></template>'});
+      expect(keyOf(after,'flag')).toEqual(keyOf(before,'flag'));
+      expect(keyOf(before,'flag')).toHaveLength(1);
+    });
+    it('keeps a key when an identical-looking branch is inserted above in another named parent',()=>{
+      const before=scan({[FILE]:'<template><div>'+target+'</div></template>'});
+      const twin='<div class="other-panel"><div v-if="flag" aria-label="Target"></div></div>';
+      const after=scan({[FILE]:'<template><div>'+twin+target+'</div></template>'});
+      const original=keyOf(before,'flag')[0];
+      expect(keyOf(after,'flag')).toContain(original);
+      expect(new Set(keyOf(after,'flag')).size).toBe(2);
+    });
+    it('changes the key when the condition changes',()=>{
+      const before=scan({[FILE]:'<template>'+target+'</template>'});
+      const after=scan({[FILE]:'<template>'+target.replace('flag','flag2')+'</template>'});
+      expect(keyOf(after,'flag2')).not.toEqual(keyOf(before,'flag'));
+    });
+    it('scans the desktop shell and tags every record with its skin',()=>{
+      const rows=scan({
+        'packages/ui/src/ui/shells/original/Desk.vue':'<template><div v-if="d">x</div></template>',
+        'packages/ui/src/ui/shells/mobile/Ph.vue':'<template><div v-if="p">x</div></template>',
+        [FILE]:'<template><div v-if="s">x</div></template>'});
+      const skinOf=(condition:string)=>rows.find(row=>row.condition===condition)?.skin;
+      expect(skinOf('d')).toBe(SourceSkin.Desktop);
+      expect(skinOf('p')).toBe(SourceSkin.Phone);
+      expect(skinOf('s')).toBe(SourceSkin.Shared);
+    });
+  });
   it('discovers minor and nested popups, anonymous conditional branches, links and documentation',()=>{
     const root=mkdtempSync(join(tmpdir(),'mobile-surfaces-'));
     try{
