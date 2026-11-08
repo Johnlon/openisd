@@ -1,0 +1,69 @@
+id: T744
+release_note: A Cms you type always moves the charts, on drivers and radiators alike. A new WinISD-style option "Cms from Vas" decides which wins when a datasheet states both and they disagree; a warning shows when they do.
+repo: openisd
+owner: leader
+status: blocked
+blocked_by: QO463 (John picks A, one switch for driver and radiator, or B, driver only). Nothing starts before that.
+ruling: QO463
+goal: One rule for Cms on drivers and radiators. Typed last wins; a WinISD-style option "Cms from Vas" (ticked by default) settles a datasheet that states both Cms and Vas; the box always shows the Cms the charts use; a data-quality warning when the stated Cms and Vas disagree.
+
+# Orchestration: leader (Opus) only plans, briefs, reviews and lands. Each step is one cheap worker
+# (Sonnet subagent, or agy Flash through the tools session for pictures), run one after another in this
+# worktree, each committing to branch t744. A step starts only when the one before is committed and its
+# test is green. Every worker reads CLAUDE.md, .claude/rules/{testing,verify,general,ui}.md first.
+
+design:
+  - "One decision point: CompatSwitch.CMS_FROM_VAS (kind 'option') in packages/design/domain/project/compatSwitch.ts. Read once where the project becomes engine inputs."
+  - "One typed choice: a sum type CmsSource = VasWins | StatedCmsWins in packages/design/domain, built from the switch at that one point. Passed to the driver engine and the radiator spec. No booleans threaded through, no string keys, no new constants."
+  - "One Cms resolver shared by both parts: the field solve (what the box shows) and the sweep (what the charts use) call the same function, so they cannot differ. Formulas stay in the existing routes (CMS_FROM_VAS_SD_ROUTE, MMS_FROM_FS_CMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE)."
+  - "Warning: reuse the existing Cms/Vas conflict check (driver checkConsistency, radiator pr-spec-conflict); text says which value the charts use. No new warning type."
+  - "Typed last wins: typing Cms works out Vas (and the other way round), driver as radiator."
+
+steps:
+  - n: 1
+    worker: sonnet
+    do: "Red tests only (TDD). packages/design/test/domain/cms-from-vas.test.ts: (a) driver, typed Cms moves the SPL sweep; (b) driver, typed Cms works out Vas; (c) datasheet states both, switch ticked: charts and box use Cms from Vas, warning shown; (d) switch unticked: charts and box use the stated Cms, warning shown; (e) radiator same four; (f) box value equals sweep input value in every case. Each test fails today for the right reason."
+    done: "bash scripts/test.sh packages/design/test/domain/cms-from-vas.test.ts runs, every case red, committed."
+  - n: 2
+    worker: sonnet
+    do: "Data model (ruling QO463): ToggleField ADV_WINISDCMSFROMVAS (title 'Cms from Vas', tooltip in plain words what ticked and unticked do) in packages/design fields; project field winisdCmsFromVas in openisdSchema.ts and the project; CompatSwitch.CMS_FROM_VAS. Missing in a file = ticked (CompatSwitch.winisdValue). Save/load round trip test."
+    done: "round-trip test green; typecheck green."
+  - n: 3
+    worker: sonnet
+    do: "CmsSource sum type and its one constructor from the project; exhaustive match where it is read. Unit test for the mapping."
+    done: "unit test green; no other file reads the switch (grep in the test)."
+  - n: 4
+    worker: sonnet
+    do: "One Cms resolver for both parts; DriverEngine.circuitValues and the radiator spec resolve take CmsSource and call it; remove the duplicate derivations. Steps 1 (a, c, d, f) go green."
+    done: "cms-from-vas.test.ts cases a,c,d,f green; existing driver and PR engine tests green."
+  - n: 5
+    worker: sonnet
+    do: "Driver typed last wins: typing Cms works out Vas, typing Vas works out Cms, as the radiator does. Case b green."
+    done: "case b green; driver solve tests green."
+  - n: 6
+    worker: sonnet
+    do: "Bring T732 (branch t732, held) onto this: radiator pick keeps the stated values; which wins comes from CmsSource. Case e green. T732 is closed into T744, not landed separately."
+    done: "case e green; pr-typed-value-wins, pr-spec-resolve, pr-spec-conflict, pr-adopt-datasheet-figures green."
+  - n: 7
+    worker: sonnet
+    do: "Warning text on the existing conflict check: says the two disagree and which the charts use. Field-note popup (T729 style)."
+    done: "warning unit test green."
+  - n: 8
+    worker: sonnet + agy
+    do: "Screen: the switch shows in the WinISD Compatibility panel through CompatSwitch.OPTIONS (no UI code per switch). Before/after pictures, both skins: the panel, the Cms box with warning (driver and radiator, P173). mark-diff boxes, agy checks, Look at / Recommend / Checked, impact line; page passes check-answerable.mjs. To John before landing."
+    done: "page link with agy PASS, sent to John on the board."
+  - n: 9
+    worker: sonnet
+    do: "Records: WINISD_PARITY.md row (an option, not a bug); WINISD_EQUIVALENCE register cell and README parity bullets if a cell changes; close bugs/BUG_20261108_driver-typed-cms-mms-rms-ignored-by-charts.md and the T732 bug; help page entry for the switch."
+    done: "docs committed."
+  - n: 10
+    worker: sonnet (read-only reviewer)
+    do: "Architecture review against ~/.claude/CLAUDE.md guardrails: one decision point, no string routing, no casts, no new constants, exhaustive match, no wrapper methods. Findings go to the leader; fixes are a new worker."
+    done: "no open findings."
+  - n: 11
+    worker: leader
+    do: "Set done_test, bash scripts/land.sh T744."
+
+done_test: bash scripts/test.sh packages/design/test/domain/cms-from-vas.test.ts
+files:
+  - tasks/T744.yml
