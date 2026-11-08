@@ -4,7 +4,7 @@ repo: openisd
 owner: maryu
 status: open
 goal: Options vented design limits: no inline More info; the (?) help says what the limits are for, on both skins (QO467.c39, c40)
-done_test: bash scripts/test.sh packages/ui/test/ui/options-dialog.browser.spec.ts packages/ui/test/ui/phone-app-dialogs.browser.spec.ts
+done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/T746.yml
   - BACKLOG.md
