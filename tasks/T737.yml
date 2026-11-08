@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: c6c7f9608e98250faeea72598acfbb68c10d9995
 goal: Desktop skin at phone width: project drawer footer buttons Bin and Export all are cut by the drawer (AI live review, T736 build)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
