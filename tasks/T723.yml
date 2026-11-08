@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: leader
 status: done
+landed: 33ba60fe4df4985241dc2cb5c18dc7394b3128c7
 goal: 7.0.960 announcement names only the discontinued parts, if the release goes without What-if
 lands_only_if: cover (2) says T712 cannot be fixed quickly (dq alert note outside the What-if panel); otherwise this task is dropped
 done_test: node --test cloudflare/announcements/test/worker.test.mjs && grep -Fq "title: 'Discontinued parts hidden'" cloudflare/announcements/src/index.js

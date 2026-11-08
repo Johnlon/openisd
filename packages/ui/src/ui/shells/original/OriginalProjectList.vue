@@ -132,11 +132,6 @@ defineExpose({focusSearchOrList});
               class="project-tag"
               :class="`project-tag-${t.kind}`"
             >{{ t.text }}</span>
-            <span
-              v-if="row.sync"
-              class="project-sync-mark"
-              :title="row.sync.text"
-            >{{ row.sync.glyph }}</span>
           </div>
 
           <span v-if="row.boxDetails" class="project-box-type" :title="row.summary">{{ row.boxDetails.type }}</span>
@@ -154,6 +149,11 @@ defineExpose({focusSearchOrList});
               :title="PROJECT_LIST_TEXT.MORE_OPTIONS"
               @click.stop="openRowMenu(row, $event)"
             >⋯</button>
+            <span
+              v-if="row.sync"
+              class="project-sync-mark"
+              :title="row.sync.text"
+            >{{ row.sync.glyph }}</span>
             <button
               v-if="row.open.kind === 'open' && row.open.unsaved"
               type="button"
@@ -500,7 +500,8 @@ defineExpose({focusSearchOrList});
 .project-sync-mark {
   white-space: nowrap;
   font-size: 11px;
-  flex: none;
+  line-height: 1;
+  cursor: default;
 }
 
 .col-summary,

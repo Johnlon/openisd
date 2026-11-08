@@ -1,0 +1,12 @@
+id: T728
+release_note: On the desktop project list the cloud mark sits under the ⋯ in each row, beside the save floppy.
+repo: openisd
+owner: leader
+status: done
+goal: Desktop project list - the cloud sync mark sits in the row's action column under the ⋯, above the optional save floppy
+done_test: bash scripts/test.sh packages/ui/test/ui/OriginalProjectList-actions-column.test.ts
+files:
+  - tasks/T728.yml
+  - packages/ui/src/ui/shells/original/OriginalProjectList.vue
+  - packages/ui/test/ui/OriginalProjectList-actions-column.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
