@@ -1,5 +1,5 @@
 id: T712
-release_note: The desktop What-if panel puts each box next to its label, with no wide gap.
+release_note: The desktop What-if panel puts each box next to its label, with no wide gap, and its boxes are a quarter narrower. What-if now says "Your project will not be updated".
 repo: openisd
 owner: maryu
 status: open
@@ -12,3 +12,8 @@ files:
   - packages/ui/test/ui/field-layout-rules.browser.spec.ts
   - packages/ui/test/fixtures/fieldLayoutAudit.ts
   - packages/ui/test/ui/zz-scratch-whatif-gap.browser.spec.ts
+  - packages/ui/test/ui/zz-scratch-whatif-beforeafter.browser.spec.ts
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet.browser.spec.ts
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue

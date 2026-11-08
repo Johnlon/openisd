@@ -33,3 +33,12 @@ row so the boxes stay in one aligned column (field-layout rule), with the usual 
 Browser spec on the desktop What-if panel for a vented project: the gap between the longest
 label's right edge and its box is the app's normal label gap, every box starts at the same x,
 and nothing is clipped; same check for a bandpass project that shows "Front port area".
+
+## Follow-up (John, 8 Nov 2026, chat via cover)
+"still too much gaps - reduce the field widths by 25%, reduce gap between label and text fields".
+- Boxes 124 px → 93 px (25% narrower); the What-if unit chip is 29 px (the common field's minimum
+  is 34 px; at 93 px with 34 px the Bl value "13.50000" was clipped). Spec: `what-if-panel` and
+  `field-layout-rules` assert 93 px.
+- The label gap after the longest label stays the desktop's 22 px warning slot; whether to close it
+  on the What-if only is asked on QO455.
+- Hint and Close titles now say "Your project will not be updated" (John's words).
