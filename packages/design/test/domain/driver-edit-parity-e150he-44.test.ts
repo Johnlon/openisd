@@ -173,7 +173,7 @@ describe('E150HE-44 passive radiator, Vb typed in the Box tab (sweep-t429-e150-p
 
 // numVC is not a simulation input in WinISD: typed or loaded, every chart and USPL stay at the one-coil figures (Re and BL are
 // terminal values). OpenISD stores Re and BL per coil, so the coil count moves the terminal values and the charts.
-const NUMVC_BUG = 'docs/research/winisd-findings/FINDING_20261019_numvc-is-not-a-simulation-input.md';
+const NUMVC_BUG = 'winisd_research/findings/FINDING_20261019_numvc-is-not-a-simulation-input.md';
 
 describe('E150HE-44 sealed, numVC typed in the Driver editor (sweep-t429-e150-sealed-edit-numvc)', () => {
   const capture = loadEditCapture('e150he-44', 'sealed-numvc');

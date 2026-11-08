@@ -1072,7 +1072,7 @@ Probe `winisd_research/toys/probe_vccon_save_load.py`, runs in
 OpenISD copies neither editor bug: it stores `Re`/`BL` per coil and derives the terminal values
 from the wiring, so a coil-count edit cannot leave them out of step, and it writes the wiring the
 user chose. OpenISD always marks `VCCon` `E` (John, 2026-10-05). WinISD bug record:
-[FINDING_20261005_vccon-editor-combo](../../docs/research/winisd-findings/FINDING_20261005_vccon-editor-combo.md).
+[FINDING_20261005_vccon-editor-combo](../../winisd_research/findings/FINDING_20261005_vccon-editor-combo.md).
 
 ## 13. Suggested default units — frequency analysis from datasheets
 
@@ -1307,7 +1307,7 @@ after a forced redraw (`winisd_research/runs/pr-sd-edit-1`, `-2`, `pr-sd-load-1`
 1/Sd. Fs and Qms are linked: typing a new value changes the PR charts (`runs/pr-Fs-edit-1`,
 `runs/pr-Qms-edit-1`). Vas: the edit moves the charts straight away (`runs/pr-Vas-ui-drive2`), and the
 file-load route moves both PR charts (`runs/pr-Vas-load-1`); emptying the Vas box crashes WinISD (`runs/pr-Vas-ui-crash1`). Not yet probed: the cut-and-paste
-trigger above. Bug: [FINDING_20261003_pr-sd-edit-ignored.md](../../docs/research/winisd-findings/FINDING_20261003_pr-sd-edit-ignored.md?html).
+trigger above. Bug: [FINDING_20261003_pr-sd-edit-ignored.md](../../winisd_research/findings/FINDING_20261003_pr-sd-edit-ignored.md?html).
 
 ### Emptying the PR Vas box crashes WinISD (probed 2026-10-04)
 
@@ -1316,7 +1316,7 @@ digits until it is empty makes WinISD die with a floating-point divide by zero (
 window vanishes; `winisd_research/runs/pr-Vas-ui-crash1`). The box's change handler runs on every
 keystroke and divides by the value, the same class as the Box Volume field. Real Windows was not
 tested. OpenISD does not copy it: a zero in Fs, Qms, Vas or Sd leaves every derived value finite or
-absent (`pr-spec-resolve.test.ts`). Bug: [FINDING_20261004_pr-vas-box-emptied-crashes.md](../../docs/research/winisd-findings/FINDING_20261004_pr-vas-box-emptied-crashes.md?html).
+absent (`pr-spec-resolve.test.ts`). Bug: [FINDING_20261004_pr-vas-box-emptied-crashes.md](../../winisd_research/findings/FINDING_20261004_pr-vas-box-emptied-crashes.md?html).
 
 ### Loading a driver with Fs and Vas at 0 crashes WinISD (probed 2026-10-05)
 
@@ -1325,7 +1325,7 @@ leaves Fs, Qes, Qts, Rms and Vas to be derived kills WinISD about 1.5 s after lo
 draw: a divide by zero at `0x462636` (`Cas` = 0; `winisd_research/runs/sweep-mms-cms-load-crash.json`).
 Entering the same values in the standalone Driver editor works, and WinISD derives Fs 37.2 and the rest;
 that route made the `solve-from-mms-cms` golden. OpenISD derives the fields and does not crash. Bug:
-[FINDING_20261005_driver-without-fs-vas-crashes-on-load.md](../../docs/research/winisd-findings/FINDING_20261005_driver-without-fs-vas-crashes-on-load.md?html).
+[FINDING_20261005_driver-without-fs-vas-crashes-on-load.md](../../winisd_research/findings/FINDING_20261005_driver-without-fs-vas-crashes-on-load.md?html).
 
 ### Vent end correction edit is not taken (probed 2026-10-19)
 
@@ -1337,7 +1337,7 @@ shows 0.732 regardless (`PROBE_FINDINGS.md` vent geometry probe, `runs/ventshape
 capture settles it: loaded 0.6, 0.732, 0.85 save vent lengths 0.376838, 0.370238, 0.364338 m,
 each step the end-correction change x the 5 cm diameter (`runs/t429-w5-vented-load-endcorr*`). OpenISD honours the value
 (`project-vent-length.test.ts`). Bug:
-[FINDING_20261019_vent-end-correction-edit-not-taken.md](../../docs/research/winisd-findings/FINDING_20261019_vent-end-correction-edit-not-taken.md?html).
+[FINDING_20261019_vent-end-correction-edit-not-taken.md](../../winisd_research/findings/FINDING_20261019_vent-end-correction-edit-not-taken.md?html).
 
 ## 19. WinISD parameter entry — community best practices (a second source)
 
@@ -1485,7 +1485,7 @@ Both step f ± 1e-10 Hz and difference arg H, as for every box. They differ in H
 |---|---|---|---|
 | ABC | a calculation bug: the box is stepped to f ± δ but the output routine passes the chart frequency f to the driver routine, so the driver part is held at f and the group delay is the box's phase slope alone. It contradicts WinISD's own phase chart (W5-1138SMF, 1.005 Hz: −40.96 ms against −33.86 ms) | fixed by default (−dφ/dω of the plotted phase); yellow error switch "ABC group delay" (ABC only) brings WinISD back, within 1.03e-3 ms; a ≠W cue by the Group delay chart explains it | [bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md](../../bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md) |
 | BP6 | H is right (equals the plotted transfer); above ~200 Hz the 1e-10 Hz step turns the rounding of two nearly cancelling compliance currents into noise, worst 0.11 ms at 4 kHz | not copied, no switch (John, 2026-10-05): rounding noise cannot be reproduced in doubles; OpenISD's own noise is the same size | [bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md](../../bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md) |
-| BP4 | H is right; from 200 Hz up, on the W5-1138SMF and the E150HE-44 box alike, the 1e-10 Hz step turns the rounding of the box terms into noise (phase error × \|H\| is 1.1e-16 to 1.7e-16 rad from 128 Hz to 2 kHz), up to 0.03 ms at 1 to 4 kHz | not copied, no switch (same ruling as BP6, John, 2026-10-05): rounding noise cannot be reproduced in doubles | [docs/research/winisd-findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md](../../docs/research/winisd-findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md) |
+| BP4 | H is right; from 200 Hz up, on the W5-1138SMF and the E150HE-44 box alike, the 1e-10 Hz step turns the rounding of the box terms into noise (phase error × \|H\| is 1.1e-16 to 1.7e-16 rad from 128 Hz to 2 kHz), up to 0.03 ms at 1 to 4 kHz | not copied, no switch (same ruling as BP6, John, 2026-10-05): rounding noise cannot be reproduced in doubles | [winisd_research/findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md](../../winisd_research/findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md) |
 
 ## 23. Vented box alignment polynomials — provenance, accuracy, and pathologies (verified 2026-10-10)
 

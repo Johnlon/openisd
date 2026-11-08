@@ -9,4 +9,4 @@ done_test: bash scripts/test.sh packages/design/test/domain/driver-edit.test.ts
 files:
   - tasks/T560.yml
   - packages/design/test/domain/driver-edit.test.ts
-  - docs/research/winisd-findings/FINDING_20261005_vccon-editor-combo.md
+  - winisd_research/findings/FINDING_20261005_vccon-editor-combo.md
