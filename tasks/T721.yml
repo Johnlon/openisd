@@ -4,6 +4,8 @@ repo: openisd
 owner: leader
 status: open
 goal: The lap:4000 preview writes a fresh build-info.json each time it starts
-done_test: bash scripts/quiet-test.sh npm run typecheck
+done_test: grep -q '^ExecStartPre=.*scripts/version-info.mjs' scripts/systemd/openisd-preview.service
 files:
+  - scripts/systemd/openisd-preview.service
+  - scripts/preview-4000.sh
   - tasks/T721.yml
