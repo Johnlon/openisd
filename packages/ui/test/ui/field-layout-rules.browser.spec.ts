@@ -27,7 +27,6 @@ const KNOWN: readonly KnownFault[] = [
   ...(['sealed', 'vented', 'box-passive-radiator', 'bandpass6', 'abc'] as const).map(box => ({screen: `phone ${box} Box`, rules: ['R4'] as const, bug: 'BUG_20261105_phone-box-tab-box-type-width'})),
   ...ALL_BOXES.map(box => ({screen: `phone ${box} Filters`, rules: ['R2', 'R7'] as const, bug: 'BUG_20261105_phone-filters-strip-scrolls-sideways'})),
   {screen: 'desktop abc ABC', rules: ['R3', 'R4'], bug: 'BUG_20261105_desktop-abc-port-columns-edges-and-widths'},
-  {screen: 'desktop What-if panel', rules: ['R2'], bug: 'BUG_20261105_desktop-whatif-panel-scrolls-and-wizard-count-width'},
 ];
 
 type Skin = 'desktop' | 'phone';
@@ -269,3 +268,39 @@ test('desktop Passive Radiator tab: Num. of PRs keeps the number-box width, not 
   // It measured 150 px here (not 124) before and after this change: only the Driver tab and wizard dropdowns changed.
   expect((await dropdown(page, 'og-pr-count')).width).toBeCloseTo(150, 0);
 });
+
+/** The widest blank allowed between the longest label of a What-if column and that column's boxes:
+ *  the desktop's 22px warning slot after every label, and a few px. */
+const WHAT_IF_LABEL_GAP_MAX_PX = 22 + 8;
+/** The What-if number box, 25% narrower than the 124px it had (John, 8 Nov 2026: "reduce the field widths by 25%"). */
+const WHAT_IF_BOX_PX = 93;
+
+for (const box of ['vented', 'bandpass6', 'abc'] as const) {
+  // John, 8 Nov 2026, QO449.c11/c16: "there is too much space between labels and cells"; "the what if on the desktop".
+  test(`desktop What-if, ${box}: each column's boxes share one edge, next to its longest label`, async ({page}) => {
+    await startDesktop(page, box);
+    await page.locator('.edit-btn', {hasText: 'What-if'}).first().click();
+    const panel = page.locator('.what-if-panel');
+    await panel.waitFor();
+    const fields = await panel.locator('.ui-field').evaluateAll(all => all.flatMap(field => {
+      const label = field.querySelector('label');
+      const control = field.querySelector('input,select');
+      if (label === null || control === null) return [];
+      const text = field.ownerDocument.createRange();
+      text.selectNodeContents(label);
+      const textRight = text.getBoundingClientRect().right;
+      return [{label: (label.textContent ?? '').trim(), labelX: Math.round(label.getBoundingClientRect().x), textRight: Math.round(textRight), boxX: Math.round(control.getBoundingClientRect().x)}];
+    }));
+    const columns = [...new Set(fields.map(f => f.labelX))];
+    expect(columns, JSON.stringify(fields)).toHaveLength(2);
+    for (const x of columns) {
+      const column = fields.filter(f => f.labelX === x);
+      expect(new Set(column.map(f => f.boxX)).size, JSON.stringify(column)).toBe(1);
+      const gap = Math.min(...column.map(f => f.boxX)) - Math.max(...column.map(f => f.textRight));
+      expect(gap, JSON.stringify(column)).toBeLessThanOrEqual(WHAT_IF_LABEL_GAP_MAX_PX);
+    }
+    const boxWidths = await panel.locator('.ui-field .num-input-wrap').evaluateAll(all => all.map(w => Math.round(w.getBoundingClientRect().width)));
+    expect(boxWidths.length).toBeGreaterThan(0);
+    expect(new Set(boxWidths), JSON.stringify(boxWidths)).toEqual(new Set([WHAT_IF_BOX_PX]));
+  });
+}

@@ -3,6 +3,7 @@ release_note: On the desktop project list the cloud mark sits under the ⋯ in e
 repo: openisd
 owner: leader
 status: done
+landed: 49fe67d4049081770f1f94fe366c3b647acf6112
 goal: Desktop project list - the cloud sync mark sits in the row's action column under the ⋯, above the optional save floppy
 done_test: bash scripts/test.sh packages/ui/test/ui/OriginalProjectList-actions-column.test.ts
 files:

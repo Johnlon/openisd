@@ -46,7 +46,7 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
       </label>
       <div class="mob-sheet-actions">
         <PhoneButton v-if="mode.edits === 'whatIfLayer'" class="mob-sheet-btn" title="Back to the design's values" @click="reset">Reset</PhoneButton>
-        <PhoneButton primary class="mob-sheet-btn mob-sheet-close" :title="mode.edits === 'whatIfLayer' ? 'Close. The design is not changed.' : 'Close'" @click="close">Close</PhoneButton>
+        <PhoneButton primary class="mob-sheet-btn mob-sheet-close" :title="mode.edits === 'whatIfLayer' ? 'Close. Your project will not be updated.' : 'Close'" @click="close">Close</PhoneButton>
       </div>
     </div>
   </section>
