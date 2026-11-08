@@ -77,11 +77,13 @@ describe('radiator Mms, Cms and Rms are calculated', () => {
     expect(spec.Fs_hz.calculated).toBe(true);
   });
 
-  it('a typed Mms stays entered and wins over the derived one', () => {
+  it('a typed Mms is kept in the record, but the box shows the Mms the charts use, with a note giving the typed value', () => {
     const spec = prProject(createEngine(), four).box.passiveRadiator.radiator.spec;
+    const charts = spec.Mms_kg.value;
     spec.Mms_kg.set(0.123);
-    expect(spec.Mms_kg.entered).toBe(true);
-    expect(spec.Mms_kg.value).toBe(0.123);
+    expect(spec.Mms_kg.value).toBe(charts);
+    expect(spec.Mms_kg.calculated).toBe(true);
+    expect(spec.Mms_kg.dq.map(i => i.text).join(' ')).toMatch(/Datasheet Mms is [\d.]+ g\. The charts use [\d.]+ g, worked out from Fs and Cms\./);
   });
 
   it('without a Qms there is no Rms', () => {
