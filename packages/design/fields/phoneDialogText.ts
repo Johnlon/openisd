@@ -29,7 +29,7 @@ export class PhoneDialogHelp {
       {label: 'Reset to defaults', text: 'puts this section back to how it was when you first opened OpenISD.'},
     ]);
   static readonly OPTIONS_VENTED_LIMITS = new PhoneHelpSection('Vented design limits',
-    'Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark. WinISD has no such check, so the results still match WinISD. OpenISD never changes your numbers.', [
+    'Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark. OpenISD never changes your numbers.', [
       {label: 'Min box volume', text: 'a box smaller than this gets a warning mark.'},
       {label: 'Max box volume', text: 'a box bigger than this gets a warning mark.'},
       {label: 'Min tuning', text: 'a vent tuned lower than this gets a warning mark. The tuning (Fb) is the note the vent resonates at.'},

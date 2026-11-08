@@ -152,15 +152,31 @@ for (const size of PHONE_SIZES) {
       await expect(sheet).toContainText('Air density: how heavy this air is.');
     });
 
-    // QO467.c33, c39, c40: no inline More info; one line says what the limits do, the ? says why.
-    test('General: Vented design limits has one plain line, no More info, and the ? says what the limits are for', async ({page}) => {
+    // QO467.c33, c43: no inline More info; John's one line. QO473.c4, c6: the (?) in that line is the band ?
+    // and opens the same help; the help has no WinISD remark.
+    test('General: Vented design limits has John\'s line, whose (?) is the band ? and opens the help', async ({page}) => {
       const dialog = page.locator('.mob-dlg[aria-label="Options"]');
       await expect(dialog.getByTestId('limits-more')).toHaveCount(0);
-      await expect(dialog).toContainText('This panel allows you to set limits on acceptable ranges for certain values, open the help (?) for more info.');
-      await dialog.locator('.mob-band', {hasText: 'Vented design limits'}).locator('.mob-band-help').click();
-      const sheet = page.locator('.mob-help-sheet');
-      await expect(sheet).toContainText('Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark. WinISD has no such check, so the results still match WinISD.');
-      await expect(sheet).toContainText('Min box volume: a box smaller than this gets a warning mark.');
+      const line = dialog.locator('.mob-dhint', {hasText: 'This panel allows you'});
+      await expect(line).toHaveText('This panel allows you to set limits on acceptable ranges for certain values, open the help ? for more info.');
+      const bandHelp = dialog.locator('.mob-band', {hasText: 'Vented design limits'}).locator('.mob-band-help');
+      const lineHelp = line.getByRole('button', {name: 'Help: Vented design limits'});
+      const look = (el: Element) => {
+        const s = getComputedStyle(el);
+        const r = el.getBoundingClientRect();
+        return {w: r.width, h: r.height, border: s.border, radius: s.borderRadius, color: s.color, bg: s.backgroundColor,
+          size: s.fontSize, weight: s.fontWeight, cursor: s.cursor, text: el.textContent};
+      };
+      expect(await lineHelp.evaluate(look), 'the same ? as the band').toEqual(await bandHelp.evaluate(look));
+      for (const help of [lineHelp, bandHelp]) {
+        await help.click();
+        const sheet = page.locator('.mob-help-sheet');
+        await expect(sheet).toContainText('Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark. OpenISD never changes your numbers.');
+        await expect(sheet).not.toContainText('WinISD');
+        await expect(sheet).toContainText('Min box volume: a box smaller than this gets a warning mark.');
+        await sheet.getByRole('button', {name: 'Close help'}).click();
+        await expect(sheet).toHaveCount(0);
+      }
     });
 
     test('Plot Window: the full colour list of nine, then twelve limit rows, each with its reset', async ({page}) => {

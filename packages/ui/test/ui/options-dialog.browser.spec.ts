@@ -390,15 +390,55 @@ test.describe('Options dialog', () => {
         await expect(page.locator('#set-max-tuning')).toHaveValue('150.00');
       });
 
-      // QO467.c35, c39, c40: no inline More info; one line says what the limits do.
-      test('Vented design limits has one plain line, no More info, and a ? that says what the limits are for', async ({ page }) => {
-        await openOptions(page);
+      // QO467.c35, c43: no inline More info; John's one line. QO473.c1, c4, c6: the (?) in that line is the
+      // desktop band ?, and like the heading's ? it opens the desktop help panel, never the phone sheet.
+      test('Vented design limits: John\'s line, whose (?) is the band ?, and both ? open the desktop help on top', async ({ page }) => {
+        await page.goto('/');
+        await openAProject(page);
+        const bandHelp = page.locator('.original-root .desk-band .desk-band-help').first();
+        await expect(bandHelp).toBeVisible();
+        const look = (el: Element) => {
+          const s = getComputedStyle(el);
+          const r = el.getBoundingClientRect();
+          return {w: r.width, h: r.height, border: s.border, radius: s.borderRadius, color: s.color, bg: s.backgroundColor,
+            size: s.fontSize, weight: s.fontWeight, cursor: s.cursor, text: el.textContent};
+        };
+        const bandLook = await bandHelp.evaluate(look);
+        await bandHelp.hover();
+        const bandHoverBg = await bandHelp.evaluate(el => getComputedStyle(el).backgroundColor);
+
+        await page.locator('.tb-btn[title="Options"]').click();
+        const group = page.locator('.opt-group', {hasText: 'Vented design limits'});
         await expect(page.getByTestId('limits-more')).toHaveCount(0);
-        await expect(page.locator('.opt-modal')).toContainText('This panel allows you to set limits on acceptable ranges for certain values, open the help (?) for more info.');
-        await page.getByRole('button', {name: 'Help: Vented design limits'}).click();
-        const sheet = page.locator('.mob-help-sheet');
-        await expect(sheet).toContainText('Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark. WinISD has no such check, so the results still match WinISD.');
-        await expect(sheet).toContainText('Min box volume: a box smaller than this gets a warning mark.');
+        await expect(group.locator('.opt-help')).toHaveText('This panel allows you to set limits on acceptable ranges for certain values, open the help ? for more info.');
+        const helps = group.getByRole('button', {name: 'Help: Vented design limits'});
+        await expect(helps).toHaveCount(2);
+        await page.mouse.move(0, 0);
+        for (const help of [helps.first(), helps.last()]) {
+          expect(await help.evaluate(look), 'the same ? as the desktop bands').toEqual(bandLook);
+          await help.hover();
+          expect(await help.evaluate(el => getComputedStyle(el).backgroundColor), 'it lights up under the pointer').toBe(bandHoverBg);
+          await page.mouse.move(0, 0);
+        }
+
+        for (const help of [helps.last(), helps.first()]) {
+          await help.click();
+          const panel = page.getByRole('dialog', {name: 'Help: Vented design limits'});
+          await expect(panel).toBeVisible();
+          await expect(page.locator('.mob-help-sheet')).toHaveCount(0);
+          await expect(panel).toContainText('Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark. OpenISD never changes your numbers.');
+          await expect(panel).not.toContainText('WinISD');
+          await expect(panel).toContainText('Min box volume: a box smaller than this gets a warning mark.');
+          // Nothing sits on top of the help: its corners and middle are the help itself.
+          const b = (await panel.boundingBox())!;
+          for (const [x, y] of [[b.x + 2, b.y + 2], [b.x + b.width - 2, b.y + 2], [b.x + 2, b.y + b.height - 2], [b.x + b.width - 2, b.y + b.height - 2], [b.x + b.width / 2, b.y + b.height / 2]]) {
+            expect(await panel.evaluate((el, [px, py]) => el.contains(document.elementFromPoint(px, py)), [x, y]), `help on top at ${x},${y}`).toBe(true);
+          }
+          // Escape shuts the help and leaves Options open.
+          await page.keyboard.press('Escape');
+          await expect(panel).toHaveCount(0);
+          await expect(page.locator('.opt-modal')).toBeVisible();
+        }
       });
 
       test('an inside-out band is refused, and OK stays dead until it is a band', async ({ page }) => {
