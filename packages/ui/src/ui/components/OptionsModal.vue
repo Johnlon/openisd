@@ -496,6 +496,12 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
 .opt-popup p { margin: 0 0 6px; }
 .opt-error { color: #8a1f1f; background: #fdeeee; border: 1px solid #e8b0b0; border-radius: 3px;
   padding: 4px 8px; font-size: 11px; margin-top: 8px; }
+/* A phone-width window (the desktop skin at 374 px): the dialog takes the window and its padding shrinks so the 318 px field rows and the Reset button stay inside it. */
+@media (max-width: 420px) {
+  .opt-modal { width: calc(100vw - 8px); }
+  .opt-body { padding: 12px 8px; }
+  .opt-group { padding: 10px 6px; min-width: 0; }
+}
 .opt-group-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
 .opt-reset-btn { width: max-content; padding: 4px 12px; cursor: pointer; }
 .opt-reset-btn:disabled { cursor: default; opacity: 0.5; }

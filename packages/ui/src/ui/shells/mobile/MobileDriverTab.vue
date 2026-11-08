@@ -15,7 +15,7 @@ const { project, fullName, keyFigures, consistencyReasons, browseDrivers, editDr
 <template>
   <PhoneClassicPage>
     <div class="mob-crow">
-      <button type="button" class="mob-cname mob-cname-button" @click="browseDrivers">{{ fullName || 'No driver selected' }}</button>
+      <button type="button" class="mob-cname mob-cname-button" :title="fullName" @click="browseDrivers">{{ fullName || 'No driver selected' }}</button>
     </div>
     <div class="mob-cbtns">
       <button type="button" class="mob-btn mob-btn-primary" @click="browseDrivers">Select driver</button>

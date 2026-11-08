@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 70bc8797f55b52c36bf056980439933c53c310f3
 goal: Phone header: a long project name ('AS168-9-470 passive radiator') is cut in a 90 px cell; it wraps onto three lines (AI live review, T733 build)
 done_test: bash scripts/test.sh packages/design/test/fields/phoneHeaderSizes.test.ts
 files:

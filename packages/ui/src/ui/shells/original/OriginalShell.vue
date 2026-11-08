@@ -1232,11 +1232,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .original-root .chart-high select { font-size:12px; padding:1px 2px; }
 .dropdown-menu .chart-item input { margin:0; cursor:pointer; }
 .dropdown-menu .chart-item::before { display:none !important; }
-.graph-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; color:#777; gap:6px; }
+.graph-empty { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px 8px; color:#777; gap:6px; }
 .graph-empty-brand { display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:22px; font-weight:600; color:#333; }
 .graph-empty-brand img { width:36px; height:36px; display:block; }
 .graph-empty-h { font-size:16px; font-weight:600; color:#333; }
-.graph-empty-actions { display:flex; gap:12px; margin-top:4px; }
+.graph-empty-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:4px 12px; margin-top:4px; }
 .graph-empty-link { display:inline-flex; align-items:center; gap:5px; border:0; padding:2px 4px; background:transparent; color:var(--acc); text-decoration:underline; cursor:pointer; }
 .graph-empty-link:hover { color:#0b4f9e; }
 

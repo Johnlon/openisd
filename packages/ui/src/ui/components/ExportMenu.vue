@@ -56,12 +56,12 @@ onUnmounted(() => document.removeEventListener('click', close));
 .export-menu-trigger { display: inline-flex; align-items: center; }
 .export-menu-trigger:disabled { opacity: .4; cursor: default; }
 .export-menu-list {
-  position: absolute; top: 100%; left: 0; z-index: 50; margin-top: 2px;
+  position: absolute; top: 100%; right: 0; z-index: 50; margin-top: 2px;
   background: var(--panel); border: 1px solid var(--line); box-shadow: 2px 3px 8px rgba(0,0,0,.25);
-  min-width: 240px; padding: 4px 0; display: flex; flex-direction: column;
+  width: max-content; min-width: 240px; max-width: calc(100vw - 8px); box-sizing: border-box; padding: 4px 0; display: flex; flex-direction: column;
 }
 .export-menu-list button {
-  all: unset; padding: 6px 14px; cursor: pointer; white-space: nowrap; color: var(--fg); font-size: inherit;
+  all: unset; padding: 6px 14px; cursor: pointer; white-space: normal; overflow-wrap: anywhere; color: var(--fg); font-size: inherit;
 }
 .export-menu-list button:hover { background: var(--acc); color: #fff; }
 </style>

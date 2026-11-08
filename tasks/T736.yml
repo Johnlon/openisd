@@ -1,0 +1,21 @@
+id: T736
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Desktop skin in a phone-width window: Save As / Export menu items, Open project, Back to built-in environment, project drawer Bin / Export all are cut; phone Driver tab driver-name button overflows with a long name (AI live review, T734 build)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T736.yml
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/components/ExportMenu.vue
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/ui/shells/original/OriginalProjectList.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/ui/desktop-toolbar-fits-window.browser.spec.ts
+  - packages/ui/test/ui/mobile-long-driver-name-fits.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - bugs/BUG_20261108_desktop-skin-menus-and-links-cut-at-phone-width.md
+  - bugs/BUG_20261108_phone-driver-name-button-overflows.md

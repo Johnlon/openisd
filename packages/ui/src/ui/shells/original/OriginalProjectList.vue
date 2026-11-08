@@ -613,8 +613,9 @@ defineExpose({focusSearchOrList});
 
 .footer-buttons {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
 }
 
 .link-btn {
