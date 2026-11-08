@@ -19,7 +19,6 @@ import type {NumericDriverSpecFieldName} from '../../domain/driver/driverSpecFie
 const spec = (field: string, name: NumericDriverSpecFieldName): SpecEditTarget => ({pane: 'Driver', field, spec: name});
 const vent = (field: string, kind: VentEditTarget['kind']): VentEditTarget => ({pane: 'Vent', field, boxType: 'vented', kind});
 
-const BUG_TYPED_CMS = 'bugs/BUG_20261108_driver-typed-cms-mms-rms-ignored-by-charts.md';
 const BUG_NUMVC = 'winisd_research/findings/FINDING_20261019_numvc-is-not-a-simulation-input.md';
 
 /** The checks that deviate, pinned: `it.fails` names the bug file. Key: `<fixture>|<check label>`. */
@@ -29,10 +28,6 @@ const W5: DriverRuns = {
     ...BP4_GROUP_DELAY_NOISE,
     ...['tfmag', 'spl', 'groupdelay', 'tfphase', 'excursion', 'impedance', 'maxpower', 'impedancephase', 'maxspl', 'Box tab: Fsc', 'Box tab: Qtc', 'Driver editor: stated fields']
       .map((label): [string, string] => [`sealed-edit-numvc|${label}`, BUG_NUMVC]),
-    // T744 (QO463): a typed Cms moves the charts and typing Vas works Cms out again; WinISD ignores a typed Cms and keeps the stated one.
-    ...['tfmag', 'spl', 'groupdelay', 'tfphase', 'excursion', 'impedance', 'maxpower', 'impedancephase', 'maxspl']
-      .map((label): [string, string] => [`sealed-edit-cms|${label}`, BUG_TYPED_CMS]),
-    ...['sealed', 'vented', 'bp6'].map((box): [string, string] => [`${box}-edit-vas|Driver editor: stated fields`, BUG_TYPED_CMS]),
   ]),
 };
 const describeRun = (run: Run): void => describeDriverRun(W5, run);
