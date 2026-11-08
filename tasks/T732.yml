@@ -26,3 +26,5 @@ files:
   - packages/design/test/domain/project-sweep.test.ts
   - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
   - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+notes:
+  - "Mms beside Added mass (QO463.c69, checked 8 Nov from source): desktop shows radiator Mms (og-pr-mms) in the Passive radiator parameters column, the column next to Added mass (og-pr-madd), same pane. Phone shows Mms on the same Box tab, in the section above User options, four boxes above Added mass; not checked whether both are on screen at once at 374x705."
