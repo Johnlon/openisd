@@ -16,6 +16,7 @@ interface Skin {
   readonly open: (page: Page) => Promise<void>;
   readonly projectRms: (page: Page) => Promise<Locator>;
   readonly projectCms: (page: Page) => Promise<Locator>;
+  readonly projectMms: (page: Page) => Promise<Locator>;
 }
 
 const DESKTOP: Skin = {
@@ -30,6 +31,10 @@ const DESKTOP: Skin = {
     await openTab(page, 'Passive Radiator');
     return page.locator('#og-pr-cms');
   },
+  projectMms: async page => {
+    await openTab(page, 'Passive Radiator');
+    return page.locator('#og-pr-mms');
+  },
 };
 
 const PHONE: Skin = {
@@ -43,6 +48,10 @@ const PHONE: Skin = {
   projectCms: async page => {
     await openTab(page, 'Box');
     return mobileFieldRow(page, 'Cms').locator('input').first();
+  },
+  projectMms: async page => {
+    await openTab(page, 'Box');
+    return mobileFieldRow(page, 'Mms').locator('input').first();
   },
 };
 
@@ -119,6 +128,24 @@ for (const [name, skin] of [['desktop', DESKTOP], ['phone', PHONE]] as const) {
       await expect(root.locator('#np-pr-vas')).not.toHaveValue(vasBefore);
       await createProject(p, skin);
       await expect(await skin.projectCms(p)).toHaveValue(/^1(\.0*)?$/);
+    });
+
+    // John, QO451, 8 Nov 2026: "a stated 1.01 must not be replaced by other numbers".
+    test('P173: the stated Cms 1.01 and Mms 15 stay as stated, entered, in the wizard and on the project', async ({page, appPage}) => {
+      const p = pageOf({page, appPage});
+      await pickThenBack(p, skin, 'P173');
+      const root = skin.root(p);
+      await expect(root.locator('#np-pr-cms')).toHaveValue(/^1\.010*$/);
+      await expect(root.locator('#np-pr-cms')).toHaveClass(/value-e/);
+      await expect(root.locator('#np-pr-mms')).toHaveValue(/^15(\.0*)?$/);
+      await expect(root.locator('#np-pr-mms')).toHaveClass(/value-e/);
+      await createProject(p, skin);
+      const cms = await skin.projectCms(p);
+      await expect(cms).toHaveValue(/^1\.010*$/);
+      await expect(cms).toHaveClass(/value-e/);
+      const mms = await skin.projectMms(p);
+      await expect(mms).toHaveValue(/^15(\.0*)?$/);
+      await expect(mms).toHaveClass(/value-e/);
     });
 
     test('P173 gives nothing to calculate Qms from: the box stays empty', async ({page, appPage}) => {

@@ -1,6 +1,7 @@
 /**
  * winisd_research/findings/FINDING_20261003_pr-sd-edit-ignored.md: WinISD ignores a typed passive radiator Sd.
- * In OpenISD a typed Sd takes effect: PR excursion and PR velocity scale as 1/Sd.
+ * In OpenISD a typed Sd takes effect: PR excursion and PR velocity scale as 1/Sd, with Fs, Vas and
+ * Qms driving the radiator (its stated Mms, Cms and Rms cleared, as a user would to let them follow).
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
@@ -28,6 +29,9 @@ describe('passive radiator Sd edit', () => {
     const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(nd140);
     if (Array.isArray(radiator)) throw new Error(`ND140-PR is invalid: ${radiator.join(', ')}`);
     project.box.passiveRadiator.configurePR(radiator);
+    project.box.passiveRadiator.radiator.spec.Mms_kg.clear();
+    project.box.passiveRadiator.radiator.spec.Cms_m_per_N.clear();
+    project.box.passiveRadiator.radiator.spec.Rms_kg_per_s.clear();
     project.box.passiveRadiator.count.set(1);
     project.box.passiveRadiator.losses.Ql.set(7);
     project.box.passiveRadiator.losses.Qa.set(30);

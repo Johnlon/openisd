@@ -198,9 +198,10 @@ test.describe('Original Passive Radiator tab', () => {
       await expect(field.locator('.ui-field-note')).toHaveText(/cannot be calculated yet.*needs equivalent volume \(Vas\)/);
     });
 
-    // John, 2026-10-05: "PR Vas is disconnected" — a project made by the New Project wizard with
-    // the ND140-PR kept the radiator's catalogue Mms and Cms, so a Vas typed on the page moved nothing.
-    test('a Vas typed on the PR page of a wizard-made ND140-PR project moves Fpr with mass, Fh and the SPL curve', async ({ appPage: page }) => {
+    // John, 2026-10-05: "PR Vas is disconnected" — a Vas typed on the page must never do nothing
+    // visible. The ND140-PR's stated Mms and Cms stay as stated (QO451, choice A), so a typed Vas
+    // that disagrees with the stated Cms marks both; clearing Cms lets the Vas drive the radiator.
+    test('a Vas typed on the PR page of a wizard-made ND140-PR project marks the stated Cms; with Cms cleared it moves Fpr with mass, Fh and the SPL curve', async ({ appPage: page }) => {
       await page.locator('.tb-btn[title*="New project"]').click();
       const wizard = page.locator('.overlay.open');
       const next = wizard.locator('.modal-footer button.ok-btn');   // the green lead: Next, then Create
@@ -228,6 +229,10 @@ test.describe('Original Passive Radiator tab', () => {
       const splBefore = await chartPicture(page);
 
       await fillAndCommit(page.locator('#og-pr-vas'), '20');
+      await expect(page.locator('#og-pr-vas')).toHaveClass(/dq-flag/);
+      await expect(page.locator('#og-pr-cms')).toHaveClass(/dq-flag/);
+      await fillAndCommit(page.locator('#og-pr-cms'), '');
+      await expect(page.locator('#og-pr-cms')).toHaveClass(/value-c/);
 
       await expect(page.locator('#og-pr-fs-mass')).not.toHaveValue(fprBefore);
       await expect.poll(() => chartPicture(page)).not.toBe(splBefore);

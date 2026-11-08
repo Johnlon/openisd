@@ -1,0 +1,23 @@
+id: T713
+release_note: A picked passive radiator keeps the Cms, Mms and Rms its datasheet states, instead of replacing them with values worked out from Vas, Fs and Qms.
+repo: openisd
+owner: learn
+status: done
+goal: At the radiator pick a stated Cms, Mms or Rms is kept as entered, never replaced by one worked out from Vas, Fs or Qms (QO451).
+done_test: bash scripts/quiet-test.sh npm run typecheck
+visual_note: New Project, passive radiator step, Accuton P173 picked, then the project page radiator boxes, phone and desktop. Look at Cms and Mms; they showed 1.0011 and 15.05 calculated (blue), now 1.01 and 15 as stated (green).
+files:
+  - tasks/T713.yml
+  - bugs/BUG_20261108_radiator-pick-replaces-stated-cms-mms.md
+  - bugs/archive/BUG_20261031_phone-pr-p173-cms-display.md
+  - docs/research/WINISD_PARITY.md
+  - docs/research/ACCURACY_IMPROVEMENTS.md
+  - packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts
+  - packages/design/fields/winisdDeviation.ts
+  - packages/design/test/domain/pr-adopt-datasheet-figures.test.ts
+  - packages/design/test/domain/pr-sd-edit.test.ts
+  - packages/design/test/domain/pr-spec-resolve.test.ts
+  - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+  - packages/ui/test/ui/new-project-radiator-eight-figures.browser.spec.ts
+  - packages/ui/test/ui/original-pr-tab.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

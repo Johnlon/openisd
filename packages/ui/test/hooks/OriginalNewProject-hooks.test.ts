@@ -1033,7 +1033,7 @@ describe('the radiator step holds all eight figures, stated or calculated (T703)
     return wizard;
   }
 
-  it('SP22R, which states no Qms and no Fs: both are calculated', async () => {
+  it('SP22R, which states no Qms and no Fs: both are calculated from its stated Mms, Cms and Rms', async () => {
     const {passiveRadiatorCells: cells} = await pickedThenBack('seas/sp22r');
     expect(cells.Qms.value).toBeCloseTo(4.836, 2); // √(Mms/Cms)/Rms from the stated 28.9 g, 1.61 mm/N, 0.876 kg/s
     expect(cells.Fs_hz.value).toBeCloseTo(23.33, 1); // from the stated Mms and Cms, kept as stated (QO451)
