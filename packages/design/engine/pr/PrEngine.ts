@@ -34,8 +34,7 @@ export type PrSpecPrecision = Readonly<Record<keyof PrSpecValues, number>>;
 /** A stated radiator figure that contradicts the relation tying it to the others. */
 export type PrSpecIssue = CalculationIssue<RouteQuantity>;
 
-/** `air` where taken is the PROJECT's own resolved `{ rho, c }` — see `vent/VentEngine.ts`.
- */
+/** `air` where taken is the PROJECT's own resolved `{ rho, c }` — see `vent/VentEngine.ts`. */
 export interface PrEngine {
   /** System resonance with `prNum` radiators in parallel: PR compliance `Cap = prCms·prSd²`,
    *  `Cpar = Cab·N·Cap/(Cab+N·Cap)`, `fp = 1/(2π·√((Map/N)·Cpar))` — the Fb WinISD displays.

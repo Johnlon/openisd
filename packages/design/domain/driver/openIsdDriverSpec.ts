@@ -22,6 +22,8 @@ import {
     VoiceCoilWiring,
     wiringFromRecord
 } from '../voiceCoilWiring.js';
+import {chartFigureNote} from './chartFigureNote.js';
+import type {ChartFigure} from './chartFigureNote.js';
 import {computedSlot} from './computedSlot.js';
 import {driverSection} from './driverSection.js';
 import type {DriverSpecFieldName} from './driverSpecFieldName.js';
@@ -430,10 +432,34 @@ export class OpenIsdDriverSpec {
             Re_terminal_ohm: NO_SLOT, BL_terminal_Tm: NO_SLOT, numVC: this.numVC,
             wiring: this.VCCon,
         } satisfies DriverSolverParams;
-        this.#issues = this.#driver.solve(params, air);
+        this.#issues = this.#withChartNotes(this.#driver.solve(params, air), air);
         this.#markDq(params, this.#issues);
         this.#markDq({...params, Mms_kg: this.Mms_kg, Cms_m_per_N: this.Cms_m_per_N, Rms_kg_per_s: this.Rms_kg_per_s}, this.#issues);
         return this.#issues;
+    }
+
+    /** The issues, with each stated Cms, Mms or Rms the charts do not use (the engine's chain gives another) named in its own sentence on that figure:
+     *  the Cms leaves the generic Vas/Cms disagreement, which keeps naming Vas, and the others get a note of their own. */
+    #withChartNotes(issues: readonly DriverIssue[], air: Air): readonly DriverIssue[] {
+        const shown = this.#shown(air);
+        if (shown === null) return issues;
+        const figures: readonly {readonly figure: ChartFigure; readonly name: DriverQuantityName; readonly stored: SpecNumberField; readonly chart: number | null}[] = [
+            {figure: 'Cms', name: 'Cms_m_per_N', stored: this.#storedCms, chart: shown.Cms_m_per_N},
+            {figure: 'Mms', name: 'Mms_kg', stored: this.#storedMms, chart: shown.Mms_kg},
+            {figure: 'Rms', name: 'Rms_kg_per_s', stored: this.#storedRms, chart: shown.Rms_kg_per_s},
+        ];
+        const differing = figures.flatMap(({figure, name, stored, chart}) => {
+            const statedSI = stored.entered ? stored.value : null;
+            return statedSI === null || chart === null || Math.abs(chart - statedSI) <= 1e-9 * Math.abs(statedSI) ? [] : [{figure, name, statedSI, chart}];
+        });
+        const named = new Set<DriverQuantityName>(differing.map(d => d.name));
+        const kept = issues.map(issue => 'fields' in issue && issue.kind === 'inconsistent-inputs' && named.has('Cms_m_per_N')
+            ? {...issue, fields: issue.fields.filter(f => f !== 'Cms_m_per_N')} : issue);
+        const notes = differing.map(({figure, name, statedSI, chart}): DriverIssue => figure === 'Cms'
+            ? {kind: 'inconsistent-inputs', target: name, fields: [name], formula: NumberField.CMS_M_PER_N.formula ?? '', expected: chart, actual: statedSI,
+                relative: Math.abs(chart - statedSI) / statedSI, text: chartFigureNote(figure, statedSI, chart)}
+            : {kind: 'approximate-charts', target: name, fields: [name], text: chartFigureNote(figure, statedSI, chart)});
+        return [...kept, ...notes];
     }
 
     /** Clears `dq` on every quantity, then applies each issue's OWN formula only to the handles
