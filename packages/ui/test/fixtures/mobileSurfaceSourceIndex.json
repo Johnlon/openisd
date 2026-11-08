@@ -674,6 +674,7 @@
     "bugs/BUG_20261108_edit-driver-typed-digits-append-to-old-value.md",
     "bugs/BUG_20261108_phone-driver-name-button-overflows.md",
     "bugs/BUG_20261108_phone-field-labels-wrap.md",
+    "bugs/BUG_20261108_phone-options-escape-on-help-sheet-may-close-options.md",
     "bugs/BUG_20261108_phone-project-name-cut-in-list.md",
     "bugs/BUG_20261108_project-list-names-cut-with-ellipsis.md",
     "bugs/BUG_20261108_release-script-skips-announcement-and-ledger.md",
