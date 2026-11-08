@@ -1,5 +1,5 @@
 /**
- * bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md: WinISD ignores a typed passive radiator Sd.
+ * docs/research/winisd-findings/FINDING_20261003_pr-sd-edit-ignored.md: WinISD ignores a typed passive radiator Sd.
  * In OpenISD a typed Sd takes effect: PR excursion and PR velocity scale as 1/Sd.
  */
 import {describe, expect, it} from 'vitest';

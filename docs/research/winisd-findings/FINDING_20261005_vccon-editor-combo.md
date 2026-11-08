@@ -1,6 +1,6 @@
-# BUG_20261005_winisd-vccon-editor-combo
+# FINDING_20261005_vccon-editor-combo
 
-**Status:** RECORDED — WinISD bug (broken link in the Driver editor, not a calculation difference),
+**Status:** FINDING ON WINISD, not an OpenISD defect — WinISD bug (broken link in the Driver editor, not a calculation difference),
 probed 2026-10-05. OpenISD does not copy it.
 
 ## What it is

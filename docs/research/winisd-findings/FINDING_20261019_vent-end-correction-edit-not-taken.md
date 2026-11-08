@@ -1,6 +1,6 @@
-# BUG_20261019_winisd-vent-end-correction-edit-not-taken
+# FINDING_20261019_vent-end-correction-edit-not-taken
 
-**Status:** RECORDED — WinISD trigger/linkage bug, no switch, not copied.
+**Status:** FINDING ON WINISD, not an OpenISD defect — WinISD trigger/linkage bug, no switch, not copied.
 
 ## Symptom
 In WinISD's Vents tab the End correction combo ("Two free ends", "One flanged end", "Two flanged ends", also freely typeable) does not take an edit. Typing 0.85, or picking an item by keyboard or mouse, with or without Tab: the vent length, the saved `endcorrection` and every chart stay as loaded, and the project stays clean (Save refuses: not dirty). On load the box shows 0.732 even where the file says `endcorrection=0.6`.

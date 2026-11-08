@@ -1,6 +1,6 @@
-# BUG_20261019_winisd-bp4-group-delay-is-rounding-noise-from-200-hz
+# FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz
 
-**Status:** RECORDED — WinISD bug, found by T429 B4 edit parity (E150HE-44 and W5-1138SMF). Not copied, no switch (same ruling as the 6th-order bandpass, John 2026-10-05): rounding noise cannot be reproduced in doubles.
+**Status:** FINDING ON WINISD, not an OpenISD defect — WinISD bug, found by T429 B4 edit parity (E150HE-44 and W5-1138SMF). Not copied, no switch (same ruling as the 6th-order bandpass, John 2026-10-05): rounding noise cannot be reproduced in doubles.
 
 ## Symptom
 WinISD's 4th-order bandpass group delay is noise from about 200 Hz up, on both drivers. The first point that leaves the 2e-3 ms bound is

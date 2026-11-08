@@ -1,6 +1,6 @@
-# BUG_20261019_winisd-pr-vas-edit-rounded-to-4-decimals
+# FINDING_20261019_pr-vas-edit-rounded-to-4-decimals
 
-**Status:** RECORDED — WinISD bug (⚠ mechanism unverified), found by T429 U5 PR-pane edit parity. Not copied: OpenISD uses the typed Vas.
+**Status:** FINDING ON WINISD, not an OpenISD defect — WinISD bug (⚠ mechanism unverified), found by T429 U5 PR-pane edit parity. Not copied: OpenISD uses the typed Vas.
 
 ## Symptom
 Typed into the PR pane, a Vas with more than 4 decimals acts in WinISD as if it were rounded to 4 decimals.

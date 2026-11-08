@@ -12,7 +12,7 @@ import {
 } from '../fixtures/winisdEditCapture.js';
 import type {PrEditTarget, Quantity} from '../fixtures/winisdEditCapture.js';
 
-const BUG_PR_SD = 'bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md';
+const BUG_PR_SD = 'docs/research/winisd-findings/FINDING_20261003_pr-sd-edit-ignored.md';
 
 /** A check that deviates, pinned: `it.fails` names the bug file. Key: `<fixture>|<check label>`. */
 const KNOWN: ReadonlyMap<string, string> = new Map<string, string>([['pr-prsd|prexcursion', BUG_PR_SD]]);

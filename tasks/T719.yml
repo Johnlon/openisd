@@ -2,8 +2,45 @@ id: T719
 release_note: internal
 repo: openisd
 owner: cover
-status: open
+status: claimed
 goal: WinISD findings live in docs/research/winisd-findings, not in bugs/
-done_test: bash scripts/quiet-test.sh npm run typecheck
+done_test: test -z "$(ls bugs | grep -i winisd)" && test $(ls docs/research/winisd-findings | wc -l) -eq 8
 files:
   - tasks/T719.yml
+  - CLAUDE.md
+  - docs/research/ACCURACY_IMPROVEMENTS.md
+  - docs/research/WINISD_EQUIVALENCE.md
+  - docs/research/WINISD_PARITY.md
+  - docs/research/winisd-findings/FINDING_20261003_pr-sd-edit-ignored.md
+  - docs/research/winisd-findings/FINDING_20261004_pr-vas-box-emptied-crashes.md
+  - docs/research/winisd-findings/FINDING_20261005_driver-without-fs-vas-crashes-on-load.md
+  - docs/research/winisd-findings/FINDING_20261005_vccon-editor-combo.md
+  - docs/research/winisd-findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md
+  - docs/research/winisd-findings/FINDING_20261019_numvc-is-not-a-simulation-input.md
+  - docs/research/winisd-findings/FINDING_20261019_pr-vas-edit-rounded-to-4-decimals.md
+  - docs/research/winisd-findings/FINDING_20261019_vent-end-correction-edit-not-taken.md
+  - docs/testing/DEFECT_PINNING_SWEEP_20261101.md
+  - drivers/myprobes/README.md
+  - packages/design/compat/README.md
+  - packages/design/test/domain/driver-edit-parity-e150he-44.test.ts
+  - packages/design/test/domain/driver-edit-parity-w5.test.ts
+  - packages/design/test/domain/driver-edit.test.ts
+  - packages/design/test/domain/pr-edit-parity-nd140-pr.test.ts
+  - packages/design/test/domain/pr-edit-parity-sb15sfcr-00.test.ts
+  - packages/design/test/domain/pr-sd-edit.test.ts
+  - packages/design/test/domain/pr-spec-resolve.test.ts
+  - packages/design/test/domain/solve-from-mms-cms-load.test.ts
+  - packages/design/test/fixtures/winisdEditRuns.ts
+  - packages/design/test/winisd/wdr-vccon-one-coil-series.test.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - tasks/T429.yml
+  - tasks/T559.yml
+  - tasks/T560.yml
+  - bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md
+  - bugs/BUG_20261004_winisd-pr-vas-box-emptied-crashes.md
+  - bugs/BUG_20261005_winisd-driver-without-fs-vas-crashes-on-load.md
+  - bugs/BUG_20261005_winisd-vccon-editor-combo.md
+  - bugs/BUG_20261019_winisd-bp4-group-delay-is-rounding-noise-from-200-hz.md
+  - bugs/BUG_20261019_winisd-numvc-is-not-a-simulation-input.md
+  - bugs/BUG_20261019_winisd-pr-vas-edit-rounded-to-4-decimals.md
+  - bugs/BUG_20261019_winisd-vent-end-correction-edit-not-taken.md

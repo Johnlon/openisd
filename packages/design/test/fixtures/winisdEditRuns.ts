@@ -21,7 +21,7 @@ const BP6_GROUP_DELAY_BOUND_MS = 0.15;
 
 /** WinISD's bp4 group delay is rounding noise from about 200 Hz up, on the W5-1138SMF and the E150HE-44 box alike: over the 20 runs
  *  the last clean point is 204 Hz and the first deviating one 220 Hz. */
-export const BUG_BP4_GD = 'bugs/BUG_20261019_winisd-bp4-group-delay-is-rounding-noise-from-200-hz.md';
+export const BUG_BP4_GD = 'docs/research/winisd-findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md';
 const GD_NOISE_FROM_HZ = 200;
 
 /** The capture with its group delay cut to the points below (or from) `GD_NOISE_FROM_HZ`. */
