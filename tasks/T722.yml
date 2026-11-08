@@ -3,16 +3,16 @@ release_note: internal
 repo: openisd
 owner: leader
 status: open
-goal: land.sh is a merge queue: every waiting task goes into one candidate and one GitHub run; a red run is split to find the bad task
+goal: land.sh lands tasks side by side, each with its own GitHub run started at once; a landing waits only when two tasks clash
 why: John, 8 Nov 2026, "stop wasting my time with sequentia stuff" (a one-change release waited behind an unrelated landing; each task gets its own ~10 min run).
 starts: after OpenISD 7.0.960 is out (John: release first).
+correction: John, 8 Nov 2026, "NO ) mena stop parallelising stuff unless there is a clash" (read as stop serialising): no batch queue.
 plan:
-  - Each task's fast gates still run on its own (lint, typecheck, architecture tests, done_test); passing tasks join a queue instead of each starting a GitHub run.
-  - The queue head takes every queued task, stacks them on origin/main in queue order as one candidate land/batch-<n>, and starts ONE suite run.
-  - Green: main moves to the candidate, every task in it is landed (same records as today, one per task).
-  - Red: split the batch in two and run each half (bisect) until the bad task is found; the good tasks land, the bad one is refused with its run link, as today.
-  - A task that does not stack on the others (conflict) leaves the batch and waits for the next one.
-  - Proven first in a scratch repo with real processes and two concurrent queuers (rule processes.md 7), wired in only when no landing or post-land run is active.
-done_test: bash scripts/land/test/land-merge-queue.e2e.test.sh
+  - Landings no longer hold one lock for the whole run. Each task rebases, runs its fast gates and starts its own GitHub run on land/<task> at once, side by side with others.
+  - Only the final push to main is serialised (a short lock). Green and main unchanged since the candidate: push.
+  - Green but main moved meanwhile: rebase onto the new main. No clash (the tasks changed disjoint files and the rebase is clean): push without a new run. Clash (shared files or a rebase conflict): run again on the rebased candidate, then push.
+  - Red: refused with its run link, as today.
+  - Proven first in a scratch repo with real processes and two concurrent landings, one clashing pair and one disjoint pair (processes.md rule 7), wired in only when no landing or post-land run is active.
+done_test: bash scripts/land/test/land-side-by-side.e2e.test.sh
 files:
   - tasks/T722.yml
