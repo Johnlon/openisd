@@ -53,7 +53,7 @@ Three kinds of WinISD difference, handled differently:
   the affected control (or chart) says what WinISD does. The bug switches sit in one group
   headed "Enable WinISD bugs", and each is a visible, listed WinISD issue: the switches are how OpenISD
   tells users what is wrong in WinISD, and they build trust. Record each as a
-  WinISD bug (a `bugs/BUG_*_winisd-*.md` file, a row in the "fixed by default" section of
+  WinISD finding (a `docs/research/winisd-findings/FINDING_*.md` file, a row in the "fixed by default" section of
   `docs/research/ACCURACY_IMPROVEMENTS.md`, and `docs/research/WINISD_PARITY.md`).
 - **A trigger, linkage or update bug** (an edit that does not recalculate where a load or another
   event does; a crash, hang or data loss) is NEVER copied and gets no switch: there is nothing to

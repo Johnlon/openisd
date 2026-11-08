@@ -1,6 +1,6 @@
-# BUG_20261005_winisd-driver-without-fs-vas-crashes-on-load
+# FINDING_20261005_driver-without-fs-vas-crashes-on-load
 
-**Status:** RECORDED — WinISD bug, found 2026-10-05. Not copied. A crash is a trigger bug: never copied, no switch.
+**Status:** FINDING ON WINISD, not an OpenISD defect — WinISD bug, found 2026-10-05. Not copied. A crash is a trigger bug: never copied, no switch.
 
 ## Symptom
 WinISD dies about 1.5 s after loading a project whose driver has `Fs` and `Vas` at 0 (the scenario

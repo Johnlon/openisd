@@ -19,7 +19,7 @@ import type {NumericDriverSpecFieldName} from '../../domain/driver/driverSpecFie
 const spec = (field: string, name: NumericDriverSpecFieldName): SpecEditTarget => ({pane: 'Driver', field, spec: name});
 const vent = (field: string, kind: VentEditTarget['kind']): VentEditTarget => ({pane: 'Vent', field, boxType: 'vented', kind});
 
-const BUG_NUMVC = 'bugs/BUG_20261019_winisd-numvc-is-not-a-simulation-input.md';
+const BUG_NUMVC = 'docs/research/winisd-findings/FINDING_20261019_numvc-is-not-a-simulation-input.md';
 
 /** The checks that deviate, pinned: `it.fails` names the bug file. Key: `<fixture>|<check label>`. */
 const W5: DriverRuns = {

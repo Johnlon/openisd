@@ -1,6 +1,6 @@
-# BUG_20261004_winisd-pr-vas-box-emptied-crashes
+# FINDING_20261004_pr-vas-box-emptied-crashes
 
-**Status:** RECORDED — WinISD bug, found 2026-10-04. Not copied. Low priority: John does not empty fields
+**Status:** FINDING ON WINISD, not an OpenISD defect — WinISD bug, found 2026-10-04. Not copied. Low priority: John does not empty fields
 (types the new digits in front, then deletes the old ones), so it does not come up in manual testing.
 OpenISD side checked: a zero in Fs, Qms, Vas or Sd leaves every derived value finite or absent
 (`pr-spec-resolve.test.ts`).

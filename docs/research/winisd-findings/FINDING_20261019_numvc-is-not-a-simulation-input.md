@@ -1,6 +1,6 @@
-# BUG_20261019_winisd-numvc-is-not-a-simulation-input
+# FINDING_20261019_numvc-is-not-a-simulation-input
 
-**Status:** RECORDED — an input WinISD ignores (no switch). OpenISD honours it by design (John, 2026-08-28, QO96).
+**Status:** FINDING ON WINISD, not an OpenISD defect — an input WinISD ignores (no switch). OpenISD honours it by design (John, 2026-08-28, QO96).
 
 Supersedes the 19 Oct record "winisd-typed-numvc-does-not-recalculate", which claimed a typed numVC and a
 loaded numVC=2 give different charts. They do not.

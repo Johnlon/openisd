@@ -21,7 +21,7 @@ The same value entered by hand and loaded from a file should give the same resul
 not, an edit is not reaching the calculation. That is one strong signal, not the only one. Found
 this way (2026-10-03): in OpenISD, editing a passive radiator's Fs, Vas or Qms did nothing, because
 only the `.wpr` import derived Mms, Cms and Rms from them. WinISD has the same kind of bug for the PR
-Sd box (`bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md`, found by a WinISD consistency test). The
+Sd box (`docs/research/winisd-findings/FINDING_20261003_pr-sd-edit-ignored.md`, found by a WinISD consistency test). The
 rule for copying WinISD behaviour is in `CLAUDE.md` ("WinISD controls behave as native WinISD").
 
 ## Run OpenISD consistency
