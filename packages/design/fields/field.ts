@@ -1562,6 +1562,11 @@ export class ToggleField extends Field {
     label: "Uncapped flat response",
     description: "Uncapped flat response: changes 'Force flat response' only.\nTicked (default, as WinISD): OpenISD sets every frequency to the transfer function's 0 dB, cutting as well as boosting, uncapped. The excursion chart shows what that costs.\nUnticked: boost only, up to the passband level, capped at 20 dB.",
   });
+  static readonly ADV_WINISDCMSFROMVAS = new ToggleField({
+    value: "adv_WinisdCmsFromVas",
+    label: "Cms from Vas",
+    description: "Cms from Vas: changes the charts only when a datasheet states both Cms and Vas and they disagree.\nTicked (default, as WinISD): the charts use the Cms worked out from Vas.\nUnticked: the charts use the stated Cms.",
+  });
   static readonly ADV_WINISDABCINTRAPORTVELOCITY = new ToggleField({
     value: "adv_WinisdAbcIntraPortVelocity",
     label: "Simplified ABC intra-port velocity",

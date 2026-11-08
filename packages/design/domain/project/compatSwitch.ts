@@ -29,6 +29,7 @@ export class CompatSwitch {
     static readonly WRAP_PHASE = new CompatSwitch(ToggleField.ADV_WINISDWRAPPHASE, 'option', p => p.winisdWrapPhase);
     static readonly FLAT_MODEL = new CompatSwitch(ToggleField.ADV_WINISDFLATMODEL, 'option', p => p.winisdFlatModel);
     static readonly ABC_INTRA_PORT_VELOCITY = new CompatSwitch(ToggleField.ADV_WINISDABCINTRAPORTVELOCITY, 'option', p => p.winisdAbcIntraPortVelocity);
+    static readonly CMS_FROM_VAS = new CompatSwitch(ToggleField.ADV_WINISDCMSFROMVAS, 'option', p => p.winisdCmsFromVas);
 
     /** What a new project, or a file that does not say, has:
      *  a bug unticked (fixed), an option ticked (WinISD's way). */

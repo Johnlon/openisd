@@ -859,6 +859,9 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // "Uncapped flat response": force flat as WinISD does it, every point to the TF 0 dB, uncapped;
     // off, boost only to the passband reference, capped. Optional: absent parses to ON.
     winisdFlatModel: z.boolean().optional(),
+    // Option "Cms from Vas" (QO463): a datasheet that states both Cms and Vas - ticked, the charts use the
+    // Cms worked out from Vas (WinISD); unticked, the stated Cms. Optional: absent parses to ON.
+    winisdCmsFromVas: z.boolean().optional(),
 }));
 export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
 

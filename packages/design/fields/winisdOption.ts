@@ -51,6 +51,15 @@ export class WinisdOption {
     switchField: ToggleField.ADV_WINISDFLATMODEL,
   });
 
+  static readonly CMS_FROM_VAS = new WinisdOption({
+    title: 'Cms from Vas',
+    winisd: 'When a datasheet states both Cms and Vas, WinISD works the Cms out from Vas and ignores the stated Cms.',
+    openisd: 'Unticked, OpenISD uses the stated Cms.',
+    seenIn: 'every chart, only for a driver or radiator whose datasheet states both Cms and Vas and they disagree.',
+    size: 'Depends on the datasheet: the two values usually differ by a few percent.',
+    switchField: ToggleField.ADV_WINISDCMSFROMVAS,
+  });
+
   static readonly ABC_INTRA_PORT_VELOCITY = new WinisdOption({
     title: 'Simplified ABC intra-port velocity',
     winisd: 'WinISD\'s intra-port velocity chart for an ABC box leaves out a small leak term in the air flow through the port.',
