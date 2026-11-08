@@ -37,6 +37,7 @@ Reproduced in a unit test (`packages/design/test/domain/zz-p173-probe.test.ts`, 
 ## Rulings (John, 31 Oct 2026)
 
 - Fix in T628 and land on main (T607 is already shipped in T618).
+- Replaced 8 Nov 2026 by QO451 (`bugs/BUG_20261108_radiator-pick-replaces-stated-cms-mms.md`): every stated figure is kept on pick; the table below no longer holds.
 - No E→C step. On pick, each mechanical figure is either copied as entered or left out (N):
 
   | Figure | Left out when the record has | Otherwise   |

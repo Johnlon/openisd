@@ -1,9 +1,9 @@
 /**
- * Picking a radiator into a project (BUG_20261031_phone-pr-p173-cms-display, John 31 Oct 2026):
- * each of Mms, Cms and Rms is copied as entered or left out, never copied and then flipped to
- * calculated. Left out when the record states its other half (Fs, Vas, Qms); the project's
- * resolve then fills it. The "can't calculate" warning marks only the empty box, never a box
- * that has a value.
+ * Picking a radiator into a project (John, QO451, 8 Nov 2026: "a stated 1.01 must not be replaced
+ * by other numbers"; BUG_20261108_radiator-pick-replaces-stated-cms-mms): every stated figure is
+ * kept as entered, never replaced by one worked out from its pair (Cms from Vas, Mms from Fs, Rms
+ * from Qms). Stated pairs that disagree both stay and both carry the conflict mark. The "can't
+ * calculate" warning marks only the empty box, never a box that has a value.
  */
 import {describe, expect, it} from 'vitest';
 import {type Engine, FixedAir, createEngine} from '@openisd/design/engine';
@@ -36,23 +36,38 @@ describe('picking a radiator: datasheet Mms, Cms, Rms are copied or left out, ne
     expect(spec.Rms_kg_per_s.value).toBeNull();
   });
 
+  it('P173: Cms 1.01 and Vas 24 L agree within their stated rounding, so neither is marked', () => {
+    const spec = pick(createEngine(), p173);
+    expect(spec.Cms_m_per_N.dq).toEqual([]);
+    expect(spec.Vas_m3.dq).toEqual([]);
+  });
+
+  it('a stated Cms that disagrees with the stated Vas stays entered, and both carry the conflict mark', () => {
+    const spec = pick(createEngine(), {...p173, Cms_m_per_N: 0.002});
+    expect(spec.Cms_m_per_N.entered).toBe(true);
+    expect(spec.Cms_m_per_N.value).toBe(0.002);
+    expect(spec.Cms_m_per_N.dq.some(i => i.kind === 'inconsistent-inputs')).toBe(true);
+    expect(spec.Vas_m3.dq.some(i => i.kind === 'inconsistent-inputs')).toBe(true);
+  });
+
+  it('a record stating Qms and Rms keeps Rms entered at its value', () => {
+    const spec = pick(createEngine(), {...p173, Qms: 5, Rms_kg_per_s: 2.2});
+    expect(spec.Rms_kg_per_s.entered).toBe(true);
+    expect(spec.Rms_kg_per_s.value).toBe(2.2);
+  });
+
   it('a record stating Rms but no Qms keeps Rms entered at its value', () => {
     const spec = pick(createEngine(), {...p173, Rms_kg_per_s: 2.2});
     expect(spec.Rms_kg_per_s.entered).toBe(true);
     expect(spec.Rms_kg_per_s.value).toBe(2.2);
   });
 
-  it('a record stating Qms and Rms leaves Rms out: Qms drives it', () => {
-    const spec = pick(createEngine(), {...p173, Qms: 5, Rms_kg_per_s: 2.2});
-    expect(spec.Rms_kg_per_s.entered).toBe(false);
-    expect(spec.Rms_kg_per_s.value).not.toBe(2.2);
-  });
-
-  it('a record stating Cms but no Vas keeps Cms entered', () => {
+  it('a record stating Cms but no Vas keeps Cms entered and works Vas out', () => {
     const {Vas_m3: _v, ...noVas} = p173;
     const spec = pick(createEngine(), noVas);
     expect(spec.Cms_m_per_N.entered).toBe(true);
     expect(spec.Cms_m_per_N.value).toBe(0.00101);
+    expect(spec.Vas_m3.calculated).toBe(true);
   });
 
   it('a record stating Mms but no Fs keeps Mms entered', () => {
