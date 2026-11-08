@@ -1,0 +1,9 @@
+id: T739
+release_note: internal
+repo: openisd
+owner: leader
+status: open
+goal: One reliable list of every view and popup; the live review visits it and reports each visited or not
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T739.yml
