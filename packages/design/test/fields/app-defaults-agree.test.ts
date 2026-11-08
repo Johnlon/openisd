@@ -3,9 +3,8 @@ import {createEngine, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine
 import {
   DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_QICL, DEFAULT_NEW_PROJECT_QICLFR, DEFAULT_NEW_PROJECT_QP,
   DEFAULT_SEALED_QTC, DEFAULT_SEALED_VOLUME_L, DEFAULT_SWEEP_POINTS, DEFAULT_VENTED_ALIGNMENT,
-  END_CORRECTION_OPTIONS, NumberField, PhoneDialogHelp, SEALED_ALIGNMENT_OPTIONS,
+  END_CORRECTION_OPTIONS, NumberField, SEALED_ALIGNMENT_OPTIONS,
 } from '@openisd/design/fields';
-import {DEFAULT_P_REF_PA} from '../../engine/air.js';
 import {portLoss} from '../../engine/boxes/port.js';
 import {FrequencyAxis} from '../../chart/axis.js';
 import {emptyBoxJson, WINISD_BOX_LOSSES} from '../../domain/boxDefaults.js';
@@ -76,11 +75,6 @@ describe('app defaults agree', () => {
     const box = emptyBoxJson(EMPTY_RADIATOR());
     expect(box.vented.vent.endCorrection_m).toBe(END_CORRECTION_OPTIONS[0]!.value);
     expect(box.bandpass6.rearVent.endCorrection_m).toBe(END_CORRECTION_OPTIONS[1]!.value);
-  });
-
-  it('the environment help names the air defaults', () => {
-    expect(PhoneDialogHelp.OPTIONS_ENVIRONMENT.intro).toContain('20 °C, 30 %');
-    expect(PhoneDialogHelp.OPTIONS_ENVIRONMENT.rows.map(r => r.text).join(' ')).toContain(`${DEFAULT_P_REF_PA} Pa`);
   });
 
   it('the listening distance is at least 0.1 m and positive (QO461)', () => {

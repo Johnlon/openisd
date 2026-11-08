@@ -1,6 +1,6 @@
 # BUG_20261108_app-defaults-typed-in-many-places
 
-**Status:** OPEN
+**Status:** RESOLVED (T726; help-text item left, see below)
 
 ## Symptom
 The same app default is typed in several places and the copies disagree, so the app gives a
@@ -43,7 +43,6 @@ series resistance max 1000 ohm, listening distance min 0 m, Vb min 0.1 mL, Fb ma
 not duplicates; they need John's ruling and are not part of this fix.
 
 ## Verification
-A unit test asserts each former pair agrees (wizard sealed default equals bare-driver default;
-STARTING.ventedAlignment equals DEFAULT_VENTED_ALIGNMENT; the Vb band max equals the Vb field
-max; parseEnv repairs 1 Pa to the default). `grep` for the old literals finds none outside the
-one constant.
+`packages/design/test/fields/app-defaults-agree.test.ts` (vented start alignment, shared 7 L volume, Vb band max, plot limits, drag clamp, sweep fallback, box Q constants, end corrections, listening distance min 0.1 m per QO461), `packages/ui/test/logic/app-defaults-agree.test.ts` (wizard and bare-driver sealed volume and Qtc), and `packages/persistence/test/appSettingsRepo.test.ts` "repairs a stored 1 Pa pressure or 2000 K temperature to the default".
+
+Not done: the environment numbers in help text (phoneDialogText.ts, phoneText.ts) stay typed, because `architecture-air-has-no-hidden-source` and `architecture-engine-boundary` forbid fields importing the air constants.
