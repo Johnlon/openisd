@@ -257,7 +257,7 @@ test.describe('Original chart view', () => {
   test('a drag-select draws a horizontal level line for BOTH selection cursors', async ({ appPage: page }) => {
     const box = (await page.locator('.graph-wrap canvas').boundingBox())!;
     const y = box.y + box.height * 0.5;
-    // Double-click the X-axis strip: resets the frequency window to 1 Hz – 20 kHz, so the
+    // Double-click the X-axis strip: resets the frequency window to the default 10 Hz – 1 kHz (T725), so the
     // fractions below mean the same frequencies whatever window the view state was restored with.
     await page.mouse.dblclick(box.x + box.width * 0.5, box.y + box.height - 6);
     // Drag across the bass knee (≈22–120 Hz). Two constraints on where: it must START inside the
@@ -265,9 +265,9 @@ test.describe('Original chart view', () => {
     // level gesture, not a band; and it must SPAN the knee, because in a flat region both level
     // lines land on the same pixels and read as one, which would not prove the second cursor's
     // line exists at all.
-    await page.mouse.move(box.x + box.width * 0.34, y);
+    await page.mouse.move(box.x + box.width * 0.15, y);
     await page.mouse.down();
-    await page.mouse.move(box.x + box.width * 0.50, y, { steps: 6 });
+    await page.mouse.move(box.x + box.width * 0.45, y, { steps: 6 });
     await page.mouse.up();
     await expect.poll(() => levelLineClusters(page)).toBe(2);
   });

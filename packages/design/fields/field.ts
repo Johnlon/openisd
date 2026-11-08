@@ -309,6 +309,9 @@ export class NumberField extends Field {
     precision: 1,
     description: "Plot Start Frequency\nThe lowest frequency every chart draws and the sweep computes.",
   });
+  /** The chart frequency range a new install and every reset show: 10 Hz to 1000 Hz (John, 8 Nov 2026: the
+   *  top end was 20000; loudspeaker design needs the bottom three decades). The one place this pair lives. */
+  static readonly PLOT_RANGE_DEFAULT_HZ: Readonly<{min: number; max: number}> = Object.freeze({min: 10, max: 1000});
   static readonly PLOT_FMAX_HZ = new NumberField({
     value: "plot_fmax_hz",
     label: "Frequency range end",
