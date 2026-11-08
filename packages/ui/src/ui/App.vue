@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted, watch} from 'vue';
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
 import OriginalShell from './shells/original/OriginalShell.vue';
 import './joined-fields.css';
 import FieldCatalogue from './components/FieldCatalogue.vue';
@@ -32,6 +32,7 @@ import {createViewportWatch} from '../logic/viewport.js';
 import {useTelemetryUi} from '../hooks/telemetryContext.js';
 import {useAnnouncementCenter} from '../hooks/Announcements-hooks.js';
 import CrashScreen from './components/CrashScreen.vue';
+import {createLabelColumns, type LabelColumns} from '../hooks/labelColumns.js';
 
 const { designIO, projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId, persistence, browserStorage, storageUsage, saves } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
@@ -58,6 +59,14 @@ watch(viewportWatch.narrow, v => { presentationState.narrowViewport = v; });
 
 /** Which shell to render: the manual override wins when set; otherwise follow the viewport. */
 const activeSkin = computed(() => presentationState.shownSkin());
+
+// On the desktop skin every field group's label column is as wide as its longest label (QO466.c12).
+const appRoot = ref<HTMLElement | null>(null);
+let labelColumns: LabelColumns | null = null;
+watch([appRoot, activeSkin], ([root, skin]) => {
+  labelColumns?.stop();
+  labelColumns = root !== null && skin !== 'mobile' && !fieldCatalogue ? createLabelColumns(root) : null;
+}, {flush: 'post'});
 
 // App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash) and the global
 // overlays. The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus
@@ -135,6 +144,7 @@ onUnmounted(() => {
   stopStoringNewProjects();
   window.removeEventListener('hashchange', handleHashChange);
   viewportWatch.stop();
+  labelColumns?.stop();
 });
 </script>
 
@@ -149,7 +159,7 @@ onUnmounted(() => {
        desktop mode this element is unconstrained (full width), so the same rule is a no-op —
        `position: fixed` against a full-viewport containing block behaves identically to `fixed`
        against the real viewport. -->
-  <div class="app-root joined-fields" :class="{ 'app-root-mobile': activeSkin === 'mobile' || fieldCatalogue }">
+  <div ref="appRoot" class="app-root joined-fields" :class="{ 'app-root-mobile': activeSkin === 'mobile' || fieldCatalogue }">
     <!-- The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus the
          empty placeholders, and the toolbar's global actions stay reachable. All overlays
          self-gate on their own presentationState booleans. Which shell mounts is `activeSkin`:

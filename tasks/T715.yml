@@ -3,6 +3,7 @@ release_note: On the desktop, Save and Revert sit under the What-if button, away
 repo: openisd
 owner: leader
 status: done
+landed: 71210c5a5e5b3d3cb75c4de4172bc28efa205761
 goal: "I want the Save/Revert button moved away from the bottom of the box - place them under what-if with a one button gap (John, QO453.c7)"
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

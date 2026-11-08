@@ -30,8 +30,8 @@ describe('ChartLayout', () => {
 
 describe('ChartLayout chart text font', () => {
   it('names a generic family, so a missing Inter never falls to the browser default face', () => {
-    expect(ChartLayout.CHART.font(9)).toBe('9px "Inter", system-ui, sans-serif');
-    expect(ChartLayout.CHART.font(9, true)).toBe('bold 9px "Inter", system-ui, sans-serif');
+    expect(ChartLayout.CHART.font(9, false, 'Roboto')).toBe('9px Roboto');
+    expect(ChartLayout.CHART.font(9, true, 'Selawik')).toBe('bold 9px Selawik');
   });
 });
 

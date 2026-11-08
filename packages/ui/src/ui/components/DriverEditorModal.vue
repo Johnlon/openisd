@@ -1281,10 +1281,8 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
      per field. bugs/archive/BUG_20260817_driver_editor_labels_overflow_a_fixed_62px_column.md */
   width: auto !important;
   max-width: none !important;
-  /* A label never wraps and never breaks inside a word: the shared joined-field rule sets
-     `white-space: normal; overflow-wrap: anywhere`, which breaks "USPL" into "USP" / "L" the moment its track is narrower than the text. */
+  /* A label never wraps here (the shared joined-field rule lets it wrap between words, never inside one). */
   white-space: nowrap !important;
-  overflow-wrap: normal !important;
   text-align: left !important;
   flex: 0 0 auto !important;
 }
@@ -1461,7 +1459,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 
 /* ── Phone: the ƒ mark in the left gutter of a row the inspector can explain ── */
 .de-phone .de-fld.de-fx { position: relative; }
-.de-phone .de-fld.de-fx::before { content: var(--de-fx); position: absolute; left: 4px; top: 50%; transform: translateY(-50%); color: #888; font-style: italic; font-family: Georgia, serif; font-size: 14px; line-height: 1; pointer-events: none; }
+.de-phone .de-fld.de-fx::before { content: var(--de-fx); position: absolute; left: 4px; top: 50%; transform: translateY(-50%); color: #888; font-style: italic; font-family: var(--font-ui); font-size: 14px; line-height: 1; pointer-events: none; }
 </style>
 
 <style scoped>
@@ -1483,7 +1481,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 </style>
 
 <style scoped>
-.de-help-button {width:22px;height:22px;padding:0;border:1px solid #3a6fb0;border-radius:50%;background:#e6f0fb;color:#23548f;font:600 12px/1 sans-serif;cursor:pointer;flex:none;}
+.de-help-button {width:22px;height:22px;padding:0;border:1px solid #3a6fb0;border-radius:50%;background:#e6f0fb;color:#23548f;font:600 12px/1 var(--font-ui);cursor:pointer;flex:none;}
 .de-hdr {display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;padding-right:4px;}
 .de-modal > h2 > .de-help-button {margin-left:auto;}
 .de-modal > h2 > .x {margin-left:0;}

@@ -376,7 +376,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           </div>
 
           <div class="box-layout">
-            <div v-if="!isDual" class="box-fields-col" style="width: 412px; --label-w:150px;">
+            <div v-if="!isDual" class="box-fields-col" style="width: 412px;">
               <DesktopBand :section="rearChamberHelp" @help="openSectionHelp" />
               <div class="field-row">
                 <UIField class="field" input-id="og-box-volume" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" />
@@ -461,7 +461,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
           </div>
           <div class="two-col driver-columns" style="margin-top:6px;">
-            <div class="short-pick-fields" style="--label-w:160px;">
+            <div class="short-pick-fields">
               <DesktopBand :section="placementHelp" style="margin-bottom:4px;" @help="openSectionHelp" />
               <div class="field-row" style="margin-bottom:4px;">
                 <UIFixedField class="field" input-id="og-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="DesktopLabels.NUM_DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" :deviation="driverCountDeviationShown ? WinisdDeviation.DRIVER_COUNT : undefined" />
@@ -476,10 +476,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 </UIPickField>
               </div>
             </div>
-            <div style="--label-w:172px;">
+            <div>
               <DesktopBand :section="advancedOptionsHelp" @help="openSectionHelp" />
               <div class="beside-hint">
-                <div class="driver-advanced-fields" style="--label-w: 160px;">
+                <div class="driver-advanced-fields">
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_VCTEMPRISE_K" :value="project.vcTempRise_K.value" @update:value="v => project.vcTempRise_K.set(v)" /></div>
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_ADDEDMASS_G" :value="project.driverAddedMass_kg.value" @update:value="v => project.driverAddedMass_kg.set(v)" /></div>
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.ALFAVC_PER_K" :value="project.alfaVC_per_K.value" @update:value="v => project.alfaVC_per_K.set(v)" /></div>
@@ -500,13 +500,13 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                own [Select PR] [Edit] row underneath a control that is not about the PR. -->
           <!-- passive radiator -->
           <div v-if="selectedBox === 'box-passive-radiator'">
-            <div class="field-row driver-id-row" style="--label-w:36px; margin-bottom:8px;">
+            <div class="field-row driver-id-row" style="margin-bottom:8px;">
               <div class="field tight entered" :title="TextField.PR_NAME.description"><label>{{ TextField.PR_NAME.label }}</label><input id="og-pr-name" type="text" style="width:330px" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))"></div>
               <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">{{ DesktopLabels.SELECT_PASSIVE_RADIATOR }}</button>
               <button class="edit-btn" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">{{ DesktopLabels.SAVE_PASSIVE_RADIATOR }}</button>
             </div>
             <div class="two-col pr-controls" style="gap:10px;">
-              <div style="--label-w:58px;">
+              <div>
                 <DesktopBand :section="passiveRadiatorHelp" title="Passive radiator parameters" @help="openSectionHelp" />
                 <div style="display: grid; grid-template-columns: auto auto; column-gap: 5px; row-gap: 0; margin-bottom: 0;">
                   <UIField class="field" input-id="og-pr-vas" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" />
@@ -519,7 +519,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField class="field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" />
                 </div>
               </div>
-              <div style="--label-w:162px;">
+              <div>
                 <DesktopBand :section="userOptionsHelp" @help="openSectionHelp" />
                 <div class="field-row" style="margin-bottom:3px;">
                   <UIFixedField class="field" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" @update:value="n => project.box.passiveRadiator.count.set(n)" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined" />
@@ -528,10 +528,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" />
                 </div>
                 <div class="field-row" style="margin-bottom:3px; gap:8px;">
-                  <UIField class="field" style="--label-w:162px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
+                  <UIField class="field" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
                 </div>
                 <div class="field-row" style="margin-bottom:3px;">
-                  <UIFixedField :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" style="--label-w:162px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly />
+                  <UIFixedField :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly />
                 </div>
               </div>
             </div>
@@ -582,7 +582,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIFixedField class="field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="port.portPipeResonance_hz" readonly />
                 </div>
               </div>
-              <div v-if="ventPorts.length === 1" class="vent-settings-col" style="--label-w:110px;">
+              <div v-if="ventPorts.length === 1" class="vent-settings-col">
                 <DesktopBand :section="limitsHelp" @help="openSectionHelp" />
                 <div class="field-row"><UIFixedField class="field" input-id="og-vent-velocity-limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :value="project.portVelocityLimit_m_per_s.value" @update:value="v => project.portVelocityLimit_m_per_s.set(v)" /></div>
                 <p v-if="fbUnreachable" id="og-vent-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
@@ -599,13 +599,13 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <!-- ===== Signal tab ===== -->
         <section class="tab-section" :class="{ active: activeTab === 'signal' }">
           <div class="two-col">
-            <div style="--label-w:60px;">
+            <div>
               <DesktopBand :section="listeningPlaceHelp" @help="openSectionHelp" />
               <div class="field-row"><div class="field"><label>Distance</label><input type="text" class="greyed" :value="NumberField.SIGNAL_DISTANCE_M.format(1)" disabled><span class="unit">{{ NumberField.SIGNAL_DISTANCE_M.unitLabel() }}</span></div></div>
               <div class="field-row"><div class="field"><label>{{ DesktopLabels.ANGLE }}</label><input type="text" class="greyed" :value="NumberField.SIGNAL_ANGLE_RAD.format(0)" disabled><span class="unit">{{ NumberField.SIGNAL_ANGLE_RAD.unitLabel() }}</span></div></div>
               <p class="hint">Listening distance/angle are not modelled yet.</p>
             </div>
-            <div style="--label-w:208px;">
+            <div>
               <DesktopBand :section="signalSourceHelp" @help="openSectionHelp" />
               <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :readonly="powerLocked" /></div>
               <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_DRIVEV_V" :cell="project.driveVoltage_V" /></div>
@@ -618,7 +618,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <section class="tab-section" :class="{ active: activeTab === 'advanced' }">
           <div class="two-col adv-two-col">
             <div class="adv-left-col">
-              <div class="adv-air-fields" style="--label-w:108px;">
+              <div class="adv-air-fields">
                 <div class="adv-air-col">
                 <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range /></div>
                 <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range /></div>
@@ -890,7 +890,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   --chart-cross:#00000055; --chart-band:rgba(0,0,0,0.05); --chart-band-line:rgba(0,0,0,0.3);
   --readout-bg:rgba(248,250,252,0.92);
   display:flex; flex-direction:column; width:100%; height:100vh; background:#f2f2f2;
-  overflow:hidden; color:#1a1a1a; font-family:"Segoe UI", Tahoma, Arial, sans-serif; font-size:14px;
+  overflow:hidden; color:#1a1a1a; font-family:var(--font-ui); font-size:14px;
 }
 .original-root button, .original-root select, .original-root input, .original-root textarea { font-family:inherit; font-size:14px; }
 
@@ -1266,7 +1266,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    the tallest tab of any box type (bandpass6 or ABC, 244 px, measured by original-bottom-panel-height), so
    the height never changes with box type either (John, 2026-10-15). */
 .content-tabs { display:grid; grid-template-columns:minmax(0,1fr); }
-.tab-section { grid-area:1 / 1; visibility:hidden; overflow:hidden; min-height:0; --label-w: 150px; }
+.tab-section { grid-area:1 / 1; visibility:hidden; overflow:hidden; min-height:0; }
 /* Real WinISD is a Win32 window: child controls sit at fixed offsets and the client area
    CLIPS when the window shrinks — nothing reflows, nothing overlaps. The pane reproduces
    that by keeping every control at its natural width (the `flex:none` rules below) and
@@ -1283,10 +1283,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .two-col { display:flex; gap:24px; align-items:flex-start; justify-content:flex-start; }
 .two-col > div { flex:none; }
 .box-layout { display:flex; gap:var(--box-col-gap); align-items:flex-start; }
-.box-fields-col { flex:none; width:var(--box-col-w); --label-w:128px; }
-/* A long label ("Tuning freq (Fb)") wraps in the narrow chamber columns; it is never cut by an ellipsis. */
+.box-fields-col { flex:none; width:var(--box-col-w); }
 .box-fields-col :deep(.ui-field) { align-items:center; }
-.box-fields-col .field :deep(.ui-field-label) { white-space:normal; overflow:visible; text-overflow:clip; line-height:13px; }
 /* The field span is fixed at the WIDEST box layout (the dual-chamber types: two field
    columns + the gap), so the diagram column starts at the same x for every box type
    instead of being pushed to the far right whenever the fields need less room. */
@@ -1310,29 +1308,28 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .vent-port-row { display:flex; gap:12px; margin-bottom:2px; }
 .vent-pane-tight .vent-col-band { margin-bottom:2px; }
 .vent-pane-tight .vent-col-band :deep(.vent-col-title) { margin-bottom:0; }
-.vent-pane-tight { --label-w:86px; }
 .vent-pane-tight .vent-port-row { gap:8px; }
 .vent-pane-tight .vent-port-row > .field:not(.ui-field) { display:grid; grid-template-rows:auto auto; justify-content:start; align-items:center; column-gap:4px; row-gap:0; }
 .vent-pane-tight .vent-port-row > .field:not(.ui-field) > label { grid-row:1; width:auto; }
 .vent-pane-tight .field:not(.ui-field) select { grid-row:2; width:138px; height:20px; padding:0 6px; }
 .vent-pane-tight .vent-groups { gap:16px; }
 .vent-pane-tight .vent-port-row { display:grid; grid-template-columns:repeat(2,max-content); gap:8px; }
-.vent-labels-left .vent-port-row > .field:not(.ui-field) { grid-template-columns:72px 138px; grid-template-rows:auto; }
+.vent-labels-left .vent-port-row > .field:not(.ui-field) { grid-template-columns:var(--label-w,var(--ctl-label-w)) 138px; grid-template-rows:auto; }
 .vent-labels-left .vent-port-row > .field:not(.ui-field) > label { grid-column:1; grid-row:1; }
 .vent-labels-left .field:not(.ui-field) select { grid-column:2; grid-row:1; }
-.vent-labels-left .vent-port-row > .field:has(select:not([id])) { grid-template-columns:86px 138px; }
 /* Compact port exploration: shape on row2, count below on row3. */
-.port-columns .vent-col, .port-columns .vent-settings-col { width:400px; flex:none; }
-.port-columns .vent-col { display:grid; grid-template-columns:257px max-content; column-gap:8px; row-gap:2px; align-content:start; align-items:center; }
+/* Each column is as wide as its fields: the label columns follow their longest label (labelColumns.ts). */
+.port-columns .vent-col, .port-columns .vent-settings-col { width:max-content; flex:none; }
+.port-columns .vent-col { display:grid; grid-template-columns:max-content max-content; column-gap:8px; row-gap:2px; align-content:start; align-items:center; }
 .port-columns .vent-col-band { grid-column:1 / -1; grid-row:1; }
 .port-columns .vent-port-row { display:contents; }
 .port-columns .vent-port-row > .field { grid-column:1; }
 .port-columns .port-tuning-row > .ui-field, .port-columns .port-tuning-placeholder { grid-column:1; grid-row:2; }
-.port-columns .port-tuning-placeholder { width:257px; min-height:var(--ctl-h,20px); }
-.port-columns .vent-port-row > .field:not(.ui-field) { grid-template-columns:120px 138px; }
-.port-columns .vent-port-row > .field:has(select:not([id])) { grid-template-columns:120px 138px; column-gap:2px; }
-.port-columns .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:2; grid-row:3; grid-template-columns:44px 85px; }
-.port-columns .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:4; grid-template-columns:44px 42px; }
+.port-columns .port-tuning-placeholder { min-height:var(--ctl-h,20px); }
+.port-columns .vent-port-row > .field:not(.ui-field) { grid-template-columns:var(--label-w,var(--ctl-label-w)) 138px; }
+.port-columns .vent-port-row > .field:has(select:not([id])) { column-gap:2px; }
+.port-columns .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:2; grid-row:3; grid-template-columns:var(--label-w,var(--ctl-label-w)) 85px; }
+.port-columns .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:4; grid-template-columns:var(--label-w,var(--ctl-label-w)) 42px; }
 .port-columns .field:has(select[id*="vent-count"]) select { width:42px; }
 .port-columns .field:has(select[id*="vent-shape"]) select { width:85px; }
 /* A pane too narrow for the ports side by side (400px each) stacks Shape and Number in one row under
@@ -1343,6 +1340,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col :is(.vent-port-row > .field, .port-tuning-row > .ui-field, .port-tuning-placeholder) { grid-column:1 / -1; }
   .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:1; grid-row:3; }
   .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:3; }
+  /* Shape and Number share one row here, each label just before its own list. */
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:is(:has(select[id*="vent-shape"]),:has(select[id*="vent-count"])) { grid-template-columns:max-content max-content; }
 }
 /* For a pane 660-830px wide (1024px window: 691px) the three ABC columns cannot keep 262px each: they share the pane, and each field's label
    and box split the column. Narrower than 660px (a 780px window: 447px) three columns cannot fit, so the 262px columns stay and the pane scrolls sideways. */
@@ -1359,6 +1358,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col :is(.vent-port-row > .field, .port-tuning-row > .ui-field, .port-tuning-placeholder) { grid-column:1 / -1; }
   .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:1; grid-row:3; }
   .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:3; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col .vent-port-row > .field:is(:has(select[id*="vent-shape"]),:has(select[id*="vent-count"])) { grid-template-columns:max-content max-content; }
 }
 .vent-col { flex:none; }
 .vent-col-band { margin-bottom:4px; }
@@ -1393,7 +1393,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .adv-air-fields { display:flex; flex-wrap:wrap; column-gap:8px; align-items:flex-start; }
 .adv-air-col { flex:none; }
 .adv-air-fields .field { gap:2px; }
-.adv-air-fields .field label { width:108px; white-space:nowrap; }
 .adv-air-fields .field input, .adv-air-fields :deep(input) { width:82px; padding:4px 3px; }
 .adv-air-fields .field .unit { min-width:auto; }
 .adv-air-fields .field.ui-field { --ui-field-column-gap:2px; grid-template-columns:108px max-content max-content auto; column-gap:var(--ui-field-column-gap); }

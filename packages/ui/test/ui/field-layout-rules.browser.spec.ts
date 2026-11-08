@@ -1,7 +1,8 @@
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, openAProject, setFocusedBoxType, test} from '../fixtures.js';
 import type {BoxTypeName} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
-import {measureFieldLayoutRules} from '../fixtures/fieldLayoutAudit.js';
+import {measureFieldLayoutRules, measureLabelGaps} from '../fixtures/fieldLayoutAudit.js';
+import {DesktopSizes} from '@openisd/design/fields';
 import type {Locator, Page} from '@playwright/test';
 
 /**
@@ -300,5 +301,47 @@ for (const box of ['vented', 'bandpass6', 'abc'] as const) {
     const boxWidths = await panel.locator('.ui-field .num-input-wrap').evaluateAll(all => all.map(w => Math.round(w.getBoundingClientRect().width)));
     expect(boxWidths.length).toBeGreaterThan(0);
     expect(new Set(boxWidths), JSON.stringify(boxWidths)).toEqual(new Set([WHAT_IF_BOX_PX]));
+  });
+}
+
+/** The desktop sizes John uses (QO466): the laptop at 1440 x 900 and 1536 x 864, and the common 1366 x 768. */
+const DESKTOP_SIZES: readonly {width: number; height: number}[] = [{width: 1366, height: 768}, {width: 1536, height: 864}, {width: 1440, height: 900}];
+/** The widest blank allowed between a group's longest label and its box: the warning slot after every label,
+ *  the 2 px column gap, and 2 px for rounding the text width up to whole pixels. */
+const LABEL_GAP_MAX_PX = DesktopSizes.LABEL_SLOT_PX + 4;
+
+/** Every tab of the screen at each desktop size, label gaps measured; faults are labelled with size and tab. */
+async function labelGapsOnTabs(page: Page): Promise<string[]> {
+  const faults: string[] = [];
+  const tabs = page.locator('.project-nav li');
+  for (const size of DESKTOP_SIZES) {
+    await page.setViewportSize(size);
+    for (const tab of await names(tabs)) {
+      await tabs.filter({hasText: new RegExp(`^${tab}$`)}).click();
+      const at = `${size.width}x${size.height} ${tab}`;
+      faults.push(...(await page.locator('.content-panel').first().evaluate(measureLabelGaps, LABEL_GAP_MAX_PX)).map(issue => `${at}: ${issue}`));
+      faults.push(...(await measure(page, '.content-panel')).filter(issue => issue.startsWith('R2')).map(issue => `${at}: ${issue}`));
+    }
+  }
+  return faults;
+}
+
+for (const {box} of BOXES) {
+  // John, QO466.c12: "regression as the input fields are too far from the labels, this is problematic in many places please fix here".
+  test(`desktop ${box}: on every tab each group's boxes sit next to its longest label, no label wraps, nothing cut`, async ({page}) => {
+    await startDesktop(page, box);
+    expect(await labelGapsOnTabs(page)).toEqual([]);
+  });
+}
+
+for (const screen of EXTRA.filter(s => s.skin === 'desktop' && s.id.includes('wizard'))) {
+  test(`${screen.id}: each group's boxes sit next to its longest label at every desktop size`, async ({page}) => {
+    await screen.open(page);
+    const faults: string[] = [];
+    for (const size of DESKTOP_SIZES) {
+      await page.setViewportSize(size);
+      faults.push(...(await page.locator(screen.root).first().evaluate(measureLabelGaps, LABEL_GAP_MAX_PX)).map(issue => `${size.width}x${size.height}: ${issue}`));
+    }
+    expect(faults).toEqual([]);
   });
 }

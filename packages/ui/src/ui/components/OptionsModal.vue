@@ -528,7 +528,7 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
 .opt-color-row input[type="color"] { width: 36px; height: 26px; padding: 0; border: 1px solid var(--line); cursor: pointer; }
 .opt-color-row.opt-disabled input[type="color"] { cursor: not-allowed; opacity: 0.5; }
 .opt-clear-btn { border: 1px solid var(--line); background: var(--panel2); color: var(--mut);
-  cursor: pointer; font-size: 14px; width: 26px; height: 26px; line-height: 1; }
+  cursor: pointer; font-size: 14px; width: 26px; height: 26px; line-height: 1; padding: 0; }
 
 .opt-limits { width: auto; border-collapse: collapse; font-size: 11px; }
 .opt-limits th, .opt-limits td { padding: 2px 4px; text-align: left; }

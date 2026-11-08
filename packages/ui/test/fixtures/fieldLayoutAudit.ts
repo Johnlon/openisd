@@ -93,3 +93,40 @@ export function measureFieldLayoutRules(root: Element): string[] {
   }
   return issues;
 }
+
+/**
+ * The label gap (John, QO466.c12: "the input fields are too far from the labels"; QO449.c16: "fix the gaps on all
+ * fields"): in each group of fields (one column, one label edge), the blank between the end of the longest label's
+ * text and its box is at most `maxGapPx`, and no label wraps onto a second line. A fault is one line naming the group.
+ */
+export function measureLabelGaps(root: Element, maxGapPx: number): string[] {
+  const issues: string[] = [];
+  const doc = root.ownerDocument;
+  const shown = (el: Element) => el.checkVisibility({visibilityProperty: true, opacityProperty: true}) && el.getBoundingClientRect().width > 0;
+  const columnSelector = '.vent-col,.pr-controls > div,.driver-columns > div,.box-fields-col,.what-if-panel,[role=dialog],.modal-body,.two-col > div,.tab-section';
+  const rows = [...root.querySelectorAll<HTMLElement>('.ui-field,.field')].filter(shown).flatMap(row => {
+    const label = row.querySelector<HTMLElement>(':scope > label');
+    const control = row.querySelector<HTMLElement>('input:not([type=checkbox]):not([type=radio]):not([type=file]),select');
+    if (label === null || control === null || !shown(label) || !shown(control) || (label.textContent ?? '').trim() === '') return [];
+    const text = doc.createRange();
+    text.selectNodeContents(label);
+    const lines = new Set([...text.getClientRects()].filter(r => r.width > 0).map(r => Math.round(r.top))).size;
+    const column = row.closest(columnSelector);
+    return [{
+      label: (label.textContent ?? '').trim().slice(0, 24), labelX: Math.round(label.getBoundingClientRect().x), textRight: text.getBoundingClientRect().right,
+      boxX: control.getBoundingClientRect().x, lines, column: column === null ? 'root' : `${column.className}`.slice(0, 20),
+    }];
+  });
+  const groups = new Map<string, typeof rows>();
+  for (const r of rows) groups.set(`${r.column}@${r.labelX}`, [...(groups.get(`${r.column}@${r.labelX}`) ?? []), r]);
+  for (const [key, group] of groups) {
+    for (const r of group) if (r.lines > 1) issues.push(`G ${key} label "${r.label}" wraps onto ${r.lines} lines`);
+    // A label stacked above its box (box starts left of the text's end) has no gap beside it.
+    const beside = group.filter(r => r.boxX >= r.textRight - 0.5);
+    if (beside.length === 0) continue;
+    const longest = beside.reduce((a, b) => (b.textRight > a.textRight ? b : a));
+    const gap = Math.min(...beside.map(r => r.boxX)) - longest.textRight;
+    if (gap > maxGapPx + 0.5) issues.push(`G ${key} "${longest.label}" ends ${Math.round(gap)}px before its box (at most ${maxGapPx})`);
+  }
+  return issues;
+}
