@@ -15,11 +15,11 @@ files:
   - packages/design/test/domain/driver-edit-parity-w5.test.ts
   - docs/research/WINISD_EQUIVALENCE.md
   - bugs/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md
-  - docs/research/winisd-findings/FINDING_20261019_numvc-is-not-a-simulation-input.md
+  - winisd_research/findings/FINDING_20261019_numvc-is-not-a-simulation-input.md
   - docs/research/ACCURACY_IMPROVEMENTS.md
-  - docs/research/winisd-findings/FINDING_20261003_pr-sd-edit-ignored.md
+  - winisd_research/findings/FINDING_20261003_pr-sd-edit-ignored.md
   - bugs/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md
-  - docs/research/winisd-findings/FINDING_20261019_pr-vas-edit-rounded-to-4-decimals.md
+  - winisd_research/findings/FINDING_20261019_pr-vas-edit-rounded-to-4-decimals.md
   - packages/design/test/domain/pr-edit-parity-nd140-pr.test.ts
   - packages/design/test/domain/pr-edit-parity-sb15sfcr-00.test.ts
   - packages/design/test/fixtures/winisd-edit-captures/e150he-44/pr-vb.json
@@ -86,9 +86,9 @@ files:
   - packages/design/test/fixtures/winisd-edit-captures/w5/vented-edit-vb.json
   - packages/design/test/fixtures/winisd-edit-captures/w5/vented-edit-ventdia.json
   - packages/design/test/fixtures/winisd-edit-captures/w5/vented-edit-ventnum.json
-  - docs/research/winisd-findings/FINDING_20261019_vent-end-correction-edit-not-taken.md
+  - winisd_research/findings/FINDING_20261019_vent-end-correction-edit-not-taken.md
   - packages/design/test/domain/project-vent-length.test.ts
-  - docs/research/winisd-findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md
+  - winisd_research/findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md
   - docs/research/WINISD_PARITY.md
   - packages/design/test/fixtures/winisd-edit-captures/e150he-44/abc-edit-ff.json
   - packages/design/test/fixtures/winisd-edit-captures/e150he-44/abc-edit-fr.json

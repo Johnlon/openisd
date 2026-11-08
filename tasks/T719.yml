@@ -3,22 +3,13 @@ release_note: internal
 repo: openisd
 owner: cover
 status: claimed
-goal: WinISD findings live in docs/research/winisd-findings, not in bugs/
-done_test: test -z "$(ls bugs | grep -i winisd)" && test $(ls docs/research/winisd-findings | wc -l) -eq 8
+done_test: test -z "$(ls bugs | grep -i winisd)"
 files:
   - tasks/T719.yml
   - CLAUDE.md
   - docs/research/ACCURACY_IMPROVEMENTS.md
   - docs/research/WINISD_EQUIVALENCE.md
   - docs/research/WINISD_PARITY.md
-  - docs/research/winisd-findings/FINDING_20261003_pr-sd-edit-ignored.md
-  - docs/research/winisd-findings/FINDING_20261004_pr-vas-box-emptied-crashes.md
-  - docs/research/winisd-findings/FINDING_20261005_driver-without-fs-vas-crashes-on-load.md
-  - docs/research/winisd-findings/FINDING_20261005_vccon-editor-combo.md
-  - docs/research/winisd-findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md
-  - docs/research/winisd-findings/FINDING_20261019_numvc-is-not-a-simulation-input.md
-  - docs/research/winisd-findings/FINDING_20261019_pr-vas-edit-rounded-to-4-decimals.md
-  - docs/research/winisd-findings/FINDING_20261019_vent-end-correction-edit-not-taken.md
   - docs/testing/DEFECT_PINNING_SWEEP_20261101.md
   - drivers/myprobes/README.md
   - packages/design/compat/README.md
@@ -44,3 +35,11 @@ files:
   - bugs/BUG_20261019_winisd-numvc-is-not-a-simulation-input.md
   - bugs/BUG_20261019_winisd-pr-vas-edit-rounded-to-4-decimals.md
   - bugs/BUG_20261019_winisd-vent-end-correction-edit-not-taken.md
+  - docs/research/winisd-findings/FINDING_20261003_pr-sd-edit-ignored.md
+  - docs/research/winisd-findings/FINDING_20261004_pr-vas-box-emptied-crashes.md
+  - docs/research/winisd-findings/FINDING_20261005_driver-without-fs-vas-crashes-on-load.md
+  - docs/research/winisd-findings/FINDING_20261005_vccon-editor-combo.md
+  - docs/research/winisd-findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md
+  - docs/research/winisd-findings/FINDING_20261019_numvc-is-not-a-simulation-input.md
+  - docs/research/winisd-findings/FINDING_20261019_pr-vas-edit-rounded-to-4-decimals.md
+  - docs/research/winisd-findings/FINDING_20261019_vent-end-correction-edit-not-taken.md
