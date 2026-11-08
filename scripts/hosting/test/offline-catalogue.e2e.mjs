@@ -157,6 +157,8 @@ async function pickRadiatorOffline(page, label) {
   const modal = page.locator('.mob-np-body');
   await modal.locator('#np-pr-select').click();
   await page.locator('.pr-lib-item .pr-lib-name', {hasText: 'E150HE-PR'}).first().click();
+  // A pick moves on to the project page (QO442); Back is how a person sees the boxes again.
+  await page.locator('.mob-np-footer').getByText(/Back/).click();
   const filled = [];
   for (const id of ['#np-pr-vas', '#np-pr-qms', '#np-pr-fs', '#np-pr-sd', '#np-pr-xmax']) {
     // The boxes fill a moment after the pick: wait for each, as a user would.
@@ -174,7 +176,9 @@ const phone = {viewport: {width: 374, height: 705}, deviceScaleFactor: 2.566, is
 const newCount = manifestCount(newSite);
 const oldCount = manifestCount(oldSite);
 console.log(`[${seconds()}] precache entries: previous build ${oldCount}, this build ${newCount}`);
-check(fs.readFileSync(path.join(newSite, 'sw.js'), 'utf8').includes('catalogue.json') && !fs.readFileSync(path.join(oldSite, 'sw.js'), 'utf8').includes('catalogue.json'), 'this build precaches the catalogue file; the previous one did not');
+check(fs.readFileSync(path.join(newSite, 'sw.js'), 'utf8').includes('catalogue.json'), 'this build precaches the catalogue file');
+// Only the build made from before the catalogue precache lacks it; a mirrored release (7.0.958 on) has it too.
+if (previousOrigin === null) check(!fs.readFileSync(path.join(oldSite, 'sw.js'), 'utf8').includes('catalogue.json'), 'the previous build does not precache the catalogue file');
 console.log(`[${seconds()}] catalogue.json: ${fs.statSync(path.join(newSite, 'catalogue.json')).size} bytes raw, ${zlib.gzipSync(fs.readFileSync(path.join(newSite, 'catalogue.json'))).length} gzipped`);
 
 // Scenario A: fresh install of this build, then offline.
@@ -231,6 +235,15 @@ check(oldCatalogue === 0 || oldCatalogue >= oldCount, `B: the previous worker's 
   const upgradeSeconds = (Date.now() - t0) / 1000;
   check(usableThroughout, 'B: the app stayed usable while the new worker installed');
   check(n >= newCount, `B: new worker's catalogue precache complete (${n}/${newCount})`);
+  // The new worker takes control and the clean app reloads itself onto the new build: wait for that
+  // reload to finish, or the offline reload below is aborted by the app's own navigation.
+  const newMain = fs.readFileSync(path.join(newSite, 'index.html'), 'utf8').match(/assets\/(main-[^"]+\.js)/)[1];
+  let onNewBuild = false;
+  for (const stop = Date.now() + 60000; Date.now() < stop && !onNewBuild;) {
+    try { onNewBuild = await started_(page) && await page.evaluate(m => [...document.scripts].some(s => s.src.endsWith(m)), newMain); } catch { /* mid-reload */ }
+    if (!onNewBuild) await page.waitForTimeout(500);
+  }
+  check(onNewBuild, `B: the app reloaded itself onto the new build (${newMain})`);
   console.log(`[${seconds()}] B: upgrade ${upgradeSeconds.toFixed(1)}s, ${(wireBytes / 1048576).toFixed(2)} MiB on the wire`);
   await ctx.setOffline(true);
   await pickRadiatorOffline(page, 'B');

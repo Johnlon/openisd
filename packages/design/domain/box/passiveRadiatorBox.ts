@@ -23,6 +23,10 @@ export interface PassiveRadiatorBox {
      *  `passiveRadiatorFromConformingRecord()` — its own seam, enforcing its own shape. */
     configurePR(radiator: OpenISDPassiveRadiatorStandalone): void;
 
+    /** Holds a radiator that was already adopted and then edited, exactly as it stands: nothing
+     *  stated is dropped, so a typed Cms stays beside a stated Vas (the New Project wizard's copy). */
+    holdEditedPR(radiator: OpenISDPassiveRadiatorStandalone): void;
+
     readonly radiator: OpenISDPassiveRadiatorEmbedded;
 
     /** WinISD's "Fp" — the tuning this box and this radiator ACTUALLY produce together, which is

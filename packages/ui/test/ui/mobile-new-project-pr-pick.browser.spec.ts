@@ -27,6 +27,8 @@ async function openWizardAtRadiatorStep(page: Page, fromMenu = false): Promise<v
 async function pickE150(page: Page): Promise<void> {
   await page.locator('#np-pr-select').click();
   await page.locator('.pr-lib-item .pr-lib-name', {hasText: 'E150HE-PR'}).first().click();
+  // A pick moves on to the project page (QO442); Back is how the boxes are seen again.
+  await page.locator('.mob-np-footer').getByText(/Back/).click();
 }
 
 async function expectAllFilled(page: Page, why: string): Promise<void> {

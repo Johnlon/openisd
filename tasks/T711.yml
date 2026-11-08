@@ -1,0 +1,11 @@
+id: T711
+release_note: internal
+repo: openisd
+owner: leader
+status: done
+landed: c42cdf63b65ce7ab3a2b47283369a4e72bd66b04
+goal: The offline release test waits for the app's own reload onto the new build, and expects the previous build to precache the catalogue too
+done_test: node scripts/hosting/test/offline-catalogue.e2e.mjs --previous https://openisd.app
+files:
+  - scripts/hosting/test/offline-catalogue.e2e.mjs
+  - tasks/T711.yml

@@ -1,0 +1,11 @@
+id: T708
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+landed: cc93aca3bc7bedeba06daf270ac9788dc878fe9c
+goal: Announce OpenISD 7.0.958 in the app
+done_test: node --test cloudflare/announcements/test/worker.test.mjs && grep -Fq "id: 'openisd-7.0.958'" cloudflare/announcements/src/index.js
+files:
+  - cloudflare/announcements/src/index.js
+  - tasks/T708.yml

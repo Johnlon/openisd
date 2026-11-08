@@ -178,11 +178,30 @@ if [ "$MODE" = approve ]; then
 fi
 
 if [ "$MODE" != approve ]; then
+  # The e2e checks build the app from the checkout they run in, so they run in a temporary detached
+  # worktree at $SHA, the commit being released (T706), never in the checkout this script started in.
+  START_DIR="$(pwd)"
+  CHECK_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/release-check.XXXXXX")"
+  remove_check_worktree() {
+    rm -rf "$CHECK_ROOT" # symlinked node_modules are unlinked, never followed
+    git -C "$START_DIR" worktree prune
+  }
+  trap remove_check_worktree EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM HUP
+  CHECK_DIR="$CHECK_ROOT/src"
+  git worktree add --quiet --detach "$CHECK_DIR" "$SHA" || refuse "cannot check out $SHA for the release checks"
+  # node_modules is not tracked: share the starting checkout's installs.
+  for nm in node_modules packages/*/node_modules; do
+    if [ -d "$START_DIR/$nm" ] && [ -d "$CHECK_DIR/$(dirname "$nm")" ] && [ ! -e "$CHECK_DIR/$nm" ]; then
+      ln -s "$START_DIR/$nm" "$CHECK_DIR/$nm"
+    fi
+  done
   # Every release starts in a browser that already runs the live build (T396). A failure stops it.
-  node scripts/hosting/test/hosted-copies.e2e.mjs || refuse "hosted copies end-to-end test failed"
+  (cd "$CHECK_DIR" && node scripts/hosting/test/hosted-copies.e2e.mjs) || refuse "hosted copies end-to-end test failed"
   # The upgrade journey (T649): a phone profile running the LIVE production worker is updated to this
   # build, stays usable meanwhile, and picks a radiator offline with every box filled.
-  node scripts/hosting/test/offline-catalogue.e2e.mjs --previous https://openisd.app || refuse "upgrade from the live production worker failed"
+  (cd "$CHECK_DIR" && node scripts/hosting/test/offline-catalogue.e2e.mjs --previous https://openisd.app) || refuse "upgrade from the live production worker failed"
 
   # Compare this snapshot with current Latest and save the gallery outside the source tree.
   BEFORE=none

@@ -410,6 +410,8 @@ test.describe('New Project wizard', () => {
       await modal.locator('button', { hasText: 'Next' }).click();
       await modal.locator('#np-pr-select').click();
       await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'E150HE-PR' }).first().click();
+      // A pick moves on to the project page (QO442); Back is how the boxes are seen again.
+      await modal.locator('button', { hasText: 'Back' }).click();
       await expect(modal.locator('#np-pr-name')).toHaveValue(/E150HE-PR/);
 
       for (const [box, , expected] of shown) {

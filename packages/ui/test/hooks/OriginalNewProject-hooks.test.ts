@@ -723,6 +723,20 @@ describe('useOgNewProject — passive-radiator step', () => {
     expect(wizard.passiveRadiatorPickError.value).toBeNull();
   });
 
+  // QO442 (John, 7 Nov 2026): a pick moves on to the project page, as choosing a driver does.
+  it('picking a bundled radiator moves on to the project page; defining one stays on the step', async () => {
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() => Promise.resolve(testRadiator('Bundled PR')));
+    const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
+    wizard.next();
+    const radiatorStep = wizard.step.value;
+
+    wizard.defineNewPassiveRadiator();
+    expect(wizard.step.value).toBe(radiatorStep);
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
+  });
+
   // QO379 (John, 2026-11-01): on the phone a pick left every box blank and said nothing. A pick
   // whose record cannot be loaded says so on the step and is recorded as a fault; it never fails
   // silently.
@@ -774,9 +788,9 @@ describe('useOgNewProject — passive-radiator step', () => {
     wizard.next();
 
     await wizard.loadBundledPassiveRadiator('bundled-1');
-    wizard.passiveRadiatorEdits.setVas_m3(0.01);
-    wizard.passiveRadiatorEdits.setQms(null);
-    wizard.passiveRadiatorEdits.setName('Renamed');
+    wizard.passiveRadiatorCells.Vas_m3.set(0.01);
+    wizard.passiveRadiatorCells.Qms.clear();
+    wizard.setPassiveRadiatorName('Renamed');
 
     expect(wizard.passiveRadiatorView.value?.Vas_m3).toBeCloseTo(0.01, 9);
     expect(cached.spec.Vas_m3.value).toBeCloseTo(0.05, 9);
@@ -855,8 +869,8 @@ describe('useOgNewProject — passive-radiator step', () => {
     first.next();
     await first.loadBundledPassiveRadiator('e150he-pr');
     const before = { ...first.passiveRadiatorView.value };
-    first.passiveRadiatorEdits.setVas_m3(0.5);
-    first.passiveRadiatorEdits.setName('Edited');
+    first.passiveRadiatorCells.Vas_m3.set(0.5);
+    first.setPassiveRadiatorName('Edited');
     first.next();
     first.projName.value = 'P1';
     expect(first.createProject()).not.toBeNull();
@@ -875,7 +889,7 @@ describe('useOgNewProject — passive-radiator step', () => {
     const first = atBoxTypeStep(repos);
     first.next();
     await first.loadBundledPassiveRadiator('e150he-pr');
-    first.passiveRadiatorEdits.setFs_hz(null);
+    first.passiveRadiatorCells.Fs_hz.clear();
     first.cancel();
 
     const second = atBoxTypeStep(repos);
@@ -890,7 +904,7 @@ describe('useOgNewProject — passive-radiator step', () => {
     wizard.next();
     await wizard.loadBundledPassiveRadiator('e150he-pr');
     const full = { ...wizard.passiveRadiatorView.value };
-    wizard.passiveRadiatorEdits.setVas_m3(null);
+    wizard.passiveRadiatorCells.Vas_m3.clear();
     expect(wizard.passiveRadiatorView.value?.Vas_m3).toBeNull();
 
     await wizard.loadBundledPassiveRadiator('e150he-pr');
@@ -904,12 +918,12 @@ describe('useOgNewProject — passive-radiator step', () => {
     wizard.next();
 
     wizard.defineNewPassiveRadiator();
-    const edits = wizard.passiveRadiatorEdits;
-    edits.setVas_m3(0.04);
-    edits.setQms(6);
-    edits.setFs_hz(18);
-    edits.setSd_m2(0.06);
-    edits.setXmax_m(0.012);
+    const edits = wizard.passiveRadiatorCells;
+    edits.Vas_m3.set(0.04);
+    edits.Qms.set(6);
+    edits.Fs_hz.set(18);
+    edits.Sd_m2.set(0.06);
+    edits.Xmax_m.set(0.012);
     expect(wizard.passiveRadiatorView.value?.Qms).toBe(6);
     wizard.next();
     wizard.projName.value = 'Typed PR';
@@ -928,8 +942,8 @@ describe('useOgNewProject — passive-radiator step', () => {
     expect(wizard.passiveRadiatorView.value).toBeNull();
     expect(wizard.canNext.value).toBe(false);
 
-    wizard.passiveRadiatorEdits.setName('Typed direct');
-    wizard.passiveRadiatorEdits.setSd_m2(0.05);
+    wizard.setPassiveRadiatorName('Typed direct');
+    wizard.passiveRadiatorCells.Sd_m2.set(0.05);
 
     expect(wizard.passiveRadiatorView.value?.name).toBe('Typed direct');
     expect(wizard.passiveRadiatorView.value?.Sd_m2).toBeCloseTo(0.05, 9);
@@ -971,5 +985,107 @@ describe('useOgNewProject — vented volume and tuning stay typeable', () => {
     const project = wizard.createProject();
     expect(project?.box.vented.volume_m3.value).toBeCloseTo(0.05, 9);
     expect(project?.box.vented.tuning_goal_hz.value).toBeCloseTo(33, 9);
+  });
+});
+
+describe('the radiator step holds all eight figures, stated or calculated (T703)', () => {
+  /** The wizard on the radiator step with one real bundled record picked, then Back to its boxes. */
+  async function pickedThenBack(path: string) {
+    const record: unknown = JSON.parse(readFileSync(new URL(`../../public/drivers/${path}.json`, import.meta.url), 'utf8'));
+    const opened = OpenISDPassiveRadiatorStandalone.fromConformingRecord(record);
+    if (Array.isArray(opened)) throw new Error(opened.join('; '));
+    const engine = createEngine();
+    const wizard = useOgNewProject({
+      appState: createAppStateFixture().appState,
+      passiveRadiators: testPassiveRadiators({index: () => Promise.resolve([]), load: () => Promise.resolve(opened)}),
+      areas: engine,
+      initialDriver: OpenISDDriver.empty(engine),
+    });
+    wizard.next();
+    wizard.next();
+    wizard.boxType.value = 'box-passive-radiator';
+    wizard.next();
+    await wizard.loadBundledPassiveRadiator(path);
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
+    wizard.back();
+    return wizard;
+  }
+
+  it('SP22R, which states no Qms and no Fs: both are calculated', async () => {
+    const {passiveRadiatorCells: cells} = await pickedThenBack('seas/sp22r');
+    expect(cells.Qms.value).toBeCloseTo(4.813, 2);
+    expect(cells.Fs_hz.value).toBeCloseTo(23.22, 1);
+    expect(cells.Qms.provenance).toBe('C');
+    expect(cells.Fs_hz.provenance).toBe('C');
+    expect(cells.Vas_m3.provenance).toBe('E');
+    expect(cells.Vas_m3.name).toBe('Vas_m3');
+    expect(cells.Vas_m3.mandatoryAndUnsatisfied).toBe(false);
+    expect(cells.Vas_m3.precision).toEqual(expect.any(Number));
+  });
+
+  it('ASP190: Rms is on show as stated and Qms is calculated from it', async () => {
+    const {passiveRadiatorCells: cells} = await pickedThenBack('accuton/asp190');
+    expect(cells.Rms_kg_per_s.value).toBe(2.2);
+    expect(cells.Rms_kg_per_s.provenance).toBe('E');
+    expect(cells.Qms.value).toBeCloseTo(4.70, 1);
+    expect(cells.Qms.provenance).toBe('C');
+  });
+
+  it('ASP250: Qms is calculated', async () => {
+    const {passiveRadiatorCells: cells} = await pickedThenBack('accuton/asp250');
+    expect(cells.Qms.value).toEqual(expect.any(Number));
+    expect(cells.Qms.provenance).toBe('C');
+  });
+
+  it('P173, which gives nothing to calculate Qms from: the box stays empty', async () => {
+    const {passiveRadiatorCells: cells} = await pickedThenBack('accuton/p173');
+    expect(cells.Qms.value).toBeNull();
+  });
+
+  it('a Cms typed over a record stating Vas reaches the project, with Vas, and both carry the conflict mark', async () => {
+    const wizard = await pickedThenBack('accuton/asp190');
+    wizard.passiveRadiatorCells.Cms_m_per_N.set(0.001);
+    expect(wizard.passiveRadiatorCells.Cms_m_per_N.entered).toBe(true);
+    expect(wizard.passiveRadiatorCells.Cms_m_per_N.dq.length).toBeGreaterThan(0);
+    expect(wizard.passiveRadiatorCells.Vas_m3.dq.length).toBeGreaterThan(0);
+    wizard.next();
+    wizard.projName.value = 'Typed Cms';
+
+    const spec = wizard.createProject()?.box.passiveRadiator.radiator.spec;
+    expect(spec?.Cms_m_per_N.entered).toBe(true);
+    expect(spec?.Cms_m_per_N.value).toBe(0.001);
+    expect(spec?.Vas_m3.value).toBe(0.027);
+  });
+
+  it('clearing Vas with a typed Cms calculates Vas from Cms and Sd; clearing a figure nothing gives leaves it empty', async () => {
+    const wizard = await pickedThenBack('accuton/asp190');
+    const cells = wizard.passiveRadiatorCells;
+    cells.Cms_m_per_N.set(0.001);
+    cells.Vas_m3.clear();
+    expect(cells.Vas_m3.provenance).toBe('C');
+    expect(cells.Vas_m3.value).toEqual(expect.any(Number));
+    expect(cells.Vas_m3.dq).toEqual([]);
+
+    cells.Sd_m2.clear();
+    cells.Cms_m_per_N.clear();
+    expect(cells.Sd_m2.value).toBeNull();
+  });
+
+  it('a calculated box typed over becomes stated and survives to the project', async () => {
+    const wizard = await pickedThenBack('seas/sp22r');
+    wizard.passiveRadiatorCells.Fs_hz.set(25);
+    expect(wizard.passiveRadiatorCells.Fs_hz.provenance).toBe('E');
+    wizard.next();
+    wizard.projName.value = 'Typed Fs';
+    expect(wizard.createProject()?.box.passiveRadiator.radiator.spec.Fs_hz.value).toBe(25);
+  });
+
+  it('a first write to any of the three new boxes defines a radiator', async () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: OpenISDDriver.empty(engine)});
+    expect(wizard.passiveRadiatorView.value).toBeNull();
+    expect(wizard.passiveRadiatorCells.Rms_kg_per_s.value).toBeNull();
+    wizard.passiveRadiatorCells.Rms_kg_per_s.set(2);
+    expect(wizard.passiveRadiatorView.value?.Rms_kg_per_s).toBe(2);
   });
 });

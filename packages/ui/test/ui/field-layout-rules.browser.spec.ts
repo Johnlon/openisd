@@ -81,6 +81,33 @@ const EXTRA: readonly Screen[] = [
     await page.locator('.mob-np-footer').getByText('Next ▸', {exact: true}).click();
     await page.locator('#np-wiring').waitFor();
   }},
+  {id: 'desktop New project wizard radiator step', skin: 'desktop', root: '.overlay.open .modal-body', open: async page => {
+    await page.setViewportSize({width: 1280, height: 720});
+    await page.goto('/');
+    await page.locator('.tb-btn[title*="New project"]').click();
+    await page.locator('.driver-library input.filter').fill('W5-1138SMF');
+    await page.locator('.overlay.open .modal-body').getByText('Tang Band W5-1138SMF').first().click();
+    const next = page.locator('.overlay.open .modal-footer').getByText('Next', {exact: true});
+    await next.click();
+    await next.click();
+    await page.locator('#np-box-type').selectOption('box-passive-radiator');
+    await next.click();
+    await page.locator('#np-pr-select').waitFor();
+  }},
+  {id: 'phone New project wizard radiator step', skin: 'phone', root: '.mob-np-body', open: async page => {
+    await page.setViewportSize({width: 374, height: 705});
+    await forceMobileSkin(page);
+    await page.goto('/');
+    await page.getByText('New project').first().click();
+    await page.locator('.driver-library input.filter').fill('W5-1138SMF');
+    await page.locator('.mob-np-body').getByText('Tang Band W5-1138SMF').first().click();
+    const next = page.locator('.mob-np-footer').getByText('Next ▸', {exact: true});
+    await next.click();
+    await next.click();
+    await page.locator('#np-box-type').selectOption('box-passive-radiator');
+    await next.click();
+    await page.locator('#np-pr-select').waitFor();
+  }},
   // The phone port editor (What-if sheet, tap Port area) is not walked: John ruled it stays as it is (QO426.c53).
 ];
 

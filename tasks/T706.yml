@@ -1,0 +1,14 @@
+id: T706
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+landed: 931f2c7cdab964341c60365a51243eb161fc4d9c
+goal: The release script tests the named snapshot's code, not the checkout it starts from
+done_test: bash scripts/land/test/release.test.sh
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - tasks/T706.yml
+  - scripts/release.sh
+  - scripts/land/test/release.test.sh
+  - bugs/BUG_20261107_offline-release-test-stops-at-the-radiator-jump.md

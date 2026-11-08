@@ -16,6 +16,7 @@ const md = `<table><thead><tr><th>Fix</th><th>Task</th><th>State</th><th>Picture
 <tr><td>Open fix</td><td>T2</td><td>landed</td><td><a href="b/before.png">before</a> · <a href="b/after.png">after</a></td><td>y ¶ Type here if it is wrong.</td></tr>
 <tr><td>Live fix</td><td>T4</td><td>landed</td><td>phone: <a href="d/before.png">before</a> <a href="d/after.png">after</a> <a href="mock-a.html?look=fb-handle">live</a></td><td>phone: the handle</td></tr>
 <tr><td>Lone fix</td><td>T6</td><td>landed</td><td><a href="e/shot.png">screenshot</a></td><td>the shot</td></tr>
+<tr><td>Long path</td><td>T7</td><td>landed</td><td></td><td>A long file path wraps on a phone: packages/persistence/src/repos/projectRepoWithALongName.ts</td></tr>
 <tr><td>Live only</td><td>T5</td><td>landed</td><td><a href="mock-b.html?tab=vented&look=x">live</a></td><td>the vented tab</td></tr>
 </tbody></table>`;
 const thread = [
@@ -44,11 +45,11 @@ try {
   await p.waitForSelector('form.compose'); await p.waitForSelector('details.ruled', { state: 'attached' });
   // Answered pictures stay in page order, each in its own closed fold; none moved to a bottom fold.
   const allOrder = await p.$$eval('figure[data-item]', (fs) => fs.map((f) => f.dataset.name));
-  const wantAll = ['F/mock-b.html?tab=vented&look=x', 'F/e/shot.png', 'F/d/before.png', 'F/b/before.png', 'F/c/side-by-side.png', 'F/a/before.png'];
+  const wantAll = ['F/mock-b.html?tab=vented&look=x', 'F/T7', 'F/e/shot.png', 'F/d/before.png', 'F/b/before.png', 'F/c/side-by-side.png', 'F/a/before.png'];
   if (JSON.stringify(allOrder) !== JSON.stringify(wantAll)) failures.push(`page order ${JSON.stringify(allOrder)}, want ${JSON.stringify(wantAll)}`);
   if (await p.$('#out > details.ruled:last-child')) failures.push('answered fold at the bottom');
   const shown = await p.$$eval('figure[data-item]', (fs) => fs.filter((f) => f.checkVisibility()).map((f) => f.dataset.name));
-  const want = ['F/mock-b.html?tab=vented&look=x', 'F/e/shot.png', 'F/d/before.png', 'F/b/before.png', 'F/c/side-by-side.png'];
+  const want = ['F/mock-b.html?tab=vented&look=x', 'F/T7', 'F/e/shot.png', 'F/d/before.png', 'F/b/before.png', 'F/c/side-by-side.png'];
   if (JSON.stringify(shown) !== JSON.stringify(want)) failures.push(`shown pictures ${JSON.stringify(shown)}, want ${JSON.stringify(want)}`);
   const summary = await p.$eval('details.ruled summary', (s) => s.textContent).catch(() => '');
   if (summary !== 'Answered: tap to show') failures.push(`answered fold summary: got ${JSON.stringify(summary)}`);

@@ -3,39 +3,48 @@ import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef, watc
 // hook only names their shapes, so neither import is a layering edge (QO80).
 import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, defaultProjectName, startingChambersOf, takesChamberTunings, WizardPlan, WizardStep } from '@openisd/design';
 import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
-import type { BoxType, EbpSuitability, SealedEngine, VentedAlignment, VentedEngine, Wiring } from '@openisd/design/engine';
+import { type BoxType, type EbpSuitability, type EnvironmentEngine, FixedAir, type PrEngine, type SealedEngine, type VentedAlignment, type VentedEngine, type Wiring } from '@openisd/design/engine';
 import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {DUAL_CHAMBER} from './boxFields.js';
 import {useApp} from '../logic/app.js';
 import type {AppState} from '../logic/appState.js';
 import { selectedOption } from '../logic/domEvents.js';
 import { useRecentActions } from './telemetryContext.js';
+import type {ClearableUICell} from '../ui/components/uiFieldBinding.js';
 
-/** The two engine areas the wizard consults; the app facade's by default, substitutes in a test. */
+/** The engine areas the wizard consults; the app facade's by default, substitutes in a test. */
 export interface OriginalNewProjectEngineAreas {
   readonly sealed: SealedEngine;
   readonly vented: VentedEngine;
+  readonly pr: PrEngine;
+  readonly environment: EnvironmentEngine;
 }
 
-/** What the passive-radiator step shows: the chosen radiator's name and WinISD's five parameters. */
+/** What the passive-radiator step shows: the chosen radiator's name and its eight figures, stated or calculated. */
 export interface PassiveRadiatorStepView {
   readonly name: string;
   readonly Vas_m3: number | null;
   readonly Qms: number | null;
   readonly Fs_hz: number | null;
   readonly Sd_m2: number | null;
+  readonly Mms_kg: number | null;
+  readonly Cms_m_per_N: number | null;
+  readonly Rms_kg_per_s: number | null;
   readonly Xmax_m: number | null;
 }
 
-/** The step's writes, one per field; null clears a parameter. Writing with no radiator chosen
- *  defines a new one first, so the fields can be typed into directly. */
-export interface PassiveRadiatorStepEdits {
-  setName(v: string): void;
-  setVas_m3(v: number | null): void;
-  setQms(v: number | null): void;
-  setFs_hz(v: number | null): void;
-  setSd_m2(v: number | null): void;
-  setXmax_m(v: number | null): void;
+/** The step's eight boxes: what the step binds, and never the radiator itself. Typing states the
+ *  figure; clearing puts it back to calculated, or empty if nothing gives it. Writing with no radiator
+ *  chosen defines a new one first. */
+export interface PassiveRadiatorStepCells {
+  readonly Vas_m3: ClearableUICell;
+  readonly Qms: ClearableUICell;
+  readonly Fs_hz: ClearableUICell;
+  readonly Sd_m2: ClearableUICell;
+  readonly Mms_kg: ClearableUICell;
+  readonly Cms_m_per_N: ClearableUICell;
+  readonly Rms_kg_per_s: ClearableUICell;
+  readonly Xmax_m: ClearableUICell;
 }
 
 /** Where the passive-radiator step finds radiators: the user's saved ones and the bundled catalogue. */
@@ -140,11 +149,13 @@ export interface OriginalNewProjectAPI {
   /** Why `ventedTuning_hz` is implausible, or null when it is not. */
   readonly ventedTuningWarning: ComputedRef<string | null>;
 
-  // Step 4: Passive Radiator — WinISD's wizard asks for the radiator (Vas / Qms / Fs / Sd / Xmax)
+  // Step 4: Passive Radiator — its eight figures, each stated or calculated
   readonly isPassiveRadiator: ComputedRef<boolean>;
   /** The chosen radiator as the step shows it; null until one is chosen or defined. */
   readonly passiveRadiatorView: ComputedRef<PassiveRadiatorStepView | null>;
-  readonly passiveRadiatorEdits: PassiveRadiatorStepEdits;
+  readonly passiveRadiatorCells: PassiveRadiatorStepCells;
+  /** Names the radiator, defining a new one first when none is chosen. */
+  setPassiveRadiatorName(name: string): void;
   /** The PR picker is open over the step; choosing or defining a radiator closes it. */
   readonly passiveRadiatorBrowseOpen: Ref<boolean>;
   /** Choose a saved radiator by its uuid. */
@@ -402,16 +413,34 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     latestPick++;
     passiveRadiatorBrowseOpen.value = false;
     const entry = prRepos.saved.list().find(e => e.uuid === uuid);
-    if (entry) { passiveRadiator.value = ownCopy(entry.passiveRadiator); passiveRadiatorPickId.value++; }
+    if (entry) adoptPick(entry.passiveRadiator);
   }
 
   const passiveRadiatorPickError = ref<string | null>(null);
   const passiveRadiatorPickId = ref(0);
 
+  /** Calculates what the copy's stated figures give, in the app's air (a radiator's figures do
+   *  not depend on the project's own, which does not exist yet). */
+  function resolveCopy(pr: OpenISDPassiveRadiatorStandalone): void {
+    pr.resolve(eng.pr, new FixedAir(eng.environment.solve(eng.environment.defaults()).values));
+  }
+
   /** The wizard edits its radiator, so it never holds the repo's cached instance: a box emptied
    *  here would stay empty for every later pick of that radiator. */
   function ownCopy(pr: OpenISDPassiveRadiatorStandalone): OpenISDPassiveRadiatorStandalone {
     return OpenISDPassiveRadiatorStandalone.wrap(pr.clonePassiveRadiator());
+  }
+
+  /** A pick moves on to the project page, as choosing a driver does; the step's boxes are for
+   *  defining a radiator by hand (QO442, John 7 Nov 2026). A pick that finishes after the person
+   *  left the step keeps them where they are. */
+  function adoptPick(pr: OpenISDPassiveRadiatorStandalone): void {
+    const copy = ownCopy(pr);
+    copy.spec.adoptDatasheetFigures();
+    resolveCopy(copy);
+    passiveRadiator.value = copy;
+    passiveRadiatorPickId.value++;
+    if (step.value === WizardStep.BOX_DETAILS) next();
   }
 
   /** The radiator's catalogue name for the error text; its id when the index cannot say. */
@@ -430,7 +459,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     passiveRadiatorPickError.value = null;
     try {
       const loaded = await prRepos.bundled.load(uuid);
-      if (pick === latestPick) { passiveRadiator.value = ownCopy(loaded); passiveRadiatorPickId.value++; }
+      if (pick === latestPick) adoptPick(loaded);
     } catch (thrown) {
       if (pick !== latestPick) return;
       const fault = thrown instanceof Error ? thrown : new Error(String(thrown));
@@ -454,7 +483,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     return {
       name: pr.model.value,
       Vas_m3: spec.Vas_m3.value, Qms: spec.Qms.value, Fs_hz: spec.Fs_hz.value,
-      Sd_m2: spec.Sd_m2.value, Xmax_m: spec.pickedXmax_m,
+      Sd_m2: spec.Sd_m2.value, Mms_kg: spec.Mms_kg.value, Cms_m_per_N: spec.Cms_m_per_N.value,
+      Rms_kg_per_s: spec.Rms_kg_per_s.value, Xmax_m: spec.Xmax_m.value,
     };
   });
 
@@ -463,20 +493,50 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     if (passiveRadiator.value === null) passiveRadiator.value = OpenISDPassiveRadiatorStandalone.empty();
     return passiveRadiator.value;
   }
-  /** Write one parameter of the radiator and redraw the step. */
-  function writeSpec(pick: (pr: OpenISDPassiveRadiatorStandalone) => OpenISDPassiveRadiatorStandalone['spec']['Qms'], v: number | null): void {
-    const field = pick(radiatorToEdit());
-    if (v === null) field.clear(); else field.set(v);
+  /** Recalculates the copy and redraws the step. */
+  function settleRadiator(pr: OpenISDPassiveRadiatorStandalone): void {
+    resolveCopy(pr);
     triggerRef(passiveRadiator);
   }
-  const passiveRadiatorEdits: PassiveRadiatorStepEdits = {
-    setName: v => { radiatorToEdit().model.set(v); triggerRef(passiveRadiator); },
-    setVas_m3: v => writeSpec(pr => pr.spec.Vas_m3, v),
-    setQms: v => writeSpec(pr => pr.spec.Qms, v),
-    setFs_hz: v => writeSpec(pr => pr.spec.Fs_hz, v),
-    setSd_m2: v => writeSpec(pr => pr.spec.Sd_m2, v),
-    setXmax_m: v => writeSpec(pr => pr.spec.Xmax_m, v),
+  /** What the boxes read until a radiator is chosen or defined. */
+  const noRadiator = OpenISDPassiveRadiatorStandalone.empty();
+  /** One box: reads the chosen radiator, and a write recalculates it. */
+  function stepCell(pick: (spec: OpenISDPassiveRadiatorStandalone['spec']) => OpenISDPassiveRadiatorStandalone['spec']['Qms']): ClearableUICell {
+    const shown = () => pick((passiveRadiator.value ?? noRadiator).spec);
+    return {
+      get name() { return shown().name; },
+      get value() { return shown().value; },
+      get provenance() { return shown().provenance; },
+      get dq() { return shown().dq; },
+      get mandatoryAndUnsatisfied() { return shown().mandatoryAndUnsatisfied; },
+      get entered() { return shown().entered; },
+      get precision() { return shown().precision; },
+      set: (v, precision) => {
+        const pr = radiatorToEdit();
+        pick(pr.spec).set(v, precision);
+        settleRadiator(pr);
+      },
+      clear: () => {
+        const pr = radiatorToEdit();
+        pick(pr.spec).clear();
+        settleRadiator(pr);
+      },
+    };
+  }
+  const passiveRadiatorCells: PassiveRadiatorStepCells = {
+    Vas_m3: stepCell(spec => spec.Vas_m3),
+    Qms: stepCell(spec => spec.Qms),
+    Fs_hz: stepCell(spec => spec.Fs_hz),
+    Sd_m2: stepCell(spec => spec.Sd_m2),
+    Mms_kg: stepCell(spec => spec.Mms_kg),
+    Cms_m_per_N: stepCell(spec => spec.Cms_m_per_N),
+    Rms_kg_per_s: stepCell(spec => spec.Rms_kg_per_s),
+    Xmax_m: stepCell(spec => spec.Xmax_m),
   };
+  function setPassiveRadiatorName(name: string): void {
+    radiatorToEdit().model.set(name);
+    triggerRef(passiveRadiator);
+  }
 
   const canNext = computed(() => {
     if (step.value === WizardStep.DRIVER) return selectedDriver.value !== null;
@@ -513,7 +573,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
           : b.vented().volume_m3(ventedVolume_m3.value).tuning_goal_hz(ventedTuning_hz.value);
         case 'box-passive-radiator': {
           const pr = b.passiveRadiator().volume_m3(volume_m3.value);
-          return passiveRadiator.value === null ? pr : pr.radiator(passiveRadiator.value);
+          return passiveRadiator.value === null ? pr : pr.editedRadiator(passiveRadiator.value);
         }
         case 'bandpass4': return b.bandpass4().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).frontTuning_hz(frontTuning_hz.value);
         case 'bandpass6': return b.bandpass6().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).rearTuning_hz(rearTuning_hz.value).frontTuning_hz(frontTuning_hz.value);
@@ -595,7 +655,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
     isPassiveRadiator,
     passiveRadiatorView,
-    passiveRadiatorEdits,
+    passiveRadiatorCells,
+    setPassiveRadiatorName,
     passiveRadiatorBrowseOpen,
     loadSavedPassiveRadiator,
     loadBundledPassiveRadiator,

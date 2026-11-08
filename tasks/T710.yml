@@ -1,0 +1,12 @@
+id: T710
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: f13022f42f1ef121626c5725f3680c0f91fada45
+goal: Feedback pages wrap long file paths on a phone
+done_test: python3 -m pytest -q scripts/feedback/feedback_page_test.py
+files:
+  - tasks/T710.yml
+  - scripts/feedback/feedback-page.template.html
+  - scripts/feedback/feedback_page_ruled_test.mjs
