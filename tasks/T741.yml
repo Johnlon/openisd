@@ -1,0 +1,16 @@
+id: T741
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Desktop skin at phone width: the chart collapses to a 30 px strip (T737 regression) and the What-if dialog's right column is cut off; guard specs and a live-review chart-height check
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T741.yml
+  - bugs/BUG_20261108_desktop-skin-chart-collapses-at-phone-width.md
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
+  - packages/ui/test/ui/desktop-chart-fits-phone-width.browser.spec.ts

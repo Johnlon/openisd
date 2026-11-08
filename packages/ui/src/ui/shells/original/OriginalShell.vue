@@ -1243,7 +1243,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 
 /* ---------- Content panel ---------- */
 .content-panel { grid-area:content; max-height:60vh; min-height:244px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:7px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
-.content-tabs { flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; }
+.content-tabs { flex:1 1 auto; min-width:0; min-height:0; overflow-y:auto; display:flex; flex-direction:column; }
 .save-rail { flex:none; display:flex; flex-direction:column; align-items:flex-end; gap:6px; align-self:stretch; }
 /* Revert sits at the rail's BOTTOM, under whichever tab is showing (John, 2026-09-25: "put it
    on the right bottom of the project tables - all table"). The Save button above it takes `margin-top:auto` to put them

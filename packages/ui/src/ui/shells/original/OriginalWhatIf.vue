@@ -163,7 +163,7 @@ useEscToClose(() => presentationState.editDriver, close);
 .what-if-legend { margin-top: 10px; border: 1px solid var(--line); border-radius: 4px; }
 /* The content is a grid, where margins add up instead of merging. The hint keeps the spacing it had
    as a block: 1em above it counting the title bar's 6px, and below it only the next heading's 10px. */
-.what-if-hint { color: #777; font-style: italic; font-size: 11.5px; margin: calc(1em - 6px) 0 0; }
+.what-if-hint { width:0; min-width:100%; color: #777; font-style: italic; font-size: 11.5px; margin: calc(1em - 6px) 0 0; }
 /* One grid for the whole panel: two columns of fields, each four tracks (label, box, buttons, cue),
    with a spacer between them. Every section and every field takes these tracks by subgrid, so a
    column's label track is as wide as the longest label it shows and every box in the column
@@ -179,6 +179,11 @@ useEscToClose(() => presentationState.editDriver, close);
 .what-if-grid > :nth-child(odd), .what-if-box-line > :nth-child(odd) { grid-column:1 / 5; }
 .what-if-grid > :nth-child(even), .what-if-box-line > :nth-child(even) { grid-column:6 / 10; }
 .what-if-box-placeholder { min-width:0; }
+/* A window too narrow for two columns stacks them into one, so the right column is never cut off. */
+@media (max-width: 520px) {
+  .what-if-content { grid-template-columns:max-content var(--what-if-box-w) max-content var(--what-if-cue-w); }
+  .what-if-grid > :nth-child(even), .what-if-box-line > :nth-child(even) { grid-column:1 / 5; }
+}
 .what-if-panel :deep(.ui-field.ui-field[data-field]) {
   grid-template-columns:subgrid !important; width:auto !important; max-width:none !important;
   --joined-chip:var(--what-if-chip-w);

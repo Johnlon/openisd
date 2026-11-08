@@ -608,7 +608,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   });
   const mainStyle = computed(() => chartMax.value ? {} : {
     gridTemplateColumns: (navCollapsed.value ? '0px' : navWidth.value + 'px') + ' 7px 1fr',
-    gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : 'auto'),
+    gridTemplateRows: 'minmax(150px, 1fr) 7px ' + (bottomCollapsed.value ? '0px' : 'minmax(0, auto)'),
     '--sidebar-width': navCollapsed.value ? '0px' : navWidth.value + 'px',
   });
   function startSplitDrag(e: PointerEvent, apply: (rect: DOMRect, ev: PointerEvent) => void): void {

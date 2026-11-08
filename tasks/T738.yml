@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: learn
 status: done
+landed: f151f3b9599779c128d4d43767c6155490e69de0
 goal: Bug file: a typed driver Cms, Mms or Rms is ignored by the charts (QO463.c62)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
