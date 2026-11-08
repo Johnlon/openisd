@@ -56,6 +56,7 @@ import StorageHistory from './StorageHistory.vue';
 import UIFixedField from './UIFixedField.vue';
 import MobilePaneDialog from '../shells/mobile/MobilePaneDialog.vue';
 import PhoneBand from '../shells/mobile/PhoneBand.vue';
+import PhoneHelpSheet from '../shells/mobile/PhoneHelpSheet.vue';
 import {inputValue} from '../../logic/domEvents.js';
 
 const emit = defineEmits<{ close: [] }>();
@@ -111,7 +112,7 @@ const {
 } = useOptionsModal();
 
 type Tab = 'General' | 'Plot Window' | 'Your data';
-const limitsMoreOpen = ref(false);
+const limitsHelpOpen = ref(false);
 const tab = reactive<{ v: Tab }>({ v: 'General' });
 
 const draft = reactive({
@@ -233,15 +234,7 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
           <button type="button" data-testid="env-reset" :disabled="envIsFactory" @click="resetEnv">Reset to defaults</button>
         </div>
         <PhoneBand :section="PhoneDialogHelp.OPTIONS_VENTED_LIMITS" />
-        <p class="mob-dhint">
-          A vented design outside these limits is marked. Its numbers are never changed.
-          <button type="button" class="mob-dlink" data-testid="limits-more" :aria-expanded="limitsMoreOpen" @click="limitsMoreOpen = !limitsMoreOpen">More info</button>
-        </p>
-        <div v-if="limitsMoreOpen" class="mob-dhint" role="note" data-testid="limits-more-popup">
-          <p>WinISD does not limit its vented alignments, so it will design a box of any size or tuning.</p>
-          <p>OpenISD gives the same answer, so its results match WinISD.</p>
-          <p>If a design falls outside the limits below, OpenISD shows it exactly as designed and marks it.</p>
-        </div>
+        <p class="mob-dhint">This panel allows you to set limits on acceptable ranges for certain values, open the help (?) for more info.</p>
         <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Min box volume" :field="NumberField.BOX_VB_L" :value="minVolume_m3" stepper @update:value="v => minVolume_m3 = v" />
         <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Min tuning" :field="NumberField.BOX_FB_HZ" :value="minTuning_hz" stepper @update:value="v => minTuning_hz = v" />
         <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Max box volume" :field="NumberField.BOX_VB_L" :value="maxVolume_m3" stepper @update:value="v => maxVolume_m3 = v" />
@@ -349,17 +342,9 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
           </fieldset>
 
           <fieldset class="opt-group">
-            <legend>Vented design limits</legend>
-            <p class="opt-help">
-              A vented design outside these limits is marked. Its numbers are never changed.
-              <button type="button" class="opt-more-btn" data-testid="limits-more" :aria-expanded="limitsMoreOpen" @click="limitsMoreOpen = !limitsMoreOpen">More info</button>
-            </p>
-            <div v-if="limitsMoreOpen" class="opt-popup" role="note" data-testid="limits-more-popup">
-              <p>WinISD does not limit its vented alignments, so it will design a box of any size or tuning.</p>
-              <p>OpenISD gives the same answer, so its results match WinISD.</p>
-              <p>If a design falls outside the limits below, OpenISD shows it exactly as designed and marks it.</p>
-              <button type="button" class="opt-more-btn" @click="limitsMoreOpen = false">Close</button>
-            </div>
+            <legend>Vented design limits <button type="button" class="desk-band-help" aria-label="Help: Vented design limits" @click="limitsHelpOpen = true">?</button></legend>
+            <p class="opt-help">This panel allows you to set limits on acceptable ranges for certain values, open the help (?) for more info.</p>
+            <PhoneHelpSheet v-if="limitsHelpOpen" :section="PhoneDialogHelp.OPTIONS_VENTED_LIMITS" @close="limitsHelpOpen = false" />
             <div class="opt-env-grid">
               <div class="opt-fld"><UIFixedField input-id="set-min-volume" label="Min box volume" :field="NumberField.BOX_VB_L" :value="minVolume_m3" @update:value="v => minVolume_m3 = v" /></div>
               <div class="opt-fld"><UIFixedField input-id="set-min-tuning" label="Min tuning" :field="NumberField.BOX_FB_HZ" :value="minTuning_hz" @update:value="v => minTuning_hz = v" /></div>
@@ -491,9 +476,6 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
 .opt-group { border: 1px solid var(--line); border-radius: 5px; padding: 10px 12px; margin: 0; }
 .opt-group legend { padding: 0 6px; font-size: 11px; color: var(--mut); }
 .opt-help { margin: 0 0 8px; font-size: 11px; color: var(--mut); line-height: 1.4; }
-.opt-more-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--acc, #36c); text-decoration: underline; cursor: pointer; }
-.opt-popup { margin: 0 0 8px; padding: 8px 10px; font-size: 11px; line-height: 1.4; border: 1px solid var(--bdr, #888); border-radius: 4px; background: var(--bg, #fff); }
-.opt-popup p { margin: 0 0 6px; }
 .opt-error { color: #8a1f1f; background: #fdeeee; border: 1px solid #e8b0b0; border-radius: 3px;
   padding: 4px 8px; font-size: 11px; margin-top: 8px; }
 /* A phone-width window (the desktop skin at 374 px): the dialog takes the window and its padding shrinks so the 318 px field rows and the Reset button stay inside it. */

@@ -4,6 +4,17 @@ repo: openisd
 owner: maryu
 status: open
 goal: Options vented design limits: no inline More info; the (?) help says what the limits are for, on both skins (QO467.c39, c40)
-done_test: bash scripts/quiet-test.sh npm run typecheck
+done_test: bash scripts/test.sh packages/ui/test/ui/options-dialog.browser.spec.ts packages/ui/test/ui/phone-app-dialogs.browser.spec.ts
 files:
   - tasks/T746.yml
+  - BACKLOG.md
+  - packages/design/fields/phoneDialogText.ts
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - packages/ui/test/ui/options-dialog.browser.spec.ts
+  - packages/ui/test/ui/phone-app-dialogs.browser.spec.ts
+  - scripts/mobile-surface-capture-navigation.ts
+rulings:
+  - Options More info under Vented design limits goes, both skins; a static line stays and a (?) opens the longer help (John, QO467.c33, c35, c45).
+  - The static line, John's words: 'This panel allows you to set limits on acceptable ranges for certain values, open the help (?) for more info.' (QO467.c43).
+  - The (?) first line as proposed on QO467.c39, approved on c40; the setting is OpenISD only.
+  - Backlog to-do: which other app limits belong on the Options page (QO467.c49).

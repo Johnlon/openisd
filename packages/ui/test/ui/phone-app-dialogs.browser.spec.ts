@@ -152,6 +152,17 @@ for (const size of PHONE_SIZES) {
       await expect(sheet).toContainText('Air density: how heavy this air is.');
     });
 
+    // QO467.c33, c39, c40: no inline More info; one line says what the limits do, the ? says why.
+    test('General: Vented design limits has one plain line, no More info, and the ? says what the limits are for', async ({page}) => {
+      const dialog = page.locator('.mob-dlg[aria-label="Options"]');
+      await expect(dialog.getByTestId('limits-more')).toHaveCount(0);
+      await expect(dialog).toContainText('This panel allows you to set limits on acceptable ranges for certain values, open the help (?) for more info.');
+      await dialog.locator('.mob-band', {hasText: 'Vented design limits'}).locator('.mob-band-help').click();
+      const sheet = page.locator('.mob-help-sheet');
+      await expect(sheet).toContainText('Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark. WinISD has no such check, so the results still match WinISD.');
+      await expect(sheet).toContainText('Min box volume: a box smaller than this gets a warning mark.');
+    });
+
     test('Plot Window: the full colour list of nine, then twelve limit rows, each with its reset', async ({page}) => {
       const dialog = page.locator('.mob-dlg[aria-label="Options"]');
       await dialog.locator('.opt-phone-tabs button', {hasText: 'Plot Window'}).click();

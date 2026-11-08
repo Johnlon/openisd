@@ -30,6 +30,7 @@ list is the smaller engineering and UI work items around what already ships.
 | Item | Files |
 |---|---|
 | **Feature request — PR selection summary (John, 28 Oct 2026):** The passive-radiator picker should show a selected-item information summary like the Driver picker, so the user can inspect its specifications, units and data-quality status before choosing it. Currently PR has no equivalent dedicated summary (phone rows show a short specs line; desktop names have specification tooltips). Logged for a separate feature; not part of the popup-size/stacking fix. | `PRBrowser.vue`, `PRBrowser-hooks.ts` |
+| **To do (John, 8 Nov 2026, QO467.c49):** which other app limits belong on the Options page beside the vented design limits ("what other app limits should be on this page"). | `OptionsModal.vue`, `appSettings.ts` |
 | No frequency-range presets on the charts. | `OriginalShell.vue`, `presentationState.ts` |
 | Chart panels cannot be dragged into a different layout. | `GraphPanel.vue`, `OriginalShell.vue` |
 | No dB-per-division gridline setting (spacing is fixed). | `canvas.ts`, `OptionsModal.vue` |
