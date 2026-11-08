@@ -1,0 +1,18 @@
+id: T742
+release_note: Labels look the same on every device. The app now carries its own font, so a label no longer wraps on one computer and fits on another.
+repo: openisd
+owner: leader
+status: in_progress
+ruling: QO466
+goal: The app bundles its own font (Inter), precached for offline use, so every device and every test measures labels in the same font; the shared joined-field label rule no longer breaks a word at any letter
+plan:
+  - Bundle Inter (SIL OFL) from a known-good package (@fontsource/inter or @fontsource-variable/inter), latin subset, woff2 only; the weights the app uses.
+  - "@font-face self-hosted, font-display: block or swap chosen so first paint has no reflow of labels; body font stack keeps Inter first."
+  - The font files are in the service-worker precache; offline e2e still passes (scripts/hosting/test/offline-catalogue.e2e.mjs).
+  - "joined-fields.css: label white-space/overflow-wrap no longer 'anywhere'; a label that does not fit is a layout bug found by the field-layout gate, not hidden by a mid-word break. Drop T727's !important override in DriverEditorModal.vue if it becomes redundant."
+  - "Guard test: a browser spec asserts document.fonts.check('13px Inter') is true and the label font resolves to the bundled Inter (not a system fallback), so tests measure what users see."
+  - Visual baselines change (font change); regenerate them in this task and list them.
+  - Before (test.openisd.app) and after (this branch preview, lap:4742) pictures at phone 374x705 and desktop 1366x768 for Box tab, Driver Editor Parameters and Advanced, Options; mark-diff boxed, agy-checked, Look at / Recommend / Checked, impact line; on a page passing check-answerable.mjs, to John BEFORE landing.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T742.yml
