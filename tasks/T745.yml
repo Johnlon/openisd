@@ -1,0 +1,13 @@
+id: T745
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Desktop splitter buttons show whole when the left panel or bottom section is hidden
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T745.yml
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/original-shell-layout.browser.spec.ts
+  - bugs/BUG_20261108_desktop-splitter-button-cut-when-panel-hidden.md

@@ -1120,6 +1120,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .split-toggle { position:absolute; display:grid; place-items:center; background:#f0f0f0; border:1px solid #aaa; color:#555; border-radius:4px; cursor:pointer; font-size:9px; line-height:1; padding:0; }
 .split-v .split-toggle { top:8px; left:50%; transform:translateX(-50%); width:15px; height:34px; }
 .split-h .split-toggle { left:calc(var(--sidebar-width, 175px) + 15px); top:50%; transform:translateY(-50%); height:15px; width:34px; }
+/* A hidden panel puts its splitter at the window edge: the 15 px button would stick 4 px out of
+   the 7 px splitter there, so it sits flush with the edge instead of centred. */
+.main.nav-collapsed .split-v .split-toggle { left:0; transform:none; }
+.main.bottom-collapsed .split-h .split-toggle { top:auto; bottom:0; transform:none; }
 .split-icon {width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
 .split-v .split-toggle[aria-expanded="false"] .split-icon {transform:rotate(180deg);}
 .split-h .split-icon {transform:rotate(-90deg);}

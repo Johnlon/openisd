@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 526a7c2e21f984bee2f61cf68efb907ce7bfbb40
 goal: Desktop skin at phone width: the chart collapses to a 30 px strip (T737 regression) and the What-if dialog's right column is cut off; guard specs and a live-review chart-height check
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

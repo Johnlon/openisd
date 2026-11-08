@@ -152,6 +152,22 @@ test.describe('Original shell layout', () => {
       await expect(page.locator('.content-panel')).toBeVisible();
     });
 
+    // BUG_20261108_desktop-splitter-button-cut-when-panel-hidden: the 15 px button on a 7 px
+    // splitter stuck 4 px out of the window once its panel was hidden.
+    test("a hidden panel's splitter button shows whole", async ({ appPage: page }) => {
+      const main = (await page.locator('.main').boundingBox())!;
+      for (const selector of ['.split-v .split-toggle', '.split-h .split-toggle']) {
+        await page.locator(selector).click();
+        await expect(page.locator(selector)).toHaveAttribute('aria-expanded', 'false');
+        const box = (await page.locator(selector).boundingBox())!;
+        expect(box.x, selector).toBeGreaterThanOrEqual(main.x);
+        expect(box.y, selector).toBeGreaterThanOrEqual(main.y);
+        expect(box.x + box.width, selector).toBeLessThanOrEqual(main.x + main.width);
+        expect(box.y + box.height, selector).toBeLessThanOrEqual(main.y + main.height);
+        await page.locator(selector).click();
+      }
+    });
+
     test('the bottom section cannot be dragged deeper, and a stored taller height is ignored', async ({ appPage: page }) => {
       const before = (await page.locator('.content-panel').boundingBox())!;
       const split = (await page.locator('.split-h').boundingBox())!;
