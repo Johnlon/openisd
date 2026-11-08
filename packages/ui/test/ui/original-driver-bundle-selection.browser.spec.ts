@@ -176,7 +176,9 @@ function selectedRadiatorSpecs(project: unknown): Record<string, unknown> {
   return project.saved.box.passiveRadiator.component.specs['passive-radiator'];
 }
 
-const PR_DERIVED_FIELD_KEYS = ['Cms_m_per_N', 'Mms_kg', 'Rms_kg_per_s'] as const;
+// QO451 (John 8 Nov 2026): a stated Cms and Mms are kept at the pick; only a stated Rms is
+// dropped and worked out again from Qms, Mms and Cms.
+const PR_DERIVED_FIELD_KEYS = ['Rms_kg_per_s'] as const;
 const PR_FIELDS_DERIVED_FROM_WINISD_FIGURES = new Set<string>(PR_DERIVED_FIELD_KEYS);
 
 function expectedWinisdRadiatorValues(source: Record<string, SpecEntry>, project: unknown) {
@@ -185,8 +187,8 @@ function expectedWinisdRadiatorValues(source: Record<string, SpecEntry>, project
     Qms: numericValueOrNull(source.Qms),
     Vas_m3: numericValueOrNull(source.Vas_m3),
     Sd_m2: numericValueOrNull(source.Sd_m2),
-    Mms_kg: null,
-    Cms_m_per_N: null,
+    Mms_kg: numericValueOrNull(source.Mms_kg),
+    Cms_m_per_N: numericValueOrNull(source.Cms_m_per_N),
     Rms_kg_per_s: null,
   }, projectAir(project));
 }

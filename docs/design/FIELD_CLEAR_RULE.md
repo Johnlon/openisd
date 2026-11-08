@@ -68,3 +68,35 @@ Bold marks what changed.
 | Port count | count E | count | **count C, 1** | 3: default |
 | Rg | Rg E | Rg | **Rg C, 0.1 ohm** | 3: default |
 | Filter | frequency E | frequency | **frequency N**<br>shown red | 4: no source, no default |
+
+## Passive radiator pairs — the figure typed last wins
+
+John, QO463, 8 Nov 2026: "b and record this as a diff to winisd"; "make sure the rule is recorded as a
+design decision so the app works intuitively, and if a person enters the calculated value then it flips
+back to E"; "it's all about intention".
+
+Why: the charts read a radiator's Cms, Mms and Rms (with Sd, Xmax, the count and the added mass). Vas,
+Fs and Qms reach them only through those: Vas gives Cms (with Sd and the air), Fs gives Mms (with Cms),
+Qms gives Rms (with Mms and Cms). A typed value that moved nothing would be pointless, so a typed value
+is taken as meant to move the simulation.
+
+Rule: typing a figure works out again (E becomes C) each stated figure it would otherwise contradict.
+
+| Typed | Worked out again, when stated |
+|---|---|
+| Vas | Cms; Mms when Fs is stated; Rms when Qms is stated |
+| Sd, with Vas stated | as Vas typed (Vas is kept) |
+| Fs | Mms; Rms when Qms is stated |
+| Qms | Rms |
+| Cms | Vas; Fs when Mms is stated; Qms when Rms is stated |
+| Mms | Fs; Qms when Rms is stated |
+| Rms | Qms |
+
+- Typing into a worked-out box makes it E again and works its partner out (e.g. type Cms after Vas: Cms
+  E, Vas C).
+- A figure is worked out only when its inputs are there; otherwise it stays as stated.
+- At the pick a stated figure is kept as stated (QO451); a stated pair that disagrees keeps both, each
+  marked. Only a later edit applies this rule.
+- Code: `OpenIsdPassiveRadiatorSpec` (`#vasMoves` and the rest), dropped in the same write by `prSpec`.
+  Test: `packages/design/test/domain/pr-typed-value-wins.test.ts`.
+

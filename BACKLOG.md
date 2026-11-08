@@ -23,6 +23,8 @@ list is the smaller engineering and UI work items around what already ships.
 
 | Idea | Files |
 |---|---|
+| A passive radiator "Auto calculate unknowns" switch, like the Driver Editor's (John, QO463.c24, 8 Nov 2026: "pr needs it's own switch really but there are so few settings maybe it's best leave it alone"). | `packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts` |
+| Ask before a typed value would move nothing (John, QO463.c27/c30, 8 Nov 2026). When a typed X feeds Y and Y is typed-in, X changes no chart. Ask, in full words for a user who knows none of this, e.g.: "You changed Vas, but the charts will not move. The charts do not use Vas directly: Vas is used to work out Cms (the cone's springiness), and the charts use Cms. Your Cms box holds a value typed in (or taken from the datasheet), so Cms is locked, and changing Vas changes nothing. Do you want Cms worked out from Vas instead, so the charts follow the Vas you type? Yes: Cms becomes calculated and the charts update. No: keep Cms locked; the Vas you type then has no effect on the charts." Radiators already do the Yes by default (QO463); this is for any other linked fields. | `packages/design/domain/cell.ts` |
 | A "Was calculated" (W) field state (John, 16 Oct 2026). In a set of linked fields, clearing the one entered (E) value turns a calculated (C) value into W: half way to E, held as the input, but never typed by the user. W shows in its own indicator colour. States: Entered, Was calculated, Calculated, NotAvailable. John: "this is too much work, so just log it as an idea not for execution". | `packages/design/domain/cell.ts`, `pairedField` |
 
 ## Charts and UI

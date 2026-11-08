@@ -40,10 +40,18 @@ describe('radiator Mms, Cms and Rms are calculated', () => {
     }
   });
 
-  it('a record carrying entered Mms, Cms and Rms embeds them as calculated, driven by the four', () => {
+  // QO451 (John, 8 Nov 2026): a stated Mms and Cms are kept as stated at the pick; Rms is dropped
+  // when Qms is stated. QO463: a later Vas edit works the stated Cms and Mms out again.
+  it('a record carrying entered Mms and Cms keeps them until a Vas edit works them out', () => {
     const spec = prProject(createEngine(), {...four, Mms_kg: 1, Cms_m_per_N: 1, Rms_kg_per_s: 1}).box.passiveRadiator.radiator.spec;
+    for (const f of [spec.Mms_kg, spec.Cms_m_per_N]) {
+      expect(f.entered).toBe(true);
+      expect(f.value).toBe(1);
+    }
+    expect(spec.Rms_kg_per_s.calculated).toBe(true);
+    spec.Vas_m3.set(0.005);
     for (const f of [spec.Mms_kg, spec.Cms_m_per_N, spec.Rms_kg_per_s]) {
-      expect(f.entered).toBe(false);
+      expect(f.calculated).toBe(true);
       expect(f.value).not.toBe(1);
     }
   });

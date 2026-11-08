@@ -90,7 +90,7 @@ for (const [name, skin] of [['desktop', DESKTOP], ['phone', PHONE]] as const) {
       const root = skin.root(p);
       await expect(root.locator('#np-pr-qms')).toHaveValue(/^4\.8/);
       await expect(root.locator('#np-pr-qms')).toHaveClass(/value-c/);
-      await expect(root.locator('#np-pr-fs')).toHaveValue(/^23\.2/);
+      await expect(root.locator('#np-pr-fs')).toHaveValue(/^23\.3/);
       await expect(root.locator('#np-pr-fs')).toHaveClass(/value-c/);
       await expect(root.locator('#np-pr-vas')).not.toHaveClass(/value-c/);
       for (const id of FIGURE_IDS.filter(i => i !== '#np-pr-xmax')) await expect.soft(root.locator(id), id).toHaveValue(/\d/);
@@ -106,14 +106,17 @@ for (const [name, skin] of [['desktop', DESKTOP], ['phone', PHONE]] as const) {
       await expect(await skin.projectRms(p)).toHaveValue(/^2\.2/);
     });
 
-    test('a Cms typed over a stated Vas reaches the project and both boxes show the mark', async ({page, appPage}) => {
+    // QO463 (John, 8 Nov 2026): the figure typed last wins; a typed Cms works the stated Vas out again.
+    test('a Cms typed over a stated Vas reaches the project, with Vas worked out from it', async ({page, appPage}) => {
       const p = pageOf({page, appPage});
       await pickThenBack(p, skin, 'ASP190');
       const root = skin.root(p);
+      const vasBefore = await root.locator('#np-pr-vas').inputValue();
       await root.locator('#np-pr-cms').fill('1');
       await root.locator('#np-pr-cms').press('Tab');
-      await expect(root.locator('#np-pr-cms')).toHaveClass(/dq-flag/);
-      await expect(root.locator('#np-pr-vas')).toHaveClass(/dq-flag/);
+      await expect(root.locator('#np-pr-cms')).not.toHaveClass(/dq-flag/);
+      await expect(root.locator('#np-pr-vas')).toHaveClass(/value-c/);
+      await expect(root.locator('#np-pr-vas')).not.toHaveValue(vasBefore);
       await createProject(p, skin);
       await expect(await skin.projectCms(p)).toHaveValue(/^1(\.0*)?$/);
     });
@@ -122,6 +125,18 @@ for (const [name, skin] of [['desktop', DESKTOP], ['phone', PHONE]] as const) {
       const p = pageOf({page, appPage});
       await pickThenBack(p, skin, 'P173');
       await expect(skin.root(p).locator('#np-pr-qms')).toHaveValue('');
+    });
+
+    test('P173 states Cms 1.01 and Mms 15 g: the wizard and the project keep them as stated (QO451)', async ({page, appPage}) => {
+      const p = pageOf({page, appPage});
+      await pickThenBack(p, skin, 'P173');
+      const root = skin.root(p);
+      await expect(root.locator('#np-pr-cms')).toHaveValue(/^1\.01$/);
+      await expect(root.locator('#np-pr-cms')).not.toHaveClass(/value-c/);
+      await expect(root.locator('#np-pr-mms')).toHaveValue(/^15(\.0+)?$/);
+      await expect(root.locator('#np-pr-mms')).not.toHaveClass(/value-c/);
+      await createProject(p, skin);
+      await expect(await skin.projectCms(p)).toHaveValue(/^1\.01$/);
     });
 
     test('all eight boxes fit: nothing clipped and no sideways scroll', async ({page, appPage}) => {

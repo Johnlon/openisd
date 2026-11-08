@@ -33,8 +33,12 @@ describe('passive radiator Sd edit', () => {
     project.box.passiveRadiator.losses.Qa.set(30);
 
     const grid: FrequencyGrid = {fmin: 10, fmax: 1000, N: 50};
+    // A typed Sd works Cms, Mms and Rms out from the stated Vas, Fs and Qms (QO463), as WinISD's
+    // model does. Type the stated Sd first, so both sweeps hold those worked-out figures.
+    const sd = project.box.passiveRadiator.radiator.spec.Sd_m2;
+    sd.set(sd.value!);
     const before = project.sweep(grid).values;
-    project.box.passiveRadiator.radiator.spec.Sd_m2.set(project.box.passiveRadiator.radiator.spec.Sd_m2.value! * 2);
+    sd.set(sd.value! * 2);
     const after = project.sweep(grid).values;
     if (before === null || after === null) throw new Error('sweep did not run');
 
