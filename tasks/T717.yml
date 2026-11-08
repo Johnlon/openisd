@@ -1,0 +1,19 @@
+id: T717
+release_note: Discontinued drivers and passive radiators, such as the Visaton PR 250, are no longer listed. Projects that use one still open.
+repo: openisd
+owner: leader
+status: done
+goal: Discontinued drivers and passive radiators are not in the bundled catalogue (QO450 A)
+done_test: bash scripts/test.sh packages/ui/test/scripts/discontinued-flag.test.ts
+files:
+  - scripts/driver-snapshot.pin
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T717.yml
+  - scripts/bundle-drivers.mjs
+  - scripts/bundleStamp.mjs
+  - scripts/discontinuedFlag.mjs
+  - packages/ui/test/scripts/discontinued-flag.test.ts
+  - packages/ui/test/scripts/bundle-stamp.test.ts
+  - packages/ui/public/drivers-index.json
+  - packages/ui/public/passive-radiators-index.json
+  - packages/ui/public/drivers/**

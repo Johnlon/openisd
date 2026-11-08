@@ -10,7 +10,8 @@
  */
 import {createHash} from 'node:crypto';
 import {existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
-import {join, relative} from 'node:path';
+import {dirname, join, relative} from 'node:path';
+import {isDiscontinued} from './discontinuedFlag.mjs';
 
 /** Where the catalogue's outputs live, relative to the repo root. The corpus has no default
  *  location: scripts/sync-driver-snapshot.sh passes the committed snapshot directory. */
@@ -18,7 +19,7 @@ export const OUTPUTS = ['packages/ui/public/drivers-index.json', 'packages/ui/pu
 export const STAMP = 'build/drivers-bundle.stamp';
 /** Source files whose change alters a row or a record's shape — part of the fingerprint. */
 export const SOURCE_INPUTS = [
-  'scripts/bundle-drivers.mjs', 'scripts/bundleProjection.mjs', 'scripts/roundTripGate.mjs', 'scripts/bundleStamp.mjs',
+  'scripts/bundle-drivers.mjs', 'scripts/bundleProjection.mjs', 'scripts/roundTripGate.mjs', 'scripts/bundleStamp.mjs', 'scripts/discontinuedFlag.mjs',
   'packages/ui/src/logic/bundledIndexRows.ts', 'packages/ui/src/logic/driverDisplay.ts',
   'packages/persistence/src/repos/bundledIndex.ts',
 ];
@@ -69,6 +70,10 @@ export function bundleFingerprintOnDisk(root, corpus) {
     const st = statSync(f);
     return new BundleInput(relative(corpus, f).replace(/\\/g, '/'), st.mtimeMs, st.size);
   });
+  // The discontinued flag (driver.json, QO450) decides whether a record is bundled at all.
+  for (const f of walkFiles(corpus, name => name.toLowerCase() === 'openisd.json')) {
+    inputs.push(new BundleInput(`${relative(corpus, dirname(f)).replace(/\\/g, '/')}#discontinued`, 0, isDiscontinued(dirname(f)) ? 1 : 0));
+  }
   const sources = [
     ...SOURCE_INPUTS.map(p => join(root, p)),
     ...SOURCE_DIRS.flatMap(d => walkFiles(join(root, d), name => name.endsWith('.ts'))),

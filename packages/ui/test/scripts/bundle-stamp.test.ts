@@ -51,7 +51,7 @@ describe('no implicit corpus path', () => {
     const root = mkdtempSync(join(tmpdir(), 'bundle-if-changed-'));
     try {
       mkdirSync(join(root, 'scripts'));
-      for (const f of ['bundle-drivers-if-changed.mjs', 'bundleStamp.mjs']) cpSync(join(SCRIPTS, f), join(root, 'scripts', f));
+      for (const f of ['bundle-drivers-if-changed.mjs', 'bundleStamp.mjs', 'discontinuedFlag.mjs']) cpSync(join(SCRIPTS, f), join(root, 'scripts', f));
       const run = () => spawnSync('node', [join(root, 'scripts', 'bundle-drivers-if-changed.mjs')], {encoding: 'utf8'});
       const missing = run();
       assert.equal(missing.status, 1);
