@@ -1,0 +1,9 @@
+id: T721
+release_note: internal
+repo: openisd
+owner: leader
+status: open
+goal: The lap:4000 preview writes a fresh build-info.json each time it starts
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T721.yml
