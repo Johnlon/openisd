@@ -35,6 +35,16 @@ steps:
     worker: sonnet
     do: "One Cms resolver for both parts; DriverEngine.circuitValues and the radiator spec resolve take CmsSource and call it; remove the duplicate derivations. Steps 1 (a, c, d, f) go green."
     done: "cms-from-vas.test.ts cases a,c,d,f green; existing driver and PR engine tests green."
+    # QO472.c19 / c22 / c23 (John, 8 Nov): (c19) the box's Cms is an on-demand engine read, never stored or cached in the domain object;
+    # the record keeps the datasheet Cms and Vas; every save/export writes the stored value (test: save, reload, Cms still there).
+    # (c22) the sweep must not work Cms/Mms/Rms/BL out of Vas itself: it reads the same field values the box shows.
+    # (c23) audit of Cms/Mms/Rms/BL derivations outside the field solve:
+    #   engine/driver/DriverEngine.ts:circuitValues - Cms (route), Mms, Rms, BL derived for the sweep. TO REMOVE (c22); step 4 so far only routes Cms through resolveCms(CmsSource).
+    #   engine/pr/PrEngine.ts:cmsFromVas / mmdFromFs / rmsFromQms - public helpers with no caller outside PrEngine and tests. Dead; remove with their tests.
+    #   domain/box/openISDBox.ts:635,694 - PrEngine.vas(starting Cms, Sd): seeds a NEW radiator's Vas from a starting Cms. Kept: a default for an empty box, goes through a field set.
+    #   projectResolve / PR spec resolve / What-if / exports: no own derivation (they call the field solve).
+    # State: step 4 and 5 for the driver done (typed last wins in OpenIsdDriverSpec slot, Vas-from-typed-Cms first in DriverEngine.solveValues, CmsSource on SweepDriver).
+    # Left: c19 on-demand Cms read (case c), c22 removal from circuitValues, radiator c/d (step 6/7 adopt), radiator typed-last.
   - n: 5
     worker: sonnet
     do: "Driver typed last wins: typing Cms works out Vas, typing Vas works out Cms, as the radiator does. Case b green."
@@ -79,3 +89,16 @@ files:
   - packages/design/test/domain/cms-source.test.ts
   - packages/design/domain/project/projectAdvanced.ts
   - packages/design/domain/project/openISDProject.ts
+  - packages/design/engine/driver/cmsResolver.ts
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/engine/solverTypes.ts
+  - packages/design/engine/index.ts
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
+  - packages/design/domain/box/prSpec.ts
+  - packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts
+  - packages/design/domain/project/projectSweep.ts
+  - packages/design/chart/series.ts
+  - packages/design/chart/types.ts
+  - packages/design/test/engine/testSolver.ts
+  - packages/design/test/domain/driver-edit-parity-w5.test.ts

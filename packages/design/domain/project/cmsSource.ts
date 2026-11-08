@@ -1,10 +1,8 @@
+import type {CmsSource} from '../../engine/driver/cmsResolver.js';
 import {CompatSwitch} from './compatSwitch.js';
 import type {OpenISDProject} from './openISDProject.js';
 
-/** Which Cms a datasheet that states both Cms and Vas is solved with (WinISD option "Cms from Vas"). */
-export type CmsSource =
-    | {readonly kind: 'VasWins'}
-    | {readonly kind: 'StatedCmsWins'};
+export type {CmsSource};
 
 /** The one place the "Cms from Vas" switch is read: ticked is WinISD's way, Vas wins. */
 export function cmsSourceOf(project: OpenISDProject): CmsSource {

@@ -125,7 +125,6 @@ function itMovesNothing(box: BoxType, edit: Edit, prepare: (project: OpenISDProj
 const EXEMPT_DRIVER_FIELDS: ReadonlyMap<NumericDriverSpecFieldName, string> = new Map([
   ['Qts', 'Qts only fills a missing Qes or Qms or shows a conflict; it feeds no other calculation (John, 18 Oct 2026)'],
   ['BL_Tm', 'with "Two-BL driver" unticked (the default) there is one BL, the one Re, Fs, Qes and Vas imply; a typed BL is not read (John, 18 Oct 2026). Ticked, it moves the charts: see the compat switch cases'],
-  ['Cms_m_per_N', 'display only: the circuit is driven from Fs, Vas, Qes, Qms (John, 18 Oct 2026)'],
   ['Mms_kg', 'display only: the circuit is driven from Fs, Vas, Qes, Qms (John, 18 Oct 2026)'],
   ['Rms_kg_per_s', 'display only: the circuit is driven from Fs, Vas, Qes, Qms (John, 18 Oct 2026)'],
   ['Znom_ohm', 'nominal impedance is a catalogue label; the circuit uses Re'],
@@ -300,7 +299,7 @@ const COMPAT_SCENARIOS: ReadonlyMap<CompatSwitch, CompatScenario | string> = new
   [CompatSwitch.WRAP_PHASE, {box: 'sealed', prepare: () => undefined}],
   [CompatSwitch.FLAT_MODEL, {box: 'sealed', prepare: p => p.forceFlatResponse.set(true)}],
   [CompatSwitch.ABC_INTRA_PORT_VELOCITY, {box: 'abc', prepare: () => undefined}],
-  [CompatSwitch.CMS_FROM_VAS, 'T744 step 2: stored only; the engine reads it from step 4 (then a scenario with a stated Cms that disagrees with Vas)'],
+  [CompatSwitch.CMS_FROM_VAS, {box: 'sealed', prepare: () => undefined}],
 ]);
 
 describe('compat switches', () => {

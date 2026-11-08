@@ -16,7 +16,7 @@ const STATED: TestSolverQuantities = {
   Fs_hz: 40, Vas_m3: 0.02, Sd_m2: 0.0132, Re_ohm: 6, Re_terminal_ohm: 6, Qes: 0.5, Qms: 4,
   Cms_m_per_N: 0.009, Mms_kg: 0.5, Rms_kg_per_s: 9, BL_Tm: 7.5, BL_terminal_Tm: 7.5,
 };
-const circuitOf = (q: TestSolverQuantities) => engine.driver.circuitValues(sweepDriver(q).values, REFERENCE_AIR);
+const circuitOf = (q: TestSolverQuantities) => engine.driver.circuitValues(sweepDriver(q).values, REFERENCE_AIR, sweepDriver(q).cmsSource);
 
 describe('DriverEngine.circuitValues', () => {
   it('takes Cms from Vas and Sd, ignoring the stated Cms', () => {

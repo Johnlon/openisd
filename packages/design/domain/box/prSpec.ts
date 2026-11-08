@@ -13,10 +13,16 @@ export function prSpec(
     section: SimpleField<PassiveRadiatorSpecsSection>,
     key: PassiveRadiatorFieldName,
     marks?: () => readonly DqIssue[],
+    /** The other half of a linked pair: typing this field drops the partner's entered value (typed last wins). */
+    partner?: PassiveRadiatorFieldName,
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
     const slot: SimpleField<SpecEntryJson | undefined> = {
         get value() { return section.value[key]; },
         set: (entry) => {
+            if (partner !== undefined && entry?.state === 'E' && section.value[partner]?.state === 'E') {
+                const {[partner]: _partner, ...others} = section.value;
+                section.set(others);
+            }
             const {[key]: _removed, ...rest} = section.value;
             section.set(entry === undefined ? rest : {...section.value, [key]: entry});
         },
