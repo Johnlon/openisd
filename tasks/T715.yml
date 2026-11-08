@@ -1,0 +1,9 @@
+id: T715
+release_note: internal
+repo: openisd
+owner: cover
+status: open
+goal: Desktop Save and Revert sit one row higher, so Revert no longer sticks out at the bottom
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T715.yml
