@@ -2,9 +2,8 @@ id: T744
 release_note: A Cms you type always moves the charts, on drivers and radiators alike. A new WinISD-style option "Cms from Vas" decides which wins when a datasheet states both and they disagree; a warning shows when they do.
 repo: openisd
 owner: leader
-status: blocked
-blocked_by: QO463 (John picks A, one switch for driver and radiator, or B, driver only). Nothing starts before that.
-ruling: QO463
+status: open
+ruling: 'QO463 - John, 8 Nov 2026 chat: "ok kick off the CMS plan" (taken as A, the plan as written; also the data-model ruling for the new saved field)'
 goal: One rule for Cms on drivers and radiators. Typed last wins; a WinISD-style option "Cms from Vas" (ticked by default) settles a datasheet that states both Cms and Vas; the box always shows the Cms the charts use; a data-quality warning when the stated Cms and Vas disagree.
 
 # Orchestration: leader (Opus) only plans, briefs, reviews and lands. Each step is one cheap worker
