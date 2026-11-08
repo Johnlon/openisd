@@ -1,6 +1,7 @@
 import type {
   Air,
   DriverSolverParams,
+  DriverValues,
   PrSolverParams,
   SealedAlignmentSolverParams,
   SolverField,
@@ -106,9 +107,22 @@ function fakeInput(value: number | undefined): SolverInput<number> {
  *  calls `Engine.sweep()`/`maxCurves()` directly (S2-10: they now take handles, not a bag). */
 /** The plain driver `SimulationEngine.sweep`/`maxCurves` take. A stated BL counts as entered, as
  *  `driverParams`' handles mark every stated value. */
-export function sweepDriver(d: TestSolverQuantities): SweepDriver {
+export function sweepDriver(d: TestSolverQuantities, air: Air = REFERENCE_AIR): SweepDriver {
+  const stated = sweepValues(d);
+  // What the domain hands the sweep: the figures WinISD's chain works out (Cms from Vas, Mms, Rms, terminal BL), in `air`.
+  const chain = createEngine().driver.shownMechanics(stated, air, {kind: 'VasWins'});
   return {
-    values: {
+    values: chain === null ? stated : {
+      ...stated,
+      Cms_m_per_N: chain.Cms_m_per_N ?? stated.Cms_m_per_N, Mms_kg: chain.Mms_kg ?? stated.Mms_kg,
+      Rms_kg_per_s: chain.Rms_kg_per_s ?? stated.Rms_kg_per_s, BL_terminal_Tm: chain.BL_terminal_Tm ?? stated.BL_terminal_Tm,
+    },
+    winisdBL_Tm: d.BL_Tm ?? null,
+  };
+}
+
+function sweepValues(d: TestSolverQuantities): DriverValues {
+  return {
       Fs_hz: d.Fs_hz ?? null, Re_ohm: d.Re_ohm ?? null, Znom_ohm: d.Znom_ohm ?? null, Le_H: d.Le_H ?? null,
       fLe_hz: d.fLe_hz ?? null, KLe_H_sqrtHz: d.KLe_H_sqrtHz ?? null, Qes: d.Qes ?? null,
       Qms: d.Qms ?? null, Qts: d.Qts ?? null, Vas_m3: d.Vas_m3 ?? null, Sd_m2: d.Sd_m2 ?? null,
@@ -123,8 +137,6 @@ export function sweepDriver(d: TestSolverQuantities): SweepDriver {
       DVol_m3: d.DVol_m3 ?? null, c_m_per_s: d.c_m_per_s ?? null, roo_kg_per_m3: d.roo_kg_per_m3 ?? null,
       Re_terminal_ohm: d.Re_terminal_ohm ?? null, BL_terminal_Tm: d.BL_terminal_Tm ?? null,
       numVC: d.numVC ?? null, wiring: d.wiring ?? null,
-    },
-    winisdBL_Tm: d.BL_Tm ?? null,
   };
 }
 
