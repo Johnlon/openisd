@@ -7,19 +7,18 @@ import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
 import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {createSimulationEngine} from '../../engine/simulation/SimulationEngine.js';
-import type {SweepDriver} from '../../engine/index.js';
 import type {SweepParams} from '../../engine/types.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 const engine = createEngine();
 const LE_H = 0.70e-3;
 const SP: SweepParams = {Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 50, filters: [], air: REFERENCE_AIR};
 
-function solvedDriver(): SweepDriver {
+function solvedDriver() {
   const specs = ProjectBuilder.empty(engine).driver.specs;
   specs.Fs_hz.set(37); specs.Qts.set(0.378); specs.Qes.set(0.40); specs.Qms.set(7.0);
   specs.Vas_m3.set(0.0300); specs.Sd_m2.set(0.0133); specs.Re_ohm.set(5.6); specs.Le_H.set(LE_H);
   specs.Xmax_m.set(0.005); specs.Pe_W.set(60); specs.Znom_ohm.set(8);
-  return {...specs.sweepDriver(), cmsSource: {kind: 'VasWins'}};
+  return specs.sweepDriver();
 }
 
 describe('createSimulationEngine', () => {

@@ -1,5 +1,5 @@
 /**
- * `DriverEngine.circuitValues` — the values the circuit runs on (John, 18 Oct 2026): Cas from Vas, Mas
+ * `DriverEngine.circuitValues` and `shownMechanics` — the values the circuit runs on (John, 18 Oct 2026): Cas from Vas, Mas
  * from Fs and Cas, Ras from Qms, the damping BL from Qes. The stated Cms, Mms and Rms are never read.
  * A driver with only Qts gets WinISD's fallback, Qes = Qms = 2·Qts.
  */
@@ -16,7 +16,16 @@ const STATED: TestSolverQuantities = {
   Fs_hz: 40, Vas_m3: 0.02, Sd_m2: 0.0132, Re_ohm: 6, Re_terminal_ohm: 6, Qes: 0.5, Qms: 4,
   Cms_m_per_N: 0.009, Mms_kg: 0.5, Rms_kg_per_s: 9, BL_Tm: 7.5, BL_terminal_Tm: 7.5,
 };
-const circuitOf = (q: TestSolverQuantities) => engine.driver.circuitValues(sweepDriver(q).values, REFERENCE_AIR, sweepDriver(q).cmsSource);
+/** What the charts run on: the Qts fallback, then WinISD's mechanical chain where it reaches a figure. */
+const circuitOf = (q: TestSolverQuantities) => {
+  const values = sweepDriver(q).values;
+  const base = engine.driver.circuitValues(values);
+  const chain = engine.driver.shownMechanics(values, REFERENCE_AIR, {kind: 'VasWins'});
+  return {
+    ...base, Cms_m_per_N: chain?.Cms_m_per_N ?? base.Cms_m_per_N, Mms_kg: chain?.Mms_kg ?? base.Mms_kg,
+    Rms_kg_per_s: chain?.Rms_kg_per_s ?? base.Rms_kg_per_s, BL_terminal_Tm: chain?.BL_terminal_Tm ?? base.BL_terminal_Tm,
+  };
+};
 
 describe('DriverEngine.circuitValues', () => {
   it('takes Cms from Vas and Sd, ignoring the stated Cms', () => {

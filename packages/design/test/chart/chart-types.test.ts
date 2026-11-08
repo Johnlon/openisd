@@ -38,7 +38,7 @@ function solvedDriver(): SweepDriver {
   specs.Fs_hz.set(RAW.Fs); specs.Qts.set(RAW.Qts); specs.Qes.set(RAW.Qes); specs.Qms.set(RAW.Qms);
   specs.Vas_m3.set(RAW.Vas); specs.Sd_m2.set(RAW.Sd); specs.Re_ohm.set(RAW.Re); specs.Le_H.set(RAW.Le);
   specs.Xmax_m.set(RAW.Xmax); specs.Pe_W.set(RAW.Pe); specs.Znom_ohm.set(RAW.Znom);
-  return {...specs.sweepDriver(), cmsSource: {kind: 'VasWins'}};
+  return specs.sweepDriver();
 }
 const DRV = solvedDriver();
 const LE_H = 0.70e-3;

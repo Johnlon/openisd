@@ -125,7 +125,6 @@ export function sweepDriver(d: TestSolverQuantities): SweepDriver {
       numVC: d.numVC ?? null, wiring: d.wiring ?? null,
     },
     winisdBL_Tm: d.BL_Tm ?? null,
-    cmsSource: {kind: 'VasWins'},
   };
 }
 

@@ -101,9 +101,7 @@ describe.each<Kind>(['driver', 'radiator'])('Cms from Vas: %s', (kind) => {
     expect(r.vas()).toBeCloseTo(consistentCms() * 1.5 * k, 6);
   });
 
-  // Held for QO472: the box must show a Cms that is not the stored one; John is ruling whether that is an in-memory value or a saved field.
-  const caseC = kind === 'driver' ? it.fails : it;
-  caseC('(c) both stated and disagreeing, "Cms from Vas" ticked (default): charts and box use Cms from Vas, warning shown', () => {
+  it('(c) both stated and disagreeing, "Cms from Vas" ticked (default): charts and box use Cms from Vas, warning shown', () => {
     const r = rig(kind, disagreeing());
     const fromVasOnly = rig(kind, {Vas_m3: vas});
     expect(r.cms()).toBeCloseTo(consistentCms(), 9);

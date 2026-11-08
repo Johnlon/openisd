@@ -20,6 +20,7 @@ const label = (s: CmsSource): string => {
   switch (s.kind) {
     case 'VasWins': return 'vas';
     case 'StatedCmsWins': return 'stated';
+    case 'StoredShown': return 'stored';
   }
 };
 

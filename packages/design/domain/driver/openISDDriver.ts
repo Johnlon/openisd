@@ -1,5 +1,5 @@
 import {type Engine, FixedAir} from '../../engine/index.js';
-import type { Air, DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
+import type { Air, CmsSource, DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -128,6 +128,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
         airProvider: () => Air,
+        /** Which Cms a datasheet stating both Cms and Vas is read with: the project's switch; a standalone driver shows its datasheet. */
+        cmsSource: () => CmsSource,
         /** See `OpenIsdDriverSpec`'s own parameter — only an embedded driver supplies one. */
         durableIssues?: () => readonly DriverIssue[],
     ) {
@@ -136,7 +138,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         this.record = record;
         this.airProvider = airProvider;
         this.durableIssues = durableIssues;
-        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, airProvider, durableIssues);
+        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, airProvider, cmsSource, durableIssues);
     }
 
     /** T11/S2-7c: resolve this driver's spec — write every derivable quantity back
@@ -495,7 +497,7 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
         // eslint-disable-next-line prefer-const
         let driver!: OpenISDDriverStandalone;
         const record = resolvingField(raw, () => driver.resolve());
-        driver = new OpenISDDriverStandalone(record, engine, () => new FixedAir(engine.environment.solve({tempK: engine.environment.appAir.temperature(), humidityPct: engine.environment.appAir.humidity(), pressurePa: engine.environment.appAir.pressure()}).values));
+        driver = new OpenISDDriverStandalone(record, engine, () => new FixedAir(engine.environment.solve({tempK: engine.environment.appAir.temperature(), humidityPct: engine.environment.appAir.humidity(), pressurePa: engine.environment.appAir.pressure()}).values), () => ({kind: 'StoredShown'}));
         // The one-shot cache-on-load (S7-d): a standalone driver is a genuine single long-lived
         // instance, so — unlike an embedded one, rebuilt fresh on every access — resolving once
         // here is exactly the "'C' is a cache, recomputed on load" contract, not a write-on-read

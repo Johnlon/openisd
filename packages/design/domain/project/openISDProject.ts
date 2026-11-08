@@ -26,6 +26,7 @@ import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
 import { cmsSourceOf } from './cmsSource.js';
+
 import { withNullEmbeddedDriverId } from './nullDriverId.js';
 import type { ProjectIssues } from './projectIssues.js';
 import { ProjectMeta } from './projectMeta.js';
@@ -107,6 +108,7 @@ export class OpenISDProject {
             focus(focus(root, 'driverEmbedding'), 'device'),
             this.#engine,
             () => this.#airOver(root),
+            () => cmsSourceOf(this),
             () => this.#issues.driver,
             () => this.#appContext.newId(),
         );
@@ -821,7 +823,6 @@ export class OpenISDProject {
             winisdPrNprResonance: this.winisdPrNprResonance,
             winisdBesselHighpass: this.winisdBesselHighpass,
             winisdAbcGroupDelay: this.winisdAbcGroupDelay,
-            cmsSource: cmsSourceOf(this),
             winisdTlPortNoEndCorrection: this.winisdTlPortNoEndCorrection,
             rgAtDriverSide: this.rgAtDriverSide,
             useTransmissionLinePortModel: this.useTransmissionLinePortModel,

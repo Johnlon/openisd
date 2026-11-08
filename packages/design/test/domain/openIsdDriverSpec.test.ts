@@ -12,7 +12,7 @@ const engine = createEngine();
 function specOver(record: DriverDeviceJson): OpenIsdDriverSpec {
   let current = record;
   const slot = simpleField(() => current, next => { current = next; });
-  return new OpenIsdDriverSpec(slot, 'woofer', engine.driver, engine.issues, () => REFERENCE_AIR);
+  return new OpenIsdDriverSpec(slot, 'woofer', engine.driver, engine.issues, () => REFERENCE_AIR, () => ({kind: 'StoredShown'}));
 }
 
 function blankRecord(): DriverDeviceJson {

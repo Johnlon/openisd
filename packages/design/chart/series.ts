@@ -1,5 +1,5 @@
 import {ChartLayout} from './layout.js';
-import type {BoxEngine, BoxType, ChartId, DriverError, EnvironmentEngine, MaxCurvesResult, SimulationEngine, SweepDriverFigures, SweepResult} from '../engine/index.js';
+import type {BoxEngine, BoxType, ChartId, DriverError, EnvironmentEngine, MaxCurvesResult, SimulationEngine, SweepDriver, SweepResult} from '../engine/index.js';
 import {NumberField} from '../fields/index.js';
 
 /** The two engine areas a curve builder reads: the sweep's own classifiers and the air the port
@@ -130,7 +130,7 @@ interface CurveCtx {
   /** The composition root's engine areas — a curve builder never makes its own. */
   engine: ChartEngineAreas;
   meta: TabMeta;
-  drv: SweepDriverFigures;
+  drv: SweepDriver;
   box: BoxType;
   P: PlotParams;
   sw: SweepResult;
@@ -439,7 +439,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
 
 export function seriesFor(engine: ChartEngineAreas,
                           chartId: ChartId,
-                          drv: SweepDriverFigures,
+                          drv: SweepDriver,
                           box: BoxType,
                           P: PlotParams,
                           sw: SweepResult,
