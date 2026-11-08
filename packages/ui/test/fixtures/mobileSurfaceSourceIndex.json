@@ -660,6 +660,7 @@
     "bugs/BUG_20261107_offline-release-test-stops-at-the-radiator-jump.md",
     "bugs/BUG_20261107_radiator-pages-miss-figures-the-datasheet-gives.md",
     "bugs/BUG_20261108_desktop-drawer-footer-buttons-cut-at-phone-width.md",
+    "bugs/BUG_20261108_desktop-options-dialog-taller-than-short-window.md",
     "bugs/BUG_20261108_desktop-skin-chart-collapses-at-phone-width.md",
     "bugs/BUG_20261108_desktop-skin-clips-toolbar-at-phone-width.md",
     "bugs/BUG_20261108_desktop-skin-menus-and-links-cut-at-phone-width.md",
