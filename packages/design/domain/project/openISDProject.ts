@@ -145,6 +145,7 @@ export class OpenISDProject {
             () => this.#issues.ventTuningExtra,
             () => this.#airOver(root),
             () => root.value.driverEmbedding.nDrivers,
+            () => cmsSourceOf(this),
         );
     }
 

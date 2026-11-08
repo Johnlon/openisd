@@ -2,6 +2,7 @@ import type { SimpleField } from '../cell.js';
 import type { PrSpecIssue } from '../../engine/index.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
 import { OpenISDPassiveRadiator } from './openISDPassiveRadiator.js';
+import type { PrChart } from './openIsdPassiveRadiatorSpec.js';
 import { OpenISDPassiveRadiatorStandalone } from './openISDPassiveRadiatorStandalone.js';
 
 /**
@@ -18,8 +19,8 @@ import { OpenISDPassiveRadiatorStandalone } from './openISDPassiveRadiatorStanda
 
 export class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator {
 
-    constructor(slot: SimpleField<RadiatorDeviceJson>, conflicts?: () => readonly PrSpecIssue[]) {
-        super(slot, conflicts);
+    constructor(slot: SimpleField<RadiatorDeviceJson>, conflicts?: () => readonly PrSpecIssue[], chart?: PrChart) {
+        super(slot, conflicts, chart);
     }
 
     /** Adopt the chosen radiator into this box. The box owns its radiator from here on, so later

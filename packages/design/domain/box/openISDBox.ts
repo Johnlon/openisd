@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
+import type { Air, BoxType, CmsSource, DqIssue, VentedAlignment } from '../../engine/index.js';
 import { CalculatedFieldImpl, DerivableFieldImpl, DualWriteFieldImpl, absentCell, enteredCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, settlingNullableField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
@@ -154,6 +154,7 @@ export class OpenISDBox implements Box {
         ventTuningExtra: () => DqIssue | null,
         air: () => Air,
         nDrivers: () => number,
+        cmsSource: () => CmsSource,
     ) {
         this.#driver = driver;
         this.#engine = engine;
@@ -408,7 +409,7 @@ export class OpenISDBox implements Box {
         const pr = focus(lens, 'passiveRadiator');
         const prSlot = focus(pr, 'component');
         const getRadiator = (): OpenISDPassiveRadiatorEmbedded => {
-            return new OpenISDPassiveRadiatorEmbedded(prSlot, () => issues().radiator);
+            return new OpenISDPassiveRadiatorEmbedded(prSlot, () => issues().radiator, {pr: engine.pr, air, cmsSource});
         };
         const prVolume = settlingNullableField(pr, 'volume_m3', () => STARTING_SHARED_VOLUME_M3, (v) => engine.issues.requiredPositiveIssue('Box volume', v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
@@ -764,8 +765,9 @@ export class OpenISDBox implements Box {
         ventTuningExtra: () => DqIssue | null,
         air: () => Air,
         nDrivers: () => number,
+        cmsSource: () => CmsSource,
     ): OpenISDBox {
-        return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air, nDrivers);
+        return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air, nDrivers, cmsSource);
     }
 
     /** The sealed volume an entered Qtc or an entered Fsc gives; null with neither entered or when no box reaches it. */
