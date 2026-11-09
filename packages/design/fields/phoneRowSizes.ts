@@ -70,9 +70,9 @@ export class PhoneRowColumns {
 
   static chipIsWide(label: string): boolean { return label.length > 3; }
 
-  static readonly STANDARD = new PhoneRowColumns(102, 90, 40, 16);
-  /** The Advanced page's air rows: wide enough for "Temperature" on one line, narrow enough to leave room for a pressure in Pa. */
-  static readonly MEDIUM_LABEL = new PhoneRowColumns(96, 90, 40, 16);
+  static readonly STANDARD = new PhoneRowColumns(123, 90, 40, 16);
+  /** The Advanced page's air rows: the same label column as STANDARD (122 px holds "1st port resonance" on one line; John, QO478.c10: narrow the box, not the label). */
+  static readonly MEDIUM_LABEL = new PhoneRowColumns(123, 90, 40, 16);
   /** The driver editor's General tab, whose labels are longer. */
   static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 16);
 
