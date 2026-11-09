@@ -107,6 +107,6 @@ describe('a radiator edited before the project exists (the New Project wizard)',
     expect(spec.Vas_m3.entered).toBe(true);
     expect(spec.Cms_m_per_N.calculated).toBe(true);
     expect(spec.Cms_m_per_N.value).toBeCloseTo(0.00101, 4);
-    expect(spec.Cms_m_per_N.dq.map(i => i.text).join(' ')).toMatch(/^The stated Cms and Vas disagree, so the charts use Cms from Vas \([\d.]+ mm\/N\)\.$/);
+    expect(spec.Cms_m_per_N.dq.map(i => i.text).join(' ')).toMatch(/The stated Cms and Vas disagree, so the charts use Cms from Vas \([\d.]+ mm\/N\)\.$/); // the stated Fs, Mms and Cms also disagree here, and say so first
   });
 });

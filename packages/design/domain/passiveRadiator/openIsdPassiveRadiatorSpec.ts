@@ -201,8 +201,8 @@ export class OpenIsdPassiveRadiatorSpec {
         return {Cms_m_per_N: source.kind === 'VasWins' ? solved.Cms_m_per_N : null, Mms_kg: solved.Mms_kg, Rms_kg_per_s: solved.Rms_kg_per_s};
     }
 
-    /** The issues, with the stated Cms that disagrees with the stated Vas named in one sentence on Cms (the generic Vas/Cms disagreement is dropped
-     *  for it), and each stated Mms or Rms the charts do not use named in its own sentence (the driver's rule). */
+    /** The issues, with the stated Cms that disagrees with the stated Vas named in one sentence on Cms (only the generic Vas/Cms issue loses Cms; an Fs/Mms/Cms
+     *  issue keeps it), and each stated Mms or Rms the charts do not use named in its own sentence (the driver's rule). */
     #withChartNotes(issues: PrSpecIssue[]): PrSpecIssue[] {
         const chart = this.#chart;
         if (chart === undefined) return issues;
@@ -222,14 +222,14 @@ export class OpenIsdPassiveRadiatorSpec {
             Fs_hz: stated.Fs_hz, Qms: stated.Qms, Vas_m3: stated.Vas_m3, Sd_m2: stated.Sd_m2, Mms_kg: null, Rms_kg_per_s: null, Cms_m_per_N: null,
         }, chart.air()).Cms_m_per_N;
         const cmsConflict = stated.Cms_m_per_N !== null && fromVas !== null && Math.abs(fromVas - stated.Cms_m_per_N) > 1e-9 * Math.abs(stated.Cms_m_per_N);
-        const kept = issues.map((issue): PrSpecIssue => issue.kind === 'inconsistent-inputs' && cmsConflict
+        const kept = issues.map((issue): PrSpecIssue => issue.kind === 'inconsistent-inputs' && cmsConflict && issue.fields.includes('Vas_m3')
             ? {...issue, fields: issue.fields.filter(f => f !== 'Cms_m_per_N')} : issue);
         const cmsNotes: PrSpecIssue[] = stated.Cms_m_per_N === null || fromVas === null || !cmsConflict ? [] : [{
             kind: 'inconsistent-inputs', target: 'Cms_m_per_N', fields: ['Cms_m_per_N'], formula: NumberField.CMS_M_PER_N.formula ?? '', expected: fromVas, actual: stated.Cms_m_per_N,
             relative: Math.abs(fromVas - stated.Cms_m_per_N) / stated.Cms_m_per_N, text: cmsConflictNote(source, stated.Cms_m_per_N, fromVas),
         }];
         const notes = differing.map(({figure, name, statedSI, chart}): PrSpecIssue => (
-            {kind: 'approximate-charts', target: name, fields: [name], text: chartFigureNote(figure, statedSI, chart)}));
+            {kind: 'approximate-charts', target: name, fields: [name], text: chartFigureNote(figure, statedSI, chart, source)}));
         return [...kept, ...cmsNotes, ...notes];
     }
 }
