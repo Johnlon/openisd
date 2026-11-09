@@ -1,5 +1,8 @@
 # Radiator pick replaces a stated Cms and Mms with ones worked out from Vas and Fs (QO451)
 
+**Status:** CLOSED
+**Fix:** Fixed in T744: one Cms resolver feeds both the box and the charts; the "Cms from Vas" option (ticked by default) decides when a datasheet's Cms and Vas disagree; typed last wins.
+
 Symptom: P173 on test.openisd.app states Cms 1.01 and Mms 15 g. The wizard step and the project page Box tab show Cms 1.0011 and Mms 15.05, blue (calculated), with ≠W.
 Cause: `adoptDatasheetFigures` in packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts cleared a stated Cms when Vas was stated and a stated Mms when Fs was stated; `resolve` then worked them out (the 31 Oct rule, now replaced).
 Ruling: John, QO451, 8 Nov 2026: a stated figure is never replaced by a worked-out one.

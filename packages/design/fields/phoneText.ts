@@ -136,9 +136,9 @@ export class PhoneHelpRows {
   static readonly FB_FRONT_VENT: PhoneHelpRow = {label: 'Fb (frequency, box)', text: 'the frequency at which the vent reinforces the bass most. Lower tuning reaches lower bass.'};
   static readonly SELECT_PR: PhoneHelpRow = {label: 'Select PR', text: 'picks a passive radiator from the library.'};
   static readonly SAVE_PR: PhoneHelpRow = {label: 'Save to library', text: 'saves this passive radiator to the library.'};
-  static readonly PR_FS: PhoneHelpRow = {label: 'Fs', text: 'the frequency at which the passive radiator vibrates most freely, out of a box.'};
-  static readonly PR_QMS: PhoneHelpRow = {label: 'Qms', text: 'how sharply the passive radiator resonates, from its suspension.'};
-  static readonly PR_VAS: PhoneHelpRow = {label: 'Vas', text: 'the volume of air that is as easy to compress as the passive radiator\'s suspension is to stretch.'};
+  static readonly PR_FS: PhoneHelpRow = {label: 'Fs', text: 'the frequency at which the passive radiator vibrates most freely, out of a box. In Fs, Mms and Cms, the one you typed last wins and the other is worked out again.'};
+  static readonly PR_QMS: PhoneHelpRow = {label: 'Qms', text: 'how sharply the passive radiator resonates, from its suspension. In Qms, Mms and Rms, the one you typed last wins and the other is worked out again.'};
+  static readonly PR_VAS: PhoneHelpRow = {label: 'Vas', text: 'the volume of air that is as easy to compress as the passive radiator\'s suspension is to stretch. In Vas and Cms, the one you typed last wins and the other is worked out again.'};
   static readonly PR_XMAX: PhoneHelpRow = {label: 'Xmax', text: 'how far the passive radiator can move each way before it distorts.'};
   static readonly PR_COUNT: PhoneHelpRow = {label: 'Num. of PRs', text: 'the number of passive radiators.'};
   static readonly PR_FP: PhoneHelpRow = {label: 'Fp (frequency, passive)', text: 'the tuning you want. The app adds mass to the radiator to reach it.'};
@@ -218,9 +218,9 @@ export class PhoneHelp {
     PhoneHelpRows.CONNECTION,
   ]);
   static readonly KEY_FIGURES = new PhoneHelpSection('Key figures', 'The driver\'s main parameters, for reference. Tap one to edit the driver.', [
-    {label: 'Fs', text: 'the frequency at which the driver vibrates most freely, out of a box. Lower Fs can reach lower bass.'},
+    {label: 'Fs', text: 'the frequency at which the driver vibrates most freely, out of a box. Lower Fs can reach lower bass. In Fs, Mms and Cms, the one you typed last wins and the other is worked out again.'},
     {label: 'Qts', text: 'how sharply the driver resonates, from its motor and suspension together. It shows which box type suits the driver.'},
-    {label: 'Vas', text: 'the volume of air that is as easy to compress as the suspension is to stretch. A larger Vas needs a larger box.'},
+    {label: 'Vas', text: 'the volume of air that is as easy to compress as the suspension is to stretch. A larger Vas needs a larger box. In Vas and Cms, the one you typed last wins and the other is worked out again.'},
     {label: 'Re', text: 'the electrical resistance of the voice coil, measured with direct current.'},
     {label: 'Xmax', text: 'how far the cone can move each way before the sound distorts.'},
   ]);
@@ -255,13 +255,13 @@ export class PhoneHelp {
   /** The driver editor's section bands (screen 8); each ? opens the section's one-line meaning. */
   static readonly EDITOR_THIELE_SMALL = new PhoneHelpSection("Thiele/Small parameters", "These are core inputs for the bass-response charts. Values may be entered or calculated from sufficient related data.", [
     {"label": "Fs — core", "text": "Free-air resonance, in Hz: where the driver naturally resonates without an enclosure. It helps determine the response and enclosure tuning."},
-    {"label": "Vas — core", "text": "Equivalent compliance volume, normally in litres: the volume of air with the same compliance as the suspension. It is not a recommended box volume."},
-    {"label": "Qes, Qms, Qts — core group", "text": "Electrical, mechanical and total damping. Enter any two; the third is calculated. These values control resonance damping and the shape of the bass response."},
+    {"label": "Vas — core", "text": "Equivalent compliance volume, normally in litres: the volume of air with the same compliance as the suspension. It is not a recommended box volume. In Vas and Cms, the one you typed last wins and the other is worked out again."},
+    {"label": "Qes, Qms, Qts — core group", "text": "Electrical, mechanical and total damping. Enter any two; the third is calculated. In Qms, Mms and Rms, the one you typed last wins and the other is worked out again. These values control resonance damping and the shape of the bass response."},
   ]);
   static readonly EDITOR_ELECTRO_MECHANICAL = new PhoneHelpSection("Electro-mechanical parameters", "Re and Sd are core simulation data. Other values describe the same physical driver and may be derived; the editor reports missing relationships rather than requiring every box to be typed.", [
     {"label": "Re — core", "text": "Voice-coil DC resistance, in ohms. Used for the electrical load and drive calculations. This is not the nominal impedance rating."},
     {"label": "Sd — core", "text": "Effective radiating cone area, normally in cm². Used to relate cone motion to air displacement and sound output."},
-    {"label": "Mms, Cms, Rms", "text": "Moving mass, suspension compliance and mechanical damping. They link to Fs, Vas and the Q values; calculated values are shown in blue."},
+    {"label": "Mms, Cms, Rms", "text": "Moving mass, suspension compliance and mechanical damping. They link to Fs, Vas and the Q values; calculated values are shown in blue. In each pair (Vas and Cms, Fs and Mms, Qms and Rms), the one you typed last wins and the other is worked out again."},
     {"label": "BL and Dd", "text": "BL is motor force factor. Dd is effective cone diameter and can provide Sd; it is not the outside basket diameter."},
     {"label": "Le, fLe and KLe — model-specific", "text": "Voice-coil inductance, its measurement frequency and the frequency-dependent inductance coefficient. These support inductance modelling and affect the electrical impedance/response when that model is enabled. They are not the same kind of core requirement as Re and Sd."},
   ]);
