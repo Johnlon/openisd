@@ -40,6 +40,14 @@ export type CalculationIssue<Q extends string> =
       readonly target: Q;
       readonly fields: readonly Q[];
       readonly text: string;
+    }
+  | {
+      /** The connection is Parallel but the driver states 1 voice coil (QO432). Marks both
+       *  boxes; changes no value. */
+      readonly kind: 'parallel-needs-two-coils';
+      readonly target: Q;
+      readonly fields: readonly Q[];
+      readonly text: string;
     };
 
 /** A stated target (a vent's `length_m`, a passive radiator's `addedMass_kg`) whose geometry is
@@ -155,6 +163,14 @@ export function inconsistentInputs<Q extends string>(
   };
 }
 
+/** Connection Parallel with 1 stated voice coil (QO432). */
+export function parallelNeedsTwoCoils<Q extends string>(target: Q, fields: readonly Q[]): CalculationIssue<Q> {
+  return {
+    kind: 'parallel-needs-two-coils', target, fields,
+    text: 'Connection is Parallel but the driver has 1 voice coil. Parallel needs 2 voice coils.',
+  };
+}
+
 /** The charts are drawn, but from a fallback standing in for values the driver does not state. */
 export function approximateCharts<Q extends string>(target: Q, fields: readonly Q[], text: string): CalculationIssue<Q> {
   return {kind: 'approximate-charts', target, fields, text};
@@ -222,7 +238,8 @@ export function negativeValue(value: number): NegativeValueIssue {
 export function issueFormula<Q extends string>(issue: CalculationIssue<Q>): string {
   switch (issue.kind) {
     case 'inconsistent-inputs': return issue.formula;
-    case 'approximate-charts': return issue.text;
+    case 'approximate-charts':
+    case 'parallel-needs-two-coils': return issue.text;
     case 'missing-dependencies': break;
   }
   return issue.routes.map(r => r.formula).join('; or ');

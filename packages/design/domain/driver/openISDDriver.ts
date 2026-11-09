@@ -182,6 +182,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                     return [{subject: this.engine.issues.plainNames(issue.target), text: this.engine.issues.plainNames(`cannot be calculated yet — needs ${issue.routes.map(r => r.missing.join(', ')).join(' or ')}`)}];
                 case 'inconsistent-inputs':
                 case 'approximate-charts':
+                case 'parallel-needs-two-coils':
                 case 'out-of-range':
                     return [];
             }
@@ -278,6 +279,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                     }];
                 case 'missing-dependencies':
                 case 'approximate-charts':
+                case 'parallel-needs-two-coils':
                 case 'out-of-range':
                     return [];
             }
@@ -295,6 +297,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                     return [{level: 'warn', field: issue.field, message: issue.text}];
                 case 'inconsistent-inputs':
                 case 'approximate-charts':
+                case 'parallel-needs-two-coils':
                     return [{level: 'warn', field: issue.target, message: issue.text}];
                 case 'missing-dependencies':
                     return [];

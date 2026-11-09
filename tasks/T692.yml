@@ -1,0 +1,16 @@
+id: T692
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: UI warns when voice coil connection is Parallel but the driver has 1 voice coil (QO432)
+done_test: bash scripts/test.sh packages/design/test/domain/driver-voice-coil-connection-dq.test.ts
+files:
+  - tasks/T692.yml
+  - packages/design/engine/consistency.ts
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/test/fixtures/driverSolverRun.ts
+  - packages/design/test/domain/driver-voice-coil-connection-dq.test.ts
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/test/ui/driver-editor-parallel-one-coil.browser.spec.ts

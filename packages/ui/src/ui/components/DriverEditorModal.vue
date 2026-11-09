@@ -6,6 +6,7 @@ import type {NumSpecField} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {useApp} from '../../logic/app.js';
 import {wiringOptions} from '../../logic/driverDraft.js';
+import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/driverCells.js';
@@ -206,6 +207,11 @@ const wiringClass = computed(() => {
   void trigger.value;
   const d = draftDriver.value;
   return cellClassOf(d.specs.VCCon);
+});
+/** The sentence the Connection box's flag shows; '' when the connection is not flagged. */
+const wiringReason = computed(() => {
+  void trigger.value;
+  return dqReason(dqOfCell(draftDriver.value.specs.VCCon));
 });
 function setWiring(e: Event) {
   const wiring = selectedOption(e, WIRING_OPTIONS);
@@ -797,6 +803,7 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('numVC')]" data-field-key="numVC" :style="getFieldStyle('numVC')" :field="NumberField.NUMVC" :cell="fieldOf('numVC')" />
                 <UIPickField class="de-fld de-conn" :class="skin?.field" data-field-key="VCCon" :title="EnumField.VCCON.description" :label="EnumField.VCCON.label" input-id="de-conn-sel">
                   <select id="de-conn-sel" class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
+                  <template #dq><button v-if="wiringReason" type="button" class="ui-field-dq-btn" data-testid="de-conn-dq" :title="wiringReason" :aria-label="wiringReason">&#9888;</button></template>
                 </UIPickField>
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('power_peak_W')]" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :field="NumberField.POWER_PEAK_W" :cell="fieldOf('power_peak_W')" />
               </div>

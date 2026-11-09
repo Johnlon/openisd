@@ -23,7 +23,7 @@ import type {
     SolverField,
     SolverInput,
 } from '../solverTypes.js';
-import {approximateCharts, missingDependencies} from '../consistency.js';
+import {approximateCharts, missingDependencies, parallelNeedsTwoCoils} from '../consistency.js';
 import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue} from '../consistency.js';
 import {checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
@@ -384,6 +384,11 @@ export class DriverEngineImpl implements DriverEngine {
       const missing: NumericDriverQuantityName[] = (['Qes', 'Qms'] as const).filter(f => entered[f] == null);
       issues.push(missingDependencies('Qts',
         [{ formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing }]));
+    }
+
+    // Parallel needs 2 or more coils. A blank count (not entered) is not 1, so it is not judged.
+    if (entered.numVC === 1 && entered.wiring === 'parallel') {
+      issues.push(parallelNeedsTwoCoils<DriverQuantityName>('numVC', ['numVC', 'wiring']));
     }
 
     return issues;
