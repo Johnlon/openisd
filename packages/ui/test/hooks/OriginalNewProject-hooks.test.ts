@@ -1064,20 +1064,21 @@ describe('the radiator step holds all eight figures, stated or calculated (T703)
     expect(cells.Qms.value).toBeNull();
   });
 
-  // T744 step 6: QO463 wants a typed Cms to work Vas out here too; the wizard keeps Vas stated today (open, see tasks/T744.yml).
-  it('a Cms typed over a record stating Vas reaches the project, with Vas, and both carry the conflict mark', async () => {
+  // QO463 (John, 8 Nov 2026): the figure typed last wins; a typed Cms works Vas out again.
+  it('a Cms typed over a record stating Vas reaches the project, with Vas worked out from it', async () => {
     const wizard = await pickedThenBack('accuton/asp190');
     wizard.passiveRadiatorCells.Cms_m_per_N.set(0.001);
     expect(wizard.passiveRadiatorCells.Cms_m_per_N.entered).toBe(true);
-    expect(wizard.passiveRadiatorCells.Cms_m_per_N.dq.length).toBeGreaterThan(0);
-    expect(wizard.passiveRadiatorCells.Vas_m3.dq.length).toBeGreaterThan(0);
+    expect(wizard.passiveRadiatorCells.Vas_m3.provenance).toBe('C');
+    expect(wizard.passiveRadiatorCells.Cms_m_per_N.dq.filter(i => i.kind === 'inconsistent-inputs')).toEqual([]);
     wizard.next();
     wizard.projName.value = 'Typed Cms';
 
     const spec = wizard.createProject()?.box.passiveRadiator.radiator.spec;
     expect(spec?.Cms_m_per_N.entered).toBe(true);
     expect(spec?.Cms_m_per_N.value).toBe(0.001);
-    expect(spec?.Vas_m3.value).toBe(0.027);
+    expect(spec?.Vas_m3.calculated).toBe(true);
+    expect(spec?.Vas_m3.value).not.toBe(0.027);
   });
 
   it('clearing Vas with a typed Cms calculates Vas from Cms and Sd; clearing a figure nothing gives leaves it empty', async () => {
