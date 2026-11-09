@@ -65,8 +65,8 @@ export class PhoneRowColumns {
   /** The Signal tab's typing box takes this share of the width a Box-tab box has (John, 8 Nov 2026, T720: 60%). */
   static readonly SIGNAL_INPUT_SHARE = 0.6;
 
-  /** Side margin of a row: trimmed from 16 so the 102 px label column leaves the value box its room (T742). */
-  static readonly EDGE_PX = 10;
+  /** Side margin of a row, each side. */
+  static readonly EDGE_PX = 16;
 
   static chipIsWide(label: string): boolean { return label.length > 3; }
 
