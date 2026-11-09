@@ -205,3 +205,5 @@ visual:
 
 # QO478 rulings
 # QO478.c1 (John, 9 Nov): row 6 font-only tests -> update the tests to the bundled fonts.
+# QO478.c3 (John, 9 Nov): What-if Input power one line -> update the test (drop test.fail).
+# QO478.c5 (John, 9 Nov): wizard dropdown off the radio -> fix the app.
