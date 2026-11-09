@@ -1,7 +1,9 @@
 import type {BoxType} from '../../engine/index.js';
+import {DEFAULT_SEALED_VOLUME_L} from '../../fields/defaults.js';
+import {NumberField} from '../../fields/field.js';
 
 /** The starting volume of a passive-radiator box and of a bandpass4 rear chamber, m³ (7 L). */
-export const STARTING_SHARED_VOLUME_M3 = 0.007;
+export const STARTING_SHARED_VOLUME_M3 = NumberField.BOX_VB_L.toSI(DEFAULT_SEALED_VOLUME_L);
 
 /** A dual-chamber box's starting chambers: volumes in m³, tunings in Hz (null: that chamber is sealed). */
 export interface StartingChambers {
