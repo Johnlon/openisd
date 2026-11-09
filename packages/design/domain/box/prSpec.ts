@@ -4,12 +4,11 @@ import type { PassiveRadiatorSpecsSection, SpecEntryJson } from '../openisdSchem
 import type { DqIssue } from '../../engine/index.js';
 
 /** The names of `PassiveRadiatorSpecsSection`'s spec-entry fields. */
-export type PassiveRadiatorFieldName = keyof PassiveRadiatorSpecsSection;
+type PassiveRadiatorFieldName = keyof PassiveRadiatorSpecsSection;
 
 /** One field of a radiator's section, entry-backed like a driver's: absent reads not-available,
  *  `E` reads entered, `C` reads calculated. Mms, Cms and Rms are written `C` by the project's
- *  resolve (`OpenIsdPassiveRadiatorSpec.resolve`). An entered write also removes, in the same write, each
- *  entered field `follows()` names: the figures the typed one moves, which `resolve` then works out again. */
+ *  resolve (`OpenIsdPassiveRadiatorSpec.resolve`). */
 export function prSpec(
     section: SimpleField<PassiveRadiatorSpecsSection>,
     key: PassiveRadiatorFieldName,
@@ -27,10 +26,7 @@ export function prSpec(
                 section.set(others);
             }
             const {[key]: _removed, ...rest} = section.value;
-            if (entry === undefined) { section.set(rest); return; }
-            const next: {-readonly [K in PassiveRadiatorFieldName]?: SpecEntryJson} = {...section.value, [key]: entry};
-            if (entry.state === 'E') for (const moved of follows()) if (next[moved]?.state === 'E') delete next[moved];
-            section.set(next);
+            section.set(entry === undefined ? rest : {...section.value, [key]: entry});
         },
     };
     return entryField(slot, key, marks);
