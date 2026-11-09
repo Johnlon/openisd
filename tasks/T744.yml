@@ -104,3 +104,4 @@ files:
   - packages/design/chart/types.ts
   - packages/design/test/engine/testSolver.ts
   - packages/design/test/domain/driver-edit-parity-w5.test.ts
+# QO477 = A (John, 8 Nov): typed Cms works out Vas; stated η0 becomes calculated with the warning.
