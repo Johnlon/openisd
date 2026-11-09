@@ -209,3 +209,4 @@ visual:
 # QO478.c5 (John, 9 Nov): wizard dropdown off the radio -> fix the app.
 # QO478.c10 (John, 9 Nov): phone Temperature label -> fix the app: narrow the number box text area so the label slot fits Temperature.
 # QO478.c12 (John, 9 Nov): Driver tab hint line 21 px with warning -> fix the app, keep 18 px.
+# QO478.c15 (John, 9 Nov): ABC cut off was caused by the wider label gap -> fix: panel no wider than main; Flange field right edge in line; Flange box taller (squashed).
