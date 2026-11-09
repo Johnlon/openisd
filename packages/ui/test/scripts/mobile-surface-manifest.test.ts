@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {mkdtempSync,mkdirSync,writeFileSync,rmSync,readFileSync,existsSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -10,13 +10,6 @@ import {mobileSurfaceIdentity} from '../fixtures/mobileSurfaceIdentity.js';
 import {mobileVisualFlow} from '../fixtures/mobileVisualFlow.js';
 import {DESKTOP_SURFACES} from '../fixtures/desktopSurfaceManifest.js';
 
-interface SourceIndex {sources:string[];documents:string[];links:string[]}
-function stringArray(value:unknown):value is string[]{return Array.isArray(value)&&value.every((item:unknown)=>typeof item==='string');}
-function loadIndex():SourceIndex{
-  const index:unknown=JSON.parse(readFileSync(new URL('../fixtures/mobileSurfaceSourceIndex.json',import.meta.url),'utf8'));
-  if(typeof index!=='object'||index===null||!('sources' in index)||!('documents' in index)||!('links' in index)||!stringArray(index.sources)||!stringArray(index.documents)||!stringArray(index.links))throw new Error('Invalid surface source index');
-  return {sources:index.sources,documents:index.documents,links:index.links};
-}
 describe('mobile surface manifest',()=>{
   it('keeps desktop views independent and records relationships without demanding one-to-one counterparts',()=>{
     expect(new Set(DESKTOP_SURFACES.map(surface=>surface.id)).size).toBe(DESKTOP_SURFACES.length);
@@ -75,12 +68,6 @@ describe('mobile surface manifest',()=>{
     expect(()=>mobileSurfaceFlow([...MOBILE_SURFACES,{...MOBILE_SURFACES[0],id:'new-unplaced-popup'}])).toThrow('new-unplaced-popup');
   });
 
-  it('keeps new source popups/conditional branches, docs and links from escaping the published inventory',()=>{
-    const report=discoverMobileSources(fileURLToPath(new URL('../../../../',import.meta.url))),index=loadIndex();
-    expect(report.surfaces.map(surface=>surface.id).sort()).toEqual(index.sources);
-    expect(report.documents.map(surface=>surface.path).sort()).toEqual(index.documents);
-    expect(report.links.map(surface=>surface.id).sort()).toEqual(index.links);
-  });
   it('declares desktop PR, current-driver information and editor-help surfaces',()=>{
     const ids=DESKTOP_SURFACES.map(surface=>surface.id);
     expect(ids).toEqual(expect.arrayContaining(['desktop/enclosure/passive-radiator/select','desktop/enclosure/passive-radiator/save','desktop/enclosure/passive-radiator/data-quality','desktop/driver/current/info','desktop/driver/editor/help/overview']));

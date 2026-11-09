@@ -122,6 +122,7 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'surface-root-3fff8b1fa35d21e3':{kind:'notAView',reason:'Close button'}, // MobileSheet.vue:49
   'native-ui-f73795696e179ae2':{kind:'view',view:'native-files'}, // MobileShell.vue:58
   'conditional-branch-cb0350d63ed298af':{kind:'notAView',reason:'top bar chrome, hidden over the Graph page'}, // MobileShell.vue:63
+  'conditional-branch-4fc6853003e16cf2':{kind:'notAView',reason:'wrapper that holds the banners back while a Graph sheet is open; the banners are their own views'}, // MobileShell.vue:116
   'native-ui-054db9b28ba37edc':{kind:'notAView',reason:'hamburger button, a trigger for the app menu'}, // MobileShell.vue:64
   'conditional-branch-6b8e5efbbcdd19fe':{kind:'notAView',reason:'project title text'}, // MobileShell.vue:71
   'conditional-branch-e7959648efc88009':{kind:'notAView',reason:'sync indicator in the header'}, // MobileShell.vue:72
