@@ -12,7 +12,7 @@ test('the chart redraws its labels when a font it uses arrives after its first d
   const held = new Promise<void>(resolve => { release = resolve; });
   await page.route(/selawik-400.*\.woff2/, async route => { await held; await route.continue(); });
 
-  await VisualSkin.DESKTOP.start(page);
+  await VisualSkin.DESKTOP.start(page, 'domcontentloaded');
   // CI's order: the semibold Selawik is in, and no font is loading, when the chart makes its first
   // draw. Locally the import message's semibold download ends just as the chart mounts; asking the
   // browser for that face first stands in for the slower runner (the app's state is not touched).
