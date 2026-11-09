@@ -3,6 +3,7 @@ release_note: "Phone Tune and What-if: while you type a value, the Auto Y / Clos
 repo: openisd
 owner: learn
 status: done
+landed: a203e00bfe38ae0345f4ca015be1c863b5f7be4c
 goal: QO427 (b): phone Tune/What-if sheet typing with the keyboard up hides the Auto Y / Close bar too; the keyboard Done key closes the keyboard
 done_test: bash scripts/test.sh packages/design/test/fields/chartPage.test.ts
 ruling: "QO427 (b), John 8 Nov 2026; c22, 9 Nov: the freed space goes to the charts; John 9 Nov chat: while the What-if or Tune sheet is open, banners that take space (new app version, storage space, loading messages) are held back until it closes"
