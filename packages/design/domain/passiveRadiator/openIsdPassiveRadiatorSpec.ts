@@ -91,7 +91,7 @@ export class OpenIsdPassiveRadiatorSpec {
 
     /** Vas typed: Cms follows Vas and Sd; Mms (Fs stated) and Rms (Qms stated) follow Cms. */
     #vasMoves(): PassiveRadiatorFieldName[] {
-        return this.#cmsFollowers();
+        return this.Sd_m2.value === null ? [] : this.#cmsFollowers();
     }
 
     /** Sd typed: with Vas stated, as Vas typed; else Vas follows the stated Cms and nothing is dropped. */
@@ -118,7 +118,7 @@ export class OpenIsdPassiveRadiatorSpec {
     /** Cms typed: Vas follows Cms and Sd; Fs (Mms stated) and Qms (Rms stated) follow Cms. */
     #cmsMoves(): PassiveRadiatorFieldName[] {
         return [
-            'Vas_m3' as const,
+            ...(this.Sd_m2.value !== null ? ['Vas_m3' as const] : []),
             ...(this.Mms_kg.entered ? ['Fs_hz' as const] : []),
             ...(this.Rms_kg_per_s.entered && this.Mms_kg.value !== null ? ['Qms' as const] : []),
         ];
