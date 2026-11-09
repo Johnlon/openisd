@@ -22,7 +22,7 @@ import {
     VoiceCoilWiring,
     wiringFromRecord
 } from '../voiceCoilWiring.js';
-import {chartFigureNote} from './chartFigureNote.js';
+import {chartFigureNote, cmsConflictNote} from './chartFigureNote.js';
 import type {ChartFigure} from './chartFigureNote.js';
 import {computedSlot} from './computedSlot.js';
 import {driverSection} from './driverSection.js';
@@ -438,28 +438,32 @@ export class OpenIsdDriverSpec {
         return this.#issues;
     }
 
-    /** The issues, with each stated Cms, Mms or Rms the charts do not use (the engine's chain gives another) named in its own sentence on that figure:
-     *  the Cms leaves the generic Vas/Cms disagreement, which keeps naming Vas, and the others get a note of their own. */
+    /** The issues, with the stated Cms that disagrees with the stated Vas named in one sentence on Cms (the generic Vas/Cms disagreement is dropped
+     *  for it), and each stated Mms or Rms the charts do not use named in its own sentence. */
     #withChartNotes(issues: readonly DriverIssue[], air: Air): readonly DriverIssue[] {
-        const shown = this.#shown(air);
-        if (shown === null) return issues;
+        const source = this.#cmsSource();
+        if (source.kind === 'StoredShown') return issues;
+        const shown = this.#shown(air, source);
         const figures: readonly {readonly figure: ChartFigure; readonly name: DriverQuantityName; readonly stored: SpecNumberField; readonly chart: number | null}[] = [
-            {figure: 'Cms', name: 'Cms_m_per_N', stored: this.#storedCms, chart: shown.Cms_m_per_N},
-            {figure: 'Mms', name: 'Mms_kg', stored: this.#storedMms, chart: shown.Mms_kg},
-            {figure: 'Rms', name: 'Rms_kg_per_s', stored: this.#storedRms, chart: shown.Rms_kg_per_s},
+            {figure: 'Mms', name: 'Mms_kg', stored: this.#storedMms, chart: shown?.Mms_kg ?? null},
+            {figure: 'Rms', name: 'Rms_kg_per_s', stored: this.#storedRms, chart: shown?.Rms_kg_per_s ?? null},
         ];
         const differing = figures.flatMap(({figure, name, stored, chart}) => {
             const statedSI = stored.entered ? stored.value : null;
             return statedSI === null || chart === null || Math.abs(chart - statedSI) <= 1e-9 * Math.abs(statedSI) ? [] : [{figure, name, statedSI, chart}];
         });
-        const named = new Set<DriverQuantityName>(differing.map(d => d.name));
-        const kept = issues.map(issue => 'fields' in issue && issue.kind === 'inconsistent-inputs' && named.has('Cms_m_per_N')
+        const statedCms = this.#storedCms.entered ? this.#storedCms.value : null;
+        const fromVas = this.#shown(air, {kind: 'VasWins'})?.Cms_m_per_N ?? null;
+        const cmsConflict = statedCms !== null && fromVas !== null && Math.abs(fromVas - statedCms) > 1e-9 * Math.abs(statedCms);
+        const kept = issues.map(issue => 'fields' in issue && issue.kind === 'inconsistent-inputs' && cmsConflict
             ? {...issue, fields: issue.fields.filter(f => f !== 'Cms_m_per_N')} : issue);
-        const notes = differing.map(({figure, name, statedSI, chart}): DriverIssue => figure === 'Cms'
-            ? {kind: 'inconsistent-inputs', target: name, fields: [name], formula: NumberField.CMS_M_PER_N.formula ?? '', expected: chart, actual: statedSI,
-                relative: Math.abs(chart - statedSI) / statedSI, text: chartFigureNote(figure, statedSI, chart)}
-            : {kind: 'approximate-charts', target: name, fields: [name], text: chartFigureNote(figure, statedSI, chart)});
-        return [...kept, ...notes];
+        const cmsNotes = !cmsConflict ? [] : [{
+            kind: 'inconsistent-inputs', target: 'Cms_m_per_N', fields: ['Cms_m_per_N'], formula: NumberField.CMS_M_PER_N.formula ?? '', expected: fromVas, actual: statedCms,
+            relative: Math.abs(fromVas - statedCms) / statedCms, text: cmsConflictNote(source, statedCms, fromVas),
+        } satisfies DriverIssue];
+        const notes = differing.map(({figure, name, statedSI, chart}): DriverIssue => (
+            {kind: 'approximate-charts', target: name, fields: [name], text: chartFigureNote(figure, statedSI, chart)}));
+        return [...kept, ...cmsNotes, ...notes];
     }
 
     /** Clears `dq` on every quantity, then applies each issue's OWN formula only to the handles
@@ -500,11 +504,11 @@ export class OpenIsdDriverSpec {
     }
 
     /** The mechanical figures the charts use, worked out on demand by the engine from the stored figures. Nothing is stored. */
-    #shown(air: Air): ShownMechanics | null {
+    #shown(air: Air, source: CmsSource = this.#cmsSource()): ShownMechanics | null {
         const stored = this.#solverParamsIn(air, this.#storedMms, this.#storedCms, this.#storedRms, null);
         // Vas wins only where Vas is stated; a Vas the solve worked out (a Cms was typed, Vas was dropped) is not a figure to hold the charts to.
         const values = valuesOf(stored);
-        return this.#driver.shownMechanics(this.Vas_m3.entered ? values : {...values, Vas_m3: null}, air, this.#cmsSource());
+        return this.#driver.shownMechanics(this.Vas_m3.entered ? values : {...values, Vas_m3: null}, air, source);
     }
 
     /** A mechanical figure as the box shows it: the engine's, as a calculated entry, or nothing when the engine has none. */

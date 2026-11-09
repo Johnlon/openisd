@@ -126,10 +126,17 @@ describe.each<Kind>(['driver', 'radiator'])('Cms from Vas: %s', (kind) => {
     expectBoxIsSweep(kind, r);
   });
 
-  it('(g) the warning says the datasheet value, the value the charts use and what to untick', () => {
+  it('(g) ticked: one sentence says Cms and Vas disagree and the charts use Cms from Vas', () => {
     const r = rig(kind, disagreeing());
     expect(r.cmsNotes()).toHaveLength(1);
-    expect(r.cmsNotes()[0]).toMatch(/^Datasheet Cms is [\d.]+ mm\/N\. It does not agree with Vas, so the charts use [\d.]+ mm\/N, worked out from Vas\. Untick Cms from Vas to use the datasheet value\.$/);
+    expect(r.cmsNotes()[0]).toMatch(/^The stated Cms and Vas disagree, so the charts use Cms from Vas \([\d.]+ mm\/N\)\.$/);
+  });
+
+  it('(g2) unticked: one sentence says Cms and Vas disagree and the charts use the stated Cms', () => {
+    const r = rig(kind, disagreeing());
+    cmsFromVasSwitch().of(r.project).set(false);
+    expect(r.cmsNotes()).toHaveLength(1);
+    expect(r.cmsNotes()[0]).toMatch(/^The stated Cms and Vas disagree, so the charts use the stated Cms \([\d.]+ mm\/N\)\.$/);
   });
 
   it('(h) saved and reloaded, the datasheet Cms is still the stated, entered figure and the box still shows the charts\' Cms', () => {
