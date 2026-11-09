@@ -9,6 +9,7 @@
 import {APP_UPDATE_TEXT, CompatSwitchGroup, DesktopLabels, NO_PROJECT_OPEN, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import UIField from '../../components/UIField.vue';
+import PortShapeToggle from '../../components/PortShapeToggle.vue';
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import UIPickField from '../../components/UIPickField.vue';
@@ -76,7 +77,7 @@ const {
   fbUnreachable, fbUnreachableMsg, isDual,
   frontVolumeCell, rearTuningCell, rearResonance,
   model, startEdit, showDriverDisagreements, showDriverInfo, startWhatIf, placement, driverConsistencyReasons,
-  ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS,
+  ventPorts, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
   prResonanceMassDq, prFsMass_hz,
@@ -548,12 +549,15 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div class="vent-port-row port-tuning-row">
                   <UIField v-if="port.tuning" :id="ventPorts.length === 1 ? 'og-vent-fb-target-field' : undefined" class="field" :input-id="ventPorts.length === 1 ? 'og-vent-fb-target' : `og-vent-tuning-${port.name.toLowerCase()}`" :title="FB_TARGET_TIP" :field="port.tuning.field" :cell="port.tuning.cell" />
                   <div v-else class="port-tuning-placeholder" aria-hidden="true"></div>
-                  <div class="field">
-                    <label>{{ DesktopLabels.VENT_SHAPE }}</label>
-                    <select :id="ventPorts.length === 1 ? 'vent-shape' : `og-vent-shape-${port.name.toLowerCase()}`" :value="port.vent.shape.value" @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) port.vent.shape.set(shape); }">
-                      <option v-for="o in VENT_SHAPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
+                </div>
+                <div class="vent-port-row port-count-row">
+                  <div class="field port-count-field">
+                    <label>{{ DesktopLabels.VENT_COUNT }}</label>
+                    <select :id="ventPorts.length === 1 ? 'vent-count' : `og-vent-count-${port.name.toLowerCase()}`" :value="port.vent.count.value" @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) port.vent.count.set(n); }">
+                      <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
                     </select>
                   </div>
+                  <PortShapeToggle :shape="port.vent.shape.value" @update:shape="shape => port.vent.shape.set(shape)" />
                 </div>
                 <div class="vent-port-row port-dimensions-row">
                   <template v-if="port.vent.shape.value === 'slotted'">
@@ -561,12 +565,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                     <UIField class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-height-${port.name.toLowerCase()}`" :field="NumberField.VENT_H_CM" :cell="port.vent.height_m" />
                   </template>
                   <UIField v-else class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-diameter-${port.name.toLowerCase()}`" :field="NumberField.VENT_D_CM" :cell="port.vent.diameter_m" />
-                  <div class="field port-count-field">
-                    <label>{{ DesktopLabels.VENT_COUNT }}</label>
-                    <select :id="ventPorts.length === 1 ? 'vent-count' : `og-vent-count-${port.name.toLowerCase()}`" :value="port.vent.count.value" @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) port.vent.count.set(n); }">
-                      <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-                    </select>
-                  </div>
                 </div>
                 <div class="vent-port-row">
                   <UIField class="field" :input-id="ventPorts.length === 1 ? 'og-vent-length' : `og-vent-length-${port.name.toLowerCase()}`" :field="NumberField.VENT_L_CM" :cell="port.vent.length_m" />
@@ -1317,13 +1315,17 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .vent-labels-left .vent-port-row > .field:not(.ui-field) { grid-template-columns:var(--label-w,var(--ctl-label-w)) 138px; grid-template-rows:auto; }
 .vent-labels-left .vent-port-row > .field:not(.ui-field) > label { grid-column:1; grid-row:1; }
 .vent-labels-left .field:not(.ui-field) select { grid-column:2; grid-row:1; }
-/* Compact port exploration: shape on row2, count below on row3. */
+/* One layout at every width: every port value in one column; row 2 is Number of ports with the shape toggle beside it. */
 /* Each column is as wide as its fields: the label columns follow their longest label (labelColumns.ts). */
 .port-columns .vent-col, .port-columns .vent-settings-col { width:max-content; flex:none; }
-.port-columns .vent-col { display:grid; grid-template-columns:max-content max-content; column-gap:8px; row-gap:2px; align-content:start; align-items:center; }
+.port-columns .vent-col { display:grid; grid-template-columns:max-content; column-gap:8px; row-gap:2px; align-content:start; align-items:center; }
 .port-columns .vent-col-band { grid-column:1 / -1; grid-row:1; }
 .port-columns .vent-port-row { display:contents; }
 .port-columns .vent-port-row > .field { grid-column:1; }
+.port-columns .vent-port-row.port-count-row { display:flex; grid-column:1; align-items:center; gap:6px; min-width:0; }
+.port-columns .port-count-row > .port-count-field { grid-template-columns:var(--label-w,var(--ctl-label-w)) 42px; }
+.port-columns .port-count-row > .port-count-field select { width:42px; }
+.port-columns .port-count-row > .port-shape-toggle { align-self:stretch; min-height:var(--ctl-h,20px); }
 .port-columns .port-tuning-row > .ui-field, .port-columns .port-tuning-placeholder { grid-column:1; grid-row:2; }
 .port-columns .port-tuning-placeholder { min-height:var(--ctl-h,20px); }
 .port-columns .vent-port-row > .field:not(.ui-field) { grid-template-columns:var(--label-w,var(--ctl-label-w)) var(--port-select-w); }
@@ -1331,21 +1333,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .port-columns .vent-port-row > .field:not(.ui-field) select:not([id]) { padding:0 4px; }
 .port-columns .vent-port-row > .field:not(.ui-field):not(:has(select[id])) select { width:var(--port-select-w); }
 .port-columns .vent-port-row > .field:has(select:not([id])) { column-gap:2px; }
-.port-columns .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:2; grid-row:3; grid-template-columns:var(--label-w,var(--ctl-label-w)) 85px; }
-.port-columns .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:4; grid-template-columns:var(--label-w,var(--ctl-label-w)) 42px; }
-.port-columns .field:has(select[id*="vent-count"]) select { width:42px; }
-.port-columns .field:has(select[id*="vent-shape"]) select { width:85px; }
-/* A pane too narrow for the ports side by side (400px each) stacks Shape and Number in one row under
-   Tuning, so each column needs 262px instead of 400px and no control reaches into its neighbour. */
 .port-columns { container: og-pane / inline-size; }
-@container og-pane (max-width:1231px) {
-  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col { width:auto; flex:1 1 0; min-width:262px; max-width:400px; grid-template-columns:131px minmax(0,1fr); }
-  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col :is(.vent-port-row > .field, .port-tuning-row > .ui-field, .port-tuning-placeholder) { grid-column:1 / -1; }
-  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:1; grid-row:3; }
-  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:3; }
-  /* Shape and Number share one row here, each label just before its own list. */
-  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:is(:has(select[id*="vent-shape"]),:has(select[id*="vent-count"])) { grid-template-columns:max-content max-content; }
-}
 /* For a pane 660-830px wide (1024px window: 691px) the three ABC columns cannot keep 262px each: they share the pane, and each field's label
    and box split the column. Narrower than 660px (a 780px window: 447px) three columns cannot fit, so the 262px columns stay and the pane scrolls sideways. */
 @container og-pane (min-width:660px) and (max-width:830px) {
@@ -1355,13 +1343,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col { min-width:0; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
   .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:not(.ui-field) { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
   .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .field select { width:100%; min-width:0; }
-}
-@container og-pane (max-width:831px) {
-  .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col { width:auto; flex:1 1 0; min-width:262px; max-width:400px; grid-template-columns:131px minmax(0,1fr); }
-  .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col :is(.vent-port-row > .field, .port-tuning-row > .ui-field, .port-tuning-placeholder) { grid-column:1 / -1; }
-  .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:1; grid-row:3; }
-  .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:3; }
-  .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col .vent-port-row > .field:is(:has(select[id*="vent-shape"]),:has(select[id*="vent-count"])) { grid-template-columns:max-content max-content; }
 }
 .vent-col { flex:none; }
 .vent-col-band { margin-bottom:4px; }
