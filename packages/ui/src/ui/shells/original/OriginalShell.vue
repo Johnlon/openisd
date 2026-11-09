@@ -1244,7 +1244,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .graph-empty-link:hover { color:#0b4f9e; }
 
 /* ---------- Content panel ---------- */
-.content-panel { grid-area:content; max-height:60vh; min-height:244px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:7px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
+.content-panel { grid-area:content; max-height:60vh; min-height:267px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:7px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
 .content-tabs { flex:1 1 auto; min-width:0; min-height:0; overflow-y:auto; display:flex; flex-direction:column; }
 .save-rail { flex:none; display:flex; flex-direction:column; align-items:stretch; gap:6px; align-self:stretch; }
 .save-rail > .tab-help-btn { align-self:flex-end; }
@@ -1261,7 +1261,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .save-rail .revert-btn:disabled { background:#e8e8e8; border-color:#ccc; color:#999; font-weight:normal; cursor:default; }
 /* Every tab stacks in ONE grid cell and only the active one is visible, so the panel is as deep as
    the tallest tab shown and stays that deep while the tab is switched. `.content-panel` min-height is
-   the tallest tab of any box type (bandpass6 or ABC, 244 px, measured by original-bottom-panel-height), so
+   the tallest tab of any box type (bandpass6 or ABC, slotted, 267 px, measured by original-bottom-panel-height), so
    the height never changes with box type either (John, 2026-10-15). */
 .content-tabs { display:grid; grid-template-columns:minmax(0,1fr); }
 .tab-section { grid-area:1 / 1; visibility:hidden; overflow:hidden; min-height:0; }
@@ -1323,9 +1323,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .port-columns .vent-port-row { display:contents; }
 .port-columns .vent-port-row > .field { grid-column:1; }
 .port-columns .vent-port-row.port-count-row { display:flex; grid-column:1; align-items:center; gap:6px; min-width:0; }
-.port-columns .port-count-row > .port-count-field { grid-template-columns:var(--label-w,var(--ctl-label-w)) 42px; }
-.port-columns .port-count-row > .port-count-field select { width:42px; }
-.port-columns .port-count-row > .port-shape-toggle { align-self:stretch; min-height:var(--ctl-h,20px); }
+.port-columns .vent-port-row.port-count-row > .field.port-count-field:not(.ui-field) { grid-template-columns:119px 93px; }
+.port-columns .vent-port-row.port-count-row > .field.port-count-field:not(.ui-field) select { width:93px; }
+.port-columns .port-count-row > .port-shape-toggle { height:20px; margin-right:2px; }
 .port-columns .port-tuning-row > .ui-field, .port-columns .port-tuning-placeholder { grid-column:1; grid-row:2; }
 .port-columns .port-tuning-placeholder { min-height:var(--ctl-h,20px); }
 .port-columns .vent-port-row > .field:not(.ui-field) { grid-template-columns:var(--label-w,var(--ctl-label-w)) var(--port-select-w); }

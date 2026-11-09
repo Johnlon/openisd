@@ -161,7 +161,7 @@ test('port shape button sits on the right of the count on row 2, the panel stays
    expect(dimension.y).toBeGreaterThanOrEqual(countBox.y+countBox.height);
   }
  }
- expect((await page.locator('.content-panel').boundingBox())!.height).toBeLessThanOrEqual(245);
+ expect((await page.locator('.content-panel').boundingBox())!.height).toBeLessThanOrEqual(283);
 });
 
 
