@@ -69,7 +69,8 @@ steps:
     #     pr-typed-value-wins.test.ts, bug files, parity/accuracy rows, FIELD_CLEAR_RULE.md, recordBuilders half-widths, pr-sd-edit, winisdDeviation text, T732/T713 task files.
     #   Dropped: the tests' claim that a stated Cms/Mms/Rms reads entered at the pick (T744 goal_detail 5: the box shows the chart figure, calculated, with the warning;
     #     the record keeps the stated value). pr-adopt-datasheet-figures, pr-spec-resolve and 2 hook tests went back to T744's expectations.
-    #   Open: wizard (OriginalNewProject hooks) keeps a stated Vas when Cms is typed (test pinned to old behaviour); the radiator browser specs from T732/T713
+    #   DONE (9 Nov, wizard): the wizard 'typed Cms' hook test was never red in the app; the worktree's node_modules was a symlink to ../openisd/node_modules, so ui specs imported @openisd/design from the MAIN checkout (stale). node_modules is now a real dir linking @openisd/* to this worktree. Added pr-standalone-typed-cms.test.ts. With correct resolution two other hook tests are red against T744 behaviour ((a) clearing Vas expects null; SP22R Qms 4.813 vs 4.8365): stale expectations, John's verdict needed.
+    #   Open: the radiator browser specs from T732/T713
     #     (new-project-radiator-eight-figures, original-driver-bundle-selection, original-pr-tab) still assert the entered-as-stated reading and need rewriting to T744.
   - n: 7
     worker: sonnet
