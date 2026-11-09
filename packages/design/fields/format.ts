@@ -122,3 +122,6 @@ export function formatSignificant(v: number): string {
   const scale = 10 ** places;
   return (Math.round(v * scale) / scale).toFixed(places);
 }
+
+/** Most significant digits a phone number box shows; the stored value keeps its full precision (360 px boxes clip longer text). */
+export const PHONE_MAX_SIGNIFICANT = 6;

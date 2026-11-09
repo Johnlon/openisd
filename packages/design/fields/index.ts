@@ -138,7 +138,7 @@ export {
   type PersistOutcome,
   type StorageEstimate,
 } from './browserStorage.js';
-export { dateStampFrom, formatByteSize, formatCount, formatCountOf, formatDate, formatDateStamp, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
+export { dateStampFrom, formatByteSize, formatCount, formatCountOf, formatDate, formatDateStamp, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc, PHONE_MAX_SIGNIFICANT } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
 export { caretSpin, digitAtCaret, spinStep, tenthsCaret, steppingCaret, caretRepeatDelayMs, CARET_HOLD_START_MS, type CaretSpin, type SteppedPlace, type StepAt } from './caretSpin.js';

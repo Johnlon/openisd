@@ -1,6 +1,6 @@
 
 import {computed, onBeforeUnmount, onMounted, ref, watch} from 'vue';
-import {CARET_HOLD_START_MS, DragSpin, DRAG_SPIN_THRESHOLD_PX, caretRepeatDelayMs, digitAtCaret, pressedDigit, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, spinStep, NumberField, type FieldSpin, type NumberEdit, type SpinDirection, type SteppedPlace, type StepAt} from '@openisd/design/fields';
+import {CARET_HOLD_START_MS, DragSpin, DRAG_SPIN_THRESHOLD_PX, caretRepeatDelayMs, digitAtCaret, pressedDigit, formatFixed, PHONE_MAX_SIGNIFICANT, NUMBER_TEXT, pastedEdit, typedEdit, spinStep, NumberField, type FieldSpin, type NumberEdit, type SpinDirection, type SteppedPlace, type StepAt} from '@openisd/design/fields';
 import {inputFrom} from '../logic/domEvents.js';
 import {entryRefusal, type EntryBounds} from '../logic/entryRefusal.js';
 import type {StepperPin} from '../logic/stepperPin.js';
@@ -55,7 +55,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
   function fmt(v: number | null | undefined, halfWidth: number | null | undefined = props.halfWidth): string {
     if (v == null || !isFinite(v)) return '';
     if (props.field) {
-      return props.field.format(v, halfWidth, activeToken.value);
+      return props.field.format(v, halfWidth, activeToken.value, presentationState.shownSkin() === 'mobile' ? PHONE_MAX_SIGNIFICANT : undefined);
     }
     const minDp = props.precision ?? 2;
     return formatFixed(v, minDp);

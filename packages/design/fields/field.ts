@@ -200,8 +200,9 @@ export class NumberField extends Field {
     return toSIDim(this.unitFor(token), valueDisp);
   }
 
-  /** Format valueSI or Quantity into display string for this field using unit conversion & precision rules. */
-  format(valueSIOrQuantity: number | Quantity, halfWidthSI?: number | null, token?: string): string {
+  /** Format valueSI or Quantity into display string for this field using unit conversion & precision rules.
+   *  `maxSignificant` (the phone's narrow boxes) trims decimals beyond that many significant digits (never below two, or the field's own precision when that is smaller). */
+  format(valueSIOrQuantity: number | Quantity, halfWidthSI?: number | null, token?: string, maxSignificant?: number): string {
     let val: number;
     let hw: number | null | undefined;
     if (typeof valueSIOrQuantity === 'object' && valueSIOrQuantity !== null) {
@@ -223,6 +224,10 @@ export class NumberField extends Field {
       const hwDisp = toDisplayDeltaDim(u, hw);
       const kd = knownDecimals(hwDisp, valDisp);
       decimals = Math.max(minDp, kd);
+    }
+    if (maxSignificant !== undefined) {
+      const leading = valDisp === 0 || !isFinite(valDisp) ? 1 : Math.floor(Math.log10(Math.abs(valDisp))) + 1;
+      decimals = Math.min(decimals, Math.max(Math.min(minDp, 2), maxSignificant - leading));
     }
 
     decimals = Math.max(0, Math.min(20, decimals));
