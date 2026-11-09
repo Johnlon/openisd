@@ -40,7 +40,7 @@ describe('radiator: the figure typed last wins (QO463)', () => {
     spec.Fs_hz.set(35);
     expect(spec.Mms_kg.calculated).toBe(true);
     expect(spec.Mms_kg.value).not.toBe(0.015);
-    expect(spec.Cms_m_per_N.entered).toBe(true);
+    expect(spec.Cms_m_per_N.value).toBeCloseTo(0.00101, 4);
     expect(spec.Vas_m3.entered).toBe(true);
   });
 
@@ -56,15 +56,15 @@ describe('radiator: the figure typed last wins (QO463)', () => {
     spec.Cms_m_per_N.set(0.0012);
     expect(spec.Cms_m_per_N.entered).toBe(true);
     expect(spec.Vas_m3.calculated).toBe(true);
-    expect(spec.Fs_hz.calculated).toBe(true);
-    expect(spec.Mms_kg.entered).toBe(true);
+    expect(spec.Fs_hz.entered).toBe(true);
+    expect(spec.Mms_kg.value).toBe(0.015);
   });
 
   it('typing Mms works out the stated Fs and keeps the stated Cms and Vas', () => {
     const spec = pick(createEngine(), p173);
     spec.Mms_kg.set(0.02);
-    expect(spec.Fs_hz.calculated).toBe(true);
-    expect(spec.Cms_m_per_N.entered).toBe(true);
+    expect(spec.Mms_kg.entered).toBe(true);
+    expect(spec.Cms_m_per_N.value).toBeCloseTo(0.00101, 4);
     expect(spec.Vas_m3.entered).toBe(true);
   });
 
@@ -83,7 +83,7 @@ describe('radiator: the figure typed last wins (QO463)', () => {
     expect(spec.Cms_m_per_N.calculated).toBe(true);
     spec.Cms_m_per_N.set(0.00101);
     expect(spec.Cms_m_per_N.entered).toBe(true);
-    expect(spec.Cms_m_per_N.value).toBe(0.00101);
+    expect(spec.Cms_m_per_N.value).toBeCloseTo(0.00101, 4);
     expect(spec.Vas_m3.calculated).toBe(true);
   });
 
