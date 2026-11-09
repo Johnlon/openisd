@@ -255,7 +255,7 @@ a { color:var(--acc) }
 /* Classic phone pages (PHONE_CLASSIC_BUILD_SPEC §2): Box, Driver and Signal. Every size is a --mob-row-*
    or --mob-col-* variable from packages/design (PhoneRowSizes, PhoneRowColumns). Row: label | value box |
    ▲▼ area, 40 px high; the unit chip sits inside the box's right edge, the ≠W badge and ⚠ left of it. */
-.mob-classic { --mob-edge: 16px; --mob-box-line: #c4c4c4; background: #fff; }
+.mob-classic { --mob-edge: var(--mob-col-edge, 16px); --mob-box-line: #c4c4c4; background: #fff; }
 .mob-classic .mob-ui-field.ui-field {
   --mob-chip: var(--mob-col-chip-min); --mob-tail: var(--mob-col-stepper);
   display: grid; grid-template-columns: var(--mob-col-label) minmax(0, 1fr); column-gap: 0; row-gap: 0; align-items: center;
