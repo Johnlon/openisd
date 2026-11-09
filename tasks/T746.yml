@@ -2,7 +2,7 @@ id: T746
 release_note: internal
 repo: openisd
 owner: maryu
-status: open
+status: ready
 goal: Options vented design limits: no inline More info; the (?) help says what the limits are for, on both skins (QO467.c39, c40)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
