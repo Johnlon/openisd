@@ -11,7 +11,7 @@
   "catalogue": {
     "number-writable-none-none": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -115,7 +115,7 @@
     },
     "number-writable-none-none-no-stepper": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -189,7 +189,7 @@
     },
     "number-writable-none-dq": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -293,7 +293,7 @@
     },
     "number-writable-none-dq-no-stepper": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -367,7 +367,7 @@
     },
     "number-writable-none-model": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -501,7 +501,7 @@
     },
     "number-writable-none-model-no-stepper": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -605,7 +605,7 @@
     },
     "number-writable-none-both": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -739,7 +739,7 @@
     },
     "number-writable-none-both-no-stepper": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -843,7 +843,7 @@
     },
     "number-writable-fixed-none": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -947,7 +947,7 @@
     },
     "number-writable-fixed-none-no-stepper": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -1021,7 +1021,7 @@
     },
     "number-writable-fixed-dq": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -1125,7 +1125,7 @@
     },
     "number-writable-fixed-dq-no-stepper": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -1199,7 +1199,7 @@
     },
     "number-writable-fixed-model": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -1333,7 +1333,7 @@
     },
     "number-writable-fixed-model-no-stepper": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -1437,7 +1437,7 @@
     },
     "number-writable-fixed-both": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -1571,7 +1571,7 @@
     },
     "number-writable-fixed-both-no-stepper": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -1675,7 +1675,7 @@
     },
     "number-writable-switchable-none": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -1779,7 +1779,7 @@
     },
     "number-writable-switchable-none-no-stepper": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -1853,7 +1853,7 @@
     },
     "number-writable-switchable-dq": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -1957,7 +1957,7 @@
     },
     "number-writable-switchable-dq-no-stepper": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -2031,7 +2031,7 @@
     },
     "number-writable-switchable-model": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -2165,7 +2165,7 @@
     },
     "number-writable-switchable-model-no-stepper": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -2269,7 +2269,7 @@
     },
     "number-writable-switchable-both": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -2403,7 +2403,7 @@
     },
     "number-writable-switchable-both-no-stepper": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -2507,7 +2507,7 @@
     },
     "number-readonly-none-none": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -2581,7 +2581,7 @@
     },
     "number-readonly-none-dq": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -2655,7 +2655,7 @@
     },
     "number-readonly-none-model": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -2759,7 +2759,7 @@
     },
     "number-readonly-none-both": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -2863,7 +2863,7 @@
     },
     "number-readonly-fixed-none": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -2937,7 +2937,7 @@
     },
     "number-readonly-fixed-dq": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -3011,7 +3011,7 @@
     },
     "number-readonly-fixed-model": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -3115,7 +3115,7 @@
     },
     "number-readonly-fixed-both": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -3219,7 +3219,7 @@
     },
     "number-readonly-switchable-none": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -3293,7 +3293,7 @@
     },
     "number-readonly-switchable-dq": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -3367,7 +3367,7 @@
     },
     "number-readonly-switchable-model": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -3471,7 +3471,7 @@
     },
     "number-readonly-switchable-both": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -3575,7 +3575,7 @@
     },
     "count-writable-none-none": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -3649,7 +3649,7 @@
     },
     "count-writable-none-dq": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -3723,7 +3723,7 @@
     },
     "count-writable-none-model": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -3827,7 +3827,7 @@
     },
     "count-writable-none-both": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -3931,7 +3931,7 @@
     },
     "count-readonly-none-none": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -4005,7 +4005,7 @@
     },
     "count-readonly-none-dq": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -4079,7 +4079,7 @@
     },
     "count-readonly-none-model": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
@@ -4183,7 +4183,7 @@
     },
     "count-readonly-none-both": {
       "control": {
-        "width": 160,
+        "width": 119,
         "height": 34,
         "fontFamily": "Roboto, AppSymbols",
         "fontSize": "15px",
