@@ -3,7 +3,7 @@ release_note: internal
 priority: high
 repo: openisd
 owner: leader
-status: open
+status: ready
 goal: One reliable list of every view and popup; the live review visits it and reports each visited or not
 why: John, 8 Nov 2026 - "a summary to confirm that all screens or views or popup were checked is ok as long as we have a reliable list of all views and popup (no matter how small) and can state which were or were not visited, without that list of visual components to check then none of our testing is reliable".
 found: There are three lists, the declared phone list (157 views, mobileSurfaceManifest.ts), the declared desktop list (130, desktopSurfaceManifest.ts) and a source scan of 608 conditional popups and branches (mobileSurfaceSourceIndex.json). The scan only proves its own list has not changed; nothing ties each scanned popup to a declared view. The live review (ui-gallery/bin/steps/live) visits a hand-written set and reads none of them.
