@@ -55,7 +55,7 @@ test('phone readonly Driver boxes retain the production width and grey surface',
   const values = page.locator('.mob-content .ui-field-readout input');
   await expect(values).toHaveCount(5);
   // John rejected the narrowed experiment; use the earlier production-style Driver reference.
-  expect(await values.first().evaluate(element=>getComputedStyle(element).fontFamily)).toBe('Inter, system-ui, sans-serif');
+  expect(await values.first().evaluate(element=>getComputedStyle(element).fontFamily)).toBe('Roboto, AppSymbols');
   for (const input of await values.all()) {
     await expect(input).toHaveCSS('width','170px');
     await expect(input).toHaveCSS('background-color','rgb(244, 244, 244)');
