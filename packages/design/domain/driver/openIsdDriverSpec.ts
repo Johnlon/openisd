@@ -263,14 +263,14 @@ export class OpenIsdDriverSpec {
         const sectionLens = driverSection(record, section);
         const sectionSlot = (
             key: DriverSpecFieldName,
-            partner?: DriverSpecFieldName,
+            partners: readonly DriverSpecFieldName[] = [],
         ): SimpleField<SpecEntryJson | undefined> => ({
             get value() {
                 return sectionLens.value[key];
             },
             set: (v) => {
                 // Typed last wins: typing one of a linked pair drops the partner's entered value, so the solve works it out again.
-                if (partner !== undefined && v?.state === 'E' && sectionLens.value[partner]?.state === 'E') sectionSlot(partner).set(undefined);
+                if (v?.state === 'E') for (const partner of partners) if (sectionLens.value[partner]?.state === 'E') sectionSlot(partner).set(undefined);
                 const spec = sectionLens.value;
                 const {[key]: _removed, ...rest} = spec;
                 sectionLens.set(v === undefined ? rest : {...spec, [key]: v});
@@ -292,9 +292,9 @@ export class OpenIsdDriverSpec {
          *  CURRENT value on every read so it shows up immediately on `.set()`, not only after
          *  the next `resolve()`. */
         const f =
-            (key: DriverSpecFieldName, partner?: DriverSpecFieldName, shown?: () => SpecEntryJson | undefined): SpecNumberField =>
+            (key: DriverSpecFieldName, partners?: readonly DriverSpecFieldName[], shown?: () => SpecEntryJson | undefined): SpecNumberField =>
                 entryField(
-                    shown === undefined ? sectionSlot(key, partner) : shownSlot(sectionSlot(key, partner), shown),
+                    shown === undefined ? sectionSlot(key, partners) : shownSlot(sectionSlot(key, partners), shown),
                     key,
                     dqFor(key),
                     (v) => floorIssue(key, v, issues)
@@ -351,14 +351,14 @@ export class OpenIsdDriverSpec {
         this.Qts = f('Qts');
         this.Qes = f('Qes');
         this.Qms = f('Qms');
-        this.Vas_m3 = f('Vas_m3', 'Cms_m_per_N');
+        this.Vas_m3 = f('Vas_m3', ['Cms_m_per_N']);
         this.Sd_m2 = f('Sd_m2');
         this.BL_Tm = f('BL_Tm');
         this.#storedMms = f('Mms_kg');
-        this.#storedCms = f('Cms_m_per_N', 'Vas_m3');
+        this.#storedCms = f('Cms_m_per_N', ['Vas_m3', 'no']);
         this.#storedRms = f('Rms_kg_per_s');
         this.Mms_kg = f('Mms_kg', undefined, () => this.#shownEntry('Mms_kg'));
-        this.Cms_m_per_N = f('Cms_m_per_N', 'Vas_m3', () => this.#shownEntry('Cms_m_per_N'));
+        this.Cms_m_per_N = f('Cms_m_per_N', ['Vas_m3', 'no'], () => this.#shownEntry('Cms_m_per_N'));
         this.Rms_kg_per_s = f('Rms_kg_per_s', undefined, () => this.#shownEntry('Rms_kg_per_s'));
         this.Xmax_m = f('Xmax_m');
         this.Xlim_m = f('Xlim_m');

@@ -144,3 +144,38 @@ describe.each<Kind>(['driver', 'radiator'])('Cms from Vas: %s', (kind) => {
     expect(reloaded.driver.specs.Cms_m_per_N.calculated).toBe(true);
   });
 });
+
+/** QO477 = A (John, 8 Nov 2026): a datasheet that states Vas and efficiency (η0), a Cms typed on top. */
+describe('E150HE-style datasheet stating Vas and η0, Cms typed (QO477 = A)', () => {
+  const E150HE = {Fs_hz: 40, Qes: 0.45, Qms: 2.94, Re_ohm: 6.6, Sd_m2: 0.009503, Vas_m3: 0.007645536, no: 0.0010574424313046884, Xmax_m: 0.008, Pe_W: 100};
+  const TYPED_CMS = 0.00069;
+
+  function typed() {
+    const engine = createEngine();
+    const project = new ProjectBuilder(driverFromSpec(engine, E150HE), engine).sealed().volume_m3(0.03).build();
+    project.driver.specField('Cms_m_per_N').set(TYPED_CMS);
+    return project;
+  }
+
+  it('Vas follows the typed Cms (Vas = ρ·c²·Sd²·Cms) and is no longer an entered value', () => {
+    const {Vas_m3, Cms_m_per_N, Sd_m2, roo_kg_per_m3, c_m_per_s} = typed().driver.specs;
+    expect(Vas_m3.entered).toBe(false);
+    expect(Vas_m3.value).toBeCloseTo(roo_kg_per_m3.value! * c_m_per_s.value! ** 2 * Sd_m2.value! ** 2 * Cms_m_per_N.value!, 9);
+    expect(Vas_m3.dq).toEqual([]);
+  });
+
+  it('η0 is shown as calculated, not entered, and agrees with the Vas shown', () => {
+    const {no} = typed().driver.specs;
+    expect(no.entered).toBe(false);
+    expect(no.calculated).toBe(true);
+    expect(no.dq).toEqual([]);
+  });
+
+  it('the typed Cms stands in the box and the SPL sweep uses it', () => {
+    const project = typed();
+    expect(project.driver.specs.Cms_m_per_N.value).toBe(TYPED_CMS);
+    const engine = createEngine();
+    const stated = new ProjectBuilder(driverFromSpec(engine, {...E150HE, Cms_m_per_N: TYPED_CMS, Vas_m3: project.driver.specs.Vas_m3.value!}), engine).sealed().volume_m3(0.03).build();
+    expect(worst(project.sweep(GRID).values!.spl, stated.sweep(GRID).values!.spl)).toBeLessThan(1e-9);
+  });
+});
