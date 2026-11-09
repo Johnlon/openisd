@@ -14,7 +14,7 @@ plan:
   - Visual baselines change (font change); regenerate them in this task and list them.
   - Before (test.openisd.app) and after (this branch preview, lap:4742) pictures at phone 374x705 and desktop 1366x768 for Box tab, Driver Editor Parameters and Advanced, Options; mark-diff boxed, agy-checked, Look at / Recommend / Checked, impact line; on a page passing check-answerable.mjs, to John BEFORE landing.
 visual_note: Every label uses the font the app now carries, so text looks the same on every computer. On desktop each label sits close to its box instead of far away or cut.
-done_test: bash scripts/test.sh packages/ui/test/ui/font-glyph-coverage.test.ts packages/ui/test/ui/font-sources.test.ts packages/ui/test/ui/font-precache.test.ts
+done_test: bash scripts/test.sh packages/ui/test/ui/font-glyph-coverage.test.ts packages/ui/test/ui/app-font-bundled.browser.spec.ts packages/ui/test/ui/font-sources.test.ts packages/ui/test/ui/font-precache.test.ts packages/ui/test/ui/field-layout-rules.browser.spec.ts
 files:
   - packages/ui/test/ui/desktop-options-colour-rows.browser.spec.ts
   - packages/ui/src/ui/components/OptionsModal.vue
@@ -210,3 +210,4 @@ visual:
 # QO478.c10 (John, 9 Nov): phone Temperature label -> fix the app: narrow the number box text area so the label slot fits Temperature.
 # QO478.c12 (John, 9 Nov): Driver tab hint line 21 px with warning -> fix the app, keep 18 px.
 # QO478.c15 (John, 9 Nov): ABC cut off was caused by the wider label gap -> fix: panel no wider than main; Flange field right edge in line; Flange box taller (squashed).
+# Merge of origin/t742 (9 Nov): visual snapshot PNGs and SOURCES.sha256 were taken from the local side; the baselines MUST be re-taken (not regenerated in the merge).
