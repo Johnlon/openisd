@@ -202,3 +202,6 @@ visual:
   - mobile-wizard-vented-step3
   - mobile-wizard-vented-step4
   - mobile-wizard-vented-step5
+
+# QO478 rulings
+# QO478.c1 (John, 9 Nov): row 6 font-only tests -> update the tests to the bundled fonts.
