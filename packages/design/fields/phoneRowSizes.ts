@@ -15,7 +15,7 @@ export class PhoneRowSizes {
   /** Classic rows (the accepted classic phone design): 40 px, 34 px boxes. Replaces TAB for tab pages, and
    *  the Tune and What-if sheets use it too (one row size across the app, John, 20 Oct 2026).
    *  The widths across the row are PhoneRowColumns; these last three match PhoneRowColumns.STANDARD. */
-  static readonly CLASSIC = new PhoneRowSizes(40, 3, 34, 16, 0, 82, 45, 40);
+  static readonly CLASSIC = new PhoneRowSizes(40, 3, 34, 16, 0, 102, 45, 40);
   /** Sheet rows: as tight as a finger allows. */
   static readonly SHEET = new PhoneRowSizes(SheetSizes.ROW_MIN_PX, 2, SheetSizes.TOUCH_MIN_PX, 14, 0, 0, 64, 30);
 
@@ -67,7 +67,7 @@ export class PhoneRowColumns {
 
   static chipIsWide(label: string): boolean { return label.length > 3; }
 
-  static readonly STANDARD = new PhoneRowColumns(82, 90, 40, 16);
+  static readonly STANDARD = new PhoneRowColumns(102, 90, 40, 16);
   /** The Advanced page's air rows: wide enough for "Temperature" on one line, narrow enough to leave room for a pressure in Pa. */
   static readonly MEDIUM_LABEL = new PhoneRowColumns(96, 90, 40, 16);
   /** The driver editor's General tab, whose labels are longer. */
