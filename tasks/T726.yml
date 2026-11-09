@@ -2,7 +2,7 @@ id: T726
 release_note: internal
 repo: openisd
 owner: cover
-status: open
+status: ready
 goal: Every app default lives in one constant; the wizard, first-use project, engine fallbacks and settings repos read it
 why: "John, 8 Nov 2026: \"fix the defaults / use the single value or project value as appropriate\". ruling: QO461 (listening distance min 0.1 m, floor positive; port velocity max stays 340 m/s)."
 done_test: bash scripts/test.sh packages/design/test/fields/app-defaults-agree.test.ts packages/ui/test/logic/app-defaults-agree.test.ts
