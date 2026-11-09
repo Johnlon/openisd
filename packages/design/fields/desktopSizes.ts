@@ -35,9 +35,10 @@ export class DesktopSizes {
   }
 
   /** The label column of a group of field rows: its longest label's text, rounded up to whole pixels, and the
-   *  slot after it. Every row in the group takes this one width, so their boxes share one left edge. */
-  static labelColumnPx(textWidthsPx: readonly number[]): number {
-    return Math.ceil(Math.max(0, ...textWidthsPx)) + DesktopSizes.LABEL_SLOT_PX;
+   *  slot after it, when the group's rows can show a warning. Every row in the group takes this one width, so
+   *  their boxes share one left edge. */
+  static labelColumnPx(textWidthsPx: readonly number[], hasWarningSlot: boolean): number {
+    return Math.ceil(Math.max(0, ...textWidthsPx)) + (hasWarningSlot ? DesktopSizes.LABEL_SLOT_PX : 0);
   }
 
   private constructor() {}

@@ -6,7 +6,8 @@ import {DesktopSizes} from '@openisd/design/fields';
  *
  * A group is the field rows of one screen (a tab, or a dialog) whose labels start at one x: one column of labels.
  * Each row of the group gets `--label-w` = `DesktopSizes.labelColumnPx` of the group's label text widths, so the
- * boxes share one left edge, right after the longest label and its warning slot. Only rows whose label column is
+ * boxes share one left edge, right after the longest label and its warning slot (a group with no common field
+ * row, such as a pair of plain pick lists, has no warning and so no slot). Only rows whose label column is
  * `--label-w` take part; a row that sizes its labels some other way (a subgrid, a stacked caption) is left alone.
  *
  * It measures again whenever the DOM under `root` changes, `root` resizes or a font finishes loading, once per
@@ -47,7 +48,7 @@ export function createLabelColumns(root: HTMLElement): LabelColumns {
   const measure = (): void => {
     frame = null;
     for (const row of sized) if (!row.isConnected) sized.delete(row);
-    const groups = new Map<Element, Map<number, {row: HTMLElement; width: number}[]>>();
+    const groups = new Map<Element, Map<number, {row: HTMLElement; width: number; warns: boolean}[]>>();
     for (const row of root.querySelectorAll<HTMLElement>(ROW)) {
       const label = row.querySelector<HTMLElement>(':scope > label');
       if (label === null || (label.textContent ?? '').trim() === '' || label.getClientRects().length === 0) continue;
@@ -56,13 +57,13 @@ export function createLabelColumns(root: HTMLElement): LabelColumns {
       text.selectNodeContents(label);
       const screen = screenOf(row);
       const x = Math.round(label.getBoundingClientRect().left);
-      const columns = groups.get(screen) ?? new Map<number, {row: HTMLElement; width: number}[]>();
-      columns.set(x, [...(columns.get(x) ?? []), {row, width: text.getBoundingClientRect().width}]);
+      const columns = groups.get(screen) ?? new Map<number, {row: HTMLElement; width: number; warns: boolean}[]>();
+      columns.set(x, [...(columns.get(x) ?? []), {row, width: text.getBoundingClientRect().width, warns: row.classList.contains('ui-field')}]);
       groups.set(screen, columns);
     }
     for (const columns of groups.values()) {
       for (const rows of columns.values()) {
-        const px = `${DesktopSizes.labelColumnPx(rows.map(r => r.width))}px`;
+        const px = `${DesktopSizes.labelColumnPx(rows.map(r => r.width), rows.some(r => r.warns))}px`;
         for (const {row} of rows) {
           sized.add(row);
           if (row.style.getPropertyValue(DesktopSizes.LABEL_COLUMN_VAR) !== px) row.style.setProperty(DesktopSizes.LABEL_COLUMN_VAR, px);

@@ -1326,7 +1326,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .port-columns .vent-port-row > .field { grid-column:1; }
 .port-columns .port-tuning-row > .ui-field, .port-columns .port-tuning-placeholder { grid-column:1; grid-row:2; }
 .port-columns .port-tuning-placeholder { min-height:var(--ctl-h,20px); }
-.port-columns .vent-port-row > .field:not(.ui-field) { grid-template-columns:var(--label-w,var(--ctl-label-w)) 138px; }
+.port-columns .vent-port-row > .field:not(.ui-field) { grid-template-columns:var(--label-w,var(--ctl-label-w)) var(--port-select-w); }
+/* End Correction ends where the number boxes' ▲▼ end. */
+.port-columns .vent-port-row > .field:not(.ui-field) select:not([id]) { padding:0 4px; }
+.port-columns .vent-port-row > .field:not(.ui-field):not(:has(select[id])) select { width:var(--port-select-w); }
 .port-columns .vent-port-row > .field:has(select:not([id])) { column-gap:2px; }
 .port-columns .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:2; grid-row:3; grid-template-columns:var(--label-w,var(--ctl-label-w)) 85px; }
 .port-columns .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:4; grid-template-columns:var(--label-w,var(--ctl-label-w)) 42px; }

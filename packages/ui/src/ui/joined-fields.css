@@ -144,7 +144,8 @@
 .joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] .ui-field-unit:not(.unit-toggle) {width:var(--joined-chip);}
 
 /* All ported panels share one full field per row and one label/value column contract. */
-.joined-fields:not(.app-root-mobile) .port-columns .ui-field.ui-field[data-field] {--joined-box:93px;--joined-inset:4px;}
+.joined-fields:not(.app-root-mobile) .port-columns {--port-box:93px;--port-select-w:calc(var(--port-box) + 2 * var(--ctl-stepper-w,18px) + 2px);}
+.joined-fields:not(.app-root-mobile) .port-columns .ui-field.ui-field[data-field] {--joined-box:var(--port-box);--joined-inset:4px;}
 
 /* Reserve the DQ rail before any warning exists. Showing it must not resize the label. */
 .joined-fields:not(.app-root-mobile) .ui-field.ui-field:is([data-field],.joined-field):not(.signal-gen-field) {

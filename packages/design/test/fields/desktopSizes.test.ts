@@ -10,8 +10,12 @@ describe('DesktopSizes', () => {
   });
 
   it('sizes a label column to its longest label, rounded up, plus the warning slot', () => {
-    expect(DesktopSizes.labelColumnPx([41.2, 96.01, 60])).toBe(97 + 22);
-    expect(DesktopSizes.labelColumnPx([])).toBe(22);
+    expect(DesktopSizes.labelColumnPx([41.2, 96.01, 60], true)).toBe(97 + 22);
+    expect(DesktopSizes.labelColumnPx([], true)).toBe(22);
+  });
+
+  it('adds no slot to a group whose rows show no warning (plain label and list rows)', () => {
+    expect(DesktopSizes.labelColumnPx([31.5, 43.2], false)).toBe(44);
   });
 
   it('makes the arrows at least as tall as the number box', () => {
