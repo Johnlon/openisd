@@ -438,8 +438,8 @@ export class OpenIsdDriverSpec {
         return this.#issues;
     }
 
-    /** The issues, with the stated Cms that disagrees with the stated Vas named in one sentence on Cms (the generic Vas/Cms disagreement is dropped
-     *  for it), and each stated Mms or Rms the charts do not use named in its own sentence. */
+    /** The issues, with the stated Cms that disagrees with the stated Vas named in one sentence on Cms (only the generic Vas/Cms issue loses Cms; an Fs/Mms/Cms
+     *  issue keeps it), and each stated Mms or Rms the charts do not use named in its own sentence. */
     #withChartNotes(issues: readonly DriverIssue[], air: Air): readonly DriverIssue[] {
         const source = this.#cmsSource();
         if (source.kind === 'StoredShown') return issues;
@@ -455,14 +455,14 @@ export class OpenIsdDriverSpec {
         const statedCms = this.#storedCms.entered ? this.#storedCms.value : null;
         const fromVas = this.#shown(air, {kind: 'VasWins'})?.Cms_m_per_N ?? null;
         const cmsConflict = statedCms !== null && fromVas !== null && Math.abs(fromVas - statedCms) > 1e-9 * Math.abs(statedCms);
-        const kept = issues.map(issue => 'fields' in issue && issue.kind === 'inconsistent-inputs' && cmsConflict
+        const kept = issues.map(issue => 'fields' in issue && issue.kind === 'inconsistent-inputs' && cmsConflict && issue.fields.includes('Vas_m3')
             ? {...issue, fields: issue.fields.filter(f => f !== 'Cms_m_per_N')} : issue);
         const cmsNotes = !cmsConflict ? [] : [{
             kind: 'inconsistent-inputs', target: 'Cms_m_per_N', fields: ['Cms_m_per_N'], formula: NumberField.CMS_M_PER_N.formula ?? '', expected: fromVas, actual: statedCms,
             relative: Math.abs(fromVas - statedCms) / statedCms, text: cmsConflictNote(source, statedCms, fromVas),
         } satisfies DriverIssue];
         const notes = differing.map(({figure, name, statedSI, chart}): DriverIssue => (
-            {kind: 'approximate-charts', target: name, fields: [name], text: chartFigureNote(figure, statedSI, chart)}));
+            {kind: 'approximate-charts', target: name, fields: [name], text: chartFigureNote(figure, statedSI, chart, source)}));
         return [...kept, ...cmsNotes, ...notes];
     }
 

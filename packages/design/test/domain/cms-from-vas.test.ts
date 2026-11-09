@@ -55,7 +55,7 @@ function rig(kind: Kind, stated: Record<string, number>, engine: Engine = create
     project,
     cms: () => spec().Cms_m_per_N.value,
     vas: () => spec().Vas_m3.value,
-    cmsNotes: () => spec().Cms_m_per_N.dq.map(i => i.text),
+    cmsNotes: () => spec().Cms_m_per_N.dq.map(i => i.text).filter(t => t.startsWith('The stated Cms and Vas')),
     cmsWarned: () => spec().Cms_m_per_N.dq.some(i => i.kind === 'inconsistent-inputs'),
     setCms: v => spec().Cms_m_per_N.set(v),
     spl: () => {
@@ -137,6 +137,31 @@ describe.each<Kind>(['driver', 'radiator'])('Cms from Vas: %s', (kind) => {
     cmsFromVasSwitch().of(r.project).set(false);
     expect(r.cmsNotes()).toHaveLength(1);
     expect(r.cmsNotes()[0]).toMatch(/^The stated Cms and Vas disagree, so the charts use the stated Cms \([\d.]+ mm\/N\)\.$/);
+  });
+
+  it('(i) Cms/Vas and Fs/Mms/Cms both disagree, either switch state: both warnings reach the user', () => {
+    // Fs 30 Hz with a stated Mms puts the Cms the Fs/Mms pair implies far from the stated Cms, and the stated Cms is also off the Vas.
+    for (const ticked of [true, false]) {
+      const r = rig(kind, {...disagreeing(), Mms_kg: kind === 'driver' ? 0.05 : 0.5});
+      cmsFromVasSwitch().of(r.project).set(ticked);
+      const issues = (kind === 'driver' ? r.project.driver.specs : r.project.box.passiveRadiator.radiator.spec).Cms_m_per_N.dq;
+      const inconsistent = issues.filter(i => i.kind === 'inconsistent-inputs');
+      const cmsVas = inconsistent.filter(i => /^The stated Cms and Vas disagree/.test(i.text));
+      const generic = inconsistent.filter(i => i.kind === 'inconsistent-inputs' && i.fields.includes('Fs_hz') && i.fields.includes('Mms_kg') && i.fields.includes('Cms_m_per_N'));
+      expect(cmsVas, `Cms/Vas sentence, ticked=${ticked}`).toHaveLength(1);
+      expect(generic.length, `Fs/Mms/Cms warning, ticked=${ticked}: ${JSON.stringify(inconsistent.map(i => i.text))}`).toBeGreaterThan(0);
+    }
+  });
+
+  it('(j) a stated Mms the charts do not use: the note offers "Untick Cms from Vas" only while it is ticked', () => {
+    for (const ticked of [true, false]) {
+      const r = rig(kind, {...disagreeing(), Mms_kg: kind === 'driver' ? 0.05 : 0.5});
+      cmsFromVasSwitch().of(r.project).set(ticked);
+      const spec = kind === 'driver' ? r.project.driver.specs : r.project.box.passiveRadiator.radiator.spec;
+      const notes = spec.Mms_kg.dq.filter(i => i.kind === 'approximate-charts').map(i => i.text);
+      expect(notes, `ticked=${ticked}`).toHaveLength(1);
+      expect(/Untick Cms from Vas/.test(notes[0]!), `ticked=${ticked}: ${notes[0]}`).toBe(ticked);
+    }
   });
 
   it('(h) saved and reloaded, the datasheet Cms is still the stated, entered figure and the box still shows the charts\' Cms', () => {

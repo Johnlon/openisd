@@ -21,12 +21,18 @@ function workedOutFrom(figure: ChartFigure): string {
 }
 
 /** The popup sentence for a figure whose stated value the charts do not use, with both values in the field's own unit:
- *  "Datasheet Mms is 50.00 g. The charts use 21.65 g, worked out from Fs and Cms. Untick Cms from Vas to use the datasheet value." */
-export function chartFigureNote(figure: ChartFigure, statedSI: number, chartSI: number): string {
+ *  "Datasheet Mms is 50.00 g. The charts use 21.65 g, worked out from Fs and Cms. Untick Cms from Vas to use the datasheet value."
+ *  (The last sentence is only said while the option is ticked.) */
+export function chartFigureNote(figure: ChartFigure, statedSI: number, chartSI: number, source: Exclude<CmsSource, {readonly kind: 'StoredShown'}>): string {
     const field = fieldOf(figure);
     const stated = `${field.format(statedSI)} ${field.unitLabel()}`;
     const chart = `${field.format(chartSI)} ${field.unitLabel()}`;
-    return `Datasheet ${figure} is ${stated}. The charts use ${chart}, worked out from ${workedOutFrom(figure)}. Untick Cms from Vas to use the datasheet value.`;
+    const worked = `Datasheet ${figure} is ${stated}. The charts use ${chart}, worked out from ${workedOutFrom(figure)}.`;
+    // Unticked already: the option has nothing left to offer, so the sentence stops.
+    switch (source.kind) {
+        case 'VasWins': return `${worked} Untick Cms from Vas to use the datasheet value.`;
+        case 'StatedCmsWins': return worked;
+    }
 }
 
 /** The one sentence on a Cms that disagrees with the stated Vas, naming the Cms the charts use (the option "Cms from Vas" decides):

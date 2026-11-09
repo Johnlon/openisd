@@ -54,7 +54,7 @@ steps:
     #   projectResolve / PR spec resolve / What-if / exports: no own derivation (they call the field solve).
     # State: step 4 and 5 for the driver done (typed last wins in OpenIsdDriverSpec slot, Vas-from-typed-Cms first in DriverEngine.solveValues, CmsSource on SweepDriver).
     # c19/c22 built (commit after bdc51ac2a): DriverEngine.shownMechanics (WinISD chain), OpenIsdDriverSpec shows it on demand (stored entries untouched, resolve uses stored), circuitValues = Qts fallback only,
-    #   CmsSource provider plumbed (project: switch; standalone: StoredShown). BLOCKED: driver-edit-parity-e150he-44 'stated fields' (E150HE-44: WinISD editor shows stated Mms 0.02660, Cms 0.0006000, Rms 2.27391 as E; box now shows chain 0.013264, 0.0011936, 1.13389 as C) and driver case b vs golden Vas route precedence.
+    #   CmsSource provider plumbed (project: switch; standalone: StoredShown). driver-edit-parity-e150he-44 'stated fields' is green now (968 passed, 17 expected fail); driver case b vs golden Vas route precedence was open when this note was written.
     # Left (old note): c19 on-demand Cms read (case c), c22 removal from circuitValues, radiator c/d (step 6/7 adopt), radiator typed-last.
   - n: 5
     worker: sonnet
