@@ -20,7 +20,7 @@ export function prSpec(
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
     const slot: SimpleField<SpecEntryJson | undefined> = {
         get value() { return shown?.() ?? section.value[key]; },
-        set: (entry) => { if (key === 'Cms_m_per_N') throw new Error('DBGF ' + JSON.stringify(entry));
+        set: (entry) => {
             const {[key]: _removed, ...rest} = section.value;
             if (entry === undefined) { section.set(rest); return; }
             const next: {-readonly [K in PassiveRadiatorFieldName]?: SpecEntryJson} = {...section.value, [key]: entry};
