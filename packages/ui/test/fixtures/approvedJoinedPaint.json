@@ -460,9 +460,9 @@
         "color": "rgb(34, 34, 34)"
       },
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -564,9 +564,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -698,9 +698,9 @@
         "color": "rgb(34, 34, 34)"
       },
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -802,9 +802,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -1292,9 +1292,9 @@
         "color": "rgb(34, 34, 34)"
       },
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -1396,9 +1396,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -1530,9 +1530,9 @@
         "color": "rgb(34, 34, 34)"
       },
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -1634,9 +1634,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -2124,9 +2124,9 @@
         "color": "rgb(34, 34, 34)"
       },
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -2228,9 +2228,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -2362,9 +2362,9 @@
         "color": "rgb(34, 34, 34)"
       },
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -2466,9 +2466,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -2718,9 +2718,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -2822,9 +2822,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -3074,9 +3074,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -3178,9 +3178,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -3430,9 +3430,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -3534,9 +3534,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -3786,9 +3786,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -3890,9 +3890,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -4142,9 +4142,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -4246,9 +4246,9 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
-        "fontFamily": "sans-serif",
+        "fontFamily": "Roboto, AppSymbols",
         "fontSize": "9px",
         "fontWeight": "600",
         "textAlign": "center",
@@ -4408,7 +4408,7 @@
       "unit": null,
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
         "fontFamily": "sans-serif",
         "fontSize": "9px",
@@ -4482,7 +4482,7 @@
       "unit": null,
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
         "fontFamily": "sans-serif",
         "fontSize": "9px",
@@ -4644,7 +4644,7 @@
       "unit": null,
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
         "fontFamily": "sans-serif",
         "fontSize": "9px",
@@ -4718,7 +4718,7 @@
       "unit": null,
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
         "fontFamily": "sans-serif",
         "fontSize": "9px",
@@ -5188,7 +5188,7 @@
       "unit": null,
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
         "fontFamily": "sans-serif",
         "fontSize": "9px",
@@ -5528,7 +5528,7 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
         "fontFamily": "sans-serif",
         "fontSize": "9px",
@@ -5632,7 +5632,7 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
         "fontFamily": "sans-serif",
         "fontSize": "9px",
@@ -5884,7 +5884,7 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
         "fontFamily": "sans-serif",
         "fontSize": "9px",
@@ -5988,7 +5988,7 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
         "fontFamily": "sans-serif",
         "fontSize": "9px",
@@ -6240,7 +6240,7 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
         "fontFamily": "sans-serif",
         "fontSize": "9px",
@@ -6344,7 +6344,7 @@
       },
       "spinner": null,
       "model": {
-        "width": 21.4375,
+        "width": 21.03125,
         "height": 15,
         "fontFamily": "sans-serif",
         "fontSize": "9px",
@@ -7396,7 +7396,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -7584,7 +7584,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -7620,7 +7620,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -7770,7 +7770,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -7806,7 +7806,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -7842,7 +7842,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -7878,7 +7878,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -7914,7 +7914,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -7950,7 +7950,7 @@
         "paint": {
           "width": 60,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -7986,7 +7986,7 @@
         "paint": {
           "width": 60,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -8022,7 +8022,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -8096,7 +8096,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -8132,7 +8132,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -8168,7 +8168,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -8394,7 +8394,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -8430,7 +8430,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -8466,7 +8466,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -8502,7 +8502,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -8614,7 +8614,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -8650,7 +8650,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -8686,7 +8686,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
@@ -8722,7 +8722,7 @@
         "paint": {
           "width": 34,
           "height": 28,
-          "fontFamily": "Roboto, AppSymbols",
+          "fontFamily": "Selawik, AppSymbols",
           "fontSize": "13px",
           "fontWeight": "400",
           "lineHeight": "18.85px",
