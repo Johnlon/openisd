@@ -1,0 +1,24 @@
+id: T748
+release_note: "Phone Tune and What-if: while you type a value, the Auto Y / Close bar hides so the box and chart get the room; the keyboard's Done key closes the keyboard and the bar comes back."
+repo: openisd
+owner: learn
+status: done
+goal: QO427 (b): phone Tune/What-if sheet typing with the keyboard up hides the Auto Y / Close bar too; the keyboard Done key closes the keyboard
+done_test: bash scripts/test.sh packages/design/test/fields/chartPage.test.ts
+ruling: "QO427 (b), John 8 Nov 2026; c22, 9 Nov: the freed space goes to the charts; John 9 Nov chat: while the What-if or Tune sheet is open, banners that take space (new app version, storage space, loading messages) are held back until it closes"
+status_note: "Built: QO427 B keyboard layout, the freed height to the chart, and banners held back while a Graph sheet is open (they show when it closes). Ready to land."
+files:
+  - tasks/T748.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/src/logic/enterClosesKeyboard.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/test/ui/mobile-sheet-keyboard.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet-keyboard-resize.browser.spec.ts
+  - packages/design/fields/chartPageSizes.ts
+  - packages/design/test/fields/chartPage.test.ts
+visual: []
