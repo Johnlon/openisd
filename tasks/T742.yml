@@ -207,3 +207,5 @@ visual:
 # QO478.c1 (John, 9 Nov): row 6 font-only tests -> update the tests to the bundled fonts.
 # QO478.c3 (John, 9 Nov): What-if Input power one line -> update the test (drop test.fail).
 # QO478.c5 (John, 9 Nov): wizard dropdown off the radio -> fix the app.
+# QO478.c10 (John, 9 Nov): phone Temperature label -> fix the app: narrow the number box text area so the label slot fits Temperature.
+# QO478.c12 (John, 9 Nov): Driver tab hint line 21 px with warning -> fix the app, keep 18 px.
