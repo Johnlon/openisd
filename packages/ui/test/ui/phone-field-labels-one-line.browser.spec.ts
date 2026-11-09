@@ -52,7 +52,6 @@ test('Options labels are one line', async ({page}) => {
 });
 
 test('What-if sheet labels are one line', async ({page}) => {
-  test.fail();
   await page.locator('.mob-tab', {hasText: 'Graph'}).click();
   await page.getByRole('button', {name: 'Open What-if'}).click();
   await expect(page.locator('.mob-sheet')).toBeVisible();
