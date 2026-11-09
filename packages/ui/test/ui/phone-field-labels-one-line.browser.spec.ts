@@ -31,21 +31,18 @@ test.beforeEach(async ({page}) => {
 });
 
 test('Box tab (vents) labels are one line', async ({page}) => {
-  test.fail();
   await page.locator('.mob-tab').filter({hasText: /^Box$/}).click();
   await expect(page.getByText('Number of Vents')).toBeVisible();
   expect(await wrappedLabels(page)).toEqual([]);
 });
 
 test('Advanced labels are one line', async ({page}) => {
-  test.fail();
   await tapMobileMenuItem(page, 'Advanced');
   await expect(page.getByText('Relative humidity')).toBeVisible();
   expect(await wrappedLabels(page)).toEqual([]);
 });
 
 test('Options labels are one line', async ({page}) => {
-  test.fail();
   await tapMobileMenuItem(page, 'Options');
   await expect(page.getByText('Min box volume').first()).toBeVisible();
   expect(await wrappedLabels(page)).toEqual([]);
