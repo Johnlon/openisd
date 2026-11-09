@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: claimed
+goal: Move the WinISD-behaviour findings out of openisd bugs/ into winisd_research, and close the bug files John closed on QO456
 done_test: test -z "$(ls bugs | grep -i winisd)"
 files:
   - bugs/BUG_20261105_phone-box-tab-box-type-width.md
