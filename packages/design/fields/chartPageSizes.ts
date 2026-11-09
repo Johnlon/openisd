@@ -9,7 +9,7 @@ export class ChartPageSizes {
   static readonly CLASSIC = new ChartPageSizes({
     headPadYPx: 8, headControlPx: 40, headSavePx: 44, perScreenWidthPx: 104,
     bandPx: 28, barPadYPx: 6, barGapPx: 6,
-    legendLinePx: 16, sheetMaxPx: 250, sheetBandPx: 24,
+    legendLinePx: 16, sheetMaxPx: 250, sheetBandPx: 24, sheetFootPadYPx: 4, typingChartMinPx: 80,
   });
 
   private constructor(readonly values: ChartPageSizesValues) {}
@@ -19,6 +19,13 @@ export class ChartPageSizes {
 
   /** Button strip height: the one phone button (PhoneRowSizes.BUTTON_PX) and the padding above and below. */
   stripHeightPx(): number { return PhoneRowSizes.BUTTON_PX + 2 * this.values.barPadYPx + 1; }
+
+  /** The sheet's Auto Y / Close bar: the one phone button, the padding above and below, and the 1 px rule. */
+  sheetFootHeightPx(): number { return PhoneRowSizes.BUTTON_PX + 2 * this.values.sheetFootPadYPx + 1; }
+
+  /** The chart's least height while a sheet box is typed in: its own minimum plus the hidden Auto Y / Close
+   *  bar, so the room that bar frees goes to the chart, not to more rows (QO427 b, John 9 Nov 2026). */
+  typingChartMinHeightPx(): number { return this.values.typingChartMinPx + this.sheetFootHeightPx(); }
 
   /** The sizes as CSS custom properties. */
   cssVars(): ReadonlyMap<string, string> {
@@ -36,6 +43,9 @@ export class ChartPageSizes {
       ['--gp-legend-line', `${s.legendLinePx}px`],
       ['--gp-sheet-max', `${s.sheetMaxPx}px`],
       ['--gp-sheet-band', `${s.sheetBandPx}px`],
+      ['--gp-sheet-foot-pad-y', `${s.sheetFootPadYPx}px`],
+      ['--gp-sheet-foot-h', `${this.sheetFootHeightPx()}px`],
+      ['--gp-typing-chart-min', `${this.typingChartMinHeightPx()}px`],
     ]);
   }
 }
@@ -61,4 +71,8 @@ export interface ChartPageSizesValues {
   readonly sheetMaxPx: number;
   /** Height of the band at the top of a sheet. */
   readonly sheetBandPx: number;
+  /** Padding above and below the sheet's Auto Y / Close bar. */
+  readonly sheetFootPadYPx: number;
+  /** Least chart height while a sheet box is typed in with the keyboard up. */
+  readonly typingChartMinPx: number;
 }

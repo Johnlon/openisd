@@ -68,12 +68,11 @@ for (const mode of ['Tune', 'What-if'] as const) {
         expect(await whollyInLayout(page, every.nth(neighbour)), `row ${neighbour} next to ${index} visible`).toBe(true);
         expect(await coveredBy(every.nth(neighbour)), `row ${neighbour} next to ${index} uncovered`).toBe('');
       }
-      // No blank band: the sheet's footer ends at the bottom of the layout, or the tab bar does.
-      const bottom = await page.evaluate(() => {
-        const bar = document.querySelector('.mob-tabbar');
-        const barBox = bar === null ? null : bar.getBoundingClientRect();
-        return Math.round(barBox !== null && barBox.height > 0 ? barBox.bottom : (document.querySelector('.mob-sheet-foot')?.getBoundingClientRect().bottom ?? -1));
-      });
+      // No blank band: the sheet ends at the bottom of the layout. QO427 (b), John 8 Nov 2026: while typing, the tab bar
+      // and the sheet's Auto Y / Close bar are both hidden.
+      await expect(page.locator('.mob-tabbar')).toBeHidden();
+      await expect(sheet.locator('.mob-sheet-foot')).toBeHidden();
+      const bottom = await page.evaluate(() => Math.round(document.querySelector('.mob-sheet')!.getBoundingClientRect().bottom));
       expect(bottom).toBe(WITH_KEYBOARD.height);
       const scroll = await page.evaluate(() => ({x: document.documentElement.scrollWidth > window.innerWidth, y: document.documentElement.scrollHeight > window.innerHeight}));
       expect(scroll).toEqual({x: false, y: false});

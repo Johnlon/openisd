@@ -105,6 +105,10 @@ export interface MobileShellApi {
   viewportTopPx: import('vue').Ref<number>;
   /** A box in a Graph sheet has focus with the keyboard up: the page gives the rows the height. */
   sheetTyping: import('vue').ComputedRef<boolean>;
+  /** Set by the Graph page: its Tune or What-if sheet is open. */
+  graphSheetOpen: import('vue').Ref<boolean>;
+  /** A Graph sheet is open: the banner strip (messages, new version, cloud sync) waits until it closes (QO427 B, John 9 Nov 2026). */
+  bannersHeld: import('vue').ComputedRef<boolean>;
   /** The space below the form that keeps a box in place when ▲▼ closes the keyboard (`StepperPin`). */
   pinSpacePx: import('vue').Ref<number>;
   /** Bound to `.mob-content`'s `scroll`: the scroll edges, and the pin. */
@@ -453,7 +457,13 @@ export function useMobileShell(): MobileShellApi {
   const keyboardUp = ref(false);
   const sheetBoxFocused = ref(false);
   const sheetTyping = computed(() => keyboardUp.value && sheetBoxFocused.value);
-  function inSheetBox(t: EventTarget | null): boolean { return t instanceof HTMLInputElement && t.closest('.mob-sheet') !== null; }
+  const graphSheetOpen = ref(false);
+  const bannersHeld = computed(() => destination.value === 'graph' && graphSheetOpen.value);
+  // A box's ▲▼ stepper counts as the box: tapping it must not bring the hidden Auto Y / Close bar back
+  // under the finger, which would take the tap (QO427 b).
+  function inSheetBox(t: EventTarget | null): boolean {
+    return (t instanceof HTMLInputElement || (t instanceof HTMLElement && t.classList.contains('num-stepper-btn'))) && t.closest('.mob-sheet') !== null;
+  }
   function onFocusIn(e: FocusEvent): void { sheetBoxFocused.value = inSheetBox(e.target); }
   function onFocusOut(e: FocusEvent): void { sheetBoxFocused.value = inSheetBox(e.relatedTarget); }
   function updateViewportHeight(): void {
@@ -626,7 +636,7 @@ export function useMobileShell(): MobileShellApi {
     menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, aboutLabel, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label, flashMessage: logging.message,
-    goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, sheetTyping, pinSpacePx, onContentScroll,
+    goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, sheetTyping, graphSheetOpen, bannersHeld, pinSpacePx, onContentScroll,
     projectsPaneOpen, openProjectsPane, closeProjectsPane,
     projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel: projectRepo.storeLabel, chooseProject,
     openProjectRows, selectOpenProject, closeOpenProject,

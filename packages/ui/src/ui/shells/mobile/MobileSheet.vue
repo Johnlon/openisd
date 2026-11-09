@@ -9,6 +9,8 @@ import PhoneButton from './PhoneButton.vue';
 import { useMobileSheet } from '../../../hooks/MobileSheet-hooks.js';
 import { SheetMode } from '@openisd/design/fields';
 import { inputChecked } from '../../../logic/domEvents.js';
+import { provide } from 'vue';
+import { ENTER_CLOSES_KEYBOARD } from '../../../logic/enterClosesKeyboard.js';
 
 const props = defineProps<{ open: boolean; mode: SheetMode; hidden: boolean; autoY: boolean }>();
 const emit = defineEmits<{ 'update:open': [open: boolean]; 'update:autoY': [on: boolean] }>();
@@ -16,6 +18,7 @@ const emit = defineEmits<{ 'update:open': [open: boolean]; 'update:autoY': [on: 
 const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, portValuePress, closePortEditor, sheetEl, rowsEl, sheetStyle, setValue, openSheet, close, reset,
   onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp } =
   useMobileSheet({ open: () => props.open, setOpen: v => emit('update:open', v), mode: props.mode });
+provide(ENTER_CLOSES_KEYBOARD, true);
 </script>
 
 <template>
@@ -108,7 +111,7 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
   flex: none;
   display: flex;
   align-items: center;
-  padding: 4px 16px;
+  padding: var(--gp-sheet-foot-pad-y) 16px;
   border-top: 1px solid var(--line);
   background: var(--panel);
 }
