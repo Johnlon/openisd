@@ -86,6 +86,7 @@ import {registerServiceWorker} from './logic/telemetry/serviceWorker.js';
 import {installBrowserListeners} from './logic/telemetry/browserListeners.js';
 import {FeatureUse} from './logic/telemetry/featureUse.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
+import {radiatorPickRecorder} from './logic/telemetry/radiatorPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
 import {provideAnnouncementCenter} from './hooks/Announcements-hooks.js';
 import {announcementEndpointsForHostname, createAnnouncementCenter} from './logic/announcementCenter.js';
@@ -232,7 +233,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // --- application layer: the app's state and what it does next ---
   const recentActions = new RecentActions();
   const featureUse = new FeatureUse(telemetry, recentActions);
-  const selection = createDriverSelection({ appState, presentation, driverPicked: driverPickRecorder(telemetry, driverRepo) });
+  const driverPicked = driverPickRecorder(telemetry, driverRepo);
+  const selection = createDriverSelection({ appState, presentation, driverPicked });
   // Stored projects written by earlier builds are indented and carry dq_calculated: rewritten once,
   // behind the whole-store backup, and Cloud sync follows it so it sees no edit. A read-only view of a backup is never written.
   if (!store.readOnly) createStoredTextCompaction(storage, storageBackup, createLedgerFollowsRewrite(storage, randomBytes)).run();
@@ -249,7 +251,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-    confirmReset: confirmPort.port, exportNotice: createExportNotice(confirmPort.port), appState, presentation,
+    confirmReset: confirmPort.port, exportNotice: createExportNotice(confirmPort.port), appState, presentation, driverPicked,
   });
   const viewStateRepo = createViewStateRepo(storage, storageBackup, forgetCloudSyncRecord);
 
@@ -437,7 +439,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     window.fetch.bind(window),
     announcementEndpointsForHostname(window.location.hostname),
   ));
-  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions});
+  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions, radiatorPicks: radiatorPickRecorder(telemetry, bundledPRs)});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,

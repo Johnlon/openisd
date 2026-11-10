@@ -71,7 +71,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-    confirmReset: fakeConfirmPort, exportNotice: {exported: () => undefined}, appState, presentation,
+    confirmReset: fakeConfirmPort, exportNotice: {exported: () => undefined}, appState, presentation, driverPicked: () => undefined,
   });
   const viewStateRepo = viewStateRepoOn(storage);
   const backup = backupRepoOn(storage);

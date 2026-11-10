@@ -10,6 +10,7 @@ import type {ComputedRef} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 import type {SaveNameField} from './saveNameField.js';
 import type {BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo} from '@openisd/persistence';
+import type {RadiatorPicks} from '../logic/telemetry/radiatorPick.js';
 
 export interface PassiveRadiatorActionsDeps {
   project: ComputedRef<OpenISDProject>;
@@ -17,19 +18,23 @@ export interface PassiveRadiatorActionsDeps {
   bundledPassiveRadiators: BundledPassiveRadiatorRepo;
   /** "Define new PR": put a blank radiator in the focused project's box. */
   definePassiveRadiator(): void;
+  /** Told which radiator the user loaded, for usage statistics. */
+  radiatorPicks: RadiatorPicks;
 }
 
-export function createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator }: PassiveRadiatorActionsDeps) {
+export function createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator, radiatorPicks }: PassiveRadiatorActionsDeps) {
   const prBrowseOpen = ref(false);
   function loadPREntry(uuid: string) {
     const entry = myPassiveRadiators.list().find(e => e.uuid === uuid);
     if (!entry) return;
     project.value.box.passiveRadiator.configurePR(entry.passiveRadiator);
+    radiatorPicks.saved();
     prBrowseOpen.value = false;
   }
   async function loadBundledPassiveRadiatorEntry(uuid: string): Promise<void> {
     const pr = await bundledPassiveRadiators.load(uuid);
     project.value.box.passiveRadiator.configurePR(pr);
+    radiatorPicks.bundled(uuid);
     prBrowseOpen.value = false;
   }
   function defineNewPREntry() {

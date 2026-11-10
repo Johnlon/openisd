@@ -42,7 +42,7 @@ describe('My Drivers Load File flashes what it did', () => {
       }),
       myDriverRepo: myDriverRepoOn(storage, engine), prefs: createPrefsRepo(storage, () => undefined), logging,
       selection: createDriverSelection({ appState, presentation }), files, confirmReset: fakeConfirmPort, exportNotice: {exported: () => undefined},
-      appState, presentation,
+      appState, presentation, driverPicked: () => undefined,
     });
     vi.stubGlobal('HTMLInputElement', FakeInput);
     vi.stubGlobal('FileReader', class {

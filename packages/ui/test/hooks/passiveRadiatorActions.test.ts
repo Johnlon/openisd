@@ -4,6 +4,7 @@ import {createPassiveRadiatorActions} from '../../src/hooks/passiveRadiatorActio
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDPassiveRadiatorStandalone, ProjectBuilder} from '@openisd/design';
 import type {BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo} from '@openisd/persistence';
+import type {RadiatorPicks} from '../../src/logic/telemetry/radiatorPick.js';
 
 function fakeMyPassiveRadiators(): MyPassiveRadiatorRepo {
   return {
@@ -27,8 +28,9 @@ function setUp(bundled: OpenISDPassiveRadiatorStandalone = OpenISDPassiveRadiato
     load: vi.fn(async () => bundled),
   };
   const definePassiveRadiator = vi.fn();
-  const actions = createPassiveRadiatorActions({ project: computed(() => project), myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator });
-  return { project, myPassiveRadiators, actions, definePassiveRadiator };
+  const radiatorPicks: RadiatorPicks = { bundled: vi.fn(), saved: vi.fn() };
+  const actions = createPassiveRadiatorActions({ project: computed(() => project), myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator, radiatorPicks });
+  return { project, myPassiveRadiators, actions, definePassiveRadiator, radiatorPicks };
 }
 
 describe('createPassiveRadiatorActions', () => {
@@ -141,5 +143,21 @@ describe('createPassiveRadiatorActions', () => {
 
     expect(actions.prBrowseOpen.value).toBe(false);
     expect(Object.keys(actions)).not.toContain('prEditOpen');
+  });
+
+  // John, 10 Nov 2026: "also record the pr picked either on Wiz or in main".
+  it('loading a bundled passive radiator on the box page counts it as a bundled pick', async () => {
+    const { actions, radiatorPicks } = setUp();
+    await actions.loadBundledPassiveRadiatorEntry('nd140');
+    expect(radiatorPicks.bundled).toHaveBeenCalledWith('nd140');
+    expect(radiatorPicks.saved).not.toHaveBeenCalled();
+  });
+
+  it('loading a saved passive radiator on the box page counts it as my pick', () => {
+    const { actions, myPassiveRadiators, radiatorPicks } = setUp();
+    vi.mocked(myPassiveRadiators.list).mockReturnValue([{ uuid: 'mine-1', passiveRadiator: OpenISDPassiveRadiatorStandalone.empty() }]);
+    actions.loadPREntry('mine-1');
+    expect(radiatorPicks.saved).toHaveBeenCalledTimes(1);
+    expect(radiatorPicks.bundled).not.toHaveBeenCalled();
   });
 });

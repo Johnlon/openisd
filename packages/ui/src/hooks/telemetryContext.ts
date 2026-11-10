@@ -3,6 +3,7 @@ import type {CrashReports} from '../logic/telemetry/crashReports.js';
 import type {LaunchReporter} from '../logic/telemetry/launch.js';
 import {FeatureUse} from '../logic/telemetry/featureUse.js';
 import {NoTelemetry} from '../logic/telemetry/telemetry.js';
+import type {RadiatorPicks} from '../logic/telemetry/radiatorPick.js';
 
 import type {RecentActions} from '../logic/telemetry/errorContext.js';
 import {RecentActions as FallbackRecentActions} from '../logic/telemetry/errorContext.js';
@@ -13,6 +14,7 @@ export interface TelemetryUi {
   readonly launch: LaunchReporter;
   readonly featureUse: FeatureUse;
   readonly actions: RecentActions;
+  readonly radiatorPicks: RadiatorPicks;
 }
 
 const TELEMETRY_UI: InjectionKey<TelemetryUi> = Symbol('openisd.telemetry');
@@ -35,4 +37,9 @@ export function useFeatureUse(): FeatureUse {
 /** The page session's recent-action recorder; records nothing where no composition root provided one. */
 export function useRecentActions(): RecentActions {
   return inject(TELEMETRY_UI, null)?.actions ?? new FallbackRecentActions();
+}
+
+/** The page session's passive-radiator pick recorder; records nothing where no composition root provided one. */
+export function useRadiatorPicks(): RadiatorPicks {
+  return inject(TELEMETRY_UI, null)?.radiatorPicks ?? {bundled: () => undefined, saved: () => undefined};
 }

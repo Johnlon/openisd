@@ -201,6 +201,9 @@ export interface DriverBrowsingStateDeps {
   exportNotice: ExportNotice;
   appState: AppState;
   presentation: PresentationState;
+  /** Told which driver the user chose for a new project, for usage statistics (a pick into an open
+   *  project is told by `selection`). BUG_20261110_new-project-wizard-driver-not-counted-in-stats. */
+  driverPicked: (driver: OpenISDDriverStandalone) => void;
 }
 
 export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): DriverBrowsingState {
@@ -502,6 +505,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       statusMsg.value = '';
       previewDriver.value = null;
       onChoose(d.detach());
+      deps.driverPicked(d);
       return;
     }
     if (!focusedProject()) {
@@ -509,6 +513,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       presentationState.browseOpen = false;
       presentationState.newProjectOpen = true;
       statusMsg.value = '';
+      deps.driverPicked(d);
       return;
     }
     const res = await selection.selectDriver(d);
