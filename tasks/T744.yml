@@ -152,8 +152,6 @@ files:
   - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
   - packages/ui/test/ui/original-pr-tab.browser.spec.ts
   - packages/design/domain/driver/chartFigureNote.ts
-  - packages/design/domain/mmsTypedMoves.ts
-  - packages/design/test/domain/driver-typed-mms.test.ts
   - packages/design/engine/pr/PrEngine.ts
   - BACKLOG.md
   - bugs/BUG_20261108_driver-typed-cms-mms-rms-ignored-by-charts.md
@@ -206,3 +204,9 @@ files:
   - packages/ui/test/ui/original-pr-cms-note.browser.spec.ts
   - packages/ui/test/ui/original-pr-tab.browser.spec.ts
   - packages/ui/test/hooks/OriginalWhatIf-hooks.test.ts
+  - packages/design/domain/project/typedFigure.ts
+  - packages/design/test/architecture-project-has-three-fields.test.ts
+  - packages/design/test/domain/error-switches.test.ts
+  - packages/design/test/domain/typed-mms-cms.test.ts
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
