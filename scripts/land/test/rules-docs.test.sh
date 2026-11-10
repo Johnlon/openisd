@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-# T004 acceptance (locked; author lots). The rule docs describe one process: land.sh and the
-# post-land run. Nothing in them still tells an agent to use the queue, announce slow runs or rely
+# T004 acceptance (locked; author lots). The rule docs describe one process: ship.sh, a pull request
+# and the pr-gate check in the merge queue.
+# T757 change: the required phrases moved from land.sh / post-land / tasks/fixes/ to ship.sh / pull request /
+# pr-gate, because John chose pull requests with a merge queue (QO481, 10 Nov 2026) and T749 replaced land.sh.
+# Red-main fix files (tasks/fixes/) are no longer part of the process, so that line is dropped. Nothing in them still tells an agent to use the queue, announce slow runs or rely
 # on the pre-commit hook for the full suite.
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
@@ -29,15 +32,16 @@ done
 
 # the new process is described where agents read it
 need() { grep -qF -- "$2" "$REPO/$1" && ok "$1 names: $2" || fail "$1 lacks: $2"; }
-need .claude/rules/verify.md     'scripts/land.sh'
-need .claude/rules/verify.md     'post-land'
-need .claude/rules/processes.md  'scripts/land.sh'
-need docs/DEV_PROCESS.md         'scripts/land.sh'
+need .claude/rules/verify.md     'scripts/ship.sh'
+need .claude/rules/verify.md     'pr-gate'
+need .claude/rules/processes.md  'scripts/ship.sh'
+need docs/DEV_PROCESS.md         'scripts/ship.sh'
+need docs/DEV_PROCESS.md         'pull request'
+need docs/DEV_PROCESS.md         'pr-gate'
 need docs/DEV_PROCESS.md         'tasks/'
 need docs/DEV_PROCESS.md         'done_test'
 need docs/DEV_PROCESS.md         'locked'
 need docs/DEV_PROCESS.md         'release'
-need docs/DEV_PROCESS.md         'tasks/fixes/'
 
 # John's standing rules survive the rewrite
 need .claude/rules/verify.md     'no-verify'

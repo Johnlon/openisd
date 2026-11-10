@@ -4,6 +4,7 @@ repo: openisd
 owner: cover
 status: open
 goal: Rule docs test names the pull-request process (ship.sh), not land.sh
-done_test: bash scripts/quiet-test.sh npm run typecheck
+done_test: bash scripts/land/test/rules-docs.test.sh
 files:
+  - scripts/land/test/rules-docs.test.sh
   - tasks/T757.yml
