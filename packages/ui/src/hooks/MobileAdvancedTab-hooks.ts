@@ -8,7 +8,6 @@
  */
 import {compatSwitchSetter} from './compatSwitch.js';
 import {useFeatureUse} from './telemetryContext.js';
-import {computed} from 'vue';
 import {CompatSwitch} from '@openisd/design';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
