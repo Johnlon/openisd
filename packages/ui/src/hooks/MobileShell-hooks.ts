@@ -432,7 +432,7 @@ export function useMobileShell(): MobileShellApi {
   // The Info menu's manual skin switch — the auto-by-viewport half lives in `App.vue`'s
   // `activeSkin` (`presentationState.narrowViewport`), which this override beats. Symmetric with
   // `OriginalShell-hooks.ts`'s `switchToMobile`.
-  function switchToDesktop(): void { setSkinOverride('original'); closeMenu(); }
+  function switchToDesktop(): void { featureUse.feature('skin_switch'); setSkinOverride('original'); closeMenu(); }
   // Back to choosing the skin from the window width, as at first start.
   function useAutomaticSkin(): void { setSkinOverride(null); closeMenu(); }
   const skinIsAutomatic = computed(() => presentationState.ui.skinOverride === undefined);

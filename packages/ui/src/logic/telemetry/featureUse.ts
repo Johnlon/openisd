@@ -18,6 +18,8 @@ const FEATURE_ACTIONS: Record<FeatureName, ActionName> = {
   backup: 'feature:backup',
   restore: 'feature:restore',
   chart_data: 'feature:chart_data',
+  driver_editor: 'dialog:driver-editor',
+  skin_switch: 'feature:skin_switch',
 };
 
 /** Records each chart viewed and each feature used once per page session. Records only; the

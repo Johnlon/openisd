@@ -163,7 +163,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { show: about, aboutLabel } = injectSplashModal();
   // The Info menu's manual, persisted skin switch — the auto-by-viewport half lives in
   // `App.vue`'s `activeSkin` (`presentationState.narrowViewport`), which this override beats.
-  function switchToMobile(): void { setSkinOverride('mobile'); }
+  function switchToMobile(): void { featureUse.feature('skin_switch'); setSkinOverride('mobile'); }
   // Back to choosing the skin from the window width, as at first start.
   function useAutomaticSkin(): void { setSkinOverride(null); }
   const skinIsAutomatic = computed(() => presentationState.ui.skinOverride === undefined);
@@ -728,12 +728,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
     createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator, radiatorPicks: useRadiatorPicks() });
   function startEdit() {
-    recentActions.record('dialog:driver-editor');
+    featureUse.feature('driver_editor');
     editProjectDriver();
   }
   /** The Driver tab's "N values disagree" link: the same editor as Edit, with its disagreement list showing. */
   function showDriverDisagreements() {
-    recentActions.record('dialog:driver-editor');
+    featureUse.feature('driver_editor');
     editProjectDriver(true);
   }
 

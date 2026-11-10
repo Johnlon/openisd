@@ -52,7 +52,8 @@ export type ActionName =
   | 'feature:save_file'
   | 'feature:backup'
   | 'feature:restore'
-  | 'feature:chart_data';
+  | 'feature:chart_data'
+  | 'feature:skin_switch';
 
 /** A ring buffer of the last user actions, oldest first. */
 export class RecentActions {

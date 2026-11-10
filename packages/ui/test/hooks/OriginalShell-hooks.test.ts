@@ -11,23 +11,12 @@ import {testAppLogic} from './testAppLogic.js';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {provideTelemetryUi} from '../../src/hooks/telemetryContext.js';
-import {FeatureUse} from '../../src/logic/telemetry/featureUse.js';
-import {NoTelemetry, type Telemetry} from '../../src/logic/telemetry/telemetry.js';
-import {CrashReports} from '../../src/logic/telemetry/crashReports.js';
-import {InstallMarker} from '../../src/logic/telemetry/install.js';
-import {LaunchReporter, type LaunchEnvironment} from '../../src/logic/telemetry/launch.js';
-import {ErrorContext, RecentActions} from '../../src/logic/telemetry/errorContext.js';
-import type {TelemetryEvent} from '../../src/logic/telemetry/events.js';
+import {recordingTelemetryUi} from '../fixtures/recordingTelemetryUi.js';
 import {
   createEnvironmentAir,
   fillBlankMeta,
   useOriginalShell,
 } from '../../src/hooks/OriginalShell-hooks.js';
-
-const LAUNCH_ENV: LaunchEnvironment = {
-  standalone: false, platformHint: undefined, userAgent: 'test',
-  screenW: 1440, screenH: 900, lang: 'en-GB', referrer: '', keysLost: [],
-};
 
 function createCompleteProject() {
   const engine = createEngine();
@@ -83,12 +72,11 @@ describe('OriginalShell-hooks', () => {
 
   // John, 10 Nov 2026: "scan rest of app for missed telemetry". The tab remembered from last time
   // is not a use of it: only a tab the user opens counts.
-  it('counts Filters when the user opens it, not when the app starts on it', async () => {
-    const events: TelemetryEvent[] = [];
-    const telemetry: Telemetry = {record: e => events.push(e), flush: () => {}};
-    const actions = new RecentActions();
+  /** The desktop shell on a complete project, its usage events recorded. `tab` is the tab remembered from last time. */
+  function recordedShell(tab: string) {
+    const {telemetryUi, events} = recordingTelemetryUi();
     const logic = testAppLogic();
-    logic.presentation.ui.originalProjectTab = 'filters';
+    logic.presentation.ui.originalProjectTab = tab;
     const {project} = createCompleteProject();
     const app = createApp({render: () => null});
     app.provide(APP_LOGIC, logic);
@@ -98,13 +86,14 @@ describe('OriginalShell-hooks', () => {
       dismiss: () => undefined, show: () => undefined,
     });
     provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));
-    provideTelemetryUi(app, {
-      featureUse: new FeatureUse(telemetry, actions),
-      crashReports: new CrashReports(telemetry, new ErrorContext({screen: () => 'original/Filters', dialog: () => 'none', projects: () => 1, box: () => 'sealed', actions, device: () => 'test'}), async () => ''),
-      launch: new LaunchReporter(telemetry, () => LAUNCH_ENV, work => work(), new InstallMarker(new NoTelemetry(), createMemoryStorage())),
-      actions,
-    });
-    const shell = app.runWithContext(() => useOriginalShell());
+    provideTelemetryUi(app, telemetryUi);
+    return {shell: app.runWithContext(() => useOriginalShell()), events};
+  }
+
+  // John, 10 Nov 2026: "scan rest of app for missed telemetry". The tab remembered from last time
+  // is not a use of it: only a tab the user opens counts.
+  it('counts Filters when the user opens it, not when the app starts on it', async () => {
+    const {shell, events} = recordedShell('filters');
     await nextTick();
     expect(events).not.toContainEqual({kind: 'feature', name: 'filters'});
 
@@ -113,6 +102,14 @@ describe('OriginalShell-hooks', () => {
     shell.activeTab.value = 'filters';
     await nextTick();
     expect(events).toContainEqual({kind: 'feature', name: 'filters'});
+  });
+
+  it('counts the Driver Editor opened and a skin switch', () => {
+    const {shell, events} = recordedShell('box');
+    shell.startEdit();
+    expect(events).toContainEqual({kind: 'feature', name: 'driver_editor'});
+    shell.switchToMobile();
+    expect(events).toContainEqual({kind: 'feature', name: 'skin_switch'});
   });
 
   describe('createEnvironmentAir', () => {

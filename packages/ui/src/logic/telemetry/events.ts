@@ -56,7 +56,7 @@ export type RadiatorSource = 'bundled' | 'mine';
 /** A passive radiator chosen; `name` as for `DriverPickEvent`. */
 export interface RadiatorPickEvent { readonly kind: 'radiator_pick'; readonly source: RadiatorSource; readonly id: string; readonly name: string }
 export type FeatureName =
-  | 'whatif' | 'tune' | 'filters' | 'export' | 'import' | 'driver_db' | 'options' | 'vents' | 'save_file' | 'share_link' | 'diagnostics' | 'backup' | 'restore' | 'chart_data';
+  | 'whatif' | 'tune' | 'filters' | 'export' | 'import' | 'driver_db' | 'options' | 'vents' | 'save_file' | 'share_link' | 'diagnostics' | 'backup' | 'restore' | 'chart_data' | 'driver_editor' | 'skin_switch';
 export interface ChartViewEvent { readonly kind: 'chart_view'; readonly chart: ChartId }
 export interface FeatureEvent { readonly kind: 'feature'; readonly name: FeatureName }
 export interface AnonymousErrorContext {
