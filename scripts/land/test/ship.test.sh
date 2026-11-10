@@ -40,6 +40,7 @@ setup() {
 LINT_CMD="bash gates/ok.sh"
 TYPECHECK_CMD="bash gates/type.sh"
 ACTIONS_REPO=o/r
+GATE_FILES="land.conf"
 EOF2
   touch tasks/.keep; echo base > a.txt
   git add -A; git commit -qm base; git push -q origin main
@@ -82,6 +83,17 @@ setup 0; git -C "$SCRATCH/w/wt" switch -q -c other
 ship T1; r=$?
 [ $r = 2 ] && grep -q REFUSED "$SCRATCH/out" && [ -z "$(git -C "$ORIGIN" for-each-ref refs/heads | grep -v main)" ] && [ -d "$SCRATCH/w/wt" ] \
   && ok "refuses to push any branch but t1" || fail "other ref (r=$r): $(tail -5 "$SCRATCH/out")"
+
+# (e) task contract (T758): a changed file outside the task's allowlist exits 1 before any push, naming the file
+setup 0; echo stray > "$SCRATCH/w/wt/b.txt"
+ship T1; r=$?
+[ $r = 1 ] && [ -z "$(remote_t1)" ] && [ -d "$SCRATCH/w/wt" ] && [ ! -s "$CALLS" ] && grep -q 'b.txt' "$SCRATCH/out" \
+  && ok "a file outside the allowlist pushes nothing and is named" || fail "allowlist (r=$r): $(tail -5 "$SCRATCH/out")"
+# a second task file in the diff is refused too (its path is not in T1's allowlist)
+setup 0; printf 'id: T2\nowner: y\nstatus: open\ngoal: g\nrelease_note: internal\ndone_test: true\nfiles:\n  - b.txt\n' > "$SCRATCH/w/wt/tasks/T2.yml"
+ship T1; r=$?
+[ $r = 1 ] && [ -z "$(remote_t1)" ] && grep -q 'tasks/T2.yml' "$SCRATCH/out" \
+  && ok "a second task file is refused and named" || fail "second task (r=$r): $(tail -5 "$SCRATCH/out")"
 
 [ $fails = 0 ] && { echo "ship: all passed"; exit 0; }
 echo "ship: $fails failed"; exit 1

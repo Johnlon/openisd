@@ -1,0 +1,17 @@
+id: T758
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Pull requests run only the fast gates; the full suite runs on main after merge (John: pick A)
+done_test: bash scripts/land/test/ship.test.sh && bash scripts/land/test/suite-upload-verdict.test.sh && bash scripts/land/test/release-deploy-dispatch.test.sh
+gates_approved: QO501
+files:
+  - tasks/T758.yml
+  - .github/workflows/pr.yml
+  - .github/workflows/suite.yml
+  - scripts/ship.sh
+  - scripts/land/test/ship.test.sh
+  - docs/DEV_PROCESS.md
+  - docs/SDLC_POLICY.md
+  - .claude/rules/verify.md

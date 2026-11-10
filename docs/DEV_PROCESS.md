@@ -82,7 +82,9 @@ A task merges as one squash commit, subject "(auto) <id>: <goal>", body the rele
 
 1. Commit everything in the worktree; set status done.
 2. Rebase onto origin/main. A conflict aborts the rebase, marks the task blocked, exits 3; nothing is removed.
-3. Optional quick local check (lint and typecheck on the changed files), so CI is not spent on a typo.
+3. The task contract, as the pull request's `task` job runs it (`scripts/land/check-task-contract.sh --pr`: locked
+   hashes, `files` allowlist, status, gate files), then, optionally, lint and typecheck on the changed files. A
+   file outside the allowlist exits 1 naming it, before anything is pushed.
 4. Push `t<nnn>` (never forced), open or reuse the pull request, `gh pr merge --auto --squash`.
 5. Delete the worktree.
 
@@ -95,11 +97,14 @@ A task merges as one squash commit, subject "(auto) <id>: <goal>", body the rele
 - lint on the changed files, typecheck, the unit tests the change reaches, every architecture unit test
   (`scripts/land/unit-architecture.sh`, whatever changed: they read the source tree), `done_test`, the visual
   `SOURCES.sha256` check;
-- the full suite (`.github/workflows/suite.yml`: unit tests in two halves, typecheck, the browser specs in 10
-  shards). No rerun: a flaky spec is a red.
+- that is all: 6 jobs, about 5 minutes. The full suite does not run on a pull request (John, QO501, 10 Nov 2026,
+  "pick A": GitHub's free plan runs 20 jobs at once for the whole account, so 22-job pull requests queued one
+  after another).
 
-Red main cannot happen through the queue. If main is ever red, the fix is a pull request labelled `fixes`,
-first in the queue (`docs/SDLC_POLICY.md` §1).
+The full suite (`.github/workflows/suite.yml`: unit tests in two halves, typecheck, shell tests, the browser specs
+in 10 shards) runs once on main after each merge. No rerun: a flaky spec is a red. A red opens a GitHub issue
+labelled `main-red` naming the commit and the run (job `report`). The fix is a pull request labelled `fixes`,
+first in the queue (`docs/SDLC_POLICY.md` §1), whose body says "Fixes #<issue>".
 
 `GATE_FILES` (`land.conf`): `pr-gate` fails when the diff touches one of these globs (coverage scripts, vitest, eslint, tsconfig, suite.yml) unless the task has `gates_approved: QO<n>` and board item QO<n> (`QUESTIONS_FILE`) has a thread entry `by: John`.
 

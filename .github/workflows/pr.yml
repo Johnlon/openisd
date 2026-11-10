@@ -1,7 +1,9 @@
 name: pr
 
-# The one required check of a pull request to main, `pr-gate` (T749, QO481 A): every fast gate scripts/land.sh runs
-# (each is the same script land.sh calls, under scripts/land/ and scripts/visual/) and the full suite.
+# The one required check of a pull request to main, `pr-gate` (T749, QO481 A; T758, QO501 A): the fast gates only
+# (task contract, lint, typecheck, unit, architecture, done-test: 6 jobs, ~5 min). The full suite does not run
+# here: GitHub's free plan runs 20 jobs at once for the whole account, so a 22-job pull request queued the next
+# one. suite.yml runs it on main after each merge and a red there opens an issue (docs/DEV_PROCESS.md).
 # Runs on the pull request and again on the merge queue's merged result (merge_group).
 on:
   pull_request:
@@ -128,16 +130,10 @@ jobs:
       - name: the task's done_test
         run: bash scripts/land/run-done-test.sh "tasks/$PR_TASK.yml"
 
-  # The full suite (suite.yml, the same workflow the landing candidate runs), on the commit under test.
-  suite:
-    uses: ./.github/workflows/suite.yml
-    with:
-      sha: ${{ github.sha }}
-
   # The one name the main ruleset requires. Red when any job above is not green.
   pr-gate:
     if: ${{ always() }}
-    needs: [task, lint, typecheck, unit, architecture, done-test, suite]
+    needs: [task, lint, typecheck, unit, architecture, done-test]
     runs-on: ubuntu-latest
     steps:
       - name: every gate green

@@ -5,7 +5,8 @@ the normal path to main: [`DEV_PROCESS.md`](DEV_PROCESS.md).
 
 ## 1. Main broken: fix first, fix only (John, 31 Oct 2026; queue QO481, 10 Nov 2026)
 
-Through the merge queue main cannot go red: only green merged results reach it. If main is ever red anyway (the
+Pull requests run only the fast gates, so a browser break can reach main; the full suite runs there after each merge and a red
+opens a `main-red` issue (QO501, John 10 Nov 2026, "pick A"). When main is red (that issue, the
 deploy fails, a release is blocked, John says so), the fix is a pull request labelled `fixes`, first in the queue.
 
 - Do **only** the fix. No visual baseline re-takes, no coverage baselines, no bookkeeping, tidying or other
@@ -20,12 +21,12 @@ deploy fails, a release is blocked, John says so), the fix is a pull request lab
 > "no you run just that one test to make sure it works before running other tests" — "don't run full suite until
 > all individuals work then try running a small cluster 2 or 3 around it, then the suite, be smart and efficient"
 
-A full suite costs ~9 min on GitHub and per pull request retry. Climb the ladder, never skip a rung:
+A full suite costs ~9 min on GitHub (it runs on main after each merge, not on pull requests). Climb the ladder, never skip a rung:
 
 1. Each failing spec alone: `bash scripts/test.sh <spec>`. Fails alone → real defect: fix it, red first.
 2. A cluster of 2–3 neighbouring specs (same area, shared state) together. A pass alone but a fail here →
    interaction bug: fix it.
-3. Only then the full suite (`pr-gate`, by `ship.sh`).
+3. Only then the full suite (on main after the merge, `suite.yml`).
 
 Never re-push a pull request or re-run the suite on a red before rungs 1 and 2 pass locally. A spec that passes alone and on
 the cluster but fails again in a full run is a flaky test: it gets a bug file and a task, never a silent rerun.

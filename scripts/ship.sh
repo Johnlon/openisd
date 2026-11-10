@@ -11,7 +11,7 @@
 #           pushed, and nothing is removed
 #
 # Steps: 1 commit everything (nothing discarded; the hooks run), 2 status done, 3 fetch and rebase onto origin/main,
-# 4 quick local check (lint on the changed files + typecheck; --no-local-check skips), 5 push branch t<n> (the only
+# 3b the task contract (the PR `task` job's check, run locally; a refusal exits 1, nothing pushed), 4 quick local check (lint on the changed files + typecheck; --no-local-check skips), 5 push branch t<n> (the only
 # ref this script ever pushes; --force-with-lease against the sha it just read, because a rebase rewrites history),
 # 6 open or reuse the pull request, gh pr merge --auto --squash, 7 remove the worktree and local branch once the
 # remote branch is the local commit.
@@ -108,6 +108,15 @@ if ! git merge-base --is-ancestor origin/main HEAD; then
     exit 3
   fi
 fi
+
+# 3b. the task contract, exactly as the pull request's `task` job runs it (T758): locked hashes, task id and owner,
+# status, gate files, and every changed file inside the task's `files` allowlist. A refusal names the files and
+# nothing is pushed. The board file is not read (a GitHub runner has none), so the local verdict equals CI's.
+contract="$(GATE_FILES="${GATE_FILES:-}" QUESTIONS_FILE=/nonexistent bash "$HERE/land/check-task-contract.sh" "$ID" origin/main HEAD --pr 2>&1)" || {
+  printf '%s\n' "$contract" >&2
+  echo "ship: the task contract refuses $ID (the pull request's task check would fail); nothing pushed. Offending files are listed above" >&2
+  exit 1
+}
 
 # 4. quick local check: lint on the changed files, typecheck
 if [ -n "$LOCAL_CHECK" ]; then
