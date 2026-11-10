@@ -24,12 +24,12 @@ describe('view change guard',()=>{
   });
   it('accepts a removal that has a removed row with a ruling',()=>{
     const row={id:VIEW_INDEX[0].id,by:'John',date:'2026-11-09',ref:'QO1'};
-    expect(viewChangeProblems(VIEW_INDEX.slice(1),BASELINE_VIEW_IDS,[row])).toEqual([]);
+    expect(viewChangeProblems(VIEW_INDEX.slice(1),BASELINE_VIEW_IDS,[...REMOVED_VIEWS,row])).toEqual([]);
   });
   it('fails a removed row with no ruling, or for a view still present',()=>{
     const id=VIEW_INDEX[0].id;
-    expect(viewChangeProblems(VIEW_INDEX.slice(1),BASELINE_VIEW_IDS,[{id,by:'',date:'',ref:''}])).toEqual(['removed row without a ruling: '+id]);
-    expect(viewChangeProblems(VIEW_INDEX,BASELINE_VIEW_IDS,[{id,by:'J',date:'d',ref:'r'}])).toEqual(['listed as removed but still in the index: '+id]);
+    expect(viewChangeProblems(VIEW_INDEX.slice(1),BASELINE_VIEW_IDS,[...REMOVED_VIEWS,{id,by:'',date:'',ref:''}])).toEqual(['removed row without a ruling: '+id]);
+    expect(viewChangeProblems(VIEW_INDEX,BASELINE_VIEW_IDS,[...REMOVED_VIEWS,{id,by:'J',date:'d',ref:'r'}])).toEqual(['listed as removed but still in the index: '+id]);
   });
   it('keeps the baseline free of duplicates',()=>{
     expect(BASELINE_VIEW_IDS.filter((id,i)=>BASELINE_VIEW_IDS.indexOf(id)!==i)).toEqual([]);

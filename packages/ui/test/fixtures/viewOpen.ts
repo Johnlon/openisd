@@ -57,9 +57,9 @@ function derivedStep(view: ViewEntry, skin: WalkSkin): OpenStep | undefined {
   }
 }
 
-/** A step with no root of its own measures the whole body. */
-function withRoot(step: OpenStep): OpenStep {
-  return {root: step.root === '' ? 'body' : step.root, open: step.open};
+/** A step with no root of its own measures the whole body; the console errors its own fault writes are listed for the browser-log check. */
+function withRoot(step: OpenStep): Omit<Extract<ViewPlan, {kind: 'open'}>, 'kind'> {
+  return {root: step.root === '' ? 'body' : step.root, open: step.open, ownConsoleErrors: step.expectedConsoleError === undefined ? [] : [step.expectedConsoleError]};
 }
 
 /** The plan for one view in one skin: an extra step, a derived step, or a reason. */

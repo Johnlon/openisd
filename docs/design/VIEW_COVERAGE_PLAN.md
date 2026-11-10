@@ -28,14 +28,14 @@ is allowed. No reading or writing app state objects. Each batch: write the steps
 | browser-owned: native-files | Partly | Assert Playwright's `filechooser` event fires from the button (that is "opened"). The OS dialog cannot be drawn in the page. |
 | browser-owned: native-select, native-colour, trace-colour-picker | Not openable | The popup is drawn by the browser outside the page; headless Chromium does not render it and no DOM or screenshot of it exists. Keep the reason; the closed control is already walked. |
 | browser-owned: native-title (hover tooltip) | Not openable | Browser-drawn tooltip, not in the DOM. Keep the reason. The `title` text itself is checked by the field-title tests. |
-| index-disagrees (wizard step 5 of passive radiator) | Needs John | The index lists a step the phone wizard does not have. Remove the row or add the step is his decision. Board item, not a test. |
+| index-disagrees (wizard step 5 of passive radiator) | Done | The row was removed (T771): the PR wizard has four steps. |
 
 ## Batches (smallest first)
 
 | # | Pairs | Reason cleared | How each is opened |
 |---|---|---|---|
 | 1 | 5 | outside-app (DONE T769, ceiling 126) | `goto` the static URL, measure `body`. Phone `refresh`: `/about/refresh/`. |
-| 2 | 8 | saved-state-needed | See "Saved state" below. |
+| 2 | 8 | saved-state-needed (DONE T771, ceiling 117; also removed the PR wizard step-5 row) | See "Saved state" below. |
 | 3 | 10 | cloud-account-needed | See "Cloud". |
 | 4 | 17 | rejected-input-needed | See "Rejected input". |
 | 5 | 18 | fault-needed | See "Faults". |

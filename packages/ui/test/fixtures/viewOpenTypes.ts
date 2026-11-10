@@ -30,8 +30,9 @@ export const NO_OPEN_WHY: Readonly<Record<NoOpenReason, string>> = {
 };
 
 export type ViewPlan =
-  | {readonly kind: 'open'; readonly root: string; readonly open: (page: Page) => Promise<void>}
+  | {readonly kind: 'open'; readonly root: string; readonly open: (page: Page) => Promise<void>; readonly ownConsoleErrors: readonly RegExp[]}
   | {readonly kind: 'reason'; readonly reason: NoOpenReason};
 /** A step that opens a view from a page that already holds a project. */
-export interface OpenStep {readonly root: string; readonly open: (page: Page) => Promise<void>}
+/** `expectedConsoleError`: the one console message the view's own fault writes (the browser-log check expects it and then clears it). */
+export interface OpenStep {readonly root: string; readonly open: (page: Page) => Promise<void>; readonly expectedConsoleError?: RegExp}
 

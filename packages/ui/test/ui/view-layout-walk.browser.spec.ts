@@ -28,9 +28,12 @@ const KNOWN: readonly KnownFault[] = [
 ];
 
 for (const {view, skin, plan} of openTargets()) {
-  test(`${skin} ${view.id}`, async ({page}) => {
+  test(`${skin} ${view.id}`, async ({page, browserLog}) => {
     await startWalk(page, skin);
     await plan.open(page);
+    // The console errors a view's own fault writes are expected; any other stays and fails the browser-log check.
+    expect(browserLog.consoleErrors.filter(message => !plan.ownConsoleErrors.some(own => own.test(message))), `${view.id}: console errors other than its own fault`).toEqual([]);
+    browserLog.reset();
     const root = plan.root;
     await page.locator(root).first().waitFor({state: 'visible'});
     const stepperGap = stepperGapFor(skin, PhoneRowColumns.MIN_STEPPER_GAP_PX);
