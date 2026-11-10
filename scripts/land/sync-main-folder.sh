@@ -23,15 +23,24 @@
 #   6. The main folder moved to a new commit: the openisd-preview unit (Vite on the main folder) is restarted, if
 #      installed. Vite does not cope with a branch moving under it: it serves a mix of old and new modules (T427).
 #      A failed restart is logged and exits 1.
-# Only a passed commit is ever pulled: the last green that post-land recorded (${POST_LAND_RECORD}.green), never
-# the tip of main. Every action is logged with a UTC timestamp; runs never overlap (flock in the git dir).
+# Only a passed commit is ever pulled, never the tip of main. Every action is logged with a UTC timestamp; runs
+# never overlap (flock in the git dir). The passed commit is the furthest along origin/main of:
+#   - the last green that post-land recorded (${POST_LAND_RECORD}.green; the old landing path, land.sh);
+#   - the last green this script read from GitHub, kept in its own record ${OPENISD_STATE_DIR}/sync-main-folder.green
+#     (T780, 10 Nov 2026: main moves by pull request on the copy named in ship.conf and the full suite runs there
+#     on each push to main; post-land read the mirror, where that run is skipped, recorded no green for 19 h, and
+#     the folder stood still). Each run asks that repo (SHIP_REPO in origin/main's ship.conf) for its successful
+#     suite.yml runs on a push to main and takes only a first attempt (a re-run that passes is a flake, and a
+#     flake is a red; a hand-started run names main's head, not the commit it tested). A commit counts only when it
+#     is on origin/main and not behind the record, so the folder never moves backward. GitHub unreadable, or no
+#     ship.conf: the records are used as they are. post-land's record is never written here.
 #
 #   bash scripts/land/sync-main-folder.sh [--passed <sha>] [<any checkout of the repo>]
 #   --passed: land.sh names the commit it just pushed, whose candidate run passed (post-land records it later).
 #
 # Copies: the main folder, plus each path in the repo's git config openisd.syncedCopy (the preview, which stays
 # a detached worktree). Env: SYNC_LOG (default <main>/build/test-logs/sync-main-folder.log), SYNC_NPM (default
-# npm), SYNC_SYSTEMCTL (default systemctl), POST_LAND_RECORD / OPENISD_STATE_DIR (scripts/paths.sh).
+# npm), SYNC_SYSTEMCTL (default systemctl), SYNC_GH (default gh), POST_LAND_RECORD / OPENISD_STATE_DIR (scripts/paths.sh).
 # Exit 0 every copy at the last passed commit (stray branches made are not a failure), 1 a copy is held (git
 # failure, a stray branch that could not be made or verified): logged.
 set -uo pipefail
@@ -49,6 +58,8 @@ NPM="${SYNC_NPM:-npm}"
 SYSTEMCTL="${SYNC_SYSTEMCTL:-systemctl}"
 PREVIEW_UNIT=openisd-preview
 GREEN="${POST_LAND_RECORD}.green"
+GH="${SYNC_GH:-gh}"
+OWN_GREEN="$OPENISD_STATE_DIR/sync-main-folder.green"
 
 mkdir -p "$(dirname "$LOG")"
 log() { printf '%s sync-main-folder: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" | tee -a "$LOG"; }
@@ -59,7 +70,38 @@ flock -n 8 || { echo "sync-main-folder: another run is syncing"; exit 0; }
 # Tools that write refuse to run here (scripts/lib/main-folder.sh).
 [ "$(git -C "$main" config --get openisd.mainFolder)" = "$main" ] || git -C "$main" config openisd.mainFolder "$main"
 timeout 120 git -C "$main" fetch -q origin main || { log "cannot fetch origin main; nothing moved"; exit 1; }
-target="${passed:-$(cat "$GREEN" 2> /dev/null)}"
+# on_main <sha>: a full commit id that origin/main holds
+on_main() {
+  [[ "$1" =~ ^[0-9a-f]{40}$ ]] && git -C "$main" cat-file -e "$1^{commit}" 2> /dev/null \
+    && git -C "$main" merge-base --is-ancestor "$1" origin/main 2> /dev/null
+}
+# further <sha>: <sha> becomes the target when it is on origin/main and the target is not ahead of it
+further() {
+  on_main "$1" || return 1
+  [ -z "$target" ] || git -C "$main" merge-base --is-ancestor "$target" "$1" 2> /dev/null || return 1
+  target="$1"
+}
+# github_green: the furthest-along commit of the ship repo's green suite runs (first attempt, push to main) that
+# is ahead of the target becomes the target and is kept in this script's own record.
+github_green() {
+  local ship_repo runs sha before="$target"
+  ship_repo="$(git -C "$main" show origin/main:ship.conf 2> /dev/null | sed -n 's/^SHIP_REPO=//p' | head -n 1)"
+  [[ "$ship_repo" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]] || return 0
+  runs="$(timeout 60 "$GH" run list --repo "$ship_repo" --workflow suite.yml --branch main --event push --status success \
+          --limit 30 --json headSha,attempt --jq '.[] | select(.attempt == 1) | .headSha' 2> /dev/null)" \
+    || { log "cannot read $ship_repo's suite runs; using the recorded green"; return 0; }
+  while read -r sha; do further "$sha"; done <<< "$runs"
+  [ "$target" != "$before" ] || return 0
+  printf '%s\n' "$target" > "$OWN_GREEN.$$" && mv -f "$OWN_GREEN.$$" "$OWN_GREEN" \
+    || { rm -f "$OWN_GREEN.$$"; log "cannot write $OWN_GREEN"; return 0; }
+  log "last green suite run on $ship_repo main: ${target:0:10}"
+}
+target="$passed"
+if [ -z "$target" ]; then
+  target="$(cat "$GREEN" 2> /dev/null)"
+  further "$(cat "$OWN_GREEN" 2> /dev/null)"
+  github_green
+fi
 [ -n "$target" ] || { log "no passed commit recorded ($GREEN); nothing moved"; exit 1; }
 git -C "$main" merge-base --is-ancestor "$target" origin/main 2> /dev/null \
   || { log "the last passed commit ${target:0:10} is not on origin/main; nothing moved"; exit 1; }

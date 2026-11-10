@@ -1,0 +1,13 @@
+id: T780
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: The main folder follows the last green full-suite run on the repo where the suite runs (portingle), not a record nothing writes any more
+why: John, 10 Nov 2026 - process controls change after an independent review, and the change is recorded; incident 10 Nov 2026 - the main folder sat 19 h behind main because post-land reads the suite run on Johnlon, where it is skipped, so no green was recorded
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/sync-main-folder.e2e.test.sh
+files:
+  - tasks/T780.yml
+  - scripts/land/sync-main-folder.sh
+  - scripts/land/test/sync-main-folder.e2e.test.sh
+  - docs/DEV_PROCESS.md

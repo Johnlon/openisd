@@ -52,7 +52,10 @@ name that already exists is another session's: commands run there land in its ta
 id is its own: `pr-gate` fails a branch whose `tasks/<id>.yml` would replace another owner's on main.
 
 The main folder (`openisd`, the main checkout) and the lap:4000 preview copy follow main
-(`scripts/land/sync-main-folder.sh`, run by the watchdog every tick). Nobody works or writes there:
+(`scripts/land/sync-main-folder.sh`, run by the watchdog every tick), up to the last commit whose full suite
+passed: the last green first-attempt `suite.yml` run on a push to main in the repo named in `ship.conf`, kept in
+`~/.local/state/openisd/sync-main-folder.green` (T780), or post-land's record when that is further along. While
+main is red the folder stays at the last green. Nobody works or writes there:
 `claim.sh`, `integrate.sh`, `sync-driver-snapshot.sh` and `inbox.py` refuse to. Stray edits found there are
 committed as a WIP commit and the folder is rebased; edits already on main drop out.
 
