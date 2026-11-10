@@ -28,6 +28,12 @@ git add -A && git commit -qm change && head=$(git rev-parse HEAD)
 task mobile-a mobile-c desktop-b
 bash scripts/visual/check-task.sh tasks/T1.yml "$base" "$head" > out.txt 2>&1 && ok "a task that lists every changed screen passes" || fail "listed change refused: $(cat out.txt)"
 
+# T762: a pull request carrying two tasks pools their visual lists
+task mobile-a mobile-c; printf 'id: T2\nvisual:\n  - desktop-b\n' > tasks/T2.yml
+bash scripts/visual/check-task.sh tasks/T1.yml tasks/T2.yml "$base" "$head" > out.txt 2>&1 && ok "two tasks together list every changed screen" || fail "pooled lists refused: $(cat out.txt)"
+bash scripts/visual/check-task.sh tasks/T1.yml "$base" "$head" > out.txt 2>&1 && fail "one task alone passed with a screen only the other lists" || ok "one task alone does not cover the other's screen"
+rm tasks/T2.yml
+
 task mobile-a mobile-c
 bash scripts/visual/check-task.sh tasks/T1.yml "$base" "$head" > out.txt 2>&1 \
   && fail "an unlisted change passed" || { grep -q "desktop-b" out.txt && ok "an unlisted changed screen is refused and named" || fail "refusal does not name the screen: $(cat out.txt)"; }

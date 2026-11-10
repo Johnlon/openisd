@@ -37,17 +37,26 @@ jobs:
       - run: python3 -m pip install pyyaml==6.0.2
       - run: bash scripts/ci/pr-setup.sh "$EVENT" "$GROUP_BASE"
       - name: task contract (locked hashes, files allowlist, task id and owner, status, gate files approved)
+        # PR_TASK is every task the pull request carries (T762); each is checked with the others named, so a file
+        # in any carried task's allowlist passes.
         run: |
-          out="$(bash scripts/land/check-task-contract.sh "$PR_TASK" origin/main HEAD --pr)" && exit 0
-          printf '%s\n' "$out" | awk -F'\t' '$1 == "REFUSE" { printf "::error title=task contract (%s)::%s\n", $2, $3 }'; printf '%s\n' "$out"; exit 1
+          rc=0
+          for t in $PR_TASK; do
+            others=(); for o in $PR_TASK; do [ "$o" = "$t" ] || others+=("$o"); done
+            out="$(bash scripts/land/check-task-contract.sh "$t" origin/main HEAD --pr "${others[@]}")" && continue
+            printf '%s\n' "$out" | awk -F'\t' '$1 == "REFUSE" { printf "::error title=task contract (%s)::%s\n", $2, $3 }'; printf '%s\n' "$out"; rc=1
+          done
+          exit "$rc"
       - name: attribution on every commit message
         run: bash scripts/land/attribution-range.sh origin/main HEAD
       - name: driver model ruling (from main's copy of the gate)
         run: |
           git show origin/main:scripts/land/check-model-ruling.sh > "$RUNNER_TEMP/check-model-ruling.sh"
-          bash "$RUNNER_TEMP/check-model-ruling.sh" "$PR_TASK" origin/main HEAD
+          # a driver model change needs the ruling on one of the carried tasks
+          for t in $PR_TASK; do bash "$RUNNER_TEMP/check-model-ruling.sh" "$t" origin/main HEAD > "$RUNNER_TEMP/ruling.out" && exit 0; done
+          cat "$RUNNER_TEMP/ruling.out"; exit 1
       - name: visual baselines match the task's visual list
-        run: bash scripts/visual/check-task.sh "tasks/$PR_TASK.yml" origin/main HEAD
+        run: bash scripts/visual/check-task.sh $(for t in $PR_TASK; do echo "tasks/$t.yml"; done) origin/main HEAD
       - name: visual baselines match the UI sources (SOURCES.sha256)
         run: bash scripts/visual/check-sources.sh origin/main HEAD
 
@@ -127,8 +136,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: bash scripts/ci/pr-setup.sh "$EVENT" "$GROUP_BASE"
-      - name: the task's done_test
-        run: bash scripts/land/run-done-test.sh "tasks/$PR_TASK.yml"
+      - name: the done_test of every carried task
+        run: |
+          rc=0
+          for t in $PR_TASK; do echo "== done_test of $t"; bash scripts/land/run-done-test.sh "tasks/$t.yml" || rc=1; done
+          exit "$rc"
 
   # The one name the main ruleset requires. Red when any job above is not green.
   pr-gate:

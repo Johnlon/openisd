@@ -74,9 +74,19 @@ Nothing is archived: the record is one line in `build/test-logs/tidy-branches.lo
 
 Cannot proceed: set `status: blocked` with one plain sentence, and stop.
 
-## `scripts/ship.sh <id>` — the only path to main
+## `scripts/ship.sh <id>...` — the only path to main
 
 A task merges as one squash commit, subject "(auto) <id>: <goal>", body the release note.
+
+A pull request may carry several tasks (John, 10 Nov 2026: "go with A"): `ship.sh T739 T747`, run from T739's
+worktree, opens ONE pull request titled "(auto) T739, T747: <goal> / <goal>". The work of every id is already in
+that branch (merge the other task's branch into it first) and each `tasks/<id>.yml` is in the tree, else exit 2,
+nothing pushed. The checks accept it when every changed file is in at least one carried task's `files` allowlist
+(`scripts/land/pr-task.sh` prints the carried ids; a file in none is refused and named); the task contract runs
+once per task with the others named, `gates_approved` and `ruling` may sit on any one carried task, the visual list
+is the pooled lists of all of them, and the `done-test` job runs every carried task's `done_test`. A task file whose
+only change is the sha256 of a locked file this change edits is still not a carried task (T757). After the push the
+other ids' worktrees go if they are clean and their branches if their commits are in the shipped branch.
 
 `ship.sh`, in order:
 

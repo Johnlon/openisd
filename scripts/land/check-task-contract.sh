@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # The task-contract gate, shared by scripts/land.sh and the pull request check (.github/workflows/pr.yml, T749):
 #
-#   bash scripts/land/check-task-contract.sh <task-id> <base> <head> [--pr]      run from the repo root, <head> checked out
+#   bash scripts/land/check-task-contract.sh <task-id> <base> <head> [--pr [<other-task-id>...]]      run from the repo root, <head> checked out
 #
 # One copy of: the task id is this task's own (another owner on <base> refuses), locked files match their hash,
 # done_test and locked entries are what <base> has, a file another task locks is not changed without its hash,
 # and a gate file (GATE_FILES, land.conf) changes only with `gates_approved: QO<n>` in the task file.
 # --pr adds what a pull request needs and land.sh never asked: the task file is well formed and its status is
 # valid, and every changed file matches the task's `files:` allowlist (scripts/land/task-gates/check-commit.sh).
+#
+# A pull request may carry several tasks (T762): run this once per task, naming the others after --pr; a file may then
+# be in any of their allowlists, and gates_approved may sit on any one of them.
 #
 # Exit 0 clean. Exit 1: the first problem, on stdout as `REFUSE<TAB><gate><TAB><detail>` (land.sh turns that
 # into its refusal); more lines may follow. The board check of gates_approved reads QUESTIONS_FILE (land.conf);
@@ -16,8 +19,9 @@ set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -d "$DIR/core" ]; then CORE="$DIR/core"; else CORE="$DIR/land/core"; fi
-ID="${1:?usage: check-task-contract.sh <task-id> <base> <head> [--pr]}"; BASE="${2:?}"; HEAD_REF="${3:?}"
+ID="${1:?usage: check-task-contract.sh <task-id> <base> <head> [--pr [<other-task-id>...]]}"; BASE="${2:?}"; HEAD_REF="${3:?}"
 PR_MODE=""; [ "${4:-}" = "--pr" ] && PR_MODE=1
+CO_TASKS=("${@:5}")   # the other tasks the same pull request carries (T762): a file may be in any carried task's allowlist
 ROOT="$(git rev-parse --show-toplevel)" || exit 2
 cd "$ROOT" || exit 2
 # shellcheck source=./core/task.sh
@@ -78,13 +82,18 @@ for line in sys.stdin.read().split("\n"):
         print(line)
 ' $GATE_FILES | tr '\n' ' ')"
 if [ -n "$gate_hits" ]; then
-  gates_qo="$(task_field "$TASK" gates_approved)"
+  gates_qo="$(task_field "$TASK" gates_approved)"; gates_id="$ID"
+  # a pull request carrying several tasks needs the approval on one of them (T762): the first that has it speaks for the change
+  for co in "${CO_TASKS[@]}"; do
+    [ -n "$gates_qo" ] && break
+    gates_qo="$(task_field "tasks/$co.yml" gates_approved)"; [ -z "$gates_qo" ] || gates_id="$co"
+  done
   gates_msg="gate files changed: ${gate_hits}; a gate file changed; John approves gate changes: put the change to John as a board item and add gates_approved: QO<n> to the task once he has answered"
   [ -n "$gates_qo" ] || fail gates "$gates_msg"
   printf '%s' "$gates_qo" | grep -Eq '^QO[0-9]+$' || fail gates "gates_approved '$gates_qo' is not QO<n>"
   if [ -f "${QUESTIONS_FILE:-/nonexistent}" ]; then
     # exit 0 only when the item with id == gates_approved names this task and has a thread entry by John
-    python3 - "$QUESTIONS_FILE" "$gates_qo" "$ID" <<'PY' || fail gates "$gates_msg (board item $gates_qo has no answer by John in $QUESTIONS_FILE)"
+    python3 - "$QUESTIONS_FILE" "$gates_qo" "$gates_id" <<'PY' || fail gates "$gates_msg (board item $gates_qo has no answer by John in $QUESTIONS_FILE)"
 import re, sys, yaml
 path, qo, task_id = sys.argv[1], sys.argv[2], sys.argv[3]
 names_task = re.compile(r"(?<![A-Za-z0-9])" + re.escape(task_id) + r"(?![A-Za-z0-9])")
@@ -103,6 +112,6 @@ PY
 fi
 
 if [ -n "$PR_MODE" ]; then
-  out="$(bash "$CORE/../task-gates/check-commit.sh" "$BASE" "$HEAD_REF" "$ID" 2>&1)" || fail files "$(printf '%s' "$out" | tr '\n' ' ')"
+  out="$(bash "$CORE/../task-gates/check-commit.sh" "$BASE" "$HEAD_REF" "$ID" "${CO_TASKS[@]}" 2>&1)" || fail files "$(printf '%s' "$out" | tr '\n' ' ')"
 fi
 exit 0

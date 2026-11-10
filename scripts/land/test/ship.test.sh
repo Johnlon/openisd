@@ -96,6 +96,30 @@ ship T1; r=$?
 [ $r = 1 ] && [ -z "$(remote_t1)" ] && grep -q 'tasks/T2.yml' "$SCRATCH/out" \
   && ok "a second task file is refused and named" || fail "second task (r=$r): $(tail -5 "$SCRATCH/out")"
 
+# (f) several tasks (T762): one pull request carries T1 and T2; every file is in one of their allowlists
+setup 0; printf 'id: T2\nowner: y\nstatus: claimed\ngoal: b.txt exists\nrelease_note: internal\ndone_test: true\nfiles:\n  - b.txt\n' > "$SCRATCH/w/wt/tasks/T2.yml"
+echo b > "$SCRATCH/w/wt/b.txt"
+git -C "$SCRATCH/w/main" worktree add -q -b t2 ../wt2     # T2's own worktree: clean, its branch inside t1
+ship T1 T2; r=$?
+[ $r = 0 ] && git -C "$ORIGIN" show "t1:tasks/T1.yml" | grep -q '^status: done' && git -C "$ORIGIN" show "t1:tasks/T2.yml" | grep -q '^status: done' \
+  && git -C "$ORIGIN" show "t1:b.txt" > /dev/null && [ -z "$(git -C "$ORIGIN" rev-parse -q --verify refs/heads/t2)" ] \
+  && ok "T1 and T2 ship as one branch, both tasks done" || fail "two tasks (r=$r): $(tail -5 "$SCRATCH/out")"
+[ "$(grep -c '^pr|create|' "$CALLS")" = 1 ] && grep -q '^pr|create|.*|--title|(auto) T1, T2: a.txt says hello / b.txt exists|' "$CALLS" \
+  && grep -qx 'pr|merge|7|--repo|o/r|--auto|--squash' "$CALLS" \
+  && ok "opens one pull request titled with both ids" || fail "two-task gh calls: $(cat "$CALLS")"
+git -C "$ORIGIN" log -1 --format=%s t1 | grep -q '^(auto) T[12]' && ok "commit subjects keep the (auto) T<n> prefix" || fail "subject: $(git -C "$ORIGIN" log -3 --format=%s t1)"
+[ ! -e "$SCRATCH/w/wt2" ] && ! git -C "$SCRATCH/w/main" rev-parse -q --verify refs/heads/t2 > /dev/null && [ ! -e "$SCRATCH/w/wt" ] \
+  && ok "both worktrees and both local branches are removed" || fail "worktrees left"
+# a carried task whose file is not in the tree is refused before anything is pushed
+setup 0; ship T1 T9; r=$?
+[ $r = 2 ] && [ -z "$(remote_t1)" ] && [ -d "$SCRATCH/w/wt" ] && grep -q 'tasks/T9.yml' "$SCRATCH/out" \
+  && ok "an id with no task file in the tree exits 2 and pushes nothing" || fail "missing task (r=$r): $(tail -5 "$SCRATCH/out")"
+# a carried task's dirty worktree is left alone
+setup 0; printf 'id: T2\nowner: y\nstatus: claimed\ngoal: b.txt exists\nrelease_note: internal\ndone_test: true\nfiles:\n  - b.txt\n' > "$SCRATCH/w/wt/tasks/T2.yml"
+echo b > "$SCRATCH/w/wt/b.txt"; git -C "$SCRATCH/w/main" worktree add -q -b t2 ../wt2; echo unsaved > "$SCRATCH/w/wt2/notes.txt"
+ship T1 T2; r=$?
+[ $r = 0 ] && [ -f "$SCRATCH/w/wt2/notes.txt" ] && ok "a carried task's worktree with unsaved work is left, not removed" || fail "dirty worktree (r=$r): $(tail -5 "$SCRATCH/out")"
+
 # (d) SHIP_REMOTE / SHIP_REPO: the branch goes to that remote and the pull request to that repo, origin sees nothing
 SHIP_REMOTE_FOR_TEST=copy SHIP_REPO_FOR_TEST=c/r setup 0
 COPY="$SCRATCH/w/copy.git"; git init -q --bare -b main "$COPY"

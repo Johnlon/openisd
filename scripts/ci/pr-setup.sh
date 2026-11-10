@@ -6,7 +6,7 @@
 # Makes the runner look like the laptop for land.sh's gate scripts: origin/main is the commit the change is
 # measured against (a pull request's merge commit has main's tip as its first parent; a merge group names its
 # base), the runtime directory is writable, and OPENISD_CI_RUNNER switches off the laptop's memory pools.
-# Exports for later steps, via GITHUB_ENV: PR_BASE, PR_TASK (the one task the change carries; none or two fail here).
+# Exports for later steps, via GITHUB_ENV: PR_BASE, PR_TASK (the task ids the change carries, space separated; none, or a file in no carried task's allowlist, fails here).
 set -euo pipefail
 event="${1:?usage: pr-setup.sh <event-name> <merge-group-base-sha>}"; group_base="${2:-}"
 case "$event" in
