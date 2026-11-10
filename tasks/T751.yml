@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: leader
 status: done
+landed: 43a12838d000f00b949250dc997bae31896a86f6
 goal: abandon.sh records a task John turned down as rejected (John said yes on QO484)
 done_test: bash scripts/land/test/tidy-branches.e2e.test.sh
 files:
