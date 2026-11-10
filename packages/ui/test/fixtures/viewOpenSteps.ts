@@ -4,6 +4,7 @@ import {NoOpenReason, WalkSkin} from './viewOpenTypes.js';
 import type {OpenStep} from './viewOpenTypes.js';
 import {driverEditor, openPhoneWizardStep, phoneTab} from './viewOpenNavigation.js';
 import {SAVED_STATE_STEPS} from './viewOpenSavedState.js';
+import {FAULT_STEPS} from './viewOpenFaults.js';
 import {REJECTED_INPUT_STEPS} from './viewOpenRejected.js';
 import {CLOUD_STEPS} from './viewOpenCloud.js';
 
@@ -46,17 +47,17 @@ steps.push([WalkSkin.Phone, 'driver-more', {root: '.de-more-menu', open: async p
 steps.push(...SAVED_STATE_STEPS);
 steps.push(...CLOUD_STEPS);
 steps.push(...REJECTED_INPUT_STEPS);
+steps.push(...FAULT_STEPS);
 
 /** Open steps written by hand for views the two surface manifests cannot open. */
 export const EXTRA_OPEN_STEPS: ReadonlyMap<string, OpenStep> = new Map(steps.map(([skin, id, step]) => [key(skin, id), step]));
 
 const P = WalkSkin.Phone, D = WalkSkin.Desktop;
-const both = (ids: readonly string[]) => ids;
 const reasons: [NoOpenReason, WalkSkin, readonly string[]][] = [
   [NoOpenReason.BrowserOwned, P, ['native-files', 'native-select', 'native-colour', 'native-keyboard', 'native-title']],
   [NoOpenReason.BrowserOwned, D, ['desktop/projects/trace-colour-picker']],
-  [NoOpenReason.FaultNeeded, P, ['crash', 'startup-failure', 'storage-usage', 'update', 'cross-tab', 'driver-storage-error', 'phone/update-strip', ...both(['shared/store-gate', 'shared/storage-warning', 'shared/driver-library-storage-note'])]],
-  [NoOpenReason.FaultNeeded, D, ['desktop/crash', 'desktop/startup-failure', 'desktop/storage-usage-warning', 'desktop/cross-tab-notice', 'desktop/cloud/update-strip', ...both(['shared/store-gate', 'shared/storage-warning', 'shared/driver-library-storage-note'])]],
+  [NoOpenReason.FaultNeeded, P, ['cross-tab', 'shared/driver-library-storage-note']],
+  [NoOpenReason.FaultNeeded, D, ['desktop/cross-tab-notice', 'shared/driver-library-storage-note']],
   [NoOpenReason.RejectedInputNeeded, P, ['phone/response-model-pending-notice']],
   [NoOpenReason.RejectedInputNeeded, D, ['desktop/enclosure/response-model-pending-notice']],
 ];
