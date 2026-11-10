@@ -95,6 +95,10 @@ steps:
 done_test: bash scripts/test.sh packages/design/test/domain/cms-from-vas.test.ts
 files:
   - tasks/T744.yml
+  - packages/design/domain/driver/driverContext.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/driver/openISDDriverEmbedded.ts
+  - packages/design/domain/project/openISDProject.ts
   - packages/design/test/domain/cms-from-vas.test.ts
   - packages/design/test/domain/winisd-cms-from-vas-switch.test.ts
   - packages/design/test/domain/every-input-recalculates.test.ts
