@@ -11,6 +11,7 @@ import {PHONE_MENU_STEPS} from './viewOpenPhoneMenus.js';
 import {FAULT_STEPS} from './viewOpenFaults.js';
 import {REJECTED_INPUT_STEPS} from './viewOpenRejected.js';
 import {CLOUD_STEPS} from './viewOpenCloud.js';
+import {SHARED_STEPS} from './viewOpenShared.js';
 
 /** Key of a (skin, view) pair in the two tables below. */
 const key = (skin: WalkSkin, id: string) => `${skin}:${id}`;
@@ -56,6 +57,7 @@ steps.push(...PHONE_MENU_STEPS);
 steps.push(...PHONE_DRIVER_STEPS);
 steps.push(...PHONE_NOTE_STEPS);
 steps.push(...DESKTOP_STEPS);
+steps.push(...SHARED_STEPS);
 
 /** Open steps written by hand for views the two surface manifests cannot open. */
 export const EXTRA_OPEN_STEPS: ReadonlyMap<string, OpenStep> = new Map(steps.map(([skin, id, step]) => [key(skin, id), step]));

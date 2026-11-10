@@ -23,11 +23,14 @@ const CHART_PICK_BUG = 'BUG_20261110_phone-chart-picker-name-cut.md';
 const PR_PICKER_BUG = 'BUG_20261110_phone-pr-picker-names-cut.md';
 const DESKTOP_ALIGNMENT_BUG = 'BUG_20261110_desktop-alignment-popup-select-misaligned.md';
 const CUT_CHART_NAMES: ReadonlySet<string> = new Set(['TFMag', 'PRTFMag', 'PRTFPhase', 'PRExcursion', 'RearPort', 'FrontPort', 'FrontPortGain', 'IntraPort', 'Zph', 'Phase', 'MaxPwr', 'VA', 'FltMag', 'FltPhase', 'FltGD'].map(chart => 'chart-' + chart));
+const CATALOGUE_BUG = 'BUG_20261110_field-catalogue-page-breaks-field-rules.md';
 const KNOWN: readonly KnownFault[] = [
   {skin: WalkSkin.Phone, view: id => /^wizard-[A-Za-z0-9-]+-1$/.test(id), rules: ['R7', 'W4'], bug: WIZARD_HELP_BUG},
   {skin: WalkSkin.Phone, view: id => id === 'wizard-sealed-4' || id === 'wizard-vented-4' || /^phone\/wizard-vented-(volume|tuning)-warning$/.test(id), rules: ['R3'], bug: WIZARD_ALIGNMENT_BUG},
   {skin: WalkSkin.Phone, view: id => CUT_CHART_NAMES.has(id), rules: ['W3'], bug: CHART_PICK_BUG},
   {skin: WalkSkin.Desktop, view: id => id === 'desktop/enclosure/sealed-alignment' || id === 'desktop/enclosure/vented-alignment', rules: ['R3'], bug: DESKTOP_ALIGNMENT_BUG},
+  {skin: WalkSkin.Phone, view: id => id === 'shared/field-catalogue', rules: ['R2', 'R4', 'R5', 'W2'], bug: CATALOGUE_BUG},
+  {skin: WalkSkin.Desktop, view: id => id === 'shared/field-catalogue', rules: ['R4', 'R5'], bug: CATALOGUE_BUG},
   {skin: WalkSkin.Phone, view: id => id === 'pr-picker', rules: ['W3'], bug: PR_PICKER_BUG},
 ];
 

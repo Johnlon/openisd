@@ -1,0 +1,16 @@
+id: T782
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: View coverage batch 6e: shared views opened in both skins (field-catalogue, flash-message, chart-readout, graph pill, graph blocked message, graph context menu, winisd-difference-entry, driver-editor-incomplete-warning, driver-type-help)
+done_test: bash scripts/test.sh packages/ui/test/logic/view-walk-coverage.test.ts
+files:
+  - tasks/T782.yml
+  - bugs/BUG_20261110_field-catalogue-page-breaks-field-rules.md
+  - docs/design/VIEW_COVERAGE_PLAN.md
+  - packages/ui/test/fixtures/viewOpenShared.ts
+  - packages/ui/test/fixtures/viewOpenSteps.ts
+  - packages/ui/test/logic/view-walk-coverage.test.ts
+  - packages/ui/test/ui/view-layout-walk.browser.spec.ts
+why: cover (coordinator), 10 Nov 2026, QO527: John: "I need full coverage, add it, then maintain it"
