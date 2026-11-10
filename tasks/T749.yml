@@ -1,0 +1,9 @@
+id: T749
+release_note: internal
+repo: openisd
+owner: cover
+status: open
+goal: Finished tasks reach main through GitHub pull requests with a merge queue (QO481 A); the worktree goes at once
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T749.yml
