@@ -59,6 +59,8 @@ export class PhoneRowSizes {
 export class PhoneRowColumns {
   /** Compound labels such as mm/N and 1000/K: 13 px text (1000/K is 39 px) plus 4 px each side; 60 px left a 7-figure value cut at 374 px. */
   static readonly WIDE_CHIP_PX = 50;
+  /** The least blank between a number box (its unit chip included) and its up/down buttons, on every screen (John, 10 Nov 2026: "there is no gap between the cell and the spinner buttons"). */
+  static readonly MIN_STEPPER_GAP_PX = 4;
   static readonly WARNING_PX = 26;
   static readonly MODEL_CUE_PX = 24;
   static readonly CONTROL_GAP_PX = 8;

@@ -2,7 +2,7 @@
  * Rules 2 to 7 of .claude/rules/field-layout.md, measured on what is painted in `root`. Runs inside
  * the page. A fault is one line naming the rule, the group and the controls. No field CSS assumed.
  */
-export function measureFieldLayoutRules(root: Element): string[] {
+export function measureFieldLayoutRules(root: Element, minStepperGapPx: number): string[] {
   const issues: string[] = [];
   const doc = root.ownerDocument;
   const view = doc.defaultView;
@@ -16,11 +16,14 @@ export function measureFieldLayoutRules(root: Element): string[] {
     const box = part.getBoundingClientRect();
     const text = (part.textContent ?? '').trim().slice(0, 16);
     if (box.left < -0.5 || box.right > view.innerWidth + 0.5) issues.push(`R2 ${name(part)} "${text}" leaves the window sideways (${Math.round(box.left)}..${Math.round(box.right)})`);
+    let scrollsDown = false; // a part inside a vertical scroller is reached by scrolling, not cut by a frame around the scroller
     for (let ancestor = part.parentElement; ancestor !== null && ancestor !== doc.body; ancestor = ancestor.parentElement) {
       const style = view.getComputedStyle(ancestor);
       if (style.position === 'fixed') break;
+      const wasScrolling = scrollsDown;
+      if (/^(auto|scroll)$/.test(style.overflowY)) scrollsDown = true;
       const clipsSideways = /^(hidden|clip|auto|scroll)$/.test(style.overflowX);
-      const clipsUpDown = /^(hidden|clip)$/.test(style.overflowY);
+      const clipsUpDown = /^(hidden|clip)$/.test(style.overflowY) && !wasScrolling;
       if (!clipsSideways && !clipsUpDown) continue;
       const frame = ancestor.getBoundingClientRect();
       const sideways = clipsSideways && (box.left < frame.left - 0.5 || box.right > frame.right + 0.5);
@@ -36,6 +39,14 @@ export function measureFieldLayoutRules(root: Element): string[] {
     const style = view.getComputedStyle(scroller);
     if (/^(auto|scroll)$/.test(style.overflowX) && scroller.scrollWidth > scroller.clientWidth + 1) issues.push(`R2 ${scroller.tagName.toLowerCase()}.${String(scroller.className).slice(0, 24)} scrolls sideways ${scroller.scrollWidth - scroller.clientWidth}px`);
     if (/^(auto|scroll)$/.test(style.overflowY) && scroller.scrollHeight > scroller.clientHeight + 1 && scroller.matches('.tab-section,.content-panel,.what-if-panel,.modal-body')) issues.push(`R2 ${scroller.tagName.toLowerCase()}.${String(scroller.className).slice(0, 24)} scrolls up and down ${scroller.scrollHeight - scroller.clientHeight}px`);
+  }
+
+  // Rule 10: a visible gap between a number box (its unit chip is inside it) and its up/down buttons.
+  for (const field of root.querySelectorAll<HTMLInputElement>('.ui-field input[data-numinput]')) {
+    const button = field.closest('.ui-field')?.querySelector('.num-stepper-btn');
+    if (button === null || button === undefined || !shown(field) || !shown(button)) continue;
+    const gap = button.getBoundingClientRect().left - field.getBoundingClientRect().right;
+    if (gap < minStepperGapPx - 0.5) issues.push(`R10 ${field.closest('.ui-field')?.querySelector('label')?.textContent?.trim().slice(0, 16)} box to buttons gap is ${Math.round(gap)}px, needs ${minStepperGapPx}px`);
   }
 
   // Groups: a group is the controls of one column that share a label edge.
