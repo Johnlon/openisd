@@ -2,7 +2,7 @@ id: T744
 release_note: A Cms you type always moves the charts, on drivers and radiators alike. A new WinISD-style option "Cms from Vas" decides which wins when a datasheet states both and they disagree; a warning shows when they do.
 repo: openisd
 owner: leader
-status: blocked
+status: done
 ruling: 'QO463 - John, 8 Nov 2026 chat: "ok kick off the CMS plan" (taken as A, the plan as written; also the data-model ruling for the new saved field)'
 goal: Cms, Vas, Mms and Rms follow one rule on drivers and radiators; the charts use what the boxes show
 goal_detail:
@@ -147,4 +147,3 @@ files:
   - packages/ui/test/ui/original-pr-tab.browser.spec.ts
   - packages/design/domain/driver/chartFigureNote.ts
   - packages/design/engine/pr/PrEngine.ts
-blocked_reason: rebase onto origin/main conflicts in: packages/ui/src/hooks/MobileAdvancedTab-hooks.ts packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue packages/ui/src/ui/shells/original/OriginalShell.vue 
