@@ -10,16 +10,15 @@
 import {appendFileSync, mkdirSync} from 'node:fs';
 import {COMPLETE_DRIVER_PROJECT_OWPR, openAProject, test, expect} from '../fixtures.js';
 import {measureFieldLayoutRules, measureLabelGaps} from '../fixtures/fieldLayoutAudit.js';
-import {DESKTOP_SURFACES} from '../fixtures/desktopSurfaceManifest.js';
+import {DESKTOP_SURFACES, DesktopRoute} from '../fixtures/desktopSurfaceManifest.js';
 import {openDesktopSurface} from '../fixtures/desktopSurfaceNavigation.js';
 import {DesktopSizes} from '@openisd/design/fields';
+import {enableCloudSync, stubGoogleApis} from './fixtures/cloudSyncStubs.js';
 
 const RESULTS = '/home/john/work/winisd/ui-gallery/T742-phone-clip';
 const SIZES = [{width: 1280, height: 720}, {width: 1440, height: 900}] as const;
 /** Entries the first scan (10 Nov 2026) found at fault and nobody has fixed yet, as `<id> <width>`. Each then expects the fault (test.fail) and turns red when it is fixed; delete its entry then. */
 const SCAN_KNOWN: ReadonlySet<string> = new Set<string>([
-  'desktop/settings/cloud/account-and-activity 1280',
-  'desktop/settings/cloud/account-and-activity 1440',
 ]);
 const SCAN_KNOWN_BUG = 'BUG_20261110_layout-scan-first-run';
 
@@ -30,6 +29,8 @@ for (const size of SIZES) {
       let faults: string[];
       try {
         await page.setViewportSize(size);
+        // The cloud entry exists only in a build with a client id: the same stand-in the cloud specs use for the outside service.
+        if (surface.route === DesktopRoute.Cloud) { await enableCloudSync(page); await stubGoogleApis(page); }
         await page.goto('/');
         await openAProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
         await openDesktopSurface(page, surface);
