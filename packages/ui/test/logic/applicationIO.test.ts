@@ -513,7 +513,7 @@ describe('every import and export says what it did', () => {
       await settle();
       expect(open.events).toContainEqual({ kind: 'driver_pick', source: 'import', id: '', name: '' });
 
-      while (appState.focusedProject() !== null) appState.removeProject(appState.focusedProject()!);
+      while (appState.openProjects().length > 0) appState.removeProject(0);
       const none = ioRecording(createFileStorage());
       none.io.importFile(file());
       await settle();
