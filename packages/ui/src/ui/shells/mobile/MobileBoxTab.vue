@@ -120,7 +120,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
         </select>
       </div>
       <UIFixedField class="mob-ui-field" :field="NumberField.BOX_VB_L" label="Volume" :value="ventedAlignmentVolume_m3" :format="ReadoutFormat.ALIGNMENT_VOLUME_L" readonly />
-      <UIFixedField class="mob-ui-field" :field="NumberField.BOX_FB_HZ" label="Tuning freq (Fb)" :value="ventedAlignmentTuning_hz" :format="ReadoutFormat.TUNING_HZ" readonly />
+      <UIFixedField class="mob-ui-field" :field="NumberField.BOX_FB_HZ" label="Tuning (Fb)" :value="ventedAlignmentTuning_hz" :format="ReadoutFormat.TUNING_HZ" readonly />
       <div class="mob-align-readout">
         <span class="mob-align-dot" :class="ventedAlignmentSuitability ?? 'unknown'"></span>
         <span>EBP {{ readoutWithUnit(ReadoutFormat.EBP, ventedAlignmentEbp, '—') }} — {{ ventedAlignmentSuitabilityLabel }}</span>
