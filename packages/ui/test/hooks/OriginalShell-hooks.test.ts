@@ -112,6 +112,14 @@ describe('OriginalShell-hooks', () => {
     expect(events).toContainEqual({kind: 'feature', name: 'skin_switch'});
   });
 
+  it('the desktop compat checkboxes set the switch through the counting setter', () => {
+    const {shell, events} = recordedShell('advanced');
+    const before = shell.project.value.winisdVaModel.value;
+    shell.setCompatSwitch(shell.project.value.winisdVaModel, !before);
+    expect(shell.project.value.winisdVaModel.value).toBe(!before);
+    expect(events).toContainEqual({kind: 'feature', name: 'compat_switch'});
+  });
+
   describe('createEnvironmentAir', () => {
 
     function harness(project: OpenISDProject) {

@@ -59,7 +59,8 @@ export type ActionName =
   | 'feature:cloud_sync'
   | 'feature:box_type'
   | 'feature:alignment'
-  | 'feature:help';
+  | 'feature:help'
+  | 'feature:compat_switch';
 
 /** A ring buffer of the last user actions, oldest first. */
 export class RecentActions {

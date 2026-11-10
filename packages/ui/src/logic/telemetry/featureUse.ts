@@ -28,6 +28,7 @@ const FEATURE_ACTIONS: Record<FeatureName, ActionName> = {
   box_type: 'feature:box_type',
   alignment: 'feature:alignment',
   help: 'feature:help',
+  compat_switch: 'feature:compat_switch',
 };
 
 /** Records each chart viewed and each feature used once per page session. Records only; the

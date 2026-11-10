@@ -14,6 +14,7 @@
  * `../logic/tabId.ts`. This file JIT-composes them here with the shell's own `project` /
  * `selectedBox` / `projectChanged`.
  */
+import {compatSwitchSetter} from './compatSwitch.js';
 import type {ComputedRef, Ref} from 'vue';
 import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
@@ -819,7 +820,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown,
     projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
-    genOn, toggleGenerate, genHz,
+    genOn, toggleGenerate, genHz, setCompatSwitch: compatSwitchSetter(featureUse),
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel, ...desktopHelp,
     selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
