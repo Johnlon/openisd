@@ -2,7 +2,7 @@ id: T757
 release_note: internal
 repo: openisd
 owner: cover
-status: open
+status: done
 goal: Rule docs test names the pull-request process (ship.sh), not land.sh
 done_test: bash scripts/land/test/rules-docs.test.sh
 files:
