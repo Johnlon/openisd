@@ -31,7 +31,8 @@ describe('formulas — passive radiator derivations', () => {
   it('prVas ≈ 0.0200714 m³ for Cms=0.0008, Sd=0.0133 (hand-computed)', () => {
     // The same hand-computed figure as ever — 20.0714 litres — stated in the SI unit the
     // function now returns, with the tolerance converted alongside it (0.01 l = 1e-5 m³).
-    assert.ok(Math.abs(engine.pr.vas(Cms, Sd, air) - 0.0200714) < 1e-5, `got ${engine.pr.vas(Cms, Sd, air)}`);
+    const Vas = engine.pr.solveSpec({Fs_hz: null, Qms: null, Vas_m3: null, Sd_m2: Sd, Mms_kg: null, Cms_m_per_N: Cms, Rms_kg_per_s: null}, air).Vas_m3;
+    assert.ok(Vas !== null && Math.abs(Vas - 0.0200714) < 1e-5, `got ${Vas}`);
   });
   it('prFs ≈ 56.27 Hz for Mmd=0.010, Cms=0.0008 (hand-computed)', () => {
     assert.ok(Math.abs(prFs(Mmd, Cms) - 56.271) < 0.01, `got ${prFs(Mmd, Cms)}`);

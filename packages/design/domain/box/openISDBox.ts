@@ -634,7 +634,8 @@ export class OpenISDBox implements Box {
         if (spec.Qms.value === null) spec.Qms.set(STARTING.radiatorQms);
         if (spec.Fs_hz.value === null) spec.Fs_hz.set(this.#engine.pr.fsWithMass(STARTING.radiatorMms_kg, 0, STARTING.radiatorCms_m_per_N));
         const air = this.#air();
-        if (spec.Vas_m3.value === null && sd !== null) spec.Vas_m3.set(this.#engine.pr.vas(STARTING.radiatorCms_m_per_N, sd, air));
+        const startingVas = sd === null ? null : this.#startingVas(sd, air);
+        if (spec.Vas_m3.value === null && startingVas !== null) spec.Vas_m3.set(startingVas);
     }
 
     /** Give the active box type its starting values where nothing is entered yet: sealed gets the
@@ -692,9 +693,8 @@ export class OpenISDBox implements Box {
                     spec.Fs_hz.set(this.#engine.pr.fsWithMass(STARTING.radiatorMms_kg, 0, STARTING.radiatorCms_m_per_N));
                 }
                 const startAir = this.#air();
-                if (spec.Vas_m3.value === null && startSd !== null) {
-                    spec.Vas_m3.set(this.#engine.pr.vas(STARTING.radiatorCms_m_per_N, startSd, startAir));
-                }
+                const startVas = startSd === null ? null : this.#startingVas(startSd, startAir);
+                if (spec.Vas_m3.value === null && startVas !== null) spec.Vas_m3.set(startVas);
                 return;
             }
             case 'bandpass4': {
@@ -769,6 +769,13 @@ export class OpenISDBox implements Box {
         cmsSource: () => ChartingSource | null,
     ): OpenISDBox {
         return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air, nDrivers, cmsSource);
+    }
+
+    /** The Vas of the starting radiator's compliance on `sd`, in `air`: the engine's solve works it out (the Vas-from-Cms route). */
+    #startingVas(sd: number, air: Air): number | null {
+        return this.#engine.pr.solveSpec({
+            Fs_hz: null, Qms: null, Vas_m3: null, Sd_m2: sd, Mms_kg: null, Cms_m_per_N: STARTING.radiatorCms_m_per_N, Rms_kg_per_s: null,
+        }, air).Vas_m3;
     }
 
     /** The sealed volume an entered Qtc or an entered Fsc gives; null with neither entered or when no box reaches it. */
