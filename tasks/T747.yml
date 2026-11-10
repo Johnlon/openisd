@@ -1,0 +1,18 @@
+id: T747
+release_note: internal
+repo: openisd
+owner: leader
+status: done
+goal: Screen sizes: record the size list and best-practice references in the UI spec, and test them: must-fit sizes show everything with no scrollbars; allowed-scroll sizes may scroll but nothing overlaps, is cut or is out of reach
+done_test: bash scripts/test.sh packages/ui/test/fixtures/screenSizes.test.ts
+files:
+  - packages/ui/test/fixtures/screenSizes.test.ts
+  - tasks/T747.yml
+  - docs/spec/SPEC_UI.md
+  - packages/ui/test/fixtures/screenSizes.ts
+  - packages/ui/test/fixtures/screenSizeAudit.ts
+  - packages/ui/test/ui/screen-sizes.browser.spec.ts
+  - bugs/BUG_20261108_desktop-options-dialog-taller-than-short-window.md
+  - bugs/BUG_20261108_desktop-800x600-driver-tab-buttons-overlap-fields.md
+  - bugs/BUG_20261108_desktop-800x600-driver-editor-footer-overlaps-fields.md
+  - bugs/BUG_20261108_desktop-640x360-save-revert-cut-off-and-unreachable.md
