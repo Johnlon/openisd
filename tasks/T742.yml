@@ -2,7 +2,7 @@ id: T742
 release_note: Labels look the same on every device. The app now carries its own font, so a label no longer wraps on one computer and fits on another.
 repo: openisd
 owner: leader
-status: done
+status: blocked
 ruling: QO466
 goal: The app bundles its own fonts and every skin uses its own, never a device default - desktop Selawik (Segoe UI widths, OFL), phone Roboto, mono JetBrains Mono (John, QO466); precached for offline; the shared joined-field label rule no longer breaks a word at any letter
 plan:
@@ -211,3 +211,4 @@ visual:
 # QO478.c12 (John, 9 Nov): Driver tab hint line 21 px with warning -> fix the app, keep 18 px.
 # QO478.c15 (John, 9 Nov): ABC cut off was caused by the wider label gap -> fix: panel no wider than main; Flange field right edge in line; Flange box taller (squashed).
 # Merge of origin/t742 (9 Nov): visual snapshot PNGs and SOURCES.sha256 were taken from the local side; the baselines MUST be re-taken (not regenerated in the merge).
+blocked_reason: rebase onto origin/main conflicts in: packages/ui/test/visual/SOURCES.sha256 
