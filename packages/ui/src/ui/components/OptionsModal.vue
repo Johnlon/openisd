@@ -56,6 +56,8 @@ import StorageHistory from './StorageHistory.vue';
 import UIFixedField from './UIFixedField.vue';
 import MobilePaneDialog from '../shells/mobile/MobilePaneDialog.vue';
 import PhoneBand from '../shells/mobile/PhoneBand.vue';
+import PhoneHelpSheet from '../shells/mobile/PhoneHelpSheet.vue';
+import DesktopHelpPanel from './DesktopHelpPanel.vue';
 import {inputValue} from '../../logic/domEvents.js';
 
 const emit = defineEmits<{ close: [] }>();
@@ -111,7 +113,7 @@ const {
 } = useOptionsModal();
 
 type Tab = 'General' | 'Plot Window' | 'Your data';
-const limitsMoreOpen = ref(false);
+const limitsHelpOpen = ref(false);
 const tab = reactive<{ v: Tab }>({ v: 'General' });
 
 const draft = reactive({
@@ -233,15 +235,8 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
           <button type="button" data-testid="env-reset" :disabled="envIsFactory" @click="resetEnv">Reset to defaults</button>
         </div>
         <PhoneBand :section="PhoneDialogHelp.OPTIONS_VENTED_LIMITS" />
-        <p class="mob-dhint">
-          A vented design outside these limits is marked. Its numbers are never changed.
-          <button type="button" class="mob-dlink" data-testid="limits-more" :aria-expanded="limitsMoreOpen" @click="limitsMoreOpen = !limitsMoreOpen">More info</button>
-        </p>
-        <div v-if="limitsMoreOpen" class="mob-dhint" role="note" data-testid="limits-more-popup">
-          <p>WinISD does not limit its vented alignments, so it will design a box of any size or tuning.</p>
-          <p>OpenISD gives the same answer, so its results match WinISD.</p>
-          <p>If a design falls outside the limits below, OpenISD shows it exactly as designed and marks it.</p>
-        </div>
+        <p class="mob-dhint">This panel allows you to set limits on acceptable ranges for certain values, open the help <button type="button" class="mob-band-help opt-line-help" aria-label="Help: Vented design limits" @click="limitsHelpOpen = true">?</button> for more info.</p>
+        <PhoneHelpSheet v-if="limitsHelpOpen" :section="PhoneDialogHelp.OPTIONS_VENTED_LIMITS" @close="limitsHelpOpen = false" />
         <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Min box volume" :field="NumberField.BOX_VB_L" :value="minVolume_m3" stepper @update:value="v => minVolume_m3 = v" />
         <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Min tuning" :field="NumberField.BOX_FB_HZ" :value="minTuning_hz" stepper @update:value="v => minTuning_hz = v" />
         <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Max box volume" :field="NumberField.BOX_VB_L" :value="maxVolume_m3" stepper @update:value="v => maxVolume_m3 = v" />
@@ -316,7 +311,7 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
       <button type="button" class="mob-dlg-btn" @click="close">Cancel</button>
     </template>
   </MobilePaneDialog>
-  <div v-else class="opt-overlay" @click="onBackdrop">
+  <div v-else class="opt-overlay" :class="{ 'opt-with-help': limitsHelpOpen }" @click="onBackdrop">
     <div class="opt-modal">
       <h2 class="opt-h2">Options<button class="opt-x" @click="close" title="Close">✕</button></h2>
 
@@ -349,17 +344,8 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
           </fieldset>
 
           <fieldset class="opt-group">
-            <legend>Vented design limits</legend>
-            <p class="opt-help">
-              A vented design outside these limits is marked. Its numbers are never changed.
-              <button type="button" class="opt-more-btn" data-testid="limits-more" :aria-expanded="limitsMoreOpen" @click="limitsMoreOpen = !limitsMoreOpen">More info</button>
-            </p>
-            <div v-if="limitsMoreOpen" class="opt-popup" role="note" data-testid="limits-more-popup">
-              <p>WinISD does not limit its vented alignments, so it will design a box of any size or tuning.</p>
-              <p>OpenISD gives the same answer, so its results match WinISD.</p>
-              <p>If a design falls outside the limits below, OpenISD shows it exactly as designed and marks it.</p>
-              <button type="button" class="opt-more-btn" @click="limitsMoreOpen = false">Close</button>
-            </div>
+            <legend>Vented design limits <button type="button" class="desk-band-help" aria-label="Help: Vented design limits" @click="limitsHelpOpen = true">?</button></legend>
+            <p class="opt-help">This panel allows you to set limits on acceptable ranges for certain values, open the help <button type="button" class="desk-band-help opt-line-help" aria-label="Help: Vented design limits" @click="limitsHelpOpen = true">?</button> for more info.</p>
             <div class="opt-env-grid">
               <div class="opt-fld"><UIFixedField input-id="set-min-volume" label="Min box volume" :field="NumberField.BOX_VB_L" :value="minVolume_m3" @update:value="v => minVolume_m3 = v" /></div>
               <div class="opt-fld"><UIFixedField input-id="set-min-tuning" label="Min tuning" :field="NumberField.BOX_FB_HZ" :value="minTuning_hz" @update:value="v => minTuning_hz = v" /></div>
@@ -456,6 +442,8 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
         <button @click="close">Cancel</button>
       </div>
     </div>
+    <!-- The desktop help, as every desktop ? opens it: down the right of the window; the dialog moves left beside it. -->
+    <DesktopHelpPanel v-if="limitsHelpOpen" :title="PhoneDialogHelp.OPTIONS_VENTED_LIMITS.title" :sections="[PhoneDialogHelp.OPTIONS_VENTED_LIMITS]" @close="limitsHelpOpen = false" />
   </div>
 </template>
 
@@ -491,9 +479,9 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
 .opt-group { border: 1px solid var(--line); border-radius: 5px; padding: 10px 12px; margin: 0; }
 .opt-group legend { padding: 0 6px; font-size: 11px; color: var(--mut); }
 .opt-help { margin: 0 0 8px; font-size: 11px; color: var(--mut); line-height: 1.4; }
-.opt-more-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--acc, #36c); text-decoration: underline; cursor: pointer; }
-.opt-popup { margin: 0 0 8px; padding: 8px 10px; font-size: 11px; line-height: 1.4; border: 1px solid var(--bdr, #888); border-radius: 4px; background: var(--bg, #fff); }
-.opt-popup p { margin: 0 0 6px; }
+/* The ? inside a line of text: centred on the text, and it does not make its line taller. */
+.opt-line-help { display: inline-block; vertical-align: middle; }
+.opt-phone .opt-line-help { margin: -2px 0; }
 .opt-error { color: #8a1f1f; background: #fdeeee; border: 1px solid #e8b0b0; border-radius: 3px;
   padding: 4px 8px; font-size: 11px; margin-top: 8px; }
 /* A phone-width window (the desktop skin at 374 px): the dialog takes the window and its padding shrinks so the 318 px field rows and the Reset button stay inside it. */
@@ -501,6 +489,22 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
   .opt-modal { width: calc(100vw - 8px); }
   .opt-body { padding: 12px 8px; }
   .opt-group { padding: 10px 6px; min-width: 0; }
+}
+/* A window wide enough for two columns (BUG_20261108_desktop-options-dialog-taller-than-short-window): the
+   dialog doubles its width and each tab's sections flow into two balanced columns, so a short window
+   (1366x768 and 1536x864 screens) shows every control with nothing to scroll. Narrower windows keep one
+   column and scroll inside the body. */
+@media (min-width: 1180px) {
+  .opt-modal { width: min(1080px, 92vw); }
+  .opt-body { display: block; columns: 2; column-gap: 14px; }
+  .opt-body > * { break-inside: avoid; margin-bottom: 10px; }
+}
+/* With the desktop help open (380 px down the right of the window), the dialog moves left and sits beside
+   it, whole: the help never covers OK, Cancel or a box (T746 vision check, 1366x768 and 1440x900). A window
+   too narrow for both side by side keeps the help on top. */
+@media (min-width: 760px) {
+  .opt-overlay.opt-with-help { padding-right: 380px; box-sizing: border-box; }
+  .opt-overlay.opt-with-help .opt-modal { max-width: calc(100% - 24px); }
 }
 .opt-group-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
 .opt-reset-btn { width: max-content; padding: 4px 12px; cursor: pointer; }

@@ -84,6 +84,37 @@ test.describe('Options dialog', () => {
         await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
         await expect(page.locator('.opt-modal input[type="number"]')).toHaveCount(0);
       });
+
+      // BUG_20261108_desktop-options-dialog-taller-than-short-window (QO471.c21): the windows a 1366x768,
+      // 1536x864 and 1440x900 screen leave after the browser bars, and a 1440x900 window. Every control,
+      // the footer's included, is on screen on every tab with nothing to scroll.
+      for (const size of [{width: 1366, height: 657}, {width: 1536, height: 754}, {width: 1440, height: 790}, {width: 1440, height: 900}]) {
+        test(`at ${size.width}x${size.height} every Options control shows on every tab, nothing to scroll`, async ({ page }) => {
+          await page.setViewportSize(size);
+          await page.locator('.tb-btn[title="Options"]').click();
+          for (const tabName of ['General', 'Plot Window', 'Your data']) {
+            await page.locator('.opt-tab', { hasText: tabName }).click();
+            const faults = await page.locator('.opt-modal').evaluate((modal) => {
+              const out: string[] = [];
+              const vw = window.innerWidth;
+              const vh = window.innerHeight;
+              const doc = document.documentElement;
+              if (doc.scrollHeight > vh) out.push(`page scrolls down: ${doc.scrollHeight} > ${vh}`);
+              const body = modal.querySelector('.opt-body');
+              if (body !== null && body.scrollHeight > body.clientHeight + 1) out.push(`dialog body scrolls: ${body.scrollHeight} > ${body.clientHeight}`);
+              for (const el of Array.from(modal.querySelectorAll('button, input, select, textarea'))) {
+                const r = el.getBoundingClientRect();
+                if (r.width === 0 || r.height === 0) continue;
+                if (r.top < 0 || r.left < 0 || r.bottom > vh || r.right > vw) {
+                  out.push(`${el.tagName.toLowerCase()} "${(el.textContent ?? '').trim() || el.getAttribute('aria-label') || ''}" at ${Math.round(r.left)},${Math.round(r.top)}..${Math.round(r.right)},${Math.round(r.bottom)}`);
+                }
+              }
+              return out;
+            });
+            expect(faults, tabName).toEqual([]);
+          }
+        });
+      }
     });
 
     /** What the Options dialog holds: opened, read, and cancelled. */
@@ -388,6 +419,87 @@ test.describe('Options dialog', () => {
         await expect(page.locator('#set-max-volume')).toHaveValue('1000.00');
         await expect(page.locator('#set-min-tuning')).toHaveValue('10.00');
         await expect(page.locator('#set-max-tuning')).toHaveValue('150.00');
+      });
+
+      // QO467.c35, c43: no inline More info; John's one line. QO473.c1, c4, c6: the (?) in that line is the
+      // desktop band ?, and like the heading's ? it opens the desktop help panel, never the phone sheet.
+      test('Vented design limits: John\'s line, whose (?) is the band ?, and both ? open the desktop help on top', async ({ page }) => {
+        await page.goto('/');
+        await openAProject(page);
+        const bandHelp = page.locator('.original-root .desk-band .desk-band-help').first();
+        await expect(bandHelp).toBeVisible();
+        const look = (el: Element) => {
+          const s = getComputedStyle(el);
+          const r = el.getBoundingClientRect();
+          return {w: r.width, h: r.height, border: s.border, radius: s.borderRadius, color: s.color, bg: s.backgroundColor,
+            size: s.fontSize, weight: s.fontWeight, cursor: s.cursor, text: el.textContent};
+        };
+        const bandLook = await bandHelp.evaluate(look);
+        await bandHelp.hover();
+        const bandHoverBg = await bandHelp.evaluate(el => getComputedStyle(el).backgroundColor);
+
+        await page.locator('.tb-btn[title="Options"]').click();
+        const group = page.locator('.opt-group', {hasText: 'Vented design limits'});
+        await expect(page.getByTestId('limits-more')).toHaveCount(0);
+        await expect(group.locator('.opt-help')).toHaveText('This panel allows you to set limits on acceptable ranges for certain values, open the help ? for more info.');
+        const helps = group.getByRole('button', {name: 'Help: Vented design limits'});
+        await expect(helps).toHaveCount(2);
+        await page.mouse.move(0, 0);
+        for (const help of [helps.first(), helps.last()]) {
+          expect(await help.evaluate(look), 'the same ? as the desktop bands').toEqual(bandLook);
+          await help.hover();
+          expect(await help.evaluate(el => getComputedStyle(el).backgroundColor), 'it lights up under the pointer').toBe(bandHoverBg);
+          await page.mouse.move(0, 0);
+        }
+
+        for (const help of [helps.last(), helps.first()]) {
+          await help.click();
+          const panel = page.getByRole('dialog', {name: 'Help: Vented design limits'});
+          await expect(panel).toBeVisible();
+          await expect(page.locator('.mob-help-sheet')).toHaveCount(0);
+          await expect(panel).toContainText('Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark.');
+          await expect(panel, 'QO473.c17: no "never changes your numbers"').not.toContainText('never changes your numbers');
+          await expect(panel).not.toContainText('WinISD');
+          await expect(panel).toContainText('Min box volume: a box smaller than this gets a warning mark.');
+          // Nothing sits on top of the help: its corners and middle are the help itself.
+          const b = (await panel.boundingBox())!;
+          for (const [x, y] of [[b.x + 2, b.y + 2], [b.x + b.width - 2, b.y + 2], [b.x + 2, b.y + b.height - 2], [b.x + b.width - 2, b.y + b.height - 2], [b.x + b.width / 2, b.y + b.height / 2]]) {
+            expect(await panel.evaluate((el, [px, py]) => el.contains(document.elementFromPoint(px, py)), [x, y]), `help on top at ${x},${y}`).toBe(true);
+          }
+          // Escape shuts the help and leaves Options open.
+          await page.keyboard.press('Escape');
+          await expect(panel).toHaveCount(0);
+          await expect(page.locator('.opt-modal')).toBeVisible();
+        }
+      });
+
+      // T746 vision check: at 1366 and 1440 the help panel covered OK, Cancel and the limits boxes.
+      // With the help open the dialog moves left and sits beside it, whole.
+      test('the open help sits beside Options and covers none of it on short laptop screens', async ({ page }) => {
+        await page.goto('/');
+        await openAProject(page);
+        for (const size of [{width: 1366, height: 768}, {width: 1440, height: 900}]) {
+          await page.setViewportSize(size);
+          await page.locator('.tb-btn[title="Options"]').click();
+          const group = page.locator('.opt-group', {hasText: 'Vented design limits'});
+          await group.getByRole('button', {name: 'Help: Vented design limits'}).first().click();
+          const panel = page.getByRole('dialog', {name: 'Help: Vented design limits'});
+          await expect(panel).toBeVisible();
+          const p = (await panel.boundingBox())!;
+          const m = (await page.locator('.opt-modal').boundingBox())!;
+          expect(m.x + m.width, `dialog right edge left of the help at ${size.width}x${size.height}`).toBeLessThanOrEqual(p.x);
+          expect(m.x, `dialog inside the window at ${size.width}x${size.height}`).toBeGreaterThanOrEqual(0);
+          expect(m.y + m.height, `dialog inside the window at ${size.width}x${size.height}`).toBeLessThanOrEqual(size.height);
+          for (const name of ['OK', 'Cancel']) {
+            const btn = page.locator('.opt-footer').getByRole('button', {name, exact: true});
+            const c = (await btn.boundingBox())!;
+            expect(await btn.evaluate((el, [px, py]) => el.contains(document.elementFromPoint(px, py)), [c.x + c.width / 2, c.y + c.height / 2]), `${name} not covered`).toBe(true);
+          }
+          await page.keyboard.press('Escape');
+          await expect(panel).toHaveCount(0);
+          await page.locator('.opt-footer').getByRole('button', {name: 'Cancel', exact: true}).click();
+          await expect(page.locator('.opt-modal')).toHaveCount(0);
+        }
       });
 
       test('an inside-out band is refused, and OK stays dead until it is a band', async ({ page }) => {
