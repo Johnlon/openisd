@@ -12,6 +12,7 @@ import {FAULT_STEPS} from './viewOpenFaults.js';
 import {REJECTED_INPUT_STEPS} from './viewOpenRejected.js';
 import {CLOUD_STEPS} from './viewOpenCloud.js';
 import {SHARED_STEPS} from './viewOpenShared.js';
+import {BROWSER_OWNED_STEPS} from './viewOpenBrowserOwned.js';
 
 /** Key of a (skin, view) pair in the two tables below. */
 const key = (skin: WalkSkin, id: string) => `${skin}:${id}`;
@@ -58,13 +59,14 @@ steps.push(...PHONE_DRIVER_STEPS);
 steps.push(...PHONE_NOTE_STEPS);
 steps.push(...DESKTOP_STEPS);
 steps.push(...SHARED_STEPS);
+steps.push(...BROWSER_OWNED_STEPS);
 
 /** Open steps written by hand for views the two surface manifests cannot open. */
 export const EXTRA_OPEN_STEPS: ReadonlyMap<string, OpenStep> = new Map(steps.map(([skin, id, step]) => [key(skin, id), step]));
 
 const P = WalkSkin.Phone, D = WalkSkin.Desktop;
 const reasons: [NoOpenReason, WalkSkin, readonly string[]][] = [
-  [NoOpenReason.BrowserOwned, P, ['native-files', 'native-select', 'native-colour', 'native-keyboard', 'native-title']],
+  [NoOpenReason.BrowserOwned, P, ['native-select', 'native-colour', 'native-title']],
   [NoOpenReason.BrowserOwned, D, ['desktop/projects/trace-colour-picker']],
   [NoOpenReason.IndexDisagrees, P, ['cross-tab', 'shared/driver-library-storage-note', 'phone/response-model-pending-notice']],
   [NoOpenReason.IndexDisagrees, D, ['desktop/cross-tab-notice', 'shared/driver-library-storage-note', 'desktop/enclosure/response-model-pending-notice', 'desktop/results/chart-unavailable-notice', 'desktop/wizard-help']],

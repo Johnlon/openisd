@@ -1,0 +1,14 @@
+id: T787
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: View coverage batch 7: native-files and native-keyboard (phone) are opened as far as the page can show them
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T787.yml
+  - docs/design/VIEW_COVERAGE_PLAN.md
+  - packages/ui/test/fixtures/viewOpenBrowserOwned.ts
+  - packages/ui/test/fixtures/viewOpenSteps.ts
+  - packages/ui/test/logic/view-walk-coverage.test.ts
+why: cover (coordinator), 10 Nov 2026, QO527: John: "I need full coverage, add it, then maintain it"
