@@ -6,9 +6,11 @@ name: suite
 # scripts/build-test-app.sh). The unit tests run in two halves and typecheck in its own job.
 on:
   push:
-    # land/<task>: the candidate of a landing; land.sh pushes main only when this run is green (T301), and main
-    # then holds that same commit, so main has no run of its own (T322): post-land reads the candidate's.
-    branches: ['land/**']
+    # land/<task>: the candidate of the old landing path (land.sh), kept as it was.
+    # main: the full suite after each merge (T761, QO501 A), only in the copy (portingle/openisd), where merges happen.
+    # A push to Johnlon main (the mirror's deploy-key push) skips every job: each job with no `needs` carries the
+    # guard below, and a job that needs a skipped job is skipped with it.
+    branches: ['land/**', main]
   # Called by the pull request check (.github/workflows/pr.yml, T749) with the commit under test.
   workflow_call:
     inputs:
@@ -58,6 +60,7 @@ env:
 
 jobs:
   plan:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.repository == 'portingle/openisd' }}
     runs-on: ubuntu-latest
     outputs:
       shards: ${{ steps.list.outputs.shards }}
@@ -67,6 +70,7 @@ jobs:
 
   # The unit tests in two halves: one job alone was the longest of the run.
   unit:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.repository == 'portingle/openisd' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -99,6 +103,7 @@ jobs:
           echo "- upload of artifact unit-log-${{ matrix.half }} failed (verdict unchanged)" >> "$GITHUB_STEP_SUMMARY"
 
   typecheck:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.repository == 'portingle/openisd' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -114,6 +119,7 @@ jobs:
 
   # Every shell test under scripts/**/test/ (T400): nothing else runs them, and a red one sat unseen. Red refuses the landing.
   shell:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.repository == 'portingle/openisd' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -144,6 +150,7 @@ jobs:
         run: bash scripts/test-shell.sh
 
   build:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.repository == 'portingle/openisd' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

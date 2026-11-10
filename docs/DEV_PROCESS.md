@@ -102,7 +102,8 @@ A task merges as one squash commit, subject "(auto) <id>: <goal>", body the rele
   after another).
 
 The full suite (`.github/workflows/suite.yml`: unit tests in two halves, typecheck, shell tests, the browser specs
-in 10 shards) runs once on main after each merge. No rerun: a flaky spec is a red. A red opens a GitHub issue
+in 10 shards) runs once on main after each merge, in the copy (`portingle/openisd`: the push trigger and every job
+carry the copy's name, so the mirror's push to Johnlon main starts no suite). No rerun: a flaky spec is a red. A red opens a GitHub issue
 labelled `main-red` naming the commit and the run (job `report`). The fix is a pull request labelled `fixes`,
 first in the queue (`docs/SDLC_POLICY.md` §1), whose body says "Fixes #<issue>".
 
