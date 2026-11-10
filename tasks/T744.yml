@@ -197,3 +197,4 @@ files:
   - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
   - packages/ui/test/ui/original-pr-cms-note.browser.spec.ts
   - packages/ui/test/ui/original-pr-tab.browser.spec.ts
+  - packages/ui/test/hooks/OriginalWhatIf-hooks.test.ts
