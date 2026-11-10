@@ -20,8 +20,6 @@ const SIZES = [{width: 1280, height: 720}, {width: 1440, height: 900}] as const;
 const SCAN_KNOWN: ReadonlySet<string> = new Set<string>([
   'desktop/projects/new/passive-radiator/project-details 1280',
   'desktop/projects/new/passive-radiator/project-details 1440',
-  'desktop/settings/options/general 1280',
-  'desktop/settings/options/general 1440',
   'desktop/settings/cloud/account-and-activity 1280',
   'desktop/settings/cloud/account-and-activity 1440',
 ]);

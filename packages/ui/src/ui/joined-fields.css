@@ -170,3 +170,5 @@
 
 /* Every air box is the same width, wide enough for Pa (field-layout rule 4). */
 .joined-fields:not(.app-root-mobile) .adv-air-col:first-child .field-row .ui-field[data-field] {--joined-box:146px;}
+/* Every box on the Options General tab is one width, wide enough for the widest unit chip (kg/m³): field-layout rule 4. */
+.joined-fields:not(.app-root-mobile) .opt-modal .opt-fld .ui-field.ui-field[data-field] {--joined-chip:60px;}
