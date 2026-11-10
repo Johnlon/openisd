@@ -144,3 +144,13 @@ describe('QO530 radiator tab', () => {
     expect(spec.Vas_m3.dq.map(i => i.text)).toEqual(['Vas disagrees with your Cms, so the charts use your Cms.']);
   });
 });
+
+describe('QO530 What-if: the typed Mms stays entered', () => {
+  it('the box shows the typed Mms as entered, not as the figure worked back from the new Fs', () => {
+    const project = driverProject({...BASE, Mms_kg: 0.0147});
+    project.beginWhatIf();
+    project.driver.specField('Mms_kg').set(0.0313);
+    expect(project.driver.specs.Mms_kg.entered).toBe(true);
+    expect(project.driver.specs.Mms_kg.value).toBe(0.0313);
+  });
+});

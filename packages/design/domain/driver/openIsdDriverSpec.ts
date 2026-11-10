@@ -94,6 +94,9 @@ const FLOORS: Readonly<Record<DriverSpecFieldName, ValueFloor>> = Object.freeze(
     DVol_m3: NumberField.DVOL_M3.floor,
 });
 
+/** Two figures are the same when they differ by no more than this share of the first. */
+const SAME_FIGURE = 1e-9;
+
 /** A field whose typing records nothing about which figure the charts follow. */
 const NOTHING_TYPED = (_value: number): void => undefined;
 
@@ -544,8 +547,8 @@ export class OpenIsdDriverSpec {
     #shownEntry(name: 'Cms_m_per_N' | 'Mms_kg' | 'Rms_kg_per_s'): SpecEntryJson | undefined {
         const value = this.#shown(this.#air())[name];
         const stored = this.#stored(name);
-        // A figure the user typed and the charts use as typed stays entered.
-        if (value === null || (stored.entered && stored.value === value)) return undefined;
+        // A figure the user typed and the charts use as typed (to rounding in the working out) stays entered.
+        if (value === null || (stored.entered && stored.value !== null && Math.abs(stored.value - value) <= SAME_FIGURE * Math.abs(stored.value))) return undefined;
         return {state: 'C', value};
     }
 
