@@ -242,9 +242,19 @@ describe('boxFields', () => {
     function losses(type: BoxType) {
       const {project} = createCompleteProject();
       const projectChanged = ref(0);
-      const hook = createBoxLosses({project: computed(() => project), selectedBox: ref<BoxType>(type), projectChanged, focusedProject: () => project});
-      return {project, projectChanged, hook};
+      const {telemetryUi, events} = recordingTelemetryUi();
+      const hook = createBoxLosses({project: computed(() => project), selectedBox: ref<BoxType>(type), projectChanged, focusedProject: () => project, featureUse: telemetryUi.featureUse});
+      return {project, projectChanged, hook, events};
     }
+    // John, 10 Nov 2026: "scan rest of app for missed telemetry".
+    it('counts the losses panel opened', async () => {
+      const {hook, events} = losses('vented');
+      await nextTick();
+      expect(events).toEqual([]);
+      hook.lossesOpen.value = 'whole';
+      await nextTick();
+      expect(events).toEqual([{kind: 'feature', name: 'losses'}]);
+    });
     it('nothing is open until a chamber link opens it', () => {
       const {hook} = losses('bandpass6');
       expect(hook.openLossGroup.value).toBeNull();

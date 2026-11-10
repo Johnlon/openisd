@@ -60,7 +60,9 @@ export type ActionName =
   | 'feature:box_type'
   | 'feature:alignment'
   | 'feature:help'
-  | 'feature:compat_switch';
+  | 'feature:compat_switch'
+  | 'feature:losses'
+  | 'feature:signal_generator';
 
 /** A ring buffer of the last user actions, oldest first. */
 export class RecentActions {

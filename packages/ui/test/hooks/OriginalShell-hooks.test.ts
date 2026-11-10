@@ -112,6 +112,13 @@ describe('OriginalShell-hooks', () => {
     expect(events).toContainEqual({kind: 'feature', name: 'skin_switch'});
   });
 
+  it('counts the signal generator switched on', async () => {
+    const {shell, events} = recordedShell('signal');
+    shell.genOn.value = true;
+    await nextTick();
+    expect(events).toContainEqual({kind: 'feature', name: 'signal_generator'});
+  });
+
   it('the desktop compat checkboxes set the switch through the counting setter', () => {
     const {shell, events} = recordedShell('advanced');
     const before = shell.project.value.winisdVaModel.value;

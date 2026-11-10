@@ -236,7 +236,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // losses: which field each box type has is the box's own knowledge (`Box.frontVolumeOf`,
   // `rearTuningOf`, `lossGroupsOf`); this reads and writes whatever it hands back.
   const { frontVolumeCell, rearTuningCell } = createChamberFields({ project, selectedBox, projectChanged });
-  const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
+  const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject, featureUse });
   async function confirmDiscard(): Promise<boolean> {
     return confirmPort.port.ask({
       title: 'Discard changes?',
@@ -666,6 +666,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   let tone: ToneGenerator | null = null;
   function toggleGenerate() { tone ??= createToneGenerator(); if (genOn.value) tone.start(genHz.value); else tone.stop(); }
   watch(genHz, v => { if (genOn.value) tone?.setFrequency(v); });
+  // Starts off and is never restored, so every switch-on is the user's.
+  watch(genOn, on => { if (on) featureUse.feature('signal_generator'); });
   const resumeToneWhenVisible = () => {
     if (genOn.value && document.visibilityState === 'visible') tone?.resume();
   };

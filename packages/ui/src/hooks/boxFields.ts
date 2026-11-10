@@ -117,10 +117,14 @@ export function createChamberFields({ project, selectedBox }: BoxVolumeDeps) {
 export interface BoxLossesDeps extends BoxVolumeDeps {
   /** null while no project is open: the shell renders then, with no loss rows. */
   focusedProject: () => OpenISDProject | null;
+  /** Counts the losses panel opened. */
+  readonly featureUse: FeatureUse;
 }
 
-export function createBoxLosses({ project, selectedBox, projectChanged: changed, focusedProject }: BoxLossesDeps) {
+export function createBoxLosses({ project, selectedBox, projectChanged: changed, focusedProject, featureUse }: BoxLossesDeps) {
   const lossesOpen = ref<LossChamber | null>(null);
+  // Starts closed and is never restored, so every open is the user's.
+  watch(lossesOpen, chamber => { if (chamber !== null) featureUse.feature('losses'); });
   const openLossGroup = computed<BoxLossGroup | null>(() => {
     void changed.value;
     const open = focusedProject();

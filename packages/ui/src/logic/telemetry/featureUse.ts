@@ -29,6 +29,8 @@ const FEATURE_ACTIONS: Record<FeatureName, ActionName> = {
   alignment: 'feature:alignment',
   help: 'feature:help',
   compat_switch: 'feature:compat_switch',
+  losses: 'feature:losses',
+  signal_generator: 'feature:signal_generator',
 };
 
 /** Records each chart viewed and each feature used once per page session. Records only; the
