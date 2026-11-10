@@ -1,9 +1,10 @@
-import type {Page} from '@playwright/test';
 import {CHART_LABELS, TABS} from '@openisd/design/chart';
 import {MOBILE_BOX_VARIANTS} from './mobileSurfaceManifest.js';
 import {NoOpenReason, WalkSkin} from './viewOpenTypes.js';
 import type {OpenStep} from './viewOpenTypes.js';
+import {driverEditor, openPhoneWizardStep, phoneTab} from './viewOpenNavigation.js';
 import {SAVED_STATE_STEPS} from './viewOpenSavedState.js';
+import {REJECTED_INPUT_STEPS} from './viewOpenRejected.js';
 import {CLOUD_STEPS} from './viewOpenCloud.js';
 
 /** Key of a (skin, view) pair in the two tables below. */
@@ -17,34 +18,6 @@ function boxForChart(chartId: string): string {
   if (chartId.startsWith('Rear')) return 'vented';
   return 'sealed';
 }
-
-const phoneTab = (page: Page, label: string) => page.locator('.mob-tab').filter({hasText: new RegExp('^' + label + '$')}).click();
-
-/** Phone wizard: walks Next until the wanted step shows (a radiator project picks its radiator on the way). */
-async function openPhoneWizardStep(page: Page, box: string, step: number): Promise<void> {
-  await page.locator('.mob-hamburger').click();
-  await page.locator('.mob-menu-item', {hasText: 'New project'}).click();
-  if (step === 1) return;
-  await page.locator('.driver-library input.filter').fill('W5-1138SMF');
-  await page.locator('.mob-np-body').getByText('Tang Band W5-1138SMF').first().click();
-  const next = page.locator('.mob-np-footer').getByText('Next ▸', {exact: true});
-  await next.click();
-  if (step === 2) return;
-  await next.click();
-  await page.locator('#np-box-type').selectOption(box);
-  if (step === 3) return;
-  // Each further step is one Next; a radiator project picks its radiator before Next is enabled.
-  for (let at = 3; at < step; at++) {
-    if (box === 'box-passive-radiator' && await page.locator('#np-pr-select').count() > 0 && await next.isDisabled()) { await page.locator('#np-pr-select').click(); await page.locator('.pr-lib-name').first().click(); }
-    await next.click();
-  }
-}
-
-const driverEditor = async (page: Page, skin: WalkSkin) => {
-  if (skin === WalkSkin.Phone) { await phoneTab(page, 'Driver'); await page.getByRole('button', {name: 'Edit', exact: true}).click(); return; }
-  await page.locator('.project-nav li').filter({hasText: /^Driver$/}).click();
-  await page.locator('.driver-id-row').getByRole('button', {name: /^(✎ )?Edit$/}).click();
-};
 
 const steps: (readonly [WalkSkin, string, OpenStep])[] = [];
 for (const chart of TABS) {
@@ -72,6 +45,7 @@ steps.push([WalkSkin.Phone, 'driver-more', {root: '.de-more-menu', open: async p
 
 steps.push(...SAVED_STATE_STEPS);
 steps.push(...CLOUD_STEPS);
+steps.push(...REJECTED_INPUT_STEPS);
 
 /** Open steps written by hand for views the two surface manifests cannot open. */
 export const EXTRA_OPEN_STEPS: ReadonlyMap<string, OpenStep> = new Map(steps.map(([skin, id, step]) => [key(skin, id), step]));
@@ -83,8 +57,8 @@ const reasons: [NoOpenReason, WalkSkin, readonly string[]][] = [
   [NoOpenReason.BrowserOwned, D, ['desktop/projects/trace-colour-picker']],
   [NoOpenReason.FaultNeeded, P, ['crash', 'startup-failure', 'storage-usage', 'update', 'cross-tab', 'driver-storage-error', 'phone/update-strip', ...both(['shared/store-gate', 'shared/storage-warning', 'shared/driver-library-storage-note'])]],
   [NoOpenReason.FaultNeeded, D, ['desktop/crash', 'desktop/startup-failure', 'desktop/storage-usage-warning', 'desktop/cross-tab-notice', 'desktop/cloud/update-strip', ...both(['shared/store-gate', 'shared/storage-warning', 'shared/driver-library-storage-note'])]],
-  [NoOpenReason.RejectedInputNeeded, P, ['phone/response-model-pending-notice', 'phone/tuning-unreachable-warning', 'phone/wizard-vented-volume-warning', 'phone/wizard-vented-tuning-warning', 'phone/wizard-passive-radiator-pick-error', 'driver-identity', 'field-dq', ...both(['shared/options-error', 'shared/driver-delete-challenge-warning'])]],
-  [NoOpenReason.RejectedInputNeeded, D, ['desktop/enclosure/tuning-unreachable-warning', 'desktop/enclosure/response-model-pending-notice', 'desktop/projects/new/vented-volume-warning', 'desktop/projects/new/vented-tuning-warning', 'desktop/projects/new/passive-radiator-pick-error', 'desktop/driver-identity-message', ...both(['shared/options-error', 'shared/driver-delete-challenge-warning'])]],
+  [NoOpenReason.RejectedInputNeeded, P, ['phone/response-model-pending-notice']],
+  [NoOpenReason.RejectedInputNeeded, D, ['desktop/enclosure/response-model-pending-notice']],
 ];
 /** Views with a named reason; a (skin, view) in neither table has the default reason, StepNotWritten. */
 export const VIEW_REASONS: ReadonlyMap<string, NoOpenReason> = new Map(reasons.flatMap(([reason, skin, ids]) => ids.map((id): [string, NoOpenReason] => [key(skin, id), reason])));

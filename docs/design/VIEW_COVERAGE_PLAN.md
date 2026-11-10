@@ -37,7 +37,7 @@ is allowed. No reading or writing app state objects. Each batch: write the steps
 | 1 | 5 | outside-app (DONE T769, ceiling 126) | `goto` the static URL, measure `body`. Phone `refresh`: `/about/refresh/`. |
 | 2 | 8 | saved-state-needed (DONE T771, ceiling 117; also removed the PR wizard step-5 row) | See "Saved state" below. |
 | 3 | 10 | cloud-account-needed (DONE T772, ceiling 107) | See "Cloud". |
-| 4 | 17 | rejected-input-needed | See "Rejected input". |
+| 4 | 15 of 17 (DONE T773, ceiling 92) | rejected-input-needed | See "Rejected input". |
 | 5 | 18 | fault-needed | See "Faults". |
 | 6 | 66 | step-not-written | Click paths, 6a phone dialogs and sheets, 6b desktop, 6c shared (one step per pair, both skins), See "Click paths". |
 | 7 | 2 of the 6 | browser-owned | keyboard-up and file-chooser as above. |
@@ -94,3 +94,7 @@ The index `reach` text is the script. Groups:
   wizard-placement-info, wizard-ebp-info.
 - Shared, both skins (9 views, 18 pairs): field-catalogue (`?field-catalogue`), flash-message, chart-readout (hover/drag a chart),
   graph-warning-pill, graph-blocked-message, graph-context-menu (right-click), winisd-difference-entry, driver-editor-incomplete-warning, driver-type-help.
+
+### Batch 4 finding
+
+`response-model-pending-notice` (phone and desktop, 2 pairs) cannot be opened: `simulatableBoxType` accepts every box type, so the notice's condition is never true. Both keep the reason `rejected-input-needed` until the notice is removed from the index or a box type the engine does not model exists.
