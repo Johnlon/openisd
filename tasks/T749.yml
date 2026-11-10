@@ -7,3 +7,40 @@ goal: Finished tasks reach main through GitHub pull requests with a merge queue 
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/T749.yml
+ruling: "QO481 A, John 10 Nov 2026 ('pick A'): GitHub pull requests with a merge queue replace land.sh's one-at-a-time landing; each task pushes, opens a PR with auto-merge, its worktree is deleted at once; land.sh's checks become CI jobs; landing rules rewritten. This is also John's approval of the gate changes (gates_approved: QO481)."
+gates_approved: QO481
+why: "John 10 Nov: 'I want better flow'. 12 worktrees piled up behind one-at-a-time landing (~15 min each); a refused landing sat until an agent fixed it."
+design: |
+  - One required GitHub check, `pr-gate`, runs on pull_request (base main) and merge_group. It runs the fast
+    gates land.sh runs today (task contract: locked hashes, files allowlist, task id/owner, status valid,
+    model-ruling, gates_approved for gate files, attribution on every commit message; lint on changed files;
+    typecheck; unit tests the change reaches; every architecture unit test; the task's done_test; the visual
+    SOURCES.sha256 check) and the full suite (suite.yml made callable with workflow_call). One script per gate,
+    reused from scripts/land/core and task-gates where it exists, never a second copy of a gate's logic.
+  - Merge queue on main (repo ruleset): squash merge, PR title is "(auto) T<n>: <goal>" (scripts/land/pr-title.sh),
+    body is the release note. The queue tests the merged result, so main only gets green commits.
+  - scripts/ship.sh T<n>: commit everything in the worktree (nothing discarded), set status done, rebase onto
+    origin/main (conflict: stop, say so, nothing removed), push branch t<n>, open or reuse the PR, `gh pr merge
+    --auto --squash`, then remove the worktree (the branch on GitHub holds the work). Optional quick local check
+    (lint + typecheck on changed files) before the push so CI is not wasted on a typo.
+  - A red PR stops only itself: the agent that owns it reads the failing job, fixes in a fresh worktree from the
+    branch, pushes. Nothing else waits. tasks/fixes F-files and the land.sh refusal lock go.
+  - Deploy unchanged: push to main builds test.openisd.app; releases unchanged (scripts/release.sh).
+  - land.sh stays only to say "use scripts/ship.sh" until no session uses it. winisd_tools vendors land.sh:
+    untouched here.
+steps:
+  - n: 1
+    worker: sonnet
+    do: "pr-gate workflow (.github/workflows/pr.yml) + suite.yml callable; gate scripts reused; a scratch PR proves every gate runs and a failing gate fails the check."
+  - n: 2
+    worker: sonnet
+    do: "scripts/ship.sh with its bash test (scripts/land/test style, gh stand-in), proved on a doc-only PR."
+  - n: 3
+    worker: leader
+    do: "Enable the main ruleset: PR required, pr-gate required, merge queue (squash). Only when no land.sh landing runs."
+  - n: 4
+    worker: sonnet
+    do: "Rules and docs: CLAUDE.md, .claude/rules/verify.md and processes.md rule 6, docs/DEV_PROCESS.md, docs/SDLC_POLICY.md, land.sh message; memory notes."
+  - n: 5
+    worker: leader
+    do: "Prove: two tasks shipped at once, both merge without waiting on each other; one red PR does not stop the other. Tell every session."
