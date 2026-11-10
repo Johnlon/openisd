@@ -205,7 +205,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     rearResonance, rearQtc, boxResonance,
     prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,
   } = sealedReadouts({ project, selectedBox, projectChanged });
-  const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver);
+  const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver, featureUse);
   const originalFilters = new OriginalFilters(project, projectChanged, engine.filters);
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
   const sealedAlignmentDeviationShown = sealedAlignmentEditor.deviationShown;
@@ -218,7 +218,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // Same class the mobile skin drives (VentedAlignment-hooks.ts) — one implementation, both
   // shells' pickers.
-  const ventedAlignmentEditor = new VentedAlignmentEditor(project, projectChanged, engine.driver);
+  const ventedAlignmentEditor = new VentedAlignmentEditor(project, projectChanged, engine.driver, featureUse);
   const ventedAlignmentOpen = ventedAlignmentEditor.open;
   const ventedAlignmentOptions = ventedAlignmentEditor.options;
   const ventedAlignmentSelected = ventedAlignmentEditor.selectedAlignment;

@@ -1,3 +1,4 @@
+import type {FeatureUse} from '../logic/telemetry/featureUse.js';
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 import type {DriverEngine, EbpSuitability, VentedAlignment} from '@openisd/design/engine';
@@ -48,6 +49,7 @@ export class VentedAlignmentEditor implements VentedAlignmentEditorAPI {
     private readonly project: ComputedRef<OpenISDProject>,
     changed: Ref<number>,
     driver: DriverEngine,
+    private readonly featureUse: FeatureUse,
   ) {
     this.#driverValues = computed(() => {
       void changed.value;
@@ -72,6 +74,7 @@ export class VentedAlignmentEditor implements VentedAlignmentEditorAPI {
   }
 
   openEditor(): void {
+    this.featureUse.feature('alignment');
     const vented = this.project.value.box.vented;
     this.#draftVb_m3.value = vented.volume_m3.value || null;
     this.#draftFb_hz.value = vented.tuning_goal_hz.value;
