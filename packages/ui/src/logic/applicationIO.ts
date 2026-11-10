@@ -423,12 +423,14 @@ export function createApplicationIO(deps: {
   }
 
   function downloadChartData(data: ChartData): void {
+    featureUse.feature('chart_data');
     const fileName = data.fileName(requireFocusedProject().name.value);
     download(fileName, data.csv(), 'text/csv');
     exportNotice.exported({kind: 'chartData', chart: data.chartName}, fileName);
   }
 
   async function copyChartData(data: ChartData): Promise<void> {
+    featureUse.feature('chart_data');
     try {
       await navigator.clipboard.writeText(data.text());
       flash(`Copied the ${data.chartName} chart data`);

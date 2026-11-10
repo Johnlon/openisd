@@ -17,6 +17,7 @@ const FEATURE_ACTIONS: Record<FeatureName, ActionName> = {
   share_link: 'feature:share_link',
   backup: 'feature:backup',
   restore: 'feature:restore',
+  chart_data: 'feature:chart_data',
 };
 
 /** Records each chart viewed and each feature used once per page session. Records only; the

@@ -16,6 +16,7 @@ import type {AppState} from '../../src/logic/appState.js';
 import type {PresentationState} from '../../src/logic/presentationState.js';
 import {backupRepoOn, projectRepoOn, exportedFilesOn, storageUsageOn} from '../fixtures/repoOn.js';
 import type {TelemetryEvent} from '../../src/logic/telemetry/events.js';
+import {ChartData, ChartLayout, FrequencyAxis, LevelAxis} from '@openisd/design/chart';
 
 let appState: AppState;
 let presentationState: PresentationState;
@@ -534,6 +535,24 @@ describe('every import and export says what it did', () => {
       if (typeof file !== 'string') throw new Error('exportBackup must download text');
       expect(io.importBackup(file, { replaceEverything: false }).kind).toBe('ok');
       expect(events).toContainEqual({ kind: 'feature', name: 'restore' });
+    } finally { restoreGlobals(); }
+  });
+
+  it('a chart data download or copy counts as chart data', async () => {
+    stubDom([]);
+    try {
+      appState.newProject();
+      const data = ChartData.of('SPL', {
+        series: [{xs: [10, 20], ys: [80, 85], color: '#000', name: 'Sub'}], ymin: 60, ymax: 100, logy: false, unit: 'dB', fmin: 10, fmax: 1000,
+        freqAxis: new FrequencyAxis(10, 1000), levelAxis: new LevelAxis(60, 100, false), rolloffs: [], layout: ChartLayout.CHART,
+      });
+      const downloaded = ioRecording(createFileStorage());
+      downloaded.io.downloadChartData(data);
+      expect(downloaded.events).toContainEqual({ kind: 'feature', name: 'chart_data' });
+
+      const copied = ioRecording(createFileStorage());
+      await copied.io.copyChartData(data);
+      expect(copied.events).toContainEqual({ kind: 'feature', name: 'chart_data' });
     } finally { restoreGlobals(); }
   });
 
