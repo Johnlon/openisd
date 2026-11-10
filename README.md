@@ -82,18 +82,17 @@ only on Windows, and its source was never released. OpenISD carries the idea for
   - contradictory inputs are marked, not silently discarded;
   - a typed value is never rewritten behind the user's back;
   - each project keeps its own air conditions.
-- **Parity state** (2026-10-21; drivers W5-1138SMF and E150HE-44, radiators ND140-PR and
-  SB15SFCR-00): 248 of 269 cells in the
+- **Parity state** (2026-11-10; drivers W5-1138SMF and E150HE-44, radiators ND140-PR and
+  SB15SFCR-00): 251 of 269 cells in the
   [WinISD equivalence register](docs/research/WINISD_EQUIVALENCE.md) match WinISD, most to
-  ≤ 1e-12. Every chart exists for every box type.
-- **Remaining gaps:**
-  - not yet compared with WinISD: the readouts sealed Fsc and Qtc, peak impedance,
-    bandpass Fr and Ff, and the maximum-power/Xmax crossover.
-  - after one typed edit, WinISD and OpenISD differ in these: the number of voice coils (WinISD
-    ignores it; sealed box), the driver editor's fLe, KLe, Hc and Hg when the file does not state them
-    (sealed, vented and 6th-order bandpass boxes), the vent cross area after more vents are typed
-    (vented box), and the passive radiator Vas (WinISD rounds it) and Sd (WinISD ignores it).
-  - not yet compared after an edit: a typed vent end correction (vented box).
+  ≤ 1e-12. Every chart exists for every box type. No cell has a known calculation deviation.
+- **Different on purpose** (13 cells; OpenISD gives the correct result, WinISD does not): the number
+  of voice coils (WinISD ignores it), the passive radiator Vas (WinISD rounds it) and Sd (WinISD
+  ignores it), and the driver editor's fLe, KLe, Hc and Hg when the file does not state them (OpenISD
+  leaves them blank, WinISD shows an entered 0).
+- **Remaining gaps** (5 cells, all never compared with WinISD yet):
+  - the readouts peak impedance, bandpass Fr and Ff, and the maximum-power/Xmax crossover.
+  - a typed vent end correction (vented box, both drivers).
 
 Details:
 
