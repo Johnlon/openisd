@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 6c78fd3f182b1464ad93c95e9546834dc5717e73
 goal: Move the WinISD-behaviour findings out of openisd bugs/ into winisd_research, and close the bug files John closed on QO456
 done_test: test -z "$(ls bugs | grep -i winisd)"
 files:
