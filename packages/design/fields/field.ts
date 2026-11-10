@@ -43,7 +43,7 @@ import {
   toSI as toSIDim, UNIT_GROUPS, unitFor,
 } from './dimensions.js';
 import {knownDecimals} from './precision.js';
-import {formatFixed, formatTrimmed} from './format.js';
+import {formatFixed, formatTrimmedTo} from './format.js';
 import type {FieldLimits} from './filterLimits.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
@@ -233,10 +233,11 @@ export class NumberField extends Field {
     }
 
     // At least MIN_SIGNIFICANT figures, so a small value is never shown as 0.37 for 0.3687 (John, 10 Nov 2026, board option B).
+    const keep = Math.min(Math.max(0, Math.min(20, decimals)), 2); // zeros the field's own precision shows
     if (valDisp !== 0) decimals = Math.max(decimals, NumberField.MIN_SIGNIFICANT - (Math.floor(Math.log10(Math.abs(valDisp))) + 1));
     decimals = Math.max(0, Math.min(20, decimals));
     const sanitizedVal = valDisp === 0 ? 0 : valDisp;
-    return formatTrimmed(sanitizedVal, decimals);
+    return formatTrimmedTo(sanitizedVal, decimals, Math.min(keep, decimals));
   }
 
   /** Parse raw typed string input into a Quantity or Text discriminant for this field. */
