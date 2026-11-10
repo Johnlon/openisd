@@ -60,3 +60,16 @@ session ran outside tmux and no handover was cleared.
 
 An agent resumed from an old transcript takes no action on its old work. Before any work it tells the coordinating
 session what it means to do and waits for an ok. The keeper's resume prompt says this.
+
+## 6. No default argument values (John, 10 Nov 2026)
+
+"Avoid default args, as they lead to bugs and are not transparent."
+
+- A function, method or constructor never gives a parameter a default value (`x = something`). Every caller
+  passes every argument, so the call shows what it means.
+- Context that differs by caller (project or managed driver, air, the Cms source) is a required argument of
+  its own type, so passing none, or the wrong kind, does not compile.
+- Why: T744. `OpenISDDriverStandalone.wrap()` defaulted its Cms source and air, so the driver editor's copy of a
+  project's driver silently used "no project" and the app's air. The compiler accepted the short call, the
+  tests checked a different object, and users saw the wrong Cms note.
+- Enforced by T750's architecture test: the count of default parameters has a ceiling that only goes down, to 0.
