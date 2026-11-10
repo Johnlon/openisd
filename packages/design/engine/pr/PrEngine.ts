@@ -43,8 +43,6 @@ export interface PrEngine {
   /** Moving mass per radiator that tunes the box to `fp` — the inverse of `tuning`:
    *  `Map = N/((2π·fp)²·Cpar)`, `Mmp = Map·prSd²`. */
   massForFp(p: PrParams, fp: number, air: Air): number;
-  /** Compliance-equivalent volume, cubic metres: `Vas = Cms·Sd²·ρ·c²`. */
-  vas(prCms: number, prSd: number, air: Air): number;
   /** Free-air resonance loaded with added cone mass: `1/(2π·√((Mmd+Madd)·Cms))` — the
    *  radiator alone, no box. 0 when the total mass or compliance is non-positive. */
   fsWithMass(prMmd: number, prMadd: number, prCms: number): number;
@@ -93,10 +91,6 @@ export class PrEngineImpl implements PrEngine {
     const Cpar = (Cab * Cap) / (Cab + Cap);
     const Map  = p.prNum / ((2 * Math.PI * fp) ** 2 * Cpar);
     return Map * p.prSd * p.prSd;
-  }
-
-  vas(prCms: number, prSd: number, air: Air): number {
-    return prCms * prSd * prSd * air.rho() * air.c() * air.c();
   }
 
   fsWithMass(prMmd: number, prMadd: number, prCms: number): number {
