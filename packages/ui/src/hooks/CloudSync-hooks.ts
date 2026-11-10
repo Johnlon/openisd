@@ -13,6 +13,7 @@ import {
 import type { SyncStatus, CloudUiState, ConflictCopy, SyncActivity, SyncDisplay, SyncTap } from '@openisd/design/cloud';
 import { ProjectId, syncDisplayOf } from '@openisd/design/cloud';
 import type { ProjectCloudMarks } from './projectBinView.js';
+import { useFeatureUse } from './telemetryContext.js';
 import type { CloudSync, CloudUiStore } from '@openisd/persistence';
 
 export interface CloudSyncAPI {
@@ -115,6 +116,7 @@ export function useCloudSyncUi(
   openDialog: () => void,
 ): CloudSyncUiAPI {
   const cloudSyncAPI = useCloudSync();
+  const featureUse = useFeatureUse();
 
   const available = computed(() => cloudSyncAPI.sync !== null);
 
@@ -136,10 +138,12 @@ export function useCloudSyncUi(
   });
 
   function connect(): void {
+    featureUse.feature('cloud_connect');
     cloudSyncAPI.sync?.connect();
   }
 
   function syncNow(): void {
+    featureUse.feature('cloud_sync');
     void cloudSyncAPI.sync?.syncNow();
   }
 
