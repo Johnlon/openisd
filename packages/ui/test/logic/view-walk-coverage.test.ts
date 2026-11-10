@@ -21,6 +21,7 @@ describe('view index coverage', () => {
     const byReason = Object.values(NoOpenReason).map(reason => `${reason}=${withReason.filter(target => target.plan.kind === 'reason' && target.plan.reason === reason).length}`);
     console.log(`view walk: ${targets.length - withReason.length} opened, ${withReason.length} with a reason (${byReason.join(', ')}); ${NO_OPEN_WHY[NoOpenReason.StepNotWritten]}`);
     expect(withReason.length, 'views with a reason may only go down: lower REASON_CEILING when a step is written').toBeLessThanOrEqual(REASON_CEILING);
+    expect(withReason.length, 'a step was written: lower REASON_CEILING to the new count so it cannot creep back').toBeGreaterThanOrEqual(REASON_CEILING);
   });
 
   test('the step and reason tables name only views that are in the index', () => {

@@ -1,0 +1,12 @@
+id: T768
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Full view coverage plan: every view in the index will be opened and measured, with the plan and a ratchet that cannot drift
+why: John, 10 Nov 2026: "I need full coverage, add it, then maintain it, create a plan"
+done_test: bash scripts/test.sh packages/ui/test/logic/view-walk-coverage.test.ts
+files:
+  - tasks/T768.yml
+  - docs/design/VIEW_COVERAGE_PLAN.md
+  - packages/ui/test/logic/view-walk-coverage.test.ts
