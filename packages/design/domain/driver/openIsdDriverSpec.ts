@@ -22,7 +22,6 @@ import {
     VoiceCoilWiring,
     wiringFromRecord
 } from '../voiceCoilWiring.js';
-import {mmsTypedMoves} from '../mmsTypedMoves.js';
 import {NOTHING_SHOWN} from './chartFigureNote.js';
 import type {DriverContext} from './driverContext.js';
 import {computedSlot} from './computedSlot.js';
@@ -94,6 +93,9 @@ const FLOORS: Readonly<Record<DriverSpecFieldName, ValueFloor>> = Object.freeze(
     OuterY_m: 'positive',
     DVol_m3: NumberField.DVOL_M3.floor,
 });
+
+/** A field whose typing records nothing about which figure the charts follow. */
+const NOTHING_TYPED = (_value: number): void => undefined;
 
 /** `key`'s own floor. */
 type Partners = readonly DriverSpecFieldName[] | (() => readonly DriverSpecFieldName[]);
@@ -265,13 +267,17 @@ export class OpenIsdDriverSpec {
         const sectionSlot = (
             key: DriverSpecFieldName,
             partners: Partners,
+            typed: (value: number) => void,
         ): SimpleField<SpecEntryJson | undefined> => ({
             get value() {
                 return sectionLens.value[key];
             },
             set: (v) => {
                 // Typed last wins: typing one of a linked pair drops the partner's entered value, so the solve works it out again.
-                if (v?.state === 'E') for (const partner of typeof partners === 'function' ? partners() : partners) if (sectionLens.value[partner]?.state === 'E') sectionSlot(partner, []).set(undefined);
+                if (v?.state === 'E') {
+                    for (const partner of typeof partners === 'function' ? partners() : partners) if (sectionLens.value[partner]?.state === 'E') sectionSlot(partner, [], NOTHING_TYPED).set(undefined);
+                    typed(v.value);
+                }
                 const spec = sectionLens.value;
                 const {[key]: _removed, ...rest} = spec;
                 sectionLens.set(v === undefined ? rest : {...spec, [key]: v});
@@ -292,13 +298,15 @@ export class OpenIsdDriverSpec {
          *  BUG_20260927_driver-bad-value-decided-in-ui.md's follow-up), computed fresh from the
          *  CURRENT value on every read so it shows up immediately on `.set()`, not only after
          *  the next `resolve()`. */
-        const f =
-            (key: DriverSpecFieldName, partners: Partners): SpecNumberField =>
-                entryField(sectionSlot(key, partners), key, dqFor(key), (v) => floorIssue(key, v, issues));
+        const fTyped =
+            (key: DriverSpecFieldName, partners: Partners, typed: (value: number) => void): SpecNumberField =>
+                entryField(sectionSlot(key, partners, typed), key, dqFor(key), (v) => floorIssue(key, v, issues));
+        /** `fTyped` for a field whose typing records nothing about which figure the charts follow. */
+        const f = (key: DriverSpecFieldName, partners: Partners): SpecNumberField => fTyped(key, partners, NOTHING_TYPED);
         /** `f` for a figure the box shows as the engine works it out (`shown`) while writes still go to the stored entry. */
         const shownF =
-            (key: DriverSpecFieldName, partners: Partners, shown: () => SpecEntryJson | undefined): SpecNumberField =>
-                entryField(shownSlot(sectionSlot(key, partners), shown), key, dqFor(key), (v) => floorIssue(key, v, issues));
+            (key: DriverSpecFieldName, partners: Partners, shown: () => SpecEntryJson | undefined, typed: (value: number) => void): SpecNumberField =>
+                entryField(shownSlot(sectionSlot(key, partners, typed), shown), key, dqFor(key), (v) => floorIssue(key, v, issues));
 
         /** The wiring field — `entryField` in every respect but the value's type, which is a
          *  NAME rather than one of `DriverSpecsSection`'s numbers, so it cannot go through `f()`
@@ -310,7 +318,7 @@ export class OpenIsdDriverSpec {
          *  "simply no reason for these exceptions to the rule" — replacing the S2-3 read-time
          *  fallback, which left a saved driver silent about its wiring). A number the encoding
          *  does not define reads as absence, the same as a missing key. */
-        const wiringSlot = sectionSlot('VCCon', []);
+        const wiringSlot = sectionSlot('VCCon', [], NOTHING_TYPED);
         let wiringDq: readonly DqIssue[] = [];
         this.VCCon = new DualWriteFieldImpl<VoiceCoilWiring>(
             () => {
@@ -351,15 +359,16 @@ export class OpenIsdDriverSpec {
         this.Qts = f('Qts', []);
         this.Qes = f('Qes', []);
         this.Qms = f('Qms', []);
-        this.Vas_m3 = f('Vas_m3', ['Cms_m_per_N']);
+        this.Vas_m3 = fTyped('Vas_m3', ['Cms_m_per_N'], () => context.typed.clear());
         this.Sd_m2 = f('Sd_m2', []);
         this.BL_Tm = f('BL_Tm', []);
-        this.#storedMms = f('Mms_kg', () => this.#mmsMoves());
-        this.#storedCms = f('Cms_m_per_N', ['Vas_m3', 'no']);
+        const typedMms = (value: number): void => this.#typedMms(value);
+        this.#storedMms = fTyped('Mms_kg', () => this.#mmsMoves(), typedMms);
+        this.#storedCms = fTyped('Cms_m_per_N', ['no'], (value) => context.typed.typedCms(value));
         this.#storedRms = f('Rms_kg_per_s', []);
-        this.Mms_kg = shownF('Mms_kg', () => this.#mmsMoves(), () => this.#shownEntry('Mms_kg'));
-        this.Cms_m_per_N = shownF('Cms_m_per_N', ['Vas_m3', 'no'], () => this.#shownEntry('Cms_m_per_N'));
-        this.Rms_kg_per_s = shownF('Rms_kg_per_s', [], () => this.#shownEntry('Rms_kg_per_s'));
+        this.Mms_kg = shownF('Mms_kg', () => this.#mmsMoves(), () => this.#shownEntry('Mms_kg'), typedMms);
+        this.Cms_m_per_N = shownF('Cms_m_per_N', ['no'], () => this.#shownEntry('Cms_m_per_N'), (value) => context.typed.typedCms(value));
+        this.Rms_kg_per_s = shownF('Rms_kg_per_s', [], () => this.#shownEntry('Rms_kg_per_s'), NOTHING_TYPED);
         this.Xmax_m = f('Xmax_m', []);
         this.Xlim_m = f('Xlim_m', []);
         this.SPL_dB = f('SPL_dB', []);
@@ -438,9 +447,16 @@ export class OpenIsdDriverSpec {
         return this.#issues;
     }
 
-    /** Mms typed: the figures it moves, by the one rule radiators share (`mmsTypedMoves`). */
+    /** Mms typed. In the driver editor nothing moves: the typed Mms stands and the charts use it with Fs (QO530). In the What-if panel it is added mass:
+     *  Fs drops, and so do Qes (with Bl stated) and Qms (with Rms stated), and they follow the new Mms with Cms (Vas), Bl, Re and Rms fixed. */
     #mmsMoves(): readonly DriverSpecFieldName[] {
-        return mmsTypedMoves(this.Cms_m_per_N.value !== null, this.#storedRms.entered);
+        if (!this.#context.mmsIsAddedMass()) return [];
+        return ['Fs_hz', ...(this.BL_Tm.entered ? ['Qes' as const] : []), ...(this.#storedRms.entered ? ['Qms' as const] : [])];
+    }
+
+    /** Mms typed: in the editor it is the figure the charts follow; as added mass (What-if) the figures it moves are worked out again and Cms stays. */
+    #typedMms(value: number): void {
+        if (this.#context.mmsIsAddedMass()) this.#context.typed.clear(); else this.#context.typed.typedMms(value);
     }
 
     /** The issues, with the stated Cms that disagrees with the stated Vas named in one sentence on Cms (only the generic Vas/Cms issue loses Cms; an Fs/Mms/Cms
@@ -458,7 +474,14 @@ export class OpenIsdDriverSpec {
             expected: cmsConflict.expected, actual: cmsConflict.actual, relative: cmsConflict.relative, text: cmsConflict.text,
         } satisfies DriverIssue];
         const figureNotes = notes.figures.map(({name, text}): DriverIssue => ({kind: 'approximate-charts', target: name, fields: [name], text}));
-        return [...kept, ...cmsNotes, ...figureNotes];
+        const {vasConflict} = notes;
+        // A typed Cms or Mms the stated Vas disagrees with: the one sentence sits on Vas alone, in place of the generic Vas/Cms/Fs/Mms issue.
+        const withoutGeneric = vasConflict === null ? kept : kept.filter(issue => !('fields' in issue && issue.kind === 'inconsistent-inputs' && issue.fields.includes('Vas_m3')));
+        const vasNotes = vasConflict === null ? [] : [{
+            kind: 'inconsistent-inputs', target: 'Vas_m3', fields: ['Vas_m3'], formula: NumberField.VAS_M3.formula ?? '',
+            expected: vasConflict.expected, actual: vasConflict.actual, relative: vasConflict.relative, text: vasConflict.text,
+        } satisfies DriverIssue];
+        return [...withoutGeneric, ...cmsNotes, ...vasNotes, ...figureNotes];
     }
 
     /** Clears `dq` on every quantity, then applies each issue's OWN formula only to the handles
@@ -500,9 +523,7 @@ export class OpenIsdDriverSpec {
 
     /** The stored figures as the chain reads them: Vas wins only where Vas is stated; a Vas the solve worked out (a Cms was typed, Vas was dropped) is not a figure to hold the charts to. */
     #storedValues(air: Air): DriverValues {
-        const all = valuesOf(this.#solverParamsIn(air, this.#storedMms, this.#storedCms, this.#storedRms, NOTHING_SHOWN));
-        // A typed Mms (its Fs was dropped and worked out again): Fs is not a stated figure, so the chain starts from the Mms, as a radiator's does.
-        const values = this.#storedMms.entered && !this.Fs_hz.entered ? {...all, Fs_hz: null} : all;
+        const values = valuesOf(this.#solverParamsIn(air, this.#storedMms, this.#storedCms, this.#storedRms, NOTHING_SHOWN));
         return this.Vas_m3.entered ? values : {...values, Vas_m3: null};
     }
 
@@ -511,10 +532,21 @@ export class OpenIsdDriverSpec {
         return this.#context.shown(this.#storedValues(air), air);
     }
 
+    #stored(name: 'Cms_m_per_N' | 'Mms_kg' | 'Rms_kg_per_s'): SpecNumberField {
+        switch (name) {
+            case 'Cms_m_per_N': return this.#storedCms;
+            case 'Mms_kg': return this.#storedMms;
+            case 'Rms_kg_per_s': return this.#storedRms;
+        }
+    }
+
     /** A mechanical figure as the box shows it: the engine's, as a calculated entry, or nothing when the engine has none. */
     #shownEntry(name: 'Cms_m_per_N' | 'Mms_kg' | 'Rms_kg_per_s'): SpecEntryJson | undefined {
         const value = this.#shown(this.#air())[name];
-        return value === null ? undefined : {state: 'C', value};
+        const stored = this.#stored(name);
+        // A figure the user typed and the charts use as typed stays entered.
+        if (value === null || (stored.entered && stored.value === value)) return undefined;
+        return {state: 'C', value};
     }
 
     /** `solverParams` over the given Mms, Cms and Rms fields. `chain` is the figures the charts use, whose BL stands in for the stated one's terminal value. */

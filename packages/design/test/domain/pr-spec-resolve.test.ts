@@ -77,12 +77,12 @@ describe('radiator Mms, Cms and Rms are calculated', () => {
     expect(spec.Fs_hz.calculated).toBe(true);
   });
 
-  it('a typed Mms wins (QO470): the box and the charts use it and the stated Fs is worked out again', () => {
+  it('a typed Mms wins (QO530): the box and the charts use it and the stated Fs stays', () => {
     const spec = prProject(createEngine(), four).box.passiveRadiator.radiator.spec;
     spec.Mms_kg.set(0.123);
     expect(spec.Mms_kg.value).toBe(0.123);
     expect(spec.Mms_kg.entered).toBe(true);
-    expect(spec.Fs_hz.calculated).toBe(true);
+    expect(spec.Fs_hz.entered).toBe(true);
   });
 
   it('without a Qms there is no Rms', () => {

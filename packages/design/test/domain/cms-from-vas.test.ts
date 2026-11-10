@@ -189,14 +189,15 @@ describe('E150HE-style datasheet stating Vas and η0, Cms typed (QO477 = A)', ()
     return project;
   }
 
-  it('Vas follows the typed Cms (Vas = ρ·c²·Sd²·Cms) and is no longer an entered value', () => {
-    const {Vas_m3, Cms_m_per_N, Sd_m2, roo_kg_per_m3, c_m_per_s} = typed().driver.specs;
-    expect(Vas_m3.entered).toBe(false);
-    expect(Vas_m3.value).toBeCloseTo(roo_kg_per_m3.value! * c_m_per_s.value! ** 2 * Sd_m2.value! ** 2 * Cms_m_per_N.value!, 9);
-    expect(Vas_m3.dq).toEqual([]);
+  // QO530 (John, 10 Nov 2026) replaces QO477: a typed Cms never moves another stated figure, so Vas keeps its number and carries the warning.
+  it('Vas keeps its stated number and carries the one-sentence warning that the charts use the typed Cms', () => {
+    const {Vas_m3} = typed().driver.specs;
+    expect(Vas_m3.entered).toBe(true);
+    expect(Vas_m3.value).toBe(E150HE.Vas_m3);
+    expect(Vas_m3.dq.map(i => i.text)).toEqual(['Vas disagrees with your Cms, so the charts use your Cms.']);
   });
 
-  it('η0 is shown as calculated, not entered, and agrees with the Vas shown', () => {
+  it('η0, which the typed Cms contradicts, is shown as calculated', () => {
     const {no} = typed().driver.specs;
     expect(no.entered).toBe(false);
     expect(no.calculated).toBe(true);
@@ -207,7 +208,9 @@ describe('E150HE-style datasheet stating Vas and η0, Cms typed (QO477 = A)', ()
     const project = typed();
     expect(project.driver.specs.Cms_m_per_N.value).toBe(TYPED_CMS);
     const engine = createEngine();
-    const stated = new ProjectBuilder(driverFromSpec(engine, {...E150HE, Cms_m_per_N: TYPED_CMS, Vas_m3: project.driver.specs.Vas_m3.value!}), engine).sealed().volume_m3(0.03).build();
+    // A datasheet stating the same Cms with the Vas that Cms gives charts identically: the typed Cms is the chart input.
+    const vasOfCms = project.driver.specs.roo_kg_per_m3.value! * project.driver.specs.c_m_per_s.value! ** 2 * project.driver.specs.Sd_m2.value! ** 2 * TYPED_CMS;
+    const stated = new ProjectBuilder(driverFromSpec(engine, {...E150HE, Cms_m_per_N: TYPED_CMS, Vas_m3: vasOfCms}), engine).sealed().volume_m3(0.03).build();
     expect(worst(project.sweep(GRID).values!.spl, stated.sweep(GRID).values!.spl)).toBeLessThan(1e-9);
   });
 });

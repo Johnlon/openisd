@@ -2,10 +2,9 @@ import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, S
 import type { Air, PrEngine, PrSpecIssue, PrSpecPrecision, PrSpecValues } from '../../engine/index.js';
 import { NumberField } from '../../fields/field.js';
 import type { RadiatorDeviceJson, SpecEntryJson } from '../openisdSchema.js';
-import { prSpec, shownPrSpec, type PassiveRadiatorFieldName } from '../box/prSpec.js';
+import { prSpec, shownPrSpec, typedPrSpec, type PassiveRadiatorFieldName } from '../box/prSpec.js';
 import { radiatorSection } from '../box/radiatorSection.js';
 import type { RadiatorContext } from './radiatorContext.js';
-import { mmsTypedMoves } from '../mmsTypedMoves.js';
 
 /** A field no typed write moves another for. */
 const none = (): PassiveRadiatorFieldName[] => [];
@@ -52,20 +51,25 @@ export class OpenIsdPassiveRadiatorSpec {
         const section = radiatorSection(slot);
         const shownEntry = (name: 'Mms_kg' | 'Cms_m_per_N' | 'Rms_kg_per_s') => (): SpecEntryJson | undefined => {
             const value = this.#context.shown(this.#stated())[name];
-            return value === null ? undefined : {state: 'C', value};
+            const stored = this.#stated()[name];
+            // A figure the user typed and the charts use as typed stays entered.
+            return value === null || stored === value ? undefined : {state: 'C', value};
         };
         const marks = (name: keyof PrSpecValues) => (): readonly PrSpecIssue[] =>
             conflicts().filter(issue => issue.fields.some(field => field === name));
+        const typedCms = (value: number): void => context.typed.typedCms(value);
+        const typedMms = (value: number): void => context.typed.typedMms(value);
+        const typedUpstream = (): void => context.typed.clear();
         this.Fs_hz = prSpec(section, 'Fs_hz', marks('Fs_hz'), () => this.#fsMoves());
         this.Qms = prSpec(section, 'Qms', marks('Qms'), () => this.#qmsMoves());
-        this.#storedCms = prSpec(section, 'Cms_m_per_N', undefined, () => this.#cmsMoves());
-        this.#storedMms = prSpec(section, 'Mms_kg', undefined, none);
+        this.#storedCms = typedPrSpec(section, 'Cms_m_per_N', undefined, none, typedCms);
+        this.#storedMms = typedPrSpec(section, 'Mms_kg', undefined, none, typedMms);
         this.#storedRms = prSpec(section, 'Rms_kg_per_s', undefined, none);
-        this.Cms_m_per_N = shownPrSpec(section, 'Cms_m_per_N', marks('Cms_m_per_N'), () => this.#cmsMoves(), shownEntry('Cms_m_per_N'));
-        this.Mms_kg = shownPrSpec(section, 'Mms_kg', marks('Mms_kg'), () => this.#mmsMoves(), shownEntry('Mms_kg'));
-        this.Rms_kg_per_s = shownPrSpec(section, 'Rms_kg_per_s', marks('Rms_kg_per_s'), () => this.#rmsMoves(), shownEntry('Rms_kg_per_s'));
-        this.Sd_m2 = prSpec(section, 'Sd_m2', marks('Sd_m2'), () => this.#sdMoves());
-        this.Vas_m3 = prSpec(section, 'Vas_m3', marks('Vas_m3'), () => this.#vasMoves());
+        this.Cms_m_per_N = shownPrSpec(section, 'Cms_m_per_N', marks('Cms_m_per_N'), none, shownEntry('Cms_m_per_N'), typedCms);
+        this.Mms_kg = shownPrSpec(section, 'Mms_kg', marks('Mms_kg'), none, shownEntry('Mms_kg'), typedMms);
+        this.Rms_kg_per_s = shownPrSpec(section, 'Rms_kg_per_s', marks('Rms_kg_per_s'), () => this.#rmsMoves(), shownEntry('Rms_kg_per_s'), () => undefined);
+        this.Sd_m2 = typedPrSpec(section, 'Sd_m2', marks('Sd_m2'), () => this.#sdMoves(), typedUpstream);
+        this.Vas_m3 = typedPrSpec(section, 'Vas_m3', marks('Vas_m3'), () => this.#vasMoves(), typedUpstream);
         this.Vd_m3 = prSpec(section, 'Vd_m3', undefined, none);
         this.Xmax_m = prSpec(section, 'Xmax_m', undefined, none);
         this.Xlim_m = prSpec(section, 'Xlim_m', undefined, none);
@@ -109,20 +113,6 @@ export class OpenIsdPassiveRadiatorSpec {
     /** Qms typed: Rms follows Qms, Mms and Cms. */
     #qmsMoves(): PassiveRadiatorFieldName[] {
         return this.Mms_kg.value === null || this.Cms_m_per_N.value === null ? [] : ['Rms_kg_per_s'];
-    }
-
-    /** Cms typed: Vas follows Cms and Sd; Fs (Mms stated) and Qms (Rms stated) follow Cms. */
-    #cmsMoves(): PassiveRadiatorFieldName[] {
-        return [
-            ...(this.Sd_m2.value !== null ? ['Vas_m3' as const] : []),
-            ...(this.Mms_kg.entered ? ['Fs_hz' as const] : []),
-            ...(this.Rms_kg_per_s.entered && this.Mms_kg.value !== null ? ['Qms' as const] : []),
-        ];
-    }
-
-    /** Mms typed: Fs follows Mms and Cms; Qms (Rms stated) follows Mms. */
-    #mmsMoves(): PassiveRadiatorFieldName[] {
-        return mmsTypedMoves(this.Cms_m_per_N.value !== null, this.Rms_kg_per_s.entered);
     }
 
     /** Rms typed: Qms follows Rms, Mms and Cms. */
@@ -192,6 +182,13 @@ export class OpenIsdPassiveRadiatorSpec {
             expected: cmsConflict.expected, actual: cmsConflict.actual, relative: cmsConflict.relative, text: cmsConflict.text,
         }];
         const figureNotes = notes.figures.map(({name, text}): PrSpecIssue => ({kind: 'approximate-charts', target: name, fields: [name], text}));
-        return [...kept, ...cmsNotes, ...figureNotes];
+        const {vasConflict} = notes;
+        // A typed Cms or Mms the stated Vas disagrees with: the one sentence sits on Vas alone, in place of the generic Vas/Cms/Fs/Mms issue.
+        const withoutGeneric = vasConflict === null ? kept : kept.filter(issue => !(issue.kind === 'inconsistent-inputs' && issue.fields.includes('Vas_m3')));
+        const vasNotes: PrSpecIssue[] = vasConflict === null ? [] : [{
+            kind: 'inconsistent-inputs', target: 'Vas_m3', fields: ['Vas_m3'], formula: NumberField.VAS_M3.formula ?? '',
+            expected: vasConflict.expected, actual: vasConflict.actual, relative: vasConflict.relative, text: vasConflict.text,
+        }];
+        return [...withoutGeneric, ...cmsNotes, ...vasNotes, ...figureNotes];
     }
 }

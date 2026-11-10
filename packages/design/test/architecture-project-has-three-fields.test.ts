@@ -41,6 +41,10 @@
  * ruled these four OUT of the saved record entirely: never `OpenISDProjectJson`, never
  * `#saved`/`#edited`/`#whatif`, never `.owpr`/a share link. They reset to defaults on every
  * (re)wrap, same as `#issues` holds no information a fresh resolve wouldn't reproduce.
+ *
+ * `#typed` is a fifth exception (T744, QO530; John to confirm after review): which one of Cms or Mms the user typed last, so the
+ * charts use it as typed. Never in a record (a reloaded file has none and the "Cms from Vas" option decides); it counts only while
+ * the box still holds exactly the typed number.
  */
 import {describe, expect, it} from 'vitest';
 import {Project} from 'ts-morph';
@@ -51,7 +55,7 @@ const packageRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)
 
 const ALLOWED_FIELDS = new Set([
   '#saved', '#edited', '#whatif', '#engine', '#appContext', '#uuid', '#listeners', '#issues', '#resolving',
-  '#cursorF', '#pinnedF', '#cursorLocked', '#dragRange',
+  '#cursorF', '#pinnedF', '#cursorLocked', '#dragRange', '#typed',
 ]);
 
 describe('OpenISDProject holds only #saved/#edited/#whatif/#engine as stored fields', () => {

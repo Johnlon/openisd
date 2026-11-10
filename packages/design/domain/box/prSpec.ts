@@ -16,8 +16,22 @@ export function prSpec(
     /** The stated fields an entered write to this one moves (typed last wins): dropped in the same write, then worked out again by `resolve`. */
     follows: () => readonly PassiveRadiatorFieldName[],
 ): SpecField {
-    return entryField(storedSlot(section, key, follows), key, marks);
+    return typedPrSpec(section, key, marks, follows, NOTHING_TYPED);
 }
+
+/** `prSpec` that also tells `typed` the value of every entered write (the Cms or Mms the charts then follow). */
+export function typedPrSpec(
+    section: SimpleField<PassiveRadiatorSpecsSection>,
+    key: PassiveRadiatorFieldName,
+    marks: (() => readonly DqIssue[]) | undefined,
+    follows: () => readonly PassiveRadiatorFieldName[],
+    typed: (value: number) => void,
+): SpecField {
+    return entryField(storedSlot(section, key, follows, typed), key, marks);
+}
+
+/** A field whose typing records nothing about which figure the charts follow. */
+const NOTHING_TYPED = (_value: number): void => undefined;
 
 /** `prSpec` for a figure the box shows as the engine works it out (`shown`): reads shadow the stored entry, writes still go to it. */
 export function shownPrSpec(
@@ -26,8 +40,9 @@ export function shownPrSpec(
     marks: (() => readonly DqIssue[]) | undefined,
     follows: () => readonly PassiveRadiatorFieldName[],
     shown: () => SpecEntryJson | undefined,
+    typed: (value: number) => void,
 ): SpecField {
-    const stored = storedSlot(section, key, follows);
+    const stored = storedSlot(section, key, follows, typed);
     const slot: SimpleField<SpecEntryJson | undefined> = {
         get value() { return shown() ?? stored.value; },
         set: (entry) => stored.set(entry),
@@ -42,6 +57,7 @@ function storedSlot(
     section: SimpleField<PassiveRadiatorSpecsSection>,
     key: PassiveRadiatorFieldName,
     follows: () => readonly PassiveRadiatorFieldName[],
+    typed: (value: number) => void,
 ): SimpleField<SpecEntryJson | undefined> {
     return {
         get value() { return section.value[key]; },
@@ -49,7 +65,10 @@ function storedSlot(
             const {[key]: _removed, ...rest} = section.value;
             if (entry === undefined) { section.set(rest); return; }
             const next: {-readonly [K in PassiveRadiatorFieldName]?: SpecEntryJson} = {...section.value, [key]: entry};
-            if (entry.state === 'E') for (const moved of follows()) if (next[moved]?.state === 'E') delete next[moved];
+            if (entry.state === 'E') {
+                for (const moved of follows()) if (next[moved]?.state === 'E') delete next[moved];
+                typed(entry.value);
+            }
             section.set(next);
         },
     };

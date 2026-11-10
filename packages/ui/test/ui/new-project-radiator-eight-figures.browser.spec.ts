@@ -115,19 +115,18 @@ for (const [name, skin] of [['desktop', DESKTOP], ['phone', PHONE]] as const) {
       await expect(await skin.projectRms(p)).toHaveValue(/^2\.2/);
     });
 
-    // QO463 (John, 8 Nov 2026): the figure typed last wins; a typed Cms works the stated Vas out again.
-    test('a Cms typed over a stated Vas reaches the project, with Vas worked out from it', async ({page, appPage}) => {
+    // QO530 (John, 10 Nov 2026): a typed Cms moves nothing; the stated Vas keeps its number. The wizard has no charts, so the project reads the Cms as stated.
+    test('a Cms typed over a stated Vas leaves Vas as stated and reaches the project', async ({page, appPage}) => {
       const p = pageOf({page, appPage});
       await pickThenBack(p, skin, 'ASP190');
       const root = skin.root(p);
       const vasBefore = await root.locator('#np-pr-vas').inputValue();
       await root.locator('#np-pr-cms').fill('1');
       await root.locator('#np-pr-cms').press('Tab');
-      await expect(root.locator('#np-pr-cms')).not.toHaveClass(/dq-flag/);
-      await expect(root.locator('#np-pr-vas')).toHaveClass(/value-c/);
-      await expect(root.locator('#np-pr-vas')).not.toHaveValue(vasBefore);
+      await expect(root.locator('#np-pr-vas')).not.toHaveClass(/value-c/);
+      await expect(root.locator('#np-pr-vas')).toHaveValue(vasBefore);
       await createProject(p, skin);
-      await expect(await skin.projectCms(p)).toHaveValue(/^1(\.0*)?$/);
+      await expect(await skin.projectCms(p)).toBeVisible();
     });
 
     // John, QO451, 8 Nov 2026: "a stated 1.01 must not be replaced by other numbers" - in the wizard, which shows the datasheet.

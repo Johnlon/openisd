@@ -71,6 +71,8 @@ Bold marks what changed.
 
 ## Passive radiator pairs — the figure typed last wins
 
+John, QO530, 10 Nov 2026: "build it" — a Cms or Mms typed on a radiator or a driver moves nothing; the rows for them below are that rule. The driver editor follows the same rule; in the What-if panel a typed Mms is added mass (Fs, Qes, Qms follow, Cms stays).
+
 John, QO463, 8 Nov 2026: "b and record this as a diff to winisd"; "make sure the rule is recorded as a
 design decision so the app works intuitively, and if a person enters the calculated value then it flips
 back to E"; "it's all about intention".
@@ -88,8 +90,8 @@ Rule: typing a figure works out again (E becomes C) each stated figure it would 
 | Sd, with Vas stated | as Vas typed (Vas is kept) |
 | Fs | Mms; Rms when Qms is stated |
 | Qms | Rms |
-| Cms | Vas; Fs when Mms is stated; Qms when Rms is stated |
-| Mms | Fs; Qms when Rms is stated |
+| Cms | nothing (QO530): the charts use it; a stated Vas keeps its number and carries a warning |
+| Mms | nothing (QO530): the charts use it with Fs; a stated Vas keeps its number and carries a warning |
 | Rms | Qms |
 
 - Typing into a worked-out box makes it E again and works its partner out (e.g. type Cms after Vas: Cms

@@ -20,6 +20,8 @@ const label = (s: ChartingSource): string => {
   switch (s.kind) {
     case 'VasWins': return 'vas';
     case 'StatedCmsWins': return 'stated';
+    case 'TypedCms': return 'typed-cms';
+    case 'TypedMms': return 'typed-mms';
   }
 };
 

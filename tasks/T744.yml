@@ -1,21 +1,26 @@
 id: T744
-release_note: A Cms you type always moves the charts, on drivers and radiators alike. A new WinISD-style option "Cms from Vas" decides which wins when a datasheet states both and they disagree; a warning shows when they do.
 repo: openisd
 owner: leader
 status: done
 # ruling text: QO463 - John, 8 Nov 2026 chat: "ok kick off the CMS plan" (taken as A, the plan as written; also the data-model ruling for the new saved field)
-ruling: QO463
-why: John, 10 Nov 2026 (QO509): "a single set of logic across driver and pr"; a typed Mms must move the charts on drivers as on radiators
+# ruling text: QO530 - John, 10 Nov 2026, "build it": the typed Mms/Cms rules below (the gate reads one bare QO; QO463 above is the earlier ruling for the same task)
+ruling: QO530
+why: 'John, 10 Nov 2026 (QO530): "build it"'
+release_note: A Cms or Mms you type is used by the charts and moves nothing else you stated, on drivers and radiators alike; a Vas that then disagrees carries a one-sentence warning. A new WinISD-style option "Cms from Vas" decides which wins when a loaded datasheet states Cms and Vas and they disagree.
 goal: Cms, Vas, Mms and Rms follow one rule on drivers and radiators; the charts use what the boxes show
 goal_detail:
-  # Written 9 Nov 2026 from John's rulings so the goal survives handovers. Each point needs a test, driver and radiator.
-  - "1 Typed last wins: type Cms and Vas is worked out from it; type Vas and Cms is worked out; Mms and Rms the same (QO470)."
-  - "2 The charts use what the box shows: the sweep reads the same Cms, Mms, Rms and Vas the boxes display and never works its own out (QO472.c22)."
-  - "3 A typed Cms beats the stated efficiency (QO477 A: Vas follows the typed Cms; the stated efficiency becomes a calculated value; nothing disagrees, so no warning)."
-  - "4 Datasheet values stay as saved: the record keeps the datasheet Cms and Vas; save, reload and export write them back unchanged; the box value is an on-demand engine read, never stored (QO472.c19)."
-  - "5 Datasheet states both and they disagree: the WinISD Compatibility option 'Cms from Vas' decides. Ticked (WinISD's way, the default; a file that does not say = ticked): charts use Cms from Vas. Unticked: charts use the stated Cms."
-  - "6 The user is told by a signal, not a new field: when stated Cms and Vas disagree, the existing warning mark on the box; its popup says in one plain sentence that they disagree and which the charts use. No new boxes, no new icons (QO472.c38, c43)."
-  - "Done when: a test proves each of 1-6 for driver and radiator; box value equals sweep input in every case; before/after pictures of the option and the warning, both skins, on the board; WinISD parity row, help entry written; the two bug files closed."
+  # QO530, John 10 Nov 2026 (replaces 9 Nov point 1 "typed last wins"; 8 Nov points 2-6 stand)
+  - "1 What-if panel: a typed heavier Mms acts like added mass: Fs drops, Vas (Cms) stays; Qes and Qms follow the new Mms with Bl, Re, Rms fixed. Test: typed-mms-cms.test.ts 'rule 1'."
+  - "2 The Added mass box (driver and radiator) is unchanged: already WinISD-exact."
+  - "3 Driver editor: a value the user typed never moves. Fs typed, Vas blank, type Mms: Vas and Cms are worked out and shown as calculated. Test: 'rule 3' (driver), 'rule 6 (3)' (radiator)."
+  - "4 Driver editor: Fs, Vas, Mms stated and the user changes Mms: nothing moves; the charts use Fs and the new Mms (Cms from them); Vas keeps its number and carries the existing warning mark, whose popup says in one plain sentence that Vas disagrees and the charts use Fs and Mms. Test: 'rule 4', 'rule 6 (4)', browser driver-editor-cms-note."
+  - "5 Driver editor: Vas stated, the user types Cms: Vas stays, the charts use the typed Cms, warning mark on Vas (popup: Vas disagrees with your Cms, the charts use your Cms). Test: 'rule 5', 'rule 6 (5)', browser driver-editor-cms-note."
+  - "6 Radiator tab: the same as the driver editor (3-5)."
+  - "7 A loaded file whose stated Cms and Vas disagree: the WinISD Compatibility option 'Cms from Vas' decides (ticked default = charts use Vas). Test: 'rule 7', cms-from-vas.test.ts."
+  - "Still in force from 8 Nov: the charts use exactly what the boxes show (box value == sweep input in every case); saved datasheet values stay as saved and worked-out values are never stored; the user is told only by the existing warning mark (no new boxes or icons)."
+  - "WinISD difference: WinISD's charts ignore a typed Cms or Mms. An ignored input is a plain WinISD bug: no bug switch; a not-equal-W difference icon by those boxes (WinisdDeviation.DRIVER_MMS_CMS_TYPING, PR_MMS_CMS_TYPING); recorded in docs/research/WINISD_PARITY.md and ACCURACY_IMPROVEMENTS.md."
+  - "Typed-last memory: TypedFigure (domain/project/typedFigure.ts) is held by the project, never saved; it counts only while the box still holds the typed number. A reloaded file has none and the option decides (point 7)."
+  - "Done when: a test proves each of 1-7 for driver and radiator; box value equals sweep input in every case; before/after pictures on the QO530 page; WinISD parity row written."
 
 # Orchestration: leader (Opus) only plans, briefs, reviews and lands. Each step is one cheap worker
 # (Sonnet subagent, or agy Flash through the tools session for pictures), run one after another in this

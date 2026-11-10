@@ -56,6 +56,10 @@ export const CMS_FROM_VAS_SD_ROUTE = Object.freeze(new SolveRoute('Cms_m_per_N',
   v => v.Vas_m3 / (v.roo_kg_per_m3 * v.c_m_per_s * v.c_m_per_s * v.Sd_m2 * v.Sd_m2),
   v => v.Sd_m2 > 0).inRelation(VAS_FROM_COMPLIANCE));
 
+/** Cms from Fs and Mms. */
+export const CMS_FROM_FS_MMS_ROUTE = Object.freeze(new SolveRoute('Cms_m_per_N', ['Fs_hz', 'Mms_kg'],
+  v => 1 / ((TAU * v.Fs_hz) ** 2 * v.Mms_kg)).inRelation(FS_FROM_MASS_AND_COMPLIANCE));
+
 /**
  * Block 4a: Cms and Sd. Cms has TWO routes and the ORDER matters: the GEOMETRY route (Cms from Vas
  * and Sd) wins over Fs and Mms. John tested this against real WinISD (2026-09-01) and it prefers
@@ -65,7 +69,7 @@ export const CMS_FROM_VAS_SD_ROUTE = Object.freeze(new SolveRoute('Cms_m_per_N',
  */
 export const CMS_SD_ROUTES: readonly DriverRoute[] = Object.freeze([
   CMS_FROM_VAS_SD_ROUTE,
-  new SolveRoute('Cms_m_per_N', ['Fs_hz', 'Mms_kg'], v => 1 / ((TAU * v.Fs_hz) ** 2 * v.Mms_kg)).inRelation(FS_FROM_MASS_AND_COMPLIANCE),
+  CMS_FROM_FS_MMS_ROUTE,
   new SolveRoute('Sd_m2', ['Vas_m3', 'Cms_m_per_N', 'roo_kg_per_m3', 'c_m_per_s'],
     v => Math.sqrt(v.Vas_m3 / (v.roo_kg_per_m3 * v.c_m_per_s * v.c_m_per_s * v.Cms_m_per_N)),
     v => v.Cms_m_per_N > 0).inRelation(VAS_FROM_COMPLIANCE),

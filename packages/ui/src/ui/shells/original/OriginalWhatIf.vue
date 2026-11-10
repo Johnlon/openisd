@@ -80,7 +80,7 @@ const OPTIONAL: PanelField[] = [
 // the E/C colour says which of the two is happening.
 const DERIVED: PanelField[] = [
   { key: 'BL_Tm', def: NumberField.BL_TM,  label: 'Bl' },
-  { key: 'Mms_kg', def: NumberField.MMS_KG, label: 'Mms', deviation: WinisdDeviation.DRIVER_MMS_TYPING },
+  { key: 'Mms_kg', def: NumberField.MMS_KG, label: 'Mms', deviation: WinisdDeviation.DRIVER_MMS_CMS_TYPING },
 ];
 
 const ebpVal = whatIf.ebp;

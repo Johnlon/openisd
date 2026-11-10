@@ -1,13 +1,19 @@
 import {type Engine, FixedAir} from '../../engine/index.js';
 import type {Air, ChartingSource, DriverEngine, DriverValues, ShownMechanics} from '../../engine/index.js';
 import {VAS_WINS} from '../project/chartingSources.js';
+import {TypedFigure} from '../project/typedFigure.js';
 import {NO_CHART_NOTES, NOTHING_SHOWN, notesFor} from './chartFigureNote.js';
 import type {ChartNotes, NotedFigure, StatedMechanics} from './chartFigureNote.js';
 
 /** What a driver is read with: the air its calculations use, and how the charts' Cms, Mms and Rms are worked out for a datasheet that states both Cms and Vas.
  *  Only the two subclasses below exist, and they are not assignable to each other, so a place that needs one kind refuses the other. */
 export abstract class DriverContext {
-    protected constructor(readonly air: () => Air) {}
+    protected constructor(
+        readonly air: () => Air,
+        readonly typed: TypedFigure,
+        /** Whether a typed Mms is read as added mass (the What-if panel): Fs, Qes and Qms follow it and Cms stays. */
+        readonly mmsIsAddedMass: () => boolean,
+    ) {}
 
     /** The mechanical figures the charts use for these stored figures, in `air`; nothing for a driver outside a project (its boxes read the datasheet). */
     abstract shown(values: DriverValues, air: Air): ShownMechanics;
@@ -22,21 +28,29 @@ export class ProjectContext extends DriverContext {
         private readonly source: () => ChartingSource,
         air: () => Air,
         private readonly driver: DriverEngine,
+        typed: TypedFigure,
+        inWhatIf: () => boolean,
     ) {
-        super(air);
+        super(air, typed, inWhatIf);
     }
 
     /** A driver in a project, and every copy of it: the project's "Cms from Vas" choice, its live air, and the engine's one Cms chain. */
-    static of(source: () => ChartingSource, air: () => Air, driver: DriverEngine): ProjectContext {
-        return new ProjectContext(source, air, driver);
+    static of(source: () => ChartingSource, air: () => Air, driver: DriverEngine, typed: TypedFigure, inWhatIf: () => boolean): ProjectContext {
+        return new ProjectContext(source, air, driver, typed, inWhatIf);
+    }
+
+    /** The source for these figures: the Cms or Mms typed last when the box still holds it, else the project's choice. */
+    #sourceFor(values: DriverValues): ChartingSource {
+        return this.typed.over(this.source(), values);
     }
 
     shown(values: DriverValues, air: Air): ShownMechanics {
-        return this.driver.shownMechanics(values, air, this.source());
+        return this.driver.shownMechanics(values, air, this.#sourceFor(values));
     }
 
     chartNotes(stated: StatedMechanics, values: DriverValues, air: Air): ChartNotes<NotedFigure> {
-        return notesFor(this.source(), stated, this.shown(values, air), this.driver.shownMechanics(values, air, VAS_WINS));
+        const source = this.#sourceFor(values);
+        return notesFor(source, stated, this.shown(values, air), this.driver.shownMechanics(values, air, VAS_WINS));
     }
 }
 
@@ -47,7 +61,7 @@ export class AppContext extends DriverContext {
     readonly #notes = NO_CHART_NOTES;
 
     private constructor(air: () => Air) {
-        super(air);
+        super(air, new TypedFigure(), () => false);
     }
 
     /** A managed driver, edited while any project is open, is read in the app's air (the one a new project would get) and shows its datasheet, never a project's. */

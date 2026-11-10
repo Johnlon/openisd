@@ -51,20 +51,22 @@ describe('radiator: the figure typed last wins (QO463)', () => {
     expect(spec.Vas_m3.entered).toBe(true);
   });
 
-  it('typing Cms works out the stated Vas, and the stated Fs that Cms moves', () => {
+  it('typing Cms moves nothing: Vas and Fs stay as stated (QO530)', () => {
     const spec = pick(createEngine(), p173);
     spec.Cms_m_per_N.set(0.0012);
     expect(spec.Cms_m_per_N.entered).toBe(true);
-    expect(spec.Vas_m3.calculated).toBe(true);
+    expect(spec.Vas_m3.entered).toBe(true);
     expect(spec.Fs_hz.entered).toBe(true);
-    expect(spec.Mms_kg.value).toBe(0.015);
+    // Mms is the chart figure from Fs and the typed Cms.
+    expect(spec.Mms_kg.value).toBeCloseTo(1 / ((2 * Math.PI * 41) ** 2 * 0.0012), 9);
   });
 
-  it('typing Mms works out the stated Fs and keeps the stated Cms and Vas', () => {
+  it('typing Mms moves nothing: Fs and Vas stay, and the charts use Fs with the new Mms (QO530)', () => {
     const spec = pick(createEngine(), p173);
     spec.Mms_kg.set(0.02);
     expect(spec.Mms_kg.entered).toBe(true);
-    expect(spec.Cms_m_per_N.value).toBeCloseTo(0.00101, 4);
+    expect(spec.Fs_hz.entered).toBe(true);
+    expect(spec.Cms_m_per_N.value).toBeCloseTo(1 / ((2 * Math.PI * 41) ** 2 * 0.02), 9);
     expect(spec.Vas_m3.entered).toBe(true);
   });
 
@@ -84,15 +86,15 @@ describe('radiator: the figure typed last wins (QO463)', () => {
     spec.Cms_m_per_N.set(0.00101);
     expect(spec.Cms_m_per_N.entered).toBe(true);
     expect(spec.Cms_m_per_N.value).toBeCloseTo(0.00101, 4);
-    expect(spec.Vas_m3.calculated).toBe(true);
+    expect(spec.Vas_m3.entered).toBe(true);
   });
 
-  it('typing Sd keeps a stated Cms when Vas is worked out', () => {
+  it('typing Sd after a typed Cms is last: with Vas stated, Cms follows Vas and Sd again', () => {
     const spec = pick(createEngine(), p173);
     spec.Cms_m_per_N.set(0.0012);
     spec.Sd_m2.set(0.015);
-    expect(spec.Cms_m_per_N.entered).toBe(true);
-    expect(spec.Cms_m_per_N.value).toBe(0.0012);
+    expect(spec.Cms_m_per_N.calculated).toBe(true);
+    expect(spec.Cms_m_per_N.value).not.toBe(0.0012);
   });
 
   it('no edit leaves a stated pair in conflict', () => {

@@ -31,7 +31,9 @@ export function chartFigureNote(figure: ChartFigure, statedSI: number, chartSI: 
     // Unticked already: the option has nothing left to offer, so the sentence stops.
     switch (source.kind) {
         case 'VasWins': return `${worked} Untick Cms from Vas to use the datasheet value.`;
-        case 'StatedCmsWins': return worked;
+        case 'StatedCmsWins':
+        case 'TypedCms':
+        case 'TypedMms': return worked;
     }
 }
 
@@ -42,7 +44,19 @@ export function cmsConflictNote(source: ChartingSource, statedSI: number, fromVa
     const value = (si: number): string => `${NumberField.CMS_M_PER_N.format(si)} ${unit}`;
     switch (source.kind) {
         case 'VasWins': return `The stated Cms and Vas disagree, so the charts use Cms from Vas (${value(fromVasSI)}).`;
-        case 'StatedCmsWins': return `The stated Cms and Vas disagree, so the charts use the stated Cms (${value(statedSI)}).`;
+        case 'StatedCmsWins':
+        case 'TypedCms':
+        case 'TypedMms': return `The stated Cms and Vas disagree, so the charts use the stated Cms (${value(statedSI)}).`;
+    }
+}
+
+/** The one sentence on a Vas that disagrees with the Cms or Mms the user typed: the charts use what was typed (QO530). */
+export function vasConflictNote(source: ChartingSource): string {
+    switch (source.kind) {
+        case 'TypedMms': return 'Vas disagrees with Fs and Mms, so the charts use Fs and Mms.';
+        case 'TypedCms': return 'Vas disagrees with your Cms, so the charts use your Cms.';
+        case 'VasWins':
+        case 'StatedCmsWins': return 'Vas disagrees with the stated Cms.';
     }
 }
 
@@ -65,6 +79,8 @@ export interface CmsConflict {
 /** Every note a spec attaches to its boxes: the Cms/Vas conflict (if any) and one sentence per stated Mms or Rms the charts do not use. */
 export interface ChartNotes<Name extends string> {
     readonly cmsConflict: CmsConflict | null;
+    /** A stated Vas that disagrees with the Cms or Mms the user typed (only while one is typed); the note belongs on Vas. */
+    readonly vasConflict: CmsConflict | null;
     readonly figures: readonly {readonly name: Name; readonly text: string}[];
 }
 
@@ -75,20 +91,25 @@ const differs = (stated: number, other: number): boolean => Math.abs(other - sta
 /** The notes for one spec, driver or radiator alike: which stated figures the charts do not use, and whether the stated Cms
  *  disagrees with the Cms the stated Vas gives (`fromVasSI`, null when Vas is not stated). */
 export function chartNotes<Name extends string>(
-    source: ChartingSource, facts: readonly ChartFigureFact<Name>[], statedCmsSI: number | null, fromVasSI: number | null,
+    source: ChartingSource, facts: readonly ChartFigureFact<Name>[], statedCmsSI: number | null, fromVasSI: number | null, chartCmsSI: number | null,
 ): ChartNotes<Name> {
     const figures = facts.flatMap(({figure, name, statedSI, chartSI}) =>
         statedSI === null || chartSI === null || !differs(statedSI, chartSI) ? []
             : [{name, text: chartFigureNote(figure, statedSI, chartSI, source)}]);
-    const cmsConflict = statedCmsSI === null || fromVasSI === null || !differs(statedCmsSI, fromVasSI) ? null : {
+    const typed = source.kind === 'TypedCms' || source.kind === 'TypedMms';
+    const cmsConflict = typed || statedCmsSI === null || fromVasSI === null || !differs(statedCmsSI, fromVasSI) ? null : {
         expected: fromVasSI, actual: statedCmsSI, relative: Math.abs(fromVasSI - statedCmsSI) / statedCmsSI,
         text: cmsConflictNote(source, statedCmsSI, fromVasSI),
     };
-    return {cmsConflict, figures};
+    const vasConflict = !typed || chartCmsSI === null || fromVasSI === null || !differs(chartCmsSI, fromVasSI) ? null : {
+        expected: fromVasSI, actual: chartCmsSI, relative: Math.abs(fromVasSI - chartCmsSI) / chartCmsSI,
+        text: vasConflictNote(source),
+    };
+    return {cmsConflict, vasConflict, figures};
 }
 
 /** No note at all: what a driver or radiator outside a project carries (it shows its datasheet, so the charts differ from nothing). */
-export const NO_CHART_NOTES: ChartNotes<never> = Object.freeze({cmsConflict: null, figures: Object.freeze([])});
+export const NO_CHART_NOTES: ChartNotes<never> = Object.freeze({cmsConflict: null, vasConflict: null, figures: Object.freeze([])});
 
 /** No figure worked out: what a driver or radiator outside a project shows (its boxes read the stored entries). */
 export const NOTHING_SHOWN: ShownMechanics = Object.freeze({Cms_m_per_N: null, Mms_kg: null, Rms_kg_per_s: null, BL_terminal_Tm: null});
@@ -108,5 +129,5 @@ export function notesFor(source: ChartingSource, stated: StatedMechanics, shown:
     return chartNotes<NotedFigure>(source, [
         {figure: 'Mms', name: 'Mms_kg', statedSI: stated.Mms_kg, chartSI: shown.Mms_kg},
         {figure: 'Rms', name: 'Rms_kg_per_s', statedSI: stated.Rms_kg_per_s, chartSI: shown.Rms_kg_per_s},
-    ], stated.Cms_m_per_N, fromVas.Cms_m_per_N);
+    ], stated.Cms_m_per_N, fromVas.Cms_m_per_N, shown.Cms_m_per_N ?? stated.Cms_m_per_N);
 }

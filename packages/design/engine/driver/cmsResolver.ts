@@ -1,13 +1,16 @@
 import type {Air} from '../air.js';
 import {
-    BL_FROM_QES_CMS_ROUTE, CMS_FROM_VAS_SD_ROUTE, MMS_FROM_FS_CMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE,
+    BL_FROM_QES_CMS_ROUTE, CMS_FROM_FS_MMS_ROUTE, CMS_FROM_VAS_SD_ROUTE, MMS_FROM_FS_CMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE,
 } from './routes/index.js';
 import type {DriverRoute} from './routes/index.js';
 
-/** Which Cms a datasheet that states both Cms and Vas is charted with (WinISD option "Cms from Vas"). */
+/** Which Cms the charts use when the stated figures disagree: a datasheet that states both Cms and Vas follows the WinISD option "Cms from Vas";
+ *  a Cms or Mms the user typed (T744, QO530) is used as typed, whatever Vas says. */
 export type ChartingSource =
     | {readonly kind: 'VasWins'}
-    | {readonly kind: 'StatedCmsWins'};
+    | {readonly kind: 'StatedCmsWins'}
+    | {readonly kind: 'TypedCms'}
+    | {readonly kind: 'TypedMms'};
 
 /** The mechanical figures WinISD's chain works out; null where the chain cannot reach one. */
 export interface ShownMechanics {
@@ -46,12 +49,18 @@ export function resolveCms(source: ChartingSource, input: CmsResolveInput, air: 
         switch (source.kind) {
             case 'VasWins': return isPositive(air.c()) && isPositive(air.rho()) && isPositive(Vas_m3) && isPositive(Sd_m2)
                 ? routeValue(CMS_FROM_VAS_SD_ROUTE, {Vas_m3, Sd_m2, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()}) : null;
-            case 'StatedCmsWins': return null;
+            case 'StatedCmsWins':
+            case 'TypedCms':
+            case 'TypedMms': return null;
         }
     };
-    const Cms = fromVas();
+    const typedMms = source.kind === 'TypedMms' && isPositive(input.Mms_kg) ? input.Mms_kg : null;
+    // A typed Mms stands, and Cms follows it and Fs; every other source works Cms first and Mms from it.
+    const Cms = typedMms !== null
+        ? (isPositive(Fs_hz) ? routeValue(CMS_FROM_FS_MMS_ROUTE, {Fs_hz, Mms_kg: typedMms}) : null)
+        : fromVas();
     const Cms_m_per_N = Cms ?? input.Cms_m_per_N;
-    const Mms = isPositive(Fs_hz) && isPositive(Cms_m_per_N)
+    const Mms = typedMms !== null ? typedMms : isPositive(Fs_hz) && isPositive(Cms_m_per_N)
         ? routeValue(MMS_FROM_FS_CMS_ROUTE, {Fs_hz, Cms_m_per_N}) : null;
     const Mms_kg = Mms ?? input.Mms_kg;
     const Rms = isPositive(Fs_hz) && isPositive(Qms) && isPositive(Mms_kg)
