@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Tests for feedback-page.py and check-answerable.mjs. Run: python3 feedback_page_test.py"""
+"""Tests for feedback-page.py and check-answerable.mjs. Run: python3 feedback_page_test.py
+
+Machine-bound: the checker lives in the workspace repo on John's machine (path below), not in openisd."""
 import importlib.util, os, subprocess, tempfile, unittest, pathlib
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -12,7 +14,7 @@ def load():
 
 
 def run_check(*urls):
-    return subprocess.run(["node", str(HERE / "check-answerable.mjs"), *urls], capture_output=True, text=True, cwd="/tmp")
+    return subprocess.run(["node", "/home/john/work/winisd/ui-gallery/bin/check-answerable.mjs", *urls], capture_output=True, text=True, cwd="/tmp")
 
 
 def _png(marked):
