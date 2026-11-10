@@ -1,0 +1,12 @@
+id: T785
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: check-task-contract refuses a done_test that selects one test inside a test file the change touched
+why: John, 10 Nov 2026: T765 passed with a failing test file because its done_test was narrowed to one test method.
+done_test: bash scripts/land/test/pr-gates.test.sh
+files:
+  - tasks/T785.yml
+  - scripts/land/check-task-contract.sh
+  - scripts/land/test/pr-gates.test.sh

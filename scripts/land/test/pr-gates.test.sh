@@ -75,5 +75,27 @@ bash scripts/land/attribution-range.sh main HEAD > /dev/null && bad "an AI trail
 git switch -q main; git switch -q -c none; echo 4 > src/a.ts; git add -A; git commit -qm "(auto) none"
 bash scripts/land/pr-task.sh main HEAD > /dev/null 2>&1 && bad "no task file is refused" || ok "no task file is refused"
 
+# T785: a done_test that selects ONE test inside a test file the change touched is refused (T765 passed that way).
+git switch -q main; git switch -q -c narrow; mkdir -p t; printf 'x\n' > t/foo_test.py
+printf 'id: T7\nowner: t\nstatus: open\ngoal: g\nwhy: John, 10 Nov 2026, scratch test fixture\ndone_test: python3 -m unittest foo_test.Cls.test_one\nfiles:\n  - t/**\n' > tasks/T7.yml
+git add -A; git commit -qm "(auto) T7: x"
+out="$(bash scripts/land/check-task-contract.sh T7 main HEAD --pr)"
+grep -q $'REFUSE\tdone_test\t.*foo_test.py' <<< "$out" && ok "a done_test narrowed to one test of a touched test file is refused" || bad "narrowed done_test refused ($out)"
+git switch -q main; git switch -q -c whole; mkdir -p t; printf 'x\n' > t/foo_test.py
+printf 'id: T8\nowner: t\nstatus: open\ngoal: g\nwhy: John, 10 Nov 2026, scratch test fixture\ndone_test: python3 -m unittest foo_test\nfiles:\n  - t/**\n' > tasks/T8.yml
+git add -A; git commit -qm "(auto) T8: x"
+bash scripts/land/check-task-contract.sh T8 main HEAD --pr > /dev/null && ok "a done_test running the whole test file passes" || bad "whole-file done_test passes"
+
+# T785 review: one refusal per selector kind, a dotted whole-module path and an untouched file pass.
+sel() { git switch -q main; git switch -q -c "s$1"; mkdir -p t; printf 'x\n' > t/foo_test.py
+  printf 'id: T%s\nowner: t\nstatus: open\ngoal: g\nwhy: John, 10 Nov 2026, scratch test fixture\ndone_test: %s\nfiles:\n  - t/**\n' "$1" "$2" > "tasks/T$1.yml"
+  git add -A; git commit -qm "(auto) T$1: x"; bash scripts/land/check-task-contract.sh "T$1" main HEAD --pr; }
+n=20
+for d in "pytest t/foo_test.py::test_a" "pytest t/foo_test.py -k a" "npx vitest run t/foo_test.py -t a" "node t/foo_test.py --test-name-pattern a" "npx playwright test t/foo_test.py --grep a" "python3 -m unittest foo_test.Cls"; do
+  n=$((n+1)); out="$(sel $n "$d")"; grep -q $'REFUSE\tdone_test' <<< "$out" && ok "refused: $d" || bad "refused: $d ($out)"
+done
+n=$((n+1)); sel $n "python3 -m unittest t.foo_test" > /dev/null && ok "a dotted whole-module path passes" || bad "dotted whole-module path passes"
+n=$((n+1)); sel $n "pytest other_test.py -k a" > /dev/null && ok "a selector on an untouched file passes" || bad "untouched file passes"
+
 echo "pr-gates: $([ "$fails" = 0 ] && echo 'all passed' || echo "$fails failed")"
 [ "$fails" = 0 ]
