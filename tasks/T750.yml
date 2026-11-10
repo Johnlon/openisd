@@ -29,3 +29,5 @@ steps:
     do: "Architecture test with the ceiling; red when a default is added."
   - n: 2
     do: "Remove defaults: design/domain and engine first (context-like ones), then fields, chart, persistence, ui."
+# John, 10 Nov 2026, board QO482: optional parameters (x?) are banned too ('an optional Param can be a default in disguise'; decided on the ban-every-x? proposal).
+# Step 3: architecture-no-default-parameters.test.ts also counts every optional parameter (x?) in shipped code, with its own ceiling that only goes down; removals as for defaults.
