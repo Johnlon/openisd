@@ -12,21 +12,21 @@ gates, the housekeeper), not any one agent.
 2. **Every run owns its children.** A run starts its own process group and kills it on any exit
    (`trap` on EXIT, INT, TERM, HUP), including Playwright's webServer Vite and Chrome.
 3. **Every run is tagged.** A run registers (run id, owner pid and start time, clean copy, port) and exports `OPENISD_RUN_ID`; children inherit it.
-4. **Housekeeping does not depend on the run.** `scripts/housekeeping.sh` runs at every land and
-   post-land start and on a systemd user timer: any tagged process whose owner is dead is killed,
+4. **Housekeeping does not depend on the run.** `scripts/housekeeping.sh` runs at every ship
+   start and on a systemd user timer: any tagged process whose owner is dead is killed,
    and that run's clean copy, port reservation and temp dirs are removed. Untagged processes are
    never touched. Every action is logged to `build/test-logs/housekeeping.log`; a failed scan fails
    loudly.
 5. **Every wait checks its owner is alive** (pid plus start time), or is a `flock`, which the
    kernel releases when the owner dies. No hand-written `while/until … sleep` polling loops.
-6. **Main moves only through `scripts/land.sh`.** No push, ff, merge or commit onto main from
-   anywhere else; landings and post-land runs are serialised by their own flocks.
+6. **Main moves only through the merge queue.** `scripts/ship.sh` opens the pull request; GitHub
+   merges it when `pr-gate` is green. No push, ff, merge or commit onto main from anywhere else.
 7. **Infrastructure changes are proven before they go live**: an end-to-end test in a scratch repo
-   with real processes and two concurrent runs, wired in only when no landing or post-land run is active. Live gate
+   with real processes and two concurrent runs, wired in only when no `ship.sh` run or `pr-gate` check depends on them. Live gate
    scripts are never edited in place.
 8. **Every run is timed, line by line** (John, 16 Oct 2026: "every test output must have start and
    end time and every test suit must have a logger install (or pipe) with per line timestamp").
-   - Every test run, suite, gate and post-land run writes a start line and an end line, each
+   - Every test run, suite and gate writes a start line and an end line, each
      with a UTC timestamp, its run id, and the end line with the duration and exit status.
    - Every line of a suite's output is timestamped where it is written, by the runner's own
      logger or by a pipe through one timestamping logger; never added afterwards.
