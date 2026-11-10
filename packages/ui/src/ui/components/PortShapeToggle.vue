@@ -3,22 +3,20 @@
 // and, when pressed, asks for the other shape. It holds no state: the caller writes the shape.
 import {computed} from 'vue';
 import {DesktopLabels} from '@openisd/design/fields';
-import type {VentShape} from '@openisd/design';
 
-const props = defineProps<{shape: VentShape}>();
-const emit = defineEmits<{(e: 'update:shape', shape: VentShape): void}>();
+const props = defineProps<{slotted: boolean}>();
+const emit = defineEmits<{(e: 'update:slotted', slotted: boolean): void}>();
 
-const next = computed<VentShape>(() => props.shape === 'round' ? 'slotted' : 'round');
-const name = computed(() => DesktopLabels.ventShapeToggleName(props.shape, next.value));
+const name = computed(() => DesktopLabels.ventShapeToggleName(props.slotted ? 'slotted' : 'round', props.slotted ? 'round' : 'slotted'));
 </script>
 
 <template>
-  <button type="button" class="port-shape-toggle" :aria-label="name" :title="name" @click="emit('update:shape', next)">
+  <button type="button" class="port-shape-toggle" :aria-label="name" :title="name" @click="emit('update:slotted', !props.slotted)">
     <svg width="20" height="14" viewBox="1 0 20 14" aria-hidden="true">
-      <circle v-if="shape === 'round'" cx="11" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.75" />
+      <circle v-if="!slotted" cx="11" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.75" />
       <rect v-else x="4" y="3.5" width="14" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1.75" />
     </svg>
-    <span>{{ DesktopLabels.ventShapeWord(shape) }}</span>
+    <span>{{ DesktopLabels.ventShapeWord(slotted ? 'slotted' : 'round') }}</span>
   </button>
 </template>
 

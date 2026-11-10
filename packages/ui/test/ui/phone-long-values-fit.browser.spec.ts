@@ -1,4 +1,3 @@
-/* eslint-disable playwright/expect-expect -- the assertion is inside expectNothingCut */
 /**
  * T742 (John: clipping is a bug). A phone number box shows its longest figure and its whole unit at
  * 374 x 705, on the pages whose boxes carry wide units (Cms mm/N, Rms Ns/m, Vas, air density kg/m³).
@@ -12,8 +11,8 @@ import {PIXEL_9} from '../fixtures/phoneSizes.js';
 
 const LONG_FIGURE = '0.368721';
 
-async function expectNothingCut(page: Page, where: string): Promise<void> {
-  const cut = await page.evaluate((figure) => {
+async function cutBoxes(page: Page): Promise<string[]> {
+  return page.evaluate((figure) => {
     const out: string[] = [];
     for (const input of document.querySelectorAll<HTMLInputElement>('.ui-field input[data-numinput]')) {
       if (input.readOnly || input.getBoundingClientRect().width === 0) continue;
@@ -25,7 +24,6 @@ async function expectNothingCut(page: Page, where: string): Promise<void> {
     }
     return out;
   }, LONG_FIGURE);
-  expect(cut, `${where}: a figure or unit is cut`).toEqual([]);
 }
 
 test.beforeEach(async ({page}) => {
@@ -39,13 +37,13 @@ test('driver editor Parameters and Advanced show a long figure and the whole uni
   await page.locator('.mob-tab', {hasText: 'Driver'}).click();
   await page.getByText('Edit', {exact: true}).click();
   await editorTab(page, 'Parameters');
-  await expectNothingCut(page, 'Parameters');
+  expect(await cutBoxes(page), 'Parameters: a figure or unit is cut').toEqual([]);
   await editorTab(page, 'Advanced');
-  await expectNothingCut(page, 'Advanced');
+  expect(await cutBoxes(page), 'Advanced: a figure or unit is cut').toEqual([]);
 });
 
 test('the Advanced page shows a long figure and the whole unit at 374', async ({page}) => {
   await page.locator('.mob-hamburger').click();
   await page.locator('.mob-menu-item', {hasText: 'Advanced'}).click();
-  await expectNothingCut(page, 'Advanced');
+  expect(await cutBoxes(page), 'Advanced: a figure or unit is cut').toEqual([]);
 });

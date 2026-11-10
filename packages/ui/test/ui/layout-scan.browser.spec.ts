@@ -1,4 +1,3 @@
-/* eslint-disable playwright/no-conditional-in-test -- one test per view; the known-fault list marks a view test.fail */
 /**
  * The exhaustive layout scan (John, 10 Nov 2026: "I want an exhaustive UI scan for these layout issues as a test"):
  * every phone view and popup on the surface manifest that the manifest can open (mobileSurfaceManifest.ts, opened
@@ -18,10 +17,10 @@ import {PIXEL_9} from '../fixtures/phoneSizes.js';
 import {PhoneRowColumns} from '@openisd/design/fields';
 
 const RESULTS = '/home/john/work/winisd/ui-gallery/T742-phone-clip';
-/** Views the first scan (10 Nov 2026) found at fault and nobody has fixed yet. Each test then expects the fault (test.fail) and turns red when it is fixed; delete its id then. */
-const SCAN_KNOWN: ReadonlySet<string> = new Set([
-]);
-const SCAN_KNOWN_BUG = 'BUG_20261110_layout-scan-first-run';
+/** The first line of a failure, so a view that cannot be opened is one fault line. */
+function firstLine(error: unknown): string {
+  return error instanceof Error ? error.message.split('\n')[0] : String(error);
+}
 const OPENABLE = MOBILE_SURFACES.filter(surface => surface.route !== MobileRoute.Manual && surface.root !== '');
 
 test.beforeEach(async ({page}) => {
@@ -34,18 +33,17 @@ test.beforeEach(async ({page}) => {
 
 for (const surface of OPENABLE) {
   test(`scan phone ${surface.id}: ${surface.title}`, async ({page}) => {
-    if (SCAN_KNOWN.has(surface.id)) test.fail(true, SCAN_KNOWN_BUG);
     let faults: string[];
     try {
       await openMobileSurface(page, surface);
       const root = page.locator(surface.root).first();
-      await root.waitFor({state: 'visible', timeout: 5000});
+      await expect(root).toBeVisible();
       faults = [
         ...await root.evaluate(measureFieldLayoutRules, PhoneRowColumns.MIN_STEPPER_GAP_PX),
         ...await root.evaluate(measureLabelGaps, PhoneRowColumns.MAX_LABEL_GAP_PX),
       ];
     } catch (error) {
-      faults = [`OPEN ${error instanceof Error ? error.message.split('\n')[0] : String(error)}`];
+      faults = [`OPEN ${firstLine(error)}`];
     }
     mkdirSync(RESULTS, {recursive: true});
     appendFileSync(`${RESULTS}/scan-result.jsonl`, JSON.stringify({screen: surface.id, title: surface.title, size: `${PIXEL_9.width}x${PIXEL_9.height}`, skin: 'phone', pass: faults.length === 0, faults}) + '\n');

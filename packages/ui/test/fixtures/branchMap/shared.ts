@@ -33,6 +33,8 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'surface-root-5939726e16caa99a':{kind:'view',view:'chart-data'}, // components/ChartDataDialog.vue:14
   'surface-root-7178929b3db332af':{kind:'partOf',view:'chart-data'}, // components/ChartDataDialog.vue:15
   'conditional-branch-a61ce28fb6ea04da':{kind:'notAView',reason:'button inside the chart data dialog'}, // components/ChartDataDialog.vue:17
+  'conditional-branch-4dcdaaffefbb7cac':{kind:'notAView',reason:'the port-shape button draws a circle when the port is round'}, // components/PortShapeToggle.vue:16
+  'conditional-branch-cf3340014c9c8c33':{kind:'notAView',reason:'the port-shape button draws a slot when the port is slotted'}, // components/PortShapeToggle.vue:17
   'native-ui-ffbecbd209bdaca2':{kind:'notAView',reason:'button inside the chart data dialog'}, // components/ChartDataDialog.vue:29
   'native-ui-65528f8917ccabae':{kind:'notAView',reason:'button inside the chart data dialog'}, // components/ChartDataDialog.vue:30
   'conditional-branch-abedb57a509452a3':{kind:'notAView',reason:'number badge on the cloud sync button'}, // components/CloudSyncBadge.vue:38

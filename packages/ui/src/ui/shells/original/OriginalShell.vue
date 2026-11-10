@@ -557,7 +557,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                       <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
                     </select>
                   </div>
-                  <PortShapeToggle :shape="port.vent.shape.value" @update:shape="shape => port.vent.shape.set(shape)" />
+                  <PortShapeToggle :slotted="port.vent.shape.value === 'slotted'" @update:slotted="slotted => port.vent.shape.set(slotted ? 'slotted' : 'round')" />
                 </div>
                 <div class="vent-port-row port-dimensions-row">
                   <template v-if="port.vent.shape.value === 'slotted'">
