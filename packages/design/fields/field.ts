@@ -685,7 +685,7 @@ export class NumberField extends Field {
     label: "Air pressure",
     display: {kind: 'switchable', group: 'pressure', base: 'Pa'},
     limits: {min: 1000, max: 200000},
-    precision: 2,
+    precision: 0,
     description: "Air Pressure\nAtmospheric pressure — affects air density and acoustic impedance.",
   });
   static readonly ADV_SOUNDVELOCITY_M_PER_S = new NumberField({

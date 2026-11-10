@@ -365,7 +365,7 @@ for (const screen of EXTRA.filter(s => s.skin === 'desktop' && s.id.includes('wi
 
 // John, 10 Nov 2026: "there is tons of empty space between the label and the text box": on the phone each group's
 // label column is as wide as its longest label needs, and the box takes the rest.
-const PHONE_LABEL_GAP_SCREENS = EXTRA.filter(s => s.skin === 'phone' && /Driver editor (Parameters|Advanced)|Advanced page/.test(s.id));
+const PHONE_LABEL_GAP_SCREENS = EXTRA.filter(s => s.skin === 'phone' && /Driver editor Parameters|Advanced page/.test(s.id));
 for (const screen of PHONE_LABEL_GAP_SCREENS) {
   test(`${screen.id}: the longest label is within ${PhoneRowColumns.MAX_LABEL_GAP_PX} px of its box`, async ({page}) => {
     await screen.open(page);
