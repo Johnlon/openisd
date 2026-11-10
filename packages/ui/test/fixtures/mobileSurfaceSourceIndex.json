@@ -672,6 +672,7 @@
     "bugs/BUG_20261108_signal-angle-distance-padded-zeros.md",
     "bugs/BUG_20261108_trailing-zeros-past-two-decimals.md",
     "bugs/BUG_20261108_wizard-keeps-previous-driver-search.md",
+    "bugs/BUG_20261110_new-project-wizard-driver-not-counted-in-stats.md",
     "bugs/_archive/BUG_20261029_coax_tweeter_voice_coil_tuple_rejected.md",
     "bugs/_archive/BUG_20261030_converter_flags_multiple_values_as_unknown.md",
     "cloudflare/announcements/README.md",
