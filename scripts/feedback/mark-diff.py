@@ -135,9 +135,13 @@ def draw_on(img: Image.Image, boxes: list[Box]) -> None:
 
 
 def _draw_file(path: str, boxes: list[Box]) -> None:
-    img = Image.open(path).convert("RGB")
+    src = Image.open(path)
+    kept = {k: v for k, v in src.info.items() if isinstance(v, str) and k != MARKER_KEY}  # keep text chunks, e.g. "stamp"
+    img = src.convert("RGB")
     draw_on(img, boxes)
     info = PngImagePlugin.PngInfo()
+    for k, v in kept.items():
+        info.add_text(k, v)
     info.add_text(MARKER_KEY, MARKER_VALUE)  # check-answerable.mjs fails any picture without this
     img.save(path, format="PNG", pnginfo=info)
 

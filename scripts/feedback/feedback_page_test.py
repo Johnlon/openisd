@@ -202,5 +202,32 @@ class RuledPictures(unittest.TestCase):
                                   capture_output=True, text=True, cwd="/tmp")
             self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
 
+class MarkDiffKeepsStamp(unittest.TestCase):
+    def test_stamp_chunk_survives_marking(self):
+        from PIL import Image, PngImagePlugin
+        spec = importlib.util.spec_from_file_location("mark_diff", HERE / "mark-diff.py")
+        md = importlib.util.module_from_spec(spec); spec.loader.exec_module(md)
+        stamp = "source=t; build=b; commit=c; viewport=10x10"
+        with tempfile.TemporaryDirectory() as d:
+            f = os.path.join(d, "a.png")
+            info = PngImagePlugin.PngInfo(); info.add_text("stamp", stamp)
+            Image.new("RGB", (40, 40), "white").save(f, "PNG", pnginfo=info)
+            md._draw_file(f, [(5, 5, 10, 10)])
+            out = Image.open(f).info
+            self.assertEqual(out.get("stamp"), stamp)
+            self.assertEqual(out.get("marked"), "1")
+
+    def test_page_shows_stamp_line(self):
+        if not NODE_OK:
+            self.skipTest("playwright missing")
+        m = load()
+        with tempfile.TemporaryDirectory() as d:
+            pathlib.Path(d, "index.md").write_text("# t\n")
+            m.write_page(pathlib.Path(d), "QO1", "x")
+            r = subprocess.run(["node", str(HERE / "feedback_page_stamp_test.mjs"), str(pathlib.Path(d, "index.html"))],
+                               capture_output=True, text=True, cwd=str(HERE))
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
