@@ -95,6 +95,14 @@ steps:
 done_test: bash scripts/test.sh packages/design/test/domain/cms-from-vas.test.ts
 files:
   - tasks/T744.yml
+  - packages/design/domain/passiveRadiator/radiatorContext.ts
+  - packages/design/domain/passiveRadiator/openISDPassiveRadiator.ts
+  - packages/design/domain/passiveRadiator/openISDPassiveRadiatorEmbedded.ts
+  - packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts
+  - packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/test/domain/detach-keeps-project-context.test.ts
+  - packages/design/test/architecture-no-forwards.test.ts
   - packages/design/domain/driver/driverContext.ts
   - packages/design/domain/driver/openISDDriver.ts
   - packages/design/domain/driver/openISDDriverEmbedded.ts

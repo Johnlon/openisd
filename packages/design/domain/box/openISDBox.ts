@@ -7,6 +7,7 @@ import { WINISD_BOX_LOSSES } from '../boxDefaults.js';
 import type { OpenISDBoxJson, SpecEntryJson } from '../openisdSchema.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import { OpenISDPassiveRadiatorEmbedded } from '../passiveRadiator/openISDPassiveRadiatorEmbedded.js';
+import { RadiatorProjectContext } from '../passiveRadiator/radiatorContext.js';
 import { OpenISDPassiveRadiatorStandalone } from '../passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import { NumberField } from '../../fields/field.js';
 import { displayedHalfWidth } from '../precision.js';
@@ -409,7 +410,7 @@ export class OpenISDBox implements Box {
         const pr = focus(lens, 'passiveRadiator');
         const prSlot = focus(pr, 'component');
         const getRadiator = (): OpenISDPassiveRadiatorEmbedded => {
-            return new OpenISDPassiveRadiatorEmbedded(prSlot, () => issues().radiator, {pr: engine.pr, air, cmsSource});
+            return new OpenISDPassiveRadiatorEmbedded(prSlot, () => issues().radiator, RadiatorProjectContext.of(cmsSource, air));
         };
         const prVolume = settlingNullableField(pr, 'volume_m3', () => STARTING_SHARED_VOLUME_M3, (v) => engine.issues.requiredPositiveIssue('Box volume', v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
