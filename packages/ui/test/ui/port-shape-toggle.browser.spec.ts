@@ -52,7 +52,7 @@ for (const {box, tab, columns} of [{box: 'abc', tab: 'ABC', columns: 3}, {box: '
       const endCorrection = (await col.locator('.field > select:not([id])').boundingBox())!;
       expect(endCorrection.height).toBe(countBox.height);
     }
-    expect(await page.locator('.content-panel').evaluate(measureFieldLayoutRules)).toEqual([]);
+    expect(await page.locator('.content-panel').evaluate(measureFieldLayoutRules, 0)).toEqual([]);
     const size = await page.locator('.tab-section.active').evaluate(node => ({width: node.clientWidth, scroll: node.scrollWidth}));
     expect(size.scroll).toBeLessThanOrEqual(size.width);
   });
