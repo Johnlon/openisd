@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
+import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, PhoneRowColumns, TextField} from '@openisd/design/fields';
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import {computed, nextTick, onBeforeUnmount, provide, ref, watch} from 'vue';
 import type {NumSpecField} from '../../logic/appState.js';
@@ -15,6 +15,7 @@ import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '
 import UIField from './UIField.vue';
 import UIFixedField from './UIFixedField.vue';
 import UIPickField from './UIPickField.vue';
+import {PHONE_COLUMNS_KEY} from './phoneColumnsKey.js';
 import type {DriverEditorSkin} from './driverEditorSkin.js';
 import {provideCellScope} from './cellScope.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
@@ -619,6 +620,7 @@ function toggleDisagree() {
   if (inspectProvenance.value) logging.flash(PhoneEditorText.CLOSE_PROVENANCE_FIRST);
   else disagreeOpen.value = !disagreeOpen.value;
 }
+provide(PHONE_COLUMNS_KEY, props.skin?.columns ?? PhoneRowColumns.STANDARD);
 const modalStyle = computed(() => props.skin === undefined ? undefined : {...props.skin.rowVars, '--de-fx': `'${PhoneEditorText.FX_MARK}'`});
 
 const fileInput = ref<HTMLInputElement | null>(null);

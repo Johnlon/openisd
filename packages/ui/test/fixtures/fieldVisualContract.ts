@@ -32,7 +32,7 @@ export async function measureFieldContent(root: Element): Promise<FieldVisualRep
   const desktopUnits = new Map<string, number>();
   for (const row of rows) {
     const field = row.querySelector('label')?.textContent?.trim() || row.id || '(unlabelled field)';
-    const value = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value textarea, .ui-field-value .mob-readonly, .ui-field-value .calculated, :scope > input, :scope > select, :scope > textarea');
+    const value = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value textarea, .ui-field-value .mob-readonly, .ui-field-value .calculated, :scope > input, :scope > select, :scope > textarea, :scope[role="group"] input[type="radio"]');
     if (value === null || !visible(value)) {
       issues.push({field, problem: 'field has no visible recognised value control'});
       continue;
@@ -283,12 +283,14 @@ export function measureFieldBorders(root: Element): FieldVisualReport {
   let controls = 0;
   for (const row of rows) {
     const field = row.querySelector('label')?.textContent?.trim() || row.id || '(unlabelled field)';
-    const value = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value textarea, .ui-field-value .mob-readonly, .ui-field-value .calculated, :scope > input, :scope > select, :scope > textarea');
+    const value = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value textarea, .ui-field-value .mob-readonly, .ui-field-value .calculated, :scope > input, :scope > select, :scope > textarea, :scope[role="group"] input[type="radio"]');
     if (value === null || !visible(value)) {
       issues.push({field, problem: 'field has no visible recognised value control'});
       continue;
     }
     controls++;
+    // A radio group is a control, but its circles draw no box border to measure.
+    if (value.matches('input[type="radio"]')) continue;
     value.scrollIntoView({block: 'nearest', inline: 'nearest'});
     const box = value.getBoundingClientRect(), css = getComputedStyle(value);
     if (value.classList.contains('de-input-mandatory') && !value.matches('.de-input-empty, .inp-bad, .dq-flag') && row.closest('.de-desktop')

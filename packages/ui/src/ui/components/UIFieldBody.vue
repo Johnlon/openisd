@@ -14,7 +14,7 @@
  * shares one label edge, one value edge and one unit edge.
  * bugs/BUG_20261005_no-common-ui-field-component.md
  */
-import {computed, onBeforeUnmount, ref, useId, watch} from 'vue';
+import {computed, inject, onBeforeUnmount, ref, useId, watch} from 'vue';
 import {NumberEditor, PhoneRowColumns} from '@openisd/design/fields';
 import NumInput from './NumInput.vue';
 import {selectedOption} from '../../logic/domEvents.js';
@@ -25,6 +25,7 @@ import {useCellScope} from './cellScope.js';
 import type {UIBinding, UIFieldCommon} from './uiFieldBinding.js';
 import {CellClass, cellClassOf} from '../../logic/driverCells.js';
 import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
+import {PHONE_COLUMNS_KEY} from './phoneColumnsKey.js';
 import {useFieldNotePlacement} from '../../hooks/useFieldNotePlacement.js';
 
 const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), {
@@ -32,7 +33,7 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
   inputId: undefined,
   min: undefined,
   max: undefined,
-  columns: () => PhoneRowColumns.STANDARD,
+  columns: undefined,
   stepper: true,
   spin: undefined,
   readonly: false,
@@ -49,7 +50,8 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
 const scope = useCellScope();
 const generatedId = useId();
 /** The row's column widths as CSS variables, from the design constant. */
-const columnVars = computed(() => Object.fromEntries(props.columns.cssVars()));
+const screenColumns = inject(PHONE_COLUMNS_KEY, PhoneRowColumns.STANDARD);
+const columnVars = computed(() => Object.fromEntries((props.columns ?? screenColumns).cssVars()));
 const id = computed(() => props.inputId ?? generatedId);
 
 /** The cell read once per change of the hosting view: Vue cannot see the cell itself change. */

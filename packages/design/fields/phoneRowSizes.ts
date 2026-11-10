@@ -73,6 +73,8 @@ export class PhoneRowColumns {
   static readonly STANDARD = new PhoneRowColumns(123, 90, 40, 16);
   /** The Advanced page's air rows: the same label column as STANDARD (122 px holds "1st port resonance" on one line; John, QO478.c10: narrow the box, not the label). */
   static readonly MEDIUM_LABEL = new PhoneRowColumns(123, 90, 40, 16);
+  /** The driver editor's other tabs: short labels (Rms, gamma), so the box keeps its room for a 6-digit value. */
+  static readonly DRIVER_EDITOR = new PhoneRowColumns(102, 90, 40, 16);
   /** The driver editor's General tab, whose labels are longer. */
   static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 16);
 
