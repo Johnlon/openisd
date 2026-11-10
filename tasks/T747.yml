@@ -8,6 +8,7 @@ done_test: bash scripts/test.sh packages/ui/test/fixtures/screenSizes.test.ts
 files:
   - packages/ui/test/fixtures/screenSizes.test.ts
   - tasks/T747.yml
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
   - docs/spec/SPEC_UI.md
   - packages/ui/test/fixtures/screenSizes.ts
   - packages/ui/test/fixtures/screenSizeAudit.ts
