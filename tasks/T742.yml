@@ -2,7 +2,7 @@ id: T742
 release_note: Labels look the same on every device. The app now carries its own font, so a label no longer wraps on one computer and fits on another.
 repo: openisd
 owner: leader
-status: claimed
+status: done
 ruling: QO466
 goal: The app bundles its own fonts and every skin uses its own, never a device default - desktop Selawik (Segoe UI widths, OFL), phone Roboto, mono JetBrains Mono (John, QO466); precached for offline; the shared joined-field label rule no longer breaks a word at any letter
 plan:
