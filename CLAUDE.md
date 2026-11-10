@@ -53,7 +53,7 @@ Three kinds of WinISD difference, handled differently:
   the affected control (or chart) says what WinISD does. The bug switches sit in one group
   headed "Enable WinISD bugs", and each is a visible, listed WinISD issue: the switches are how OpenISD
   tells users what is wrong in WinISD, and they build trust. Record each as a
-  WinISD bug (a `bugs/BUG_*_winisd-*.md` file, a row in the "fixed by default" section of
+  WinISD finding (a `winisd_research/findings/FINDING_*.md` file in the winisd_research repo, a row in the "fixed by default" section of
   `docs/research/ACCURACY_IMPROVEMENTS.md`, and `docs/research/WINISD_PARITY.md`).
 - **A trigger, linkage or update bug** (an edit that does not recalculate where a load or another
   event does; a crash, hang or data loss) is NEVER copied and gets no switch: there is nothing to
@@ -224,12 +224,12 @@ work is an actual dependency, and consume their committed output on the integrat
 
 ## SDLC policy — always
 
-[`docs/SDLC_POLICY.md`](docs/SDLC_POLICY.md): John's standing orders. Main broken → fix it directly on main, only
-the fix, no branches or housekeeping; failing tests → one spec, then a cluster of 2–3, then the suite; release
+[`docs/SDLC_POLICY.md`](docs/SDLC_POLICY.md): John's standing orders. Finished tasks reach main only as a pull request through the merge queue
+(`bash scripts/ship.sh T<n>`; QO481); main broken → the fix is a PR labelled `fixes`, first in the queue; failing tests → one spec, then a cluster of 2–3, then the suite; release
 fixes before new work; agent sessions run in tmux under the keeper; a restarted agent coordinates before working.
 
 Driver model files (`openisdSchema.ts`, `openIsdDriverSpec.ts`, `driverSpecFieldName.ts`) change only with John's ruling,
-named as `ruling: QO<n>` in the task file; `land.sh` refuses otherwise (QO392, 3 Nov 2026).
+named as `ruling: QO<n>` in the task file; the PR check refuses otherwise (QO392, 3 Nov 2026).
 
 ## Loaded on demand
 

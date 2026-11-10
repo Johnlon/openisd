@@ -1,0 +1,12 @@
+id: T743
+release_note: internal
+repo: openisd
+owner: leader
+status: done
+landed: 480950ea61b0c2c713cf7c3ce895ac1cc6902ca3
+goal: The 7.0.960 announcement names what the release changes (What-if, driver editor typing and Ctrl-Z, note popups, bundled font, phone fixes, chart range, menu, discontinued parts)
+lands_only_if: T741 and T742 have landed (the text names the bundled font)
+done_test: node --test cloudflare/announcements/test/worker.test.mjs && grep -Fq "title: 'What-if, driver editing and steadier screens'" cloudflare/announcements/src/index.js
+files:
+  - cloudflare/announcements/src/index.js
+  - tasks/T743.yml

@@ -16,7 +16,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 1
 BUDGET_SELF="${BASH_SOURCE[0]}" . scripts/budget-enter.sh "$@"
 
 # A gate takes no heavy lane (T044): enter heavy.slice directly so ~/bin/npx skips the lane queue.
-case "$(cat /proc/self/cgroup 2>/dev/null)" in
+case "${OPENISD_CI_RUNNER:+heavy.slice}$(cat /proc/self/cgroup 2>/dev/null)" in
   *heavy.slice*) ;;
   *) exec bash scripts/heavy.sh bash "${BASH_SOURCE[0]}" "$@" ;;
 esac

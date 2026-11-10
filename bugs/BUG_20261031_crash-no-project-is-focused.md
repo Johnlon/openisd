@@ -2,6 +2,8 @@
 
 **Status:** FIXING, T724. Reproduced 8 Nov 2026 on test.openisd.app (build v20261108T0212Z): open the Save As / Export menu with the keyboard, then close the last project from its row menu; the menu stays open with enabled items and 'Save As OpenISD project' throws `no project is focused`. John's ruling (QO459, 8 Nov): close the menu when it loses focus. T724 closes it on focus-out and when its project closes.
 
+Earlier: closed on QO456 (8 Nov) as not reproducible; reopened the same day when it was reproduced.
+
 ## Symptom
 Telemetry: `no project is focused` on v20261015T1542Z (16 Oct, 7 hits, one with a user report) and v20261025T2233Z (28 and 29 Oct, 1 each). Stack: `j` <- `nn.fn` (a computed) <- `Ve` (effect runner).
 

@@ -9,16 +9,20 @@ it touches, the same commit, together with the README's parity summary (`.claude
 case: [CHART_REVIEW_WINISD_VS_OPENISD.md](CHART_REVIEW_WINISD_VS_OPENISD.md?html). WinISD's decoded
 formulas: winisd_research [GHIDRA_FINDINGS.md](http://localhost:8000/winisd/winisd_research/GHIDRA_FINDINGS.md?html).
 
-Last updated 2026-10-21.
+Last updated 2026-11-10.
 
-Every cell is either **matched** or a **gap to close**. There are three kinds of gap, and all
-three count against equivalence:
+Every cell is **matched**, **different on purpose**, or a **gap to close**. A difference on purpose
+is not a gap: OpenISD gives the correct result by the project's rules and WinISD does not (a WinISD
+calculation bug, an input WinISD ignores, or a box the file never states, which OpenISD leaves blank
+where WinISD shows an entered 0; John, QO279 and QO424). Each one links its finding. There are three
+kinds of gap, and all three count against equivalence:
 
 | Mark   | Meaning                                                                                   |
 | ------ | ----------------------------------------------------------------------------------------- |
 | number | matched: worst \|OpenISD − WinISD\| in the chart's unit (rel = relative)                  |
 | ✅     | matched, number in the cited test/record                                                  |
 | ≈      | matched to WinISD's own rounding noise (group delay: WinISD's 1e-10 Hz finite difference) |
+| ≠      | different on purpose: WinISD's bug or ignored input, OpenISD correct; finding linked      |
 | ✗      | gap — deviation: OpenISD differs from WinISD, bug linked                                  |
 | ❔     | gap — unverified: never compared against a WinISD capture                                 |
 | ⛔     | gap — missing: WinISD has it, OpenISD does not yet (OpenISD must be a superset)           |
@@ -31,13 +35,13 @@ with the ND140-PR or SB15SFCR-00 radiator).
 
 ## Aggregate
 
-| Scope                                | Cells | Matched | Gaps | Deviation (✗) | Unverified (❔) | Missing (⛔) |
-| ------------------------------------ | ----: | ------: | ---: | ------------: | --------------: | -----------: |
-| Table 1 — chart × box, base settings | 76    | 76      | 0    | 0             | 0               | 0            |
-| Table 2 — setting × box              | 106   | 106     | 0    | 0             | 0               | 0            |
-| Table 3 — readouts and tools         | 9     | 5       | 4    | 0             | 4               | 0            |
-| Table 4 — after edits (T429)         | 78    | 61      | 17   | 15            | 2               | 0            |
-| Total                                | 269   | 248     | 21   | 15            | 6               | 0            |
+| Scope                                | Cells | Matched | On purpose (≠) | Gaps | Deviation (✗) | Unverified (❔) | Missing (⛔) |
+| ------------------------------------ | ----: | ------: | -------------: | ---: | ------------: | --------------: | -----------: |
+| Table 1 — chart × box, base settings | 76    | 76      | 0              | 0    | 0             | 0               | 0            |
+| Table 2 — setting × box              | 106   | 106     | 0              | 0    | 0             | 0               | 0            |
+| Table 3 — readouts and tools         | 9     | 6       | 0              | 3    | 0             | 3               | 0            |
+| Table 4 — after edits (T429)         | 78    | 63      | 13             | 2    | 0             | 2               | 0            |
+| Total                                | 269   | 251     | 13             | 5    | 0             | 5               | 0            |
 
 Worst matched deviation anywhere, excluding group delay: ≤ 1e-9 (BP6/ABC transfer function
 magnitude, impedance, and rear/front/intrachamber port velocity — `bp6-w5-1`/`abc-w5-1`, exact
@@ -151,7 +155,7 @@ deviation, or ❔.
 | Vented alignment wizard (Vb, Fb, every alignment) | ✅ 35/35 ≤ 1e-12 rel                                          | `vented-alignment.test.ts`                                                                                       |
 | Air c, ρ (WinISD air model)                       | ✅ ≤ 1e-12 rel at every measured environment                  | `air.test.ts`                                                                                                    |
 | Passive radiator system tuning, Npr > 1           | ✅ 39.45 Hz = WinISD's displayed Fb (2 decimals), ec8d2016    | `pr-tuning-count-winisd.test.ts`; [bug](../../bugs/archive/BUG_20260928_pr-system-tuning-ignores-radiator-count.md?html) |
-| Sealed Fsc, Qtc readouts                          | ❔                                                            | —                                                                                                                |
+| Sealed Fsc, Qtc readouts                          | ✅ Box tab Fsc and Qtc after every driver-editor and Vb edit, both drivers| `driver-edit-parity-w5.test.ts`, `driver-edit-parity-e150he-44.test.ts`                                          |
 | Vented vent length readout                        | ✅ 0.370 m = WinISD's printed length (3 places) at end correction 0.732, `sweep-t429-w5-vented-load-endcorr0732`; also equals the saved 0.370238 m at 6 places | `tune-vent-length.test.ts`; `driver-edit-parity-w5.test.ts` |
 | F3 / F10 on the TF chart (WinISD's -3dB line)     | ✅ crossing ≤ 1e-13 dB, 4 cases; "not reached" where WinISD's curve never meets its line | winisd_research `runs/t408-sealed-lp-a`, `-b`, `-gain`, `-gainneg` |
 | Key stats peak Z                                  | ❔                                                            | —                                                                                                                |
@@ -172,43 +176,43 @@ Test totals: W5-1138SMF 1305 pass and 51 expected to fail, E150HE-44 976 and 19,
 
 | Driver | Box | Edit | Charts | Readouts | Editor values and marks | Test |
 | ------ | --- | ---- | ------ | -------- | ----------------------- | ---- |
-| W5-1138SMF | Sealed | Driver editor: Fs, Vas, Qes, Qms, Qts, Re, Le, BL, Sd, Xmax, Pe, Mms, Cms, Rms, Znom (15 runs) | ✅ 9 of 9 | ✅ Vb, Fsc, Qtc | ✅ stated fields value and mark; ✗ fLe, KLe, Hc, Hg unstated: WinISD E zero, OpenISD not entered ([bug](../../bugs/archive/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md)) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
-| W5-1138SMF | Sealed | Driver editor: numVC 1 to 2 | ✗ 0 of 9: WinISD ignores numVC, OpenISD follows the per-coil ruling ([bug](../../bugs/BUG_20261019_winisd-numvc-is-not-a-simulation-input.md)) | ✗ Fsc, Qtc (same cause) | ✗ stated fields (USPL; same cause); ✗ fLe, KLe, Hc, Hg unstated: WinISD E zero, OpenISD not entered ([bug](../../bugs/archive/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md)) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
+| W5-1138SMF | Sealed | Driver editor: Fs, Vas, Qes, Qms, Qts, Re, Le, BL, Sd, Xmax, Pe, Mms, Cms, Rms, Znom (15 runs) | ✅ 9 of 9 | ✅ Vb, Fsc, Qtc | ✅ stated fields value and mark; ≠ fLe, KLe, Hc, Hg unstated: WinISD E zero, OpenISD blank (John: a box the file never states stays empty) ([bug](../../bugs/archive/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md)) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
+| W5-1138SMF | Sealed | Driver editor: numVC 1 to 2 | ≠ 0 of 9: WinISD ignores numVC, OpenISD follows the per-coil ruling ([bug](../../winisd_research/findings/FINDING_20261019_numvc-is-not-a-simulation-input.md)) | ≠ Fsc, Qtc (same cause) | ≠ stated fields (USPL; same cause); ≠ fLe, KLe, Hc, Hg unstated: WinISD E zero, OpenISD blank (John: a box the file never states stays empty) ([bug](../../bugs/archive/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md)) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
 | W5-1138SMF | Sealed | Vb (Box tab) | ✅ 6 of 6 | ✅ Vb, Fsc, Qtc | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
-| W5-1138SMF | Vented | Driver editor: Fs, Vas, Qes, Qms, BL, Re (6 runs) | ✅ 11 of 11 | ✅ Vb, Fb, vent length, cross area | ✅ stated fields value and mark; ✗ fLe, KLe, Hc, Hg unstated: WinISD E zero, OpenISD not entered ([bug](../../bugs/archive/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md)) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
+| W5-1138SMF | Vented | Driver editor: Fs, Vas, Qes, Qms, BL, Re (6 runs) | ✅ 11 of 11 | ✅ Vb, Fb, vent length, cross area | ✅ stated fields value and mark; ≠ fLe, KLe, Hc, Hg unstated: WinISD E zero, OpenISD blank (John: a box the file never states stays empty) ([bug](../../bugs/archive/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md)) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
 | W5-1138SMF | Vented | Fb 45 (Box tab, dry run) | ✅ 11 of 11 | ✅ Vb, Fb, vent length, cross area | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
 | W5-1138SMF | Vented | Box tab: Vb, Fb 43.7 | ✅ 7 of 7 | ✅ Vb, Fb, vent length, cross area | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
-| W5-1138SMF | Vented | Vents tab: vent dia, Num 2 | ✅ 7 of 7 | ✅ Vb, Fb, vent length; ✗ cross area after Num: WinISD shows all ports, OpenISD one ([bug](../../bugs/archive/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md)) | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
+| W5-1138SMF | Vented | Vents tab: vent dia, Num 2 | ✅ 7 of 7 | ✅ Vb, Fb, vent length, cross area after Num (all ports, as WinISD; fixed) ([bug](../../bugs/archive/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md)) | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
 | W5-1138SMF | Vented | Vents tab: vent end correction | not captured (combo box did not take typed text), recapture pending | — | — | — |
-| W5-1138SMF | Bandpass 6th order | Driver editor: Fs, Vas, Qes, Qms, BL, Re (6 runs) | ✅ 13 of 13 (group delay at 0.15 ms) | ✅ box readouts | ✅ stated fields value and mark; ✗ fLe, KLe, Hc, Hg unstated: WinISD E zero, OpenISD not entered ([bug](../../bugs/archive/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md)) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
+| W5-1138SMF | Bandpass 6th order | Driver editor: Fs, Vas, Qes, Qms, BL, Re (6 runs) | ✅ 13 of 13 (group delay at 0.15 ms) | ✅ box readouts | ✅ stated fields value and mark; ≠ fLe, KLe, Hc, Hg unstated: WinISD E zero, OpenISD blank (John: a box the file never states stays empty) ([bug](../../bugs/archive/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md)) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
 | W5-1138SMF | Passive radiator | Vb (Box tab) | ✅ 7 of 7 | ✅ Vb, Fp | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
 | W5-1138SMF | Sealed | Loss Ql, Qa; Signal Pin, Rg (4 runs) | ✅ all captured charts (5 to 6 each; the Rg run has no group delay) | ✅ Vb, Fsc, Qtc | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
 | W5-1138SMF | Vented | Loss Ql, Qa, Qp (3 runs) | ✅ 7 of 7 incl. port velocity | ✅ Vb, Fb, vent length, cross area | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
 | W5-1138SMF | Passive radiator | Loss Ql, Qa (2 runs) | ✅ 7 of 7 incl. PR TF and PR excursion | ✅ Vb, Fp | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
-| W5-1138SMF | Bandpass 4th order | Loss Ql, Qa, Qicl (rear); Qlf, Qaf, Qpf (front); Box tab Vr, Vf, Ff; Vents tab front vent dia (10 runs) | ✅ 6 of 7 (TF, SPL, phase, excursion, impedance, front port velocity); ≈ group delay: below 200 Hz ✅ at 2e-3 ms, from 200 Hz WinISD rounding noise, no switch ([bug](../../bugs/BUG_20261019_winisd-bp4-group-delay-is-rounding-noise-from-200-hz.md)) | ✅ rear Vb, front Vb, Ff, front vent length, front cross area | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
+| W5-1138SMF | Bandpass 4th order | Loss Ql, Qa, Qicl (rear); Qlf, Qaf, Qpf (front); Box tab Vr, Vf, Ff; Vents tab front vent dia (10 runs) | ✅ 6 of 7 (TF, SPL, phase, excursion, impedance, front port velocity); ≈ group delay: below 200 Hz ✅ at 2e-3 ms, from 200 Hz WinISD rounding noise, no switch ([bug](../../winisd_research/findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md)) | ✅ rear Vb, front Vb, Ff, front vent length, front cross area | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
 | W5-1138SMF | Bandpass 6th order | Loss Ql, Qa, Qp, Qicl (rear); Qlf, Qaf, Qpf (front); Box tab Vr, Vf, Ff, Fr; Vents tab front and rear vent dia (13 runs) | ✅ 8 of 8 (group delay at 0.15 ms) | ✅ both Vb, both Fb, both vent lengths and cross areas | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
 | W5-1138SMF | ABC | Loss Ql, Qa, Qp, Qicl (rear); Qlf, Qaf, Qpf (front); Box tab Vr, Vf, Ff, Fr; Vents tab front, rear, intra vent dia; intra vent length (15 runs) | ✅ 9 of 9 incl. intra port velocity (group delay at 2e-3 ms) | ✅ both Vb, both Fb, three vent lengths and cross areas | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
 | W5-1138SMF | Vented | Vents tab: vent end correction 0.6, 0.732, 0.85, loaded from a file, nothing typed (3 runs) | ✅ 7 of 7 | ✅ Vb, Fb, cross area; vent length equals the WinISD-saved 0.376838, 0.370238, 0.364338 m (6 places) | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-w5.test.ts` |
-| E150HE-44 | Sealed | Driver editor: Fs, Vas, Qes, Qms, Qts, Re, Le, BL, Sd, Xmax, Pe, Mms, Cms, Rms, Znom (15 runs) | ✅ 9 of 9 | ✅ Vb, Fsc, Qtc | ✅ stated fields value and mark; ✗ fLe, KLe, Hc, Hg unstated: WinISD E zero, OpenISD not entered ([bug](../../bugs/archive/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md)) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
-| E150HE-44 | Sealed | Driver editor: numVC 1 to 2 | ✗ 3 of 9 (tfmag, groupdelay, tfphase); spl, excursion, impedance, impedancephase, maxpower, maxspl differ: WinISD ignores numVC ([bug](../../bugs/BUG_20261019_winisd-numvc-is-not-a-simulation-input.md)) | ✅ Vb, Fsc, Qtc | ✅ stated fields except USPL; ✗ USPL (same cause) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
+| E150HE-44 | Sealed | Driver editor: Fs, Vas, Qes, Qms, Qts, Re, Le, BL, Sd, Xmax, Pe, Mms, Cms, Rms, Znom (15 runs) | ✅ 9 of 9 | ✅ Vb, Fsc, Qtc | ✅ stated fields value and mark; ≠ fLe, KLe, Hc, Hg unstated: WinISD E zero, OpenISD blank (John: a box the file never states stays empty) ([bug](../../bugs/archive/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md)) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
+| E150HE-44 | Sealed | Driver editor: numVC 1 to 2 | ≠ 3 of 9 (tfmag, groupdelay, tfphase); spl, excursion, impedance, impedancephase, maxpower, maxspl differ: WinISD ignores numVC ([bug](../../winisd_research/findings/FINDING_20261019_numvc-is-not-a-simulation-input.md)) | ✅ Vb, Fsc, Qtc | ✅ stated fields except USPL; ≠ USPL (same cause) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
 | E150HE-44 | Sealed | Vb (Box tab) | ✅ 6 of 6 | ✅ Vb, Fsc, Qtc | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
 | E150HE-44 | Vented | Box tab: Fb, Vb | ✅ 7 of 7 | ✅ Vb, Fb, vent length, cross area | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
-| E150HE-44 | Vented | Vents tab: vent dia, Num | ✅ 7 of 7 | ✅ Vb, Fb, vent length; ✗ cross area after Num: WinISD shows all ports, OpenISD one ([bug](../../bugs/archive/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md)) | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
+| E150HE-44 | Vented | Vents tab: vent dia, Num | ✅ 7 of 7 | ✅ Vb, Fb, vent length, cross area after Num (all ports, as WinISD; fixed) ([bug](../../bugs/archive/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md)) | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
 | E150HE-44 | Vented | Vents tab: vent end correction | not captured (combo box did not take typed text), recapture pending | — | — | — |
 | E150HE-44 | Passive radiator | Vb (Box tab) | ✅ 5 of 5 tested (prtfmag, prexcursion captured, not tested) | ✅ Vb, Fb | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
 | E150HE-44 | Sealed | Loss Ql, Qa; Signal Pin, Rg (4 runs) | ✅ all captured charts (5 to 6 each) | ✅ Vb, Fsc, Qtc | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
 | E150HE-44 | Vented | Loss Ql, Qa, Qp (3 runs) | ✅ 7 of 7 incl. port velocity | ✅ Vb, Fb, vent length, cross area | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
 | E150HE-44 | Passive radiator | Loss Ql, Qa (2 runs) | ✅ 7 of 7 | ✅ Vb, Fp | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
-| E150HE-44 | Bandpass 4th order | Loss Ql, Qa, Qicl (rear); Qlf, Qaf, Qpf (front); Box tab Vr, Vf, Ff; Vents tab front vent dia (10 runs) | ✅ 6 of 7 (TF, SPL, phase, excursion, impedance, front port velocity); ≈ group delay: below 200 Hz ✅ at 2e-3 ms, from 200 Hz WinISD rounding noise, no switch ([bug](../../bugs/BUG_20261019_winisd-bp4-group-delay-is-rounding-noise-from-200-hz.md)) | ✅ rear Vb, front Vb, Ff, front vent length, front cross area | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
+| E150HE-44 | Bandpass 4th order | Loss Ql, Qa, Qicl (rear); Qlf, Qaf, Qpf (front); Box tab Vr, Vf, Ff; Vents tab front vent dia (10 runs) | ✅ 6 of 7 (TF, SPL, phase, excursion, impedance, front port velocity); ≈ group delay: below 200 Hz ✅ at 2e-3 ms, from 200 Hz WinISD rounding noise, no switch ([bug](../../winisd_research/findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md)) | ✅ rear Vb, front Vb, Ff, front vent length, front cross area | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
 | E150HE-44 | Bandpass 6th order | Loss Ql, Qa, Qp, Qicl (rear); Qlf, Qaf, Qpf (front); Box tab Vr, Vf, Ff, Fr; Vents tab front and rear vent dia (13 runs) | ✅ 8 of 8 (group delay at 0.15 ms) | ✅ both Vb, both Fb, both vent lengths and cross areas | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
 | E150HE-44 | ABC | Loss Ql, Qa, Qp, Qicl (rear); Qlf, Qaf, Qpf (front); Box tab Vr, Vf, Ff, Fr; Vents tab front, rear, intra vent dia; intra vent length (15 runs) | ✅ 9 of 9 (group delay at 2e-3 ms) | ✅ both Vb, both Fb, three vent lengths and cross areas | — (no driver editor read) | `packages/design/test/domain/driver-edit-parity-e150he-44.test.ts` |
 | ND140-PR | Passive radiator | PR Fs, PR Qms, PR Xmax (3 runs) | ✅ 7 of 7 | ✅ Vb, Fp | — | `packages/design/test/domain/pr-edit-parity-nd140-pr.test.ts` |
-| ND140-PR | Passive radiator | PR Vas | ✗ 0 of 7: WinISD rounds the typed Vas to 4 decimals ([bug](../../bugs/BUG_20261019_winisd-pr-vas-edit-rounded-to-4-decimals.md)) | ✗ Fp (same cause); Vb ✅ | — | `packages/design/test/domain/pr-edit-parity-nd140-pr.test.ts` |
+| ND140-PR | Passive radiator | PR Vas | ≠ 0 of 7: WinISD rounds the typed Vas to 4 decimals ([bug](../../winisd_research/findings/FINDING_20261019_pr-vas-edit-rounded-to-4-decimals.md)) | ≠ Fp (same cause); Vb ✅ | — | `packages/design/test/domain/pr-edit-parity-nd140-pr.test.ts` |
 | ND140-PR | Passive radiator | PR Me 0 to 0.002, PR Npr 1 to 2 (2 runs) | ✅ 7 of 7 | ✅ Vb, Fp | — (no driver editor read) | `packages/design/test/domain/pr-edit-parity-nd140-pr.test.ts` |
-| ND140-PR | Passive radiator | PR Sd 0.00866 to 0.00996 | ✗ 6 of 7: prexcursion differs, WinISD ignores the typed Sd ([bug](../../bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md)) | ✅ Vb, Fp | — (no driver editor read) | `packages/design/test/domain/pr-edit-parity-nd140-pr.test.ts` |
+| ND140-PR | Passive radiator | PR Sd 0.00866 to 0.00996 | ≠ 6 of 7: prexcursion differs, WinISD ignores the typed Sd ([bug](../../winisd_research/findings/FINDING_20261003_pr-sd-edit-ignored.md)) | ✅ Vb, Fp | — (no driver editor read) | `packages/design/test/domain/pr-edit-parity-nd140-pr.test.ts` |
 | SB15SFCR-00 | Passive radiator | PR Fs, PR Qms, PR Vas, PR Xmax (4 runs) | ✅ 7 of 7 | ✅ Vb, Fp | — | `packages/design/test/domain/pr-edit-parity-sb15sfcr-00.test.ts` |
 | SB15SFCR-00 | Passive radiator | PR Me 0 to 0.002, PR Npr 1 to 2 (2 runs) | ✅ 7 of 7 | ✅ Vb, Fp | — (no driver editor read) | `packages/design/test/domain/pr-edit-parity-sb15sfcr-00.test.ts` |
-| SB15SFCR-00 | Passive radiator | PR Sd | ✗ 6 of 7: prexcursion differs, WinISD ignores the typed Sd ([bug](../../bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md)) | ✅ Vb, Fp | — | `packages/design/test/domain/pr-edit-parity-sb15sfcr-00.test.ts` |
+| SB15SFCR-00 | Passive radiator | PR Sd | ≠ 6 of 7: prexcursion differs, WinISD ignores the typed Sd ([bug](../../winisd_research/findings/FINDING_20261003_pr-sd-edit-ignored.md)) | ✅ Vb, Fp | — | `packages/design/test/domain/pr-edit-parity-sb15sfcr-00.test.ts` |
 
 ---
 

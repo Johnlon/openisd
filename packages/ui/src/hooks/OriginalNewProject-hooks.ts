@@ -9,7 +9,8 @@ import {DUAL_CHAMBER} from './boxFields.js';
 import {useApp} from '../logic/app.js';
 import type {AppState} from '../logic/appState.js';
 import { selectedOption } from '../logic/domEvents.js';
-import { useRecentActions } from './telemetryContext.js';
+import { useRadiatorPicks, useRecentActions } from './telemetryContext.js';
+import type { RadiatorPicks } from '../logic/telemetry/radiatorPick.js';
 import type {ClearableUICell} from '../ui/components/uiFieldBinding.js';
 
 /** The engine areas the wizard consults; the app facade's by default, substitutes in a test. */
@@ -61,6 +62,8 @@ export interface OriginalNewProjectDeps {
   appState?: AppState;
   /** Where a failed radiator pick is recorded; the app state's by default. */
   reportFault?: (fault: Error) => void;
+  /** Told which radiator was picked, for usage statistics; the page session's recorder by default. */
+  radiatorPicks?: RadiatorPicks;
 }
 
 export interface OriginalNewProjectAPI {
@@ -205,6 +208,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     ?? { saved: useApp().myPassiveRadiators, bundled: useApp().bundledPassiveRadiators };
   const initialDriver = deps?.initialDriver ?? newProjectDriver.value ?? null;
   const recentActions = useRecentActions();
+  const radiatorPicks = deps?.radiatorPicks ?? useRadiatorPicks();
 
   const step = shallowRef<WizardStep>(WizardStep.DRIVER);
   const selectedDriver = shallowRef<OpenISDDriver | null>(initialDriver);
@@ -413,7 +417,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     latestPick++;
     passiveRadiatorBrowseOpen.value = false;
     const entry = prRepos.saved.list().find(e => e.uuid === uuid);
-    if (entry) adoptPick(entry.passiveRadiator);
+    if (entry) { adoptPick(entry.passiveRadiator); radiatorPicks.saved(); }
   }
 
   const passiveRadiatorPickError = ref<string | null>(null);
@@ -459,7 +463,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     passiveRadiatorPickError.value = null;
     try {
       const loaded = await prRepos.bundled.load(uuid);
-      if (pick === latestPick) adoptPick(loaded);
+      if (pick === latestPick) { adoptPick(loaded); radiatorPicks.bundled(uuid); }
     } catch (thrown) {
       if (pick !== latestPick) return;
       const fault = thrown instanceof Error ? thrown : new Error(String(thrown));

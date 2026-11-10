@@ -7,11 +7,14 @@ import GraphPanel from '../../components/GraphPanel.vue';
 import MobileSaveButton from './MobileSaveButton.vue';
 import PhoneBand from './PhoneBand.vue';
 import MobileSheet from './MobileSheet.vue';
+import { watch } from 'vue';
 import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
-const emit = defineEmits<{ menu: [] }>();
+const emit = defineEmits<{ menu: []; sheetOpen: [open: boolean] }>();
 const { legendItems, sizeVars, helpFor, openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
   chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen, autoY, setAutoY, collectChart, TUNE, WHAT_IF } = useMobileChartView();
+// The shell holds its banners back while a sheet is open (QO427 B).
+watch(sheetOpen, open => emit('sheetOpen', open), { immediate: true });
 </script>
 
 <template>

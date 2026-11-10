@@ -173,7 +173,7 @@ describe('E150HE-44 passive radiator, Vb typed in the Box tab (sweep-t429-e150-p
 
 // numVC is not a simulation input in WinISD: typed or loaded, every chart and USPL stay at the one-coil figures (Re and BL are
 // terminal values). OpenISD stores Re and BL per coil, so the coil count moves the terminal values and the charts.
-const NUMVC_BUG = 'bugs/BUG_20261019_winisd-numvc-is-not-a-simulation-input.md';
+const BUG_NUMVC = 'winisd_research/findings/FINDING_20261019_numvc-is-not-a-simulation-input.md';
 
 describe('E150HE-44 sealed, numVC typed in the Driver editor (sweep-t429-e150-sealed-edit-numvc)', () => {
   const capture = loadEditCapture('e150he-44', 'sealed-numvc');
@@ -184,8 +184,8 @@ describe('E150HE-44 sealed, numVC typed in the Driver editor (sweep-t429-e150-se
   const swept = sweepAfterEdit(project, capture);
   chartCases(capture, swept, ['tfmag', 'groupdelay', 'tfphase']);
   for (const q of ['spl', 'excursion', 'impedance', 'impedancephase', 'maxpower', 'maxspl'] as const) {
-    // BUG_20261019_winisd-numvc-is-not-a-simulation-input (NUMVC_BUG)
-    it.fails(`${q} after numVC edit — ${NUMVC_BUG}`, () => assertChartMatches(capture, swept, q, rules));
+    // FINDING_20261019_numvc-is-not-a-simulation-input (BUG_NUMVC)
+    it.fails(`${q} after numVC edit — ${BUG_NUMVC}`, () => assertChartMatches(capture, swept, q, rules));
   }
   it('Box tab: Vb, Fsc and Qtc read as WinISD prints them', () => {
     assertReadout(capture, BOX_VOLUME, project.box.sealed.volume_m3.value, 'Vb');
@@ -195,8 +195,8 @@ describe('E150HE-44 sealed, numVC typed in the Driver editor (sweep-t429-e150-se
   it('Driver editor: every stated field except USPL has WinISD\'s value and E/C mark', () => {
     expect(editorDeviations(project, capture, (f) => !UNSTATED_ZERO_KEYS.includes(f.key) && f.key !== 'USPL')).toEqual([]);
   });
-  // BUG_20261019_winisd-numvc-is-not-a-simulation-input (NUMVC_BUG)
-  it.fails(`Driver editor: USPL after numVC edit — ${NUMVC_BUG}`, () => {
+  // FINDING_20261019_numvc-is-not-a-simulation-input (BUG_NUMVC)
+  it.fails(`Driver editor: USPL after numVC edit — ${BUG_NUMVC}`, () => {
     expect(editorDeviations(project, capture, (f) => f.key === 'USPL')).toEqual([]);
   });
 });

@@ -275,7 +275,7 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(back.value.model.value).toBe('RS225');
   });
 
-  // BUG_20261005_winisd-vccon-editor-combo: WinISD saves a one-coil Series pick as VCCon=1 and
+  // FINDING_20261005_vccon-editor-combo: WinISD saves a one-coil Series pick as VCCon=1 and
   // reloads it as Parallel, and a coil-count edit resets its combo to Parallel.
   it('a one-coil driver wired Series is saved as VCCon=2 and reloads as Series from .wdr text', () => {
     const driver = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();

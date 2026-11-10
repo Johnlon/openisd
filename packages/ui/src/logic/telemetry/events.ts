@@ -52,6 +52,9 @@ export interface ProjectSaveEvent {
 }
 /** `name` is the catalogue's own name for a bundled driver; empty for a driver the user owns, whose name is theirs. */
 export interface DriverPickEvent { readonly kind: 'driver_pick'; readonly source: DriverSource; readonly id: string; readonly name: string }
+export type RadiatorSource = 'bundled' | 'mine';
+/** A passive radiator chosen; `name` as for `DriverPickEvent`. */
+export interface RadiatorPickEvent { readonly kind: 'radiator_pick'; readonly source: RadiatorSource; readonly id: string; readonly name: string }
 export type FeatureName =
   | 'whatif' | 'tune' | 'filters' | 'export' | 'import' | 'driver_db' | 'options' | 'vents' | 'save_file' | 'share_link' | 'diagnostics';
 export interface ChartViewEvent { readonly kind: 'chart_view'; readonly chart: ChartId }
@@ -91,7 +94,7 @@ export interface ReportEvent {
 }
 
 export type TelemetryEvent =
-  | LaunchEvent | InstallEvent | SwBlockedEvent | SessionEndEvent | ProjectOpenEvent | ProjectSaveEvent | DriverPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent;
+  | LaunchEvent | InstallEvent | SwBlockedEvent | SessionEndEvent | ProjectOpenEvent | ProjectSaveEvent | DriverPickEvent | RadiatorPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent;
 
 export type FieldValue = string | number | boolean;
 export type Fields = Record<string, FieldValue>;
@@ -131,6 +134,7 @@ export function fieldsOf(e: TelemetryEvent): Fields {
       ...(e.driverName === undefined ? {} : {driverName: e.driverName}),
     };
     case 'driver_pick': return {source: e.source, id: e.id, ...(e.name === '' ? {} : {name: e.name})};
+    case 'radiator_pick': return {source: e.source, id: e.id, ...(e.name === '' ? {} : {name: e.name})};
     case 'chart_view': return {chart: e.chart};
     case 'feature': return {name: e.name};
     case 'error': return {

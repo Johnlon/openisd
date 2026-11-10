@@ -1,0 +1,144 @@
+name: pr
+
+# The one required check of a pull request to main, `pr-gate` (T749, QO481 A; T758, QO501 A): the fast gates only
+# (task contract, lint, typecheck, unit, architecture, done-test: 6 jobs, ~5 min). The full suite does not run
+# here: GitHub's free plan runs 20 jobs at once for the whole account, so a 22-job pull request queued the next
+# one. suite.yml runs it on main after each merge and a red there opens an issue (docs/DEV_PROCESS.md).
+# Runs on the pull request and again on the merge queue's merged result (merge_group).
+on:
+  pull_request:
+    branches: [main]
+  merge_group:
+
+permissions:
+  contents: read
+
+# A new push to a pull request replaces its older run; a merge group's run is never cancelled.
+concurrency:
+  group: pr-${{ github.event_name }}-${{ github.event.pull_request.number || github.event.merge_group.head_sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  EVENT: ${{ github.event_name }}
+  GROUP_BASE: ${{ github.event.merge_group.base_sha }}
+
+jobs:
+  # The task contract, attribution, driver-model ruling and visual baselines: no node needed.
+  task:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install pyyaml==6.0.2
+      - run: bash scripts/ci/pr-setup.sh "$EVENT" "$GROUP_BASE"
+      - name: task contract (locked hashes, files allowlist, task id and owner, status, gate files approved)
+        run: |
+          out="$(bash scripts/land/check-task-contract.sh "$PR_TASK" origin/main HEAD --pr)" && exit 0
+          printf '%s\n' "$out" | awk -F'\t' '$1 == "REFUSE" { printf "::error title=task contract (%s)::%s\n", $2, $3 }'; printf '%s\n' "$out"; exit 1
+      - name: attribution on every commit message
+        run: bash scripts/land/attribution-range.sh origin/main HEAD
+      - name: driver model ruling (from main's copy of the gate)
+        run: |
+          git show origin/main:scripts/land/check-model-ruling.sh > "$RUNNER_TEMP/check-model-ruling.sh"
+          bash "$RUNNER_TEMP/check-model-ruling.sh" "$PR_TASK" origin/main HEAD
+      - name: visual baselines match the task's visual list
+        run: bash scripts/visual/check-task.sh "tasks/$PR_TASK.yml" origin/main HEAD
+      - name: visual baselines match the UI sources (SOURCES.sha256)
+        run: bash scripts/visual/check-sources.sh origin/main HEAD
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: bash scripts/ci/pr-setup.sh "$EVENT" "$GROUP_BASE"
+      - name: lint on the changed files
+        run: bash scripts/land/lint-changed.sh $(git diff --name-only --diff-filter=ACMR origin/main HEAD)
+
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: bash scripts/ci/pr-setup.sh "$EVENT" "$GROUP_BASE"
+      - run: bash scripts/quiet-test.sh npm run typecheck
+
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: bash scripts/ci/pr-setup.sh "$EVENT" "$GROUP_BASE"
+      - name: every unit test the change reaches
+        run: bash scripts/land/unit-changed.sh $(git diff --name-only --diff-filter=ACMR origin/main HEAD)
+
+  architecture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: bash scripts/ci/pr-setup.sh "$EVENT" "$GROUP_BASE"
+      - name: every architecture unit test
+        run: bash scripts/land/unit-architecture.sh
+
+  done-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: bash scripts/ci/pr-setup.sh "$EVENT" "$GROUP_BASE"
+      - name: the task's done_test
+        run: bash scripts/land/run-done-test.sh "tasks/$PR_TASK.yml"
+
+  # The one name the main ruleset requires. Red when any job above is not green.
+  pr-gate:
+    if: ${{ always() }}
+    needs: [task, lint, typecheck, unit, architecture, done-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: every gate green
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "gate results: $RESULTS"
+          for r in $RESULTS; do [ "$r" = success ] || { echo "::error title=pr-gate::a gate did not pass ($RESULTS)"; exit 1; }; done

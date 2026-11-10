@@ -79,7 +79,9 @@ export function measureFieldLayoutRules(root: Element, minStepperGapPx: number):
     const list = (pick: (f: (typeof group)[number]) => string) => group.map(f => `${f.label}:${pick(f)}`).join(', ');
     if (new Set(group.map(f => f.x)).size > 1) issues.push(`R3 ${key} value left edges differ: ${list(f => String(f.x))}`);
     const narrow = Math.min(...group.map(f => f.width));
-    const sameEdge = group.filter(f => !(f.control instanceof HTMLSelectElement && f.width > narrow && needsMore(f.control, narrow)));
+    const widest = Math.max(...group.map(f => f.width));
+    // A pick list may be wider than the narrowest box when its text needs it, or narrower than the widest when its text still fits (the 90 px short dropdowns, QO428).
+    const sameEdge = group.filter(f => !(f.control instanceof HTMLSelectElement && ((f.width > narrow && needsMore(f.control, narrow)) || (f.width < widest && !needsMore(f.control, f.width)))));
     if (new Set(sameEdge.map(f => f.right)).size > 1 || new Set(sameEdge.map(f => f.width)).size > 1) issues.push(`R4 ${key} value widths differ: ${list(f => `${f.width}/${f.right}`)}`);
     for (const tag of ['INPUT', 'SELECT']) {
       const same = group.filter(f => f.tag === tag);

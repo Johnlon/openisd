@@ -1,7 +1,7 @@
 name: suite
 
-# Prototype (T251, T252, T258): the full suite of the laptop post-land run (scripts/land/post-land/suite.sh)
-# on GitHub's runners. It gates nothing yet. Same rules as post-land: no retries, a flake is a red.
+# The full suite on GitHub's runners (T251, T252, T258). Pull requests run only the fast gates (pr.yml); this runs on
+# main after each merge (T758, QO501 A) and a red opens a `main-red` issue (job report below). No retries: a flake is a red.
 # One job builds the suite's app; the browser shards download it and serve it (built by
 # scripts/build-test-app.sh). The unit tests run in two halves and typecheck in its own job.
 on:
@@ -9,6 +9,21 @@ on:
     # land/<task>: the candidate of a landing; land.sh pushes main only when this run is green (T301), and main
     # then holds that same commit, so main has no run of its own (T322): post-land reads the candidate's.
     branches: ['land/**']
+  # Called by the pull request check (.github/workflows/pr.yml, T749) with the commit under test.
+  workflow_call:
+    inputs:
+      sha:
+        description: Commit to test
+        required: true
+        type: string
+      shards:
+        required: false
+        default: '10'
+        type: string
+      workers:
+        required: false
+        default: '4'
+        type: string
   workflow_dispatch:
     inputs:
       sha:
@@ -244,3 +259,22 @@ jobs:
         run: |
           echo "::warning title=artifact upload failed::failures-${{ matrix.shard }} did not upload; the verdict is unchanged"
           echo "- upload of artifact failures-${{ matrix.shard }} failed (verdict unchanged)" >> "$GITHUB_STEP_SUMMARY"
+
+  # Red on main: open one issue naming the commit and the run, once per red commit (T758). The fix is a pull request
+  # labelled `fixes` that says "Fixes #<issue>" (docs/DEV_PROCESS.md).
+  report:
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(needs.*.result, 'failure') }}
+    needs: [unit, typecheck, shell, build, browser]
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: open the red-main issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create main-red --color B60205 --description "the full suite is red on main" 2>/dev/null || true
+          gh issue create --label main-red --title "Main is red at ${SHA:0:10}" \
+            --body "The full suite failed on main at $SHA. Run: $RUN_URL. Fix it with a pull request labelled fixes that says Fixes #<this issue>."

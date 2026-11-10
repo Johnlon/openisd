@@ -29,7 +29,7 @@ import {chartColumnsFit, CHARTS_HIGH_OPTIONS, ORIGINAL_CHARTS_HIGH} from './char
 import {offeredChartsHigh, useChartStack} from './chartStack.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
-import {useFeatureUse, useRecentActions} from './telemetryContext.js';
+import {useFeatureUse, useRadiatorPicks, useRecentActions} from './telemetryContext.js';
 import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
@@ -725,7 +725,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // Delegated to the unit-tested `createPassiveRadiatorActions` above.
   const { prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
-    createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator });
+    createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator, radiatorPicks: useRadiatorPicks() });
   function startEdit() {
     recentActions.record('dialog:driver-editor');
     editProjectDriver();

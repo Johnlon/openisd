@@ -68,7 +68,7 @@ describe('the driver list filters', () => {
       }),
       myDriverRepo, prefs: createPrefsRepo(storage, () => undefined), logging,
       selection: createDriverSelection({appState, presentation}), files, confirmReset: {ask: async () => true},
-      exportNotice: {exported: () => undefined}, appState, presentation,
+      exportNotice: {exported: () => undefined}, appState, presentation, driverPicked: () => undefined,
     });
     browsing.reloadMyDrivers();
     return {browsing, uuid: saved.uuid, driverUuid: mine.uuid()};
