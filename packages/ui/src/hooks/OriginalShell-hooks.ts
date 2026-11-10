@@ -547,11 +547,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     get: () => { const t = presentationState.ui.originalProjectTab; return isTabId(t) ? t : 'box'; },
     set: (v: TabId) => { presentationState.ui.originalProjectTab = v; },
   });
+  watch(activeTab, tab => { recentActions.record(TAB_ACTIONS[tab]); }, { immediate: true });
+  // Not immediate: the tab remembered from last time is not a use of it.
   watch(activeTab, tab => {
-    recentActions.record(TAB_ACTIONS[tab]);
     if (tab === 'filters') featureUse.feature('filters');
     if (tab === 'enclosure') featureUse.feature('vents');
-  }, { immediate: true });
+  });
   watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
   const desktopHelp = createDesktopHelp({ activeTab, selectedBox });
 
