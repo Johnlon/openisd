@@ -58,7 +58,8 @@ export type ActionName =
   | 'feature:history_restore'
   | 'feature:cloud_sync'
   | 'feature:box_type'
-  | 'feature:alignment';
+  | 'feature:alignment'
+  | 'feature:help';
 
 /** A ring buffer of the last user actions, oldest first. */
 export class RecentActions {

@@ -27,6 +27,7 @@ const FEATURE_ACTIONS: Record<FeatureName, ActionName> = {
   cloud_sync: 'feature:cloud_sync',
   box_type: 'feature:box_type',
   alignment: 'feature:alignment',
+  help: 'feature:help',
 };
 
 /** Records each chart viewed and each feature used once per page session. Records only; the
