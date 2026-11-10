@@ -16,6 +16,7 @@ plan:
 visual_note: Every label uses the font the app now carries, so text looks the same on every computer. On desktop each label sits close to its box instead of far away or cut.
 done_test: bash scripts/test.sh packages/ui/test/ui/font-glyph-coverage.test.ts packages/ui/test/ui/font-sources.test.ts packages/ui/test/ui/font-precache.test.ts
 files:
+  - packages/ui/test/fixtures/branchMap/shared.ts
   - packages/ui/test/ui/desktop-options-colour-rows.browser.spec.ts
   - packages/ui/src/ui/components/OptionsModal.vue
   - bugs/BUG_20261108_desktop-whatif-wide-gap-between-labels-and-boxes.md
