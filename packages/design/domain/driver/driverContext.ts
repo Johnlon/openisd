@@ -18,8 +18,6 @@ export abstract class DriverContext {
 
 /** The context of a driver in a project, and of every copy of it (the editor's working copy, a copy saved from it). Built only by the project. */
 export class ProjectContext extends DriverContext {
-    declare private readonly projectBrand: never;
-
     private constructor(
         private readonly source: () => ChartingSource,
         air: () => Air,
@@ -44,7 +42,9 @@ export class ProjectContext extends DriverContext {
 
 /** The context of a driver the app manages outside any project (My Drivers, the catalogue, the New Driver editor). Its one factory is `of`. */
 export class AppContext extends DriverContext {
-    declare private readonly managedBrand: never;
+    /** What this kind shows: the datasheet, no figure worked out and no note. Held here so the type is its own (a project's context is not assignable to it). */
+    readonly #shown = NOTHING_SHOWN;
+    readonly #notes = NO_CHART_NOTES;
 
     private constructor(air: () => Air) {
         super(air);
@@ -59,10 +59,10 @@ export class AppContext extends DriverContext {
     }
 
     shown(): ShownMechanics {
-        return NOTHING_SHOWN;
+        return this.#shown;
     }
 
     chartNotes(): ChartNotes<NotedFigure> {
-        return NO_CHART_NOTES;
+        return this.#notes;
     }
 }
