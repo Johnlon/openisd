@@ -3,7 +3,8 @@ release_note: A Cms you type always moves the charts, on drivers and radiators a
 repo: openisd
 owner: leader
 status: done
-ruling: 'QO463 - John, 8 Nov 2026 chat: "ok kick off the CMS plan" (taken as A, the plan as written; also the data-model ruling for the new saved field)'
+# ruling text: QO463 - John, 8 Nov 2026 chat: "ok kick off the CMS plan" (taken as A, the plan as written; also the data-model ruling for the new saved field)
+ruling: QO463
 goal: Cms, Vas, Mms and Rms follow one rule on drivers and radiators; the charts use what the boxes show
 goal_detail:
   # Written 9 Nov 2026 from John's rulings so the goal survives handovers. Each point needs a test, driver and radiator.
