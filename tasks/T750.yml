@@ -11,6 +11,10 @@ files:
   - tasks/T750.yml
   - packages/design/test/architecture-no-default-parameters.test.ts
   - docs/research/DEFAULT_PARAMETERS_REVIEW.md
+  - bugs/BUG_20261110_announcements-default-to-test-server.md
+  - packages/ui/src/logic/announcementCenter.ts
+  - packages/ui/test/logic/announcementCenter.test.ts
+  - packages/ui/test/fixtures/announcementEndpoints.ts
 ruling: "John 10 Nov 2026 (chat): 'ok default values are an antipattrtn'. Gate approval: John's ruling; the gate is a new architecture test with a ceiling that only goes down."
 why: "T744: a default parameter on OpenISDDriverStandalone.wrap gave the driver editor's copy 'no project' and the app air; the compiler and the tests did not catch it."
 design: |

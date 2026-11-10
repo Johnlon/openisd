@@ -23,7 +23,7 @@ import * as url from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..', '..', '..');
 
-const DEFAULT_PARAMETER_CEILING = 71;
+const DEFAULT_PARAMETER_CEILING = 70;
 
 /** `file:line` of every parameter with an initializer in the given source text. */
 function defaultsIn(fileName: string, text: string): string[] {
