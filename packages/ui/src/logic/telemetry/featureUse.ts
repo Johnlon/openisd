@@ -31,6 +31,7 @@ const FEATURE_ACTIONS: Record<FeatureName, ActionName> = {
   compat_switch: 'feature:compat_switch',
   losses: 'feature:losses',
   signal_generator: 'feature:signal_generator',
+  save_my_driver: 'feature:save_my_driver',
 };
 
 /** Records each chart viewed and each feature used once per page session. Records only; the

@@ -1,3 +1,4 @@
+import type {FeatureUse} from '../logic/telemetry/featureUse.js';
 import {shallowRef} from 'vue';
 import type {PhoneHelpSection} from '@openisd/design/fields';
 import {useEscToClose} from '../logic/useEscToClose.js';
@@ -16,9 +17,11 @@ export function ebpVal(driver: OpenISDDriver): number | null {
 }
 
 /** Save `driver` to My Drivers: over the row `replacesUuid` names, or as a new row when it is
- *  ''. False = My Drivers refused (read-only). */
-export function commitMyDriver(myDrivers: MyDriverRepo, driver: OpenISDDriverStandalone, replacesUuid: string): boolean {
-  return myDrivers.upsert(driver, replacesUuid === '' ? undefined : replacesUuid) !== null;
+ *  ''. False = My Drivers refused (read-only). A save that worked is counted. */
+export function commitMyDriver(myDrivers: MyDriverRepo, featureUse: FeatureUse, driver: OpenISDDriverStandalone, replacesUuid: string): boolean {
+  const saved = myDrivers.upsert(driver, replacesUuid === '' ? undefined : replacesUuid) !== null;
+  if (saved) featureUse.feature('save_my_driver');
+  return saved;
 }
 
 

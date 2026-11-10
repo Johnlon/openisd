@@ -57,7 +57,7 @@ export type RadiatorSource = 'bundled' | 'mine';
 export interface RadiatorPickEvent { readonly kind: 'radiator_pick'; readonly source: RadiatorSource; readonly id: string; readonly name: string }
 export type FeatureName =
   | 'whatif' | 'tune' | 'filters' | 'export' | 'import' | 'driver_db' | 'options' | 'vents' | 'save_file' | 'share_link' | 'diagnostics' | 'backup' | 'restore' | 'chart_data' | 'driver_editor' | 'skin_switch'
-  | 'winisd_differences' | 'bin_restore' | 'history_restore' | 'cloud_connect' | 'cloud_sync' | 'box_type' | 'alignment' | 'help' | 'compat_switch' | 'losses' | 'signal_generator';
+  | 'winisd_differences' | 'bin_restore' | 'history_restore' | 'cloud_connect' | 'cloud_sync' | 'box_type' | 'alignment' | 'help' | 'compat_switch' | 'losses' | 'signal_generator' | 'save_my_driver';
 export interface ChartViewEvent { readonly kind: 'chart_view'; readonly chart: ChartId }
 export interface FeatureEvent { readonly kind: 'feature'; readonly name: FeatureName }
 export interface AnonymousErrorContext {
