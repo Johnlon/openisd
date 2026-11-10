@@ -15,8 +15,6 @@ export abstract class RadiatorContext {
 
 /** The context of a radiator in a project, and of every copy of it. Built only by the project's box. */
 export class RadiatorProjectContext extends RadiatorContext {
-    declare private readonly projectBrand: never;
-
     private constructor(
         private readonly source: () => ChartingSource,
         private readonly air: () => Air,
@@ -46,7 +44,9 @@ export class RadiatorProjectContext extends RadiatorContext {
 
 /** The context of a radiator the app manages outside any project (My PRs, the catalogue, the wizard's copy): it shows its datasheet. */
 export class RadiatorAppContext extends RadiatorContext {
-    declare private readonly managedBrand: never;
+    /** What this kind shows: the datasheet, no figure worked out and no note. Held here so the type is its own (a project's context is not assignable to it). */
+    readonly #shown = NOTHING_SHOWN;
+    readonly #notes = NO_CHART_NOTES;
 
     private constructor() {
         super();
@@ -57,10 +57,10 @@ export class RadiatorAppContext extends RadiatorContext {
     }
 
     shown(): ShownMechanics {
-        return NOTHING_SHOWN;
+        return this.#shown;
     }
 
     chartNotes(): ChartNotes<NotedFigure> {
-        return NO_CHART_NOTES;
+        return this.#notes;
     }
 }
