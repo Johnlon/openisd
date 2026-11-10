@@ -34,7 +34,7 @@ is allowed. No reading or writing app state objects. Each batch: write the steps
 
 | # | Pairs | Reason cleared | How each is opened |
 |---|---|---|---|
-| 1 | 5 | outside-app | `goto` the static URL, measure `body`. Phone `refresh`: `/about/refresh/`. |
+| 1 | 5 | outside-app (DONE T769, ceiling 126) | `goto` the static URL, measure `body`. Phone `refresh`: `/about/refresh/`. |
 | 2 | 8 | saved-state-needed | See "Saved state" below. |
 | 3 | 10 | cloud-account-needed | See "Cloud". |
 | 4 | 17 | rejected-input-needed | See "Rejected input". |

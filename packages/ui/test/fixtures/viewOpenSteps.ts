@@ -57,6 +57,13 @@ for (const chart of TABS) {
 for (const box of MOBILE_BOX_VARIANTS) for (let step = 1; step <= 5; step++) {
   steps.push([WalkSkin.Phone, `wizard-${box}-${step}`, {root: '.mob-np-overlay', open: page => openPhoneWizardStep(page, box, step)}]);
 }
+/** A static page outside the app: a user types its address; the whole body is measured. */
+const staticPage = (path: string): OpenStep => ({root: 'body', open: async page => { await page.goto(path); }});
+for (const skin of [WalkSkin.Phone, WalkSkin.Desktop]) {
+  steps.push([skin, 'shared/about-page', staticPage('/about/')]);
+  steps.push([skin, 'shared/install-page', staticPage('/install/')]);
+}
+steps.push([WalkSkin.Phone, 'refresh', staticPage('/about/refresh/')]);
 steps.push([WalkSkin.Phone, 'menu', {root: '.mob-menu', open: page => page.locator('.mob-hamburger').click()}]);
 steps.push([WalkSkin.Phone, 'chart-picker', {root: '.mob-chart-list', open: async page => { await phoneTab(page, 'Graph'); await page.locator('.mob-chart-pick').click(); }}]);
 steps.push([WalkSkin.Phone, 'driver-more', {root: '.de-more-menu', open: async page => { await driverEditor(page, WalkSkin.Phone); await page.locator('.de-more').click(); }}]);
@@ -77,8 +84,6 @@ const reasons: [NoOpenReason, WalkSkin, readonly string[]][] = [
   [NoOpenReason.SavedStateNeeded, D, ['desktop/announcements-current', 'desktop/diagnostic-repairs', ...both(['shared/storage-restore-picker', 'shared/driver-library-broken-entry'])]],
   [NoOpenReason.RejectedInputNeeded, P, ['phone/response-model-pending-notice', 'phone/tuning-unreachable-warning', 'phone/wizard-vented-volume-warning', 'phone/wizard-vented-tuning-warning', 'phone/wizard-passive-radiator-pick-error', 'driver-identity', 'field-dq', ...both(['shared/options-error', 'shared/driver-delete-challenge-warning'])]],
   [NoOpenReason.RejectedInputNeeded, D, ['desktop/enclosure/tuning-unreachable-warning', 'desktop/enclosure/response-model-pending-notice', 'desktop/projects/new/vented-volume-warning', 'desktop/projects/new/vented-tuning-warning', 'desktop/projects/new/passive-radiator-pick-error', 'desktop/driver-identity-message', ...both(['shared/options-error', 'shared/driver-delete-challenge-warning'])]],
-  [NoOpenReason.OutsideApp, P, ['refresh', 'shared/about-page', 'shared/install-page']],
-  [NoOpenReason.OutsideApp, D, ['shared/about-page', 'shared/install-page']],
   [NoOpenReason.IndexDisagrees, P, ['wizard-box-passive-radiator-5']],
 ];
 /** Views with a named reason; a (skin, view) in neither table has the default reason, StepNotWritten. */
