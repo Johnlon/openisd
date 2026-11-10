@@ -8,3 +8,4 @@ done_test: bash scripts/land/test/rules-docs.test.sh
 files:
   - scripts/land/test/rules-docs.test.sh
   - tasks/T757.yml
+  - tasks/T004.yml
