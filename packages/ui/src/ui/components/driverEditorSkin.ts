@@ -14,10 +14,6 @@ export interface DriverEditorSkin {
   readonly buttonSecondary: string;
   /** The row-size and column custom properties the shared classic phone row reads (`--mob-row-min`, `--mob-col-label`, ...). */
   readonly rowVars: Readonly<Record<string, string>>;
-  /** The column widths the editor's field rows take. */
-  readonly columns: PhoneRowColumns;
-  /** The wider label column of the General tab, whose labels are longer. */
-  readonly generalColumnVars: Readonly<Record<string, string>>;
 }
 
 /** The phone's: the classic phone row (`PhoneRowSizes.CLASSIC`, `PhoneRowColumns`) and the one 44 px
@@ -28,7 +24,5 @@ export const PHONE_DRIVER_EDITOR_SKIN: DriverEditorSkin = {
   button: 'mob-btn',
   buttonPrimary: 'mob-btn-primary',
   buttonSecondary: 'mob-btn-plain',
-  columns: PhoneRowColumns.SHORT_LABEL,
-  rowVars: Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars(), ...PhoneRowColumns.SHORT_LABEL.cssVars()]),
-  generalColumnVars: Object.fromEntries(PhoneRowColumns.WIDE_LABEL.cssVars()),
+  rowVars: Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars(), ...PhoneRowColumns.STANDARD.cssVars()]),
 };

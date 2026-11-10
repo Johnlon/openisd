@@ -74,12 +74,6 @@ export class PhoneRowColumns {
   static chipIsWide(label: string): boolean { return label.length > 3; }
 
   static readonly STANDARD = new PhoneRowColumns(123, 90, 40, 16);
-  /** The Advanced page's air rows: the same label column as STANDARD (122 px holds "1st port resonance" on one line; John, QO478.c10: narrow the box, not the label). */
-  static readonly MEDIUM_LABEL = new PhoneRowColumns(123, 90, 40, 16);
-  /** Screens with short labels (the driver editor tabs Rms, gamma; Filters fc, Q, BW), so the box keeps its room for a 6-digit value. */
-  static readonly SHORT_LABEL = new PhoneRowColumns(102, 90, 40, 16);
-  /** The driver editor's General tab, whose labels are longer. */
-  static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 16);
 
   private constructor(
     /** The label column. */

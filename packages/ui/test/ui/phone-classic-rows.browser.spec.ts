@@ -426,12 +426,12 @@ test('classic wizard: step 5 has the name and description boxes with their label
  * label column is 82 px (General: 128 px), value boxes share one left edge with a 14 px text gutter,
  * the key strip sits under the tabs, section bands are 28 px with a ?, and there is one primary button.
  */
-/** Per tab: the label column and the fewest section bands. General's longer labels get the wide column and it has no bands. */
+/** Per tab: the label column and the fewest section bands. every tab uses the one label column; General has no bands. */
 const EDITOR_TABS = {
-  General: {labelPx: PhoneRowColumns.WIDE_LABEL.labelPx, minBands: 0},
-  Parameters: {labelPx: PhoneRowColumns.SHORT_LABEL.labelPx, minBands: 1},
-  Advanced: {labelPx: PhoneRowColumns.SHORT_LABEL.labelPx, minBands: 1},
-  Dimensions: {labelPx: PhoneRowColumns.SHORT_LABEL.labelPx, minBands: 1},
+  General: {labelPx: PhoneRowColumns.STANDARD.labelPx, minBands: 0},
+  Parameters: {labelPx: PhoneRowColumns.STANDARD.labelPx, minBands: 1},
+  Advanced: {labelPx: PhoneRowColumns.STANDARD.labelPx, minBands: 1},
+  Dimensions: {labelPx: PhoneRowColumns.STANDARD.labelPx, minBands: 1},
 } as const;
 
 for (const size of PHONE_SIZES) {

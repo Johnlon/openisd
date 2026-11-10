@@ -2,8 +2,8 @@ import {describe, expect, it} from 'vitest';
 import {PhoneRowColumns} from '../../fields/index.js';
 
 describe('PhoneRowColumns', () => {
-  it('gives every mobile label preset one control inset and permanent cue-rail dimensions', () => {
-    for (const columns of [PhoneRowColumns.STANDARD, PhoneRowColumns.MEDIUM_LABEL, PhoneRowColumns.WIDE_LABEL]) {
+  it('gives the one mobile column set one control inset and permanent cue-rail dimensions', () => {
+    for (const columns of [PhoneRowColumns.STANDARD]) {
       expect(columns.cssVars().get('--mob-col-gutter')).toBe('16px');
       expect(columns.cssVars().get('--mob-col-dq')).toBe('26px');
       expect(columns.cssVars().get('--mob-col-model')).toBe('24px');

@@ -4,7 +4,7 @@
 // useMobileFiltersTab() (src/hooks/MobileFiltersTab-hooks.ts); the cards' words and rows come from
 // packages/design.
 import {ref} from 'vue';
-import {PhoneHelp, PhoneRowColumns, PHONE_FILTER_CHIPS} from '@openisd/design/fields';
+import {PhoneHelp, PHONE_FILTER_CHIPS} from '@openisd/design/fields';
 import PhoneBand from './PhoneBand.vue';
 import PhoneButton from './PhoneButton.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
@@ -24,7 +24,7 @@ function toggle(id: string | undefined): void {
 </script>
 
 <template>
-  <PhoneClassicPage :columns="PhoneRowColumns.SHORT_LABEL">
+  <PhoneClassicPage>
     <PhoneBand :section="PhoneHelp.ADD_FILTER" />
     <div class="mob-fstrip">
       <PhoneButton v-for="c in PHONE_FILTER_CHIPS" :key="c.type" @click="api.add(c.type)">+ {{ c.short }}</PhoneButton>

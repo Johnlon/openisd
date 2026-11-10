@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, PhoneRowColumns, TextField} from '@openisd/design/fields';
+import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import {computed, nextTick, onBeforeUnmount, provide, ref, watch} from 'vue';
 import type {NumSpecField} from '../../logic/appState.js';
@@ -15,7 +15,6 @@ import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '
 import UIField from './UIField.vue';
 import UIFixedField from './UIFixedField.vue';
 import UIPickField from './UIPickField.vue';
-import {PHONE_COLUMNS_KEY} from './phoneColumnsKey.js';
 import type {DriverEditorSkin} from './driverEditorSkin.js';
 import {provideCellScope} from './cellScope.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
@@ -620,7 +619,6 @@ function toggleDisagree() {
   if (inspectProvenance.value) logging.flash(PhoneEditorText.CLOSE_PROVENANCE_FIRST);
   else disagreeOpen.value = !disagreeOpen.value;
 }
-provide(PHONE_COLUMNS_KEY, computed(() => props.skin?.columns ?? PhoneRowColumns.STANDARD));
 const modalStyle = computed(() => props.skin === undefined ? undefined : {...props.skin.rowVars, '--de-fx': `'${PhoneEditorText.FX_MARK}'`});
 
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -719,7 +717,7 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
         <div class="body de-body" :class="{ 'labels-left': tab !== 'General' }"
              :style="dockedCardHeight > 0 ? { paddingBottom: `${dockedCardHeight}px`, scrollPaddingBottom: `${dockedCardHeight}px` } : {}" @click="handleBodyClickOrFocus" @focusin="handleBodyClickOrFocus">
           <!-- ============================= General ============================= -->
-          <div v-if="tab === 'General'" class="de-general" :style="skin?.generalColumnVars">
+          <div v-if="tab === 'General'" class="de-general">
             <div v-for="(row, i) in GENERAL_TEXT_ROWS" :key="i" class="de-row2">
               <template v-for="t in row" :key="t.key">
                 <UIPickField v-if="skin" class="de-fld" :class="skin.field" :data-field-key="t.key" :title="t.def.description" :label="t.def.label" :input-id="`de-text-${t.key}`">

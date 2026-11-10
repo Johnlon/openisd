@@ -1,14 +1,12 @@
 <script setup lang="ts">
 // The body of a classic phone dialog (Options, Cloud sync, Diagnostics, Differences and the storage lists):
-// gives its rows the classic sizes (PhoneRowSizes.CLASSIC) and the wide label column the dialogs use
-// (PhoneRowColumns.WIDE_LABEL) from packages/design, and draws the few row shapes a dialog has that a
+// gives its rows the classic sizes (PhoneRowSizes.CLASSIC) and the one phone column set
+// (PhoneRowColumns.STANDARD) from packages/design, and draws the few row shapes a dialog has that a
 // project page does not: a hint line, a name-and-value line, a button row, a tick or radio line, a
 // colour line, a from-to line, a report block. Display only; every word and value is the caller's.
-import {computed} from 'vue';
 import {PhoneRowColumns, PhoneRowSizes} from '@openisd/design/fields';
 
-const props=withDefaults(defineProps<{columns?:PhoneRowColumns}>(),{columns:()=>PhoneRowColumns.WIDE_LABEL});
-const sizeVars=computed(()=>Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars(),...props.columns.cssVars()]));
+const sizeVars=Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars(),...PhoneRowColumns.STANDARD.cssVars()]);
 </script>
 
 <template>
