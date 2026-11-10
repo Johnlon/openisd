@@ -19,7 +19,8 @@ for (const width of [1280,1024,780]) for (const box of BOXES) {
 test('passive radiator boxes share one width across parameters and user options',async({page})=>{
  await page.goto('/');await openAProject(page,COMPLETE_DRIVER_PROJECT_OWPR);await setFocusedBoxType(page,'box-passive-radiator');
  await page.locator('.project-nav li').filter({hasText:/^Passive Radiator$/i}).click();
- const widths=await page.locator('.tab-section.active .ui-field input,.tab-section.active .ui-field select').evaluateAll(nodes=>nodes.map(node=>Math.round(node.getBoundingClientRect().width)));
+ // The Num. of PRs dropdown is a short pick list, 90 px like Num. of drivers (QO428); every number box and the other dropdowns share one width.
+ const widths=await page.locator('.tab-section.active .ui-field input,.tab-section.active .ui-field select:not(#og-pr-count)').evaluateAll(nodes=>nodes.map(node=>Math.round(node.getBoundingClientRect().width)));
  expect(widths.length).toBeGreaterThan(8);expect(new Set(widths).size).toBe(1);
 });
 

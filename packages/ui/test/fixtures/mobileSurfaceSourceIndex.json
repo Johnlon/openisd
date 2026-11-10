@@ -647,6 +647,7 @@
     "bugs/BUG_20261105_phone-box-tab-box-type-width.md",
     "bugs/BUG_20261105_phone-filters-strip-scrolls-sideways.md",
     "bugs/BUG_20261105_phone-sideways-gets-desktop-layout.md",
+    "bugs/BUG_20261106_desktop-pr-count-dropdown-wide.md",
     "bugs/BUG_20261106_phone-whatif-tune-keyboard-hides-box.md",
     "bugs/BUG_20261107_desktop-wizard-radiator-box-widths-differ.md",
     "bugs/BUG_20261107_new-project-wizard-radiator-pane-shows-no-calculated-values.md",
