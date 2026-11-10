@@ -436,8 +436,8 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
                 </tr>
                 <tr v-for="row in LIMIT_ROWS" :key="row.tab">
                   <td>{{ row.label }}</td>
-                  <td><UIFixedField class="opt-lim-field" :label="'Start'" :field="row.field" :value="limitShown(row, 'min')" @update:value="v => setLimit(row.tab, 'min', v)" /></td>
-                  <td><UIFixedField class="opt-lim-field" :label="'End'" :field="row.field" :value="limitShown(row, 'max')" @update:value="v => setLimit(row.tab, 'max', v)" /></td>
+                  <td><UIFixedField class="opt-lim-field" :label="row.label + ' start'" :field="row.field" :value="limitShown(row, 'min')" @update:value="v => setLimit(row.tab, 'min', v)" /></td>
+                  <td><UIFixedField class="opt-lim-field" :label="row.label + ' end'" :field="row.field" :value="limitShown(row, 'max')" @update:value="v => setLimit(row.tab, 'max', v)" /></td>
                   <td><button class="opt-clear-btn" title="Reset to auto-scale" @click="resetLimit(row.tab)">↺</button></td>
                 </tr>
               </tbody>
