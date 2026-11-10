@@ -38,7 +38,7 @@ is allowed. No reading or writing app state objects. Each batch: write the steps
 | 2 | 8 | saved-state-needed (DONE T771, ceiling 117; also removed the PR wizard step-5 row) | See "Saved state" below. |
 | 3 | 10 | cloud-account-needed (DONE T772, ceiling 107) | See "Cloud". |
 | 4 | 15 of 17 (DONE T773, ceiling 92) | rejected-input-needed | See "Rejected input". |
-| 5 | 18 | fault-needed | See "Faults". |
+| 5 | 14 of 18 (DONE T775, ceiling 78) | fault-needed | See "Faults". |
 | 6 | 66 | step-not-written | Click paths, 6a phone dialogs and sheets, 6b desktop, 6c shared (one step per pair, both skins), See "Click paths". |
 | 7 | 2 of the 6 | browser-owned | keyboard-up and file-chooser as above. |
 
@@ -98,3 +98,17 @@ The index `reach` text is the script. Groups:
 ### Batch 4 finding
 
 `response-model-pending-notice` (phone and desktop, 2 pairs) cannot be opened: `simulatableBoxType` accepts every box type, so the notice's condition is never true. Both keep the reason `rejected-input-needed` until the notice is removed from the index or a box type the engine does not model exists.
+
+### Batch 5 finding
+
+Four of the 18 fault views cannot be opened because the app has no such screen or state:
+
+- `cross-tab` and `desktop/cross-tab-notice` (2 pairs): no template shows a "project changed in another tab" notice; `sessionSync.ts` adopts the other tab's write silently.
+- `shared/driver-library-storage-note` (2 pairs): the note shows when the saved-drivers read is `unavailable`, but the browser storage wrapper (`keyValueStorage.ts`) catches every storage error and returns "no value", so a real browser never produces `unavailable`.
+
+Both stay `fault-needed` until the index or the app changes (a ruling, not a test).
+
+### Batch 6 progress
+
+- 6a (T776, ceiling 68): project-actions, bin, empty, sealed-alignment, vented-alignment, pr-picker, pr-save, chart-data, sheet-port, exports (phone). Fault found: `BUG_20261110_phone-pr-picker-names-cut.md`.
+- 6b (T777, ceiling 59): driver-summary-manage, driver-summary-pick, driver-search-filters, driver-export, driver-save, driver-import, equations, driver-dq, driver-rename (phone). No fault.

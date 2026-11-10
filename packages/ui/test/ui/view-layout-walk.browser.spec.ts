@@ -20,11 +20,13 @@ interface KnownFault {readonly skin: WalkSkin; readonly view: (id: string) => bo
 const WIZARD_HELP_BUG = 'BUG_20261110_phone-wizard-help-button-overlaps-section-help.md';
 const WIZARD_ALIGNMENT_BUG = 'BUG_20261110_phone-wizard-alignment-row-misaligned.md';
 const CHART_PICK_BUG = 'BUG_20261110_phone-chart-picker-name-cut.md';
+const PR_PICKER_BUG = 'BUG_20261110_phone-pr-picker-names-cut.md';
 const CUT_CHART_NAMES: ReadonlySet<string> = new Set(['TFMag', 'PRTFMag', 'PRTFPhase', 'PRExcursion', 'RearPort', 'FrontPort', 'FrontPortGain', 'IntraPort', 'Zph', 'Phase', 'MaxPwr', 'VA', 'FltMag', 'FltPhase', 'FltGD'].map(chart => 'chart-' + chart));
 const KNOWN: readonly KnownFault[] = [
   {skin: WalkSkin.Phone, view: id => /^wizard-[A-Za-z0-9-]+-1$/.test(id), rules: ['R7', 'W4'], bug: WIZARD_HELP_BUG},
   {skin: WalkSkin.Phone, view: id => id === 'wizard-sealed-4' || id === 'wizard-vented-4' || /^phone\/wizard-vented-(volume|tuning)-warning$/.test(id), rules: ['R3'], bug: WIZARD_ALIGNMENT_BUG},
   {skin: WalkSkin.Phone, view: id => CUT_CHART_NAMES.has(id), rules: ['W3'], bug: CHART_PICK_BUG},
+  {skin: WalkSkin.Phone, view: id => id === 'pr-picker', rules: ['W3'], bug: PR_PICKER_BUG},
 ];
 
 for (const {view, skin, plan} of openTargets()) {

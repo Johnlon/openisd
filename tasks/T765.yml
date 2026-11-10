@@ -1,0 +1,14 @@
+id: T765
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Picture stamp survives mark-diff and shows under every picture
+done_test: v=$(mktemp -d) && python3 -m venv "$v" && "$v/bin/pip" install -q pillow numpy && cd scripts/feedback && PATH="$v/bin:$PATH" python3 -m unittest feedback_page_test.MarkDiffKeepsStamp.test_stamp_chunk_survives_marking
+why: John, 10 Nov 2026 (UI-control spec CONTROL_CHANGES.md, Three UI controls item 2): every picture carries its stamp (source, build, commit, viewport). mark-diff dropped the PNG text chunk, and the pictures page never showed it.
+files:
+  - tasks/T765.yml
+  - scripts/feedback/mark-diff.py
+  - scripts/feedback/feedback-page.template.html
+  - scripts/feedback/feedback_page_test.py
+  - scripts/feedback/feedback_page_stamp_test.mjs

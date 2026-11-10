@@ -71,8 +71,9 @@ export function measureFieldLayoutRules(root: Element, minStepperGapPx: number):
   const needsMore = (select: HTMLSelectElement, width: number) => {
     const context = doc.createElement('canvas').getContext('2d');
     if (context === null) return false;
-    context.font = view.getComputedStyle(select).font;
-    return context.measureText(select.selectedOptions[0]?.text ?? '').width + 28 > width;
+    const style = view.getComputedStyle(select);
+    context.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`; // the font shorthand reads back empty
+    return context.measureText(select.selectedOptions[0]?.text ?? '').width + 42 > width; // text, the 16 px gutter, the arrow and the border
   };
   for (const [key, group] of groups) {
     if (group.length < 2) continue;

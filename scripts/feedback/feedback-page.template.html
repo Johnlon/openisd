@@ -200,6 +200,33 @@ fetch('index.md?html', { cache: 'no-store' })
   .then(render)
   .then(() => store.ready).then(commentBoxes).then(foldRuled).then(goToHash)
   .catch((e) => { out.innerHTML = `<p class="note">Could not read index.md (${esc(String(e))}).</p>`; });
+
+// Stamp line under every picture: read from the PNG text chunk "stamp" (before-after-shoot.mjs writes it, mark-diff.py keeps it).
+function pngText(buf, key) {
+  const v = new DataView(buf);
+  if (buf.byteLength < 8 || v.getUint32(0) !== 0x89504e47) return null;
+  for (let p = 8; p + 8 <= buf.byteLength;) {
+    const len = v.getUint32(p), type = String.fromCharCode(...new Uint8Array(buf, p + 4, 4));
+    if (type === 'tEXt') {
+      const s = new TextDecoder('latin1').decode(new Uint8Array(buf, p + 8, len)), i = s.indexOf('\0');
+      if (s.slice(0, i) === key) return s.slice(i + 1);
+    }
+    p += 12 + len;
+  }
+  return null;
+}
+async function addStamp(img) {
+  if (img.dataset.stamped) return;
+  img.dataset.stamped = '1';
+  let text = null;
+  try { text = pngText(await (await fetch(img.src)).arrayBuffer(), 'stamp'); } catch (e) { text = null; }
+  const d = document.createElement('div');
+  d.className = 'stamp'; d.style.cssText = 'font:11px/1.3 monospace;color:#666;overflow-wrap:anywhere;margin-top:2px';
+  d.textContent = text ? 'Stamp: ' + text : 'Stamp: none (not shot by the stamping tools)';
+  (img.closest('a') || img).after(d);
+}
+new MutationObserver(() => out.querySelectorAll('img').forEach(addStamp)).observe(out, { childList: true, subtree: true });
+out.querySelectorAll('img').forEach(addStamp);
 </script>
 </body>
 </html>
