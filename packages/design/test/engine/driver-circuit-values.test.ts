@@ -5,7 +5,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
-import {VAS_WINS} from '../../engine/index.js';
+import {VAS_WINS} from '../../domain/project/chartingSources.js';
 import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 import type {TestSolverQuantities} from './testSolver.js';
 import {sweepDriver} from './testSolver.js';

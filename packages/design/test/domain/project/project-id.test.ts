@@ -10,14 +10,14 @@ import {createEngine} from '../../../engine/Engine.js';
 import {OpenISDProject} from '../../../domain/project/openISDProject.js';
 import {ProjectBuilder} from '../../../domain/openisdTransforms.js';
 import {WinIsdProjectConverter} from '../../../domain/winIsdProjectConverter.js';
-import type {AppContext} from '../../../domain/appContext.js';
+import type {AppServices} from '../../../domain/appContext.js';
 import {realAppContext} from '../../../domain/appContext.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const engine = createEngine();
 const wprText = readFileSync(join(here, '..', '..', 'winisd', 'fixtures', 'abc-w5-1.wpr'), 'utf8');
 
-function counting(prefix: string): AppContext {
+function counting(prefix: string): AppServices {
   let count = 0;
   return {...realAppContext, newId: () => `${prefix}-${++count}`};
 }
@@ -28,7 +28,7 @@ function fromWpr(): OpenISDProject {
   return value;
 }
 
-function loaded(text: string, appContext?: AppContext): OpenISDProject {
+function loaded(text: string, appContext?: AppServices): OpenISDProject {
   const p = OpenISDProject.fromOwprText(text, engine, appContext);
   if (Array.isArray(p)) throw new Error('refused: ' + p.join('; '));
   return p;
@@ -76,7 +76,7 @@ describe('a project id', () => {
     expect(JSON.stringify(value)).not.toContain(p.uuid());
   });
 
-  it('is minted once for an older text that has none, from the injected AppContext', () => {
+  it('is minted once for an older text that has none, from the injected AppServices', () => {
     const older = jsonObject(fromWpr().toStoredText());
     delete older.id;
     const p = loaded(JSON.stringify(older), counting('old'));

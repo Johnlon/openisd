@@ -10,7 +10,7 @@
  */
 import {OpenISDDriver, OpenISDDriverStandalone, type VoiceCoilWiring} from '@openisd/design';
 import {type SelectorOption, VC_CONNECTION_OPTIONS} from '@openisd/design/fields';
-import type {AppContext} from '@openisd/design';
+import type {AppServices} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {EditorDraftSeed} from './driverSelection.js';
 
@@ -44,7 +44,7 @@ export interface DriverDraft {
 /** Opens the driver editor's editing sessions. Holds the engine and app context a blank My
  *  Driver is built with; constructed once at the composition root. */
 export class DriverDrafts {
-  constructor(private readonly engine: Engine, private readonly appContext: AppContext) {}
+  constructor(private readonly engine: Engine, private readonly appContext: AppServices) {}
 
   /** `driver` as a new entity: an independent standalone copy with a new id from the app context. */
   copyAsNew(driver: OpenISDDriver): OpenISDDriverStandalone {

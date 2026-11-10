@@ -1,5 +1,5 @@
 import { dateStamp } from '../appContext.js';
-import type { AppContext } from '../appContext.js';
+import type { AppServices } from '../appContext.js';
 import { newUuid } from '../newUuid.js';
 import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import type { DriverSpecsJson, RadiatorSpecsJson } from '../openisdSchema.js';
@@ -20,7 +20,7 @@ import type { DriverSpecsJson, RadiatorSpecsJson } from '../openisdSchema.js';
  * facts about this act of creation, not about the device's physical spec.
  */
 export function blankDeviceRecord<S extends DriverSpecsJson | RadiatorSpecsJson>(
-    specs: S, section: 'woofer' | 'passive-radiator', appContext: AppContext,
+    specs: S, section: 'woofer' | 'passive-radiator', appContext: AppServices,
 ): Omit<OpenISDDeviceJson, 'specs'> & {specs: S} {
     const platformUser = appContext.platformUser();
     return {

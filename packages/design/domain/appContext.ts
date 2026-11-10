@@ -9,7 +9,7 @@ import {newUuid} from './newUuid.js';
  * global exactly like `Math.random()` or `Date.now()` would be — nothing marks the call site as
  * depending on the outside world, and no test can pin what it returns without monkey-patching.
  */
-export interface AppContext {
+export interface AppServices {
   /** A fresh, unique identity — a project's or an embedded device's `uuid`. */
   newId(): string;
   /** The current moment — a `.wpr` export's `CreateDate`/`ModifyDate` fallback stamp. */
@@ -21,12 +21,12 @@ export interface AppContext {
   platformUser(): string | null;
 }
 
-/** The one production `AppContext` — a frozen object of arrow functions, so sharing this
+/** The one production `AppServices` — a frozen object of arrow functions, so sharing this
  *  instance is not the mutable module-scoped state `packages/design/AGENTS.md` bans; a fresh
- *  object built the same way would behave identically. Every caller still takes `AppContext` as
+ *  object built the same way would behave identically. Every caller still takes `AppServices` as
  *  a parameter, defaulting to this, so a test can substitute its own without reaching into this
  *  module. */
-export const realAppContext: AppContext = Object.freeze({
+export const realAppContext: AppServices = Object.freeze({
   newId: (): string => newUuid(),
   now: (): Date => new Date(),
   platformUser: (): string | null => null,

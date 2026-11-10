@@ -192,7 +192,7 @@ describe('OpenISDDriver record', () => {
       project.driver.specs.Fs_hz.set(40);
 
       const session = project.cloneSession();
-      // Proves the injected AppContext is actually wired in, not merely accepted and ignored —
+      // Proves the injected AppServices is actually wired in, not merely accepted and ignored —
       // the real `newUuid()` would never produce this exact string.
       expect(session.id).toBe('11111111-1111-4111-8111-111111111111');
 
@@ -257,7 +257,7 @@ describe('OpenISDDriver record', () => {
       expect(two.model.value).toBe('');
     });
 
-    it('stamps added from the injected AppContext, and providedBy from the platform user when known', () => {
+    it('stamps added from the injected AppServices, and providedBy from the platform user when known', () => {
       const appContext = fixedAppContext('id', '2026-03-04T00:00:00.000Z', 'johnl');
       const blank = OpenISDDriver.empty(createEngine(), appContext);
 

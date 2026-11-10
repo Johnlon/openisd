@@ -1,5 +1,5 @@
-import {STATED_CMS_WINS, VAS_WINS} from '../../engine/index.js';
 import type {ChartingSource} from '../../engine/index.js';
+import {STATED_CMS_WINS, VAS_WINS} from './chartingSources.js';
 import {CompatSwitch} from './compatSwitch.js';
 import type {OpenISDProject} from './openISDProject.js';
 

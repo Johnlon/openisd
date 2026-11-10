@@ -9,7 +9,7 @@
 import {compatSwitchSetter} from './compatSwitch.js';
 import {useFeatureUse} from './telemetryContext.js';
 import {computed} from 'vue';
-import type {CompatSwitch} from '@openisd/design';
+import {CompatSwitch} from '@openisd/design';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {createEnvironmentAir} from './OriginalShell-hooks.js';
@@ -41,6 +41,6 @@ export function useMobileAdvancedTab() {
     envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
     advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
     resetAirToAppDefaults, advAir,
-    optionApplies, errorSwitches,
+    compatOptions: CompatSwitch.OPTIONS, optionApplies, errorSwitches,
   };
 }

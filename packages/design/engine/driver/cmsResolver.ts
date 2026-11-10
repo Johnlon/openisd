@@ -9,13 +9,6 @@ export type ChartingSource =
     | {readonly kind: 'VasWins'}
     | {readonly kind: 'StatedCmsWins'};
 
-/** The two ChartingSources, built once. */
-export const VAS_WINS: ChartingSource = Object.freeze({kind: 'VasWins'});
-export const STATED_CMS_WINS: ChartingSource = Object.freeze({kind: 'StatedCmsWins'});
-
-/** What a standalone part (no project) holds as its charting source: none, so it shows its stored figures and works nothing out. */
-export const standaloneChartingSource = (): ChartingSource | null => null;
-
 /** The mechanical figures WinISD's chain works out; null where the chain cannot reach one. */
 export interface ShownMechanics {
     readonly Cms_m_per_N: number | null;

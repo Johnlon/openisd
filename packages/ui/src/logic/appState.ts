@@ -27,7 +27,7 @@ import {LatestSweepRunner} from './latestSweepRunner.js';
 import {SweepComputer, type SweepReply} from './sweepRequest.js';
 import {sweepTransport} from './sweepTransport.js';
 import {
-    type AppContext,
+    type AppServices,
     type BoxProjectBuilder,
     type DiscardChallenge,
     type DriverSpecFieldName,
@@ -180,7 +180,7 @@ export interface AppState {
   setEnvDefaults(defaults: EnvDefaults): void;
   readonly engine: Engine;
   /** The domain's ambient facts, with `platformUser` reading the app's Username setting. */
-  readonly appContext: AppContext;
+  readonly appContext: AppServices;
   openProjects(): OpenISDProject[];
   focusedProject(): OpenISDProject | null;
   focusProject(index: number): void;
@@ -322,7 +322,7 @@ export function createAppState(deps: AppStateDeps): AppState {
    *  project/driver/PR's `creator`/`providedBy` default comes from. Detached once stamped: this
    *  is read only at construction time, so a later change to the Username setting never rewrites
    *  an already-created record. */
-  const appContext: AppContext = Object.freeze({
+  const appContext: AppServices = Object.freeze({
     ...realAppContext,
     platformUser: (): string | null => presentation.ui.username || null,
   });

@@ -1,4 +1,4 @@
-import type {Air, ChartingSource} from '../../engine/index.js';
+import type {Air, ChartingSource, CmsResolveInput, ShownMechanics} from '../../engine/index.js';
 
 /** What a radiator is read with: in a project, the project's air and "Cms from Vas" choice; outside one, its datasheet.
  *  The two subclasses are not assignable to each other, so a place that needs one kind refuses the other. */
@@ -11,12 +11,21 @@ export abstract class RadiatorContext {
 export class RadiatorProjectContext extends RadiatorContext {
     declare private readonly projectBrand: never;
 
-    private constructor(readonly cmsSource: () => ChartingSource | null, readonly air: () => Air) {
+    private constructor(
+        readonly cmsSource: () => ChartingSource | null,
+        readonly air: () => Air,
+        readonly mechanics: (source: ChartingSource, input: CmsResolveInput, air: Air) => ShownMechanics,
+    ) {
         super();
     }
 
-    static of(cmsSource: () => ChartingSource | null, air: () => Air): RadiatorProjectContext {
-        return new RadiatorProjectContext(cmsSource, air);
+    /** `mechanics` is the engine's one Cms chain, handed in by the project's box. */
+    static of(
+        cmsSource: () => ChartingSource | null,
+        air: () => Air,
+        mechanics: (source: ChartingSource, input: CmsResolveInput, air: Air) => ShownMechanics,
+    ): RadiatorProjectContext {
+        return new RadiatorProjectContext(cmsSource, air, mechanics);
     }
 
     fold<T>(inProject: (project: RadiatorProjectContext) => T): T {
