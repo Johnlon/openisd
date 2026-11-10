@@ -27,8 +27,8 @@ describe('CompatSwitch', () => {
     expect(CompatSwitch.OPTIONS.map(s => s.field.label)).toEqual([
       'Phase wrapping',
       'Uncapped flat response',
-      'Simplified ABC intra-port velocity',
       'Cms from Vas',
+      'Simplified ABC intra-port velocity',
     ]);
     expect(CompatSwitch.ALL).toEqual([...CompatSwitch.BUGS, ...CompatSwitch.OPTIONS]);
   });
