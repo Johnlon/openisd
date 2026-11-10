@@ -6,7 +6,7 @@
 # One copy of: the task id is this task's own (another owner on <base> refuses), locked files match their hash,
 # done_test and locked entries are what <base> has, a file another task locks is not changed without its hash,
 # and a gate file (GATE_FILES, land.conf) changes only with `gates_approved: QO<n>` in the task file.
-# --pr adds what a pull request needs and land.sh never asked: the task file is well formed and its status is
+# Task files are never deleted or renamed (T767). --pr adds what a pull request needs and land.sh never asked: the task file is well formed and its status is
 # valid, and every changed file matches the task's `files:` allowlist (scripts/land/task-gates/check-commit.sh).
 #
 # A pull request may carry several tasks (T762): run this once per task, naming the others after --pr; a file may then
@@ -39,10 +39,19 @@ if [ -z "${GATE_FILES:-}" ]; then
 fi
 
 if [ -n "$PR_MODE" ]; then
-  missing="$(task_missing_fields "$TASK")"
+  # `why:` is asked of a task file this pull request adds or really changes; a hash-only or status-only edit of an old one is exempt (T767)
+  why_flag=""; task_old_edit_exempt "$BASE" "$HEAD_REF" "$TASK" || why_flag=--why
+  missing="$(task_missing_fields "$TASK" $why_flag)"
   [ -z "$missing" ] || fail task-file "$TASK lacks: $missing"
+  if [ -n "$why_flag" ] && [ -z "$missing" ]; then
+    why_problem="$(task_why_problem "$TASK")"; [ -z "$why_problem" ] || fail task-file "$TASK: $why_problem"
+  fi
   case "$(task_field "$TASK" status)" in open|claimed|todo|blocked|done) ;; *) fail task-file "$TASK has status '$(task_field "$TASK" status)'; it must be open, claimed, todo, blocked or done" ;; esac
 fi
+
+# task files are the record of why each change was made, so none is deleted or renamed (T767, QO528)
+gone="$(git diff --no-renames --name-only --diff-filter=D "$BASE" "$HEAD_REF" -- ':(glob)tasks/T*.yml' | tr '\n' ' ')"
+[ -z "$gone" ] || fail task-deleted "task files are never deleted or renamed: ${gone}"
 
 # the id is this task's own: a tasks/<id>.yml already on base under another owner is another task's (17 Oct 2026, T321)
 main_owner="$(git show "$BASE:$TASK" 2> /dev/null | sed -n 's/^owner: *//p' | head -n 1)"

@@ -28,6 +28,9 @@ hash_only() {
   rm -f "$old"
 }
 
+# Task files are the record of why each change was made (T767, QO528): none is deleted or renamed.
+gone="$(git diff --no-renames --name-only --diff-filter=D "$base" "$head" -- ':(glob)tasks/T*.yml')"
+[ -z "$gone" ] || { echo "pr-task: task files are never deleted or renamed: $(echo $gone)" >&2; exit 1; }
 mapfile -t all < <(git diff --name-only --diff-filter=ACMR "$base" "$head" -- ':(glob)tasks/*.yml' | sed -n 's#^tasks/\([^/]*\)\.yml$#\1#p')
 files=()
 for id in "${all[@]}"; do hash_only "$id" || files+=("$id"); done

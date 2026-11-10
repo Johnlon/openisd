@@ -1,0 +1,19 @@
+id: T767
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Every pull request records why: task file with a why line; task files never deleted
+why: John chose task files in the repo as the record of why each change was made (John, 10 Nov 2026, QO528)
+gates_approved: QO528
+done_test: bash scripts/test.sh scripts/land/test/pr-why.test.sh
+files:
+  - tasks/T767.yml
+  - scripts/new-task.sh
+  - scripts/land/pr-task.sh
+  - scripts/land/check-task-contract.sh
+  - scripts/land/core/task.sh
+  - scripts/land/test/pr-why.test.sh
+  - scripts/land/test/pr-gates.test.sh
+  - scripts/land/test/new-task.test.sh
+  - docs/DEV_PROCESS.md

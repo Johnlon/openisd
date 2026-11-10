@@ -20,7 +20,7 @@ cp -r "$REPO/scripts/land" scripts/; cp -r "$REPO/scripts/hooks-local" scripts/
 cp "$REPO/scripts/paths.sh" scripts/
 printf 'GATE_FILES="eslint.config.js"\n' > land.conf
 echo 1 > src/a.ts; git add -A; git commit -qm base
-task() { printf 'id: %s\nowner: t\nstatus: %s\ngoal: g\ndone_test: true\nfiles:\n  - src/**\n' "$1" "${2:-open}" > "tasks/$1.yml"; }
+task() { printf 'id: %s\nowner: t\nstatus: %s\ngoal: g\nwhy: John asked for this change (John, 10 Nov 2026)\ndone_test: true\nfiles:\n  - src/**\n' "$1" "${2:-open}" > "tasks/$1.yml"; }
 
 git switch -q -c one; task T1; echo 2 > src/a.ts; git add -A; git commit -qm "(auto) T1: x"
 [ "$(bash scripts/land/pr-task.sh main HEAD)" = T1 ] && ok "pr-task names the one task" || bad "pr-task names the one task"
@@ -52,7 +52,7 @@ git switch -q main; git switch -q -c hashfix2; mkdir -p tasks; task T1; sed -i '
   && ok "a sha change for a file the change does not edit counts as a task and its contract refuses it" || bad "a sha change for a file the change does not edit counts as a task and its contract refuses it"
 
 # T762: a pull request may carry several tasks when every changed file is in at least one allowlist
-multi() { printf 'id: %s\nowner: t\nstatus: open\ngoal: g\ndone_test: true\nfiles:\n  - %s\n' "$1" "$2" > "tasks/$1.yml"; }
+multi() { printf 'id: %s\nowner: t\nstatus: open\ngoal: g\nwhy: John asked for this change (John, 10 Nov 2026)\ndone_test: true\nfiles:\n  - %s\n' "$1" "$2" > "tasks/$1.yml"; }
 git switch -q main; git switch -q -c multi; mkdir -p tasks src docs
 multi T3 'src/a.ts'; printf '  - land.conf\n' >> tasks/T3.yml; multi T4 'docs/**'; echo 5 > src/a.ts; echo 6 > docs/y.md; git add -A; git commit -qm "(auto) T3: x"
 [ "$(bash scripts/land/pr-task.sh main HEAD 2>&1)" = "T3 T4" ] && ok "two tasks whose allowlists cover every file are both named" || bad "two tasks covering every file are named ($(bash scripts/land/pr-task.sh main HEAD 2>&1))"

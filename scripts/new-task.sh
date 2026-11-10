@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Claim the next free task id and open its worktree: bash scripts/new-task.sh <owner> [goal]
+# Claim the next free task id and open its worktree: bash scripts/new-task.sh <owner> [goal] [why]
 #
 # Two sessions picking ids by eye collided twice on 13 Oct 2026 (T073, T079): one wrote its task
 # file into the other's worktree. Here the id is claimed, not chosen. For n above the highest id
@@ -15,13 +15,15 @@
 # Env: WORKSPACE (default: the parent of the main checkout).
 set -uo pipefail
 
-OWNER="${1:?usage: new-task.sh <owner> [goal]}"
+OWNER="${1:?usage: new-task.sh <owner> [goal] [why]}"
 GOAL="${2:-TODO: one sentence saying what is true when this task is done.}"
 
 common="$(git rev-parse --git-common-dir)" || exit 2
 src="$(cd "$(dirname "$common")" && pwd)"            # the main checkout, whichever worktree we run in
 ws="${WORKSPACE:-$(dirname "$src")}"
 repo="$(basename "$src")"
+# The why: who asked for this and when, or the QO/BUG/F id (John, 10 Nov 2026; a pull request needs it, T767).
+WHY="${3:-TODO: why this change is made: who decided and when (John, 10 Nov 2026) or the QO, BUG or F id.}"
 
 git -C "$src" fetch -q origin 2> /dev/null || true
 base="origin/main"
@@ -62,6 +64,7 @@ repo: $repo
 owner: $OWNER
 status: open
 goal: $GOAL
+why: $WHY
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/$id.yml
