@@ -1,5 +1,5 @@
-import {type Engine, FixedAir, standaloneChartingSource} from '../../engine/index.js';
-import type { Air, ChartingSource, DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
+import type { DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -16,6 +16,7 @@ import type { NumericDriverSpecFieldName } from './driverSpecFieldName.js';
 import { NumberField } from '../../fields/field.js';
 import { formatSignificant } from '../../fields/format.js';
 import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
+import { DriverContext } from './driverContext.js';
 
 /**
  * A real, playable driver — its record has a `woofer` section (a coaxial has a `tweeter` section beside it).
@@ -62,7 +63,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         const driver = asDriverDevice(conformed.json);
         if (driver === null) return [NOT_A_DRIVER];
         // A library driver saved from a WinISD import holds the model text as its short code; it opens with none (QO259).
-        return OpenISDDriverStandalone.wrap(deviceWithoutImportSku(driver), engine);
+        return OpenISDDriverStandalone.wrap(deviceWithoutImportSku(driver), engine, DriverContext.standalone(engine));
     }
 
     /** A driver stating nothing — what the editor opens on "create a new driver from scratch".
@@ -70,7 +71,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  solver has nothing to work from until the user types. No conformance check: this record is
      *  minted here, not received from outside, so there is no untrusted input to refuse. */
     static empty(engine: Engine, appContext: AppContext = realAppContext): OpenISDDriverStandalone {
-        return OpenISDDriverStandalone.wrap(blankDeviceRecord({woofer: {}}, 'woofer', appContext), engine);
+        return OpenISDDriverStandalone.wrap(blankDeviceRecord({woofer: {}}, 'woofer', appContext), engine, DriverContext.standalone(engine));
     }
 
     /** `.owdr` text — openisd driver JSON — back to a driver, or the reasons it could not be
@@ -81,7 +82,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
         const driver = asDriverDevice(parsed.json);
         if (driver === null) return [NOT_A_DRIVER];
-        return OpenISDDriverStandalone.wrap(driver, engine);
+        return OpenISDDriverStandalone.wrap(driver, engine, DriverContext.standalone(engine));
     }
 
     /** This driver's spec fields — the woofer section. Driver math is woofer-only in OpenISD; a
@@ -114,7 +115,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  2026-10-05). An embedded driver's is the project's live environment
      *  (`OpenISDDriverEmbedded.wrap()`); a standalone driver's is the app's environment defaults.
      *  `resolve()` reads it fresh on every call. */
-    protected readonly airProvider: () => Air;
+    protected readonly context: DriverContext;
 
     /** The one calculation surface. INJECTED, exactly as `OpenISDProject`'s is — a driver reports
      *  derived figures, and every one of them comes from here and nowhere else. */
@@ -127,24 +128,24 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     protected constructor(
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
-        airProvider: () => Air,
-        /** Which Cms a datasheet stating both Cms and Vas is read with: the project's switch; a standalone driver shows its datasheet. */
-        cmsSource: () => ChartingSource | null,
+        /** The air and the Cms source this driver is read with: the project's, or the standalone one. */
+        context: DriverContext,
         /** See `OpenIsdDriverSpec`'s own parameter — only an embedded driver supplies one. */
         durableIssues?: () => readonly DriverIssue[],
     ) {
         super(record);
         this.engine = engine;
         this.record = record;
-        this.airProvider = airProvider;
+        this.context = context;
         this.durableIssues = durableIssues;
-        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, airProvider, cmsSource, durableIssues);
+        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, context.air, context.cmsSource, durableIssues);
     }
 
     /** T11/S2-7c: resolve this driver's spec — write every derivable quantity back
      *  into the record as a `'C'` entry, cache the issues, and return them. */
     resolve(): readonly DriverIssue[] {
-        return this.specs.resolve(this.airProvider());
+        if (!this.#autoCalculate) return this.issues();
+        return this.specs.resolve(this.context.air());
     }
 
     // ── DERIVED FIGURES — every one from the injected engine, none computed here ──────────────
@@ -312,14 +313,45 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  "edit a bundle entry" and "fork this entry" possible without any of them reaching into the
      *  storage this window points at. Always STANDALONE — a copy belongs to nothing until
      *  something adopts it (via `OpenISDDriverEmbedded.update()`, or a repo save). */
-    abstract detach(): OpenISDDriverStandalone;
+    /** ON: every write derives. OFF: a write still lands, but `resolve()` stops deriving and every field stays frozen at what it reads
+     *  (the driver editor's own setting, John 2026-09-24). */
+    #autoCalculate = true;
+
+    get autoCalculate(): boolean {
+        return this.#autoCalculate;
+    }
+
+    /** Flipping ON resolves immediately, catching up on every write made while OFF in one pass. Flipping OFF makes no write of its own. */
+    setAutoCalculate(enabled: boolean): void {
+        this.#autoCalculate = enabled;
+        if (enabled) this.resolve();
+    }
+
+    /** The id a copy of this driver (`detach()`) carries: a standalone driver keeps its own, a driver in a project gets a new one. */
+    protected abstract idForCopy(): string;
+
+    /** The id this driver holds after `update()` adopts a record whose id is `adopted`: a standalone driver keeps it, a project's driver has none. */
+    protected abstract idAfterAdopting(adopted: string): string;
+
+    /** The stable identity carried by the record. */
+    uuid(): string {
+        return this.record.value.uuid.value;
+    }
+
+    /** A standalone copy in this driver's own context, so its Cms, Vas and air read as this driver's do. */
+    detach(): OpenISDDriverStandalone {
+        const copy = this.cloneDriver();
+        copy.uuid = {value: this.idForCopy()};
+        return OpenISDDriverStandalone.wrap(copy, this.engine, this.context);
+    }
+
 
     /** An independent standalone copy with a new record identity. Used when a driver crosses into
      * a new owner, such as a project embedding or an explicit user copy. */
     copyAsNew(newId: () => string): OpenISDDriverStandalone {
         const copy = this.cloneDriver();
         copy.uuid = { value: newId() };
-        return OpenISDDriverStandalone.wrap(copy, this.engine);
+        return OpenISDDriverStandalone.wrap(copy, this.engine, this.context);
     }
 
     /** @internal The record a save writes, deep-cloned. Same seam as
@@ -343,7 +375,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  Deep-cloned: after this call the two records share no nested object, so neither driver's
      *  later edits reach the other regardless of how the storage layer applies writes. */
     update(source: OpenISDDriver): void {
-        this.record.set(structuredClone(source.record.value));
+        const copy = structuredClone(source.record.value);
+        this.record.set({...copy, uuid: {...copy.uuid, value: this.idAfterAdopting(copy.uuid.value)}});
     }
 
     /** Make this driver a copy: its `model` states so, so `<brand>/<model>` differs from the
@@ -443,50 +476,19 @@ export interface SealedBoxLosses {
 }
 
 export class OpenISDDriverStandalone extends OpenISDDriver {
-    /** ON: every write derives, as `resolve()` always did before this flag existed. OFF: a
-     *  write still lands (`entered`/`clear` on the record), but `resolve()` stops deriving —
-     *  every field, entered or calculated, stays frozen at whatever it currently reads, so
-     *  clearing one no longer pulls another back in behind it. The driver editor's own setting
-     *  (John, 2026-09-24): nothing else in the app calls `setAutoCalculate`. */
-    #autoCalculate = true;
-
-    get autoCalculate(): boolean {
-        return this.#autoCalculate;
+    protected idForCopy(): string {
+        return this.uuid();
     }
 
-    /** Flipping ON resolves immediately, catching up on every write made while OFF in one pass —
-     *  the same as re-ticking WinISD's own checkbox. Flipping OFF makes no write of its own: the
-     *  fields already hold whatever they last held. */
-    setAutoCalculate(enabled: boolean): void {
-        this.#autoCalculate = enabled;
-        if (enabled) this.resolve();
+    protected idAfterAdopting(adopted: string): string {
+        return adopted;
     }
 
-    /** A copy that keeps this driver's id: a standalone driver is an entity, and the editor's
-     *  working copy of it is the same entity until it is saved as a new one (`copyAsNew`). */
-    detach(): OpenISDDriverStandalone {
-        return OpenISDDriverStandalone.wrap(structuredClone(this.record.value), this.engine);
-    }
-
-    /** The stable identity carried by the canonical driver record. Only a standalone driver
-     *  (bundled or My Drivers) has one; the driver inside a project is a value, not an entity. */
-    uuid(): string {
-        return this.record.value.uuid.value;
-    }
-
-    /** OFF: skip the derive, return the last resolve's cached issues untouched. */
-    override resolve(): readonly DriverIssue[] {
-        return this.#autoCalculate ? super.resolve() : this.issues();
-    }
-
-    /** A driver in no project uses the project's delegate: the app's environment defaults, the
-     *  air a new project would get (John, 2026-10-05). */
+    /** Windows onto `json` with the context the caller names; a copy of a project's driver passes the project's. */
     static wrap(
         json: DriverDeviceJson,
         engine: Engine,
-        cmsSource: () => ChartingSource | null = standaloneChartingSource,
-        /** The air to use; a copy of a project's driver passes the project's. */
-        airProvider: () => Air = () => new FixedAir(engine.environment.solve({tempK: engine.environment.appAir.temperature(), humidityPct: engine.environment.appAir.humidity(), pressurePa: engine.environment.appAir.pressure()}).values),
+        context: DriverContext,
     ): OpenISDDriverStandalone {
         let current = json;
         const raw: SimpleField<DriverDeviceJson> = {
@@ -503,7 +505,7 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
         // eslint-disable-next-line prefer-const
         let driver!: OpenISDDriverStandalone;
         const record = resolvingField(raw, () => driver.resolve());
-        driver = new OpenISDDriverStandalone(record, engine, airProvider, cmsSource);
+        driver = new OpenISDDriverStandalone(record, engine, context);
         // The one-shot cache-on-load (S7-d): a standalone driver is a genuine single long-lived
         // instance, so — unlike an embedded one, rebuilt fresh on every access — resolving once
         // here is exactly the "'C' is a cache, recomputed on load" contract, not a write-on-read

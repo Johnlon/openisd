@@ -26,6 +26,7 @@ import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
 import { cmsSourceOf } from './cmsSource.js';
+import { DriverContext } from '../driver/driverContext.js';
 
 import { withNullEmbeddedDriverId } from './nullDriverId.js';
 import type { ProjectIssues } from './projectIssues.js';
@@ -107,8 +108,7 @@ export class OpenISDProject {
         return OpenISDDriverEmbedded.wrap(
             focus(focus(root, 'driverEmbedding'), 'device'),
             this.#engine,
-            () => this.#airOver(root),
-            () => cmsSourceOf(this),
+            DriverContext.ofProject(() => cmsSourceOf(this), () => this.#airOver(root)),
             () => this.#issues.driver,
             () => this.#appContext.newId(),
         );
