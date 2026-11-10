@@ -301,11 +301,14 @@ export class NumberField extends Field {
   }
 
   // ── Plot window ───────────────────────────────────────────────────────────────────────────
+  /** The frequency axis' ends: 1 Hz to 40 kHz. The start and end boxes accept inside it and a chart
+   *  drag is held to it, so the three can never disagree about how far the axis goes. */
+  static readonly PLOT_FREQ_AXIS_HZ: Readonly<{min: number; max: number}> = Object.freeze({min: 1, max: 40000});
   static readonly PLOT_FMIN_HZ = new NumberField({
     value: "plot_fmin_hz",
     label: "Frequency range start",
     display: {kind: 'fixed', symbol: 'Hz'},
-    limits: {min: 1, max: 20000},
+    limits: NumberField.PLOT_FREQ_AXIS_HZ,
     precision: 1,
     description: "Plot Start Frequency\nThe lowest frequency every chart draws and the sweep computes.",
   });
@@ -316,7 +319,7 @@ export class NumberField extends Field {
     value: "plot_fmax_hz",
     label: "Frequency range end",
     display: {kind: 'fixed', symbol: 'Hz'},
-    limits: {min: 1, max: 40000},
+    limits: NumberField.PLOT_FREQ_AXIS_HZ,
     precision: 1,
     description: "Plot End Frequency\nThe highest frequency every chart draws and the sweep computes.",
   });
@@ -600,7 +603,8 @@ export class NumberField extends Field {
     value: "signal_Distance_m",
     label: "Distance",
     display: {kind: 'fixed', symbol: 'm'},
-    limits: {min: 0, max: 100},
+    limits: {min: 0.1, max: 100},
+    floor: "positive",
     precision: 3,
     description: "Listening Distance\nOn-axis distance from the loudspeaker to the listener, used for SPL calculations.",
   });

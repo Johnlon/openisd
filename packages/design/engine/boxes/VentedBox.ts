@@ -7,6 +7,7 @@ import {cAdd, cDiv, cMul, cPar, cSub, cx} from '../complex.js';
 import {portImpedance, winisdLinePortReactance, droppedEndCorrection_m} from './port.js';
 import type {SweepParams} from '../types.js';
 import type {BoxModel, BoxOutput, DriverSideQuantities} from './BoxModel.js';
+import {DEFAULT_NEW_PROJECT_QP} from '../../fields/defaults.js';
 
 export class VentedBox implements BoxModel {
   constructor(private readonly P: SweepParams) {}
@@ -50,7 +51,7 @@ export class VentedBox implements BoxModel {
         const Fb = P.Fb ?? NaN;
         const wb = 2 * Math.PI * Fb;
         const Map = 1 / (wb * wb * Cab);
-        const Qp = P.Qp || 100;
+        const Qp = P.Qp || DEFAULT_NEW_PROJECT_QP;
         const RalConst = cx(Ql / (wb * Cab), 0);
         const RaaSeries = cx(wb * Map / Qa, 0);
         const RapSeries = cx(wb * Map / Qp, 0);

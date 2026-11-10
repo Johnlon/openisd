@@ -11,10 +11,15 @@ export interface SelectorOption<T = string | number> {
   readonly label: string;
 }
 
+/** End correction of a port with two free ends (x vent diameter): a new vented box's. */
+export const END_CORRECTION_TWO_FREE_ENDS_M = 0.613;
+/** End correction of a port with one flanged end: a new bandpass6 or ABC vent's (WinISD's wizard). */
+export const END_CORRECTION_ONE_FLANGED_END_M = 0.732;
+
 /** Port end-correction presets (WinISD parity). */
 export const END_CORRECTION_OPTIONS: readonly (SelectorOption<number> & {readonly compactLabel:string})[] = Object.freeze([
-  Object.freeze({ value: 0.613, label: 'Two free ends', compactLabel:'Free' }),
-  Object.freeze({ value: 0.732, label: 'One flanged end', compactLabel:'1 flange' }),
+  Object.freeze({ value: END_CORRECTION_TWO_FREE_ENDS_M, label: 'Two free ends', compactLabel:'Free' }),
+  Object.freeze({ value: END_CORRECTION_ONE_FLANGED_END_M, label: 'One flanged end', compactLabel:'1 flange' }),
   Object.freeze({ value: 0.849, label: 'Two flanged ends', compactLabel:'2 flanges' }),
 ]);
 

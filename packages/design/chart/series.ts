@@ -558,7 +558,7 @@ export function buildPlotData(
   const rolloffs: Rolloff[] = chartId === 'TFMag' && trace ? TF_ROLLOFFS.map(r => rolloffOf(trace, r.label, r.dropDb)) : [];
   const value: PlotData = {
     ...out, fmin, fmax,
-    freqAxis: new FrequencyAxis(fmin || 10, fmax || 1000),
+    freqAxis: new FrequencyAxis(fmin || NumberField.PLOT_RANGE_DEFAULT_HZ.min, fmax || NumberField.PLOT_RANGE_DEFAULT_HZ.max),
     levelAxis: new LevelAxis(out.ymin, out.ymax, out.logy),
     rolloffs,
     layout: ChartLayout.CHART,
