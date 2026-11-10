@@ -6,6 +6,7 @@ status: done
 goal: Stats: record the user actions the telemetry scan found unrecorded (box type change, driver editor, copy project, compare, share link, driver file import, data table, cloud sync, backup/restore, bin, history restore, Save As download, mobile vents and more) and stop the desktop start-up over-count of filters and vents (John 10 Nov: 'scan rest of app for missed telemetry')
 done_test: bash scripts/test.sh packages/ui/test/logic/projectOpenTelemetry.test.ts packages/ui/test/logic/applicationIO.test.ts packages/ui/test/hooks/OriginalShell-hooks.test.ts packages/ui/test/hooks/boxFields.test.ts packages/ui/test/hooks/CloudSync-hooks.test.ts
 files:
+  - packages/ui/test/visual/SOURCES.sha256
   - packages/ui/src/hooks/CloudSync-hooks.ts
   - packages/ui/src/hooks/DriverEditorModal-hooks.ts
   - packages/ui/src/hooks/MobileAdvancedTab-hooks.ts
@@ -62,3 +63,4 @@ files:
 left_out: |
   Compare has no add action: the other open projects are drawn as overlays. The phone has no vents
   screen: vents are on the Box tab.
+visual: []
