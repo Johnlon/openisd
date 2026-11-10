@@ -117,4 +117,29 @@ const RULED_VIEWS:readonly ViewEntry[]=[
   sharedRuled('shared/driver-library-broken-entry',ViewKind.WarningPopup,CMP+'DriverLibrary.vue','Driver list with a saved driver this version cannot read: a flagged row offers Export and Delete.'),
   sharedRuled('shared/driver-type-help',ViewKind.FieldNote,CMP+'DriverLibrary.vue','Driver list filters, press the ? by the types: a table explains the driver range classifications.'),
 ];
-export const VIEW_INDEX:readonly ViewEntry[]=Object.freeze([...MOBILE_SURFACES.map(fromMobile),...DESKTOP_SURFACES.map(fromDesktop),...RULED_VIEWS]);
+/** Basis: control change T763, Fable review 10 Nov 2026 (workspace docs/process/CONTROL_CHANGES.md), not a ruling by John: views the index listed for the phone only, though the desktop skin has them too. */
+const DESKTOP_TWIN_RULING:ViewDecision={kind:'ruling',by:'basis: control change T763, Fable review 10 Nov (workspace docs/process/CONTROL_CHANGES.md)',date:'2026-11-10',ref:'T763'};
+function desktopTwin(id:string,kind:ViewKind,owner:string,reach:string):ViewEntry {
+  return {id,skin:ViewSkin.Desktop,kind,owner,reach,decision:DESKTOP_TWIN_RULING};
+}
+const APP='packages/ui/src/ui/App.vue';
+const DESKTOP_TWINS:readonly ViewEntry[]=[
+  desktopTwin('desktop/equation-inspector',ViewKind.Dialog,CMP+'EquationInspectorModal.vue','Driver editor, provenance inspection of a field: the equation inspector dialog opens.'),
+  desktopTwin('desktop/confirmation',ViewKind.Dialog,CMP+'ConfirmDialog.vue','Perform an action that needs confirming: the shared confirmation dialog opens.'),
+  desktopTwin('desktop/crash',ViewKind.ErrorPopup,CMP+'CrashScreen.vue','A captured runtime error opens the crash and report screen.'),
+  desktopTwin('desktop/driver-rename',ViewKind.Dialog,CMP+'DriverEditorModal.vue','Driver editor, rename or copy an existing driver while saving: a rename box opens.'),
+  desktopTwin('desktop/driver-identity-message',ViewKind.WarningPopup,CMP+'DriverEditorModal.vue','Driver editor, save a driver with an incomplete brand or model: a message says what is missing.'),
+  desktopTwin('desktop/driver-disagreement-list',ViewKind.WarningPopup,CMP+'DriverEditorModal.vue','Driver editor with values that disagree: a list names the disagreements.'),
+  desktopTwin('desktop/driver-search-filters',ViewKind.Browser,CMP+'DriverLibrary.vue','Driver picker or Manage Drivers: the search filters row (type, brand, ranges).'),
+  desktopTwin('desktop/options-limits-help',ViewKind.Help,CMP+'OptionsModal.vue','Options, General, vented design limits: the explanation of the limits opens.'),
+  desktopTwin('desktop/wizard-help',ViewKind.Help,WIZARD,'New project, any step, press Help: the step help opens.'),
+  desktopTwin('desktop/wizard-placement-info',ViewKind.FieldNote,WIZARD,'New project, driver array step: the placement information shows.'),
+  desktopTwin('desktop/wizard-ebp-info',ViewKind.FieldNote,WIZARD,'New project, enclosure step: the EBP information shows.'),
+  desktopTwin('desktop/startup-failure',ViewKind.ErrorPopup,APP,'A bundle or module fails before the app starts: the loading failure screen shows.'),
+  desktopTwin('desktop/storage-usage-warning',ViewKind.WarningPopup,APP,'Startup storage usage is high: a warning with a data download shows.'),
+  desktopTwin('desktop/cross-tab-notice',ViewKind.WarningPopup,APP,'Another browser tab changes an open project: a notice says the project changed.'),
+  desktopTwin('desktop/announcements-current',ViewKind.Dialog,CMP+'AnnouncementsModal.vue','Launch with a new announcement version: the current announcement opens.'),
+  desktopTwin('desktop/diagnostic-repairs',ViewKind.Dialog,CMP+'DiagnosticsModal.vue','Diagnostics, run a repair action: the repair outcome shows.'),
+  desktopTwin('desktop/cloud-confirm',ViewKind.Dialog,CMP+'CloudSyncDialog.vue','Cloud sync, conflict, choose an action: a confirmation shows.'),
+];
+export const VIEW_INDEX:readonly ViewEntry[]=Object.freeze([...MOBILE_SURFACES.map(fromMobile),...DESKTOP_SURFACES.map(fromDesktop),...RULED_VIEWS,...DESKTOP_TWINS]);

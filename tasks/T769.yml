@@ -1,0 +1,13 @@
+id: T769
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: View coverage batch 1: the static About, Install and Refresh pages are opened and measured
+why: John, 10 Nov 2026: "I need full coverage, add it, then maintain it" (plan batch 1)
+done_test: bash scripts/test.sh packages/ui/test/logic/view-walk-coverage.test.ts
+files:
+  - tasks/T769.yml
+  - docs/design/VIEW_COVERAGE_PLAN.md
+  - packages/ui/test/fixtures/viewOpenSteps.ts
+  - packages/ui/test/logic/view-walk-coverage.test.ts

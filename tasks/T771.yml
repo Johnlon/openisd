@@ -1,0 +1,21 @@
+id: T771
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: View coverage batch 2: saved-state views (includes batch 1 from T769)
+why: John, 10 Nov 2026 (QO527): "I need full coverage add it then maintain it"
+done_test: bash scripts/test.sh packages/ui/test/logic/view-walk-coverage.test.ts packages/ui/test/scripts/view-change-guard.test.ts
+files:
+  - tasks/T771.yml
+  - docs/design/VIEW_COVERAGE_PLAN.md
+  - packages/ui/test/fixtures/viewOpenSteps.ts
+  - packages/ui/test/fixtures/viewOpenSavedState.ts
+  - packages/ui/test/fixtures/viewOpenTypes.ts
+  - packages/ui/test/fixtures/viewOpen.ts
+  - packages/ui/test/fixtures/viewRemoved.ts
+  - packages/ui/test/fixtures/mobileSurfaceManifest.ts
+  - packages/ui/test/fixtures/desktopSurfaceManifest.ts
+  - packages/ui/test/logic/view-walk-coverage.test.ts
+  - packages/ui/test/scripts/view-change-guard.test.ts
+  - packages/ui/test/ui/view-layout-walk.browser.spec.ts

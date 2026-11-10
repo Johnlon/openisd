@@ -33,11 +33,18 @@ Open tasks may overlap; claimed tasks may not (checked at claim).
 
 | Step | Command                                         | Result                                          |
 |------|-------------------------------------------------|-------------------------------------------------|
-| 0    | `bash scripts/new-task.sh <owner> "<goal>"`     | prints `T<nnn> <worktree>`: the id is claimed, never typed |
+| 0    | `bash scripts/new-task.sh <owner> "<goal>" "<why>"` | prints `T<nnn> <worktree>`: the id is claimed, never typed |
 | 1    | `bash scripts/land/task-gates/claim.sh T<nnn>`  | status claimed; `.task` written                 |
 | 2    | edit only the listed files                      | pre-commit refuses anything else                |
 | 3    | run `done_test` until it exits 0                | —                                               |
 | 4    | `bash scripts/ship.sh T<nnn>`                   | exit 0 shipped (PR open, auto-merge on, worktree deleted), 1 refused, 3 blocked by a rebase conflict |
+
+The `why:` line says why the change is made: at least 20 characters, not the goal, naming who decided and when
+("John, 10 Nov 2026") or a `QO<n>`, `F<n>` or `BUG` id; it may cite a bug file. Every pull request carries a task
+file (there is no bug-file alternative), `pr-gate` refuses a task file the PR adds or really changes without a good
+`why:` (a hash-only or status-only edit of an old file is exempt), and refuses any deletion or rename of a
+`tasks/T*.yml` (John, QO528, 10 Nov 2026: task files in the repo are the record of why). This covers pull requests;
+a direct push to main is refused by the repository rulesets, not by this check.
 
 Chain what follows step 0 with `&&` (`bash scripts/new-task.sh … && cd <worktree> && …`), or check its exit
 code. A refused `new-task.sh` or `_agent_files/bin/new-worktree.sh` makes no worktree, and a folder of that

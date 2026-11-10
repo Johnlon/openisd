@@ -33,6 +33,9 @@ grep -q '^goal: Say what is done.$' "$SCRATCH/openisd-t008/tasks/T008.yml" && ok
 out2="$(bash scripts/new-task.sh bob 2>&1)"
 [ "$out2" = "T009 $SCRATCH/openisd-t009" ] && ok "second claim is the next id: $out2" || fail "second claim: $out2"
 
+out3="$(bash scripts/new-task.sh carol "G." "Because John said so (John, 10 Nov 2026)" 2>&1)"; id3="${out3%% *}"
+grep -q '^why: Because John said so (John, 10 Nov 2026)$' "${out3#* }/tasks/$id3.yml" && ok "why recorded from the third argument" || fail "why missing: $out3"
+
 # two claims at once never share an id
 bash scripts/new-task.sh a > "$SCRATCH/a.out" 2>&1 & bash scripts/new-task.sh b > "$SCRATCH/b.out" 2>&1 & wait
 ida="$(cut -d' ' -f1 "$SCRATCH/a.out")"; idb="$(cut -d' ' -f1 "$SCRATCH/b.out")"
