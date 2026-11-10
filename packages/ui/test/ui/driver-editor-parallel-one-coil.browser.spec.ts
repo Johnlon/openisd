@@ -30,6 +30,7 @@ test('Desktop: Parallel on a 1-coil driver shows the warning', async ({page}) =>
   await page.locator('.edit-btn', {hasText: 'Edit'}).click();
   await page.locator('.de-body').waitFor({state: 'visible'});
   await pickParallelOnOneCoil(page);
+  await expect(page.getByTestId('de-conn-dq')).toHaveCount(0);
 });
 
 test('Phone: Parallel on a 1-coil driver shows the warning', async ({page}) => {
@@ -40,4 +41,5 @@ test('Phone: Parallel on a 1-coil driver shows the warning', async ({page}) => {
   await page.getByText('Edit', {exact: true}).click();
   await expect(page.locator('.de-body')).toBeVisible();
   await pickParallelOnOneCoil(page);
+  await expect(page.getByTestId('de-conn-dq')).toHaveCount(0);
 });
