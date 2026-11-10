@@ -1,0 +1,11 @@
+id: T756
+release_note: internal
+repo: openisd
+owner: learn
+status: done
+goal: README and WinISD equivalence register: close the vent cross-area and sealed Fsc/Qtc cells that are fixed or verified, and mark WinISD bugs / ignored inputs / John's blank-box ruling as differences on purpose, not gaps (John 10 Nov: 'it has gaps listed that I think we've closed')
+done_test: bash scripts/test.sh packages/ui/test/scripts/mobile-surface-manifest.test.ts
+files:
+  - tasks/T756.yml
+  - README.md
+  - docs/research/WINISD_EQUIVALENCE.md
