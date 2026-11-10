@@ -416,6 +416,7 @@ export function createApplicationIO(deps: {
   }
 
   function exportBackup(): void {
+    featureUse.feature('backup');
     const fileName = `openisd-backup-${new Date().toISOString().slice(0, 10)}.json`;
     download(fileName, deps.backup.exportAll(), 'application/json');
     flash(`Backup downloaded as ${fileName}`);
@@ -442,7 +443,9 @@ export function createApplicationIO(deps: {
   }
 
   function importBackup(json: string, options: RestoreOptions): RestoreResult {
-    return deps.backup.importAll(json, options);
+    const result = deps.backup.importAll(json, options);
+    if (result.kind === 'ok') featureUse.feature('restore');
+    return result;
   }
 
   return {

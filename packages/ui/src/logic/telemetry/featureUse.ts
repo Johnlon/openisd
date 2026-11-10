@@ -15,6 +15,8 @@ const FEATURE_ACTIONS: Record<FeatureName, ActionName> = {
   import: 'feature:import',
   save_file: 'feature:save_file',
   share_link: 'feature:share_link',
+  backup: 'feature:backup',
+  restore: 'feature:restore',
 };
 
 /** Records each chart viewed and each feature used once per page session. Records only; the

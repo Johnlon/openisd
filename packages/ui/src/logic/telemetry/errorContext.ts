@@ -49,7 +49,9 @@ export type ActionName =
   | 'feature:export'
   | 'feature:import'
   | 'feature:share_link'
-  | 'feature:save_file';
+  | 'feature:save_file'
+  | 'feature:backup'
+  | 'feature:restore';
 
 /** A ring buffer of the last user actions, oldest first. */
 export class RecentActions {

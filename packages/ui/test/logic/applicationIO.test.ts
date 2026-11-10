@@ -520,6 +520,23 @@ describe('every import and export says what it did', () => {
     } finally { restoreGlobals(); }
   });
 
+  it('a backup download counts as backup, and a restore that worked as restore', async () => {
+    const downloads: { name: string; body: string | Uint8Array }[] = [];
+    stubDom(downloads);
+    try {
+      const { io, events } = ioRecording(createFileStorage());
+      io.exportBackup();
+      expect(events).toContainEqual({ kind: 'feature', name: 'backup' });
+
+      expect(io.importBackup('not a backup', { replaceEverything: false }).kind).toBe('invalid');
+      expect(events).not.toContainEqual({ kind: 'feature', name: 'restore' });
+      const file = downloads[0]?.body;
+      if (typeof file !== 'string') throw new Error('exportBackup must download text');
+      expect(io.importBackup(file, { replaceEverything: false }).kind).toBe('ok');
+      expect(events).toContainEqual({ kind: 'feature', name: 'restore' });
+    } finally { restoreGlobals(); }
+  });
+
   it('Save As names the file written, or says the download is unconfirmed', async () => {
     appState.newProject();
     appState.requireFocusedProject().name.set('MyBox');
