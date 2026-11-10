@@ -107,3 +107,7 @@ Four of the 18 fault views cannot be opened because the app has no such screen o
 - `shared/driver-library-storage-note` (2 pairs): the note shows when the saved-drivers read is `unavailable`, but the browser storage wrapper (`keyValueStorage.ts`) catches every storage error and returns "no value", so a real browser never produces `unavailable`.
 
 Both stay `fault-needed` until the index or the app changes (a ruling, not a test).
+
+### Batch 6 progress
+
+- 6a (T776, ceiling 68): project-actions, bin, empty, sealed-alignment, vented-alignment, pr-picker, pr-save, chart-data, sheet-port, exports (phone). Fault found: `BUG_20261110_phone-pr-picker-names-cut.md`.

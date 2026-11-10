@@ -4,6 +4,7 @@ import {NoOpenReason, WalkSkin} from './viewOpenTypes.js';
 import type {OpenStep} from './viewOpenTypes.js';
 import {driverEditor, openPhoneWizardStep, phoneTab} from './viewOpenNavigation.js';
 import {SAVED_STATE_STEPS} from './viewOpenSavedState.js';
+import {PHONE_MENU_STEPS} from './viewOpenPhoneMenus.js';
 import {FAULT_STEPS} from './viewOpenFaults.js';
 import {REJECTED_INPUT_STEPS} from './viewOpenRejected.js';
 import {CLOUD_STEPS} from './viewOpenCloud.js';
@@ -48,6 +49,7 @@ steps.push(...SAVED_STATE_STEPS);
 steps.push(...CLOUD_STEPS);
 steps.push(...REJECTED_INPUT_STEPS);
 steps.push(...FAULT_STEPS);
+steps.push(...PHONE_MENU_STEPS);
 
 /** Open steps written by hand for views the two surface manifests cannot open. */
 export const EXTRA_OPEN_STEPS: ReadonlyMap<string, OpenStep> = new Map(steps.map(([skin, id, step]) => [key(skin, id), step]));
