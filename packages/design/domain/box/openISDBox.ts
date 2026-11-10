@@ -9,6 +9,8 @@ import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import { OpenISDPassiveRadiatorEmbedded } from '../passiveRadiator/openISDPassiveRadiatorEmbedded.js';
 import { OpenISDPassiveRadiatorStandalone } from '../passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import { NumberField } from '../../fields/field.js';
+import { DEFAULT_SEALED_QTC } from '../../fields/defaults.js';
+import { DEFAULT_VENTED_ALIGNMENT } from '../../fields/options.js';
 import { displayedHalfWidth } from '../precision.js';
 import { groupDq } from '../project/groupDq.js';
 import type { ProjectIssues } from '../project/projectIssues.js';
@@ -30,9 +32,9 @@ import { VentedLossesWindow } from './ventedLossesWindow.js';
  *  Project wizard writes for a fresh project of that type (`applyStartingValues`). */
 const STARTING = Object.freeze({
     /** Sealed: the volume for the flat (Butterworth) alignment. */
-    sealedQtc: 0.707,
+    sealedQtc: DEFAULT_SEALED_QTC,
     /** Vented: the quasi-Butterworth design. */
-    ventedAlignment: 'qb3',
+    ventedAlignment: DEFAULT_VENTED_ALIGNMENT,
     ventDiameter_m: 0.05,
     /** A slotted vent: width the driver's diaphragm diameter when known, else this; height flat. */
     ventSlotWidth_m: 0.1,

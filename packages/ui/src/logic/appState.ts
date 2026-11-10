@@ -20,7 +20,7 @@ import type {
     BoxType, ChartId, DriverError, DriverPrerequisite, MaxCurvesResult, MaxCurvesSolveResult, SweepIssue, SweepResult,
     VentedDesignLimits,
 } from '@openisd/design/engine';
-import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, type Engine, type EnvDefaults} from '@openisd/design/engine';
+import {type Engine, type EnvDefaults} from '@openisd/design/engine';
 import {driverPrerequisiteMessage, sweepIssueMessage} from './sweepIssueMessage.js';
 import {SweepScheduler} from './sweepScheduler.js';
 import {LatestSweepRunner} from './latestSweepRunner.js';
@@ -46,7 +46,7 @@ import {
     type ViewSnapshot,
 } from '@openisd/persistence';
 import {assignTraceColor, parseSkinChoice, type PresentationState} from './presentationState.js';
-import {BOX_TYPE_OPTIONS, NumberField, parseUnitRotation, type SelectorOption} from '@openisd/design/fields';
+import {BOX_TYPE_OPTIONS, DEFAULT_SEALED_VOLUME_L, NumberField, parseUnitRotation, type SelectorOption} from '@openisd/design/fields';
 import {ventSolveSuspended} from './ventGroup.js';
 import {projectDriverTelemetry} from './telemetry/projectDriver.js';
 
@@ -93,16 +93,6 @@ export interface FileProjectIdentity {
 
 export type OpenProjectIdentity = StoredProjectIdentity | FileProjectIdentity;
 
-/** The built-in band — what an unconfigured app reads and what "Reset to defaults" writes.
- *
- *  Published here, not imported from the engine by whoever needs it: `ui/logic` is the layer
- *  the engine edge is ruled legal on (QO80 matrix, `test/architecture/architecture.test.ts`), and this
- *  module is already the settings seam every hook reads the band through. */
-export const FACTORY_VENTED_LIMITS: VentedDesignLimits = DEFAULT_VENTED_DESIGN_LIMITS;
-
-/** The built-in environment — what an unconfigured app reads and what "Reset to defaults" writes. */
-export const FACTORY_ENV_DEFAULTS: EnvDefaults = DEFAULT_ENV_DEFAULTS;
-
 /** Whether two identities name the SAME project. */
 function sameOpenIdentity(a: OpenProjectIdentity, b: OpenProjectIdentity): boolean {
   if (a.kind === 'stored' && b.kind === 'stored') return a.id === b.id;
@@ -140,11 +130,6 @@ export interface NewProjectSpec {
   volumeL: number;
   frontVolumeL?: number;
 }
-
-/** A sealed box's starting volume, litres — the New Project wizard's own default, and the
- *  volume a project opened straight from a bare `.wdr`/`.owdr` driver file starts at (the user
- *  refines it on the Box tab). */
-export const DEFAULT_SEALED_VOLUME_L = 6;
 
 
 /** What `createAppState` is built over. */

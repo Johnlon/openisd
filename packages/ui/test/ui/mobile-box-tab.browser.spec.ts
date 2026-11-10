@@ -70,8 +70,8 @@ test.describe('MobileBoxTab', () => {
   });
 
   // T211 (John, 16 Oct 2026, clear-to-blank ruling): an emptied vented volume settles to the volume
-  // the current alignment gives (10.69 L for the sample's driver; the project itself was saved at
-  // 10.70 L), never blank and never 0.
+  // the current alignment gives (10.70 L for the sample's driver: the app's one default alignment,
+  // C4, T726), never blank and never 0.
   test('emptying the box volume settles it to the alignment volume', async ({ appPage: page }) => {
     const input = mobileFieldRow(page, 'Vb').first().locator('input');
     await input.fill('40');
@@ -79,7 +79,7 @@ test.describe('MobileBoxTab', () => {
     await expect(input).toHaveValue(/^40/);
     await clearWithKeyboard(input);
     await input.blur();
-    await expect(input).toHaveValue('10.69');
+    await expect(input).toHaveValue('10.70');
   });
 
   test('shows the box-type select, the enclosure diagram, and a volume field', async ({ appPage: page }) => {

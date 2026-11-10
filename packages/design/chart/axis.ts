@@ -1,8 +1,9 @@
+import {NumberField} from '../fields/field.js';
 import {linearTicks, logTicks} from './ticks.js';
 
 /** Frequency axis end clamps for a drag: 1 Hz … 40 kHz, at least 0.1 decade wide. */
-const DRAG_LOG_MIN = 0;
-const DRAG_LOG_MAX = Math.log10(40000);
+const DRAG_LOG_MIN = Math.log10(NumberField.PLOT_FMIN_HZ.limits.min);
+const DRAG_LOG_MAX = Math.log10(NumberField.PLOT_FMAX_HZ.limits.max);
 const DRAG_MIN_DECADES = 0.1;
 
 /** Where on a frequency axis a drag started: the low end, the high end, the middle, or either

@@ -107,6 +107,15 @@ describe('createAppSettingsRepo', () => {
         DEFAULT_ENV_DEFAULTS);
     });
 
+    it('repairs a stored 1 Pa pressure or 2000 K temperature to the default instead of keeping it', () => {
+      for (const bad of [{...EDITED_ENV, pressurePa: 1}, {...EDITED_ENV, tempK: 2000}]) {
+        const stored = JSON.stringify({vented: DEFAULT_VENTED_DESIGN_LIMITS, env: bad});
+        assert.deepEqual(
+          appSettingsRepoOn(createMemoryStorage({[APP_SETTINGS_KEY]: stored})).envDefaults(),
+          DEFAULT_ENV_DEFAULTS);
+      }
+    });
+
     it('reads a legacy record with no env member as the factory env defaults', () => {
       const legacy = JSON.stringify({vented: DEFAULT_VENTED_DESIGN_LIMITS});
       assert.deepEqual(

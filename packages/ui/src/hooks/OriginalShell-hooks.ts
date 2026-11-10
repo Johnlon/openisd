@@ -448,8 +448,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     const p = project.value;
     return p.cursorLocked.value ? p.pinnedF.value : (p.cursorF.value ?? p.pinnedF.value);
   });
-  const fmin = computed(() => curvesData.value?.fs[0] ?? 10);
-  const fmax = computed(() => curvesData.value?.fs[curvesData.value.fs.length - 1] ?? 1000);
+  const fmin = computed(() => curvesData.value?.fs[0] ?? NumberField.PLOT_RANGE_DEFAULT_HZ.min);
+  const fmax = computed(() => curvesData.value?.fs[curvesData.value.fs.length - 1] ?? NumberField.PLOT_RANGE_DEFAULT_HZ.max);
 
   const isHzInputFocused = ref(false);
   const hzInputText = ref('');
