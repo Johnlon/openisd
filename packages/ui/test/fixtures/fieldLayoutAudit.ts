@@ -40,7 +40,7 @@ export function measureFieldLayoutRules(root: Element): string[] {
   // Groups: a group is the controls of one column that share a label edge.
   // The rules cover number boxes, counts and dropdowns; the radiator's free-text name is none of these.
   const columnSelector = '.vent-col,.pr-controls > div,.driver-columns > div,.box-fields-col,.what-if-panel,[role=dialog],.mob-np-body,.modal-body,.mob-content,.mob-sheet-body';
-  const fields = [...root.querySelectorAll<HTMLElement>('.ui-field input:not([type=checkbox]):not([type=file]):not(.np-pr-name),select')].filter(shown).map(control => {
+  const fields = [...root.querySelectorAll<HTMLElement>('.ui-field input:not([type=checkbox]):not([type=radio]):not([type=file]):not(.np-pr-name),select')].filter(shown).map(control => {
     const row = control.closest('.ui-field,.field,.mob-crow,.vpf-row,.what-if-fld,.ui-pick-field');
     const label = row?.querySelector('label');
     const box = control.getBoundingClientRect();
