@@ -4,6 +4,7 @@
  * `MobileBoxTab.vue` both call these factories — one implementation of "what does the Box tab
  * do", asked by both shells.
  */
+import type {FeatureUse} from '../logic/telemetry/featureUse.js';
 import type {ComputedRef, Ref} from 'vue';
 import {computed, ref, watch} from 'vue';
 import type {BoxLossGroup, LossChamber, OpenISDProject} from '@openisd/design';
@@ -140,16 +141,22 @@ export interface SelectedBoxDeps {
   focusedProject: () => OpenISDProject | null;
   projectChanged: Ref<number>;
   isSimulatable: (b: BoxType) => boolean;
+  /** Counts a box type the user picks. */
+  readonly featureUse: FeatureUse;
 }
 
 // selectedBox is the Box tab's source of truth: it can hold types the solver refuses. Its
 // initial value comes from the focused project when one is open — the shell renders, with
 // empty placeholders, without one, and `useFocusedProject()` must not be evaluated then.
-export function createSelectedBox({ focusedProject, projectChanged: changed, isSimulatable }: SelectedBoxDeps) {
+export function createSelectedBox({ focusedProject, projectChanged: changed, isSimulatable, featureUse }: SelectedBoxDeps) {
   const selectedBox = ref<BoxType>(focusedProject()?.box.boxType.value ?? 'sealed');
   watch(selectedBox, (b) => {
     const p = focusedProject();
-    if (isSimulatable(b) && p && p.box.boxType.value !== b) p.box.boxType.set(b);
+    // A type that differs from the project's is the user's pick; one that follows the project is equal here.
+    if (isSimulatable(b) && p && p.box.boxType.value !== b) {
+      featureUse.feature('box_type');
+      p.box.boxType.set(b);
+    }
   });
   watch(
     () => { void changed.value; return focusedProject()?.box.boxType.value; },

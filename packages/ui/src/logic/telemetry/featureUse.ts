@@ -25,6 +25,7 @@ const FEATURE_ACTIONS: Record<FeatureName, ActionName> = {
   history_restore: 'feature:history_restore',
   cloud_connect: 'dialog:cloud-sync',
   cloud_sync: 'feature:cloud_sync',
+  box_type: 'feature:box_type',
 };
 
 /** Records each chart viewed and each feature used once per page session. Records only; the

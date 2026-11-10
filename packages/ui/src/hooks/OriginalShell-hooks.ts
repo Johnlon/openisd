@@ -192,8 +192,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // ---- Box types — the registry's own list (`box_Type`), not a copy ------------------
   // Whether the circuit models this type is the DOMAIN's answer, asked through logic/.
   // Delegated to the unit-tested `createSelectedBox` (`boxFields.ts`).
+  const featureUse = useFeatureUse();
   const { selectedBox, pending, isDual, boxLabel, showEnclosureTab } =
-    createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
+    createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable, featureUse });
   const enclosureNavLabel = computed(() =>
     selectedBox.value === 'box-passive-radiator' ? 'Passive Radiator'
       : selectedBox.value === 'sealed' ? 'Closed'
@@ -251,7 +252,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // closes that chart in the stack and leaves the menu open.
   const chartSelection = new ChartSelection(focusedProject, projectChanged, engine.box);
   const { openCharts, chartItems, chartLabel } = chartSelection;
-  const featureUse = useFeatureUse();
   watch(openCharts, charts => { for (const c of charts) featureUse.chart(c); }, { immediate: true });
   function toggleChart(id: ChartId): void { chartSelection.toggle(id); }
   function selectChart(item: ChartItem) {

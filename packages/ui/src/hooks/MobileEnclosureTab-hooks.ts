@@ -5,6 +5,7 @@
  * Enclosure tab do", asked by both shells.
  */
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import {useFeatureUse} from './telemetryContext.js';
 import {useApp} from '../logic/app.js';
 import {createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
@@ -19,7 +20,7 @@ export function useMobileEnclosureTab() {
   const project = useFocusedProject();
   const { engine, myPassiveRadiators, bundledPassiveRadiators } = useApp();
 
-  const { selectedBox } = createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
+  const { selectedBox } = createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable, featureUse: useFeatureUse() });
   const {
     activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
   } = createVentReadouts({ project, projectChanged, selectedBox, vent: engine.vent });

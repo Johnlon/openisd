@@ -4,6 +4,7 @@
  * "what does the Box tab's Volume field do", asked by both shells.
  */
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import {useFeatureUse} from './telemetryContext.js';
 import {useApp} from '../logic/app.js';
 import {FH_TARGET_TIP} from './ventReadouts.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
@@ -18,7 +19,7 @@ export function useMobileBoxTab() {
   const isSimulatable = boxTypeIsSimulatable;
 
   const { selectedBox, pending, isDual, boxLabel } =
-    createSelectedBox({ focusedProject, projectChanged, isSimulatable });
+    createSelectedBox({ focusedProject, projectChanged, isSimulatable, featureUse: useFeatureUse() });
   const { boxResonance, prNaturalFh } = createSealedReadouts({ project, selectedBox, projectChanged });
   const { boxVolumeCell, sealedFscCell, sealedQtcCell } = createBoxVolume({ project, selectedBox, projectChanged });
   const { frontVolumeCell } = createChamberFields({ project, selectedBox, projectChanged });

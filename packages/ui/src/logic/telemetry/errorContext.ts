@@ -56,7 +56,8 @@ export type ActionName =
   | 'feature:skin_switch'
   | 'feature:bin_restore'
   | 'feature:history_restore'
-  | 'feature:cloud_sync';
+  | 'feature:cloud_sync'
+  | 'feature:box_type';
 
 /** A ring buffer of the last user actions, oldest first. */
 export class RecentActions {
