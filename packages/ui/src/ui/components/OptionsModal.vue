@@ -273,16 +273,16 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
             <span class="mob-crow-label">Frequency range</span>
             <button type="button" class="mob-dreset" aria-label="Reset Frequency range" title="Back to the default" @click="resetFreqRange()">↺</button>
           </div>
-          <UIFixedField class="mob-ui-field" input-id="opt-phone-lim-fmin" :field="NumberField.PLOT_FMIN_HZ" :value="draft.P.fmin" stepper @update:value="v => { draft.P.fmin = v; onFreqChange(); }" />
-          <UIFixedField class="mob-ui-field" input-id="opt-phone-lim-fmax" :field="NumberField.PLOT_FMAX_HZ" :value="draft.P.fmax" stepper @update:value="v => { draft.P.fmax = v; onFreqChange(); }" />
+          <UIFixedField class="mob-ui-field" input-id="opt-phone-lim-fmin" label="Start" :field="NumberField.PLOT_FMIN_HZ" :value="draft.P.fmin" stepper @update:value="v => { draft.P.fmin = v; onFreqChange(); }" />
+          <UIFixedField class="mob-ui-field" input-id="opt-phone-lim-fmax" label="End" :field="NumberField.PLOT_FMAX_HZ" :value="draft.P.fmax" stepper @update:value="v => { draft.P.fmax = v; onFreqChange(); }" />
         </div>
         <div v-for="row in LIMIT_ROWS" :key="row.tab" class="mob-dlim-block" role="group" :aria-label="row.label">
           <div class="mob-dlim">
             <span class="mob-crow-label">{{ row.label }}</span>
             <button type="button" class="mob-dreset" :aria-label="'Reset ' + row.label" title="Back to auto-scale" @click="resetLimit(row.tab)">↺</button>
           </div>
-          <UIFixedField class="mob-ui-field" :input-id="'opt-phone-lim-' + row.tab" :label="row.label + ' start'" :field="row.field" :value="limitShown(row, 'min')" stepper @update:value="v => setLimit(row.tab, 'min', v)" />
-          <UIFixedField class="mob-ui-field" :input-id="'opt-phone-lim-' + row.tab + '-max'" :label="row.label + ' end'" :field="row.field" :value="limitShown(row, 'max')" stepper @update:value="v => setLimit(row.tab, 'max', v)" />
+          <UIFixedField class="mob-ui-field" :input-id="'opt-phone-lim-' + row.tab" :label="'Start'" :field="row.field" :value="limitShown(row, 'min')" stepper @update:value="v => setLimit(row.tab, 'min', v)" />
+          <UIFixedField class="mob-ui-field" :input-id="'opt-phone-lim-' + row.tab + '-max'" :label="'End'" :field="row.field" :value="limitShown(row, 'max')" stepper @update:value="v => setLimit(row.tab, 'max', v)" />
         </div>
       </template>
 
@@ -436,8 +436,8 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
                 </tr>
                 <tr v-for="row in LIMIT_ROWS" :key="row.tab">
                   <td>{{ row.label }}</td>
-                  <td><UIFixedField class="opt-lim-field" :label="row.label + ' start'" :field="row.field" :value="limitShown(row, 'min')" @update:value="v => setLimit(row.tab, 'min', v)" /></td>
-                  <td><UIFixedField class="opt-lim-field" :label="row.label + ' end'" :field="row.field" :value="limitShown(row, 'max')" @update:value="v => setLimit(row.tab, 'max', v)" /></td>
+                  <td><UIFixedField class="opt-lim-field" :label="'Start'" :field="row.field" :value="limitShown(row, 'min')" @update:value="v => setLimit(row.tab, 'min', v)" /></td>
+                  <td><UIFixedField class="opt-lim-field" :label="'End'" :field="row.field" :value="limitShown(row, 'max')" @update:value="v => setLimit(row.tab, 'max', v)" /></td>
                   <td><button class="opt-clear-btn" title="Reset to auto-scale" @click="resetLimit(row.tab)">↺</button></td>
                 </tr>
               </tbody>
