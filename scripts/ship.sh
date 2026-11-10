@@ -10,7 +10,7 @@
 #   exit 3  blocked: the rebase conflicts; it is aborted, the task says status: blocked and why, the branch is
 #           pushed, and nothing is removed
 #
-# Steps: 1 commit everything (nothing discarded; the hooks run), 2 status done, 3 fetch and rebase onto origin/main,
+# Steps: 1 commit everything (nothing discarded; the hooks run), 2 status done, 3 fetch and rebase onto $SHIP_REMOTE/main,
 # 3b the task contract (the PR `task` job's check, run locally; a refusal exits 1, nothing pushed), 4 quick local check (lint on the changed files + typecheck; --no-local-check skips), 5 push branch t<n> (the only
 # ref this script ever pushes; --force-with-lease against the sha it just read, because a rebase rewrites history),
 # 6 open or reuse the pull request, gh pr merge --auto --squash, 7 remove the worktree and local branch once the
@@ -31,6 +31,8 @@ if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.
 . "$HERE/land/pr-title.sh"
 # shellcheck source=/dev/null
 . "$CONF"
+# shellcheck source=/dev/null
+. "${CONF%land.conf}ship.conf"
 # shellcheck source=/dev/null
 . "$HERE/land/core/task.sh"
 # shellcheck source=/dev/null
@@ -68,13 +70,14 @@ net() {
   return "$s"
 }
 GH="${LAND_GH:-gh}"
-REPO="${ACTIONS_REPO:?ship: ACTIONS_REPO is not set in land.conf}"
+REPO="${SHIP_REPO:?ship: SHIP_REPO is not set in land.conf}"
+SHIP_REMOTE="${SHIP_REMOTE:?ship: SHIP_REMOTE is not set in land.conf}"
 
 # push_branch: the only push. It names the task's own branch and nothing else.
 push_branch() {
   local remote_sha
-  remote_sha="$(net git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" || return 1
-  net git push -q --force-with-lease="refs/heads/$BRANCH:$remote_sha" origin "HEAD:refs/heads/$BRANCH"
+  remote_sha="$(net git ls-remote "$SHIP_REMOTE" "refs/heads/$BRANCH" | cut -f1)" || return 1
+  net git push -q --force-with-lease="refs/heads/$BRANCH:$remote_sha" "$SHIP_REMOTE" "HEAD:refs/heads/$BRANCH"
 }
 goal="$(task_field "$TASK" goal)"
 
@@ -95,14 +98,14 @@ case "$(task_field "$TASK" status)" in
     ;;
 esac
 
-# 3. fetch, rebase onto origin/main
-net git fetch -q origin main || { echo "ship: fetch failed" >&2; exit 2; }
-if ! git merge-base --is-ancestor origin/main HEAD; then
-  if ! git rebase -q origin/main > "$WORK/rebase.out" 2>&1; then
+# 3. fetch, rebase onto $SHIP_REMOTE/main
+net git fetch -q "$SHIP_REMOTE" main || { echo "ship: fetch failed" >&2; exit 2; }
+if ! git merge-base --is-ancestor "$SHIP_REMOTE/main" HEAD; then
+  if ! git rebase -q "$SHIP_REMOTE/main" > "$WORK/rebase.out" 2>&1; then
     conflicts="$(git diff --name-only --diff-filter=U | tr '\n' ' ')"
     git rebase --abort
-    task_mark_blocked "$TASK" "rebase onto origin/main conflicts in: ${conflicts:-unknown files}"
-    git add -- "$TASK" && git commit -q -m "(auto) $ID: blocked, rebase onto origin/main conflicts"
+    task_mark_blocked "$TASK" "rebase onto $SHIP_REMOTE/main conflicts in: ${conflicts:-unknown files}"
+    git add -- "$TASK" && git commit -q -m "(auto) $ID: blocked, rebase onto $SHIP_REMOTE/main conflicts"
     push_branch || echo "ship: could not push $BRANCH" >&2
     echo "ship: BLOCKED $ID: rebase conflicts in ${conflicts:-unknown files}; branch $BRANCH is pushed, nothing removed" >&2
     exit 3
@@ -112,7 +115,7 @@ fi
 # 3b. the task contract, exactly as the pull request's `task` job runs it (T758): locked hashes, task id and owner,
 # status, gate files, and every changed file inside the task's `files` allowlist. A refusal names the files and
 # nothing is pushed. The board file is not read (a GitHub runner has none), so the local verdict equals CI's.
-contract="$(GATE_FILES="${GATE_FILES:-}" QUESTIONS_FILE=/nonexistent bash "$HERE/land/check-task-contract.sh" "$ID" origin/main HEAD --pr 2>&1)" || {
+contract="$(GATE_FILES="${GATE_FILES:-}" QUESTIONS_FILE=/nonexistent bash "$HERE/land/check-task-contract.sh" "$ID" "$SHIP_REMOTE/main" HEAD --pr 2>&1)" || {
   printf '%s\n' "$contract" >&2
   echo "ship: the task contract refuses $ID (the pull request's task check would fail); nothing pushed. Offending files are listed above" >&2
   exit 1
@@ -120,7 +123,7 @@ contract="$(GATE_FILES="${GATE_FILES:-}" QUESTIONS_FILE=/nonexistent bash "$HERE
 
 # 4. quick local check: lint on the changed files, typecheck
 if [ -n "$LOCAL_CHECK" ]; then
-  mapfile -t changed < <(git diff --name-only --diff-filter=d origin/main HEAD)
+  mapfile -t changed < <(git diff --name-only --diff-filter=d "$SHIP_REMOTE/main" HEAD)
   if [ -n "${LINT_CMD:-}" ] && [ "${#changed[@]}" -gt 0 ]; then
     bash -c "$LINT_CMD \"\$@\"" ship "${changed[@]}" > "$WORK/check.out" 2>&1 \
       || { tail -30 "$WORK/check.out" >&2; echo "ship: lint failed; nothing pushed" >&2; exit 1; }
@@ -134,8 +137,8 @@ fi
 # 5. push the task's own branch, then confirm the remote holds this commit
 push_branch || { echo "ship: push of $BRANCH failed; nothing removed" >&2; exit 1; }
 local_sha="$(git rev-parse HEAD)"
-remote_sha="$(net git ls-remote origin "refs/heads/$BRANCH" | cut -f1)"
-[ "$remote_sha" = "$local_sha" ] || { echo "ship: origin/$BRANCH is '$remote_sha', not $local_sha; nothing removed" >&2; exit 1; }
+remote_sha="$(net git ls-remote "$SHIP_REMOTE" "refs/heads/$BRANCH" | cut -f1)"
+[ "$remote_sha" = "$local_sha" ] || { echo "ship: $SHIP_REMOTE/$BRANCH is '$remote_sha', not $local_sha; nothing removed" >&2; exit 1; }
 
 # 6. pull request with auto-merge (squash)
 { task_field "$TASK" release_note | grep -v '^internal$'; echo; echo "Opened by scripts/ship.sh for $ID: $goal"; } > "$WORK/body.md"

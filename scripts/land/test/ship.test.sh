@@ -42,6 +42,7 @@ TYPECHECK_CMD="bash gates/type.sh"
 ACTIONS_REPO=o/r
 GATE_FILES="land.conf"
 EOF2
+  printf 'SHIP_REMOTE=%s\nSHIP_REPO=%s\n' "${SHIP_REMOTE_FOR_TEST:-origin}" "${SHIP_REPO_FOR_TEST:-o/r}" > ship.conf
   touch tasks/.keep; echo base > a.txt
   git add -A; git commit -qm base; git push -q origin main
   git worktree add -q -b t1 ../wt
@@ -94,6 +95,15 @@ setup 0; printf 'id: T2\nowner: y\nstatus: open\ngoal: g\nrelease_note: internal
 ship T1; r=$?
 [ $r = 1 ] && [ -z "$(remote_t1)" ] && grep -q 'tasks/T2.yml' "$SCRATCH/out" \
   && ok "a second task file is refused and named" || fail "second task (r=$r): $(tail -5 "$SCRATCH/out")"
+
+# (d) SHIP_REMOTE / SHIP_REPO: the branch goes to that remote and the pull request to that repo, origin sees nothing
+SHIP_REMOTE_FOR_TEST=copy SHIP_REPO_FOR_TEST=c/r setup 0
+COPY="$SCRATCH/w/copy.git"; git init -q --bare -b main "$COPY"
+git -C "$SCRATCH/w/main" remote add copy "$COPY"; git -C "$SCRATCH/w/main" push -q copy main
+ship T1; r=$?
+[ $r = 0 ] && git -C "$COPY" rev-parse -q --verify refs/heads/t1 > /dev/null && [ -z "$(remote_t1)" ] \
+  && grep -q '^pr|create|--repo|c/r|' "$CALLS" && grep -qx 'pr|merge|7|--repo|c/r|--auto|--squash' "$CALLS" \
+  && ok "SHIP_REMOTE and SHIP_REPO send the branch and the pull request to the copy, not origin" || fail "copy (r=$r): $(tail -5 "$SCRATCH/out"); $(cat "$CALLS")"
 
 [ $fails = 0 ] && { echo "ship: all passed"; exit 0; }
 echo "ship: $fails failed"; exit 1
