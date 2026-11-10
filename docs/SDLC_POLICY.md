@@ -1,43 +1,33 @@
 # SDLC policy — rules every agent follows
 
 John's standing orders. Each rule names its date and his words. Background and history: [`SDLC.md`](SDLC.md);
-the normal landing path: [`DEV_PROCESS.md`](DEV_PROCESS.md).
+the normal path to main: [`DEV_PROCESS.md`](DEV_PROCESS.md).
 
-## 1. Main broken: fix main, directly (John, 31 Oct 2026)
+## 1. Main broken: fix first, fix only (John, 31 Oct 2026; queue QO481, 10 Nov 2026)
 
-> "If main is broken, you fix main. You don't create new branches that just cause further delay. The emergency is
-> main must be fixed." — "If you don't work on main when it's an emergency, you end up with conflicts and other
-> matters, which means that you have to do yet more builds and more merges. Just get it onto main."
+Through the merge queue main cannot go red: only green merged results reach it. If main is ever red anyway (the
+deploy fails, a release is blocked, John says so), the fix is a pull request labelled `fixes`, first in the queue.
 
-Main is broken when the suite on main's head is red, an `F` fix is open, the deploy fails, a release is blocked on
-a fix, or John says so.
-
-- Commit the fix and push it straight to main (`git push origin HEAD:main`). No new branch, no PR, no `land.sh`
-  candidate run first.
-- If main moved under you, **merge** it (`git merge origin/main`), never rebase: one conflict round, not one per
-  commit.
 - Do **only** the fix. No visual baseline re-takes, no coverage baselines, no bookkeeping, tidying or other
   housekeeping until main works ("you wasted even more time taking visual baselines when we're broken ... This must
   be something that you have to stop doing"). A generated file in conflict takes main's side; it is regenerated
   after the emergency.
-- Prove the fix with its own failing specs first (§2), then push.
-- After the push, check main's exact head with the full suite without blocking main:
-  `git push -f origin <sha>:refs/heads/land/<task>` runs `suite.yml` on that sha. Red → fix on main again (§2).
-- Outside an emergency, main moves only through `scripts/land.sh` (`.claude/rules/processes.md` rule 6).
+- Prove the fix with its own failing specs first (§2), then `bash scripts/ship.sh T<n>`.
+- Main moves only through the merge queue (`.claude/rules/processes.md` rule 6).
 
 ## 2. Failing tests: one spec, then a cluster, then the suite (John, 7 and 31 Oct 2026)
 
 > "no you run just that one test to make sure it works before running other tests" — "don't run full suite until
 > all individuals work then try running a small cluster 2 or 3 around it, then the suite, be smart and efficient"
 
-A full suite costs ~9 min on GitHub and ~30 min per landing retry. Climb the ladder, never skip a rung:
+A full suite costs ~9 min on GitHub and per pull request retry. Climb the ladder, never skip a rung:
 
 1. Each failing spec alone: `bash scripts/test.sh <spec>`. Fails alone → real defect: fix it, red first.
 2. A cluster of 2–3 neighbouring specs (same area, shared state) together. A pass alone but a fail here →
    interaction bug: fix it.
-3. Only then the full suite (`land.sh`, or the `land/<task>` push in §1).
+3. Only then the full suite (`pr-gate`, by `ship.sh`).
 
-Never re-run a landing or the suite on a red before rungs 1 and 2 pass locally. A spec that passes alone and on
+Never re-push a pull request or re-run the suite on a red before rungs 1 and 2 pass locally. A spec that passes alone and on
 the cluster but fails again in a full run is a flaky test: it gets a bug file and a task, never a silent rerun.
 
 ## 3. Release first (John, 31 Oct 2026)

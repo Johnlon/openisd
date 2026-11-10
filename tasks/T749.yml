@@ -7,6 +7,15 @@ goal: Finished tasks reach main through GitHub pull requests with a merge queue 
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/T749.yml
+  - CLAUDE.md
+  - .claude/rules/verify.md
+  - .claude/rules/processes.md
+  - .claude/rules/test-diagnosis.md
+  - .opencode/rules/verify.md
+  - docs/DEV_PROCESS.md
+  - docs/SDLC_POLICY.md
+  - RELEASING.md
+  - TESTING_STRATEGY.md
   - scripts/ship.sh
   - scripts/land/test/ship.test.sh
   - .github/workflows/pr.yml
