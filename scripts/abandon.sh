@@ -2,7 +2,10 @@
 # Drops a task on a decision: deletes its worktree and its branch, local and on origin, and logs one line (T355,
 # John 17 Oct 2026: "don't commit abandoned"; dropped code is not kept either).
 #
-#   bash scripts/abandon.sh T<n> --by <who decided> "<why>"
+#   bash scripts/abandon.sh T<n> --by <who decided> [--rejected] "<why>"
+#
+#   - --rejected (John said yes on QO484): a task John turned down is logged and reported as "rejected, not required"
+#     instead of "abandoned". Nothing else changes.
 #
 #   - Nothing is committed or landed: main does not move, the task needs no task of its own, and tasks/T<n>.yml is
 #     not edited. The decision is the authority (--by names who made it).
@@ -14,9 +17,12 @@
 # Exit 0 done; 1 refused (bad arguments, unknown task, task already done, git could not be read or written).
 set -uo pipefail
 
-ID="${1:?usage: abandon.sh T<n> --by <who> \"<why>\"}"; shift
-[ "${1:-}" = --by ] && [ -n "${2:-}" ] || { echo "abandon: usage: abandon.sh T<n> --by <who decided> \"<why>\"" >&2; exit 1; }
-BY="$2"; WHY="${3:?abandon: say why}"
+ID="${1:?usage: abandon.sh T<n> --by <who> [--rejected] \"<why>\"}"; shift
+[ "${1:-}" = --by ] && [ -n "${2:-}" ] || { echo "abandon: usage: abandon.sh T<n> --by <who decided> [--rejected] \"<why>\"" >&2; exit 1; }
+BY="$2"; shift 2
+VERB=abandoned
+if [ "${1:-}" = --rejected ]; then VERB=rejected; shift; fi
+WHY="${1:?abandon: say why}"
 case "$ID" in T[0-9]*) ;; *) echo "abandon: $ID is not a task id" >&2; exit 1 ;; esac
 
 common="$(cd "$(git rev-parse --git-common-dir)" && pwd)" || exit 1
@@ -61,5 +67,5 @@ fi
 if g rev-parse -q --verify "refs/remotes/origin/$branch" > /dev/null; then
   g push -q origin --delete "$branch" || { echo "abandon: could not delete origin/$branch" >&2; exit 1; }
 fi
-log "abandoned $ID by $BY on $(date -u +%Y-%m-%d): $WHY; branch $branch tip ${tip:0:10}; worktree ${wt:-none}$note; goal: $goal"
-echo "abandon: $ID is abandoned; its worktree and branch are deleted and the decision is in $LOG"
+log "$VERB $ID by $BY on $(date -u +%Y-%m-%d): $WHY; branch $branch tip ${tip:0:10}; worktree ${wt:-none}$note; goal: $goal"
+echo "abandon: $ID is $VERB; its worktree and branch are deleted and the decision is in $LOG"

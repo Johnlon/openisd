@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: claude
 status: done
+landed: f657fb861ceb0a3115d1747e5920ed057f89c124
 goal: On the desktop PR tab the Num. of PRs dropdown is 90 px wide, like Num. of drivers
 done_test: bash scripts/test.sh packages/ui/test/architecture/no-numinput-outside-uifieldbody.test.ts
 files:
