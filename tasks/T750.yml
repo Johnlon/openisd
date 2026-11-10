@@ -9,6 +9,7 @@ files:
   - CLAUDE.md
   - docs/SDLC_POLICY.md
   - tasks/T750.yml
+  - packages/ui/test/visual/SOURCES.sha256
   - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
   - .claude/rules/typescript.md
   - packages/design/test/architecture-no-default-parameters.test.ts
