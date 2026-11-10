@@ -61,6 +61,9 @@ export class PhoneRowColumns {
   static readonly WIDE_CHIP_PX = 50;
   /** The least blank between a number box (its unit chip included) and its up/down buttons, on every screen (John, 10 Nov 2026: "there is no gap between the cell and the spinner buttons"). */
   static readonly MIN_STEPPER_GAP_PX = 4;
+  /** The widest blank allowed between a group's longest label and its box on a phone: the label's right padding
+   *  and the slot a warning takes. John, 10 Nov 2026: "there is tons of empty space, don't blame the label". */
+  static readonly MAX_LABEL_GAP_PX = 8 + 22 + 2;
   static readonly WARNING_PX = 26;
   static readonly MODEL_CUE_PX = 24;
   static readonly CONTROL_GAP_PX = 8;
@@ -72,6 +75,17 @@ export class PhoneRowColumns {
 
   /** Side margin of a row, each side. */
   static readonly EDGE_PX = 16;
+
+  /** The CSS variable every phone row reads for its label column. */
+  static readonly LABEL_COLUMN_VAR = '--mob-col-label';
+  /** The blank after the longest label's text, before the box (the label's own right padding). */
+  static readonly LABEL_PAD_PX = 8;
+
+  /** The label column of one phone page or popup: its longest label (text plus any margin the label keeps
+   *  for a warning), rounded up to whole pixels, and the padding after it. The box takes all the rest. */
+  static labelColumnPx(labelWidthsPx: readonly number[]): number {
+    return Math.ceil(Math.max(0, ...labelWidthsPx)) + PhoneRowColumns.LABEL_PAD_PX;
+  }
 
   static chipIsWide(label: string): boolean { return label.length > 3; }
 

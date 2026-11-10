@@ -2,6 +2,7 @@
 import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import {computed, nextTick, onBeforeUnmount, provide, ref, watch} from 'vue';
+import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../hooks/phoneLabelColumn.js';
 import type {NumSpecField} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {useApp} from '../../logic/app.js';
@@ -254,6 +255,10 @@ provide(FIELD_EDIT_MODE, {
 // beside its right edge when there is room, its left edge otherwise — so it can never cover the
 // dialog it is inspecting, at any viewport size.
 const modalRootEl = ref<HTMLElement | null>(null);
+// On the phone the label column follows the longest label shown (the desktop skin sizes its own).
+let phoneLabelColumn: PhoneLabelColumn | null = null;
+watch(modalRootEl, el => { phoneLabelColumn?.stop(); phoneLabelColumn = el !== null && props.skin !== undefined ? createPhoneLabelColumn(el) : null; }, {flush: 'post'});
+onBeforeUnmount(() => phoneLabelColumn?.stop());
 const popupStyle = ref<Record<string, string>>({});
 // Phone: height of the docked card. The editor body gets this much bottom padding and scroll
 // padding, so every row can be scrolled clear of the card and the tapped row is kept above it.

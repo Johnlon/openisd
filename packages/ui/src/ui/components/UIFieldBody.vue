@@ -47,8 +47,8 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
 
 const scope = useCellScope();
 const generatedId = useId();
-/** The row's column widths as CSS variables, from the design constant. */
-const columnVars = Object.fromEntries(PhoneRowColumns.STANDARD.cssVars());
+/** The row's column widths as CSS variables, from the design constant. The label column is the page's (it follows the page's longest label). */
+const columnVars = Object.fromEntries([...PhoneRowColumns.STANDARD.cssVars()].filter(([name]) => name !== PhoneRowColumns.LABEL_COLUMN_VAR));
 const id = computed(() => props.inputId ?? generatedId);
 
 /** The cell read once per change of the hosting view: Vue cannot see the cell itself change. */

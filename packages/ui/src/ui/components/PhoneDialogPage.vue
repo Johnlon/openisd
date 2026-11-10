@@ -4,13 +4,20 @@
 // (PhoneRowColumns.STANDARD) from packages/design, and draws the few row shapes a dialog has that a
 // project page does not: a hint line, a name-and-value line, a button row, a tick or radio line, a
 // colour line, a from-to line, a report block. Display only; every word and value is the caller's.
+import {onBeforeUnmount, onMounted, ref} from 'vue';
 import {PhoneRowColumns, PhoneRowSizes} from '@openisd/design/fields';
+import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../hooks/phoneLabelColumn.js';
 
 const sizeVars=Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars(),...PhoneRowColumns.STANDARD.cssVars()]);
+
+const root = ref<HTMLElement | null>(null);
+let labelColumn: PhoneLabelColumn | null = null;
+onMounted(() => { if (root.value !== null) labelColumn = createPhoneLabelColumn(root.value); });
+onBeforeUnmount(() => labelColumn?.stop());
 </script>
 
 <template>
-  <div class="mob-classic mob-dlgpage" :style="sizeVars"><slot /></div>
+  <div ref="root" class="mob-classic mob-dlgpage" :style="sizeVars"><slot /></div>
 </template>
 
 <style>
