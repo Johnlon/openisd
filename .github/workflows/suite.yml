@@ -9,6 +9,21 @@ on:
     # land/<task>: the candidate of a landing; land.sh pushes main only when this run is green (T301), and main
     # then holds that same commit, so main has no run of its own (T322): post-land reads the candidate's.
     branches: ['land/**']
+  # Called by the pull request check (.github/workflows/pr.yml, T749) with the commit under test.
+  workflow_call:
+    inputs:
+      sha:
+        description: Commit to test
+        required: true
+        type: string
+      shards:
+        required: false
+        default: '10'
+        type: string
+      workers:
+        required: false
+        default: '4'
+        type: string
   workflow_dispatch:
     inputs:
       sha:
