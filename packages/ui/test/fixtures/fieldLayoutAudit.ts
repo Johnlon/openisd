@@ -28,6 +28,7 @@ export function measureFieldLayoutRules(root: Element): string[] {
       const painted = (() => { const top = doc.elementFromPoint(Math.min(Math.max(box.left + box.width / 2, 0), view.innerWidth - 1), Math.min(Math.max(box.top + box.height / 2, 0), view.innerHeight - 1)); return top !== null && (top === part || part.contains(top) || top.contains(part)) && box.bottom <= view.innerHeight && box.top >= 0; })();
       if ((sideways || upDown) && !painted) { issues.push(`R2 ${name(part)} "${text}" is cut by ${ancestor.tagName.toLowerCase()}.${String(ancestor.className).slice(0, 24)}`); break; }
     }
+    if ((part.tagName === 'INPUT' || part.classList.contains('ui-field-unit')) && part.scrollWidth > part.clientWidth + 1) issues.push(`R2 ${name(part)} "${(part as HTMLInputElement).value ?? text}" text is cut ${part.scrollWidth - part.clientWidth}px`);
     if (part.tagName === 'LABEL' && part.scrollWidth > part.clientWidth + 1 && view.getComputedStyle(part).overflow !== 'visible') issues.push(`R2 label "${text}" is cut`);
   }
   for (const scroller of [root, ...root.querySelectorAll('*')]) {

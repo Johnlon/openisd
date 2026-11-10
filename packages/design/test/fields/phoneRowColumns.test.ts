@@ -10,7 +10,7 @@ describe('PhoneRowColumns', () => {
     }
   });
   it('provides a wide unit column so warning and difference cues can reserve its space', () => {
-    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-chip-wide')).toBe('60px');
+    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-chip-wide')).toBe('50px');
   });
 
   it('reserves the wide column for multi-character compound units', () => {

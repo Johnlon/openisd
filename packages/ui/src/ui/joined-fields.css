@@ -47,7 +47,7 @@
   --joined-buttons:90px;--joined-height:34px;--joined-inset:16px;--joined-border-color:#c4c4c4;
   width:100%;max-width:100%;min-height:40px;height:auto;padding:0 var(--mob-col-edge,16px);column-gap:0;
 }
-.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field):has(.unit-wide) {--joined-chip:60px;}
+.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field):has(.unit-wide) {--joined-chip:var(--mob-col-chip-wide,50px);}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) > label {font-size:14px;line-height:16px;white-space:normal;overflow-wrap:normal;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-value :is(input,select) {font:15px var(--font-ui);border-radius:4px;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .num-stepper {padding-left:6px;gap:4px;box-sizing:border-box;}

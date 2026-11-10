@@ -57,8 +57,8 @@ export class PhoneRowSizes {
 
 /** The widths across a classic phone row: label, ▲▼ area, unit chip, and the text gutter in the box. */
 export class PhoneRowColumns {
-  /** Compound labels such as mm/N and 1000/K need room for their text and chip padding. */
-  static readonly WIDE_CHIP_PX = 60;
+  /** Compound labels such as mm/N and 1000/K: 13 px text (1000/K is 39 px) plus 4 px each side; 60 px left a 7-figure value cut at 374 px. */
+  static readonly WIDE_CHIP_PX = 50;
   static readonly WARNING_PX = 26;
   static readonly MODEL_CUE_PX = 24;
   static readonly CONTROL_GAP_PX = 8;
