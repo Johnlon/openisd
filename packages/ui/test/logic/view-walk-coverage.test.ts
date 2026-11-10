@@ -10,7 +10,7 @@ import {VIEW_INDEX} from '../fixtures/viewIndex.js';
  */
 
 /** The number of (view, skin) pairs that have a reason instead of an open step. Lower it when a step is written; the test fails if the count rises. */
-const REASON_CEILING = 59;
+const REASON_CEILING = 46;
 
 const targets = walkTargets();
 
