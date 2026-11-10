@@ -12,15 +12,14 @@ describe('driver Cms note, W5-1138SMF in a project', () => {
     CompatSwitch.CMS_FROM_VAS.of(project).set(ticked);
     return project.driver.specs.Cms_m_per_N.dq.map(i => i.text);
   };
-  it('ticked: the note says the charts use Cms from Vas, and no "disagree by" text remains', () => {
+  it('ticked: the note says the charts use Cms from Vas, and no Vas "disagree by" text remains (the Fs/Mms/Cms conflict is a different issue and stays)', () => {
     const t = texts(true);
-    console.log(JSON.stringify(t));
     expect(t.filter(x => /^The stated Cms and Vas disagree, so the charts use Cms from Vas \([\d.]+ mm\/N\)\.$/.test(x))).toHaveLength(1);
-    expect(t.filter(x => /disagree by/.test(x))).toEqual([]);
+    expect(t.filter(x => /Vas.*disagree by/.test(x))).toEqual([]);
   });
-  it('unticked: the note says the charts use the stated Cms, and no "disagree by" text remains', () => {
+  it('unticked: the note says the charts use the stated Cms, and no Vas "disagree by" text remains (the Fs/Mms/Cms conflict is a different issue and stays)', () => {
     const t = texts(false);
     expect(t.filter(x => /^The stated Cms and Vas disagree, so the charts use the stated Cms \([\d.]+ mm\/N\)\.$/.test(x))).toHaveLength(1);
-    expect(t.filter(x => /disagree by/.test(x))).toEqual([]);
+    expect(t.filter(x => /Vas.*disagree by/.test(x))).toEqual([]);
   });
 });
