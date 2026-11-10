@@ -108,7 +108,7 @@ export class OpenISDProject {
         return OpenISDDriverEmbedded.wrap(
             focus(focus(root, 'driverEmbedding'), 'device'),
             this.#engine,
-            ProjectContext.of(() => cmsSourceOf(this), () => this.#airOver(root)),
+            ProjectContext.of(() => cmsSourceOf(this), () => this.#airOver(root), this.#engine.driver),
             () => this.#issues.driver,
             () => this.#appContext.newId(),
         );

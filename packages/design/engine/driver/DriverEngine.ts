@@ -14,7 +14,7 @@
 
 import type {Air} from '../air.js';
 import {resolveCms} from './cmsResolver.js';
-import type {ChartingSource, CmsResolveInput, ShownMechanics} from './cmsResolver.js';
+import type {ChartingSource, ShownMechanics} from './cmsResolver.js';
 import {
     referenceEfficiency,
     splFromEfficiency
@@ -124,8 +124,6 @@ export interface DriverEngine {
    *  Mms from Fs and that Cms, Rms from Fs, Mms and Qms, BL from Re, Fs, Qes and that Cms. A figure the chain cannot reach is null.
    *  Pure: nothing is stored. */
   shownMechanics(values: DriverValues, air: Air, source: ChartingSource): ShownMechanics;
-  /** The same chain over figures the caller holds (a passive radiator states no full driver). */
-  mechanics(source: ChartingSource, input: CmsResolveInput, air: Air): ShownMechanics;
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
   ebp(Fs_hz: number, Qes: number): number;
   /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
@@ -180,7 +178,6 @@ export class DriverEngineImpl implements DriverEngine {
   readonly terminalRe_ohm = terminalRe_ohm;
   readonly hotRe = hotRe;
   readonly terminalBL_Tm = terminalBL_Tm;
-  readonly mechanics = resolveCms;
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
   readonly rangeIssue = rangeIssue;
 

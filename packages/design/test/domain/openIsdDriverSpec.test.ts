@@ -1,10 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {simpleField} from '../../domain/cell.js';
+import {AppContext} from '../../domain/driver/driverContext.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {OpenIsdDriverSpec} from '../../domain/driver/openIsdDriverSpec.js';
 import type {DriverDeviceJson} from '../../domain/openisdSchema.js';
 import {createEngine} from '../../engine/Engine.js';
-import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 
 const engine = createEngine();
 
@@ -12,7 +12,7 @@ const engine = createEngine();
 function specOver(record: DriverDeviceJson): OpenIsdDriverSpec {
   let current = record;
   const slot = simpleField(() => current, next => { current = next; });
-  return new OpenIsdDriverSpec(slot, 'woofer', engine.driver, engine.issues, () => REFERENCE_AIR, () => null);
+  return new OpenIsdDriverSpec(slot, 'woofer', engine.driver, engine.issues, AppContext.of(engine));
 }
 
 function blankRecord(): DriverDeviceJson {
