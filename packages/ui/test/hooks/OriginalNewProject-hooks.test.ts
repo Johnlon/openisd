@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type {RadiatorPicks} from '../../src/logic/telemetry/radiatorPick.js';
 import {DEFAULT_ENV_DEFAULTS, type Engine, createEngine, type VentedDesignLimits} from '@openisd/design/engine';
 import { OpenISDDriver, ProjectBuilder, WizardStep } from '@openisd/design';
 import { DEFAULT_NEW_PROJECT_QA, DEFAULT_SOURCE_RESISTANCE_OHM } from '@openisd/design/fields';
@@ -709,6 +710,27 @@ describe('useOgNewProject — passive-radiator step', () => {
     expect(radiator?.model.value).toBe('Saved PR');
     expect(radiator?.spec.Sd_m2.value).toBeCloseTo(0.05, 9);
     expect(radiator?.spec.Fs_hz.value).toBeCloseTo(20, 9);
+  });
+
+  // John, 10 Nov 2026: "also record the pr picked either on Wiz or in main".
+  it('a radiator picked in the wizard is counted: bundled by its id, saved as mine', async () => {
+    const repos = testPassiveRadiators({ index: () => Promise.resolve([]), load: () => Promise.resolve(testRadiator('Bundled PR')) });
+    const saved = repos.saved.upsert(testRadiator('Saved PR'));
+    if (saved === null) throw new Error('memory storage refused the save');
+    const radiatorPicks: RadiatorPicks = {bundled: vi.fn(), saved: vi.fn()};
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: repos, areas: engine, initialDriver: createTestDriver(engine), radiatorPicks });
+    wizard.next();
+    wizard.next();
+    wizard.boxType.value = 'box-passive-radiator';
+    wizard.next();
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    expect(radiatorPicks.bundled).toHaveBeenCalledWith('bundled-1');
+    wizard.back();
+    wizard.next();
+    wizard.loadSavedPassiveRadiator(saved.uuid);
+    expect(radiatorPicks.saved).toHaveBeenCalledTimes(1);
   });
 
   it('a bundled radiator is loaded through the catalogue', async () => {

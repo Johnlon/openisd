@@ -12,7 +12,7 @@ describe('a failed driver selection',()=>{
     const browsing=createDriverBrowsingState({
       driverRepo:app.bundledDrivers,myDriverRepo:app.myDrivers,prefs:app.prefs,logging:app.logging,
       selection:failing,files:app.designFiles,confirmReset:app.confirmPort.port,exportNotice:{exported:()=>undefined},
-      appState:app.appState,presentation:app.presentation,
+      appState:app.appState,presentation:app.presentation,driverPicked:()=>undefined,
     });
     await browsing.chooseDriver(OpenISDDriver.empty(app.engine));
     expect(browsing.statusMsg.value).toBe('Embedding failed');
