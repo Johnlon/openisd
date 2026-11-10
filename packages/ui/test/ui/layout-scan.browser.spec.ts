@@ -19,10 +19,7 @@ import {PhoneRowColumns} from '@openisd/design/fields';
 const RESULTS = '/home/john/work/winisd/ui-gallery/T742-phone-clip';
 /** Views the first scan (10 Nov 2026) found at fault and nobody has fixed yet. Each test then expects the fault (test.fail) and turns red when it is fixed; delete its id then. */
 const SCAN_KNOWN: ReadonlySet<string> = new Set([
-  'editor-parameters',
   'options-plot-window',
-  'filter-lowpass',
-  'filter-highpass',
 ]);
 const SCAN_KNOWN_BUG = 'BUG_20261110_layout-scan-first-run';
 const OPENABLE = MOBILE_SURFACES.filter(surface => surface.route !== MobileRoute.Manual && surface.root !== '');

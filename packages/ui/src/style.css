@@ -333,6 +333,9 @@ a { color:var(--acc) }
 /* The Box type dropdown ends where the number boxes below it end. A page with a ≠W cue row reserves the cue column, which ends those boxes 10px sooner (field-layout rule 4). */
 .mob-classic:has(.mob-ui-field .ui-field-dev) .mob-cselect-aligned { margin-right: calc(var(--mob-col-stepper) + 10px); }
 .mob-classic .mob-cname { flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: var(--mob-input-h); padding: 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background: #f4f4f4; font: inherit; font-size: 15px; font-weight: 600; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }
+/* A dropdown in a pick row ends where the number boxes above and below it end: it leaves the up/down buttons' column blank, as the number boxes do (field-layout rule 4). */
+.mob-classic .ui-pick-field.mob-ui-field .ui-field-value select { margin-right: var(--mob-col-stepper); }
+.mob-classic:has(.mob-ui-field .ui-field-dev) .ui-pick-field.mob-ui-field .ui-field-value select { margin-right: calc(var(--mob-col-stepper) + 10px); }
 /* The driver-name button shows a long name whole, on as many lines as it needs (T736). */
 .mob-classic .mob-cname-button { height: auto; min-height: var(--mob-input-h); padding-top: 4px; padding-bottom: 4px; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; line-height: 1.25; }
 .mob-classic .mob-cbtns { display: flex; gap: 8px; box-sizing: border-box; padding: 6px var(--mob-edge); border-bottom: 1px solid #e6e6e6; }
