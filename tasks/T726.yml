@@ -9,6 +9,10 @@ done_test: bash scripts/test.sh packages/design/test/fields/app-defaults-agree.t
 files:
   - packages/ui/test/visual/SOURCES.sha256
   - tasks/T726.yml
+  - packages/ui/test/ui/original-box-tab.browser.spec.ts
+  - packages/ui/test/ui/options-dialog.browser.spec.ts
+  - packages/ui/test/ui/mobile-box-tab.browser.spec.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
   - bugs/BUG_20261108_app-defaults-typed-in-many-places.md
   - packages/design/chart/axis.ts
   - packages/design/chart/series.ts
