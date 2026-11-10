@@ -1271,9 +1271,9 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
   grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important;
 }
 .de-desktop .de-conn { grid-column: 1 / span 4 !important; }
-/* "Parallel"/"Series" plus the native select arrow do not fit the shared 90px input track —
-   it read as "Paralle" with the last letter clipped. Widened just for this one field. */
-.de-desktop .de-conn-sel { width: 96px !important; }
+/* "Parallel"/"Series" plus the native select arrow need the whole value track, the width of the number boxes above (field-layout rule 4) —
+   at 90px it read as "Paralle" with the last letter clipped. */
+.de-desktop .de-conn-sel { width: 100% !important; }
 .de-desktop .de-fld label {
   display: block !important;
   /* Sized by the shared subgrid track, never by a fixed pixel width: the track is as wide as

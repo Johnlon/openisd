@@ -20,17 +20,10 @@ const SIZES = [{width: 1280, height: 720}, {width: 1440, height: 900}] as const;
 const SCAN_KNOWN: ReadonlySet<string> = new Set<string>([
   'desktop/projects/new/passive-radiator/project-details 1280',
   'desktop/projects/new/passive-radiator/project-details 1440',
-  'desktop/workspace/advanced 1280',
-  'desktop/workspace/advanced 1440',
-  'desktop/driver/editor/parameters 1280',
-  'desktop/driver/editor/parameters 1440',
   'desktop/settings/options/general 1280',
   'desktop/settings/options/general 1440',
-  'desktop/driver/import/file 1280',
-  'desktop/driver/import/file 1440',
   'desktop/settings/cloud/account-and-activity 1280',
   'desktop/settings/cloud/account-and-activity 1440',
-  'desktop/settings/options/plot-window 1280',
 ]);
 const SCAN_KNOWN_BUG = 'BUG_20261110_layout-scan-first-run';
 

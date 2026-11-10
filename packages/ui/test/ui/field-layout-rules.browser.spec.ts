@@ -22,11 +22,7 @@ const BOXES: readonly {box: BoxTypeName; phone: string}[] = [
 /** A fault found by this gate and not yet fixed: the screen, the rules it breaks, and the bug file that records it. */
 type Rule = 'R2' | 'R3' | 'R4' | 'R5' | 'R6' | 'R7' | 'R10' | 'R11';
 interface KnownFault {readonly screen: string; readonly rules: readonly Rule[]; readonly bug: string}
-const ALL_BOXES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const;
-const KNOWN: readonly KnownFault[] = [
-  {screen: 'phone Driver editor Parameters', rules: ['R4'], bug: 'BUG_20261110_phone-driver-editor-connection-pick-wider-than-boxes'},
-  ...ALL_BOXES.map(box => ({screen: `desktop ${box} Advanced`, rules: ['R4'] as const, bug: 'BUG_20261105_desktop-advanced-air-value-widths'})),
-];
+const KNOWN: readonly KnownFault[] = [];
 
 type Skin = 'desktop' | 'phone';
 interface Screen {readonly id: string; readonly skin: Skin; readonly root: string; readonly open: (page: Page) => Promise<void>}

@@ -128,7 +128,7 @@
 
 /* A unit's spelling must not change the outline or the unit rail within these groups. */
 .joined-fields:not(.app-root-mobile) .driver-advanced-fields .ui-field.ui-field[data-field] {--joined-box:134px;--joined-chip:60px;}
-.joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] {--joined-box:134px;--joined-chip:60px;}
+.joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] {--joined-box:146px;--joined-chip:60px;}
 /* One box width for every row of each group: the widest unit (kg/m3) needs 134px, so all rows take it and the outlines stay equal. */
 /* Two sixth-order port groups have room for the usual labels beside their controls. */
 .joined-fields:not(.app-root-mobile) .vent-labels-left .ui-field.ui-field[data-field] {
@@ -168,5 +168,5 @@
 .joined-fields:not(.app-root-mobile) .port-columns .field > label {font-size:12px;line-height:14px;}
 /* Air labels gain 22px while their value boxes lose 22px; total group width is unchanged. */
 
-/* Keep the entered air values wide enough for Pa; only the two derived boxes narrow. */
+/* Every air box is the same width, wide enough for Pa (field-layout rule 4). */
 .joined-fields:not(.app-root-mobile) .adv-air-col:first-child .field-row .ui-field[data-field] {--joined-box:146px;}
