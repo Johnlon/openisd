@@ -9,7 +9,15 @@
   --chart-cross: #00000033; --chart-band: rgba(0,0,0,0.03); --chart-band-line: rgba(0,0,0,0.15);
 }
 * { box-sizing: border-box }
-body { margin:0; font:13px/1.45 "Inter",system-ui,sans-serif; background:var(--bg); color:var(--fg) }
+body { margin:0; font:13px/1.45 var(--font-ui); background:var(--bg); color:var(--fg) }
+/* One font per skin (SkinFonts, packages/design/fields/appFonts.ts; John, QO466): --font-ui is the desktop font, and the
+   phone skin's root switches it to the phone font. The variables are set from SkinFonts at start (main.ts). */
+:root { --font-ui: var(--font-desktop) }
+.app-root-mobile { --font-ui: var(--font-phone) }
+.app-root { font-family: var(--font-ui) }
+/* Form controls do not inherit the page font by default: they take the browser's own, so they inherit it here. */
+input, select, textarea, button { font-family: inherit }
+pre, code, kbd, samp { font-family: var(--font-mono) }
 h1 { font-size:15px; margin:0; font-weight:600; letter-spacing:.3px }
 h1 small { color:var(--mut); font-weight:400; font-size:11px }
 header { display:flex; align-items:center; gap:14px; padding:8px 14px; background:var(--panel); border-bottom:1px solid var(--line) }
@@ -247,7 +255,7 @@ a { color:var(--acc) }
 /* Classic phone pages (PHONE_CLASSIC_BUILD_SPEC §2): Box, Driver and Signal. Every size is a --mob-row-*
    or --mob-col-* variable from packages/design (PhoneRowSizes, PhoneRowColumns). Row: label | value box |
    ▲▼ area, 40 px high; the unit chip sits inside the box's right edge, the ≠W badge and ⚠ left of it. */
-.mob-classic { --mob-edge: 16px; --mob-box-line: #c4c4c4; background: #fff; }
+.mob-classic { --mob-edge: var(--mob-col-edge, 16px); --mob-box-line: #c4c4c4; background: #fff; }
 .mob-classic .mob-ui-field.ui-field {
   --mob-chip: var(--mob-col-chip-min); --mob-tail: var(--mob-col-stepper);
   display: grid; grid-template-columns: var(--mob-col-label) minmax(0, 1fr); column-gap: 0; row-gap: 0; align-items: center;
@@ -325,6 +333,9 @@ a { color:var(--acc) }
 /* The Box type dropdown ends where the number boxes below it end. A page with a ≠W cue row reserves the cue column, which ends those boxes 10px sooner (field-layout rule 4). */
 .mob-classic:has(.mob-ui-field .ui-field-dev) .mob-cselect-aligned { margin-right: calc(var(--mob-col-stepper) + 10px); }
 .mob-classic .mob-cname { flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: var(--mob-input-h); padding: 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background: #f4f4f4; font: inherit; font-size: 15px; font-weight: 600; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }
+/* A dropdown in a pick row ends where the number boxes above and below it end: it leaves the up/down buttons' column blank, as the number boxes do (field-layout rule 4). */
+.mob-classic .ui-pick-field.mob-ui-field .ui-field-value select { margin-right: var(--mob-col-stepper); }
+.mob-classic:has(.mob-ui-field .ui-field-dev) .ui-pick-field.mob-ui-field .ui-field-value select { margin-right: calc(var(--mob-col-stepper) + 10px); }
 /* The driver-name button shows a long name whole, on as many lines as it needs (T736). */
 .mob-classic .mob-cname-button { height: auto; min-height: var(--mob-input-h); padding-top: 4px; padding-bottom: 4px; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; line-height: 1.25; }
 .mob-classic .mob-cbtns { display: flex; gap: 8px; box-sizing: border-box; padding: 6px var(--mob-edge); border-bottom: 1px solid #e6e6e6; }

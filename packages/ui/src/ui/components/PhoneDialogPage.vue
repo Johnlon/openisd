@@ -1,18 +1,23 @@
 <script setup lang="ts">
 // The body of a classic phone dialog (Options, Cloud sync, Diagnostics, Differences and the storage lists):
-// gives its rows the classic sizes (PhoneRowSizes.CLASSIC) and the wide label column the dialogs use
-// (PhoneRowColumns.WIDE_LABEL) from packages/design, and draws the few row shapes a dialog has that a
+// gives its rows the classic sizes (PhoneRowSizes.CLASSIC) and the one phone column set
+// (PhoneRowColumns.STANDARD) from packages/design, and draws the few row shapes a dialog has that a
 // project page does not: a hint line, a name-and-value line, a button row, a tick or radio line, a
 // colour line, a from-to line, a report block. Display only; every word and value is the caller's.
-import {computed} from 'vue';
+import {onBeforeUnmount, onMounted, ref} from 'vue';
 import {PhoneRowColumns, PhoneRowSizes} from '@openisd/design/fields';
+import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../hooks/phoneLabelColumn.js';
 
-const props=withDefaults(defineProps<{columns?:PhoneRowColumns}>(),{columns:()=>PhoneRowColumns.WIDE_LABEL});
-const sizeVars=computed(()=>Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars(),...props.columns.cssVars()]));
+const sizeVars=Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars(),...PhoneRowColumns.STANDARD.cssVars()]);
+
+const root = ref<HTMLElement | null>(null);
+let labelColumn: PhoneLabelColumn | null = null;
+onMounted(() => { if (root.value !== null) labelColumn = createPhoneLabelColumn(root.value); });
+onBeforeUnmount(() => labelColumn?.stop());
 </script>
 
 <template>
-  <div class="mob-classic mob-dlgpage" :style="sizeVars"><slot /></div>
+  <div ref="root" class="mob-classic mob-dlgpage" :style="sizeVars"><slot /></div>
 </template>
 
 <style>
@@ -38,7 +43,7 @@ const sizeVars=computed(()=>Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars
 .mob-dlgpage .mob-dlim-range span:last-child { width: 34px; font-size: 12px; line-height: 13px; color: var(--mut); }
 .mob-dlgpage .mob-dstate { display: flex; align-items: center; gap: 8px; padding: 10px 16px 2px; font-size: 16px; font-weight: 600; }
 .mob-dlgpage .mob-dstate i { width: 10px; height: 10px; border-radius: 50%; }
-.mob-dlgpage .mob-dpre { margin: 0; padding: 4px 16px 10px; font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace; color: var(--fg); white-space: pre-wrap; overflow-wrap: anywhere; max-height: none; opacity: 1; }
+.mob-dlgpage .mob-dpre { margin: 0; padding: 4px 16px 10px; font: 12px/1.5 var(--font-mono); color: var(--fg); white-space: pre-wrap; overflow-wrap: anywhere; max-height: none; opacity: 1; }
 .mob-dlgpage .mob-dcard { border-bottom: 1px solid #e6e6e6; }
 .mob-dlgpage .mob-dcard.bug { box-shadow: inset 3px 0 0 #d4a514; }
 .mob-dlgpage .mob-dcard-head { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 6px 8px 6px 16px; border: none; background: #fff; font: inherit; text-align: left; color: var(--fg); cursor: pointer; }

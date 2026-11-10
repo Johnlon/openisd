@@ -14,6 +14,6 @@ const {showGroup} = injectWinisdDifferencesModal();
 </template>
 
 <style>
-.compat-help-link { font: 600 9px/1 sans-serif; width: 14px; height: 14px; padding: 0; border: 1px solid #3a6fb0; border-radius: 50%; background: #e6f0fb; color: #23548f; cursor: pointer; flex-shrink: 0; }
+.compat-help-link { font: 600 9px/1 var(--font-ui); width: 14px; height: 14px; padding: 0; border: 1px solid #3a6fb0; border-radius: 50%; background: #e6f0fb; color: #23548f; cursor: pointer; flex-shrink: 0; }
 .compat-help-link:hover, .compat-help-link:focus-visible { background: #cfe2f8; }
 </style>

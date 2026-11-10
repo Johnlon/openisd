@@ -748,7 +748,7 @@ test('environment boxes and unit columns align within each air column', async ({
   expect(geometry).toHaveLength(5);
   for (const row of geometry.slice(0,3)) expect(row).toEqual(geometry[0]);
   for (const row of geometry.slice(3)) expect(row).toEqual(geometry[3]);
-  expect(geometry[3]!.width).toBeLessThan(geometry[0]!.width);
+  expect(geometry[3]!.width, 'every air box is one width (field-layout rule 4)').toBe(geometry[0]!.width);
 });
 
 test('simulation options occupy column three before compatibility groups', async ({appPage: page}) => {

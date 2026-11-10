@@ -9,6 +9,8 @@ import PhoneButton from './PhoneButton.vue';
 import { useMobileSheet } from '../../../hooks/MobileSheet-hooks.js';
 import { SheetMode } from '@openisd/design/fields';
 import { inputChecked } from '../../../logic/domEvents.js';
+import { createPhoneLabelColumnDirective } from '../../../hooks/phoneLabelColumnDirective.js';
+const vPhoneLabelColumn = createPhoneLabelColumnDirective();
 import { provide } from 'vue';
 import { ENTER_CLOSES_KEYBOARD } from '../../../logic/enterClosesKeyboard.js';
 
@@ -24,7 +26,7 @@ provide(ENTER_CLOSES_KEYBOARD, true);
 <template>
   <PhoneButton v-if="!isOpen && !hidden" class="mob-sheet-tab" :style="sizeStyle" :aria-label="'Open ' + mode.label"
                @pointerdown="onTabDown" @pointerup="onTabUp" @click="openSheet">{{ mode.label }} ▲</PhoneButton>
-  <section v-else-if="isOpen" ref="sheetEl" class="mob-sheet mob-classic" :style="[sizeStyle, sheetStyle]" :aria-label="mode.label">
+  <section v-else-if="isOpen" ref="sheetEl" v-phone-label-column class="mob-sheet mob-classic" :style="[sizeStyle, sheetStyle]" :aria-label="mode.label">
     <div class="mob-sheet-handle" role="separator" aria-label="Drag to resize"
          @pointerdown="onHandleDown" @pointermove="onHandleMove" @pointerup="onHandleUp" @pointercancel="onHandleUp">
       <PhoneBand :section="help" />

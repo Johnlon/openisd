@@ -10,7 +10,7 @@
 }
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field):has(.ui-field-dev) {--joined-model:24px;}
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field):has(.unit-wide) {--joined-chip:60px;}
-.joined-fields .ui-field.ui-field:is([data-field],.joined-field) > label {grid-column:1;grid-row:1;white-space:normal;overflow-wrap:anywhere;line-height:normal;padding-right:4px;justify-self:start;width:fit-content;max-width:100%;box-sizing:border-box;}
+.joined-fields .ui-field.ui-field:is([data-field],.joined-field) > label {grid-column:1;grid-row:1;white-space:normal;overflow-wrap:normal;line-height:normal;padding-right:4px;justify-self:start;width:fit-content;max-width:100%;box-sizing:border-box;}
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field):has(.ui-field-dq-btn) > label {padding-right:4px;margin-right:22px;max-width:calc(100% - 22px);}
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field) .ui-field-value {display:contents;}
 .joined-fields .ui-field:is([data-field],.joined-field) .num-unit {display:contents;}
@@ -43,20 +43,20 @@
 
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field),
 .joined-fields .field-catalogue .ui-field.ui-field:is([data-field],.joined-field) {
-  --joined-label:var(--mob-col-label,82px);--joined-box:minmax(0,1fr);--joined-chip:40px;
+  --joined-label:var(--mob-col-label,82px);--joined-box:minmax(0,1fr);--joined-chip:var(--mob-col-chip-min,40px);
   --joined-buttons:90px;--joined-height:34px;--joined-inset:16px;--joined-border-color:#c4c4c4;
-  width:100%;max-width:100%;min-height:40px;height:auto;padding:0 16px;column-gap:0;
+  width:100%;max-width:100%;min-height:40px;height:auto;padding:0 var(--mob-col-edge,16px);column-gap:0;
 }
-.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field):has(.unit-wide) {--joined-chip:60px;}
-.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) > label {font-size:14px;line-height:16px;white-space:normal;overflow-wrap:anywhere;}
-.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-value :is(input,select) {font:15px Arial,sans-serif;border-radius:4px;}
+.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field):has(.unit-wide) {--joined-chip:var(--mob-col-chip-wide,50px);}
+.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) > label {font-size:14px;line-height:16px;white-space:normal;overflow-wrap:normal;}
+.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-value :is(input,select) {font:15px var(--font-ui);border-radius:4px;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .num-stepper {padding-left:6px;gap:4px;box-sizing:border-box;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .num-stepper-btn {width:40px;height:36px;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-dev {padding-left:2px;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field):not(:has(.num-stepper)) .ui-field-dev {margin-left:0;}
 /* The chosen inverse cursor remains behaviourally identical after the paint rollback. */
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field) .num-mark-overlay {font:inherit;line-height:normal;padding:0; padding-left:calc(var(--joined-inset) + var(--joined-border-width));text-align:left;}
-.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .num-mark-overlay {font:15px/18px Arial,sans-serif;}
+.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .num-mark-overlay {font:15px/18px var(--font-ui);}
 .joined-fields.joined-fields .num-mark-underline {font:inherit;text-decoration:none;border:0;animation:joined-inverse-blink 1s step-end infinite;}
 .joined-fields input[data-numinput]::selection {background:Highlight;color:HighlightText;}
 .joined-fields .num-input-wrap:has(.num-mark-overlay) input[data-numinput]::selection {background:transparent;color:inherit;}
@@ -74,13 +74,13 @@
 
 /* Fixed symbols use their actual text width; short symbols retain the normal rail. */
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field) .ui-field-unit:not(.unit-toggle) {width:max-content;min-width:34px;max-width:var(--joined-chip);padding:0;}
-.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-unit:not(.unit-toggle) {min-width:40px;}
+.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-unit:not(.unit-toggle) {min-width:var(--mob-col-chip-min,40px);}
 /* On the phone an empty unit (a count dropdown has none) is still the classic control height, but takes no width and shows nothing. */
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-unit:empty {display:inline-flex;width:0;min-width:0;padding:0;border:0;overflow:hidden;}
 /* The shared subgrid owns the full box width; wide unit caps must not enlarge only the input. */
 /* Sheet inputs share the control inset; account for their resting/focused borders. */
 /* Readouts retain production's UI typeface while remaining native readonly inputs. */
-.joined-fields.app-root-mobile .ui-field.ui-field-readout:is([data-field],.joined-field) .ui-field-value input[readonly] {font-family:Inter,system-ui,sans-serif;line-height:1.5;}
+.joined-fields.app-root-mobile .ui-field.ui-field-readout:is([data-field],.joined-field) .ui-field-value input[readonly] {font-family:var(--font-ui);line-height:1.5;}
 
 /* Numeric entries use the same typeface in sheets as in tab/dialog fields. */
 
@@ -131,11 +131,11 @@
 
 /* A unit's spelling must not change the outline or the unit rail within these groups. */
 .joined-fields:not(.app-root-mobile) .driver-advanced-fields .ui-field.ui-field[data-field] {--joined-box:134px;--joined-chip:60px;}
-.joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] {--joined-label:130px;--joined-box:134px;--joined-chip:60px;}
+.joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] {--joined-box:146px;--joined-chip:60px;}
 /* One box width for every row of each group: the widest unit (kg/m3) needs 134px, so all rows take it and the outlines stay equal. */
 /* Two sixth-order port groups have room for the usual labels beside their controls. */
 .joined-fields:not(.app-root-mobile) .vent-labels-left .ui-field.ui-field[data-field] {
- --joined-label:72px;grid-template-columns:var(--joined-label) var(--joined-box) var(--joined-buttons) var(--joined-model);grid-template-rows:var(--joined-height);
+ --joined-label:var(--label-w,var(--ctl-label-w,150px));grid-template-columns:var(--joined-label) var(--joined-box) var(--joined-buttons) var(--joined-model);grid-template-rows:var(--joined-height);
 }
 .joined-fields:not(.app-root-mobile) .vent-labels-left .ui-field.ui-field[data-field] > label {grid-column:1;grid-row:1;}
 .joined-fields:not(.app-root-mobile) .vent-labels-left .ui-field.ui-field[data-field] .ui-field-value .num-input-wrap,
@@ -147,7 +147,8 @@
 .joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] .ui-field-unit:not(.unit-toggle) {width:var(--joined-chip);}
 
 /* All ported panels share one full field per row and one label/value column contract. */
-.joined-fields:not(.app-root-mobile) .port-columns .ui-field.ui-field[data-field] {--joined-label:120px;--joined-box:93px;--joined-inset:4px;}
+.joined-fields:not(.app-root-mobile) .port-columns {--port-box:93px;--port-select-w:calc(var(--port-box) + 2 * var(--ctl-stepper-w,18px) + 2px);}
+.joined-fields:not(.app-root-mobile) .port-columns .ui-field.ui-field[data-field] {--joined-box:var(--port-box);--joined-inset:4px;}
 
 /* Reserve the DQ rail before any warning exists. Showing it must not resize the label. */
 .joined-fields:not(.app-root-mobile) .ui-field.ui-field:is([data-field],.joined-field):not(.signal-gen-field) {
@@ -155,18 +156,22 @@
 }
 
 
-.joined-fields:not(.app-root-mobile) .ui-field.ui-field:is([data-field],.joined-field) > label {margin-right:22px;max-width:calc(100% - 22px);}
+/* Every desktop label is one line, in a column as wide as its group's longest label plus the warning slot
+   (labelColumns.ts, DesktopSizes.labelColumnPx): the slot is the only blank before the box (QO466.c12). */
+.joined-fields:not(.app-root-mobile) .ui-field.ui-field:is([data-field],.joined-field) > label {margin-right:var(--ctl-label-slot,22px);max-width:calc(100% - var(--ctl-label-slot,22px));white-space:nowrap;}
 
 /* Text and choice rows reserve the same warning rail as numeric rows. */
 .joined-fields:not(.app-root-mobile) .ui-pick-field:not(.mob-ui-field) {
   grid-template-columns:var(--label-w,var(--ctl-label-w,150px)) var(--pick-width,max-content) 16px;
   column-gap:2px;
 }
-.joined-fields:not(.app-root-mobile) .ui-pick-field > label {padding-right:22px;box-sizing:border-box;}
+.joined-fields:not(.app-root-mobile) .ui-pick-field > label {padding-right:var(--ctl-label-slot,22px);box-sizing:border-box;white-space:nowrap;}
 
 /* Give the requested larger port captions their glyph width plus one warning slot. */
 .joined-fields:not(.app-root-mobile) .port-columns .field > label {font-size:12px;line-height:14px;}
 /* Air labels gain 22px while their value boxes lose 22px; total group width is unchanged. */
 
-/* Keep the entered air values wide enough for Pa; only the two derived boxes narrow. */
+/* Every air box is the same width, wide enough for Pa (field-layout rule 4). */
 .joined-fields:not(.app-root-mobile) .adv-air-col:first-child .field-row .ui-field[data-field] {--joined-box:146px;}
+/* Every box on the Options General tab is one width, wide enough for the widest unit chip (kg/m³): field-layout rule 4. */
+.joined-fields:not(.app-root-mobile) .opt-modal .opt-fld .ui-field.ui-field[data-field] {--joined-chip:60px;}

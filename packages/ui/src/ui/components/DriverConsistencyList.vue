@@ -16,6 +16,7 @@ defineEmits<{open: []}>();
 <style scoped>
 .driver-consistency-summary { font: inherit; font-weight: 600; margin: 0; padding: 0; border: 0; background: none; color: #a02020; cursor: pointer; text-align: left; }
 .driver-consistency-summary:hover, .driver-consistency-summary:focus-visible { text-decoration: underline; }
-.driver-consistency-summary.inline { font-size: 12px; font-style: normal; line-height: normal; flex: none; white-space: nowrap; padding-right: 6px; }
+/* A fixed line height: `normal` takes the warning glyph's fallback face metrics and grows the row 3 px. */
+.driver-consistency-summary.inline { font-size: 12px; font-style: normal; line-height: 16px; flex: none; white-space: nowrap; padding-right: 6px; }
 .driver-consistency-summary:not(.inline) { display: block; margin: 8px 0; padding: 8px; font-size: 14px; }
 </style>

@@ -1,7 +1,6 @@
 /**
  * Phone skin, 374x705: every visible field label is on ONE line (at most 1.6 line-heights tall).
- * BUG_20261108_phone-field-labels-wrap (OPEN, needs John's ruling): each test is an expected fault (test.fail);
- * when the bug is fixed they turn red and the test.fail lines are deleted. Walks the Vented tab, Advanced, Options and the What-if sheet.
+ * BUG_20261108_phone-field-labels-wrap: fixed by the 122 px phone label column (value box narrower, QO478.c10). Walks the Vented tab, Advanced, Options and the What-if sheet.
  */
 import type {Page} from '@playwright/test';
 import {expect, openAMobileProject, test} from '../fixtures.js';
@@ -31,28 +30,24 @@ test.beforeEach(async ({page}) => {
 });
 
 test('Box tab (vents) labels are one line', async ({page}) => {
-  test.fail();
   await page.locator('.mob-tab').filter({hasText: /^Box$/}).click();
   await expect(page.getByText('Number of Vents')).toBeVisible();
   expect(await wrappedLabels(page)).toEqual([]);
 });
 
 test('Advanced labels are one line', async ({page}) => {
-  test.fail();
   await tapMobileMenuItem(page, 'Advanced');
   await expect(page.getByText('Relative humidity')).toBeVisible();
   expect(await wrappedLabels(page)).toEqual([]);
 });
 
 test('Options labels are one line', async ({page}) => {
-  test.fail();
   await tapMobileMenuItem(page, 'Options');
   await expect(page.getByText('Min box volume').first()).toBeVisible();
   expect(await wrappedLabels(page)).toEqual([]);
 });
 
 test('What-if sheet labels are one line', async ({page}) => {
-  test.fail();
   await page.locator('.mob-tab', {hasText: 'Graph'}).click();
   await page.getByRole('button', {name: 'Open What-if'}).click();
   await expect(page.locator('.mob-sheet')).toBeVisible();

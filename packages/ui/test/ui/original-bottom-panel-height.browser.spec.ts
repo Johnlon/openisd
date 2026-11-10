@@ -30,7 +30,7 @@ for (const box of BOX_TYPES) {
     const tabCount = await page.locator('.project-nav li').count();
     for (let i = 0; i < tabCount; i++) {
       await page.locator('.project-nav li').nth(i).click();
-      for (const shape of await page.locator('.tab-section.active select[id*="vent-shape"]').all()) await shape.selectOption('slotted');
+      for (const toggle of await page.locator('.tab-section.active button.port-shape-toggle').all()) await toggle.click();
       const m = await page.evaluate(() => {
         const panel = document.querySelector('.content-panel')!.getBoundingClientRect();
         const section = document.querySelector('.tab-section.active')!;

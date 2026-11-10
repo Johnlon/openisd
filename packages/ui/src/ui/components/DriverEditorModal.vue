@@ -2,6 +2,7 @@
 import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import {computed, nextTick, onBeforeUnmount, provide, ref, watch} from 'vue';
+import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../hooks/phoneLabelColumn.js';
 import type {NumSpecField} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {useApp} from '../../logic/app.js';
@@ -256,6 +257,10 @@ provide(FIELD_EDIT_MODE, {
 // beside its right edge when there is room, its left edge otherwise — so it can never cover the
 // dialog it is inspecting, at any viewport size.
 const modalRootEl = ref<HTMLElement | null>(null);
+// On the phone the label column follows the longest label shown (the desktop skin sizes its own).
+let phoneLabelColumn: PhoneLabelColumn | null = null;
+watch(modalRootEl, el => { phoneLabelColumn?.stop(); phoneLabelColumn = el !== null && props.skin !== undefined ? createPhoneLabelColumn(el) : null; }, {flush: 'post'});
+onBeforeUnmount(() => phoneLabelColumn?.stop());
 const popupStyle = ref<Record<string, string>>({});
 // Phone: height of the docked card. The editor body gets this much bottom padding and scroll
 // padding, so every row can be scrolled clear of the card and the tapped row is kept above it.
@@ -719,7 +724,7 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
         <div class="body de-body" :class="{ 'labels-left': tab !== 'General' }"
              :style="dockedCardHeight > 0 ? { paddingBottom: `${dockedCardHeight}px`, scrollPaddingBottom: `${dockedCardHeight}px` } : {}" @click="handleBodyClickOrFocus" @focusin="handleBodyClickOrFocus">
           <!-- ============================= General ============================= -->
-          <div v-if="tab === 'General'" class="de-general" :style="skin?.generalColumnVars">
+          <div v-if="tab === 'General'" class="de-general">
             <div v-for="(row, i) in GENERAL_TEXT_ROWS" :key="i" class="de-row2">
               <template v-for="t in row" :key="t.key">
                 <UIPickField v-if="skin" class="de-fld" :class="skin.field" :data-field-key="t.key" :title="t.def.description" :label="t.def.label" :input-id="`de-text-${t.key}`">
@@ -1268,9 +1273,9 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
   grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important;
 }
 .de-desktop .de-conn { grid-column: 1 / span 4 !important; }
-/* "Parallel"/"Series" plus the native select arrow do not fit the shared 90px input track —
-   it read as "Paralle" with the last letter clipped. Widened just for this one field. */
-.de-desktop .de-conn-sel { width: 96px !important; }
+/* "Parallel"/"Series" plus the native select arrow need the whole value track, the width of the number boxes above (field-layout rule 4) —
+   at 90px it read as "Paralle" with the last letter clipped. */
+.de-desktop .de-conn-sel { width: 100% !important; }
 .de-desktop .de-fld label {
   display: block !important;
   /* Sized by the shared subgrid track, never by a fixed pixel width: the track is as wide as
@@ -1283,10 +1288,8 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
      per field. bugs/archive/BUG_20260817_driver_editor_labels_overflow_a_fixed_62px_column.md */
   width: auto !important;
   max-width: none !important;
-  /* A label never wraps and never breaks inside a word: the shared joined-field rule sets
-     `white-space: normal; overflow-wrap: anywhere`, which breaks "USPL" into "USP" / "L" the moment its track is narrower than the text. */
+  /* A label never wraps here (the shared joined-field rule lets it wrap between words, never inside one). */
   white-space: nowrap !important;
-  overflow-wrap: normal !important;
   text-align: left !important;
   flex: 0 0 auto !important;
 }
@@ -1463,7 +1466,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 
 /* ── Phone: the ƒ mark in the left gutter of a row the inspector can explain ── */
 .de-phone .de-fld.de-fx { position: relative; }
-.de-phone .de-fld.de-fx::before { content: var(--de-fx); position: absolute; left: 4px; top: 50%; transform: translateY(-50%); color: #888; font-style: italic; font-family: Georgia, serif; font-size: 14px; line-height: 1; pointer-events: none; }
+.de-phone .de-fld.de-fx::before { content: var(--de-fx); position: absolute; left: 4px; top: 50%; transform: translateY(-50%); color: #888; font-style: italic; font-family: var(--font-ui); font-size: 14px; line-height: 1; pointer-events: none; }
 </style>
 
 <style scoped>
@@ -1485,7 +1488,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 </style>
 
 <style scoped>
-.de-help-button {width:22px;height:22px;padding:0;border:1px solid #3a6fb0;border-radius:50%;background:#e6f0fb;color:#23548f;font:600 12px/1 sans-serif;cursor:pointer;flex:none;}
+.de-help-button {width:22px;height:22px;padding:0;border:1px solid #3a6fb0;border-radius:50%;background:#e6f0fb;color:#23548f;font:600 12px/1 var(--font-ui);cursor:pointer;flex:none;}
 .de-hdr {display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;padding-right:4px;}
 .de-modal > h2 > .de-help-button {margin-left:auto;}
 .de-modal > h2 > .x {margin-left:0;}

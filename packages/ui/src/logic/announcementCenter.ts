@@ -106,7 +106,7 @@ function readDismissed(storage: AnnouncementStorage): Set<string> {
 export function createAnnouncementCenter(
   storage: AnnouncementStorage,
   fetchFn: typeof fetch,
-  endpoints: AnnouncementEndpoints,
+  endpoints: AnnouncementEndpoints = announcementEndpointsForHostname('test.openisd.app'),
 ): AnnouncementCenter {
   const items = ref<readonly Announcement[]>([]);
   const open = ref(false);

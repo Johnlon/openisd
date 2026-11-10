@@ -43,7 +43,7 @@ import {
   toSI as toSIDim, UNIT_GROUPS, unitFor,
 } from './dimensions.js';
 import {knownDecimals} from './precision.js';
-import {formatFixed, formatTrimmed} from './format.js';
+import {formatFixed, formatTrimmedTo} from './format.js';
 import type {FieldLimits} from './filterLimits.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
@@ -138,6 +138,8 @@ interface NumberFieldSpec extends FieldSpec {
 
 /** A field holding a quantity: it has a band, a precision, and a display unit. */
 export class NumberField extends Field {
+  /** The fewest significant figures a number box shows (John, 10 Nov 2026, board option B). */
+  static readonly MIN_SIGNIFICANT = 4;
   readonly kind = 'number';
   readonly editor: NumberEditor;
   /** How the field is shown: one fixed symbol, or a `UnitGroup` the user may rotate through. */
@@ -200,8 +202,9 @@ export class NumberField extends Field {
     return toSIDim(this.unitFor(token), valueDisp);
   }
 
-  /** Format valueSI or Quantity into display string for this field using unit conversion & precision rules. */
-  format(valueSIOrQuantity: number | Quantity, halfWidthSI?: number | null, token?: string): string {
+  /** Format valueSI or Quantity into display string for this field using unit conversion & precision rules.
+   *  `maxSignificant` (the phone's narrow boxes) trims decimals beyond that many significant digits (never below two, or the field's own precision when that is smaller). */
+  format(valueSIOrQuantity: number | Quantity, halfWidthSI?: number | null, token?: string, maxSignificant?: number): string {
     let val: number;
     let hw: number | null | undefined;
     if (typeof valueSIOrQuantity === 'object' && valueSIOrQuantity !== null) {
@@ -224,10 +227,17 @@ export class NumberField extends Field {
       const kd = knownDecimals(hwDisp, valDisp);
       decimals = Math.max(minDp, kd);
     }
+    if (maxSignificant !== undefined) {
+      const leading = valDisp === 0 || !isFinite(valDisp) ? 1 : Math.floor(Math.log10(Math.abs(valDisp))) + 1;
+      decimals = Math.min(decimals, Math.max(Math.min(minDp, 2), maxSignificant - leading));
+    }
 
+    // At least MIN_SIGNIFICANT figures, so a small value is never shown as 0.37 for 0.3687 (John, 10 Nov 2026, board option B).
+    const keep = Math.min(Math.max(0, Math.min(20, decimals)), 2); // zeros the field's own precision shows
+    if (valDisp !== 0) decimals = Math.max(decimals, NumberField.MIN_SIGNIFICANT - (Math.floor(Math.log10(Math.abs(valDisp))) + 1));
     decimals = Math.max(0, Math.min(20, decimals));
     const sanitizedVal = valDisp === 0 ? 0 : valDisp;
-    return formatTrimmed(sanitizedVal, decimals);
+    return formatTrimmedTo(sanitizedVal, decimals, Math.min(keep, decimals));
   }
 
   /** Parse raw typed string input into a Quantity or Text discriminant for this field. */
@@ -680,7 +690,7 @@ export class NumberField extends Field {
     label: "Air pressure",
     display: {kind: 'switchable', group: 'pressure', base: 'Pa'},
     limits: {min: 1000, max: 200000},
-    precision: 2,
+    precision: 0,
     description: "Air Pressure\nAtmospheric pressure — affects air density and acoustic impedance.",
   });
   static readonly ADV_SOUNDVELOCITY_M_PER_S = new NumberField({

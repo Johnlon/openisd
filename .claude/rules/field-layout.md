@@ -25,3 +25,7 @@ The rules, word for word from the gallery (`ui-gallery/T690-common-field/RULES.m
 7. **No overlap.** Nothing sits on top of anything else.
 8. **Nothing else moves.** A screen with none of these faults stays as it is.
 9. **Checked twice.** A script measures rules 2 to 7, then a second model looks at every picture. A picture that fails is fixed before you see it.
+10. **A gap before the buttons.** On the phone, a number box (its unit chip included) ends at least `PhoneRowColumns.MIN_STEPPER_GAP_PX` (4 px) before its up/down buttons. John, 10 Nov 2026: "there is no gap between the cell and the spinner buttons".
+11. **A value is never cut.** The text in a number box, and its unit, fit inside it, for the longest figure the screen shows (a calculated 0.36872, 8 characters). `packages/ui/test/ui/phone-long-values-fit.browser.spec.ts` types the long figure; the gate reads every shown one (R11).
+
+Coverage: the gate must open every view and popup on the surface manifests (`fixtures/mobileSurfaceManifest.ts`, `desktopSurfaceManifest.ts`); that wiring waits for T739 (bugs/BUG_20261110_layout-gate-misses-screens.md).

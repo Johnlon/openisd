@@ -35,7 +35,7 @@ import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {createAppUpdateUi} from './appUpdateUi.js';
-import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, dateStampFrom, END_CORRECTION_OPTIONS, formatDateStamp, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, COMPACT_VENT_SHAPE_OPTIONS as VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, dateStampFrom, END_CORRECTION_OPTIONS, formatDateStamp, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
@@ -837,7 +837,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     fbUnreachable, fbUnreachableMsg, isDual,
     frontVolumeCell, rearTuningCell, rearResonance,
     model, startEdit, showDriverDisagreements, showDriverInfo: driverBrowsing.showProjectDriverInfo, startWhatIf, placement, driverConsistencyReasons,
-    activeVent, activeTuning, ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, portPipeResonance_hz,
+    activeVent, activeTuning, ventPorts, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,

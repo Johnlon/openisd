@@ -91,13 +91,13 @@ import {provideTelemetryUi} from './hooks/telemetryContext.js';
 import {provideAnnouncementCenter} from './hooks/Announcements-hooks.js';
 import {announcementEndpointsForHostname, createAnnouncementCenter} from './logic/announcementCenter.js';
 import {newUuid} from '@openisd/design';
-import {DesktopSizes, PhoneRowSizes, trailOfLocation} from '@openisd/design/fields';
+import {DesktopSizes, PhoneRowSizes, SkinFonts, trailOfLocation} from '@openisd/design/fields';
 import {createEngine} from '@openisd/design/engine';
 import {basicUtc, browserNameOf, formatDateTime, persistenceLine} from '@openisd/design/fields';
 import {announceLostKeys} from './logic/lostKeyNotice.js';
-import '@fontsource/inter/400.css';
-import '@fontsource/inter/600.css';
-import '@fontsource/inter/700.css';
+import '@fontsource/roboto/latin-400.css';
+import './fonts.css';
+import '@fontsource/jetbrains-mono/latin-400.css';
 import './style.css';
 
 /** The browser's storage under this deployment's prefix: the /test/ build keeps a store of its own. */
@@ -463,6 +463,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     crashReports.capture(err);
   };
 
+  for (const [name, value] of SkinFonts.cssVars()) document.documentElement.style.setProperty(name, value);
   for (const [name, value] of DesktopSizes.cssVars()) document.documentElement.style.setProperty(name, value);
   for (const [name, value] of PhoneRowSizes.TAB.cssVars()) document.documentElement.style.setProperty(name, value);
   app.mount('#app');

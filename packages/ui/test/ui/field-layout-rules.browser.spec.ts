@@ -1,7 +1,8 @@
-import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, openAProject, setFocusedBoxType, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, editorTab, expect, openAMobileProject, openAProject, setFocusedBoxType, test} from '../fixtures.js';
 import type {BoxTypeName} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
-import {measureFieldLayoutRules} from '../fixtures/fieldLayoutAudit.js';
+import {measureFieldLayoutRules, measureLabelGaps} from '../fixtures/fieldLayoutAudit.js';
+import {DesktopSizes, PhoneRowColumns} from '@openisd/design/fields';
 import type {Locator, Page} from '@playwright/test';
 
 /**
@@ -19,13 +20,9 @@ const BOXES: readonly {box: BoxTypeName; phone: string}[] = [
 ];
 
 /** A fault found by this gate and not yet fixed: the screen, the rules it breaks, and the bug file that records it. */
-type Rule = 'R2' | 'R3' | 'R4' | 'R5' | 'R6' | 'R7';
+type Rule = 'R2' | 'R3' | 'R4' | 'R5' | 'R6' | 'R7' | 'R10' | 'R11';
 interface KnownFault {readonly screen: string; readonly rules: readonly Rule[]; readonly bug: string}
-const ALL_BOXES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const;
-const KNOWN: readonly KnownFault[] = [
-  ...ALL_BOXES.map(box => ({screen: `desktop ${box} Advanced`, rules: ['R4'] as const, bug: 'BUG_20261105_desktop-advanced-air-value-widths'})),
-  {screen: 'desktop abc ABC', rules: ['R3', 'R4'], bug: 'BUG_20261105_desktop-abc-port-columns-edges-and-widths'},
-];
+const KNOWN: readonly KnownFault[] = [];
 
 type Skin = 'desktop' | 'phone';
 interface Screen {readonly id: string; readonly skin: Skin; readonly root: string; readonly open: (page: Page) => Promise<void>}
@@ -45,8 +42,12 @@ async function startPhone(page: Page, boxValue: string): Promise<void> {
   await page.locator('#mob-box-type').selectOption(boxValue);
 }
 
+/** The box-to-buttons gap rule (R10) is John's phone ruling (10 Nov 2026); desktop spinners are the slim 18 px ones and ask for none. */
+const DESKTOP_STEPPER_GAP_PX = 0;
+
 async function measure(page: Page, root: string): Promise<string[]> {
-  return page.locator(root).first().evaluate(measureFieldLayoutRules);
+  const phone = (page.viewportSize()?.width ?? 0) <= 600;
+  return page.locator(root).first().evaluate(measureFieldLayoutRules, phone ? PhoneRowColumns.MIN_STEPPER_GAP_PX : DESKTOP_STEPPER_GAP_PX);
 }
 
 const names = (items: Locator) => items.allInnerTexts().then(list => list.map(text => text.trim()).filter(text => text !== ''));
@@ -104,6 +105,19 @@ const EXTRA: readonly Screen[] = [
     await page.locator('#np-box-type').selectOption('box-passive-radiator');
     await next.click();
     await page.locator('#np-pr-select').waitFor();
+  }},
+  ...(['General', 'Parameters', 'Advanced', 'Dimensions'] as const).map((tab): Screen => ({id: `phone Driver editor ${tab}`, skin: 'phone', root: '.de-modal', open: async page => {
+    await startPhone(page, 'vented');
+    await page.locator('.mob-tab', {hasText: 'Driver'}).click();
+    await page.getByText('Edit', {exact: true}).click();
+    await editorTab(page, tab);
+    await page.setViewportSize({width: 374, height: 2600}); // tall: every row is painted at once, so the rules measure all of them
+  }})),
+  {id: 'phone Advanced page', skin: 'phone', root: '.mob-dlg', open: async page => {
+    await startPhone(page, 'vented');
+    await page.locator('.mob-hamburger').click();
+    await page.locator('.mob-menu-item', {hasText: 'Advanced'}).click();
+    await page.setViewportSize({width: 374, height: 2600});
   }},
   // The phone port editor (What-if sheet, tap Port area) is not walked: John ruled it stays as it is (QO426.c53).
 ];
@@ -302,5 +316,57 @@ for (const box of ['vented', 'bandpass6', 'abc'] as const) {
     const boxWidths = await panel.locator('.ui-field .num-input-wrap').evaluateAll(all => all.map(w => Math.round(w.getBoundingClientRect().width)));
     expect(boxWidths.length).toBeGreaterThan(0);
     expect(new Set(boxWidths), JSON.stringify(boxWidths)).toEqual(new Set([WHAT_IF_BOX_PX]));
+  });
+}
+
+/** The desktop sizes John uses (QO466): the laptop at 1440 x 900 and 1536 x 864, and the common 1366 x 768. */
+const DESKTOP_SIZES: readonly {width: number; height: number}[] = [{width: 1366, height: 768}, {width: 1536, height: 864}, {width: 1440, height: 900}];
+/** The widest blank allowed between a group's longest label and its box: the warning slot after every label,
+ *  the 2 px column gap, and 2 px for rounding the text width up to whole pixels. */
+const LABEL_GAP_MAX_PX = DesktopSizes.LABEL_SLOT_PX + 4;
+
+/** Every tab of the screen at each desktop size, label gaps measured; faults are labelled with size and tab. */
+async function labelGapsOnTabs(page: Page): Promise<string[]> {
+  const faults: string[] = [];
+  const tabs = page.locator('.project-nav li');
+  for (const size of DESKTOP_SIZES) {
+    await page.setViewportSize(size);
+    for (const tab of await names(tabs)) {
+      await tabs.filter({hasText: new RegExp(`^${tab}$`)}).click();
+      const at = `${size.width}x${size.height} ${tab}`;
+      faults.push(...(await page.locator('.content-panel').first().evaluate(measureLabelGaps, LABEL_GAP_MAX_PX)).map(issue => `${at}: ${issue}`));
+      faults.push(...(await measure(page, '.content-panel')).filter(issue => issue.startsWith('R2')).map(issue => `${at}: ${issue}`));
+    }
+  }
+  return faults;
+}
+
+for (const {box} of BOXES) {
+  // John, QO466.c12: "regression as the input fields are too far from the labels, this is problematic in many places please fix here".
+  test(`desktop ${box}: on every tab each group's boxes sit next to its longest label, no label wraps, nothing cut`, async ({page}) => {
+    await startDesktop(page, box);
+    expect(await labelGapsOnTabs(page)).toEqual([]);
+  });
+}
+
+for (const screen of EXTRA.filter(s => s.skin === 'desktop' && s.id.includes('wizard'))) {
+  test(`${screen.id}: each group's boxes sit next to its longest label at every desktop size`, async ({page}) => {
+    await screen.open(page);
+    const faults: string[] = [];
+    for (const size of DESKTOP_SIZES) {
+      await page.setViewportSize(size);
+      faults.push(...(await page.locator(screen.root).first().evaluate(measureLabelGaps, LABEL_GAP_MAX_PX)).map(issue => `${size.width}x${size.height}: ${issue}`));
+    }
+    expect(faults).toEqual([]);
+  });
+}
+
+// John, 10 Nov 2026: "there is tons of empty space between the label and the text box": on the phone each group's
+// label column is as wide as its longest label needs, and the box takes the rest.
+const PHONE_LABEL_GAP_SCREENS = EXTRA.filter(s => s.skin === 'phone' && /Driver editor Parameters|Advanced page/.test(s.id));
+for (const screen of PHONE_LABEL_GAP_SCREENS) {
+  test(`${screen.id}: the longest label is within ${PhoneRowColumns.MAX_LABEL_GAP_PX} px of its box`, async ({page}) => {
+    await screen.open(page);
+    expect(await page.locator(screen.root).first().evaluate(measureLabelGaps, PhoneRowColumns.MAX_LABEL_GAP_PX)).toEqual([]);
   });
 }

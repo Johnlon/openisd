@@ -9,10 +9,15 @@ export function formatFixed(v: number, decimals: number): string {
  * fewer): 14.7 at 5 is "14.70", 7.1734 is "7.1734", 0.57 at 3 is "0.57" (John, QO454, 8 Nov 2026).
  */
 export function formatTrimmed(v: number, decimals: number): string {
+  return formatTrimmedTo(v, decimals, Math.min(decimals, 2));
+}
+
+/** `v` to `decimals` places with trailing zeros dropped down to `keep` decimals (never more than `decimals`). */
+export function formatTrimmedTo(v: number, decimals: number, keep: number): string {
   const out = v.toFixed(decimals);
-  const floor = Math.min(decimals, 2);
   let end = out.length;
-  for (let d = decimals; d > floor && out.charAt(end - 1) === '0'; d--) end--;
+  for (let d = decimals; d > keep && out.charAt(end - 1) === '0'; d--) end--;
+  if (out.charAt(end - 1) === '.') end--; // every decimal went: no dangling point
   return out.slice(0, end);
 }
 
@@ -122,3 +127,6 @@ export function formatSignificant(v: number): string {
   const scale = 10 ** places;
   return (Math.round(v * scale) / scale).toFixed(places);
 }
+
+/** Most significant digits a phone number box shows; the stored value keeps its full precision (360 px boxes clip longer text). */
+export const PHONE_MAX_SIGNIFICANT = 6;

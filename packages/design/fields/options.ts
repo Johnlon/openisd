@@ -24,12 +24,6 @@ export const VENT_SHAPE_OPTIONS: readonly SelectorOption<VentShape>[] = Object.f
   Object.freeze({ value: 'slotted', label: 'Slotted Duct' }),
 ]);
 
-/** Short captions for the compact desktop port rows; stored values stay identical. */
-const COMPACT_VENT_SHAPE_LABELS: Record<VentShape,string> = {round:'Round',slotted:'Slot'};
-export const COMPACT_VENT_SHAPE_OPTIONS: readonly SelectorOption<VentShape>[] = Object.freeze(
-  VENT_SHAPE_OPTIONS.map(({value}) => Object.freeze({value,label:COMPACT_VENT_SHAPE_LABELS[value]})),
-);
-
 /** Voice coil wiring connection options. The VALUES are the domain's own wiring members, so a
  *  chosen option is written to the driver as-is — the compiler checks each literal against
  *  `VoiceCoilWiring`. */
