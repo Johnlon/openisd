@@ -6,7 +6,7 @@ import {describe, expect, it} from 'vitest';
 import {NumberField} from '../../fields/field.js';
 import {UNIT_GROUPS} from '../../fields/dimensions.js';
 
-const SHOWN_VALUES = [1.2345, 12.345, 123.45, 1234.5, 101325.4, 0.36874, 0.036874, 0.0036874, 0.00036874, 0.000036874];
+const SHOWN_VALUES = [1, 8, 100, 1000, 1.2345, 12.345, 123.45, 1234.5, 101325.4, 0.36874, 0.036874, 0.0036874, 0.00036874, 0.000036874];
 
 function tokensOf(field: NumberField): (string | undefined)[] {
   return field.display.kind === 'switchable' ? UNIT_GROUPS[field.display.group].map(unit => unit.token) : [undefined];

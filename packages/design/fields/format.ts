@@ -17,6 +17,7 @@ export function formatTrimmedTo(v: number, decimals: number, keep: number): stri
   const out = v.toFixed(decimals);
   let end = out.length;
   for (let d = decimals; d > keep && out.charAt(end - 1) === '0'; d--) end--;
+  if (out.charAt(end - 1) === '.') end--; // every decimal went: no dangling point
   return out.slice(0, end);
 }
 
