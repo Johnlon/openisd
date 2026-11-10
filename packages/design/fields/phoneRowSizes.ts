@@ -62,8 +62,11 @@ export class PhoneRowColumns {
   static readonly WARNING_PX = 26;
   static readonly MODEL_CUE_PX = 24;
   static readonly CONTROL_GAP_PX = 8;
-  /** The Signal tab's typing box takes this share of the width a Box-tab box has (John, 8 Nov 2026, T720: 60%). */
-  static readonly SIGNAL_INPUT_SHARE = 0.6;
+  /**
+   * The Signal tab's typing box takes this share of the width a Box-tab box has. T720 (John, 8 Nov 2026) set 60% of a 186 px box (112 px);
+   * T742 widened the label column, so the Signal column is 145 px and 77% keeps the Signal box at the same 112 px, which holds a 6-digit value and its chip.
+   */
+  static readonly SIGNAL_INPUT_SHARE = 0.77;
 
   /** Side margin of a row, each side. */
   static readonly EDGE_PX = 16;
@@ -73,8 +76,8 @@ export class PhoneRowColumns {
   static readonly STANDARD = new PhoneRowColumns(123, 90, 40, 16);
   /** The Advanced page's air rows: the same label column as STANDARD (122 px holds "1st port resonance" on one line; John, QO478.c10: narrow the box, not the label). */
   static readonly MEDIUM_LABEL = new PhoneRowColumns(123, 90, 40, 16);
-  /** The driver editor's other tabs: short labels (Rms, gamma), so the box keeps its room for a 6-digit value. */
-  static readonly DRIVER_EDITOR = new PhoneRowColumns(102, 90, 40, 16);
+  /** Screens with short labels (the driver editor tabs Rms, gamma; Filters fc, Q, BW), so the box keeps its room for a 6-digit value. */
+  static readonly SHORT_LABEL = new PhoneRowColumns(102, 90, 40, 16);
   /** The driver editor's General tab, whose labels are longer. */
   static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 16);
 

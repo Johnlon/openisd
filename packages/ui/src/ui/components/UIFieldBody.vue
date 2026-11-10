@@ -50,8 +50,8 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
 const scope = useCellScope();
 const generatedId = useId();
 /** The row's column widths as CSS variables, from the design constant. */
-const screenColumns = inject(PHONE_COLUMNS_KEY, PhoneRowColumns.STANDARD);
-const columnVars = computed(() => Object.fromEntries((props.columns ?? screenColumns).cssVars()));
+const screenColumns = inject(PHONE_COLUMNS_KEY, ref(PhoneRowColumns.STANDARD));
+const columnVars = computed(() => Object.fromEntries((props.columns ?? screenColumns.value).cssVars()));
 const id = computed(() => props.inputId ?? generatedId);
 
 /** The cell read once per change of the hosting view: Vue cannot see the cell itself change. */

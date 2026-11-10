@@ -36,7 +36,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
 </script>
 
 <template>
-  <PhoneClassicPage>
+  <PhoneClassicPage :columns="selectedBox === 'box-passive-radiator' ? PhoneRowColumns.SHORT_LABEL : PhoneRowColumns.STANDARD">
     <section class="mob-csection">
     <PhoneBand :section="PhoneHelp.BOX" />
     <div class="mob-crow">

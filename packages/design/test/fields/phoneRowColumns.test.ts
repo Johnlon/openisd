@@ -19,6 +19,6 @@ describe('PhoneRowColumns', () => {
   });
 
   it('gives the phone Signal tab typing box 60% of its column (T720)', () => {
-    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-input-share')).toBe('0.6');
+    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-input-share')).toBe('0.77');
   });
 });

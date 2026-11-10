@@ -28,7 +28,7 @@ export const PHONE_DRIVER_EDITOR_SKIN: DriverEditorSkin = {
   button: 'mob-btn',
   buttonPrimary: 'mob-btn-primary',
   buttonSecondary: 'mob-btn-plain',
-  columns: PhoneRowColumns.DRIVER_EDITOR,
-  rowVars: Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars(), ...PhoneRowColumns.DRIVER_EDITOR.cssVars()]),
+  columns: PhoneRowColumns.SHORT_LABEL,
+  rowVars: Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars(), ...PhoneRowColumns.SHORT_LABEL.cssVars()]),
   generalColumnVars: Object.fromEntries(PhoneRowColumns.WIDE_LABEL.cssVars()),
 };

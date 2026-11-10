@@ -620,7 +620,7 @@ function toggleDisagree() {
   if (inspectProvenance.value) logging.flash(PhoneEditorText.CLOSE_PROVENANCE_FIRST);
   else disagreeOpen.value = !disagreeOpen.value;
 }
-provide(PHONE_COLUMNS_KEY, props.skin?.columns ?? PhoneRowColumns.STANDARD);
+provide(PHONE_COLUMNS_KEY, computed(() => props.skin?.columns ?? PhoneRowColumns.STANDARD));
 const modalStyle = computed(() => props.skin === undefined ? undefined : {...props.skin.rowVars, '--de-fx': `'${PhoneEditorText.FX_MARK}'`});
 
 const fileInput = ref<HTMLInputElement | null>(null);
