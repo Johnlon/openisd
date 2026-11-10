@@ -1,0 +1,9 @@
+id: T755
+release_note: internal
+repo: openisd
+owner: learn
+status: open
+goal: Stats: record the user actions the telemetry scan found unrecorded (box type change, driver editor, copy project, compare, share link, driver file import, data table, cloud sync, backup/restore, bin, history restore, Save As download, mobile vents and more) and stop the desktop start-up over-count of filters and vents (John 10 Nov: 'scan rest of app for missed telemetry')
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T755.yml
