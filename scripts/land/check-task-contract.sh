@@ -89,14 +89,16 @@ if [ -n "$PR_MODE" ]; then
     fi
   done < <(git diff --name-only --diff-filter=ACMR "$BASE" "$HEAD_REF")
 fi
-# A file this branch changed that another task locks needs that task's hash updated in the same landing (T235, T249, T261).
+# A file this branch changed that another task locks warns (T786, QO512): refusing here blocked fixes to process tests; the landing task's own locked tests (above) still refuse.
 changed="$(git diff --name-only "$BASE" "$HEAD_REF")"
 for other in tasks/*.yml; do
   [ "$other" = "$TASK" ] && continue
   while read -r path hash; do
     [ -n "$path" ] && [ "$hash" != pending ] && grep -qxF "$path" <<< "$changed" || continue
     actual="$(git show "$HEAD_REF:$path" 2> /dev/null | sha256sum | cut -d' ' -f1)"
-    [ "$actual" = "$hash" ] || fail locked "$path changed (locked by $other); update its sha256 there in this landing"
+    [ "$actual" = "$hash" ] && continue
+    # another task's lock only warns: fingerprints refuse only on the landing task's own locked pass-mark test (T786, QO512)
+    printf 'WARN\tlocked\t%s changed; %s locks it, update its sha256 there when convenient\n' "$path" "$other"
   done < <(task_locked "$other")
 done
 

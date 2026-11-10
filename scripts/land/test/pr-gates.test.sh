@@ -51,6 +51,16 @@ git switch -q main; git switch -q -c hashfix2; mkdir -p tasks; task T1; sed -i '
 [ "$(bash scripts/land/pr-task.sh main HEAD 2>&1)" = "T1 T9" ] && grep -q $'REFUSE\tlocked' <<< "$(bash scripts/land/check-task-contract.sh T9 main HEAD --pr T1)" \
   && ok "a sha change for a file the change does not edit counts as a task and its contract refuses it" || bad "a sha change for a file the change does not edit counts as a task and its contract refuses it"
 
+# T7786: a file another task locks warns whether or not it is that task's done_test; the landing task's own locks still refuse (T9 test above)
+git switch -q main; git switch -q -c xlock; mkdir -p tasks src
+printf 'id: T77\nowner: t\nstatus: done\ngoal: g\ndone_test: bash src/pass.sh\nlocked:\n  - path: src/pass.sh\n    sha256: 0000\n  - path: src/proc.sh\n    sha256: 0000\nfiles:\n  - src/**\n' > tasks/T77.yml
+echo p > src/pass.sh; echo q > src/proc.sh; git add -A; git commit -qm "(auto) T77: base"; git switch -q main; git merge -q xlock
+git switch -q -c xlock-proc; task T1; echo q2 > src/proc.sh; git add -A; git commit -qm "(auto) T1: edit process test"
+out="$(bash scripts/land/check-task-contract.sh T1 main HEAD)"; rc=$?
+[ "$rc" = 0 ] && grep -q $'WARN\tlocked.*src/proc.sh' <<< "$out" && ok "a changed file another task locks warns and passes" || bad "another task's lock warns and passes (rc=$rc: $out)"
+git switch -q main; git switch -q -c xlock-pass; task T1; echo p2 > src/pass.sh; git add -A; git commit -qm "(auto) T1: edit pass-mark test"
+out="$(bash scripts/land/check-task-contract.sh T1 main HEAD)"; rc=$?; [ "$rc" = 0 ] && grep -q $'WARN\tlocked.*src/pass.sh' <<< "$out" && ok "another task's own pass-mark test warns too" || bad "another task's pass-mark test warns (rc=$rc: $out)"
+
 # T762: a pull request may carry several tasks when every changed file is in at least one allowlist
 multi() { printf 'id: %s\nowner: t\nstatus: open\ngoal: g\nwhy: John asked for this change (John, 10 Nov 2026)\ndone_test: true\nfiles:\n  - %s\n' "$1" "$2" > "tasks/$1.yml"; }
 git switch -q main; git switch -q -c multi; mkdir -p tasks src docs

@@ -146,6 +146,7 @@ for t in "${IDS[@]}"; do
     echo "ship: the task contract refuses $t (the pull request's task check would fail); nothing pushed. Offending files are listed above" >&2
     exit 1
   }
+  printf '%s\n' "$contract" | awk -F'\t' '$1 == "WARN" { print "ship: warning (" $2 "): " $3 }' >&2
 done
 
 # 4. quick local check: lint on the changed files, typecheck

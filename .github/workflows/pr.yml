@@ -43,7 +43,7 @@ jobs:
           rc=0
           for t in $PR_TASK; do
             others=(); for o in $PR_TASK; do [ "$o" = "$t" ] || others+=("$o"); done
-            out="$(bash scripts/land/check-task-contract.sh "$t" origin/main HEAD --pr "${others[@]}")" && continue
+            out="$(bash scripts/land/check-task-contract.sh "$t" origin/main HEAD --pr "${others[@]}")" && { printf '%s\n' "$out" | awk -F'\t' '$1 == "WARN" { printf "::warning title=task contract (%s)::%s\n", $2, $3 }'; continue; }
             printf '%s\n' "$out" | awk -F'\t' '$1 == "REFUSE" { printf "::error title=task contract (%s)::%s\n", $2, $3 }'; printf '%s\n' "$out"; rc=1
           done
           exit "$rc"
