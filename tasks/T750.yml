@@ -9,6 +9,7 @@ files:
   - CLAUDE.md
   - docs/SDLC_POLICY.md
   - tasks/T750.yml
+  - .claude/rules/typescript.md
   - packages/design/test/architecture-no-default-parameters.test.ts
   - docs/research/DEFAULT_PARAMETERS_REVIEW.md
   - bugs/BUG_20261110_announcements-default-to-test-server.md
