@@ -112,7 +112,7 @@ fi
 # 3b. the task contract, exactly as the pull request's `task` job runs it (T758): locked hashes, task id and owner,
 # status, gate files, and every changed file inside the task's `files` allowlist. A refusal names the files and
 # nothing is pushed. The board file is not read (a GitHub runner has none), so the local verdict equals CI's.
-contract="$(QUESTIONS_FILE=/nonexistent bash "$HERE/land/check-task-contract.sh" "$ID" origin/main HEAD --pr 2>&1)" || {
+contract="$(GATE_FILES="${GATE_FILES:-}" QUESTIONS_FILE=/nonexistent bash "$HERE/land/check-task-contract.sh" "$ID" origin/main HEAD --pr 2>&1)" || {
   printf '%s\n' "$contract" >&2
   echo "ship: the task contract refuses $ID (the pull request's task check would fail); nothing pushed. Offending files are listed above" >&2
   exit 1
