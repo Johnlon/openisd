@@ -36,4 +36,28 @@ describe('project-open telemetry', () => {
 
     expect(telemetry.record).toHaveBeenCalledWith({kind: 'project_open', source: 'wizard', box: 'sealed'});
   });
+
+  // John, 10 Nov 2026: "scan rest of app for missed telemetry".
+  it('a copied project is counted as opened by copy', () => {
+    const telemetry = telemetrySpy();
+    const {appState} = createAppStateFixture(undefined, telemetry);
+    appState.createProject(OpenISDDriver.empty(appState.engine), builder => builder.vented(), () => {});
+    telemetry.record.mockClear();
+
+    appState.duplicateFocusedProject('Copy of it');
+
+    expect(telemetry.record).toHaveBeenCalledWith({kind: 'project_open', source: 'copy', box: 'vented'});
+  });
+
+  it('a project opened from a share link while the app runs is counted as a share', () => {
+    const telemetry = telemetrySpy();
+    const {appState} = createAppStateFixture(undefined, telemetry);
+    appState.createProject(OpenISDDriver.empty(appState.engine), builder => builder.sealed(), () => {});
+    const shared = appState.requireFocusedProject();
+    telemetry.record.mockClear();
+
+    appState.applyState({project: shared, view: appState.currentViewSnapshot()});
+
+    expect(telemetry.record).toHaveBeenCalledWith({kind: 'project_open', source: 'share', box: 'sealed'});
+  });
 });
