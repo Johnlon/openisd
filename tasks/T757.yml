@@ -1,0 +1,9 @@
+id: T757
+release_note: internal
+repo: openisd
+owner: cover
+status: open
+goal: Rule docs test names the pull-request process (ship.sh), not land.sh
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T757.yml
