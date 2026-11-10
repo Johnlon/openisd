@@ -7,6 +7,8 @@ goal: Finished tasks reach main through GitHub pull requests with a merge queue 
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/T749.yml
+  - scripts/ship.sh
+  - scripts/land/test/ship.test.sh
 ruling: "QO481 A, John 10 Nov 2026 ('pick A'): GitHub pull requests with a merge queue replace land.sh's one-at-a-time landing; each task pushes, opens a PR with auto-merge, its worktree is deleted at once; land.sh's checks become CI jobs; landing rules rewritten. This is also John's approval of the gate changes (gates_approved: QO481)."
 gates_approved: QO481
 why: "John 10 Nov: 'I want better flow'. 12 worktrees piled up behind one-at-a-time landing (~15 min each); a refused landing sat until an agent fixed it."
