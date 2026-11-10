@@ -1,0 +1,9 @@
+id: T758
+release_note: internal
+repo: openisd
+owner: cover
+status: open
+goal: Pull requests run only the fast gates; the full suite runs on main after merge (John: pick A)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T758.yml
