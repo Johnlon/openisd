@@ -4,6 +4,7 @@ import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {OpenIsdDriverSpec} from '../../domain/driver/openIsdDriverSpec.js';
 import type {DriverDeviceJson} from '../../domain/openisdSchema.js';
 import {createEngine} from '../../engine/Engine.js';
+import {standaloneChartingSource} from '../../engine/index.js';
 import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 
 const engine = createEngine();
@@ -12,7 +13,7 @@ const engine = createEngine();
 function specOver(record: DriverDeviceJson): OpenIsdDriverSpec {
   let current = record;
   const slot = simpleField(() => current, next => { current = next; });
-  return new OpenIsdDriverSpec(slot, 'woofer', engine.driver, engine.issues, () => REFERENCE_AIR, () => ({kind: 'StoredShown'}));
+  return new OpenIsdDriverSpec(slot, 'woofer', engine.driver, engine.issues, () => REFERENCE_AIR, standaloneChartingSource);
 }
 
 function blankRecord(): DriverDeviceJson {

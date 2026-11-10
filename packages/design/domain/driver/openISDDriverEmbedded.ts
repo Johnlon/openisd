@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { Air, CmsSource, DriverIssue } from '../../engine/index.js';
+import type { Air, ChartingSource, DriverIssue } from '../../engine/index.js';
 import type { SimpleField } from '../cell.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
 import { OpenISDDriver, OpenISDDriverStandalone } from './openISDDriver.js';
@@ -14,7 +14,7 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
         airProvider: () => Air,
-        cmsSource: () => CmsSource,
+        cmsSource: () => ChartingSource | null,
         durableIssues: () => readonly DriverIssue[],
         private readonly newId: () => string,
     ) {
@@ -29,7 +29,7 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         engine: Engine,
         airProvider: () => Air,
         /** The project's "Cms from Vas" choice, read on demand. */
-        cmsSource: () => CmsSource,
+        cmsSource: () => ChartingSource | null,
         /** The PROJECT's cached driver issues. This object does not outlive one access, so the
          *  dq a resolve wrote into its fields is gone before anything reads it; the project's
          *  cache is what survives. */

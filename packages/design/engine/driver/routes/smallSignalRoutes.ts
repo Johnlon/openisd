@@ -2,7 +2,7 @@ import {efficiencyConstant} from '../../efficiency.js';
 import {TAU} from './constants.js';
 import {SolveRoute} from './SolveRoute.js';
 import type {DriverRoute} from './SolveRoute.js';
-import {Q_PARALLEL, FS_FROM_MASS_AND_COMPLIANCE, QES_FROM_MOTOR, RME_FROM_MOTIONAL, EBP_FROM_Q, VAS_FROM_COMPLIANCE, RMS_FROM_Q} from './relations.js';
+import {BL_FROM_QES, Q_PARALLEL, FS_FROM_MASS_AND_COMPLIANCE, QES_FROM_MOTOR, RME_FROM_MOTIONAL, EBP_FROM_Q, VAS_FROM_COMPLIANCE, RMS_FROM_Q} from './relations.js';
 
 /** Block 2: Qts, Qes and Qms in parallel; any two give the third. */
 export const Q_ROUTES: readonly DriverRoute[] = Object.freeze([
@@ -91,3 +91,7 @@ export const MOTOR_ROUTES: readonly DriverRoute[] = Object.freeze([
   new SolveRoute('Mms_kg', ['Qes', 'BL_Tm', 'Fs_hz', 'Re_ohm'],
     v => v.Qes * v.BL_Tm * v.BL_Tm / (TAU * v.Fs_hz * v.Re_ohm), v => v.Fs_hz > 0 && v.Re_ohm > 0).inRelation(QES_FROM_MOTOR),
 ]);
+
+/** BL from Re, Fs, Qes and Cms: the BL the circuit's damping runs on (the relation BL_FROM_QES, solved for BL). */
+export const BL_FROM_QES_CMS_ROUTE = Object.freeze(new SolveRoute('BL_Tm', ['Re_ohm', 'Fs_hz', 'Qes', 'Cms_m_per_N'],
+  v => BL_FROM_QES.predict(v)).inRelation(BL_FROM_QES));

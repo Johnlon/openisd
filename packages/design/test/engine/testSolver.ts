@@ -9,7 +9,7 @@ import type {
   SweepDriver,
   VentSolverParams,
 } from '@openisd/design/engine';
-import {createEngine} from '@openisd/design/engine';
+import {VAS_WINS, createEngine} from '@openisd/design/engine';
 import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {halfUlp} from '../../domain/precision.js';
 
@@ -110,9 +110,9 @@ function fakeInput(value: number | undefined): SolverInput<number> {
 export function sweepDriver(d: TestSolverQuantities, air: Air = REFERENCE_AIR): SweepDriver {
   const stated = sweepValues(d);
   // What the domain hands the sweep: the figures WinISD's chain works out (Cms from Vas, Mms, Rms, terminal BL), in `air`.
-  const chain = createEngine().driver.shownMechanics(stated, air, {kind: 'VasWins'});
+  const chain = createEngine().driver.shownMechanics(stated, air, VAS_WINS);
   return {
-    values: chain === null ? stated : {
+    values: {
       ...stated,
       Cms_m_per_N: chain.Cms_m_per_N ?? stated.Cms_m_per_N, Mms_kg: chain.Mms_kg ?? stated.Mms_kg,
       Rms_kg_per_s: chain.Rms_kg_per_s ?? stated.Rms_kg_per_s, BL_terminal_Tm: chain.BL_terminal_Tm ?? stated.BL_terminal_Tm,

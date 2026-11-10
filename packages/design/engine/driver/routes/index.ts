@@ -6,4 +6,4 @@ export {RADIATOR_RELATIONS, RADIATOR_ROUTES} from './RadiatorRoutes.js';
 export {RouteGroup} from './RouteGroup.js';
 export {SolveRoute} from './SolveRoute.js';
 export type {DriverRoute, RouteQuantity, WithInputs} from './SolveRoute.js';
-export {CMS_FROM_VAS_SD_ROUTE, MMS_FROM_FS_CMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE} from './smallSignalRoutes.js';
+export {BL_FROM_QES_CMS_ROUTE, CMS_FROM_VAS_SD_ROUTE, MMS_FROM_FS_CMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE} from './smallSignalRoutes.js';
