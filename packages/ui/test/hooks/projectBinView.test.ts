@@ -6,16 +6,18 @@ import {describe, expect, it} from 'vitest';
 import {ProjectBuilder, type OpenISDProject} from '@openisd/design';
 import {createProjectBinView} from '../../src/hooks/projectBinView.js';
 import {testAppLogic} from './testAppLogic.js';
+import {recordingTelemetryUi} from '../fixtures/recordingTelemetryUi.js';
 
 function viewOf(logic = testAppLogic()) {
   const {appState, projectRepo, projectBin, confirmPort} = logic;
+  const {telemetryUi, events} = recordingTelemetryUi();
   const view = createProjectBinView({
-    appState, projectRepo, projectBin, confirm: confirmPort.port,
+    appState, projectRepo, projectBin, confirm: confirmPort.port, featureUse: telemetryUi.featureUse,
     cloudMarks: () => ({cloudOn: false, running: false, notOnDrive: new Set(), conflictCopies: new Set()}),
     unitTokens: () => ({}),
     alert: () => undefined,
   });
-  return {logic, view};
+  return {logic, view, events};
 }
 
 function namedProject(logic: ReturnType<typeof testAppLogic>, name: string): OpenISDProject {
@@ -65,5 +67,24 @@ describe('createProjectBinView: a search box that is not offered', () => {
     view.refresh();
     expect(view.searchOffered.value).toBe(false);
     expect(view.shownProjects.value).toHaveLength(8);
+  });
+});
+
+// John, 10 Nov 2026: "scan rest of app for missed telemetry".
+describe('createProjectBinView: usage counts', () => {
+  it('counts a project restored from the Bin', () => {
+    const logic = testAppLogic();
+    const project = ProjectBuilder.empty(logic.engine);
+    project.name.set('Binned');
+    logic.projectRepo.storeNew(project);
+    const id = logic.projectRepo.listStoredProjects()[0]?.id;
+    if (id === undefined) throw new Error('nothing stored');
+    expect(logic.projectBin.moveToBin(id)).toBe('done');
+    const {view, events} = viewOf(logic);
+    view.refresh();
+    const row = view.binRows.value[0];
+    if (row === undefined) throw new Error('nothing in the Bin');
+    view.restoreFromBin(row);
+    expect(events).toContainEqual({kind: 'feature', name: 'bin_restore'});
   });
 });

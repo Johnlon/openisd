@@ -307,7 +307,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   });
   const cloudSyncForProjects = useCloudSync();
   const binView = createProjectBinView({
-    appState, projectRepo, projectBin, confirm: confirmPort.port,
+    appState, projectRepo, projectBin, confirm: confirmPort.port, featureUse,
     unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
     cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });

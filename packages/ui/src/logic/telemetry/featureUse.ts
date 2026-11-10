@@ -20,6 +20,11 @@ const FEATURE_ACTIONS: Record<FeatureName, ActionName> = {
   chart_data: 'feature:chart_data',
   driver_editor: 'dialog:driver-editor',
   skin_switch: 'feature:skin_switch',
+  winisd_differences: 'dialog:winisd-differences',
+  bin_restore: 'feature:bin_restore',
+  history_restore: 'feature:history_restore',
+  cloud_connect: 'dialog:cloud-sync',
+  cloud_sync: 'feature:cloud_sync',
 };
 
 /** Records each chart viewed and each feature used once per page session. Records only; the

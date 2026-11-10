@@ -250,7 +250,7 @@ export function useMobileShell(): MobileShellApi {
   }, { immediate: true });
   const cloudSyncForProjects = useCloudSync();
   const binView = createProjectBinView({
-    appState, projectRepo, projectBin, confirm: confirmPort.port,
+    appState, projectRepo, projectBin, confirm: confirmPort.port, featureUse,
     unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
     cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });

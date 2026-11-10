@@ -53,7 +53,10 @@ export type ActionName =
   | 'feature:backup'
   | 'feature:restore'
   | 'feature:chart_data'
-  | 'feature:skin_switch';
+  | 'feature:skin_switch'
+  | 'feature:bin_restore'
+  | 'feature:history_restore'
+  | 'feature:cloud_sync';
 
 /** A ring buffer of the last user actions, oldest first. */
 export class RecentActions {
