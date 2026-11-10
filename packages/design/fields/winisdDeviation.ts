@@ -193,6 +193,15 @@ export class WinisdDeviation {
     charts: [],
   });
 
+  static readonly DRIVER_MMS_TYPING = new WinisdDeviation({
+    title: 'WinISD ignores a typed Mms',
+    winisd: 'WinISD ignores a typed Mms: its charts keep using the datasheet value, worked out from Fs and Cms.',
+    openisd: 'OpenISD uses the Mms you type: the box shows it, the charts use it, and Fs is worked out again from it and Cms. Cms and Vas stay as stated.',
+    size: 'The charts differ whenever the typed Mms differs from the one worked out from Fs and Cms: a heavier cone gives a lower resonance and a different bass roll-off.',
+    fix: {kind: 'ignoredInput', seenIn: 'the Mms field of a driver (the What-if panel and the driver editor).', remedy: 'WinISD has no way to make a typed Mms count, so OpenISD has no switch to copy it. Type Fs and Cms to work the way WinISD does.'},
+    charts: [],
+  });
+
   /** The project-wide members, by reflection; declared last. */
   static readonly ALL: readonly WinisdDeviation[] =
     Object.freeze(Object.values(WinisdDeviation).filter((v): v is WinisdDeviation => v instanceof WinisdDeviation));

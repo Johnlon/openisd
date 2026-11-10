@@ -22,6 +22,7 @@ import {
     VoiceCoilWiring,
     wiringFromRecord
 } from '../voiceCoilWiring.js';
+import {mmsTypedMoves} from '../mmsTypedMoves.js';
 import {NOTHING_SHOWN} from './chartFigureNote.js';
 import type {DriverContext} from './driverContext.js';
 import {computedSlot} from './computedSlot.js';
@@ -95,6 +96,8 @@ const FLOORS: Readonly<Record<DriverSpecFieldName, ValueFloor>> = Object.freeze(
 });
 
 /** `key`'s own floor. */
+type Partners = readonly DriverSpecFieldName[] | (() => readonly DriverSpecFieldName[]);
+
 export function driverSpecFloor(key: DriverSpecFieldName): ValueFloor {
     return FLOORS[key];
 }
@@ -261,14 +264,14 @@ export class OpenIsdDriverSpec {
         const sectionLens = driverSection(record, section);
         const sectionSlot = (
             key: DriverSpecFieldName,
-            partners: readonly DriverSpecFieldName[],
+            partners: Partners,
         ): SimpleField<SpecEntryJson | undefined> => ({
             get value() {
                 return sectionLens.value[key];
             },
             set: (v) => {
                 // Typed last wins: typing one of a linked pair drops the partner's entered value, so the solve works it out again.
-                if (v?.state === 'E') for (const partner of partners) if (sectionLens.value[partner]?.state === 'E') sectionSlot(partner, []).set(undefined);
+                if (v?.state === 'E') for (const partner of typeof partners === 'function' ? partners() : partners) if (sectionLens.value[partner]?.state === 'E') sectionSlot(partner, []).set(undefined);
                 const spec = sectionLens.value;
                 const {[key]: _removed, ...rest} = spec;
                 sectionLens.set(v === undefined ? rest : {...spec, [key]: v});
@@ -290,11 +293,11 @@ export class OpenIsdDriverSpec {
          *  CURRENT value on every read so it shows up immediately on `.set()`, not only after
          *  the next `resolve()`. */
         const f =
-            (key: DriverSpecFieldName, partners: readonly DriverSpecFieldName[]): SpecNumberField =>
+            (key: DriverSpecFieldName, partners: Partners): SpecNumberField =>
                 entryField(sectionSlot(key, partners), key, dqFor(key), (v) => floorIssue(key, v, issues));
         /** `f` for a figure the box shows as the engine works it out (`shown`) while writes still go to the stored entry. */
         const shownF =
-            (key: DriverSpecFieldName, partners: readonly DriverSpecFieldName[], shown: () => SpecEntryJson | undefined): SpecNumberField =>
+            (key: DriverSpecFieldName, partners: Partners, shown: () => SpecEntryJson | undefined): SpecNumberField =>
                 entryField(shownSlot(sectionSlot(key, partners), shown), key, dqFor(key), (v) => floorIssue(key, v, issues));
 
         /** The wiring field — `entryField` in every respect but the value's type, which is a
@@ -351,10 +354,10 @@ export class OpenIsdDriverSpec {
         this.Vas_m3 = f('Vas_m3', ['Cms_m_per_N']);
         this.Sd_m2 = f('Sd_m2', []);
         this.BL_Tm = f('BL_Tm', []);
-        this.#storedMms = f('Mms_kg', []);
+        this.#storedMms = f('Mms_kg', () => this.#mmsMoves());
         this.#storedCms = f('Cms_m_per_N', ['Vas_m3', 'no']);
         this.#storedRms = f('Rms_kg_per_s', []);
-        this.Mms_kg = shownF('Mms_kg', [], () => this.#shownEntry('Mms_kg'));
+        this.Mms_kg = shownF('Mms_kg', () => this.#mmsMoves(), () => this.#shownEntry('Mms_kg'));
         this.Cms_m_per_N = shownF('Cms_m_per_N', ['Vas_m3', 'no'], () => this.#shownEntry('Cms_m_per_N'));
         this.Rms_kg_per_s = shownF('Rms_kg_per_s', [], () => this.#shownEntry('Rms_kg_per_s'));
         this.Xmax_m = f('Xmax_m', []);
@@ -435,6 +438,11 @@ export class OpenIsdDriverSpec {
         return this.#issues;
     }
 
+    /** Mms typed: the figures it moves, by the one rule radiators share (`mmsTypedMoves`). */
+    #mmsMoves(): readonly DriverSpecFieldName[] {
+        return mmsTypedMoves(this.Cms_m_per_N.value !== null, this.#storedRms.entered);
+    }
+
     /** The issues, with the stated Cms that disagrees with the stated Vas named in one sentence on Cms (only the generic Vas/Cms issue loses Cms; an Fs/Mms/Cms
      *  issue keeps it), and each stated Mms or Rms the charts do not use named in its own sentence. */
     #withChartNotes(issues: readonly DriverIssue[], air: Air): readonly DriverIssue[] {
@@ -492,7 +500,9 @@ export class OpenIsdDriverSpec {
 
     /** The stored figures as the chain reads them: Vas wins only where Vas is stated; a Vas the solve worked out (a Cms was typed, Vas was dropped) is not a figure to hold the charts to. */
     #storedValues(air: Air): DriverValues {
-        const values = valuesOf(this.#solverParamsIn(air, this.#storedMms, this.#storedCms, this.#storedRms, NOTHING_SHOWN));
+        const all = valuesOf(this.#solverParamsIn(air, this.#storedMms, this.#storedCms, this.#storedRms, NOTHING_SHOWN));
+        // A typed Mms (its Fs was dropped and worked out again): Fs is not a stated figure, so the chain starts from the Mms, as a radiator's does.
+        const values = this.#storedMms.entered && !this.Fs_hz.entered ? {...all, Fs_hz: null} : all;
         return this.Vas_m3.entered ? values : {...values, Vas_m3: null};
     }
 

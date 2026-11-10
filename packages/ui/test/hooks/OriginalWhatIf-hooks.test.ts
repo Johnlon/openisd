@@ -172,19 +172,20 @@ describe('OriginalWhatIf-hooks', () => {
     expect(typeof api.dqNote('Fs_hz')).toBe('string');
   });
 
-  it('Mms is calculated by default; a typed Mms is kept but the box shows the figure the charts use (T744: WinISD ignores a typed Mms, the chart figure comes from Cms and Vas); clearing it changes nothing', async () => {
+  it('Mms is calculated by default; a typed Mms is used: the box shows it and the charts use it (T744, QO509: one rule with radiators; Fs is worked out again); clearing it leaves it not entered', async () => {
     const api = await renderHook();
     expect(api.specField('Mms_kg').calculated).toBe(true);
+    const calculatedMms = api.specField('Mms_kg').value;
 
     api.enterField('Mms_kg', 0.0125);
     const entered = api.specField('Mms_kg');
-    expect(entered.calculated).toBe(true);
-    expect(entered.value).not.toBeCloseTo(0.0125, 6);
-    const chartFigure = entered.value;
+    expect(entered.entered).toBe(true);
+    expect(entered.value).toBeCloseTo(0.0125, 6);
+    expect(api.specField('Fs_hz').entered).toBe(false);
 
     api.clearField('Mms_kg');
-    expect(api.specField('Mms_kg').calculated).toBe(true);
-    expect(api.specField('Mms_kg').value).toBe(chartFigure);
+    expect(api.specField('Mms_kg').entered).toBe(false);
+    expect(calculatedMms).not.toBeNull();
   });
 
   it('BL_Tm becomes entered when set directly', async () => {

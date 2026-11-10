@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
+import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField, WinisdDeviation} from '@openisd/design/fields';
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import {computed, nextTick, onBeforeUnmount, provide, ref, watch} from 'vue';
 import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../hooks/phoneLabelColumn.js';
@@ -763,7 +763,7 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_ELECTRO_MECHANICAL" />
               <div v-else class="de-hdr">Electro-Mechanical parameters<button type="button" class="de-help-button" aria-label="Help: Electro-Mechanical parameters" @click="showHelp(PhoneHelp.EDITOR_ELECTRO_MECHANICAL)">?</button></div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" :deviation="WinisdDeviation.DRIVER_MMS_TYPING" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Cms_m_per_N')]" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Rms_kg_per_s')]" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Re_ohm')]" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" required />

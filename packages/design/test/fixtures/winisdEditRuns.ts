@@ -6,7 +6,7 @@ import {describe, expect, it} from 'vitest';
 import {
   BOX_VOLUME, FRONT_BOX_VOLUME, FRONT_TUNING, FRONT_VENT_CROSS_AREA, FRONT_VENT_LENGTH, GROUP_DELAY_BOUND_MS, INTRA_VENT_CROSS_AREA,
   INTRA_VENT_LENGTH, PR_TUNING, SEALED_FSC, SEALED_QTC, UNSTATED_ZERO_KEYS, VENTED_FB, VENT_CROSS_AREA, VENT_LENGTH, applyEdit, unstatedBlankDeviations,
-  applyLossEdit, applyPortEdit, applySignalEdit, applySpecEdit, applyVentEdit, assertChartMatches, assertTypedCmsStands, assertLoadParity, assertReadout,
+  applyLossEdit, applyPortEdit, applySignalEdit, applySpecEdit, applyVentEdit, assertChartMatches, assertTypedCmsStands, assertTypedMmsStands, assertLoadParity, assertReadout,
   chartRules, editorDeviations, loadBase, loadEditCapture, sweepAfterEdit,
 } from './winisdEditCapture.js';
 import type {
@@ -129,6 +129,10 @@ export function describeRun(driver: DriverRuns, run: Run): void {
     const rules = chartRules(run.box === 'bandpass6' ? BP6_GROUP_DELAY_BOUND_MS : GROUP_DELAY_BOUND_MS);
     if ('spec' in run.edit && run.edit.spec === 'Cms_m_per_N') {
       it('the typed Cms is kept and moves the charts, which WinISD ignores', () => assertTypedCmsStands(project, capture, swept, rules));
+      return;
+    }
+    if ('spec' in run.edit && run.edit.spec === 'Mms_kg') {
+      it('the typed Mms is kept and moves the charts, which WinISD ignores', () => assertTypedMmsStands(project, capture, swept, rules));
       return;
     }
     const checks: Readout[] = [

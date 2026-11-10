@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import {describe, expect, it} from 'vitest';
 import {
   DRIVER_VAS_EDIT, UNSTATED_ZERO_KEYS, unstatedBlankDeviations, GROUP_DELAY_BOUND_MS, SEALED_FSC, SEALED_QTC, BOX_VOLUME, VENTED_FB, VENT_CROSS_AREA, VENT_LENGTH,
-  applyEdit, assertChartMatches, assertTypedCmsStands, assertLoadParity, assertReadout, chartRules, editorDeviations,
+  applyEdit, assertChartMatches, assertTypedCmsStands, assertTypedMmsStands, assertLoadParity, assertReadout, chartRules, editorDeviations,
   loadBase, loadEditCapture, sweepAfterEdit,
 } from '../fixtures/winisdEditCapture.js';
 import type {
@@ -86,6 +86,11 @@ for (const {run, field, spec} of DRIVER_EDITS) {
     if (spec === 'Cms_m_per_N') {
       // WinISD's charts ignore a typed Cms (bugs/BUG_20261108_driver-typed-cms-mms-rms-ignored-by-charts.md); OpenISD's follow it.
       it('the typed Cms is kept and moves the charts, which WinISD ignores', () => assertTypedCmsStands(project, capture, swept, rules));
+      return;
+    }
+    if (spec === 'Mms_kg') {
+      // WinISD's charts ignore a typed Mms; OpenISD's follow it (T744, QO509). Fs is worked out again.
+      it('the typed Mms is kept and moves the charts, which WinISD ignores', () => assertTypedMmsStands(project, capture, swept, rules));
       return;
     }
     chartCases(capture, swept, FULL_CHARTS);

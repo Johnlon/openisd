@@ -531,3 +531,12 @@ export function assertTypedCmsStands(project: OpenISDProject, capture: EditCaptu
   assert.ok(saved !== undefined && saved.state === 'E' && saved.value === capture.typed, 'the typed Cms is saved as entered');
   assert.equal(project.driver.specField('Vas_m3').entered, false);
 }
+
+/** A typed driver Mms (T744, QO509): WinISD's charts ignore it, OpenISD's follow it. It is saved as typed, the box shows it, and Fs is worked out again. */
+export function assertTypedMmsStands(project: OpenISDProject, capture: EditCapture, swept: ReturnType<typeof sweepAfterEdit>, rules: ReturnType<typeof chartRules>): void {
+  assert.throws(() => assertChartMatches(capture, swept, 'spl', rules), 'WinISD ignores a typed Mms; OpenISD does not');
+  const saved = savedEntry(project, 'Mms_kg');
+  assert.ok(saved !== undefined && saved.state === 'E' && saved.value === capture.typed, 'the typed Mms is saved as entered');
+  assert.equal(project.driver.specs.Mms_kg.value, capture.typed);
+  assert.equal(project.driver.specField('Fs_hz').entered, false);
+}

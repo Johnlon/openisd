@@ -5,6 +5,7 @@ import type { RadiatorDeviceJson, SpecEntryJson } from '../openisdSchema.js';
 import { prSpec, shownPrSpec, type PassiveRadiatorFieldName } from '../box/prSpec.js';
 import { radiatorSection } from '../box/radiatorSection.js';
 import type { RadiatorContext } from './radiatorContext.js';
+import { mmsTypedMoves } from '../mmsTypedMoves.js';
 
 /** A field no typed write moves another for. */
 const none = (): PassiveRadiatorFieldName[] => [];
@@ -121,8 +122,7 @@ export class OpenIsdPassiveRadiatorSpec {
 
     /** Mms typed: Fs follows Mms and Cms; Qms (Rms stated) follows Mms. */
     #mmsMoves(): PassiveRadiatorFieldName[] {
-        if (this.Cms_m_per_N.value === null) return [];
-        return ['Fs_hz', ...(this.Rms_kg_per_s.entered ? ['Qms' as const] : [])];
+        return mmsTypedMoves(this.Cms_m_per_N.value !== null, this.Rms_kg_per_s.entered);
     }
 
     /** Rms typed: Qms follows Rms, Mms and Cms. */

@@ -8,7 +8,7 @@
 import {computed, ref} from 'vue';
 import {useApp} from '../../../logic/app.js';
 import type {NumericDriverSpecFieldName} from '@openisd/design';
-import {NumberField} from '@openisd/design/fields';
+import {NumberField, WinisdDeviation} from '@openisd/design/fields';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
@@ -63,7 +63,7 @@ function setBoxValue(row: SheetBoxRow, value: number): void { whatIf.setBoxField
 // SI-suffixed name (`Fs_hz`, `Vas_m3`). Each row's unit, group and display come from the field's
 // own registry entry through `UIField`, never a second string stated here.
 type NumKey = NumericDriverSpecFieldName;
-interface PanelField { key: NumKey; def: NumberField; label: string }
+interface PanelField { key: NumKey; def: NumberField; label: string; deviation?: WinisdDeviation }
 const MAIN: PanelField[] = [
   ...whatIf.sheetRows,
   { key: 'Sd_m2', def: NumberField.SD_M2,  label: 'Sd' },
@@ -80,7 +80,7 @@ const OPTIONAL: PanelField[] = [
 // the E/C colour says which of the two is happening.
 const DERIVED: PanelField[] = [
   { key: 'BL_Tm', def: NumberField.BL_TM,  label: 'Bl' },
-  { key: 'Mms_kg', def: NumberField.MMS_KG, label: 'Mms' },
+  { key: 'Mms_kg', def: NumberField.MMS_KG, label: 'Mms', deviation: WinisdDeviation.DRIVER_MMS_TYPING },
 ];
 
 const ebpVal = whatIf.ebp;
@@ -127,7 +127,7 @@ useEscToClose(() => presentationState.editDriver, close);
 
     <div class="what-if-subsect">Derived</div>
     <div class="what-if-grid">
-      <UIField v-for="f in DERIVED" :key="f.key" class="what-if-fld" :title="`${f.label} is calculated from the parameters above until you type one — then it overrides them. Clear the field to hand it back to the calculation.`" :field="f.def" :label="f.label" :cell="whatIf.specCell(f.key)" />
+      <UIField v-for="f in DERIVED" :key="f.key" class="what-if-fld" :title="`${f.label} is calculated from the parameters above until you type one — then it overrides them. Clear the field to hand it back to the calculation.`" :field="f.def" :label="f.label" :cell="whatIf.specCell(f.key)" :deviation="f.deviation" />
       <!-- EBP is NOT a driver field: the ADT does not derive it and has no slot to override
            (it is ebp() = Fs/Qes, computed in the engine). Making it editable means choosing
            which of Fs or Qes an entered EBP solves backwards — a decision for the human, not
