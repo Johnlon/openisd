@@ -9,8 +9,8 @@ export type { Readable, Entered, Calculated, Precise, Writable, Clearable, Calcu
 // The two ambient system facts a fresh project needs (a new identity, the current time) —
 // injected the same way `Engine` already is, so a test substitutes ONE fake instead of
 // monkey-patching `crypto.randomUUID`/`Date`. `realAppContext` is the production default every
-// `AppContext`-accepting method already falls back to; most callers never need to name it.
-export type { AppContext } from './appContext.js';
+// `AppServices`-accepting method already falls back to; most callers never need to name it.
+export type { AppServices } from './appContext.js';
 export type { FieldPath } from './schemaRepair.js';
 export { realAppContext } from './appContext.js';
 export { newUuid } from './newUuid.js';

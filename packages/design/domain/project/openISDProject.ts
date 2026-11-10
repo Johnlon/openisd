@@ -1,7 +1,7 @@
 import {type Engine} from '../../engine/index.js';
 import type { Air, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepPeaks, SweepResult, SweepSolveResult } from '../../engine/index.js';
 import { dateStamp, realAppContext } from '../appContext.js';
-import type { AppContext } from '../appContext.js';
+import type { AppServices } from '../appContext.js';
 import { defaultedField, focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import type { EnvironmentIssue } from '../../engine/index.js';
@@ -88,12 +88,12 @@ export class OpenISDProject {
     readonly #engine: Engine;
 
     /** The clock `modified` is stamped from. */
-    readonly #appContext: AppContext;
+    readonly #appContext: AppServices;
 
     /** The current layer's cached issues — see the class doc comment's "ONE EXCEPTION". */
     #issues: ProjectIssues = { driver: [], signal: [], vent: [], rearVent: [], pr: [], radiator: [], sealed: [], ventTuningExtra: null, air: [] };
 
-    private constructor(saved: OpenISDProjectJson, uuid: string, engine: Engine, appContext: AppContext) {
+    private constructor(saved: OpenISDProjectJson, uuid: string, engine: Engine, appContext: AppServices) {
         this.#saved = saved;
         this.#uuid = uuid;
         this.#engine = engine;
@@ -473,7 +473,7 @@ export class OpenISDProject {
     /** A record ENTERS the process here. A record carries no identity, so one is minted — two
      *  wraps of one record are two independently editable projects, which is what opening a FILE
      *  twice should give. */
-    static wrap(json: OpenISDProjectJson, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
+    static wrap(json: OpenISDProjectJson, engine: Engine, appContext: AppServices = realAppContext): OpenISDProject {
         return this.wrapWithIdentity(withNullEmbeddedDriverId(json), appContext.newId(), engine, appContext);
     }
 
@@ -487,12 +487,12 @@ export class OpenISDProject {
      * NOT for a file: a file's id was minted by another process and is provenance, never a key
      * (the driver precedent, QO81).
      */
-    static wrapWithIdentity(json: OpenISDProjectJson, uuid: string, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
+    static wrapWithIdentity(json: OpenISDProjectJson, uuid: string, engine: Engine, appContext: AppServices = realAppContext): OpenISDProject {
         return new OpenISDProject(json, uuid, engine, appContext);
     }
 
     /** Wrap a stored session (saved and edited states) under an adopted identity. */
-    static wrapSession(session: OpenISDProjectSessionJson, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
+    static wrapSession(session: OpenISDProjectSessionJson, engine: Engine, appContext: AppServices = realAppContext): OpenISDProject {
         const project = new OpenISDProject(withNullEmbeddedDriverId(session.saved), session.id, engine, appContext);
         if (session.edited) {
             project.#edited = withNullEmbeddedDriverId(session.edited);
@@ -674,7 +674,7 @@ export class OpenISDProject {
      *  The project keeps the id its text carries (a text from before ids gets one minted here).
      *  Opening the same file twice gives two projects with one id: whoever opens the second
      *  gives it a new one (`assignNewId`) when the first is open or stored. */
-    static fromOwprText(text: string, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject | string[] {
+    static fromOwprText(text: string, engine: Engine, appContext: AppServices = realAppContext): OpenISDProject | string[] {
         const parsed = parseOwprSession(text, () => appContext.newId());
         if ('errors' in parsed) return parsed.errors;
         return OpenISDProject.wrapSession(parsed.session, engine, appContext);
@@ -683,7 +683,7 @@ export class OpenISDProject {
     /** Like `fromOwprText`, but a field that fails the schema is removed so its default applies
      *  instead of refusing the project; `repaired` names every field that was reset, for the
      *  user to be told. Refused only when the text is not a project at all. */
-    static fromOwprTextRepairing(text: string, engine: Engine, appContext: AppContext = realAppContext): { project: OpenISDProject; repaired: readonly FieldPath[] } | string[] {
+    static fromOwprTextRepairing(text: string, engine: Engine, appContext: AppServices = realAppContext): { project: OpenISDProject; repaired: readonly FieldPath[] } | string[] {
         const parsed = parseOwprSessionRepairing(text, () => appContext.newId());
         if (Array.isArray(parsed)) return parsed;
         return { project: OpenISDProject.wrapSession(parsed.value, engine, appContext), repaired: parsed.repaired };

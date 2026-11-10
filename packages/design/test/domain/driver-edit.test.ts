@@ -9,7 +9,7 @@ import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 import {isRecord, at, specSection, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
 import {NULL_GUID} from '../../domain/project/nullDriverId.js';
-import {realAppContext, type AppContext} from '../../domain/appContext.js';
+import {realAppContext, type AppServices} from '../../domain/appContext.js';
 
 describe('editing a driver — copy, then update or drop', () => {
   const wooferDriver = () => driverFrom({
@@ -168,9 +168,9 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(second.uuid()).not.toBe(NULL_GUID);
   });
 
-  it('a detached project driver takes its id from the injected AppContext', () => {
+  it('a detached project driver takes its id from the injected AppServices', () => {
     let count = 0;
-    const context: AppContext = {...realAppContext, newId: () => `minted-${++count}`};
+    const context: AppServices = {...realAppContext, newId: () => `minted-${++count}`};
     const project = new ProjectBuilder(wooferDriver(), createEngine(), context).sealed().volume_m3(0.03).build();
 
     const first = project.driver.detach().uuid();

@@ -49,7 +49,7 @@ describe('OpenISDProject settings', () => {
       expect(p.splGraphIsXmaxLimited.value).toBe(true);
     });
 
-    it('uuid() answers the identity a fixed AppContext minted at wrap time', () => {
+    it('uuid() answers the identity a fixed AppServices minted at wrap time', () => {
       const p = OpenISDProject.wrap(sealedProject().cloneSavedProject(), createEngine(), fixedAppContext('proj-fixed-id'));
       expect(p.uuid()).toBe('proj-fixed-id');
     });

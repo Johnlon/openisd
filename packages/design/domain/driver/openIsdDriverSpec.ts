@@ -1,4 +1,4 @@
-import {VAS_WINS} from '../../engine/index.js';
+import {VAS_WINS} from '../project/chartingSources.js';
 import type {Air, CalculationIssue, ChartingSource, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, DriverValues, IssueEngine, OutOfRangeIssue, ShownMechanics, SolverInput, SweepDriver, Wiring} from '../../engine/index.js';
 import {NumberField} from '../../fields/field.js';
 import type {ValueFloor} from '../../fields/field.js';

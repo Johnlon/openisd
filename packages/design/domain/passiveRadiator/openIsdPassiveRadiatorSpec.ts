@@ -1,5 +1,5 @@
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
-import { resolveCms, VAS_WINS } from '../../engine/index.js';
+import { VAS_WINS } from '../project/chartingSources.js';
 import type { Air, ChartingSource, PrEngine, PrSpecIssue, PrSpecPrecision, PrSpecValues, ShownMechanics } from '../../engine/index.js';
 import { chartNotes } from '../driver/chartFigureNote.js';
 import { NumberField } from '../../fields/field.js';
@@ -185,7 +185,7 @@ export class OpenIsdPassiveRadiatorSpec {
         if (source === null) return null;
         const stated = this.#stated();
         if (stated.Vas_m3 === null) return null;
-        return this.#context.fold(project => resolveCms(source, {
+        return this.#context.fold(project => project.mechanics(source, {
             Fs_hz: stated.Fs_hz, Qms: stated.Qms, Vas_m3: stated.Vas_m3, Sd_m2: stated.Sd_m2,
             Cms_m_per_N: source.kind === 'StatedCmsWins' ? stated.Cms_m_per_N : null, Mms_kg: null, Qes: null, Re_terminal_ohm: null,
         }, project.air()), () => null);

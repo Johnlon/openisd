@@ -9,7 +9,8 @@ import type {
   SweepDriver,
   VentSolverParams,
 } from '@openisd/design/engine';
-import {VAS_WINS, createEngine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
+import {VAS_WINS} from '../../domain/project/chartingSources.js';
 import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {halfUlp} from '../../domain/precision.js';
 

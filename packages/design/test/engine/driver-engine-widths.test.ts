@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
-import {VAS_WINS} from '../../engine/index.js';
+import {VAS_WINS} from '../../domain/project/chartingSources.js';
 import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {driverParams, sweepDriver} from './testSolver.js';
 

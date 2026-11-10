@@ -49,7 +49,7 @@ describe('OpenISDProject new-project defaults', () => {
       expect(two.driver.model.value).toBe('');
     });
 
-    it('stamps created/modified from the injected AppContext, and creator from the platform user, including the embedded driver', () => {
+    it('stamps created/modified from the injected AppServices, and creator from the platform user, including the embedded driver', () => {
       const appContext = fixedAppContext('id', '2026-03-04T00:00:00.000Z', 'johnl');
       const p = ProjectBuilder.empty(createEngine(), appContext);
 

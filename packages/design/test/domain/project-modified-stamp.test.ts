@@ -4,11 +4,11 @@
  * (BUG_20260929_modified-date-only-stamped-by-original-shell).
  */
 import {describe, expect, it} from 'vitest';
-import type {AppContext} from '../../domain/appContext.js';
+import type {AppServices} from '../../domain/appContext.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {createEngine} from '../../engine/Engine.js';
 
-function clock(isoDate: string): AppContext {
+function clock(isoDate: string): AppServices {
   return {newId: () => '11111111-1111-4111-8111-111111111111', now: () => new Date(isoDate), platformUser: () => null};
 }
 

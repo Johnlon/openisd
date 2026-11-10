@@ -1,5 +1,5 @@
 import { realAppContext } from '../appContext.js';
-import type { AppContext } from '../appContext.js';
+import type { AppServices } from '../appContext.js';
 import { asRadiatorDevice } from '../openisdSchema.js';
 import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
@@ -33,7 +33,7 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
     /** A radiator stating nothing — the counterpart of `OpenISDDriver.empty()`, and how a PR
      *  comes into existence before anyone has typed its parameters. `configurePR()` accepts it,
      *  so a box can adopt one and the editor fills it in from there. */
-    static empty(appContext: AppContext = realAppContext): OpenISDPassiveRadiatorStandalone {
+    static empty(appContext: AppServices = realAppContext): OpenISDPassiveRadiatorStandalone {
         return OpenISDPassiveRadiatorStandalone.wrap(blankDeviceRecord({'passive-radiator': {}}, 'passive-radiator', appContext));
     }
 

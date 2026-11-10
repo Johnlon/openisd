@@ -1,7 +1,7 @@
 import {type Engine} from '../../engine/index.js';
 import type { DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
-import type { AppContext as AppServices } from '../appContext.js';
+import type { AppServices } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
 import type { Calculated, Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import { openIsdDriverToWinIsdDriver } from '../driverRecordConverter.js';

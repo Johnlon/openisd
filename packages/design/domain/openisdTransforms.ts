@@ -16,16 +16,16 @@ import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassive
 import {OpenISDProject} from './project/openISDProject.js';
 import {type Engine, type VentedAlignment} from '../engine/index.js';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../fields/defaults.js';
-import {type AppContext, dateStamp, realAppContext} from './appContext.js';
+import {type AppServices, dateStamp, realAppContext} from './appContext.js';
 
 // ── BUILDING A PROJECT — the wizard's path in, and the only way to make an `OpenISDProject` ──
 
 export class ProjectBuilder {
     readonly #driver: OpenISDDriver;
     readonly #engine: Engine;
-    readonly #appContext: AppContext;
+    readonly #appContext: AppServices;
 
-    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext = realAppContext) {
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppServices = realAppContext) {
         this.#driver = driver;
         this.#engine = engine;
         this.#appContext = appContext;
@@ -33,7 +33,7 @@ export class ProjectBuilder {
 
     /** A blank project: a blank driver in a sealed box of no volume. States no physical value
      *  of its own — the wizard repopulates the driver from the one the user picks. */
-    static empty(engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
+    static empty(engine: Engine, appContext: AppServices = realAppContext): OpenISDProject {
         return new ProjectBuilder(OpenISDDriver.empty(engine, appContext), engine, appContext).sealed().volume_m3(0).build();
     }
 
@@ -73,9 +73,9 @@ export abstract class BoxProjectBuilder {
     protected readonly engine: Engine;
     /** The project's fresh identity comes from here, not from a direct `newUuid()` call — see
      *  `appContext.ts`. */
-    protected readonly appContext: AppContext;
+    protected readonly appContext: AppServices;
 
-    protected constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+    protected constructor(driver: OpenISDDriver, engine: Engine, appContext: AppServices) {
         this.driver = driver;
         this.engine = engine;
         this.appContext = appContext;
@@ -210,7 +210,7 @@ class SealedProjectBuilder extends BoxProjectBuilder {
     #volume: number | null = null;
     #qtc: number | null = null;
 
-    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppServices) {
         super(driver, engine, appContext);
     }
 
@@ -246,7 +246,7 @@ class VentedProjectBuilder extends BoxProjectBuilder {
     #tuning: number | null = null;
     #alignment: VentedAlignment | null = null;
 
-    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppServices) {
         super(driver, engine, appContext);
     }
 
@@ -300,7 +300,7 @@ class Bandpass4ProjectBuilder extends BoxProjectBuilder {
     #frontVolume: number | null = null;
     #frontTuning: number | null = null;
 
-    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppServices) {
         super(driver, engine, appContext);
     }
 
@@ -347,7 +347,7 @@ class TwoChamberProjectBuilder extends BoxProjectBuilder {
     #frontVolume: number | null = null;
     #frontTuning: number | null = null;
 
-    constructor(driver: OpenISDDriver, engine: Engine, kind: 'bandpass6' | 'abc', appContext: AppContext) {
+    constructor(driver: OpenISDDriver, engine: Engine, kind: 'bandpass6' | 'abc', appContext: AppServices) {
         super(driver, engine, appContext);
         this.#kind = kind;
     }
@@ -398,7 +398,7 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
     #tuning: number | null = null;
     #count = 1;
 
-    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppServices) {
         super(driver, engine, appContext);
     }
 

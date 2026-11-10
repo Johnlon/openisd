@@ -1,4 +1,4 @@
-import {type Engine, FixedAir, standaloneChartingSource} from '../../engine/index.js';
+import {type Engine, FixedAir} from '../../engine/index.js';
 import type {Air, ChartingSource} from '../../engine/index.js';
 
 /** What a driver is read with: the air its calculations use and which Cms a datasheet stating both Cms and Vas shows.
@@ -36,7 +36,7 @@ export class AppContext extends DriverContext {
     static of(engine: Engine): AppContext {
         const env = engine.environment;
         return new AppContext(
-            standaloneChartingSource,
+            () => null,
             () => new FixedAir(env.solve({tempK: env.appAir.temperature(), humidityPct: env.appAir.humidity(), pressurePa: env.appAir.pressure()}).values),
         );
     }

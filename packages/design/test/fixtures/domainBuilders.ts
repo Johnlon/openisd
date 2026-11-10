@@ -1,11 +1,11 @@
 import {type DqIssue, createEngine} from '@openisd/design/engine';
-import type {AppContext} from '../../domain/appContext.js';
+import type {AppServices} from '../../domain/appContext.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {CompatSwitch} from '../../domain/project/compatSwitch.js';
 import type {OpenISDProject} from '../../domain/project/openISDProject.js';
 
-export function fixedAppContext(id: string, isoDate = '2026-01-01T00:00:00.000Z', platformUser: string | null = null): AppContext {
+export function fixedAppContext(id: string, isoDate = '2026-01-01T00:00:00.000Z', platformUser: string | null = null): AppServices {
   return { newId: () => id, now: () => new Date(isoDate), platformUser: () => platformUser };
 }
 
