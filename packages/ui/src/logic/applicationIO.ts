@@ -270,6 +270,7 @@ export function createApplicationIO(deps: {
     adoptFileName(result.name, suggested);
     const fileName = result.name ?? suggested;
     if (!result.written) {
+      recordSave('owpr', requireFocusedProject());
       flash(isModified.value ? `Project downloaded as ${fileName}. It stays marked unsaved.` : `Project downloaded as ${fileName}`);
       return;
     }
@@ -339,6 +340,8 @@ export function createApplicationIO(deps: {
           // A driver file with a project open SWAPS the driver in place; with none open it is
           // recognised as a DRIVER (not a project) and starts the New Project wizard with it
           // pre-loaded — the user then chooses the box type and volume (BUG_20260912).
+          // A user's own file: its name and id stay on the device.
+          telemetry.record({ kind: 'driver_pick', source: 'import', id: '', name: '' });
           const open = focusedProject();
           if (open) {
             open.loadDriver(driver);
