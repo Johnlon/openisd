@@ -16,6 +16,8 @@ import PhoneButton from './PhoneButton.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
 import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
+import { createPhoneLabelColumnDirective } from '../../../hooks/phoneLabelColumnDirective.js';
+const vPhoneLabelColumn = createPhoneLabelColumnDirective();
 
 const {
   selectedBox, pending, isDual, frontVolumeCell, boxLabel,
@@ -79,7 +81,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
   </PhoneClassicPage>
 
   <div v-if="sealedAlignmentOpen" class="mob-align-overlay" @click.self="sealedAlignmentEditor.cancel">
-    <div class="mob-align-sheet mob-classic">
+    <div v-phone-label-column class="mob-align-sheet mob-classic">
       <div class="mob-panel-head mob-panel-head-row">
         <span>Choose sealed alignment</span>
         <button class="mob-x" @click="sealedAlignmentEditor.cancel">&#10005;</button>
@@ -105,7 +107,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
   </div>
 
   <div v-if="ventedAlignmentOpen" class="mob-align-overlay" @click.self="ventedAlignmentEditor.cancel">
-    <div class="mob-align-sheet mob-classic">
+    <div v-phone-label-column class="mob-align-sheet mob-classic">
       <div class="mob-panel-head mob-panel-head-row">
         <span>Choose vented alignment</span>
         <button class="mob-x" @click="ventedAlignmentEditor.cancel">&#10005;</button>
@@ -131,7 +133,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
   </div>
 
   <div v-if="lossesOpen !== null" class="mob-align-overlay" @click.self="lossesOpen = null">
-    <div class="mob-align-sheet">
+    <div v-phone-label-column class="mob-align-sheet">
       <div class="mob-panel-head mob-panel-head-row">
         <span>Box losses</span>
         <button class="mob-x" @click="lossesOpen = null">&#10005;</button>

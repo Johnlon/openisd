@@ -95,11 +95,24 @@ export function measureFieldLayoutRules(root: Element, minStepperGapPx: number):
   }
   // Rule 7: no two painted parts overlap, other than the parts joined inside one field.
   const owner = (el: Element) => el.closest('.ui-field') ?? el.closest('.num-input-wrap');
+  // The painted part of a box: cut to the frame of every scrolling or clipping ancestor (a sheet's rows below its fold are not painted, so they overlap nothing).
+  const painted = (part: Element) => {
+    const box = part.getBoundingClientRect();
+    let top = box.top, bottom = box.bottom, left = box.left, right = box.right;
+    for (let ancestor = part.parentElement; ancestor !== null && ancestor !== doc.body; ancestor = ancestor.parentElement) {
+      const style = view.getComputedStyle(ancestor);
+      if (!/^(auto|scroll|hidden|clip)$/.test(style.overflowY)) continue;
+      const frame = ancestor.getBoundingClientRect();
+      top = Math.max(top, frame.top); bottom = Math.min(bottom, frame.bottom);
+      if (/^(auto|scroll|hidden|clip)$/.test(style.overflowX)) { left = Math.max(left, frame.left); right = Math.min(right, frame.right); }
+    }
+    return {left, right, top, bottom};
+  };
   for (let i = 0; i < parts.length; i++) for (let j = i + 1; j < parts.length; j++) {
     const a = parts[i], b = parts[j];
     if (a === undefined || b === undefined || a.contains(b) || b.contains(a)) continue;
     if (owner(a) !== null && owner(a) === owner(b)) continue;
-    const p = a.getBoundingClientRect(), q = b.getBoundingClientRect();
+    const p = painted(a), q = painted(b);
     const across = Math.min(p.right, q.right) - Math.max(p.left, q.left), down = Math.min(p.bottom, q.bottom) - Math.max(p.top, q.top);
     if (across > 2 && down > 2) issues.push(`R7 ${name(a)} "${(a.textContent ?? '').trim().slice(0, 12)}" overlaps ${name(b)} "${(b.textContent ?? '').trim().slice(0, 12)}" by ${Math.round(across)}x${Math.round(down)}`);
   }
@@ -116,7 +129,7 @@ export function measureLabelGaps(root: Element, maxGapPx: number): string[] {
   const doc = root.ownerDocument;
   const shown = (el: Element) => el.checkVisibility({visibilityProperty: true, opacityProperty: true}) && el.getBoundingClientRect().width > 0;
   const columnSelector = '.vent-col,.pr-controls > div,.driver-columns > div,.box-fields-col,.what-if-panel,[role=dialog],.modal-body,.two-col > div,.tab-section';
-  const rows = [...root.querySelectorAll<HTMLElement>('.ui-field,.field')].filter(shown).flatMap(row => {
+  const rows = [...root.querySelectorAll<HTMLElement>('.ui-field,.field,.mob-crow')].filter(shown).flatMap(row => {
     const label = row.querySelector<HTMLElement>(':scope > label');
     const control = row.querySelector<HTMLElement>('input:not([type=checkbox]):not([type=radio]):not([type=file]),select');
     if (label === null || control === null || !shown(label) || !shown(control) || (label.textContent ?? '').trim() === '') return [];

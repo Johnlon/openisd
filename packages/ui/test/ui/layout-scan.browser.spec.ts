@@ -19,23 +19,6 @@ import {PhoneRowColumns} from '@openisd/design/fields';
 const RESULTS = '/home/john/work/winisd/ui-gallery/T742-phone-clip';
 /** Views the first scan (10 Nov 2026) found at fault and nobody has fixed yet. Each test then expects the fault (test.fail) and turns red when it is fixed; delete its id then. */
 const SCAN_KNOWN: ReadonlySet<string> = new Set([
-  'box-sealed',
-  'losses-sealed-Rear',
-  'tune-sealed',
-  'what-if-sealed',
-  'losses-vented-Rear',
-  'tune-vented',
-  'what-if-vented',
-  'tune-box-passive-radiator',
-  'losses-box-passive-radiator-Rear',
-  'what-if-box-passive-radiator',
-  'tune-bandpass4',
-  'what-if-bandpass4',
-  'what-if-bandpass6',
-  'tune-bandpass6',
-  'tune-abc',
-  'what-if-abc',
-  'tab-driver',
   'editor-parameters',
   'options-plot-window',
   'filter-lowpass',

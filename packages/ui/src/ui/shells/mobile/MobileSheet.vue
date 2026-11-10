@@ -9,6 +9,8 @@ import PhoneButton from './PhoneButton.vue';
 import { useMobileSheet } from '../../../hooks/MobileSheet-hooks.js';
 import { SheetMode } from '@openisd/design/fields';
 import { inputChecked } from '../../../logic/domEvents.js';
+import { createPhoneLabelColumnDirective } from '../../../hooks/phoneLabelColumnDirective.js';
+const vPhoneLabelColumn = createPhoneLabelColumnDirective();
 
 const props = defineProps<{ open: boolean; mode: SheetMode; hidden: boolean; autoY: boolean }>();
 const emit = defineEmits<{ 'update:open': [open: boolean]; 'update:autoY': [on: boolean] }>();
@@ -21,7 +23,7 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
 <template>
   <PhoneButton v-if="!isOpen && !hidden" class="mob-sheet-tab" :style="sizeStyle" :aria-label="'Open ' + mode.label"
                @pointerdown="onTabDown" @pointerup="onTabUp" @click="openSheet">{{ mode.label }} ▲</PhoneButton>
-  <section v-else-if="isOpen" ref="sheetEl" class="mob-sheet mob-classic" :style="[sizeStyle, sheetStyle]" :aria-label="mode.label">
+  <section v-else-if="isOpen" ref="sheetEl" v-phone-label-column class="mob-sheet mob-classic" :style="[sizeStyle, sheetStyle]" :aria-label="mode.label">
     <div class="mob-sheet-handle" role="separator" aria-label="Drag to resize"
          @pointerdown="onHandleDown" @pointermove="onHandleMove" @pointerup="onHandleUp" @pointercancel="onHandleUp">
       <PhoneBand :section="help" />

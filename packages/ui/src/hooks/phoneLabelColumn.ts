@@ -12,6 +12,8 @@ export interface PhoneLabelColumn {
 }
 
 const LABELS = '.ui-field > label, .mob-crow-label';
+/** The box a label sits before: a number box, text box or dropdown. A row with none (a button row) does not size the column (John, 10 Nov 2026: "there is tons of empty space, don't blame the label"). */
+const BOX = 'input:not([type=checkbox]):not([type=radio]):not([type=file]), select';
 
 export function createPhoneLabelColumn(root: HTMLElement): PhoneLabelColumn {
   const doc = root.ownerDocument;
@@ -27,6 +29,7 @@ export function createPhoneLabelColumn(root: HTMLElement): PhoneLabelColumn {
     for (const label of root.querySelectorAll<HTMLElement>(LABELS)) {
       const text = (label.textContent ?? '').trim();
       if (text === '' || label.getClientRects().length === 0) continue;
+      if (label.closest('.ui-field, .mob-crow')?.querySelector(BOX) == null) continue;
       const style = view.getComputedStyle(label);
       canvas.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`; // the font shorthand reads back empty
       widths.push(canvas.measureText(text).width + (parseFloat(style.marginRight) || 0));
