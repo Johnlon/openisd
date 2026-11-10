@@ -1,0 +1,10 @@
+id: T760
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: The portingle copy's workflow fast-forwards Johnlon main after each queue merge
+done_test: python3 -c "import yaml;yaml.safe_load(open('.github/workflows/mirror.yml'))"
+files:
+  - tasks/T760.yml
+  - .github/workflows/mirror.yml
