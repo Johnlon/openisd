@@ -9,7 +9,7 @@ goal: The rule docs describe land.sh and the post-land run and nothing of the qu
 done_test: timeout 600 bash scripts/land/test/rules-docs.test.sh
 locked:
   - path: scripts/land/test/rules-docs.test.sh
-    sha256: 7ecec29f87b450402b75ed366504f0d861dd67d7f04ec11f6f1c0604ef69ab4d
+    sha256: b5497217fe026d6bb9d4a5c62ac64348552bce405a9b5b350261310151408076
 files:
   - .claude/rules/verify.md
   - .claude/rules/processes.md
