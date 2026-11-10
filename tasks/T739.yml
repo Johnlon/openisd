@@ -36,3 +36,19 @@ steps:
 done_test: bash scripts/test.sh packages/ui/test/scripts/mobile-surface-manifest.test.ts
 files:
   - tasks/T739.yml
+  - packages/ui/test/fixtures/branchMap/desktop.ts
+  - packages/ui/test/fixtures/branchMap/index.ts
+  - packages/ui/test/fixtures/branchMap/phone.ts
+  - packages/ui/test/fixtures/branchMap/shared.ts
+  - packages/ui/test/fixtures/branchMap/types.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/fixtures/viewBaseline.ts
+  - packages/ui/test/fixtures/viewChangeGuard.ts
+  - packages/ui/test/fixtures/viewIndex.ts
+  - packages/ui/test/fixtures/viewRemoved.ts
+  - packages/ui/test/scripts/branch-map.test.ts
+  - packages/ui/test/scripts/mobile-surface-manifest.test.ts
+  - packages/ui/test/scripts/view-change-guard.test.ts
+  - packages/ui/test/scripts/view-index.test.ts
+  - scripts/export-view-index.ts
+  - scripts/mobile-surface-discovery.ts
