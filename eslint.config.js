@@ -361,7 +361,7 @@ export default [
 
   // ── A fixture whose addInitScript/evaluate callbacks run in the page: browser globals too ──
   {
-    files: ['packages/ui/test/fixtures/chartFonts.ts'],
+    files: ['packages/ui/test/fixtures/chartFonts.ts', 'packages/ui/test/fixtures/screenSizeAudit.ts'],
     languageOptions: { globals: { ...globals.node, ...globals.browser, ...globals.es2022 } },
   },
 
