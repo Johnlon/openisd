@@ -111,3 +111,4 @@ Both stay `fault-needed` until the index or the app changes (a ruling, not a tes
 ### Batch 6 progress
 
 - 6a (T776, ceiling 68): project-actions, bin, empty, sealed-alignment, vented-alignment, pr-picker, pr-save, chart-data, sheet-port, exports (phone). Fault found: `BUG_20261110_phone-pr-picker-names-cut.md`.
+- 6b (T777, ceiling 59): driver-summary-manage, driver-summary-pick, driver-search-filters, driver-export, driver-save, driver-import, equations, driver-dq, driver-rename (phone). No fault.

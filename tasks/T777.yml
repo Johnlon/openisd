@@ -1,0 +1,14 @@
+id: T777
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: View coverage batch 6b: phone driver dialogs
+why: 'John, 10 Nov 2026 (QO527): "I need full coverage add it then maintain it"'
+done_test: bash scripts/test.sh packages/ui/test/logic/view-walk-coverage.test.ts
+files:
+  - tasks/T777.yml
+  - docs/design/VIEW_COVERAGE_PLAN.md
+  - packages/ui/test/fixtures/viewOpenSteps.ts
+  - packages/ui/test/fixtures/viewOpenPhoneDrivers.ts
+  - packages/ui/test/logic/view-walk-coverage.test.ts
