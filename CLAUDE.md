@@ -226,7 +226,7 @@ work is an actual dependency, and consume their committed output on the integrat
 
 [`docs/SDLC_POLICY.md`](docs/SDLC_POLICY.md): John's standing orders. Finished tasks reach main only as a pull request through the merge queue
 (`bash scripts/ship.sh T<n>`; QO481); main broken → the fix is a PR labelled `fixes`, first in the queue; failing tests → one spec, then a cluster of 2–3, then the suite; release
-fixes before new work; agent sessions run in tmux under the keeper; a restarted agent coordinates before working.
+fixes before new work; agent sessions run in tmux under the keeper; a restarted agent coordinates before working; no default argument values (they hide bugs and are not transparent).
 
 Driver model files (`openisdSchema.ts`, `openIsdDriverSpec.ts`, `driverSpecFieldName.ts`) change only with John's ruling,
 named as `ruling: QO<n>` in the task file; the PR check refuses otherwise (QO392, 3 Nov 2026).
