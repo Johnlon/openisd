@@ -3,6 +3,7 @@ import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {createEngine} from '../../engine/Engine.js';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../../fields/defaults.js';
+import {DEFAULT_VENTED_ALIGNMENT} from '../../fields/options.js';
 
 function driver(): OpenISDDriver {
   const d = OpenISDDriver.empty(createEngine());
@@ -25,14 +26,14 @@ describe('ProjectBuilder starting values', () => {
     expect(p.isModified()).toBe(false);
   });
 
-  it('vented().alignment(a) designs for the named alignment; without one, QB3', () => {
+  it('vented().alignment(a) designs for the named alignment; without one, the default (C4)', () => {
     const p = new ProjectBuilder(driver(), createEngine()).vented().alignment('bb4').build();
     const design = p.driver.ventedDesign('bb4', DEFAULT_SOURCE_RESISTANCE_OHM, p.box.vented.losses.Ql.value)!;
     expect(p.box.vented.volume_m3.value).toBe(design.Vb);
     expect(p.box.vented.tuning_goal_hz.value).toBe(design.Fb);
     expect(p.box.vented.vent.diameter_m.value).toBe(0.05);
     const q = new ProjectBuilder(driver(), createEngine()).vented().build();
-    expect(q.box.vented.volume_m3.value).toBe(p.driver.ventedDesign('qb3', DEFAULT_SOURCE_RESISTANCE_OHM, q.box.vented.losses.Ql.value)!.Vb);
+    expect(q.box.vented.volume_m3.value).toBe(p.driver.ventedDesign(DEFAULT_VENTED_ALIGNMENT, DEFAULT_SOURCE_RESISTANCE_OHM, q.box.vented.losses.Ql.value)!.Vb);
   });
 
   it('passiveRadiator() without a radiator builds the chart-ready one', () => {

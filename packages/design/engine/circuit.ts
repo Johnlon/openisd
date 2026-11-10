@@ -33,6 +33,7 @@ import type {BoxType, Complex, Solution, SweepParams} from './types.js';
 import {boxModel} from './boxes/index.js';
 import type {BoxLoss, DriverSideQuantities} from './boxes/index.js';
 import {LOSSLESS_LIMIT} from './sealedResonance.js';
+import {DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL} from '../fields/defaults.js';
 
 // Re-exported unchanged: the box-specific box models (`./boxes/`) now own the port branch, but
 // an existing import of `portImpedance`/`portLoss` from `circuit.js` still resolves.
@@ -174,8 +175,8 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   // https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
   const Cab = P.Vb / (rho * c * c);
   const Zc  = cInv(cx(0, w * Cab));
-  const Ql  = P.Ql || 10;
-  const Qa  = P.Qa || 100;
+  const Ql  = P.Ql || DEFAULT_NEW_PROJECT_VENTED_QL;
+  const Qa  = P.Qa || DEFAULT_NEW_PROJECT_QA;
   const Ral = cx(Ql / (w * Cab), 0);
   const Raa = cx(Qa / (w * Cab), 0);
 

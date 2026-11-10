@@ -4,7 +4,7 @@ import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef, watc
 import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, defaultProjectName, startingChambersOf, takesChamberTunings, WizardPlan, WizardStep } from '@openisd/design';
 import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
 import { type BoxType, type EbpSuitability, type EnvironmentEngine, FixedAir, type PrEngine, type SealedEngine, type VentedAlignment, type VentedEngine, type Wiring } from '@openisd/design/engine';
-import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SEALED_QTC, DEFAULT_SEALED_VOLUME_L, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {DUAL_CHAMBER} from './boxFields.js';
 import {useApp} from '../logic/app.js';
 import type {AppState} from '../logic/appState.js';
@@ -235,8 +235,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     rearTuning_hz.value = start.rearTuning_hz ?? rearTuning_hz.value;
     frontTuning_hz.value = start.frontTuning_hz;
   }, { flush: 'sync' });
-  const targetQtc = ref(0.707);
-  const sealedVolume_m3 = ref(NumberField.BOX_VB_L.toSI(7));
+  const targetQtc = ref(DEFAULT_SEALED_QTC);
+  const sealedVolume_m3 = ref(NumberField.BOX_VB_L.toSI(DEFAULT_SEALED_VOLUME_L));
   const selectedVentedAlignment = ref<VentedAlignment>(DEFAULT_VENTED_ALIGNMENT);
 
   // The name is "<driver model> <box type>" until the person types one (John, 2026-10-21); after
