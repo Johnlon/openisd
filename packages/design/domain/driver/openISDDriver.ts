@@ -1,7 +1,7 @@
 import {type Engine} from '../../engine/index.js';
 import type { DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
-import type { AppContext } from '../appContext.js';
+import type { AppContext as AppServices } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
 import type { Calculated, Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import { openIsdDriverToWinIsdDriver } from '../driverRecordConverter.js';
@@ -16,7 +16,8 @@ import type { NumericDriverSpecFieldName } from './driverSpecFieldName.js';
 import { NumberField } from '../../fields/field.js';
 import { formatSignificant } from '../../fields/format.js';
 import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
-import { DriverContext } from './driverContext.js';
+import { AppContext } from './driverContext.js';
+import type { DriverContext, ProjectContext } from './driverContext.js';
 
 /**
  * A real, playable driver — its record has a `woofer` section (a coaxial has a `tweeter` section beside it).
@@ -63,15 +64,15 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         const driver = asDriverDevice(conformed.json);
         if (driver === null) return [NOT_A_DRIVER];
         // A library driver saved from a WinISD import holds the model text as its short code; it opens with none (QO259).
-        return OpenISDDriverStandalone.wrap(deviceWithoutImportSku(driver), engine, DriverContext.standalone(engine));
+        return OpenISDDriverStandalone.wrap(deviceWithoutImportSku(driver), engine, AppContext.of(engine));
     }
 
     /** A driver stating nothing — what the editor opens on "create a new driver from scratch".
      *  Every spec field reads `not-available`, so the editor renders it blank and the consistency
      *  solver has nothing to work from until the user types. No conformance check: this record is
      *  minted here, not received from outside, so there is no untrusted input to refuse. */
-    static empty(engine: Engine, appContext: AppContext = realAppContext): OpenISDDriverStandalone {
-        return OpenISDDriverStandalone.wrap(blankDeviceRecord({woofer: {}}, 'woofer', appContext), engine, DriverContext.standalone(engine));
+    static empty(engine: Engine, appContext: AppServices = realAppContext): OpenISDDriverStandalone {
+        return OpenISDDriverStandalone.wrap(blankDeviceRecord({woofer: {}}, 'woofer', appContext), engine, AppContext.of(engine));
     }
 
     /** `.owdr` text — openisd driver JSON — back to a driver, or the reasons it could not be
@@ -82,7 +83,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
         const driver = asDriverDevice(parsed.json);
         if (driver === null) return [NOT_A_DRIVER];
-        return OpenISDDriverStandalone.wrap(driver, engine, DriverContext.standalone(engine));
+        return OpenISDDriverStandalone.wrap(driver, engine, AppContext.of(engine));
     }
 
     /** This driver's spec fields — the woofer section. Driver math is woofer-only in OpenISD; a
@@ -328,7 +329,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     }
 
     /** The id a copy of this driver (`detach()`) carries: a standalone driver keeps its own, a driver in a project gets a new one. */
-    protected abstract idForCopy(): string;
+    protected abstract readonly idForCopy: () => string;
 
     /** The id this driver holds after `update()` adopts a record whose id is `adopted`: a standalone driver keeps it, a project's driver has none. */
     protected abstract idAfterAdopting(adopted: string): string;
@@ -342,8 +343,11 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     detach(): OpenISDDriverStandalone {
         const copy = this.cloneDriver();
         copy.uuid = {value: this.idForCopy()};
-        return OpenISDDriverStandalone.wrap(copy, this.engine, this.context);
+        return this.wrapCopy(copy);
     }
+
+    /** `copy` as a standalone driver read with this driver's own kind of context: a project's driver passes the project's on, a managed one its managed context. */
+    protected abstract wrapCopy(copy: DriverDeviceJson): OpenISDDriverStandalone;
 
 
     /** An independent standalone copy with a new record identity. Used when a driver crosses into
@@ -351,7 +355,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     copyAsNew(newId: () => string): OpenISDDriverStandalone {
         const copy = this.cloneDriver();
         copy.uuid = { value: newId() };
-        return OpenISDDriverStandalone.wrap(copy, this.engine, this.context);
+        return this.wrapCopy(copy);
     }
 
     /** @internal The record a save writes, deep-cloned. Same seam as
@@ -475,28 +479,39 @@ export interface SealedBoxLosses {
     readonly Qa: number;
 }
 
+/** A record held in a variable, as a lens. */
+function heldRecord(json: DriverDeviceJson): SimpleField<DriverDeviceJson> {
+    let current = json;
+    return {
+        get value() { return current; },
+        set: (j) => {
+            current = j;
+        },
+    };
+}
+
 export class OpenISDDriverStandalone extends OpenISDDriver {
-    protected idForCopy(): string {
-        return this.uuid();
-    }
+    protected readonly idForCopy = (): string => this.uuid();
 
     protected idAfterAdopting(adopted: string): string {
         return adopted;
     }
 
-    /** Windows onto `json` with the context the caller names; a copy of a project's driver passes the project's. */
-    static wrap(
-        json: DriverDeviceJson,
-        engine: Engine,
-        context: DriverContext,
-    ): OpenISDDriverStandalone {
-        let current = json;
-        const raw: SimpleField<DriverDeviceJson> = {
-            get value() { return current; },
-            set: (j) => {
-                current = j;
-            },
-        };
+    protected wrapCopy(copy: DriverDeviceJson): OpenISDDriverStandalone {
+        return OpenISDDriverStandalone.#over(heldRecord(copy), this.engine, this.context);
+    }
+
+    /** A driver the app manages outside any project (My Drivers, the catalogue, the New Driver editor). */
+    static wrap(json: DriverDeviceJson, engine: Engine, context: AppContext): OpenISDDriverStandalone {
+        return OpenISDDriverStandalone.#over(heldRecord(json), engine, context);
+    }
+
+    /** A copy of a project's driver: it is read with the project's context, its air and its "Cms from Vas" choice. */
+    static wrapProjectCopy(json: DriverDeviceJson, engine: Engine, context: ProjectContext): OpenISDDriverStandalone {
+        return OpenISDDriverStandalone.#over(heldRecord(json), engine, context);
+    }
+
+    static #over(raw: SimpleField<DriverDeviceJson>, engine: Engine, context: DriverContext): OpenISDDriverStandalone {
         // S2-7c: every write resolves from here on — a solve's own `setCalculated` writes
         // travel through this same lens and must not re-trigger (`resolvingField`'s reentrancy
         // guard). `driver` is assigned before `onWrite` can ever run: the guarded callback only

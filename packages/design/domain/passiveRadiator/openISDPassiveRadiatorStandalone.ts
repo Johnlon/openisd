@@ -6,7 +6,20 @@ import type { RadiatorDeviceJson } from '../openisdSchema.js';
 import type { Air, PrEngine, PrSpecIssue } from '../../engine/index.js';
 import { blankDeviceRecord } from '../driver/blankDeviceRecord.js';
 import { OpenISDPassiveRadiator } from './openISDPassiveRadiator.js';
-import { CURRENT_SCHEMA_VERSION } from '../schemaVersion.js';
+import type { RadiatorContext } from './radiatorContext.js';
+import { RadiatorAppContext } from './radiatorContext.js';
+import type { RadiatorProjectContext } from './radiatorContext.js';
+
+interface HeldRadiator {
+    readonly read: () => RadiatorDeviceJson;
+    readonly set: (json: RadiatorDeviceJson) => void;
+}
+
+/** A radiator record held in a variable. */
+function heldRadiator(json: RadiatorDeviceJson): HeldRadiator {
+    let current = json;
+    return {read: () => current, set: (j) => { current = j; }};
+}
 
 /** A radiator that belongs to no box — straight out of the bundle, or served from My PRs. The
  *  ONLY radiator type the selector popup and the PR editor ever see, and what `configurePR()`
@@ -39,17 +52,25 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
         read: () => RadiatorDeviceJson,
         set: (json: RadiatorDeviceJson) => void,
         conflicts: () => readonly PrSpecIssue[],
+        context: RadiatorContext,
         private readonly noteConflicts: (issues: readonly PrSpecIssue[]) => void,
     ) {
-        super({get value() { return read(); }, set}, conflicts);
+        super({get value() { return read(); }, set}, conflicts, context);
     }
 
+    /** A radiator the app manages outside any project: it shows its datasheet. */
     static wrap(json: RadiatorDeviceJson): OpenISDPassiveRadiatorStandalone {
-        let current = json;
+        return OpenISDPassiveRadiatorStandalone.#over(heldRadiator(json), RadiatorAppContext.of());
+    }
+
+    /** A copy of a project's radiator: it is read with the project's context. */
+    static wrapProjectCopy(json: RadiatorDeviceJson, context: RadiatorProjectContext): OpenISDPassiveRadiatorStandalone {
+        return OpenISDPassiveRadiatorStandalone.#over(heldRadiator(json), context);
+    }
+
+    static #over(held: HeldRadiator, context: RadiatorContext): OpenISDPassiveRadiatorStandalone {
         let issues: readonly PrSpecIssue[] = [];
-        return new OpenISDPassiveRadiatorStandalone(() => current, (j) => {
-            current = j;
-        }, () => issues, (found) => {
+        return new OpenISDPassiveRadiatorStandalone(held.read, held.set, () => issues, context, (found) => {
             issues = found;
         });
     }
@@ -59,21 +80,4 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
     resolve(pr: PrEngine, air: Air): void {
         this.noteConflicts(this.spec.resolve(pr, air));
     }
-
-    /** @internal The record a save writes, deep-cloned — the radiator's counterpart to
-     *  `OpenISDDriver.cloneDriver()`, and the persistence layer's one way to reach the raw
-     *  record it stores, never field by field. Clones before handing it out, so the caller can
-     *  store the result without aliasing this radiator's own live record. */
-    clonePassiveRadiator(): RadiatorDeviceJson {
-        return {...structuredClone(this.slot.value), schemaVersion: CURRENT_SCHEMA_VERSION};
-    }
-
-    /** The record as the app holds it — the radiator's counterpart of `OpenISDDriver.toOpenIsdDeviceJson()`,
-     *  so the scraper bridge and the bundler's round-trip gate read a radiator through the same
-     *  seam a driver has. Un-cloned, like the driver's: a caller that stores it clones it
-     *  (`clonePassiveRadiator()`). */
-    toOpenIsdDeviceJson(): RadiatorDeviceJson {
-        return this.slot.value;
-    }
-
 }

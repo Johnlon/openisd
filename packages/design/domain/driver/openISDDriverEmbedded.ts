@@ -2,8 +2,8 @@ import {type Engine} from '../../engine/index.js';
 import type { DriverIssue } from '../../engine/index.js';
 import type { SimpleField } from '../cell.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
-import { OpenISDDriver } from './openISDDriver.js';
-import type { DriverContext } from './driverContext.js';
+import { OpenISDDriver, OpenISDDriverStandalone } from './openISDDriver.js';
+import type { ProjectContext } from './driverContext.js';
 import { NULL_GUID } from '../project/nullDriverId.js';
 
 /** The driver INSIDE a project — a window onto the project's own `driver` slot. A standalone
@@ -14,11 +14,11 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
     private constructor(
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
-        context: DriverContext,
+        private readonly projectContext: ProjectContext,
         durableIssues: () => readonly DriverIssue[],
-        private readonly newId: () => string,
+        protected readonly idForCopy: () => string,
     ) {
-        super(record, engine, context, durableIssues);
+        super(record, engine, projectContext, durableIssues);
     }
 
     /** Takes the lens onto the project's `driver` slot and the project's context (its air and "Cms from Vas" choice), which this driver and
@@ -26,7 +26,7 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
     static wrap(
         slot: SimpleField<DriverDeviceJson>,
         engine: Engine,
-        context: DriverContext,
+        context: ProjectContext,
         /** The PROJECT's cached driver issues. This object does not outlive one access, so the
          *  dq a resolve wrote into its fields is gone before anything reads it; the project's
          *  cache is what survives. */
@@ -37,8 +37,8 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         return new OpenISDDriverEmbedded(slot, engine, context, durableIssues, newId);
     }
 
-    protected idForCopy(): string {
-        return this.newId();
+    protected wrapCopy(copy: DriverDeviceJson): OpenISDDriverStandalone {
+        return OpenISDDriverStandalone.wrapProjectCopy(copy, this.engine, this.projectContext);
     }
 
     protected idAfterAdopting(): string {

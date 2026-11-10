@@ -2,7 +2,7 @@ import type { SimpleField } from '../cell.js';
 import type { PrSpecIssue } from '../../engine/index.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
 import { OpenISDPassiveRadiator } from './openISDPassiveRadiator.js';
-import type { PrChart } from './openIsdPassiveRadiatorSpec.js';
+import type { RadiatorProjectContext } from './radiatorContext.js';
 import { OpenISDPassiveRadiatorStandalone } from './openISDPassiveRadiatorStandalone.js';
 
 /**
@@ -19,20 +19,16 @@ import { OpenISDPassiveRadiatorStandalone } from './openISDPassiveRadiatorStanda
 
 export class OpenISDPassiveRadiatorEmbedded extends OpenISDPassiveRadiator {
 
-    constructor(slot: SimpleField<RadiatorDeviceJson>, conflicts?: () => readonly PrSpecIssue[], chart?: PrChart) {
-        super(slot, conflicts, chart);
-    }
-
-    /** Adopt the chosen radiator into this box. The box owns its radiator from here on, so later
-     *  edits change the box and never the library entry the radiator was picked from. */
-    override update(source: OpenISDPassiveRadiatorStandalone): void {
-        super.update(source);
+    /** The lens onto the box's `component` slot, with the box's conflicts and the project's chart context (engine, air, "Cms from Vas"). */
+    constructor(slot: SimpleField<RadiatorDeviceJson>, conflicts: () => readonly PrSpecIssue[], private readonly projectContext: RadiatorProjectContext) {
+        super(slot, conflicts, projectContext);
     }
 
     /** This radiator as one belonging to no box — the copy My Passive Radiators holds, and the
      *  inverse of `update()`. Deep-copies, so editing the box afterwards leaves the saved
-     *  radiator alone, exactly as `OpenISDDriver.detach()` does for a driver. */
+     *  radiator alone, and keeps the project's context so the copy reads as the project's does. Lives here, not in the base:
+     *  the base cannot import the standalone subclass, which extends it (a circular import). */
     detach(): OpenISDPassiveRadiatorStandalone {
-        return OpenISDPassiveRadiatorStandalone.wrap(structuredClone(this.slot.value));
+        return OpenISDPassiveRadiatorStandalone.wrapProjectCopy(this.clonePassiveRadiator(), this.projectContext);
     }
 }

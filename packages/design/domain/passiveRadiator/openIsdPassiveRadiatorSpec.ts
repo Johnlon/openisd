@@ -6,15 +6,9 @@ import { NumberField } from '../../fields/field.js';
 import type { RadiatorDeviceJson, SpecEntryJson } from '../openisdSchema.js';
 import { prSpec, type PassiveRadiatorFieldName } from '../box/prSpec.js';
 import { radiatorSection } from '../box/radiatorSection.js';
+import type { RadiatorContext } from './radiatorContext.js';
 
 type SpecField = Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
-
-/** What a radiator inside a project needs to show the figures its charts use: the PR engine, the project's air and the "Cms from Vas" choice. */
-export interface PrChart {
-    readonly pr: PrEngine;
-    readonly air: () => Air;
-    readonly cmsSource: () => ChartingSource | null;
-}
 
 /**
  * ONE PASSIVE-RADIATOR SPEC SECTION, PUBLISHED — the radiator's counterpart to `DriverSpec`.
@@ -49,10 +43,10 @@ export class OpenIsdPassiveRadiatorSpec {
     readonly #storedMms: SpecField;
     readonly #storedCms: SpecField;
     readonly #storedRms: SpecField;
-    readonly #chart: PrChart | undefined;
+    readonly #context: RadiatorContext;
 
-    constructor(slot: SimpleField<RadiatorDeviceJson>, conflicts: () => readonly PrSpecIssue[] = () => [], chart?: PrChart) {
-        this.#chart = chart;
+    constructor(slot: SimpleField<RadiatorDeviceJson>, conflicts: () => readonly PrSpecIssue[], context: RadiatorContext) {
+        this.#context = context;
         const section = radiatorSection(slot);
         const shownEntry = (name: 'Mms_kg' | 'Cms_m_per_N' | 'Rms_kg_per_s') => (): SpecEntryJson | undefined => {
             const value = this.#shown()?.[name];
@@ -187,21 +181,25 @@ export class OpenIsdPassiveRadiatorSpec {
 
     /** The Cms, Mms and Rms the charts use when the radiator states Vas: the engine's one chain (`resolveCms`) over the stated Vas, Sd, Fs and Qms (the stated Cms
      *  joins only when the project says the stated Cms wins). Null when the radiator is standalone, shows its datasheet, or states no Vas. */
-    #shown(source: ChartingSource | null = this.#chart?.cmsSource() ?? null): ShownMechanics | null {
-        const chart = this.#chart;
-        if (chart === undefined || source === null) return null;
+    #shown(source: ChartingSource | null = this.#source()): ShownMechanics | null {
+        if (source === null) return null;
         const stated = this.#stated();
         if (stated.Vas_m3 === null) return null;
-        return resolveCms(source, {
+        return this.#context.fold(project => resolveCms(source, {
             Fs_hz: stated.Fs_hz, Qms: stated.Qms, Vas_m3: stated.Vas_m3, Sd_m2: stated.Sd_m2,
             Cms_m_per_N: source.kind === 'StatedCmsWins' ? stated.Cms_m_per_N : null, Mms_kg: null, Qes: null, Re_terminal_ohm: null,
-        }, chart.air());
+        }, project.air()), () => null);
+    }
+
+    /** Which Cms the charts use: the project's choice, or null outside a project (the datasheet shows). */
+    #source(): ChartingSource | null {
+        return this.#context.fold(project => project.cmsSource(), () => null);
     }
 
     /** The issues, with the stated Cms that disagrees with the stated Vas named in one sentence on Cms (only the generic Vas/Cms issue loses Cms; an Fs/Mms/Cms
      *  issue keeps it), and each stated Mms or Rms the charts do not use named in its own sentence (the driver's rule, `chartNotes`). */
     #withChartNotes(issues: PrSpecIssue[]): PrSpecIssue[] {
-        const source = this.#chart?.cmsSource() ?? null;
+        const source = this.#source();
         if (source === null) return issues;
         const shown = this.#shown(source);
         const stated = this.#stated();
