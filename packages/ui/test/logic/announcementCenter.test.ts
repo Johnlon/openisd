@@ -1,4 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
+import {testAnnouncementEndpoints} from '../fixtures/announcementEndpoints.js';
 import {ANNOUNCEMENTS_URL, announcementEndpointsForHostname, createAnnouncementCenter, parseAnnouncementResponse, type AnnouncementStorage} from '../../src/logic/announcementCenter.js';
 
 const earlier = {id: 'openisd-7.0.956', version: '7.0.956', published: '2026-10-25', title: 'Earlier', summary: 'Earlier release', body: ['One'], href: 'https://openisd.app/'};
@@ -36,9 +37,20 @@ describe('announcement center', () => {
     expect(announcementEndpointsForHostname('lap')).toEqual(announcementEndpointsForHostname('test.openisd.app'));
   });
 
+  it('has no default endpoints: every caller must choose the server', () => {
+    expect(createAnnouncementCenter.length).toBe(3);
+  });
+
+  it('production hostnames use the production server, never the test one', () => {
+    const production = announcementEndpointsForHostname('openisd.app');
+    expect(production.feedUrl).not.toContain('-test');
+    expect(production.refreshUrl).not.toContain('site=test');
+    expect(announcementEndpointsForHostname('test.openisd.app').feedUrl).toContain('-test');
+  });
+
   it('requests the fixed feed with browser caching disabled and opens the newest item', async () => {
     const fetchFn: typeof fetch = vi.fn(async () => response([earlier, current]));
-    const center = createAnnouncementCenter(storage(), fetchFn);
+    const center = createAnnouncementCenter(storage(), fetchFn, testAnnouncementEndpoints());
 
     await center.load();
 
@@ -68,14 +80,14 @@ describe('announcement center', () => {
   it('persists dismissal by stable ID and still opens a later announcement', async () => {
     const saved = storage();
     const firstFetch: typeof fetch = vi.fn(async () => response([current, earlier]));
-    const first = createAnnouncementCenter(saved, firstFetch);
+    const first = createAnnouncementCenter(saved, firstFetch, testAnnouncementEndpoints());
     await first.load();
     first.dismissLatest();
     expect(first.open.value).toBe(false);
 
     const later = {...current, id: 'openisd-7.0.958', version: '7.0.958', published: '2026-10-27', title: 'Later'};
     const nextFetch: typeof fetch = vi.fn(async () => response([earlier, current, later]));
-    const next = createAnnouncementCenter(saved, nextFetch);
+    const next = createAnnouncementCenter(saved, nextFetch, testAnnouncementEndpoints());
     await next.load();
 
     expect(next.latest.value?.id).toBe(later.id);
@@ -93,7 +105,7 @@ describe('announcement center', () => {
 
   it('leaves the app usable when the feed is unavailable', async () => {
     const fetchFn: typeof fetch = vi.fn(async () => { throw new Error('offline'); });
-    const center = createAnnouncementCenter(storage(), fetchFn);
+    const center = createAnnouncementCenter(storage(), fetchFn, testAnnouncementEndpoints());
     await expect(center.load()).resolves.toBeUndefined();
     expect(center.open.value).toBe(false);
     expect(center.items.value).toEqual([]);
