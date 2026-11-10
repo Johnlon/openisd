@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# T004 acceptance (locked; author lots). The rule docs describe one process: ship.sh, a pull request
+# T004 acceptance (locked; author lots). Wording checks WARN only (T783); only the hook check can fail. The rule docs describe one process: ship.sh, a pull request
 # and the pr-gate check in the merge queue.
 # T757 change: the required phrases moved from land.sh / post-land / tasks/fixes/ to ship.sh / pull request /
 # pr-gate, because John chose pull requests with a merge queue (QO481, 10 Nov 2026) and T749 replaced land.sh.
@@ -10,9 +10,13 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 fails=0
 ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
+# T783 (John 10 Nov 2026, QO511): wording checks only warn. A doc naming a dead tool is fixed in the docs, but
+# a changed word never turns main red (this test failed 7 of 16 runs and held main red 8 hours).
+warns=0
+warn() { echo "WARN $1"; warns=$((warns + 1)); }
 
 RULES=("$REPO/.claude/rules/verify.md" "$REPO/.claude/rules/processes.md" "$REPO/docs/DEV_PROCESS.md")
-for f in "${RULES[@]}"; do [ -f "$f" ] && ok "exists: ${f#$REPO/}" || fail "missing: ${f#$REPO/}"; done
+for f in "${RULES[@]}"; do [ -f "$f" ] && ok "exists: ${f#$REPO/}" || warn "missing: ${f#$REPO/}"; done
 
 # retired instructions: none may remain in any rule doc
 RETIRED=(
@@ -27,11 +31,11 @@ RETIRED=(
 )
 for term in "${RETIRED[@]}"; do
     hits=$(grep -lF -- "$term" "${RULES[@]}" 2>/dev/null | sed "s#$REPO/##" | tr '\n' ' ')
-    [ -z "$hits" ] && ok "retired: $term" || fail "retired term '$term' still in: $hits"
+    [ -z "$hits" ] && ok "retired: $term" || warn "retired term '$term' still in: $hits"
 done
 
 # the new process is described where agents read it
-need() { grep -qF -- "$2" "$REPO/$1" && ok "$1 names: $2" || fail "$1 lacks: $2"; }
+need() { grep -qF -- "$2" "$REPO/$1" && ok "$1 names: $2" || warn "$1 lacks: $2"; }
 need .claude/rules/verify.md     'scripts/ship.sh'
 need .claude/rules/verify.md     'pr-gate'
 need .claude/rules/processes.md  'scripts/ship.sh'
@@ -55,5 +59,5 @@ for h in pre-commit pre-push; do
         ok "$h runs fast gates only"; else fail "$h still runs a slow suite or is missing"; fi
 done
 
-[ $fails = 0 ] && { echo "rules-docs: all passed"; exit 0; }
+[ $fails = 0 ] && { echo "rules-docs: passed, $warns warnings"; exit 0; }
 echo "rules-docs: $fails failed"; exit 1
