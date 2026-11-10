@@ -1,4 +1,5 @@
 import {test,expect,openAProject,COMPLETE_DRIVER_PROJECT_OWPR,setFocusedBoxType} from '../fixtures.js';
+import {setPortShapes} from '../fixtures/portShape.js';
 import {measureFieldGroupContent,measureFieldLayoutRegions} from '../fixtures/fieldControlContainment.js';
 
 const BOXES=['sealed','vented','box-passive-radiator','bandpass4','bandpass6','abc'] as const;
@@ -66,16 +67,16 @@ for (const {box,tab} of [{box:'bandpass6',tab:'6th Order Bandpass'},{box:'abc',t
  for(const position of positions){expect(position.left,position.text??'label').toBeLessThanOrEqual(position.right);expect(position.dy).toBeLessThan(2);}
 });
 
-for (const shape of ['round','slotted']) test(`ABC ${shape} ports keep every field inside the visible panel`,async({page})=>{
+for (const shape of ['round','slotted'] as const) test(`ABC ${shape} ports keep every field inside the visible panel`,async({page})=>{
  await page.setViewportSize({width:1600,height:900});await page.goto('/');await openAProject(page,COMPLETE_DRIVER_PROJECT_OWPR);await setFocusedBoxType(page,'abc');
  await page.locator('.project-nav li').filter({hasText:/^ABC$/}).click();
- for(const selector of await page.locator('.vent-col select[id^="og-vent-shape-"]').all()) await selector.selectOption(shape);
+ await setPortShapes(page,shape);
  const panel=(await page.locator('.content-panel').boundingBox())!;
  const fields=await page.locator('.vent-col .field').evaluateAll(rows=>rows.map(row=>{
   const label=row.querySelector('label')!,control=row.querySelector('input,select')!,r=control.getBoundingClientRect(),l=label.getBoundingClientRect();
   return {label:label.textContent,left:l.right,controlLeft:r.left,right:r.right,bottom:r.bottom,labelWidth:label.clientWidth,labelContent:label.scrollWidth};
  }));
- expect(fields.length).toBeGreaterThan(20);
+ expect(fields).toHaveLength(shape==='round'?20:23);
  for(const field of fields){expect(field.left,field.label??'').toBeLessThanOrEqual(field.controlLeft);expect(field.right).toBeLessThanOrEqual(panel.x+panel.width);expect(field.bottom).toBeLessThanOrEqual(panel.y+panel.height);expect(field.labelContent).toBeLessThanOrEqual(field.labelWidth);}
  const scroll=await page.locator('.tab-section.active').evaluate(el=>({width:el.clientWidth,scroll:el.scrollWidth}));expect(scroll.scroll).toBeLessThanOrEqual(scroll.width);
 });
@@ -91,8 +92,8 @@ test('ABC vent count choices fit beside their dropdown arrow',async({page})=>{
 
 for(const {box,tab} of [{box:'vented',tab:'Vented'},{box:'bandpass4',tab:'4th Order Bandpass'},{box:'bandpass6',tab:'6th Order Bandpass'},{box:'abc',tab:'ABC'}] as const) test(`${box} slotted port dimensions preserve the visible layout`,async({page})=>{
  await page.setViewportSize({width:1600,height:900});await page.goto('/');await openAProject(page,COMPLETE_DRIVER_PROJECT_OWPR);await setFocusedBoxType(page,box);await page.locator('.project-nav li').filter({hasText:new RegExp('^'+tab+'$')}).click();
- const shapes=page.locator('.tab-section.active select[id*="vent-shape"]');
- for(const shape of await shapes.all())await shape.selectOption('slotted');
+ const shapes=page.locator('.tab-section.active button.port-shape-toggle');
+ await setPortShapes(page,'slotted');
  await expect(shapes).not.toHaveCount(0);
  const region=page.locator('.tab-section.active');
  expect((await region.evaluate(measureFieldLayoutRegions)).issues).toEqual([]);
@@ -105,11 +106,11 @@ test('every ported panel uses the same ABC field columns for round and slotted p
  const measurements=[];
  for(const {box,tab} of [{box:'abc',tab:'ABC'},{box:'bandpass6',tab:'6th Order Bandpass'},{box:'vented',tab:'Vented'},{box:'bandpass4',tab:'4th Order Bandpass'}] as const){
   await setFocusedBoxType(page,box);await page.locator('.project-nav li').filter({hasText:new RegExp('^'+tab+'$')}).click();
-  for(const shape of ['round','slotted']){
-   for(const select of await page.locator('.tab-section.active select[id*="vent-shape"]').all())await select.selectOption(shape);
+  for(const shape of ['round','slotted'] as const){
+   await setPortShapes(page,shape);
    for(const field of await page.locator('.vent-col [data-field="vent_W_cm"] input').all()){await field.fill('10');await field.press('Enter');}
    for(const field of await page.locator('.vent-col [data-field="vent_H_cm"] input').all()){await field.fill('5');await field.press('Enter');}
-   const fields=page.locator('.vent-col .ui-field');await expect(fields.first()).toBeVisible();
+   const fields=page.locator('.vent-col .ui-field').filter({has:page.locator('input')});await expect(fields.first()).toBeVisible();
    measurements.push(...await fields.evaluateAll(rows=>rows.map(row=>{const input=row.querySelector('input')!.getBoundingClientRect(),label=row.querySelector('label')!.getBoundingClientRect(),group=row.closest('.vent-col')!.getBoundingClientRect();return {offset:input.left-group.left,width:input.width,labelLeft:label.left-group.left};})));
   }
  }
@@ -135,7 +136,7 @@ for(const {box,tab} of [{box:'bandpass6',tab:'6th Order Bandpass'},{box:'abc',ta
 
 test('ABC slotted columns share horizontal rows and End Correction aligns with numeric values',async({page})=>{
  await page.goto('/');await openAProject(page,COMPLETE_DRIVER_PROJECT_OWPR);await setFocusedBoxType(page,'abc');await page.locator('.project-nav li').filter({hasText:/^ABC$/}).click();
- for(const shape of await page.locator('.vent-col select[id*="vent-shape"]').all())await shape.selectOption('slotted');
+ await setPortShapes(page,'slotted');
  const positions=await page.locator('.vent-col').evaluateAll(groups=>groups.map(group=>{
   const width=group.querySelector('[data-field="vent_W_cm"] input')!.getBoundingClientRect();
   const correction=[...group.querySelectorAll('.field')].find(row=>row.querySelector('label')?.textContent?.trim()==='End Correction')!.querySelector('select')!.getBoundingClientRect();
@@ -146,22 +147,22 @@ test('ABC slotted columns share horizontal rows and End Correction aligns with n
 });
 
 
-test('port shape occupies row two and count row three, saving panel height',async({page})=>{
+test('port shape button sits on the right of the count on row 2, the panel stays at its ceiling',async({page})=>{
  await page.setViewportSize({width:1600,height:900});await page.goto('/');await openAProject(page,COMPLETE_DRIVER_PROJECT_OWPR);await setFocusedBoxType(page,'abc');await page.locator('.project-nav li').filter({hasText:/^ABC$/}).click();
- for(const shape of ['round','slotted']) {
-  for(const select of await page.locator('.vent-col select[id*="vent-shape"]').all())await select.selectOption(shape);
+ for(const shape of ['round','slotted'] as const) {
+  await setPortShapes(page,shape);
   for(const group of await page.locator('.vent-col').all()) {
-   const shapeSelect=group.locator('select[id*="vent-shape"]'),count=group.locator('select[id*="vent-count"]');
-   await expect(shapeSelect.locator('option')).toHaveText(['Round','Slot']);
+   const toggle=group.locator('button.port-shape-toggle'),count=group.locator('select[id*="vent-count"]'),tuning=group.locator('.port-tuning-row input, .port-tuning-placeholder').first();
+   await expect(toggle).toHaveText(shape==='round'?'Round':'Slotted');
    const dimension=(await group.locator('.port-dimensions-row input').first().boundingBox())!;
-   const shapeBox=(await shapeSelect.boundingBox())!,countBox=(await count.boundingBox())!;
-   expect(Math.abs((shapeBox.y+shapeBox.height/2)-(dimension.y+dimension.height/2))).toBeLessThanOrEqual(1);
-   expect(countBox.y).toBeGreaterThanOrEqual(shapeBox.y+shapeBox.height);
-   const gap=await group.evaluate(el=>parseFloat(getComputedStyle(el).rowGap));
-   expect(Math.abs(countBox.y-shapeBox.y-dimension.height-gap)).toBeLessThanOrEqual(1);
+   const toggleBox=(await toggle.boundingBox())!,countBox=(await count.boundingBox())!,tuningBox=(await tuning.boundingBox())!;
+   expect(Math.abs((toggleBox.y+toggleBox.height/2)-(countBox.y+countBox.height/2))).toBeLessThanOrEqual(1);
+   expect(toggleBox.x).toBeGreaterThanOrEqual(countBox.x+countBox.width);
+   expect(countBox.y).toBeGreaterThanOrEqual(tuningBox.y+tuningBox.height);
+   expect(dimension.y).toBeGreaterThanOrEqual(countBox.y+countBox.height);
   }
  }
- expect((await page.locator('.content-panel').boundingBox())!.height).toBeLessThanOrEqual(244);
+ expect((await page.locator('.content-panel').boundingBox())!.height).toBeLessThanOrEqual(283);
 });
 
 

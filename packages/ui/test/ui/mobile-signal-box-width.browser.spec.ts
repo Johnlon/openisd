@@ -1,10 +1,12 @@
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
+import {PhoneRowColumns} from '@openisd/design/fields';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 // T720: on the phone Signal tab the typing input of each number box is 60% of its old width.
 // Measured at 374x705 before the change: 186 px (input with its unit chip inside). 60% of 186 = 111.6.
-const OLD_INPUT_WIDTH_PX = 186;
-const EXPECTED_WIDTH_PX = OLD_INPUT_WIDTH_PX * 0.6;
+// T742 widened the label column: the Signal column is now 145 px and the share 77%, so the Signal box stays 112 px.
+const BOX_TAB_INPUT_WIDTH_PX = 145;
+const EXPECTED_WIDTH_PX = BOX_TAB_INPUT_WIDTH_PX * PhoneRowColumns.SIGNAL_INPUT_SHARE;
 
 test.use({viewport: {width: 374, height: 705}});
 

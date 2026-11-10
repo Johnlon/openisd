@@ -55,10 +55,10 @@ describe('phone text', () => {
     }
   });
 
-  it('filter frequencies are shown in whole hertz', () => {
-    expect(NumberField.PHONE_FILTER_FC_HZ.format(31.5)).toBe('32');
+  it('filter frequencies are shown in whole hertz, but never below 4 significant figures (John, 10 Nov 2026, board option B)', () => {
+    expect(NumberField.PHONE_FILTER_FC_HZ.format(31.5)).toBe('31.5');
     expect(NumberField.PHONE_FILTER_FC_HZ.format(100)).toBe('100');
-    expect(NumberField.FILTER_FC_HZ.format(31.5), 'the desktop keeps its decimals').not.toBe('32');
+    expect(NumberField.PHONE_FILTER_FC_HZ.format(1234.5)).toBe('1235');
   });
 
   it('the Filters button counts the filters that are on and flips when open', () => {

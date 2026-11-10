@@ -43,7 +43,7 @@
 //             literally "set this chart's persisted default view", not a parallel concept, and
 //             an untouched row still auto-scales exactly as it does today. The rows are
 //             `LIMIT_ROWS` in OptionsModal-hooks.ts, keyed by `ChartId`.
-import {ImportChoiceText, NumberField, PhoneDialogHelp, PhoneRowColumns} from '@openisd/design/fields';
+import {ImportChoiceText, NumberField, PhoneDialogHelp} from '@openisd/design/fields';
 import {computed, reactive, ref} from 'vue';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {LIMIT_ROWS, type LimitRow, useOptionsModal} from '../../hooks/OptionsModal-hooks.js';
@@ -66,7 +66,6 @@ useEscToClose(() => true, close);
 const { confirmPort, presentation: presentationState } = useApp();
 /** The phone draws this dialog as a classic full-screen dialog (PHONE_CLASSIC_BUILD_SPEC row 20); the desktop is unchanged. */
 /** The label column the dialogs' rows use (their labels are longer than a project page's). */
-const DIALOG_COLUMNS = PhoneRowColumns.MEDIUM_LABEL;
 const phone = computed(() => presentationState.shownSkin() === 'mobile');
 const { resetUnitTokens } = presentationState;
 const { downloadBackup, restoreFromFile } = useBackupSettings();
@@ -215,7 +214,7 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
       </div>
       <div v-if="!canApply" class="opt-error opt-phone-error" data-testid="settings-error">{{ limitsError ?? 'The frequency range needs both a start and an end, with the start below the end.' }}</div>
     </template>
-    <PhoneDialogPage :columns="tab.v === 'General' ? DIALOG_COLUMNS : PhoneRowColumns.WIDE_LABEL">
+    <PhoneDialogPage>
       <template v-if="tab.v === 'General'">
         <PhoneBand :section="PhoneDialogHelp.OPTIONS_USER" />
         <div class="mob-crow">
@@ -224,11 +223,11 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
         </div>
         <PhoneBand :section="PhoneDialogHelp.OPTIONS_ENVIRONMENT" />
         <p class="mob-dhint">The air a project uses for any of these it has not set on its own Advanced tab.</p>
-        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_TEMP_K" :value="tempK" stepper @update:value="v => tempK = v" />
-        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_HUMIDITY_PCT" :value="humidityPct" stepper @update:value="v => humidityPct = v" />
-        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_PRESSURE_KPA" :value="pressurePa" stepper @update:value="v => pressurePa = v" />
-        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="defaultAir.c" readonly plain />
-        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="defaultAir.rho" readonly plain />
+        <UIFixedField class="mob-ui-field" :field="NumberField.ADV_TEMP_K" :value="tempK" stepper @update:value="v => tempK = v" />
+        <UIFixedField class="mob-ui-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="humidityPct" stepper @update:value="v => humidityPct = v" />
+        <UIFixedField class="mob-ui-field" :field="NumberField.ADV_PRESSURE_KPA" :value="pressurePa" stepper @update:value="v => pressurePa = v" />
+        <UIFixedField class="mob-ui-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="defaultAir.c" readonly plain />
+        <UIFixedField class="mob-ui-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="defaultAir.rho" readonly plain />
         <div class="mob-cbtns mob-dbtns-one">
           <button type="button" data-testid="env-reset" :disabled="envIsFactory" @click="resetEnv">Reset to defaults</button>
         </div>
@@ -242,10 +241,10 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
           <p>OpenISD gives the same answer, so its results match WinISD.</p>
           <p>If a design falls outside the limits below, OpenISD shows it exactly as designed and marks it.</p>
         </div>
-        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Min box volume" :field="NumberField.BOX_VB_L" :value="minVolume_m3" stepper @update:value="v => minVolume_m3 = v" />
-        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Min tuning" :field="NumberField.BOX_FB_HZ" :value="minTuning_hz" stepper @update:value="v => minTuning_hz = v" />
-        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Max box volume" :field="NumberField.BOX_VB_L" :value="maxVolume_m3" stepper @update:value="v => maxVolume_m3 = v" />
-        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Max tuning" :field="NumberField.BOX_FB_HZ" :value="maxTuning_hz" stepper @update:value="v => maxTuning_hz = v" />
+        <UIFixedField class="mob-ui-field" label="Min box volume" :field="NumberField.BOX_VB_L" :value="minVolume_m3" stepper @update:value="v => minVolume_m3 = v" />
+        <UIFixedField class="mob-ui-field" label="Min tuning" :field="NumberField.BOX_FB_HZ" :value="minTuning_hz" stepper @update:value="v => minTuning_hz = v" />
+        <UIFixedField class="mob-ui-field" label="Max box volume" :field="NumberField.BOX_VB_L" :value="maxVolume_m3" stepper @update:value="v => maxVolume_m3 = v" />
+        <UIFixedField class="mob-ui-field" label="Max tuning" :field="NumberField.BOX_FB_HZ" :value="maxTuning_hz" stepper @update:value="v => maxTuning_hz = v" />
         <div class="mob-cbtns mob-dbtns-one">
           <button type="button" data-testid="settings-reset" :disabled="limitsAreFactory" @click="resetLimits">Reset to defaults</button>
         </div>
@@ -274,16 +273,16 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
             <span class="mob-crow-label">Frequency range</span>
             <button type="button" class="mob-dreset" aria-label="Reset Frequency range" title="Back to the default" @click="resetFreqRange()">↺</button>
           </div>
-          <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" input-id="opt-phone-lim-fmin" :field="NumberField.PLOT_FMIN_HZ" :value="draft.P.fmin" stepper @update:value="v => { draft.P.fmin = v; onFreqChange(); }" />
-          <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" input-id="opt-phone-lim-fmax" :field="NumberField.PLOT_FMAX_HZ" :value="draft.P.fmax" stepper @update:value="v => { draft.P.fmax = v; onFreqChange(); }" />
+          <UIFixedField class="mob-ui-field" input-id="opt-phone-lim-fmin" label="Start" :field="NumberField.PLOT_FMIN_HZ" :value="draft.P.fmin" stepper @update:value="v => { draft.P.fmin = v; onFreqChange(); }" />
+          <UIFixedField class="mob-ui-field" input-id="opt-phone-lim-fmax" label="End" :field="NumberField.PLOT_FMAX_HZ" :value="draft.P.fmax" stepper @update:value="v => { draft.P.fmax = v; onFreqChange(); }" />
         </div>
         <div v-for="row in LIMIT_ROWS" :key="row.tab" class="mob-dlim-block" role="group" :aria-label="row.label">
           <div class="mob-dlim">
             <span class="mob-crow-label">{{ row.label }}</span>
             <button type="button" class="mob-dreset" :aria-label="'Reset ' + row.label" title="Back to auto-scale" @click="resetLimit(row.tab)">↺</button>
           </div>
-          <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :input-id="'opt-phone-lim-' + row.tab" :label="row.label + ' start'" :field="row.field" :value="limitShown(row, 'min')" stepper @update:value="v => setLimit(row.tab, 'min', v)" />
-          <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :input-id="'opt-phone-lim-' + row.tab + '-max'" :label="row.label + ' end'" :field="row.field" :value="limitShown(row, 'max')" stepper @update:value="v => setLimit(row.tab, 'max', v)" />
+          <UIFixedField class="mob-ui-field" :input-id="'opt-phone-lim-' + row.tab" :label="'Start'" :field="row.field" :value="limitShown(row, 'min')" stepper @update:value="v => setLimit(row.tab, 'min', v)" />
+          <UIFixedField class="mob-ui-field" :input-id="'opt-phone-lim-' + row.tab + '-max'" :label="'End'" :field="row.field" :value="limitShown(row, 'max')" stepper @update:value="v => setLimit(row.tab, 'max', v)" />
         </div>
       </template>
 
@@ -528,7 +527,7 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
 .opt-color-row input[type="color"] { width: 36px; height: 26px; padding: 0; border: 1px solid var(--line); cursor: pointer; }
 .opt-color-row.opt-disabled input[type="color"] { cursor: not-allowed; opacity: 0.5; }
 .opt-clear-btn { border: 1px solid var(--line); background: var(--panel2); color: var(--mut);
-  cursor: pointer; font-size: 14px; width: 26px; height: 26px; line-height: 1; }
+  cursor: pointer; font-size: 14px; width: 26px; height: 26px; line-height: 1; padding: 0; }
 
 .opt-limits { width: auto; border-collapse: collapse; font-size: 11px; }
 .opt-limits th, .opt-limits td { padding: 2px 4px; text-align: left; }

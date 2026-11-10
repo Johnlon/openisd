@@ -149,11 +149,16 @@ function handleCreate() {
           <div class="field-row">
             <UIFixedField input-id="np-ndrivers" :field="NumberField.DRIVER_NDRIVERS" label="Num. of drivers" :value="nDrivers" @update:value="n => nDrivers = n" />
           </div>
-          <div class="radio-group field-row" role="group" aria-labelledby="np-placement-label">
-            <span id="np-placement-label" class="placement-label">{{ PhoneWizardText.PLACEMENT_LABEL }}</span>
-            <label><input type="radio" name="placement" value="standard" v-model="placement"> Standard</label>
-            <label><input type="radio" name="placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
-            <WizardInfoButton question label="About driver placement" @click="openPlacementInfo" />
+          <div class="field-row">
+            <!-- A field row like the pick fields around it, so its label column is the group's and the radios start where their boxes do. -->
+            <div class="ui-field ui-pick-field radio-group" role="group" aria-labelledby="np-placement-label">
+              <label id="np-placement-label" class="ui-field-label placement-label">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
+              <span class="placement-choices">
+                <label><input type="radio" name="placement" value="standard" v-model="placement"> Standard</label>
+                <label><input type="radio" name="placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
+                <WizardInfoButton question label="About driver placement" @click="openPlacementInfo" />
+              </span>
+            </div>
           </div>
           <div class="field-row">
             <UIPickField label="Voice coil connection" input-id="np-wiring" common>
@@ -312,15 +317,16 @@ function handleCreate() {
 .np-library { height: 420px; }
 .field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .step-content :deep(.ui-field) { margin-bottom: 10px; }
-/* Wizard field labels (e.g. "Voice coil connection") are wider than the default 128px text area left after the 22px warning slot; every field, pick or number, shares the one 172px label column. */
-.step-content :deep(.ui-field) { --label-w: 172px; }
 .field { display: flex; align-items: center; gap: 6px; }
 .field label { color: #333; display: inline-block; min-width: 150px; }
 .field input, .field select { border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff; }
 .field input { width: 140px; }
 .field .unit { color: #555; }
-.radio-group { gap: 16px; margin-bottom: 12px; }
-.placement-label { color: #333; white-space: nowrap; flex: none; width: 153px; }
+.radio-group { display: grid; align-items: center; margin-bottom: 12px; }
+.placement-label { color: #333; white-space: nowrap; }
+.placement-choices { display: inline-flex; align-items: center; gap: 16px; }
+/* The first radio circle starts at the column edge, where the boxes above and below start. */
+.placement-choices > label:first-child input { margin-left: 0; }
 .radio-group label { cursor: pointer; }
 .ebp-readout-card { background: #f0f7f0; border: 1px solid #c0e0c0; border-radius: 4px; padding: 10px 14px; margin: 12px 0; display: flex; align-items: center; justify-content: space-between; }
 .ebp-row { font-size: 13.5px; }

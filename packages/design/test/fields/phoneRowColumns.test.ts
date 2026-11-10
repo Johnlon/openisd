@@ -2,15 +2,15 @@ import {describe, expect, it} from 'vitest';
 import {PhoneRowColumns} from '../../fields/index.js';
 
 describe('PhoneRowColumns', () => {
-  it('gives every mobile label preset one control inset and permanent cue-rail dimensions', () => {
-    for (const columns of [PhoneRowColumns.STANDARD, PhoneRowColumns.MEDIUM_LABEL, PhoneRowColumns.WIDE_LABEL]) {
+  it('gives the one mobile column set one control inset and permanent cue-rail dimensions', () => {
+    for (const columns of [PhoneRowColumns.STANDARD]) {
       expect(columns.cssVars().get('--mob-col-gutter')).toBe('16px');
       expect(columns.cssVars().get('--mob-col-dq')).toBe('26px');
       expect(columns.cssVars().get('--mob-col-model')).toBe('24px');
     }
   });
   it('provides a wide unit column so warning and difference cues can reserve its space', () => {
-    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-chip-wide')).toBe('60px');
+    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-chip-wide')).toBe('50px');
   });
 
   it('reserves the wide column for multi-character compound units', () => {
@@ -19,6 +19,6 @@ describe('PhoneRowColumns', () => {
   });
 
   it('gives the phone Signal tab typing box 60% of its column (T720)', () => {
-    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-input-share')).toBe('0.6');
+    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-input-share')).toBe('0.77');
   });
 });

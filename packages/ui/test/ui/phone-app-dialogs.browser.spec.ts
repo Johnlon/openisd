@@ -177,12 +177,13 @@ for (const size of PHONE_SIZES) {
     test('Plot Window: the frequency range and chart limits are step-button field rows that fit the screen', async ({page}) => {
       const dialog = page.locator('.mob-dlg[aria-label="Options"]');
       await dialog.locator('.opt-phone-tabs button', {hasText: 'Plot Window'}).click();
-      const fmin = dialog.locator('.ui-field').filter({has: page.locator('label', {hasText: 'Frequency range start'})});
+      // Each range is a group named by its quantity; its rows say Start and End.
+      const fmin = dialog.getByRole('group', {name: 'Frequency range'}).locator('.ui-field').filter({has: page.locator('label', {hasText: 'Start'})});
       await expect(fmin.locator('.num-stepper-btn')).toHaveCount(2);
       const before = await fmin.locator('input').inputValue();
       await fmin.locator('.num-stepper-btn').first().click();
       await expect(fmin.locator('input')).not.toHaveValue(before);
-      const spl = dialog.locator('.ui-field').filter({has: page.locator('label', {hasText: 'SPL end'})});
+      const spl = dialog.getByRole('group', {name: 'SPL', exact: true}).locator('.ui-field').filter({has: page.locator('label', {hasText: 'End'})});
       await expect(spl.locator('.num-stepper-btn')).toHaveCount(2);
       const over = await dialog.locator('.mob-dlg-body').evaluate(body => {
         const right = body.getBoundingClientRect().right;

@@ -20,10 +20,12 @@ test('driver editor opens on the Parameters tab', async ({ page }) => {
   await expect(page.locator('.de-params')).toBeVisible();
 });
 
-test('the Connection dropdown keeps its 96 px desktop width', async ({ page }) => {
+test('the Connection dropdown is as wide as the number boxes above it (field-layout rule 4), wide enough for "Parallel"', async ({ page }) => {
   await openEditor(page, 'Parameters');
-  const box = await page.locator('.de-conn-sel').boundingBox();
-  expect(Math.round(box!.width)).toBe(96);
+  const select = await page.locator('.de-conn-sel').boundingBox();
+  const boxes = await page.locator('.de-params .ui-field input[data-numinput]').first().boundingBox();
+  expect(Math.round(select!.width)).toBe(Math.round(boxes!.width));
+  expect(await page.locator('.de-conn-sel').evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
 });
 
 /**

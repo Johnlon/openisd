@@ -1,4 +1,5 @@
 import type {BoxType} from '../engine/index.js';
+import type {VentShape} from '../domain/vent.js';
 import {NumberField} from './field.js';
 import {PHONE_FILTER_CHIPS, PhoneHelp, type PhoneHelpRow, PhoneHelpRows, PhoneHelpSection, type PhoneFilterChip} from './phoneText.js';
 
@@ -10,10 +11,23 @@ export class DesktopLabels {
   static readonly VOICE_COIL_CONNECTION = 'Voice coil connection';
   static readonly ANGLE = 'Angle';
   static readonly VENT_SHAPE = 'Shape';
-  static readonly VENT_COUNT = 'Number';
+  static readonly VENT_COUNT = 'Number of ports';
   static readonly VENT_END_CORRECTION = 'End Correction';
   static readonly SELECT_PASSIVE_RADIATOR = 'Select passive radiator';
   static readonly SAVE_PASSIVE_RADIATOR = 'Save to library';
+
+  /** The word on the port shape button for a shape. */
+  static ventShapeWord(shape: VentShape): string {
+    switch (shape) {
+      case 'round': return 'Round';
+      case 'slotted': return 'Slotted';
+    }
+  }
+
+  /** The port shape button's accessible name and tooltip: the shape now, and the shape a press switches to. */
+  static ventShapeToggleName(shape: VentShape, next: VentShape): string {
+    return `Port shape: ${DesktopLabels.ventShapeWord(shape)}. Press to switch to ${DesktopLabels.ventShapeWord(next)}`;
+  }
 
   /** The Filters tab's quick-add button for a filter type. */
   static addFilter(chip: PhoneFilterChip): string {

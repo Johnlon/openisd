@@ -4,7 +4,7 @@
 // (src/hooks/MobileAdvancedTab-hooks.ts), which calls the SAME field-wiring factory
 // OriginalShell-hooks.ts exports. AdvancedOptions.vue (the simulation-fidelity checkbox column)
 // is reused unchanged — already presentation-only with its own hook.
-import {NumberField, PhoneHelp, PhoneRowColumns, ToggleField} from '@openisd/design/fields';
+import {NumberField, PhoneHelp, ToggleField} from '@openisd/design/fields';
 import {inputChecked} from '../../../logic/domEvents.js';
 import UISettlingField from '../../components/UISettlingField.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
@@ -29,11 +29,11 @@ const {
 <template>
   <PhoneClassicPage>
     <PhoneBand :section="PhoneHelp.ADVANCED_ENVIRONMENT" />
-    <UISettlingField class="mob-ui-field" :columns="PhoneRowColumns.MEDIUM_LABEL" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range />
-    <UISettlingField class="mob-ui-field" :columns="PhoneRowColumns.MEDIUM_LABEL" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range />
-    <UISettlingField class="mob-ui-field" :columns="PhoneRowColumns.MEDIUM_LABEL" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range />
-    <UISettlingField class="mob-ui-field" :columns="PhoneRowColumns.MEDIUM_LABEL" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range />
-    <UISettlingField class="mob-ui-field" :columns="PhoneRowColumns.MEDIUM_LABEL" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-state="envAirDensityDq.dqState" allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-state="envAirDensityDq.dqState" allow-out-of-range />
     <div class="mob-adv-btns">
       <PhoneButton @click="resetAirToAppDefaults">Reset to app levels</PhoneButton>
     </div>

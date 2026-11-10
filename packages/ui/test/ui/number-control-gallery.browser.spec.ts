@@ -42,7 +42,7 @@ for (const width of [360, 374, 412]) {
         const box = control.getBoundingClientRect();
         if (control.matches('input:not([type=checkbox],[type=range],[type=color]), select, textarea')) {
           const paint = getComputedStyle(control);
-          const font = numericFonts[name] ?? {fontSize:'15px',fontFamily:'Arial, sans-serif'};
+          const font = numericFonts[name] ?? {fontSize:'15px',fontFamily:'Roboto, AppSymbols'};
           if (paint.fontSize !== font.fontSize || paint.fontFamily !== font.fontFamily) issues.push(name+': text control typography differs');
           if ([paint.borderTopWidth,paint.borderRightWidth,paint.borderBottomWidth,paint.borderLeftWidth].some(width => parseFloat(width) < 1)) issues.push(name+': control border is missing');
         }

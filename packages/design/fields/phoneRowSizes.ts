@@ -15,7 +15,7 @@ export class PhoneRowSizes {
   /** Classic rows (the accepted classic phone design): 40 px, 34 px boxes. Replaces TAB for tab pages, and
    *  the Tune and What-if sheets use it too (one row size across the app, John, 20 Oct 2026).
    *  The widths across the row are PhoneRowColumns; these last three match PhoneRowColumns.STANDARD. */
-  static readonly CLASSIC = new PhoneRowSizes(40, 3, 34, 16, 0, 82, 45, 40);
+  static readonly CLASSIC = new PhoneRowSizes(40, 3, 34, 16, 0, 102, 45, 40);
   /** Sheet rows: as tight as a finger allows. */
   static readonly SHEET = new PhoneRowSizes(SheetSizes.ROW_MIN_PX, 2, SheetSizes.TOUCH_MIN_PX, 14, 0, 0, 64, 30);
 
@@ -57,21 +57,39 @@ export class PhoneRowSizes {
 
 /** The widths across a classic phone row: label, ▲▼ area, unit chip, and the text gutter in the box. */
 export class PhoneRowColumns {
-  /** Compound labels such as mm/N and 1000/K need room for their text and chip padding. */
-  static readonly WIDE_CHIP_PX = 60;
+  /** Compound labels such as mm/N and 1000/K: 13 px text (1000/K is 39 px) plus 4 px each side; 60 px left a 7-figure value cut at 374 px. */
+  static readonly WIDE_CHIP_PX = 50;
+  /** The least blank between a number box (its unit chip included) and its up/down buttons, on every screen (John, 10 Nov 2026: "there is no gap between the cell and the spinner buttons"). */
+  static readonly MIN_STEPPER_GAP_PX = 4;
+  /** The widest blank allowed between a group's longest label and its box on a phone: the label's right padding
+   *  and the slot a warning takes. John, 10 Nov 2026: "there is tons of empty space, don't blame the label". */
+  static readonly MAX_LABEL_GAP_PX = 8 + 22 + 2;
   static readonly WARNING_PX = 26;
   static readonly MODEL_CUE_PX = 24;
   static readonly CONTROL_GAP_PX = 8;
-  /** The Signal tab's typing box takes this share of the width a Box-tab box has (John, 8 Nov 2026, T720: 60%). */
-  static readonly SIGNAL_INPUT_SHARE = 0.6;
+  /**
+   * The Signal tab's typing box takes this share of the width a Box-tab box has. T720 (John, 8 Nov 2026) set 60% of a 186 px box (112 px);
+   * T742 widened the label column, so the Signal column is 145 px and 77% keeps the Signal box at the same 112 px, which holds a 6-digit value and its chip.
+   */
+  static readonly SIGNAL_INPUT_SHARE = 0.77;
+
+  /** Side margin of a row, each side. */
+  static readonly EDGE_PX = 16;
+
+  /** The CSS variable every phone row reads for its label column. */
+  static readonly LABEL_COLUMN_VAR = '--mob-col-label';
+  /** The blank after the longest label's text, before the box (the label's own right padding). */
+  static readonly LABEL_PAD_PX = 8;
+
+  /** The label column of one phone page or popup: its longest label (text plus any margin the label keeps
+   *  for a warning), rounded up to whole pixels, and the padding after it. The box takes all the rest. */
+  static labelColumnPx(labelWidthsPx: readonly number[]): number {
+    return Math.ceil(Math.max(0, ...labelWidthsPx)) + PhoneRowColumns.LABEL_PAD_PX;
+  }
 
   static chipIsWide(label: string): boolean { return label.length > 3; }
 
-  static readonly STANDARD = new PhoneRowColumns(82, 90, 40, 16);
-  /** The Advanced page's air rows: wide enough for "Temperature" on one line, narrow enough to leave room for a pressure in Pa. */
-  static readonly MEDIUM_LABEL = new PhoneRowColumns(96, 90, 40, 16);
-  /** The driver editor's General tab, whose labels are longer. */
-  static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 16);
+  static readonly STANDARD = new PhoneRowColumns(123, 90, 40, 16);
 
   private constructor(
     /** The label column. */
@@ -82,6 +100,8 @@ export class PhoneRowColumns {
     readonly chipMinPx: number,
     /** The gap between the box's left edge and its text. */
     readonly textGutterPx: number,
+    /** The space between the screen edge and a row's content, each side. */
+    readonly edgePx: number = PhoneRowColumns.EDGE_PX,
   ) {}
 
   /** The widths as CSS custom properties. */
@@ -95,6 +115,7 @@ export class PhoneRowColumns {
       ['--mob-col-model', `${PhoneRowColumns.MODEL_CUE_PX}px`],
       ['--mob-col-gap', `${PhoneRowColumns.CONTROL_GAP_PX}px`],
       ['--mob-col-gutter', `${this.textGutterPx}px`],
+      ['--mob-col-edge', `${this.edgePx}px`],
       ['--mob-col-input-share', `${PhoneRowColumns.SIGNAL_INPUT_SHARE}`],
     ]);
   }

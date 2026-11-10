@@ -16,15 +16,16 @@ export class VisualSkin {
   static readonly ALL: readonly VisualSkin[] = Object.freeze([VisualSkin.MOBILE, VisualSkin.DESKTOP]);
   private constructor(readonly name: string, readonly viewport: {width: number; height: number}) {}
 
-  /** Opens the app in this skin, on its empty state, on FIXTURE_DATE (timers still run; only the date and time are fixed). */
-  async start(page: Page): Promise<void> {
+  /** Opens the app in this skin, on its empty state, on FIXTURE_DATE (timers still run; only the date and time are fixed).
+   *  `waitUntil` 'domcontentloaded' for a test that holds a font: the page's load event waits for fonts it uses. */
+  async start(page: Page, waitUntil: 'load' | 'domcontentloaded' = 'load'): Promise<void> {
     await page.clock.setFixedTime(FIXTURE_DATE);
     await page.setViewportSize(this.viewport);
     if (this === VisualSkin.MOBILE) await forceMobileSkin(page);
     else await page.addInitScript(() => {
       localStorage.setItem('openisd_view', JSON.stringify({ui: {splashSeen: true}}));
     });
-    await page.goto('/');
+    await page.goto('/', {waitUntil});
   }
 
   /** Opens the sample project in this skin. */

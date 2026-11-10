@@ -1,7 +1,7 @@
 export {
   type SelectorOption,
   END_CORRECTION_OPTIONS, END_CORRECTION_ONE_FLANGED_END_M, END_CORRECTION_TWO_FREE_ENDS_M,
-  VENT_SHAPE_OPTIONS, COMPACT_VENT_SHAPE_OPTIONS,
+  VENT_SHAPE_OPTIONS,
   VC_CONNECTION_OPTIONS,
   ARRAY_WIRING_OPTIONS,
   SEALED_ALIGNMENT_OPTIONS,
@@ -142,7 +142,7 @@ export {
   type PersistOutcome,
   type StorageEstimate,
 } from './browserStorage.js';
-export { dateStampFrom, formatByteSize, formatCount, formatCountOf, formatDate, formatDateStamp, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
+export { dateStampFrom, formatByteSize, formatCount, formatCountOf, formatDate, formatDateStamp, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc, PHONE_MAX_SIGNIFICANT } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
 export { caretSpin, digitAtCaret, spinStep, tenthsCaret, steppingCaret, caretRepeatDelayMs, CARET_HOLD_START_MS, type CaretSpin, type SteppedPlace, type StepAt } from './caretSpin.js';
@@ -159,6 +159,7 @@ export { ChartPageHelp } from './chartPageText.js';
 export { CHART_HELP } from './chartHelpText.js';
 export { PhoneRowColumns, PhoneRowSizes } from './phoneRowSizes.js';
 export { PhoneHeaderSizes } from './phoneHeaderSizes.js';
+export { AppFont, SkinFonts } from './appFonts.js';
 export { type PhoneHelpRow, PhoneHelpRows, type PhoneFilterChip, PHONE_FILTER_CHIPS, PhoneHelpSection, KeyStripText, PhoneLabels, PhoneBoxText, PhoneHelp, PhoneDriverListText, PhonePrBrowserText, PhoneEditorText } from './phoneText.js';
 export { DesktopHelp, DesktopLabels } from './desktopHelp.js';
 export { type EbpBadge, type WizardInfoCard, PhoneWizardText, PhoneWizardHelp } from './phoneWizardText.js';

@@ -70,7 +70,7 @@ useEscToClose(() => true, close);
         </div>
       </div>
       <div class="btns pr-footer">
-        <button @click="emit('define')" title="Define a brand-new passive radiator from scratch">＋ Define new passive radiator</button>
+        <button @click="emit('define')" title="Define a brand-new passive radiator from scratch">+ Define new passive radiator</button>
         <button class="pri" @click="close" title="Close">Done</button>
       </div>
     </div>
