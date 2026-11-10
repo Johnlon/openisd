@@ -1,4 +1,5 @@
 import type {VentedDesignLimits} from './plausibility.js';
+import {NumberField} from '../fields/field.js';
 import {DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA} from './air.js';
 
 /** The application's environment defaults — Options → Environment, or the reference
@@ -14,8 +15,10 @@ export interface AppSettings {
   envDefaults(): EnvDefaults;
 }
 
+/** The plausibility band's top volume is the Vb field's own top, so the band can never allow a
+ *  volume the box refuses. */
 export const DEFAULT_VENTED_DESIGN_LIMITS: VentedDesignLimits = Object.freeze({
-  minVb_m3: 0.001, maxVb_m3: 1.0, minFb_hz: 10, maxFb_hz: 150,
+  minVb_m3: 0.001, maxVb_m3: NumberField.BOX_VB_L.toSI(NumberField.BOX_VB_L.limits.max), minFb_hz: 10, maxFb_hz: 150,
 });
 
 export const DEFAULT_ENV_DEFAULTS: EnvDefaults = Object.freeze({

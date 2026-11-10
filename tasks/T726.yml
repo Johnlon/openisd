@@ -1,0 +1,45 @@
+id: T726
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Every app default lives in one constant; the wizard, first-use project, engine fallbacks and settings repos read it
+why: "John, 8 Nov 2026: \"fix the defaults / use the single value or project value as appropriate\". ruling: QO461 (listening distance min 0.1 m, floor positive; port velocity max stays 340 m/s)."
+done_test: bash scripts/test.sh packages/design/test/fields/app-defaults-agree.test.ts packages/ui/test/logic/app-defaults-agree.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T726.yml
+  - bugs/BUG_20261108_app-defaults-typed-in-many-places.md
+  - packages/design/chart/axis.ts
+  - packages/design/chart/series.ts
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/box/startingChambers.ts
+  - packages/design/domain/boxDefaults.ts
+  - packages/design/engine/appSettings.ts
+  - packages/design/engine/boxes/AbcBox.ts
+  - packages/design/engine/boxes/Bandpass6Box.ts
+  - packages/design/engine/boxes/VentedBox.ts
+  - packages/design/engine/boxes/port.ts
+  - packages/design/engine/circuit.ts
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/fields/defaults.ts
+  - packages/design/fields/field.ts
+  - packages/design/fields/index.ts
+  - packages/design/fields/options.ts
+  - packages/design/test/domain/box-clear-settles.test.ts
+  - packages/design/test/domain/box-starting-values.test.ts
+  - packages/design/test/domain/project-builder-starting-values.test.ts
+  - packages/design/test/fields/app-defaults-agree.test.ts
+  - packages/design/test/fields/field-rounded.test.ts
+  - packages/persistence/src/repos/appSettingsRepo.ts
+  - packages/persistence/test/appSettingsRepo.test.ts
+  - packages/persistence/test/goldens/custom-drivers/expected.json
+  - packages/persistence/test/goldens/empty/expected.json
+  - packages/persistence/test/goldens/one-project/expected.json
+  - packages/persistence/test/goldens/open-sessions/expected.json
+  - packages/persistence/test/goldens/passive-radiators/expected.json
+  - packages/ui/src/hooks/OptionsModal-hooks.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/test/logic/app-defaults-agree.test.ts

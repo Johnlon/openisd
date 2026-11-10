@@ -1,6 +1,7 @@
 /** REPO: domain access to the application settings the user set. Takes a storage, returns
  *  domain values. */
 import {DEFAULT_VENTED_DESIGN_LIMITS, DEFAULT_ENV_DEFAULTS} from '@openisd/design/engine';
+import {NumberField} from '@openisd/design/fields';
 import type {AppSettings, EnvDefaults, VentedDesignLimits} from '@openisd/design/engine';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import type {StorageBackup} from './storageBackup.js';
@@ -70,15 +71,22 @@ function parseVented(raw: unknown): VentedDesignLimits | null {
   return {minVb_m3, maxVb_m3, minFb_hz, maxFb_hz};
 }
 
-/** Parse at the boundary: an unknown blob becomes an `EnvDefaults` or nothing. Temperature and
- *  pressure just need to be positive; humidity has its own 0-100 range check. */
+function within(v: number, limits: Readonly<{min: number; max: number}>): boolean {
+  return v >= limits.min && v <= limits.max;
+}
+
+/** Parse at the boundary: an unknown blob becomes an `EnvDefaults` or nothing. Each member must lie
+ *  inside its Advanced-tab field's limits (temperature above 0 K), so a stored value the field and
+ *  the air solver would refuse reads as absent: its default, repaired, never refused. */
 function parseEnv(raw: unknown): EnvDefaults | null {
   if (typeof raw !== 'object' || raw === null) return null;
   if (!('tempK' in raw) || !('humidityPct' in raw) || !('pressurePa' in raw)) return null;
   const {tempK, humidityPct, pressurePa} = raw;
   if (!isPositiveNumber(tempK) || !isPositiveNumber(pressurePa)) return null;
   if (typeof humidityPct !== 'number' || !Number.isFinite(humidityPct)) return null;
-  if (humidityPct < 0 || humidityPct > 100) return null;
+  if (!within(tempK, NumberField.ADV_TEMP_K.limits)) return null;
+  if (!within(pressurePa, NumberField.ADV_PRESSURE_KPA.limits)) return null;
+  if (!within(humidityPct, NumberField.ADV_HUMIDITY_PCT.limits)) return null;
   return {tempK, humidityPct, pressurePa};
 }
 

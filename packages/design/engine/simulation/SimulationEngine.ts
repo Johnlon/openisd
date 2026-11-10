@@ -33,6 +33,8 @@ import type {BoxParamsIssue, BoxParamsQuantityName, BoxParamsSolveResult} from '
 import {requiredParamsFor} from '../params.js';
 import type {SolveRoute} from '../consistency.js';
 import type {SignalIssue} from '../signal/SignalEngine.js';
+import {DEFAULT_SWEEP_POINTS} from '../../fields/defaults.js';
+import {NumberField} from '../../fields/field.js';
 
 /** Every issue channel a sweep can surface: the driver's own missing circuit fields (a
  *  `missing-dependencies` issue per absent field, never a combined message or a cross-field
@@ -481,7 +483,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     if (circuit.value === null) return { values: null, issues: circuit.issues };
     const cq = circuit.value;
     const rho = P.air.rho();
-    const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
+    const f0 = P.fmin || NumberField.PLOT_RANGE_DEFAULT_HZ.min, f1 = P.fmax || NumberField.PLOT_RANGE_DEFAULT_HZ.max, N = P.N || DEFAULT_SWEEP_POINTS, r = 1;
     const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
     const va: number[] = [];
     // `bandpass6`/`abc`'s own rear-port and (ABC only) intra-port velocities — `null` unless the
