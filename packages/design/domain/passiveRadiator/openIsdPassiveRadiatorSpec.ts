@@ -1,12 +1,13 @@
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
-import { VAS_WINS } from '../project/chartingSources.js';
-import type { Air, ChartingSource, PrEngine, PrSpecIssue, PrSpecPrecision, PrSpecValues, ShownMechanics } from '../../engine/index.js';
-import { chartNotes } from '../driver/chartFigureNote.js';
+import type { Air, PrEngine, PrSpecIssue, PrSpecPrecision, PrSpecValues } from '../../engine/index.js';
 import { NumberField } from '../../fields/field.js';
 import type { RadiatorDeviceJson, SpecEntryJson } from '../openisdSchema.js';
-import { prSpec, type PassiveRadiatorFieldName } from '../box/prSpec.js';
+import { prSpec, shownPrSpec, type PassiveRadiatorFieldName } from '../box/prSpec.js';
 import { radiatorSection } from '../box/radiatorSection.js';
 import type { RadiatorContext } from './radiatorContext.js';
+
+/** A field no typed write moves another for. */
+const none = (): PassiveRadiatorFieldName[] => [];
 
 type SpecField = Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
 
@@ -49,33 +50,33 @@ export class OpenIsdPassiveRadiatorSpec {
         this.#context = context;
         const section = radiatorSection(slot);
         const shownEntry = (name: 'Mms_kg' | 'Cms_m_per_N' | 'Rms_kg_per_s') => (): SpecEntryJson | undefined => {
-            const value = this.#shown()?.[name];
-            return value === null || value === undefined ? undefined : {state: 'C', value};
+            const value = this.#context.shown(this.#stated())[name];
+            return value === null ? undefined : {state: 'C', value};
         };
         const marks = (name: keyof PrSpecValues) => (): readonly PrSpecIssue[] =>
             conflicts().filter(issue => issue.fields.some(field => field === name));
         this.Fs_hz = prSpec(section, 'Fs_hz', marks('Fs_hz'), () => this.#fsMoves());
         this.Qms = prSpec(section, 'Qms', marks('Qms'), () => this.#qmsMoves());
         this.#storedCms = prSpec(section, 'Cms_m_per_N', undefined, () => this.#cmsMoves());
-        this.#storedMms = prSpec(section, 'Mms_kg');
-        this.#storedRms = prSpec(section, 'Rms_kg_per_s');
-        this.Cms_m_per_N = prSpec(section, 'Cms_m_per_N', marks('Cms_m_per_N'), () => this.#cmsMoves(), shownEntry('Cms_m_per_N'));
-        this.Mms_kg = prSpec(section, 'Mms_kg', marks('Mms_kg'), () => this.#mmsMoves(), shownEntry('Mms_kg'));
-        this.Rms_kg_per_s = prSpec(section, 'Rms_kg_per_s', marks('Rms_kg_per_s'), () => this.#rmsMoves(), shownEntry('Rms_kg_per_s'));
+        this.#storedMms = prSpec(section, 'Mms_kg', undefined, none);
+        this.#storedRms = prSpec(section, 'Rms_kg_per_s', undefined, none);
+        this.Cms_m_per_N = shownPrSpec(section, 'Cms_m_per_N', marks('Cms_m_per_N'), () => this.#cmsMoves(), shownEntry('Cms_m_per_N'));
+        this.Mms_kg = shownPrSpec(section, 'Mms_kg', marks('Mms_kg'), () => this.#mmsMoves(), shownEntry('Mms_kg'));
+        this.Rms_kg_per_s = shownPrSpec(section, 'Rms_kg_per_s', marks('Rms_kg_per_s'), () => this.#rmsMoves(), shownEntry('Rms_kg_per_s'));
         this.Sd_m2 = prSpec(section, 'Sd_m2', marks('Sd_m2'), () => this.#sdMoves());
         this.Vas_m3 = prSpec(section, 'Vas_m3', marks('Vas_m3'), () => this.#vasMoves());
-        this.Vd_m3 = prSpec(section, 'Vd_m3');
-        this.Xmax_m = prSpec(section, 'Xmax_m');
-        this.Xlim_m = prSpec(section, 'Xlim_m');
-        this.Dd_m = prSpec(section, 'Dd_m');
-        this.DVol_m3 = prSpec(section, 'DVol_m3');
-        this.Thick_m = prSpec(section, 'Thick_m');
-        this.Depth_m = prSpec(section, 'Depth_m');
-        this.Basket_m = prSpec(section, 'Basket_m');
-        this.Outer_m = prSpec(section, 'Outer_m');
-        this.OuterX_m = prSpec(section, 'OuterX_m');
-        this.OuterY_m = prSpec(section, 'OuterY_m');
-        this.weight_kg = prSpec(section, 'weight_kg');
+        this.Vd_m3 = prSpec(section, 'Vd_m3', undefined, none);
+        this.Xmax_m = prSpec(section, 'Xmax_m', undefined, none);
+        this.Xlim_m = prSpec(section, 'Xlim_m', undefined, none);
+        this.Dd_m = prSpec(section, 'Dd_m', undefined, none);
+        this.DVol_m3 = prSpec(section, 'DVol_m3', undefined, none);
+        this.Thick_m = prSpec(section, 'Thick_m', undefined, none);
+        this.Depth_m = prSpec(section, 'Depth_m', undefined, none);
+        this.Basket_m = prSpec(section, 'Basket_m', undefined, none);
+        this.Outer_m = prSpec(section, 'Outer_m', undefined, none);
+        this.OuterX_m = prSpec(section, 'OuterX_m', undefined, none);
+        this.OuterY_m = prSpec(section, 'OuterY_m', undefined, none);
+        this.weight_kg = prSpec(section, 'weight_kg', undefined, none);
     }
 
     // The figure typed last wins (QO463, John 8 Nov 2026; docs/design/FIELD_CLEAR_RULE.md
@@ -173,40 +174,16 @@ export class OpenIsdPassiveRadiatorSpec {
     }
 
     /** A record just adopted into a project: its Xlim becomes its Xmax when it has none. The record's Cms, Mms and Rms stay as the
-     *  datasheet states them; where the charts use another figure the box shows that one (`#shown`), and the saved record is unchanged. */
+     *  datasheet states them; where the charts use another figure the box shows that one (the context's `shown`), and the saved record is unchanged. */
     adoptDatasheetFigures(): void {
         const picked = this.pickedXmax_m;
         if (!this.Xmax_m.entered && picked !== null) this.Xmax_m.set(picked, this.Xlim_m.precision ?? undefined);
     }
 
-    /** The Cms, Mms and Rms the charts use when the radiator states Vas: the engine's one chain (`resolveCms`) over the stated Vas, Sd, Fs and Qms (the stated Cms
-     *  joins only when the project says the stated Cms wins). Null when the radiator is standalone, shows its datasheet, or states no Vas. */
-    #shown(source: ChartingSource | null = this.#source()): ShownMechanics | null {
-        if (source === null) return null;
-        const stated = this.#stated();
-        if (stated.Vas_m3 === null) return null;
-        return this.#context.fold(project => project.mechanics(source, {
-            Fs_hz: stated.Fs_hz, Qms: stated.Qms, Vas_m3: stated.Vas_m3, Sd_m2: stated.Sd_m2,
-            Cms_m_per_N: source.kind === 'StatedCmsWins' ? stated.Cms_m_per_N : null, Mms_kg: null, Qes: null, Re_terminal_ohm: null,
-        }, project.air()), () => null);
-    }
-
-    /** Which Cms the charts use: the project's choice, or null outside a project (the datasheet shows). */
-    #source(): ChartingSource | null {
-        return this.#context.fold(project => project.cmsSource(), () => null);
-    }
-
     /** The issues, with the stated Cms that disagrees with the stated Vas named in one sentence on Cms (only the generic Vas/Cms issue loses Cms; an Fs/Mms/Cms
      *  issue keeps it), and each stated Mms or Rms the charts do not use named in its own sentence (the driver's rule, `chartNotes`). */
     #withChartNotes(issues: PrSpecIssue[]): PrSpecIssue[] {
-        const source = this.#source();
-        if (source === null) return issues;
-        const shown = this.#shown(source);
-        const stated = this.#stated();
-        const notes = chartNotes<PrSpecIssue['target']>(source, [
-            {figure: 'Mms', name: 'Mms_kg', statedSI: this.#storedMms.entered ? this.#storedMms.value : null, chartSI: shown?.Mms_kg ?? null},
-            {figure: 'Rms', name: 'Rms_kg_per_s', statedSI: this.#storedRms.entered ? this.#storedRms.value : null, chartSI: shown?.Rms_kg_per_s ?? null},
-        ], stated.Cms_m_per_N, this.#shown(VAS_WINS)?.Cms_m_per_N ?? null);
+        const notes = this.#context.chartNotes(this.#stated());
         const {cmsConflict} = notes;
         const kept = issues.map((issue): PrSpecIssue => issue.kind === 'inconsistent-inputs' && cmsConflict !== null && issue.fields.includes('Vas_m3')
             ? {...issue, fields: issue.fields.filter(f => f !== 'Cms_m_per_N')} : issue);

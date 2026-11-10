@@ -1,4 +1,4 @@
-import type {ChartingSource} from '../../engine/index.js';
+import type {ChartingSource, ShownMechanics} from '../../engine/index.js';
 import {NumberField} from '../../fields/field.js';
 
 /** The mechanical figures the charts work out while a datasheet states another value for them (Cms has its own note, `cmsConflictNote`). */
@@ -85,4 +85,28 @@ export function chartNotes<Name extends string>(
         text: cmsConflictNote(source, statedCmsSI, fromVasSI),
     };
     return {cmsConflict, figures};
+}
+
+/** No note at all: what a driver or radiator outside a project carries (it shows its datasheet, so the charts differ from nothing). */
+export const NO_CHART_NOTES: ChartNotes<never> = Object.freeze({cmsConflict: null, figures: Object.freeze([])});
+
+/** No figure worked out: what a driver or radiator outside a project shows (its boxes read the stored entries). */
+export const NOTHING_SHOWN: ShownMechanics = Object.freeze({Cms_m_per_N: null, Mms_kg: null, Rms_kg_per_s: null, BL_terminal_Tm: null});
+
+/** The Cms, Mms and Rms a datasheet states (null where not stated). */
+export interface StatedMechanics {
+    readonly Cms_m_per_N: number | null;
+    readonly Mms_kg: number | null;
+    readonly Rms_kg_per_s: number | null;
+}
+
+/** The names a note can attach to. */
+export type NotedFigure = 'Mms_kg' | 'Rms_kg_per_s';
+
+/** The notes for a project's spec: `shown` is what the charts use under `source`, `fromVas` what they would use were Vas to win. */
+export function notesFor(source: ChartingSource, stated: StatedMechanics, shown: ShownMechanics, fromVas: ShownMechanics): ChartNotes<NotedFigure> {
+    return chartNotes<NotedFigure>(source, [
+        {figure: 'Mms', name: 'Mms_kg', statedSI: stated.Mms_kg, chartSI: shown.Mms_kg},
+        {figure: 'Rms', name: 'Rms_kg_per_s', statedSI: stated.Rms_kg_per_s, chartSI: shown.Rms_kg_per_s},
+    ], stated.Cms_m_per_N, fromVas.Cms_m_per_N);
 }

@@ -155,7 +155,7 @@ export class OpenISDBox implements Box {
         ventTuningExtra: () => DqIssue | null,
         air: () => Air,
         nDrivers: () => number,
-        cmsSource: () => ChartingSource | null,
+        cmsSource: () => ChartingSource,
     ) {
         this.#driver = driver;
         this.#engine = engine;
@@ -410,7 +410,7 @@ export class OpenISDBox implements Box {
         const pr = focus(lens, 'passiveRadiator');
         const prSlot = focus(pr, 'component');
         const getRadiator = (): OpenISDPassiveRadiatorEmbedded => {
-            return new OpenISDPassiveRadiatorEmbedded(prSlot, () => issues().radiator, RadiatorProjectContext.of(cmsSource, air, engine.driver.mechanics));
+            return new OpenISDPassiveRadiatorEmbedded(prSlot, () => issues().radiator, RadiatorProjectContext.of(cmsSource, air, engine.pr));
         };
         const prVolume = settlingNullableField(pr, 'volume_m3', () => STARTING_SHARED_VOLUME_M3, (v) => engine.issues.requiredPositiveIssue('Box volume', v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
@@ -766,7 +766,7 @@ export class OpenISDBox implements Box {
         ventTuningExtra: () => DqIssue | null,
         air: () => Air,
         nDrivers: () => number,
-        cmsSource: () => ChartingSource | null,
+        cmsSource: () => ChartingSource,
     ): OpenISDBox {
         return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air, nDrivers, cmsSource);
     }

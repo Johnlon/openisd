@@ -6,6 +6,8 @@
  */
 import type {Air, AirWorkingName} from '../air.js';
 import type {ConsistencyCheck, RouteGroup, RouteQuantity} from '../driver/routes/index.js';
+import {resolveCms} from '../driver/cmsResolver.js';
+import type {ChartingSource, ShownMechanics} from '../driver/cmsResolver.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import type {PrParams} from '../types.js';
 import type {PrSolverParams} from '../solverTypes.js';
@@ -58,6 +60,9 @@ export interface PrEngine {
    *  Also the first of Cms, Mms, Rms the simulation needs and the stated figures cannot give, as
    *  a `missing-dependencies` issue naming what to state. */
   checkSpec(stated: PrSpecValues, precision: PrSpecPrecision, air: Air): PrSpecIssue[];
+  /** The mechanical figures the charts use for these stated figures: the engine's one Cms chain (`resolveCms`), exactly as the driver's,
+   *  over the stated Fs, Qms, Vas, Sd, Cms and Mms. A radiator has no motor, so Qes and Re are not there. Pure: nothing is stored. */
+  shownMechanics(stated: PrSpecValues, air: Air, source: ChartingSource): ShownMechanics;
   /** The PR handle solve (T10/T11): derive whichever of `tuning_goal_hz`/`addedMass_kg` is not
    *  entered plus `resonanceWithAddedMass_hz`/`systemTuning_hz`, write each onto its
    *  `SolverField` via `setCalculated`, and return the issues the stated values carry. An
@@ -108,6 +113,13 @@ export class PrEngineImpl implements PrEngine {
       Fs_hz: solved.Fs_hz ?? null, Qms: solved.Qms ?? null, Vas_m3: solved.Vas_m3 ?? null, Sd_m2: solved.Sd_m2 ?? null,
       Mms_kg: solved.Mms_kg ?? null, Cms_m_per_N: solved.Cms_m_per_N ?? null, Rms_kg_per_s: solved.Rms_kg_per_s ?? null,
     };
+  }
+
+  shownMechanics(stated: PrSpecValues, air: Air, source: ChartingSource): ShownMechanics {
+    return resolveCms(source, {
+      Fs_hz: stated.Fs_hz, Qms: stated.Qms, Vas_m3: stated.Vas_m3, Sd_m2: stated.Sd_m2,
+      Cms_m_per_N: stated.Cms_m_per_N, Mms_kg: stated.Mms_kg, Qes: null, Re_terminal_ohm: null,
+    }, air);
   }
 
   checkSpec(stated: PrSpecValues, precision: PrSpecPrecision, air: Air): PrSpecIssue[] {

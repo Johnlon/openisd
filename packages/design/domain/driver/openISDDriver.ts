@@ -139,7 +139,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         this.record = record;
         this.context = context;
         this.durableIssues = durableIssues;
-        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, context.air, context.cmsSource, durableIssues);
+        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, context, durableIssues);
     }
 
     /** T11/S2-7c: resolve this driver's spec — write every derivable quantity back
