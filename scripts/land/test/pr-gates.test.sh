@@ -39,6 +39,17 @@ grep -q $'REFUSE\ttask-file' <<< "$out" && ok "a bad status is refused" || bad "
 task T2; git add -A; git commit -qm "(auto) T2: second"
 bash scripts/land/pr-task.sh main HEAD > /dev/null 2>&1 && bad "two task files are refused" || ok "two task files are refused"
 
+# T757: another task's file counts for nothing when its ONLY diff is the sha256 of a locked file this change edits
+git switch -q main; git switch -q -c lockedhash; mkdir -p tasks
+printf 'id: T9\nowner: t\nstatus: done\ngoal: g\ndone_test: true\nlocked:\n  - path: src/b.ts\n    sha256: 0000\nfiles:\n  - src/**\n' > tasks/T9.yml
+echo b > src/b.ts; git add -A; git commit -qm "(auto) T9: base"; git switch -q main; git merge -q lockedhash; git switch -q -c hashfix; mkdir -p tasks
+task T1; echo b2 > src/b.ts; sed -i 's/sha256: .*/sha256: 1111/' tasks/T9.yml; git add -A; git commit -qm "(auto) T1: edit locked file"
+[ "$(bash scripts/land/pr-task.sh main HEAD 2>&1)" = T1 ] && ok "a sha-only change to another task for a changed locked file is not counted" || bad "a sha-only change to another task for a changed locked file is not counted"
+sed -i 's/^goal: g/goal: changed/' tasks/T9.yml; git add -A; git commit -qm "(auto) T1: more T9"
+bash scripts/land/pr-task.sh main HEAD > /dev/null 2>&1 && bad "another task with a non-sha change is refused" || ok "another task with a non-sha change is refused"
+git switch -q main; git switch -q -c hashfix2; mkdir -p tasks; task T1; sed -i 's/sha256: .*/sha256: 2222/' tasks/T9.yml; git add -A; git commit -qm "(auto) T1: sha for unchanged file"
+bash scripts/land/pr-task.sh main HEAD > /dev/null 2>&1 && bad "a sha change for a file the change does not edit is refused" || ok "a sha change for a file the change does not edit is refused"
+
 printf 'x\n\nCo-Authored-By: Claude <noreply@anthropic.com>\n' > "$SCRATCH/m"; git commit -q --allow-empty -F "$SCRATCH/m"
 bash scripts/land/attribution-range.sh main HEAD > /dev/null && bad "an AI trailer is refused" || ok "an AI trailer is refused"
 

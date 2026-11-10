@@ -1,0 +1,13 @@
+id: T757
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Rule docs test names the pull-request process (ship.sh), not land.sh; the pull-request task count ignores another task file whose only change is a locked-file hash this change edits
+done_test: bash scripts/land/test/rules-docs.test.sh
+files:
+  - scripts/land/test/rules-docs.test.sh
+  - tasks/T757.yml
+  - tasks/T004.yml
+  - scripts/land/pr-task.sh
+  - scripts/land/test/pr-gates.test.sh
