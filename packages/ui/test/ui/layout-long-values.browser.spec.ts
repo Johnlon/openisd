@@ -1,3 +1,4 @@
+/* eslint-disable playwright/no-conditional-in-test -- one test per view; the known-fault list marks a view test.fail */
 /**
  * The longest value every number box can show fits its box on the phone (John, 10 Nov 2026, board: the scan's
  * long-value check "types each field's longest possible string in each of its units (top limit + this formatting)").

@@ -1,3 +1,4 @@
+/* eslint-disable playwright/expect-expect -- the assertion is inside expectNothingCut */
 /**
  * T742 (John: clipping is a bug). A phone number box shows its longest figure and its whole unit at
  * 374 x 705, on the pages whose boxes carry wide units (Cms mm/N, Rms Ns/m, Vas, air density kg/m³).

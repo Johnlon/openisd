@@ -1,3 +1,4 @@
+/* eslint-disable playwright/no-conditional-in-test -- one test per view; the known-fault list marks a view test.fail */
 /**
  * The exhaustive layout scan (John, 10 Nov 2026: "I want an exhaustive UI scan for these layout issues as a test"):
  * every phone view and popup on the surface manifest that the manifest can open (mobileSurfaceManifest.ts, opened
