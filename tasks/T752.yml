@@ -1,0 +1,9 @@
+id: T752
+release_note: internal
+repo: openisd
+owner: leader
+status: open
+goal: CI browser jobs need no apt download per run: run them in the pinned Playwright container image
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T752.yml
