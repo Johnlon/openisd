@@ -13,6 +13,8 @@ export class DesktopSizes {
   /** The slot after every desktop field label, where its ⚠ shows: the only blank between the longest label of a
    *  group and the group's boxes, the same on every screen (John, QO466.c12, QO449.c16). */
   static readonly LABEL_SLOT_PX = 22;
+  /** The widest blank allowed between a group's longest label and its box: the warning slot and 10 px (John, 10 Nov 2026: "there is tons of empty space, don't blame the label"). */
+  static readonly MAX_LABEL_GAP_PX = DesktopSizes.LABEL_SLOT_PX + 10;
   /** The CSS variable a field row reads for its label column: set per group to `labelColumnPx`. */
   static readonly LABEL_COLUMN_VAR = '--label-w';
   /** The CSS variable for the label column of a row whose group has not been measured yet: `LABEL_COL_PX`. */

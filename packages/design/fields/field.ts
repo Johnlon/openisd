@@ -138,6 +138,8 @@ interface NumberFieldSpec extends FieldSpec {
 
 /** A field holding a quantity: it has a band, a precision, and a display unit. */
 export class NumberField extends Field {
+  /** The fewest significant figures a number box shows (John, 10 Nov 2026, board option B). */
+  static readonly MIN_SIGNIFICANT = 4;
   readonly kind = 'number';
   readonly editor: NumberEditor;
   /** How the field is shown: one fixed symbol, or a `UnitGroup` the user may rotate through. */
@@ -230,6 +232,8 @@ export class NumberField extends Field {
       decimals = Math.min(decimals, Math.max(Math.min(minDp, 2), maxSignificant - leading));
     }
 
+    // At least MIN_SIGNIFICANT figures, so a small value is never shown as 0.37 for 0.3687 (John, 10 Nov 2026, board option B).
+    if (valDisp !== 0) decimals = Math.max(decimals, NumberField.MIN_SIGNIFICANT - (Math.floor(Math.log10(Math.abs(valDisp))) + 1));
     decimals = Math.max(0, Math.min(20, decimals));
     const sanitizedVal = valDisp === 0 ? 0 : valDisp;
     return formatTrimmed(sanitizedVal, decimals);
