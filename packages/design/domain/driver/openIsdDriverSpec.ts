@@ -1,4 +1,5 @@
-import type {Air, CalculationIssue, CmsSource, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, DriverValues, IssueEngine, OutOfRangeIssue, ShownMechanics, SolverInput, SweepDriver, Wiring} from '../../engine/index.js';
+import {VAS_WINS} from '../../engine/index.js';
+import type {Air, CalculationIssue, ChartingSource, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, DriverValues, IssueEngine, OutOfRangeIssue, ShownMechanics, SolverInput, SweepDriver, Wiring} from '../../engine/index.js';
 import {NumberField} from '../../fields/field.js';
 import type {ValueFloor} from '../../fields/field.js';
 import type {
@@ -22,8 +23,7 @@ import {
     VoiceCoilWiring,
     wiringFromRecord
 } from '../voiceCoilWiring.js';
-import {chartFigureNote, cmsConflictNote} from './chartFigureNote.js';
-import type {ChartFigure} from './chartFigureNote.js';
+import {chartNotes} from './chartFigureNote.js';
 import {computedSlot} from './computedSlot.js';
 import {driverSection} from './driverSection.js';
 import type {DriverSpecFieldName} from './driverSpecFieldName.js';
@@ -229,7 +229,7 @@ export class OpenIsdDriverSpec {
 
     readonly #driver: DriverEngine;
     readonly #air: () => Air;
-    readonly #cmsSource: () => CmsSource;
+    readonly #cmsSource: () => ChartingSource | null;
     /** Cms, Mms and Rms as the record stores them: `resolve()` reads and writes these only, so it never overwrites a stated value.
      *  The public fields of the same names show what the charts use. */
     readonly #storedCms: SpecNumberField;
@@ -245,7 +245,7 @@ export class OpenIsdDriverSpec {
         /** The driver's air: what a not-entered `c_m_per_s`/`roo_kg_per_m3` reads as. */
         air: () => Air,
         /** Which Cms a datasheet that states both Cms and Vas is read with (the project's "Cms from Vas" switch). */
-        cmsSource: () => CmsSource,
+        cmsSource: () => ChartingSource | null,
         /** Where a field's dq is read from when THIS spec object cannot be relied on to still
          *  exist between the resolve that produced it and the read that wants it — the project's
          *  embedded driver, rebuilt fresh on every access, which discards `entryField`'s own
@@ -442,28 +442,21 @@ export class OpenIsdDriverSpec {
      *  issue keeps it), and each stated Mms or Rms the charts do not use named in its own sentence. */
     #withChartNotes(issues: readonly DriverIssue[], air: Air): readonly DriverIssue[] {
         const source = this.#cmsSource();
-        if (source.kind === 'StoredShown') return issues;
+        if (source === null) return issues;
         const shown = this.#shown(air, source);
-        const figures: readonly {readonly figure: ChartFigure; readonly name: DriverQuantityName; readonly stored: SpecNumberField; readonly chart: number | null}[] = [
-            {figure: 'Mms', name: 'Mms_kg', stored: this.#storedMms, chart: shown?.Mms_kg ?? null},
-            {figure: 'Rms', name: 'Rms_kg_per_s', stored: this.#storedRms, chart: shown?.Rms_kg_per_s ?? null},
-        ];
-        const differing = figures.flatMap(({figure, name, stored, chart}) => {
-            const statedSI = stored.entered ? stored.value : null;
-            return statedSI === null || chart === null || Math.abs(chart - statedSI) <= 1e-9 * Math.abs(statedSI) ? [] : [{figure, name, statedSI, chart}];
-        });
-        const statedCms = this.#storedCms.entered ? this.#storedCms.value : null;
-        const fromVas = this.#shown(air, {kind: 'VasWins'})?.Cms_m_per_N ?? null;
-        const cmsConflict = statedCms !== null && fromVas !== null && Math.abs(fromVas - statedCms) > 1e-9 * Math.abs(statedCms);
-        const kept = issues.map(issue => 'fields' in issue && issue.kind === 'inconsistent-inputs' && cmsConflict && issue.fields.includes('Vas_m3')
+        const notes = chartNotes<DriverQuantityName>(source, [
+            {figure: 'Mms', name: 'Mms_kg', statedSI: this.#storedMms.entered ? this.#storedMms.value : null, chartSI: shown?.Mms_kg ?? null},
+            {figure: 'Rms', name: 'Rms_kg_per_s', statedSI: this.#storedRms.entered ? this.#storedRms.value : null, chartSI: shown?.Rms_kg_per_s ?? null},
+        ], this.#storedCms.entered ? this.#storedCms.value : null, this.#shown(air, VAS_WINS)?.Cms_m_per_N ?? null);
+        const {cmsConflict} = notes;
+        const kept = issues.map(issue => 'fields' in issue && issue.kind === 'inconsistent-inputs' && cmsConflict !== null && issue.fields.includes('Vas_m3')
             ? {...issue, fields: issue.fields.filter(f => f !== 'Cms_m_per_N')} : issue);
-        const cmsNotes = !cmsConflict ? [] : [{
-            kind: 'inconsistent-inputs', target: 'Cms_m_per_N', fields: ['Cms_m_per_N'], formula: NumberField.CMS_M_PER_N.formula ?? '', expected: fromVas, actual: statedCms,
-            relative: Math.abs(fromVas - statedCms) / statedCms, text: cmsConflictNote(source, statedCms, fromVas),
+        const cmsNotes = cmsConflict === null ? [] : [{
+            kind: 'inconsistent-inputs', target: 'Cms_m_per_N', fields: ['Cms_m_per_N'], formula: NumberField.CMS_M_PER_N.formula ?? '',
+            expected: cmsConflict.expected, actual: cmsConflict.actual, relative: cmsConflict.relative, text: cmsConflict.text,
         } satisfies DriverIssue];
-        const notes = differing.map(({figure, name, statedSI, chart}): DriverIssue => (
-            {kind: 'approximate-charts', target: name, fields: [name], text: chartFigureNote(figure, statedSI, chart, source)}));
-        return [...kept, ...cmsNotes, ...notes];
+        const figureNotes = notes.figures.map(({name, text}): DriverIssue => ({kind: 'approximate-charts', target: name, fields: [name], text}));
+        return [...kept, ...cmsNotes, ...figureNotes];
     }
 
     /** Clears `dq` on every quantity, then applies each issue's OWN formula only to the handles
@@ -504,7 +497,8 @@ export class OpenIsdDriverSpec {
     }
 
     /** The mechanical figures the charts use, worked out on demand by the engine from the stored figures. Nothing is stored. */
-    #shown(air: Air, source: CmsSource = this.#cmsSource()): ShownMechanics | null {
+    #shown(air: Air, source: ChartingSource | null = this.#cmsSource()): ShownMechanics | null {
+        if (source === null) return null;
         const stored = this.#solverParamsIn(air, this.#storedMms, this.#storedCms, this.#storedRms, null);
         // Vas wins only where Vas is stated; a Vas the solve worked out (a Cms was typed, Vas was dropped) is not a figure to hold the charts to.
         const values = valuesOf(stored);

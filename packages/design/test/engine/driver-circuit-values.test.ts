@@ -5,6 +5,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
+import {VAS_WINS} from '../../engine/index.js';
 import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 import type {TestSolverQuantities} from './testSolver.js';
 import {sweepDriver} from './testSolver.js';
@@ -20,10 +21,10 @@ const STATED: TestSolverQuantities = {
 const circuitOf = (q: TestSolverQuantities) => {
   const values = sweepDriver(q).values;
   const base = engine.driver.circuitValues(values);
-  const chain = engine.driver.shownMechanics(values, REFERENCE_AIR, {kind: 'VasWins'});
+  const chain = engine.driver.shownMechanics(values, REFERENCE_AIR, VAS_WINS);
   return {
-    ...base, Cms_m_per_N: chain?.Cms_m_per_N ?? base.Cms_m_per_N, Mms_kg: chain?.Mms_kg ?? base.Mms_kg,
-    Rms_kg_per_s: chain?.Rms_kg_per_s ?? base.Rms_kg_per_s, BL_terminal_Tm: chain?.BL_terminal_Tm ?? base.BL_terminal_Tm,
+    ...base, Cms_m_per_N: chain.Cms_m_per_N ?? base.Cms_m_per_N, Mms_kg: chain.Mms_kg ?? base.Mms_kg,
+    Rms_kg_per_s: chain.Rms_kg_per_s ?? base.Rms_kg_per_s, BL_terminal_Tm: chain.BL_terminal_Tm ?? base.BL_terminal_Tm,
   };
 };
 

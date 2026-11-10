@@ -3,7 +3,7 @@ import {join, relative, resolve} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {cmsSourceOf} from '../../domain/project/cmsSource.js';
-import type {CmsSource} from '../../domain/project/cmsSource.js';
+import type {ChartingSource} from '../../domain/project/cmsSource.js';
 import {createEngine} from '../../engine/Engine.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
@@ -15,16 +15,15 @@ const W5 = {
 const engine = createEngine();
 const build = () => new ProjectBuilder(driverFromSpec(engine, W5), engine).sealed().volume_m3(0.00448).build();
 
-/** Exhaustive: adding a variant to CmsSource fails the typecheck here. */
-const label = (s: CmsSource): string => {
+/** Exhaustive: adding a variant to ChartingSource fails the typecheck here. */
+const label = (s: ChartingSource): string => {
   switch (s.kind) {
     case 'VasWins': return 'vas';
     case 'StatedCmsWins': return 'stated';
-    case 'StoredShown': return 'stored';
   }
 };
 
-describe('CmsSource', () => {
+describe('ChartingSource', () => {
   it('switch ticked (the default) maps to VasWins', () => {
     expect(label(cmsSourceOf(build()))).toBe('vas');
   });

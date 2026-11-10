@@ -1,7 +1,7 @@
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
-import type { Air, CmsSource, PrEngine, PrSpecIssue, PrSpecPrecision, PrSpecValues } from '../../engine/index.js';
-import { chartFigureNote, cmsConflictNote } from '../driver/chartFigureNote.js';
-import type { ChartFigure } from '../driver/chartFigureNote.js';
+import { resolveCms, VAS_WINS } from '../../engine/index.js';
+import type { Air, ChartingSource, PrEngine, PrSpecIssue, PrSpecPrecision, PrSpecValues, ShownMechanics } from '../../engine/index.js';
+import { chartNotes } from '../driver/chartFigureNote.js';
 import { NumberField } from '../../fields/field.js';
 import type { RadiatorDeviceJson, SpecEntryJson } from '../openisdSchema.js';
 import { prSpec, type PassiveRadiatorFieldName } from '../box/prSpec.js';
@@ -13,7 +13,7 @@ type SpecField = Readable<number | null> & Entered & Calculated & Precise & Writ
 export interface PrChart {
     readonly pr: PrEngine;
     readonly air: () => Air;
-    readonly cmsSource: () => CmsSource;
+    readonly cmsSource: () => ChartingSource | null;
 }
 
 /**
@@ -185,51 +185,38 @@ export class OpenIsdPassiveRadiatorSpec {
         if (!this.Xmax_m.entered && picked !== null) this.Xmax_m.set(picked, this.Xlim_m.precision ?? undefined);
     }
 
-    /** The Cms, Mms and Rms the charts use when the radiator states Vas: worked out by the engine from Vas, Sd, Fs and Qms (the stated Cms joins
-     *  only when the project says the stated Cms wins). Null when the radiator is standalone, shows its datasheet, or states no Vas. */
-    #shown(): {readonly Cms_m_per_N: number | null; readonly Mms_kg: number | null; readonly Rms_kg_per_s: number | null} | null {
+    /** The Cms, Mms and Rms the charts use when the radiator states Vas: the engine's one chain (`resolveCms`) over the stated Vas, Sd, Fs and Qms (the stated Cms
+     *  joins only when the project says the stated Cms wins). Null when the radiator is standalone, shows its datasheet, or states no Vas. */
+    #shown(source: ChartingSource | null = this.#chart?.cmsSource() ?? null): ShownMechanics | null {
         const chart = this.#chart;
-        if (chart === undefined) return null;
-        const source = chart.cmsSource();
-        if (source.kind === 'StoredShown') return null;
+        if (chart === undefined || source === null) return null;
         const stated = this.#stated();
         if (stated.Vas_m3 === null) return null;
-        const solved = chart.pr.solveSpec({
+        return resolveCms(source, {
             Fs_hz: stated.Fs_hz, Qms: stated.Qms, Vas_m3: stated.Vas_m3, Sd_m2: stated.Sd_m2,
-            Mms_kg: null, Rms_kg_per_s: null, Cms_m_per_N: source.kind === 'StatedCmsWins' ? stated.Cms_m_per_N : null,
+            Cms_m_per_N: source.kind === 'StatedCmsWins' ? stated.Cms_m_per_N : null, Mms_kg: null, Qes: null, Re_terminal_ohm: null,
         }, chart.air());
-        return {Cms_m_per_N: source.kind === 'VasWins' ? solved.Cms_m_per_N : null, Mms_kg: solved.Mms_kg, Rms_kg_per_s: solved.Rms_kg_per_s};
     }
 
     /** The issues, with the stated Cms that disagrees with the stated Vas named in one sentence on Cms (only the generic Vas/Cms issue loses Cms; an Fs/Mms/Cms
-     *  issue keeps it), and each stated Mms or Rms the charts do not use named in its own sentence (the driver's rule). */
+     *  issue keeps it), and each stated Mms or Rms the charts do not use named in its own sentence (the driver's rule, `chartNotes`). */
     #withChartNotes(issues: PrSpecIssue[]): PrSpecIssue[] {
-        const chart = this.#chart;
-        if (chart === undefined) return issues;
-        const source = chart.cmsSource();
-        if (source.kind === 'StoredShown') return issues;
-        const shown = this.#shown();
-        const figures: readonly {readonly figure: ChartFigure; readonly name: PrSpecIssue['target']; readonly stored: SpecField; readonly chart: number | null}[] = [
-            {figure: 'Mms', name: 'Mms_kg', stored: this.#storedMms, chart: shown?.Mms_kg ?? null},
-            {figure: 'Rms', name: 'Rms_kg_per_s', stored: this.#storedRms, chart: shown?.Rms_kg_per_s ?? null},
-        ];
-        const differing = figures.flatMap(({figure, name, stored, chart}) => {
-            const statedSI = stored.entered ? stored.value : null;
-            return statedSI === null || chart === null || Math.abs(chart - statedSI) <= 1e-9 * Math.abs(statedSI) ? [] : [{figure, name, statedSI, chart}];
-        });
+        const source = this.#chart?.cmsSource() ?? null;
+        if (source === null) return issues;
+        const shown = this.#shown(source);
         const stated = this.#stated();
-        const fromVas = stated.Vas_m3 === null ? null : chart.pr.solveSpec({
-            Fs_hz: stated.Fs_hz, Qms: stated.Qms, Vas_m3: stated.Vas_m3, Sd_m2: stated.Sd_m2, Mms_kg: null, Rms_kg_per_s: null, Cms_m_per_N: null,
-        }, chart.air()).Cms_m_per_N;
-        const cmsConflict = stated.Cms_m_per_N !== null && fromVas !== null && Math.abs(fromVas - stated.Cms_m_per_N) > 1e-9 * Math.abs(stated.Cms_m_per_N);
-        const kept = issues.map((issue): PrSpecIssue => issue.kind === 'inconsistent-inputs' && cmsConflict && issue.fields.includes('Vas_m3')
+        const notes = chartNotes<PrSpecIssue['target']>(source, [
+            {figure: 'Mms', name: 'Mms_kg', statedSI: this.#storedMms.entered ? this.#storedMms.value : null, chartSI: shown?.Mms_kg ?? null},
+            {figure: 'Rms', name: 'Rms_kg_per_s', statedSI: this.#storedRms.entered ? this.#storedRms.value : null, chartSI: shown?.Rms_kg_per_s ?? null},
+        ], stated.Cms_m_per_N, this.#shown(VAS_WINS)?.Cms_m_per_N ?? null);
+        const {cmsConflict} = notes;
+        const kept = issues.map((issue): PrSpecIssue => issue.kind === 'inconsistent-inputs' && cmsConflict !== null && issue.fields.includes('Vas_m3')
             ? {...issue, fields: issue.fields.filter(f => f !== 'Cms_m_per_N')} : issue);
-        const cmsNotes: PrSpecIssue[] = stated.Cms_m_per_N === null || fromVas === null || !cmsConflict ? [] : [{
-            kind: 'inconsistent-inputs', target: 'Cms_m_per_N', fields: ['Cms_m_per_N'], formula: NumberField.CMS_M_PER_N.formula ?? '', expected: fromVas, actual: stated.Cms_m_per_N,
-            relative: Math.abs(fromVas - stated.Cms_m_per_N) / stated.Cms_m_per_N, text: cmsConflictNote(source, stated.Cms_m_per_N, fromVas),
+        const cmsNotes: PrSpecIssue[] = cmsConflict === null ? [] : [{
+            kind: 'inconsistent-inputs', target: 'Cms_m_per_N', fields: ['Cms_m_per_N'], formula: NumberField.CMS_M_PER_N.formula ?? '',
+            expected: cmsConflict.expected, actual: cmsConflict.actual, relative: cmsConflict.relative, text: cmsConflict.text,
         }];
-        const notes = differing.map(({figure, name, statedSI, chart}): PrSpecIssue => (
-            {kind: 'approximate-charts', target: name, fields: [name], text: chartFigureNote(figure, statedSI, chart, source)}));
-        return [...kept, ...cmsNotes, ...notes];
+        const figureNotes = notes.figures.map(({name, text}): PrSpecIssue => ({kind: 'approximate-charts', target: name, fields: [name], text}));
+        return [...kept, ...cmsNotes, ...figureNotes];
     }
 }

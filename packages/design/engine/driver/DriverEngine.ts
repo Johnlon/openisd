@@ -13,7 +13,8 @@
  */
 
 import type {Air} from '../air.js';
-import type {CmsSource, ShownMechanics} from './cmsResolver.js';
+import {resolveCms} from './cmsResolver.js';
+import type {ChartingSource, ShownMechanics} from './cmsResolver.js';
 import {
     referenceEfficiency,
     splFromEfficiency
@@ -31,10 +32,8 @@ import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import {hotRe, perCoilBL_Tm, perCoilRe_ohm, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 import {
-  CMS_FROM_VAS_SD_ROUTE, ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, MMS_FROM_FS_CMS_ROUTE,
-  RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
+  ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, RouteGroup, withQuantity,
 } from './routes/index.js';
-import type {DriverRoute} from './routes/index.js';
 
 /** WinISD's fallback for a driver with a Qts and neither Qes nor Qms (decompile `fr_45e090`: `+0x4c8 = 2*Qts`):
  *  both Q's are twice Qts, which makes the total Q equal Qts. */
@@ -123,8 +122,8 @@ export interface DriverEngine {
   circuitValues(values: DriverValues): DriverValues;
   /** The mechanical figures WinISD's chain works out for the charts, from Fs, Vas, Sd, Qes, Qms and Re: Cms from Vas and Sd,
    *  Mms from Fs and that Cms, Rms from Fs, Mms and Qms, BL from Re, Fs, Qes and that Cms. A figure the chain cannot reach is null.
-   *  Null when `cmsSource` says the stored figures stand. Pure: nothing is stored. */
-  shownMechanics(values: DriverValues, air: Air, cmsSource: CmsSource): ShownMechanics | null;
+   *  Pure: nothing is stored. */
+  shownMechanics(values: DriverValues, air: Air, source: ChartingSource): ShownMechanics;
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
   ebp(Fs_hz: number, Qes: number): number;
   /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
@@ -165,11 +164,6 @@ function toTerminalSpace(p: DriverWorkingSet): DriverWorkingSet {
   };
 }
 
-const routeValue = (route: DriverRoute, working: DriverWorkingSet): number | null => {
-  const v = route.value(working);
-  return isPositive(v) ? v : null;
-};
-
 const isPositive = (x: number | null | undefined): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
 
 export class DriverEngineImpl implements DriverEngine {
@@ -192,30 +186,13 @@ export class DriverEngineImpl implements DriverEngine {
     return fallback === null ? values : {...values, Qes: fallback, Qms: fallback};
   }
 
-  shownMechanics(values: DriverValues, air: Air, cmsSource: CmsSource): ShownMechanics | null {
-    const {Fs_hz, Vas_m3, Sd_m2} = values;
-    const cmsFromVas = (): number | null => {
-      switch (cmsSource.kind) {
-        case 'VasWins': return isPositive(air.c()) && isPositive(air.rho()) && isPositive(Vas_m3) && isPositive(Sd_m2)
-          ? routeValue(CMS_FROM_VAS_SD_ROUTE, {Vas_m3, Sd_m2, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()}) : null;
-        case 'StatedCmsWins': return null;
-        case 'StoredShown': return null;
-      }
-    };
-    if (cmsSource.kind === 'StoredShown') return null;
-    const Qms = this.qFallback(values) ?? values.Qms;
-    const Qes = this.qFallback(values) ?? values.Qes;
-    const Cms = cmsFromVas();
-    const Cms_m_per_N = Cms ?? values.Cms_m_per_N;
-    const Mms = isPositive(Fs_hz) && isPositive(Cms_m_per_N)
-      ? routeValue(MMS_FROM_FS_CMS_ROUTE, {Fs_hz, Cms_m_per_N}) : null;
-    const Mms_kg = Mms ?? values.Mms_kg;
-    const Rms = isPositive(Fs_hz) && isPositive(Qms) && isPositive(Mms_kg)
-      ? routeValue(RMS_FROM_FS_MMS_QMS_ROUTE, {Fs_hz, Qms, Mms_kg}) : null;
-    const Re_terminal_ohm = values.Re_terminal_ohm;
-    const BL = isPositive(Re_terminal_ohm) && isPositive(Fs_hz) && isPositive(Qes) && isPositive(Cms_m_per_N)
-      ? Math.sqrt(Re_terminal_ohm / (2 * Math.PI * Fs_hz * Qes * Cms_m_per_N)) : null;
-    return {Cms_m_per_N: Cms, Mms_kg: Mms, Rms_kg_per_s: Rms, BL_terminal_Tm: isPositive(BL) ? BL : null};
+  shownMechanics(values: DriverValues, air: Air, source: ChartingSource): ShownMechanics {
+    const fallback = this.qFallback(values);
+    return resolveCms(source, {
+      Fs_hz: values.Fs_hz, Vas_m3: values.Vas_m3, Sd_m2: values.Sd_m2,
+      Qes: fallback ?? values.Qes, Qms: fallback ?? values.Qms,
+      Cms_m_per_N: values.Cms_m_per_N, Mms_kg: values.Mms_kg, Re_terminal_ohm: values.Re_terminal_ohm,
+    }, air);
   }
 
   /** WinISD's Qes = Qms = 2·Qts for a driver stating a Qts and neither Qes nor Qms; null otherwise. */

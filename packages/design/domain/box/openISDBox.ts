@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { Air, BoxType, CmsSource, DqIssue, VentedAlignment } from '../../engine/index.js';
+import type { Air, BoxType, ChartingSource, DqIssue, VentedAlignment } from '../../engine/index.js';
 import { CalculatedFieldImpl, DerivableFieldImpl, DualWriteFieldImpl, absentCell, enteredCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, settlingNullableField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
@@ -154,7 +154,7 @@ export class OpenISDBox implements Box {
         ventTuningExtra: () => DqIssue | null,
         air: () => Air,
         nDrivers: () => number,
-        cmsSource: () => CmsSource,
+        cmsSource: () => ChartingSource | null,
     ) {
         this.#driver = driver;
         this.#engine = engine;
@@ -765,7 +765,7 @@ export class OpenISDBox implements Box {
         ventTuningExtra: () => DqIssue | null,
         air: () => Air,
         nDrivers: () => number,
-        cmsSource: () => CmsSource,
+        cmsSource: () => ChartingSource | null,
     ): OpenISDBox {
         return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air, nDrivers, cmsSource);
     }

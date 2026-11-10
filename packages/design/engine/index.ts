@@ -49,7 +49,8 @@ export type { SignalEngine, SignalQuantityName, SignalIssue } from './signal/Sig
 export type { SimulationEngine, SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './simulation/SimulationEngine.js';
 export { createSimulationEngine } from './simulation/SimulationEngine.js';
 export type {DriverEngine, DriverQuantityName, DriverIssue, DriverPrerequisite} from './driver/DriverEngine.js';
-export type {CmsSource, ShownMechanics} from './driver/cmsResolver.js';
+export {resolveCms, standaloneChartingSource, STATED_CMS_WINS, VAS_WINS} from './driver/cmsResolver.js';
+export type {ChartingSource, CmsResolveInput, ShownMechanics} from './driver/cmsResolver.js';
 export type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
 export type {AirInput, AirInputs, AirIssue, AirQuantityName, AirSolution, AirSolvedValues} from './environment/airSolver.js';
 export type {IssueEngine} from './issues/IssueEngine.js';

@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
+import {VAS_WINS} from '../../engine/index.js';
 import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {driverParams, sweepDriver} from './testSolver.js';
 
@@ -9,7 +10,7 @@ describe('DriverEngine.circuitValues with figures too extreme to compute from', 
   it('works out no Cms when Vas and Sd give a compliance that overflows', () => {
     // Sd² underflows to 0, so Vas / (rho·c²·Sd²) is Infinity: not a usable compliance.
     const values = sweepDriver({Vas_m3: 1, Sd_m2: 1e-200, Cms_m_per_N: 0.009}).values;
-    expect(engine.driver.shownMechanics(values, REFERENCE_AIR, {kind: 'VasWins'})?.Cms_m_per_N).toBeNull();
+    expect(engine.driver.shownMechanics(values, REFERENCE_AIR, VAS_WINS).Cms_m_per_N).toBeNull();
   });
 });
 
