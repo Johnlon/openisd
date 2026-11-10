@@ -129,9 +129,9 @@ export async function handleOAuthBoot(
  * reading.
  */
 export async function bootApplication(deps: BootDeps): Promise<void> {
+  // A share link's project is counted as a share where it is applied (`applyState`), not as a restore.
   if (await restoreFromShareLink(deps)) {
     deps.appState.markProjectSaved();
-    deps.appState.recordStartupRestoredProjects();
     return;
   }
   const session = restoreSession(deps);

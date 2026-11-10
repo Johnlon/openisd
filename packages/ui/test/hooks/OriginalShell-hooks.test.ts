@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {computed, ref, shallowRef} from 'vue';
+import {computed, nextTick, ref, shallowRef} from 'vue';
 import {createApp} from 'vue';
 import {APP_LOGIC} from '../../src/logic/app.js';
 import {FOCUSED_PROJECT} from '../../src/logic/focusedProjectContext.js';
@@ -10,6 +10,8 @@ import {DriverId, ProjectId} from '@openisd/design/cloud';
 import {testAppLogic} from './testAppLogic.js';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
+import {provideTelemetryUi} from '../../src/hooks/telemetryContext.js';
+import {recordingTelemetryUi} from '../fixtures/recordingTelemetryUi.js';
 import {
   createEnvironmentAir,
   fillBlankMeta,
@@ -67,6 +69,63 @@ describe('OriginalShell-hooks', () => {
     }
   });
 ;
+
+  // John, 10 Nov 2026: "scan rest of app for missed telemetry". The tab remembered from last time
+  // is not a use of it: only a tab the user opens counts.
+  /** The desktop shell on a complete project, its usage events recorded. `tab` is the tab remembered from last time. */
+  function recordedShell(tab: string) {
+    const {telemetryUi, events} = recordingTelemetryUi();
+    const logic = testAppLogic();
+    logic.presentation.ui.originalProjectTab = tab;
+    const {project} = createCompleteProject();
+    const app = createApp({render: () => null});
+    app.provide(APP_LOGIC, logic);
+    app.provide(FOCUSED_PROJECT, computed(() => project));
+    app.provide(SplashModalKey, {
+      open: computed(() => false), driverCount: ref(null), passiveRadiatorCount: ref(null), versions: ref(null), aboutLabel: computed(() => 'About OpenISD'),
+      dismiss: () => undefined, show: () => undefined,
+    });
+    provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));
+    provideTelemetryUi(app, telemetryUi);
+    return {shell: app.runWithContext(() => useOriginalShell()), events};
+  }
+
+  // John, 10 Nov 2026: "scan rest of app for missed telemetry". The tab remembered from last time
+  // is not a use of it: only a tab the user opens counts.
+  it('counts Filters when the user opens it, not when the app starts on it', async () => {
+    const {shell, events} = recordedShell('filters');
+    await nextTick();
+    expect(events).not.toContainEqual({kind: 'feature', name: 'filters'});
+
+    shell.activeTab.value = 'box';
+    await nextTick();
+    shell.activeTab.value = 'filters';
+    await nextTick();
+    expect(events).toContainEqual({kind: 'feature', name: 'filters'});
+  });
+
+  it('counts the Driver Editor opened and a skin switch', () => {
+    const {shell, events} = recordedShell('box');
+    shell.startEdit();
+    expect(events).toContainEqual({kind: 'feature', name: 'driver_editor'});
+    shell.switchToMobile();
+    expect(events).toContainEqual({kind: 'feature', name: 'skin_switch'});
+  });
+
+  it('counts the signal generator switched on', async () => {
+    const {shell, events} = recordedShell('signal');
+    shell.genOn.value = true;
+    await nextTick();
+    expect(events).toContainEqual({kind: 'feature', name: 'signal_generator'});
+  });
+
+  it('the desktop compat checkboxes set the switch through the counting setter', () => {
+    const {shell, events} = recordedShell('advanced');
+    const before = shell.project.value.winisdVaModel.value;
+    shell.setCompatSwitch(shell.project.value.winisdVaModel, !before);
+    expect(shell.project.value.winisdVaModel.value).toBe(!before);
+    expect(events).toContainEqual({kind: 'feature', name: 'compat_switch'});
+  });
 
   describe('createEnvironmentAir', () => {
 

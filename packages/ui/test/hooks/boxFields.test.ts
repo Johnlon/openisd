@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {computed, nextTick, ref, shallowRef} from 'vue';
 import {createEngine, type BoxType} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
+import {recordingTelemetryUi} from '../fixtures/recordingTelemetryUi.js';
 import {
   createBoxLosses,
   createBoxVolume,
@@ -152,22 +153,40 @@ describe('boxFields', () => {
       project.box.boxType.set('vented');
       const projectChanged = ref(0);
 
-      const {selectedBox} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable });
+      const {selectedBox} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable, featureUse: recordingTelemetryUi().telemetryUi.featureUse });
 
       expect(selectedBox.value).toBe('vented');
     });
 
     it('defaults to sealed when no project is focused', () => {
       const projectChanged = ref(0);
-      const {selectedBox} = createSelectedBox({ focusedProject: () => null, projectChanged, isSimulatable });
+      const {selectedBox} = createSelectedBox({ focusedProject: () => null, projectChanged, isSimulatable, featureUse: recordingTelemetryUi().telemetryUi.featureUse });
 
       expect(selectedBox.value).toBe('sealed');
+    });
+
+    // John, 10 Nov 2026: "scan rest of app for missed telemetry".
+    it('counts a box type the user picks, not one that follows the project', async () => {
+      const {project} = createCompleteProject();
+      const projectChanged = ref(0);
+      const {telemetryUi, events} = recordingTelemetryUi();
+      const {selectedBox} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable, featureUse: telemetryUi.featureUse });
+
+      project.box.boxType.set('vented');
+      projectChanged.value++;
+      await nextTick();
+      expect(selectedBox.value).toBe('vented');
+      expect(events).toEqual([]);
+
+      selectedBox.value = 'sealed';
+      await nextTick();
+      expect(events).toEqual([{kind: 'feature', name: 'box_type'}]);
     });
 
     it('setting selectedBox to a simulatable type writes it to the project', async () => {
       const {project} = createCompleteProject();
       const projectChanged = ref(0);
-      const {selectedBox} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable });
+      const {selectedBox} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable, featureUse: recordingTelemetryUi().telemetryUi.featureUse });
 
       selectedBox.value = 'vented';
       await nextTick();
@@ -177,7 +196,7 @@ describe('boxFields', () => {
     it('setting selectedBox to a NON-simulatable (pending) type does NOT write the project — pending is UI-only', async () => {
       const {project} = createCompleteProject();
       const projectChanged = ref(0);
-      const {selectedBox, pending} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable });
+      const {selectedBox, pending} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable, featureUse: recordingTelemetryUi().telemetryUi.featureUse });
 
       selectedBox.value = 'bandpass6';
       await nextTick();
@@ -188,7 +207,7 @@ describe('boxFields', () => {
     it('an external change to the project\'s box type (e.g. a loaded file) syncs selectedBox back', async () => {
       const {project} = createCompleteProject();
       const projectChanged = ref(0);
-      const {selectedBox} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable });
+      const {selectedBox} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable, featureUse: recordingTelemetryUi().telemetryUi.featureUse });
 
       project.box.boxType.set('vented');
       projectChanged.value++;
@@ -199,7 +218,7 @@ describe('boxFields', () => {
     it('isDual is true only for the two-chamber types', () => {
       const {project} = createCompleteProject();
       const projectChanged = ref(0);
-      const {selectedBox, isDual} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable });
+      const {selectedBox, isDual} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable, featureUse: recordingTelemetryUi().telemetryUi.featureUse });
 
       expect(isDual.value).toBe(false);
       selectedBox.value = 'bandpass4';
@@ -209,7 +228,7 @@ describe('boxFields', () => {
     it('showEnclosureTab is false only for sealed', () => {
       const {project} = createCompleteProject();
       const projectChanged = ref(0);
-      const {selectedBox, showEnclosureTab} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable });
+      const {selectedBox, showEnclosureTab} = createSelectedBox({ focusedProject: () => project, projectChanged, isSimulatable, featureUse: recordingTelemetryUi().telemetryUi.featureUse });
 
       expect(showEnclosureTab.value).toBe(false);
       selectedBox.value = 'vented';
@@ -223,9 +242,19 @@ describe('boxFields', () => {
     function losses(type: BoxType) {
       const {project} = createCompleteProject();
       const projectChanged = ref(0);
-      const hook = createBoxLosses({project: computed(() => project), selectedBox: ref<BoxType>(type), projectChanged, focusedProject: () => project});
-      return {project, projectChanged, hook};
+      const {telemetryUi, events} = recordingTelemetryUi();
+      const hook = createBoxLosses({project: computed(() => project), selectedBox: ref<BoxType>(type), projectChanged, focusedProject: () => project, featureUse: telemetryUi.featureUse});
+      return {project, projectChanged, hook, events};
     }
+    // John, 10 Nov 2026: "scan rest of app for missed telemetry".
+    it('counts the losses panel opened', async () => {
+      const {hook, events} = losses('vented');
+      await nextTick();
+      expect(events).toEqual([]);
+      hook.lossesOpen.value = 'whole';
+      await nextTick();
+      expect(events).toEqual([{kind: 'feature', name: 'losses'}]);
+    });
     it('nothing is open until a chamber link opens it', () => {
       const {hook} = losses('bandpass6');
       expect(hook.openLossGroup.value).toBeNull();

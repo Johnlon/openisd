@@ -11,7 +11,7 @@ export type Skin = typeof SKINS[number];
 export type ScreenWidthBand = '<600' | '<1024' | '<1440' | '<1920' | '>=1920';
 export type DisplayMode = 'standalone' | 'browser';
 export type Platform = 'Android' | 'iOS' | 'Windows' | 'macOS' | 'Linux' | 'other';
-export type ProjectSource = 'new' | 'wizard' | 'file' | 'stored' | 'driver' | 'restore';
+export type ProjectSource = 'new' | 'wizard' | 'file' | 'stored' | 'driver' | 'restore' | 'share' | 'copy';
 export type SaveFormat = 'stored' | 'owpr' | 'wpr' | 'archive';
 export type DriverSource = 'bundled' | 'mine' | 'import';
 
@@ -56,7 +56,8 @@ export type RadiatorSource = 'bundled' | 'mine';
 /** A passive radiator chosen; `name` as for `DriverPickEvent`. */
 export interface RadiatorPickEvent { readonly kind: 'radiator_pick'; readonly source: RadiatorSource; readonly id: string; readonly name: string }
 export type FeatureName =
-  | 'whatif' | 'tune' | 'filters' | 'export' | 'import' | 'driver_db' | 'options' | 'vents' | 'save_file' | 'share_link' | 'diagnostics';
+  | 'whatif' | 'tune' | 'filters' | 'export' | 'import' | 'driver_db' | 'options' | 'vents' | 'save_file' | 'share_link' | 'diagnostics' | 'backup' | 'restore' | 'chart_data' | 'driver_editor' | 'skin_switch'
+  | 'winisd_differences' | 'bin_restore' | 'history_restore' | 'cloud_connect' | 'cloud_sync' | 'box_type' | 'alignment' | 'help' | 'compat_switch' | 'losses' | 'signal_generator' | 'save_my_driver' | 'driver_clone';
 export interface ChartViewEvent { readonly kind: 'chart_view'; readonly chart: ChartId }
 export interface FeatureEvent { readonly kind: 'feature'; readonly name: FeatureName }
 export interface AnonymousErrorContext {

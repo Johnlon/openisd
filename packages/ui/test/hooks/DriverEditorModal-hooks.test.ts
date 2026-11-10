@@ -5,6 +5,7 @@ import {MY_DRIVERS_KEY, createMemoryStorage} from '@openisd/persistence';
 import {OpenISDDriver, OpenISDDriverStandalone} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {commitMyDriver, ebpVal, useDriverEditorHelp} from '../../src/hooks/DriverEditorModal-hooks.js';
+import {recordingTelemetryUi} from '../fixtures/recordingTelemetryUi.js';
 import {myDriverRepoOn} from '../fixtures/repoOn.js';
 
 function completeDriver(): OpenISDDriverStandalone {
@@ -46,21 +47,35 @@ describe('DriverEditorModal-hooks', () => {
     it('overwrites the opened row, so an edit never appends a twin', () => {
       const {myDrivers, driver, uuid} = savedWith('Fixture');
       driver.model.set('Fixture Mk2');
-      expect(commitMyDriver(myDrivers, driver, uuid)).toBe(true);
+      expect(commitMyDriver(myDrivers, recordingTelemetryUi().telemetryUi.featureUse, driver, uuid)).toBe(true);
       expect(myDrivers.list().map(e => [e.uuid, e.driver.model.value])).toEqual([[uuid, 'Fixture Mk2']]);
     });
 
     it('files a new row when nothing was opened', () => {
       const {myDrivers, driver} = savedWith('Fixture');
-      expect(commitMyDriver(myDrivers, driver.copyAsNew(() => 'minted-copy'), '')).toBe(true);
+      expect(commitMyDriver(myDrivers, recordingTelemetryUi().telemetryUi.featureUse, driver.copyAsNew(() => 'minted-copy'), '')).toBe(true);
       expect(myDrivers.list()).toHaveLength(2);
+    });
+
+    // John, 10 Nov 2026: "scan rest of app for missed telemetry".
+    it('counts a save to My Drivers that worked, and not one that was refused', () => {
+      const {myDrivers, driver, uuid} = savedWith('Fixture');
+      const saved = recordingTelemetryUi();
+      commitMyDriver(myDrivers, saved.telemetryUi.featureUse, driver, uuid);
+      expect(saved.events).toEqual([{kind: 'feature', name: 'save_my_driver'}]);
+
+      const storage = createMemoryStorage();
+      storage.set(MY_DRIVERS_KEY, 'not json');
+      const refused = recordingTelemetryUi();
+      commitMyDriver(myDriverRepoOn(storage, createEngine()), refused.telemetryUi.featureUse, completeDriver(), '');
+      expect(refused.events).toEqual([]);
     });
 
     it('answers false while My Drivers is unreadable (read-only)', () => {
       const storage = createMemoryStorage();
       const myDrivers = myDriverRepoOn(storage, createEngine());
       storage.set(MY_DRIVERS_KEY, 'not json');
-      expect(commitMyDriver(myDrivers, completeDriver(), '')).toBe(false);
+      expect(commitMyDriver(myDrivers, recordingTelemetryUi().telemetryUi.featureUse, completeDriver(), '')).toBe(false);
     });
   });
 

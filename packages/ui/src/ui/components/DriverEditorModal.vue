@@ -10,6 +10,7 @@ import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/driverCells.js';
 import {commitMyDriver, useDriverEditorHelp} from '../../hooks/DriverEditorModal-hooks.js';
+import {useFeatureUse} from '../../hooks/telemetryContext.js';
 import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '@openisd/design';
 import UIField from './UIField.vue';
@@ -34,6 +35,7 @@ function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calcul
 }
 
 const { presentation: presentationState, selection, myDrivers, logging, driverFileStorage, designFiles, driverDrafts, confirmPort } = useApp();
+const featureUse = useFeatureUse();
 
 // Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
 // 4 tabs — General / Parameters / Advanced / Dimension
@@ -84,7 +86,7 @@ const draftDriver = computed(() => { void trigger.value; return draft.driver; })
  *  place vs save as copy) via `renameQuestionOpen`; by the time this runs, that is decided. */
 function commitToMyDrivers(driver: typeof draft.driver, replacesOpened: boolean): void {
   if (subject.kind !== 'myDriver') throw new Error('commitToMyDrivers called on a project subject');
-  if (!commitMyDriver(myDrivers, driver, replacesOpened ? subject.openedAs : '')) {
+  if (!commitMyDriver(myDrivers, featureUse, driver, replacesOpened ? subject.openedAs : '')) {
     alert('Saved drivers are read-only until the storage problem is resolved');
   }
 }

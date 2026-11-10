@@ -1,0 +1,66 @@
+id: T755
+release_note: internal
+repo: openisd
+owner: learn
+status: done
+goal: Stats: record the user actions the telemetry scan found unrecorded (box type change, driver editor, copy project, compare, share link, driver file import, data table, cloud sync, backup/restore, bin, history restore, Save As download, mobile vents and more) and stop the desktop start-up over-count of filters and vents (John 10 Nov: 'scan rest of app for missed telemetry')
+done_test: bash scripts/test.sh packages/ui/test/logic/projectOpenTelemetry.test.ts packages/ui/test/logic/applicationIO.test.ts packages/ui/test/hooks/OriginalShell-hooks.test.ts packages/ui/test/hooks/boxFields.test.ts packages/ui/test/hooks/CloudSync-hooks.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/src/hooks/CloudSync-hooks.ts
+  - packages/ui/src/hooks/DriverEditorModal-hooks.ts
+  - packages/ui/src/hooks/MobileAdvancedTab-hooks.ts
+  - packages/ui/src/hooks/MobileBoxTab-hooks.ts
+  - packages/ui/src/hooks/MobileDriverTab-hooks.ts
+  - packages/ui/src/hooks/MobileEnclosureTab-hooks.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/PhoneHelpSheet-hooks.ts
+  - packages/ui/src/hooks/SealedAlignment-hooks.ts
+  - packages/ui/src/hooks/StorageHistory-hooks.ts
+  - packages/ui/src/hooks/VentedAlignment-hooks.ts
+  - packages/ui/src/hooks/WinisdDifferencesModal-hooks.ts
+  - packages/ui/src/hooks/boxFields.ts
+  - packages/ui/src/hooks/compatSwitch.ts
+  - packages/ui/src/hooks/desktopHelp.ts
+  - packages/ui/src/hooks/projectBinView.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/boot.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/logic/telemetry/errorContext.ts
+  - packages/ui/src/logic/telemetry/events.ts
+  - packages/ui/src/logic/telemetry/featureUse.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/mobile/PhoneHelpSheet.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/fixtures/recordingTelemetryUi.ts
+  - packages/ui/test/hooks/CloudSync-hooks.test.ts
+  - packages/ui/test/hooks/DriverEditorModal-hooks.test.ts
+  - packages/ui/test/hooks/MobileDriverTab-hooks.test.ts
+  - packages/ui/test/hooks/MobileShell-hooks.test.ts
+  - packages/ui/test/hooks/OriginalProjectList-hooks.test.ts
+  - packages/ui/test/hooks/OriginalShell-hooks.test.ts
+  - packages/ui/test/hooks/PhoneHelpSheet-hooks.test.ts
+  - packages/ui/test/hooks/SealedAlignment-hooks.test.ts
+  - packages/ui/test/hooks/StorageHistory-hooks.test.ts
+  - packages/ui/test/hooks/WinisdDifferencesModal-hooks.test.ts
+  - packages/ui/test/hooks/boxFields.test.ts
+  - packages/ui/test/hooks/compatSwitch.test.ts
+  - packages/ui/test/hooks/desktopHelp.test.ts
+  - packages/ui/test/hooks/projectBinView.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/logic/applicationIO.test.ts
+  - packages/ui/test/logic/boot.test.ts
+  - packages/ui/test/logic/driverBrowsingState-import.test.ts
+  - packages/ui/test/logic/driverBrowsingState-picks.test.ts
+  - packages/ui/test/logic/driverBrowsingState-selection-failure.test.ts
+  - packages/ui/test/logic/driverFilters.test.ts
+  - packages/ui/test/logic/projectOpenTelemetry.test.ts
+  - tasks/T755.yml
+left_out: |
+  Compare has no add action: the other open projects are drawn as overlays. The phone has no vents
+  screen: vents are on the Box tab.
+visual: []

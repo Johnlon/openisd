@@ -49,7 +49,22 @@ export type ActionName =
   | 'feature:export'
   | 'feature:import'
   | 'feature:share_link'
-  | 'feature:save_file';
+  | 'feature:save_file'
+  | 'feature:backup'
+  | 'feature:restore'
+  | 'feature:chart_data'
+  | 'feature:skin_switch'
+  | 'feature:bin_restore'
+  | 'feature:history_restore'
+  | 'feature:cloud_sync'
+  | 'feature:box_type'
+  | 'feature:alignment'
+  | 'feature:help'
+  | 'feature:compat_switch'
+  | 'feature:losses'
+  | 'feature:signal_generator'
+  | 'feature:save_my_driver'
+  | 'feature:driver_clone';
 
 /** A ring buffer of the last user actions, oldest first. */
 export class RecentActions {

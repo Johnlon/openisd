@@ -88,6 +88,14 @@ describe('bootApplication', () => {
     expect(appState.focusedProject()?.name.value).toBe('shared');
   });
 
+  // John, 10 Nov 2026: "scan rest of app for missed telemetry". A share link was counted as a restore.
+  it('a project opened from a share link is counted as a share, not a restore', async () => {
+    const {deps} = recording({hash: () => ({project: project('shared'), view: {ui: {}}})});
+    await bootApplication(deps);
+    expect(telemetry.record).toHaveBeenCalledWith(expect.objectContaining({kind: 'project_open', source: 'share'}));
+    expect(telemetry.record).not.toHaveBeenCalledWith(expect.objectContaining({kind: 'project_open', source: 'restore'}));
+  });
+
   it('restores the session projects', async () => {
     const session = {projects: [project('one'), project('two')], focusedIndex: 1, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
     const {deps} = recording({session: () => session});

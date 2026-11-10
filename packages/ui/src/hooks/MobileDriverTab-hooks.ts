@@ -7,6 +7,7 @@
 import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
+import {useFeatureUse} from './telemetryContext.js';
 import {ARRAY_WIRING_OPTIONS} from '@openisd/design/fields';
 import {selectedOption} from '../logic/domEvents.js';
 
@@ -16,6 +17,7 @@ export function useMobileDriverTab() {
   const {driverName, projectChanged} = appState;
   const project = useFocusedProject();
   const { selection } = useApp();
+  const featureUse = useFeatureUse();
 
   const brand = computed(() => { void projectChanged.value; return project.value.driver.brand.value; });
   const model = computed(() => { void projectChanged.value; return project.value.driver.model.value || driverName.value; });
@@ -36,9 +38,9 @@ export function useMobileDriverTab() {
   });
 
   function browseDrivers(): void { presentationState.browseOpen = true; }
-  function editDriver(): void { selection.editProjectDriver(); }
+  function editDriver(): void { featureUse.feature('driver_editor'); selection.editProjectDriver(); }
   /** The "N values disagree" link: the same editor, with its disagreement list showing. */
-  function showDisagreements(): void { selection.editProjectDriver(true); }
+  function showDisagreements(): void { featureUse.feature('driver_editor'); selection.editProjectDriver(true); }
 
   return {
     project, brand, model, fullName, keyFigures, consistencyReasons, browseDrivers, editDriver, showDisagreements,

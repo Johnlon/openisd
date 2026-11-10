@@ -14,6 +14,7 @@
  * `../logic/tabId.ts`. This file JIT-composes them here with the shell's own `project` /
  * `selectedBox` / `projectChanged`.
  */
+import {compatSwitchSetter} from './compatSwitch.js';
 import type {ComputedRef, Ref} from 'vue';
 import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
@@ -163,7 +164,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { show: about, aboutLabel } = injectSplashModal();
   // The Info menu's manual, persisted skin switch — the auto-by-viewport half lives in
   // `App.vue`'s `activeSkin` (`presentationState.narrowViewport`), which this override beats.
-  function switchToMobile(): void { setSkinOverride('mobile'); }
+  function switchToMobile(): void { featureUse.feature('skin_switch'); setSkinOverride('mobile'); }
   // Back to choosing the skin from the window width, as at first start.
   function useAutomaticSkin(): void { setSkinOverride(null); }
   const skinIsAutomatic = computed(() => presentationState.ui.skinOverride === undefined);
@@ -192,8 +193,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // ---- Box types — the registry's own list (`box_Type`), not a copy ------------------
   // Whether the circuit models this type is the DOMAIN's answer, asked through logic/.
   // Delegated to the unit-tested `createSelectedBox` (`boxFields.ts`).
+  const featureUse = useFeatureUse();
   const { selectedBox, pending, isDual, boxLabel, showEnclosureTab } =
-    createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
+    createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable, featureUse });
   const enclosureNavLabel = computed(() =>
     selectedBox.value === 'box-passive-radiator' ? 'Passive Radiator'
       : selectedBox.value === 'sealed' ? 'Closed'
@@ -204,7 +206,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     rearResonance, rearQtc, boxResonance,
     prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,
   } = sealedReadouts({ project, selectedBox, projectChanged });
-  const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver);
+  const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver, featureUse);
   const originalFilters = new OriginalFilters(project, projectChanged, engine.filters);
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
   const sealedAlignmentDeviationShown = sealedAlignmentEditor.deviationShown;
@@ -217,7 +219,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // Same class the mobile skin drives (VentedAlignment-hooks.ts) — one implementation, both
   // shells' pickers.
-  const ventedAlignmentEditor = new VentedAlignmentEditor(project, projectChanged, engine.driver);
+  const ventedAlignmentEditor = new VentedAlignmentEditor(project, projectChanged, engine.driver, featureUse);
   const ventedAlignmentOpen = ventedAlignmentEditor.open;
   const ventedAlignmentOptions = ventedAlignmentEditor.options;
   const ventedAlignmentSelected = ventedAlignmentEditor.selectedAlignment;
@@ -234,7 +236,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // losses: which field each box type has is the box's own knowledge (`Box.frontVolumeOf`,
   // `rearTuningOf`, `lossGroupsOf`); this reads and writes whatever it hands back.
   const { frontVolumeCell, rearTuningCell } = createChamberFields({ project, selectedBox, projectChanged });
-  const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
+  const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject, featureUse });
   async function confirmDiscard(): Promise<boolean> {
     return confirmPort.port.ask({
       title: 'Discard changes?',
@@ -251,7 +253,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // closes that chart in the stack and leaves the menu open.
   const chartSelection = new ChartSelection(focusedProject, projectChanged, engine.box);
   const { openCharts, chartItems, chartLabel } = chartSelection;
-  const featureUse = useFeatureUse();
   watch(openCharts, charts => { for (const c of charts) featureUse.chart(c); }, { immediate: true });
   function toggleChart(id: ChartId): void { chartSelection.toggle(id); }
   function selectChart(item: ChartItem) {
@@ -307,7 +308,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   });
   const cloudSyncForProjects = useCloudSync();
   const binView = createProjectBinView({
-    appState, projectRepo, projectBin, confirm: confirmPort.port,
+    appState, projectRepo, projectBin, confirm: confirmPort.port, featureUse,
     unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
     cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });
@@ -547,13 +548,14 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     get: () => { const t = presentationState.ui.originalProjectTab; return isTabId(t) ? t : 'box'; },
     set: (v: TabId) => { presentationState.ui.originalProjectTab = v; },
   });
+  watch(activeTab, tab => { recentActions.record(TAB_ACTIONS[tab]); }, { immediate: true });
+  // Not immediate: the tab remembered from last time is not a use of it.
   watch(activeTab, tab => {
-    recentActions.record(TAB_ACTIONS[tab]);
     if (tab === 'filters') featureUse.feature('filters');
     if (tab === 'enclosure') featureUse.feature('vents');
-  }, { immediate: true });
+  });
   watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
-  const desktopHelp = createDesktopHelp({ activeTab, selectedBox });
+  const desktopHelp = createDesktopHelp({ activeTab, selectedBox, featureUse });
 
   // ---- Projects list -------------------------------------------------------------
   const projectList = computed(() => openProjects());
@@ -664,6 +666,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   let tone: ToneGenerator | null = null;
   function toggleGenerate() { tone ??= createToneGenerator(); if (genOn.value) tone.start(genHz.value); else tone.stop(); }
   watch(genHz, v => { if (genOn.value) tone?.setFrequency(v); });
+  // Starts off and is never restored, so every switch-on is the user's.
+  watch(genOn, on => { if (on) featureUse.feature('signal_generator'); });
   const resumeToneWhenVisible = () => {
     if (genOn.value && document.visibilityState === 'visible') tone?.resume();
   };
@@ -727,12 +731,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
     createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator, radiatorPicks: useRadiatorPicks() });
   function startEdit() {
-    recentActions.record('dialog:driver-editor');
+    featureUse.feature('driver_editor');
     editProjectDriver();
   }
   /** The Driver tab's "N values disagree" link: the same editor as Edit, with its disagreement list showing. */
   function showDriverDisagreements() {
-    recentActions.record('dialog:driver-editor');
+    featureUse.feature('driver_editor');
     editProjectDriver(true);
   }
 
@@ -818,7 +822,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown,
     projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
-    genOn, toggleGenerate, genHz,
+    genOn, toggleGenerate, genHz, setCompatSwitch: compatSwitchSetter(featureUse),
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel, ...desktopHelp,
     selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,

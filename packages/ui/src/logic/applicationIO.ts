@@ -270,6 +270,7 @@ export function createApplicationIO(deps: {
     adoptFileName(result.name, suggested);
     const fileName = result.name ?? suggested;
     if (!result.written) {
+      recordSave('owpr', requireFocusedProject());
       flash(isModified.value ? `Project downloaded as ${fileName}. It stays marked unsaved.` : `Project downloaded as ${fileName}`);
       return;
     }
@@ -339,6 +340,8 @@ export function createApplicationIO(deps: {
           // A driver file with a project open SWAPS the driver in place; with none open it is
           // recognised as a DRIVER (not a project) and starts the New Project wizard with it
           // pre-loaded — the user then chooses the box type and volume (BUG_20260912).
+          // A user's own file: its name and id stay on the device.
+          telemetry.record({ kind: 'driver_pick', source: 'import', id: '', name: '' });
           const open = focusedProject();
           if (open) {
             open.loadDriver(driver);
@@ -413,18 +416,21 @@ export function createApplicationIO(deps: {
   }
 
   function exportBackup(): void {
+    featureUse.feature('backup');
     const fileName = `openisd-backup-${new Date().toISOString().slice(0, 10)}.json`;
     download(fileName, deps.backup.exportAll(), 'application/json');
     flash(`Backup downloaded as ${fileName}`);
   }
 
   function downloadChartData(data: ChartData): void {
+    featureUse.feature('chart_data');
     const fileName = data.fileName(requireFocusedProject().name.value);
     download(fileName, data.csv(), 'text/csv');
     exportNotice.exported({kind: 'chartData', chart: data.chartName}, fileName);
   }
 
   async function copyChartData(data: ChartData): Promise<void> {
+    featureUse.feature('chart_data');
     try {
       await navigator.clipboard.writeText(data.text());
       flash(`Copied the ${data.chartName} chart data`);
@@ -439,7 +445,9 @@ export function createApplicationIO(deps: {
   }
 
   function importBackup(json: string, options: RestoreOptions): RestoreResult {
-    return deps.backup.importAll(json, options);
+    const result = deps.backup.importAll(json, options);
+    if (result.kind === 'ok') featureUse.feature('restore');
+    return result;
   }
 
   return {

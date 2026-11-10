@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {defineComponent, h, provide} from 'vue';
+import {createSSRApp, defineComponent, h, provide} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {formatDateTime, restoredProjectName} from '@openisd/design/fields';
 import {ProjectBuilder} from '@openisd/design';
@@ -13,6 +13,8 @@ import {
   type HistoryFile, type ListableStorage,
 } from '@openisd/persistence';
 import {testAppLogic} from './testAppLogic.js';
+import {provideTelemetryUi} from '../../src/hooks/telemetryContext.js';
+import {recordingTelemetryUi} from '../fixtures/recordingTelemetryUi.js';
 import {storageHistoryOn} from '../fixtures/repoOn.js';
 
 const KEY = `${OPENISD_BACKUP_PREFIX}v20250101T0000Z_20250102T030405Z`;
@@ -40,8 +42,11 @@ async function renderHook(answer: boolean, storage: ListableStorage) {
       return () => h(Child);
     },
   });
-  await renderToString(h(Parent));
-  return {api, saved, logging, base};
+  const app = createSSRApp(Parent);
+  const {telemetryUi, events} = recordingTelemetryUi();
+  provideTelemetryUi(app, telemetryUi);
+  await renderToString(app);
+  return {api, saved, logging, base, events};
 }
 
 const seeded = () => createMemoryStorage({
@@ -112,7 +117,7 @@ describe('useStorageHistory', () => {
         data: {[OPENISD_PROJECTS_KEY]: JSON.stringify({entries: [{id: 'p1', text: project.toStoredText(), modified: ''}, {id: 'p2', text: 'not json', modified: ''}]})},
       }),
     });
-    const {api, logging, base: app} = await renderHook(true, storage);
+    const {api, logging, base: app, events} = await renderHook(true, storage);
     expect(api.rows.value[0]?.reason).toBe('Before sync');
     api.openPicker(key);
     expect(api.picker.value?.projects).toEqual([
@@ -128,6 +133,8 @@ describe('useStorageHistory', () => {
     expect(app.projectRepo.listStoredProjects()).toHaveLength(before + 1);
     expect(logging.message.value).toBe(`Added "${name}" to your saved projects.`);
     expect(api.picker.value).toBeNull();
+    // John, 10 Nov 2026: "scan rest of app for missed telemetry".
+    expect(events).toContainEqual({kind: 'feature', name: 'history_restore'});
   });
 
   it('lists a copy kept before a repair beside the backups; Delete asks first, then removes it', async () => {

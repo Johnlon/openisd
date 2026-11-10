@@ -22,7 +22,7 @@ const {
   envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
   advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
   resetAirToAppDefaults,
-  abcVelocityApplies, errorSwitches,
+  abcVelocityApplies, errorSwitches, setCompatSwitch,
 } = useMobileAdvancedTab();
 </script>
 
@@ -46,44 +46,44 @@ const {
     <PhoneBand :section="PhoneHelp.ADVANCED_WINISD_STYLE" />
     <div class="mob-switch-row">
       <label data-field-key="winisdWrapPhase" :title="ToggleField.ADV_WINISDWRAPPHASE.description">
-        <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => project.winisdWrapPhase.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDWRAPPHASE.label }}
+        <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => setCompatSwitch(project.winisdWrapPhase, inputChecked(e))"> {{ ToggleField.ADV_WINISDWRAPPHASE.label }}
       </label>
     </div>
     <div class="mob-switch-row">
       <label data-field-key="winisdFlatModel" :title="ToggleField.ADV_WINISDFLATMODEL.description">
-        <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => project.winisdFlatModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDFLATMODEL.label }}
+        <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => setCompatSwitch(project.winisdFlatModel, inputChecked(e))"> {{ ToggleField.ADV_WINISDFLATMODEL.label }}
       </label>
     </div>
     <div class="mob-switch-row" :class="{ 'mob-row-na': !abcVelocityApplies }">
       <label data-field-key="winisdAbcIntraPortVelocity" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
-        <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY" />
+        <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => setCompatSwitch(project.winisdAbcIntraPortVelocity, inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY" />
       </label>
     </div>
     <ErrorSwitchGroup>
       <template #head><PhoneBand :section="PhoneHelp.ADVANCED_WINISD_BUGS" /></template>
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdDriverModel" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" :title="ToggleField.ADV_WINISDDRIVERMODEL.description">
-        <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERMODEL.label }}
+        <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => setCompatSwitch(project.winisdDriverModel, inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERMODEL.label }}
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdVaModel" :marked="errorSwitches.vaModel.marked" :applicable="errorSwitches.vaModel.applicable" :reproduces-error="errorSwitches.vaModel.reproducesError" :title="ToggleField.ADV_WINISDVAMODEL.description">
-        <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDVAMODEL.label }}
+        <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => setCompatSwitch(project.winisdVaModel, inputChecked(e))"> {{ ToggleField.ADV_WINISDVAMODEL.label }}
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdPrNprResonance" :marked="errorSwitches.prNprResonance.marked" :applicable="errorSwitches.prNprResonance.applicable" :reproduces-error="errorSwitches.prNprResonance.reproducesError" :title="ToggleField.ADV_WINISDPRNPRRESONANCE.description">
-        <input type="checkbox" :checked="project.winisdPrNprResonance.value" :disabled="!errorSwitches.prNprResonance.applicable" @change="e => project.winisdPrNprResonance.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDPRNPRRESONANCE.label }}
+        <input type="checkbox" :checked="project.winisdPrNprResonance.value" :disabled="!errorSwitches.prNprResonance.applicable" @change="e => setCompatSwitch(project.winisdPrNprResonance, inputChecked(e))"> {{ ToggleField.ADV_WINISDPRNPRRESONANCE.label }}
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdBesselHighpass" :marked="errorSwitches.besselHighpass.marked" :applicable="errorSwitches.besselHighpass.applicable" :reproduces-error="errorSwitches.besselHighpass.reproducesError" :title="ToggleField.ADV_WINISDBESSELHIGHPASS.description">
-        <input type="checkbox" :checked="project.winisdBesselHighpass.value" :disabled="!errorSwitches.besselHighpass.applicable" @change="e => project.winisdBesselHighpass.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDBESSELHIGHPASS.label }}
+        <input type="checkbox" :checked="project.winisdBesselHighpass.value" :disabled="!errorSwitches.besselHighpass.applicable" @change="e => setCompatSwitch(project.winisdBesselHighpass, inputChecked(e))"> {{ ToggleField.ADV_WINISDBESSELHIGHPASS.label }}
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdAbcGroupDelay" :marked="errorSwitches.abcGroupDelay.marked" :applicable="errorSwitches.abcGroupDelay.applicable" :reproduces-error="errorSwitches.abcGroupDelay.reproducesError" :title="ToggleField.ADV_WINISDABCGROUPDELAY.description">
-        <input type="checkbox" :checked="project.winisdAbcGroupDelay.value" :disabled="!errorSwitches.abcGroupDelay.applicable" @change="e => project.winisdAbcGroupDelay.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCGROUPDELAY.label }}
+        <input type="checkbox" :checked="project.winisdAbcGroupDelay.value" :disabled="!errorSwitches.abcGroupDelay.applicable" @change="e => setCompatSwitch(project.winisdAbcGroupDelay, inputChecked(e))"> {{ ToggleField.ADV_WINISDABCGROUPDELAY.label }}
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdDriverCountModel" :marked="errorSwitches.driverCount.marked" :applicable="errorSwitches.driverCount.applicable" :reproduces-error="errorSwitches.driverCount.reproducesError" :title="ToggleField.ADV_WINISDDRIVERCOUNTMODEL.description">
-        <input type="checkbox" :checked="project.winisdDriverCountModel.value" :disabled="!errorSwitches.driverCount.applicable" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
+        <input type="checkbox" :checked="project.winisdDriverCountModel.value" :disabled="!errorSwitches.driverCount.applicable" @change="e => setCompatSwitch(project.winisdDriverCountModel, inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdSealedPicker" :marked="errorSwitches.sealedPicker.marked" :applicable="errorSwitches.sealedPicker.applicable" :reproduces-error="errorSwitches.sealedPicker.reproducesError" :title="ToggleField.ADV_WINISDSEALEDPICKER.description">
-        <input type="checkbox" :checked="project.winisdSealedPicker.value" :disabled="!errorSwitches.sealedPicker.applicable" @change="e => project.winisdSealedPicker.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDSEALEDPICKER.label }}
+        <input type="checkbox" :checked="project.winisdSealedPicker.value" :disabled="!errorSwitches.sealedPicker.applicable" @change="e => setCompatSwitch(project.winisdSealedPicker, inputChecked(e))"> {{ ToggleField.ADV_WINISDSEALEDPICKER.label }}
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdTlPortNoEndCorrection" :marked="errorSwitches.tlPortEndCorrection.marked" :applicable="errorSwitches.tlPortEndCorrection.applicable" :reproduces-error="errorSwitches.tlPortEndCorrection.reproducesError" :title="ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.description">
-        <input type="checkbox" :checked="project.winisdTlPortNoEndCorrection.value" :disabled="!errorSwitches.tlPortEndCorrection.applicable" @change="e => project.winisdTlPortNoEndCorrection.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.label }}
+        <input type="checkbox" :checked="project.winisdTlPortNoEndCorrection.value" :disabled="!errorSwitches.tlPortEndCorrection.applicable" @change="e => setCompatSwitch(project.winisdTlPortNoEndCorrection, inputChecked(e))"> {{ ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.label }}
       </ErrorSwitch>
     </ErrorSwitchGroup>
   </PhoneClassicPage>

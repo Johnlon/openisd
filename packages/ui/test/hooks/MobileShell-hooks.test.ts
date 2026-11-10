@@ -9,6 +9,8 @@ import {provideCloudSync} from '../../src/hooks/CloudSync-hooks.js';
 import {useMobileShell} from '../../src/hooks/MobileShell-hooks.js';
 import {createConfirmPort} from '../../src/logic/confirmPort.js';
 import {testAppLogic} from './testAppLogic.js';
+import {provideTelemetryUi} from '../../src/hooks/telemetryContext.js';
+import {recordingTelemetryUi} from '../fixtures/recordingTelemetryUi.js';
 
 describe('MobileShell-hooks revertProject', () => {
   it('keeps the menu open until the discard question is answered, then closes it', async () => {
@@ -35,5 +37,27 @@ describe('MobileShell-hooks revertProject', () => {
     answer(true);
     await reverting;
     expect(shell.menuOpen.value).toBe(false);
+  });
+});
+
+// John, 10 Nov 2026: "scan rest of app for missed telemetry".
+describe('MobileShell-hooks usage counts', () => {
+  it('counts a switch to the desktop skin', () => {
+    const {telemetryUi, events} = recordingTelemetryUi();
+    const logic = testAppLogic();
+    const project = ProjectBuilder.empty(logic.appState.engine);
+    logic.appState.addProject(project);
+    const app = createApp({render: () => null});
+    app.provide(APP_LOGIC, logic);
+    app.provide(FOCUSED_PROJECT, computed(() => project));
+    app.provide(SplashModalKey, {
+      open: computed(() => false), driverCount: ref(null), passiveRadiatorCount: ref(null), versions: ref(null), aboutLabel: computed(() => 'About OpenISD'),
+      dismiss: () => undefined, show: () => undefined,
+    });
+    provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));
+    provideTelemetryUi(app, telemetryUi);
+    const shell = app.runWithContext(() => useMobileShell());
+    shell.switchToDesktop();
+    expect(events).toContainEqual({kind: 'feature', name: 'skin_switch'});
   });
 });

@@ -7,6 +7,7 @@ import {computed, shallowRef} from 'vue';
 import {DesktopHelp, type PhoneHelpSection} from '@openisd/design/fields';
 import type {BoxType} from '@openisd/design/engine';
 import type {TabId} from '../logic/tabId.js';
+import type {FeatureUse} from '../logic/telemetry/featureUse.js';
 
 /** What the open help panel shows: its title and its sections. */
 export interface HelpPanelContent {
@@ -17,12 +18,14 @@ export interface HelpPanelContent {
 interface DesktopHelpDeps {
   activeTab: Ref<TabId>;
   selectedBox: Ref<BoxType>;
+  featureUse: FeatureUse;
 }
 
-export function createDesktopHelp({activeTab, selectedBox}: DesktopHelpDeps) {
+export function createDesktopHelp({activeTab, selectedBox, featureUse}: DesktopHelpDeps) {
   const panel = shallowRef<HelpPanelContent | null>(null);
 
   function openSection(section: PhoneHelpSection): void {
+    featureUse.feature('help');
     panel.value = {title: section.title, sections: [section]};
   }
 
@@ -43,6 +46,7 @@ export function createDesktopHelp({activeTab, selectedBox}: DesktopHelpDeps) {
     const sections = tabSections.value;
     const first = sections[0];
     if (first === undefined) return;
+    featureUse.feature('help');
     panel.value = {title: sections.length === 1 ? first.title : activeTab.value, sections};
   }
 

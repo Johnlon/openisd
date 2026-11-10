@@ -480,6 +480,7 @@ export function createAppState(deps: AppStateDeps): AppState {
     loaded.name.set(newName);
     loaded.save();
     addProject(loaded);
+    recordOpen('copy', loaded);
   }
 
   // The one Vue bridge onto WHICHEVER project is currently focused. Re-subscribes on every
@@ -921,6 +922,7 @@ export function createAppState(deps: AppStateDeps): AppState {
   function applyState(o: { project: OpenISDProject; view: ViewSnapshot }): void {
     applyLoadedProject(o.project);
     applyViewSnapshot(o.view);
+    recordOpen('share', o.project);
   }
 
   // A comparison overlay is stored WITHOUT its curves (they are derived, and bulk out every

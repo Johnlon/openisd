@@ -1,3 +1,5 @@
+import {FeatureUse} from '../../src/logic/telemetry/featureUse.js';
+import {NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
 import {describe,it,expect} from 'vitest';
 import {OpenISDDriver} from '@openisd/design';
 import {testAppLogic} from '../hooks/testAppLogic.js';
@@ -12,7 +14,7 @@ describe('a failed driver selection',()=>{
     const browsing=createDriverBrowsingState({
       driverRepo:app.bundledDrivers,myDriverRepo:app.myDrivers,prefs:app.prefs,logging:app.logging,
       selection:failing,files:app.designFiles,confirmReset:app.confirmPort.port,exportNotice:{exported:()=>undefined},
-      appState:app.appState,presentation:app.presentation,driverPicked:()=>undefined,
+      appState:app.appState,presentation:app.presentation,driverPicked:()=>undefined,featureUse:new FeatureUse(new NoTelemetry()),
     });
     await browsing.chooseDriver(OpenISDDriver.empty(app.engine));
     expect(browsing.statusMsg.value).toBe('Embedding failed');

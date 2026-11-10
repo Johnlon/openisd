@@ -4,9 +4,11 @@
 import {inject} from 'vue';
 import type {PhoneHelpRow, PhoneHelpSection} from '@openisd/design/fields';
 import {WinisdDifferencesModalKey} from '../../../hooks/WinisdDifferencesModal-hooks.js';
+import {usePhoneHelpSheet} from '../../../hooks/PhoneHelpSheet-hooks.js';
 
 const props = defineProps<{section: PhoneHelpSection}>();
 const emit = defineEmits<{close: []}>();
+usePhoneHelpSheet();
 // Only a sheet whose lines link to a Differences entry needs the Differences page.
 const differences = inject(WinisdDifferencesModalKey, null);
 

@@ -15,6 +15,8 @@ import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppState} from '../../src/logic/appState.js';
 import type {PresentationState} from '../../src/logic/presentationState.js';
 import {backupRepoOn, projectRepoOn, exportedFilesOn, storageUsageOn} from '../fixtures/repoOn.js';
+import type {TelemetryEvent} from '../../src/logic/telemetry/events.js';
+import {ChartData, ChartLayout, FrequencyAxis, LevelAxis} from '@openisd/design/chart';
 
 let appState: AppState;
 let presentationState: PresentationState;
@@ -475,6 +477,83 @@ describe('every import and export says what it did', () => {
     const dirty = ioWith(fakeFileStorage({ name: null, cancelled: false, written: false }));
     await dirty.io.saveProjectAs();
     expect(dirty.flash).toHaveBeenCalledWith('Project downloaded as MyBox2.owpr. It stays marked unsaved.');
+  });
+
+  /** An io whose usage events land in `events`. */
+  function ioRecording(fileStorage: FileStorage) {
+    const events: TelemetryEvent[] = [];
+    const logging: Logging = { message: ref(''), flash: vi.fn() };
+    const engine = createEngine();
+    const repo = projectRepoOn(engine, fileStorage, createMemoryStorage(), 'http://localhost');
+    const io = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState, telemetry: { record: e => events.push(e), flush: () => {} } });
+    return { io, events };
+  }
+
+  // John, 10 Nov 2026: "scan rest of app for missed telemetry".
+  it('a Save As that downloads the file counts as an .owpr save', async () => {
+    appState.newProject();
+    const { io, events } = ioRecording(fakeFileStorage({ name: null, cancelled: false, written: false }));
+    await io.saveProjectAs();
+    expect(events).toContainEqual(expect.objectContaining({ kind: 'project_save', format: 'owpr' }));
+  });
+
+  it('a driver file imported counts as a driver pick from an import, with a project open or not', async () => {
+    const downloads: { name: string; body: string | Uint8Array }[] = [];
+    stubDom(downloads);
+    try {
+      const { io: maker } = ioWith(createFileStorage());
+      await importGolden(maker);
+      maker.exportWdr();
+      const wdr = downloads.find(d => d.name.endsWith('.wdr'));
+      if (!wdr) throw new Error('exportWdr must download a .wdr');
+      const file = () => new File([typeof wdr.body === 'string' ? wdr.body : new Uint8Array(wdr.body)], 'probe.wdr');
+
+      const open = ioRecording(createFileStorage());
+      open.io.importFile(file());
+      await settle();
+      expect(open.events).toContainEqual({ kind: 'driver_pick', source: 'import', id: '', name: '' });
+
+      while (appState.openProjects().length > 0) appState.removeProject(0);
+      const none = ioRecording(createFileStorage());
+      none.io.importFile(file());
+      await settle();
+      expect(none.events).toContainEqual({ kind: 'driver_pick', source: 'import', id: '', name: '' });
+    } finally { restoreGlobals(); }
+  });
+
+  it('a backup download counts as backup, and a restore that worked as restore', async () => {
+    const downloads: { name: string; body: string | Uint8Array }[] = [];
+    stubDom(downloads);
+    try {
+      const { io, events } = ioRecording(createFileStorage());
+      io.exportBackup();
+      expect(events).toContainEqual({ kind: 'feature', name: 'backup' });
+
+      expect(io.importBackup('not a backup', { replaceEverything: false }).kind).toBe('invalid');
+      expect(events).not.toContainEqual({ kind: 'feature', name: 'restore' });
+      const file = downloads[0]?.body;
+      if (typeof file !== 'string') throw new Error('exportBackup must download text');
+      expect(io.importBackup(file, { replaceEverything: false }).kind).toBe('ok');
+      expect(events).toContainEqual({ kind: 'feature', name: 'restore' });
+    } finally { restoreGlobals(); }
+  });
+
+  it('a chart data download or copy counts as chart data', async () => {
+    stubDom([]);
+    try {
+      appState.newProject();
+      const data = ChartData.of('SPL', {
+        series: [{xs: [10, 20], ys: [80, 85], color: '#000', name: 'Sub'}], ymin: 60, ymax: 100, logy: false, unit: 'dB', fmin: 10, fmax: 1000,
+        freqAxis: new FrequencyAxis(10, 1000), levelAxis: new LevelAxis(60, 100, false), rolloffs: [], layout: ChartLayout.CHART,
+      });
+      const downloaded = ioRecording(createFileStorage());
+      downloaded.io.downloadChartData(data);
+      expect(downloaded.events).toContainEqual({ kind: 'feature', name: 'chart_data' });
+
+      const copied = ioRecording(createFileStorage());
+      await copied.io.copyChartData(data);
+      expect(copied.events).toContainEqual({ kind: 'feature', name: 'chart_data' });
+    } finally { restoreGlobals(); }
   });
 
   it('Save As names the file written, or says the download is unconfirmed', async () => {

@@ -6,6 +6,8 @@
  * column (`AdvancedOptions.vue`) is reused unchanged — it's already presentation-only with its
  * own hook, so it needs no mobile-specific copy.
  */
+import {compatSwitchSetter} from './compatSwitch.js';
+import {useFeatureUse} from './telemetryContext.js';
 import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
@@ -33,6 +35,7 @@ export function useMobileAdvancedTab() {
 
   return {
     project,
+    setCompatSwitch: compatSwitchSetter(useFeatureUse()),
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
     envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
     advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,

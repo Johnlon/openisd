@@ -11,6 +11,7 @@ import {formatByteSize, formatCountOf, formatDateTime, parseBasicUtc, persistenc
 import {type BackupReason, type HistoryEntry, type HistoryRow, type PreRepairCopy, type PreRepairKind, type RefusedCopy,
   type HistoryFile, type StorageHistory} from '@openisd/persistence';
 import {useApp} from '../logic/app.js';
+import {useFeatureUse} from './telemetryContext.js';
 import {storedUseOf} from '../logic/storedUse.js';
 import {emptyBin as emptyBinAfterAsking} from '../logic/projectBinActions.js';
 import {binTotalSize} from './binRows.js';
@@ -207,6 +208,7 @@ function removeOf(history: Pick<StorageHistory, 'remove' | 'removeCopy' | 'remov
 
 export function useStorageHistory(): StorageHistoryAPI {
   const { storageHistory, storageUsage, projectBin, designIO, confirmPort, logging, browserStorage, persistence, projectRepo } = useApp();
+  const featureUse = useFeatureUse();
   const usedLine = ref('');
   const siteLine = ref<string | null>(null);
   const fullWarning = ref<string | null>(null);
@@ -268,6 +270,7 @@ export function useStorageHistory(): StorageHistoryAPI {
     });
     if (!confirmed) return { kind: 'cancelled' };
     const result = storageHistory.restore(key);
+    if (result.kind === 'ok') featureUse.feature('history_restore');
     refresh();
     return result.kind === 'ok' ? { kind: 'restored', keysRestored: result.keysRestored } : { kind: 'failed', reason: result.reason };
   }
@@ -283,6 +286,7 @@ export function useStorageHistory(): StorageHistoryAPI {
     if (open === null) return;
     const result = storageHistory.restoreProject(open.key, project.id, restoredProjectName(project.name, new Date()));
     if (result.kind === 'restored') {
+      featureUse.feature('history_restore');
       logging.flash(`Added "${result.name}" to your saved projects.`);
       picker.value = null;
     } else {
