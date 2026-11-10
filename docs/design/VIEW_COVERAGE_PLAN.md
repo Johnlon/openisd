@@ -36,7 +36,7 @@ is allowed. No reading or writing app state objects. Each batch: write the steps
 |---|---|---|---|
 | 1 | 5 | outside-app (DONE T769, ceiling 126) | `goto` the static URL, measure `body`. Phone `refresh`: `/about/refresh/`. |
 | 2 | 8 | saved-state-needed (DONE T771, ceiling 117; also removed the PR wizard step-5 row) | See "Saved state" below. |
-| 3 | 10 | cloud-account-needed | See "Cloud". |
+| 3 | 10 | cloud-account-needed (DONE T772, ceiling 107) | See "Cloud". |
 | 4 | 17 | rejected-input-needed | See "Rejected input". |
 | 5 | 18 | fault-needed | See "Faults". |
 | 6 | 66 | step-not-written | Click paths, 6a phone dialogs and sheets, 6b desktop, 6c shared (one step per pair, both skins), See "Click paths". |

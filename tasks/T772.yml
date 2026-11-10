@@ -1,0 +1,15 @@
+id: T772
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: View coverage batch 3: cloud views
+why: 'John, 10 Nov 2026 (QO527): "I need full coverage add it then maintain it"'
+done_test: bash scripts/test.sh packages/ui/test/logic/view-walk-coverage.test.ts
+files:
+  - tasks/T772.yml
+  - docs/design/VIEW_COVERAGE_PLAN.md
+  - packages/ui/test/fixtures/viewOpenSteps.ts
+  - packages/ui/test/fixtures/viewOpenCloud.ts
+  - packages/ui/test/fixtures/viewRemoved.ts
+  - packages/ui/test/logic/view-walk-coverage.test.ts
