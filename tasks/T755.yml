@@ -26,9 +26,11 @@ files:
   - packages/ui/src/logic/appState.ts
   - packages/ui/src/logic/applicationIO.ts
   - packages/ui/src/logic/boot.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
   - packages/ui/src/logic/telemetry/errorContext.ts
   - packages/ui/src/logic/telemetry/events.ts
   - packages/ui/src/logic/telemetry/featureUse.ts
+  - packages/ui/src/main.ts
   - packages/ui/src/ui/components/DriverEditorModal.vue
   - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
   - packages/ui/src/ui/shells/mobile/PhoneHelpSheet.vue
@@ -48,11 +50,15 @@ files:
   - packages/ui/test/hooks/compatSwitch.test.ts
   - packages/ui/test/hooks/desktopHelp.test.ts
   - packages/ui/test/hooks/projectBinView.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts
   - packages/ui/test/logic/applicationIO.test.ts
   - packages/ui/test/logic/boot.test.ts
+  - packages/ui/test/logic/driverBrowsingState-import.test.ts
+  - packages/ui/test/logic/driverBrowsingState-picks.test.ts
+  - packages/ui/test/logic/driverBrowsingState-selection-failure.test.ts
+  - packages/ui/test/logic/driverFilters.test.ts
   - packages/ui/test/logic/projectOpenTelemetry.test.ts
   - tasks/T755.yml
 left_out: |
-  Driver clone: waits for T754 (it changes the same file, driverBrowsingState.ts); added after T754 merges.
   Compare has no add action: the other open projects are drawn as overlays. The phone has no vents
   screen: vents are on the Box tab.
