@@ -2,7 +2,7 @@ id: T754
 release_note: "Usage statistics count the driver chosen in the New Project wizard, and count passive radiators picked in the wizard or on the box page."
 repo: openisd
 owner: learn
-status: open
+status: done
 goal: Stats: count driver picks made in the New Project wizard, and count passive radiator picks from the wizard and the main screen (John 10 Nov: 'fix it immediately also record the pr picked either on Wiz or in main')
 done_test: bash scripts/test.sh packages/ui/test/logic/driverBrowsingState-picks.test.ts packages/ui/test/logic/radiatorPick.test.ts
 files:
