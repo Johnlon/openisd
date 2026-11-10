@@ -171,6 +171,17 @@ test('the "Enable WinISD-style" group has every WinISD option the desktop has, a
   }
 });
 
+test('the "Enable WinISD-style" group lists "Cms from Vas" with its tooltip, and it writes through', async ({ page }) => {
+  const label = page.locator('label[data-field-key="winisdCmsFromVas"]');
+  await expect(label).toBeVisible();
+  await expect(label).toContainText('Cms from Vas');
+  await expect(label).toHaveAttribute('title', /^Cms from Vas: /);
+  const box = label.locator('input[type=checkbox]');
+  const before = await box.isChecked();
+  await box.click();
+  await expect(box).toBeChecked({ checked: !before });
+});
+
 test('the group help links are the bands\' ? buttons: no separate help link beside a heading', async ({ page }) => {
   await expect(page.locator('button.compat-help-link')).toHaveCount(0);
 });

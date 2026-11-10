@@ -15,7 +15,15 @@ export class CompatSwitch {
         readonly field: ToggleField,
         readonly kind: CompatSwitchKind,
         readonly of: (p: OpenISDProject) => SimpleField<boolean>,
+        /** Whether the switch acts on the open box; a switch that does not is shown greyed. */
+        readonly appliesTo: (p: OpenISDProject) => boolean = () => true,
     ) {}
+
+    /** The key the switch's checkbox carries on screen: the field's name without its `adv_` prefix, first letter lower case. */
+    get fieldKey(): string {
+        const name = this.field.value.replace(/^adv_/, '');
+        return name.charAt(0).toLowerCase() + name.slice(1);
+    }
 
     static readonly DRIVER_MODEL = new CompatSwitch(ToggleField.ADV_WINISDDRIVERMODEL, 'bug', p => p.winisdDriverModel);
     static readonly VA_MODEL = new CompatSwitch(ToggleField.ADV_WINISDVAMODEL, 'bug', p => p.winisdVaModel);
@@ -29,7 +37,7 @@ export class CompatSwitch {
     static readonly WRAP_PHASE = new CompatSwitch(ToggleField.ADV_WINISDWRAPPHASE, 'option', p => p.winisdWrapPhase);
     static readonly FLAT_MODEL = new CompatSwitch(ToggleField.ADV_WINISDFLATMODEL, 'option', p => p.winisdFlatModel);
     static readonly CMS_FROM_VAS = new CompatSwitch(ToggleField.ADV_WINISDCMSFROMVAS, 'option', p => p.winisdCmsFromVas);
-    static readonly ABC_INTRA_PORT_VELOCITY = new CompatSwitch(ToggleField.ADV_WINISDABCINTRAPORTVELOCITY, 'option', p => p.winisdAbcIntraPortVelocity);
+    static readonly ABC_INTRA_PORT_VELOCITY = new CompatSwitch(ToggleField.ADV_WINISDABCINTRAPORTVELOCITY, 'option', p => p.winisdAbcIntraPortVelocity, p => p.winisdAbcIntraPortVelocityApplies);
 
     /** What a new project, or a file that does not say, has:
      *  a bug unticked (fixed), an option ticked (WinISD's way). */

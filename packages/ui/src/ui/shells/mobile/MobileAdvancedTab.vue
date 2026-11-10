@@ -13,6 +13,7 @@ import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
 import PhoneBand from './PhoneBand.vue';
 import PhoneButton from './PhoneButton.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
+import {CompatSwitch} from '@openisd/design';
 import ToggleLabel from '../../components/ToggleLabel.vue';
 import {useMobileAdvancedTab} from '../../../hooks/MobileAdvancedTab-hooks.js';
 
@@ -22,7 +23,7 @@ const {
   envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
   advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
   resetAirToAppDefaults,
-  abcVelocityApplies, errorSwitches, setCompatSwitch,
+  optionApplies, errorSwitches, setCompatSwitch,
 } = useMobileAdvancedTab();
 </script>
 
@@ -44,19 +45,9 @@ const {
     </div>
 
     <PhoneBand :section="PhoneHelp.ADVANCED_WINISD_STYLE" />
-    <div class="mob-switch-row">
-      <label data-field-key="winisdWrapPhase" :title="ToggleField.ADV_WINISDWRAPPHASE.description">
-        <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => setCompatSwitch(project.winisdWrapPhase, inputChecked(e))"> {{ ToggleField.ADV_WINISDWRAPPHASE.label }}
-      </label>
-    </div>
-    <div class="mob-switch-row">
-      <label data-field-key="winisdFlatModel" :title="ToggleField.ADV_WINISDFLATMODEL.description">
-        <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => setCompatSwitch(project.winisdFlatModel, inputChecked(e))"> {{ ToggleField.ADV_WINISDFLATMODEL.label }}
-      </label>
-    </div>
-    <div class="mob-switch-row" :class="{ 'mob-row-na': !abcVelocityApplies }">
-      <label data-field-key="winisdAbcIntraPortVelocity" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
-        <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => setCompatSwitch(project.winisdAbcIntraPortVelocity, inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY" />
+    <div v-for="option in CompatSwitch.OPTIONS" :key="option.fieldKey" class="mob-switch-row" :class="{ 'mob-row-na': !optionApplies(option) }">
+      <label :data-field-key="option.fieldKey" :title="option.field.description">
+        <input type="checkbox" :checked="option.of(project).value" :disabled="!optionApplies(option)" @change="e => setCompatSwitch(option.of(project), inputChecked(e))"> <ToggleLabel :field="option.field" />
       </label>
     </div>
     <ErrorSwitchGroup>

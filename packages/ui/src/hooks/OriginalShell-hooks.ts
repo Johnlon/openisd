@@ -40,7 +40,7 @@ import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, s
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {OriginalFilters} from './OriginalFilters-hooks.js';
-import type {Calculated, Clearable, Entered, OpenISDProject, Readable, SimpleField, Writable} from '@openisd/design';
+import type {Calculated, Clearable, CompatSwitch, Entered, OpenISDProject, Readable, SimpleField, Writable} from '@openisd/design';
 import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
@@ -764,11 +764,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const prNprDeviationShown = computed(() => projectOpen.value && WinisdDeviation.PR_NPR_RESONANCE.cueShown(errorSwitches.value));
   /** The per-driver impedance cue by the driver count, at any count. */
   const driverCountDeviationShown = computed(() => projectOpen.value && WinisdDeviation.DRIVER_COUNT.cueShown(errorSwitches.value));
-  /** "Simplified ABC intra-port velocity" acts on the open box. */
-  const abcVelocityApplies = computed(() => {
+  /** Whether an option switch acts on the open box (the ABC velocity one acts on an ABC box only). */
+  const optionApplies = (option: CompatSwitch): boolean => {
     void projectChanged.value;
-    return project.value.winisdAbcIntraPortVelocityApplies;
-  });
+    return option.appliesTo(project.value);
+  };
 
   const cloudDialogOpen = ref(false);
   function openCloudDialog(): void { cloudDialogOpen.value = true; }
@@ -825,7 +825,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     genOn, toggleGenerate, genHz, setCompatSwitch: compatSwitchSetter(featureUse),
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel, ...desktopHelp,
-    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
+    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, optionApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
      boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
