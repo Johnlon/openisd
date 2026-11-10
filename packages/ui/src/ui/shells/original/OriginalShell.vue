@@ -26,6 +26,7 @@ import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import CompatGroupHelpLink from '../../components/CompatGroupHelpLink.vue';
+import {CompatSwitch} from '@openisd/design';
 import ToggleLabel from '../../components/ToggleLabel.vue';
 import DesktopBand from '../../components/DesktopBand.vue';
 import DesktopHelpPanel from '../../components/DesktopHelpPanel.vue';
@@ -64,7 +65,7 @@ const {
   showEnclosureTab, enclosureNavLabel,
   helpPanel, closeHelp, openSectionHelp, openTabHelp, tabHelpShown, rearChamberHelp, frontChamberHelp, passiveRadiatorHelp, userOptionsHelp,
   placementHelp, advancedOptionsHelp, listeningPlaceHelp, signalSourceHelp, limitsHelp, ventHelp,
-  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
+  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, optionApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
   boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -639,19 +640,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div class="sim-switch-col">
                 <div class="option-switch-group" :title="CompatSwitchGroup.OPTIONS.tooltip">
                 <div class="option-switch-group-headrow"><div class="option-switch-group-head">{{ CompatSwitchGroup.OPTIONS.heading }}</div><CompatGroupHelpLink :group="CompatSwitchGroup.OPTIONS" /></div>
-                <div>
-                  <label data-field-key="winisdWrapPhase" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_WINISDWRAPPHASE.description">
-                    <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => setCompatSwitch(project.winisdWrapPhase, inputChecked(e))"> {{ ToggleField.ADV_WINISDWRAPPHASE.label }}
-                  </label>
-                </div>
-                <div>
-                  <label data-field-key="winisdFlatModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_WINISDFLATMODEL.description">
-                    <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => setCompatSwitch(project.winisdFlatModel, inputChecked(e))"> {{ ToggleField.ADV_WINISDFLATMODEL.label }}
-                  </label>
-                </div>
-                <div>
-                  <label data-field-key="winisdAbcIntraPortVelocity" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :class="{ 'compat-switch-na': !abcVelocityApplies }" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
-                    <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => setCompatSwitch(project.winisdAbcIntraPortVelocity, inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY" />
+                <div v-for="option in CompatSwitch.OPTIONS" :key="option.fieldKey">
+                  <label :data-field-key="option.fieldKey" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :class="{ 'compat-switch-na': !optionApplies(option) }" :title="option.field.description">
+                    <input type="checkbox" :checked="option.of(project).value" :disabled="!optionApplies(option)" @change="e => setCompatSwitch(option.of(project), inputChecked(e))"> <ToggleLabel :field="option.field" />
                   </label>
                 </div>
                 </div>

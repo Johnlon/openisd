@@ -17,6 +17,7 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         cmsSource: () => ChartingSource | null,
         durableIssues: () => readonly DriverIssue[],
         private readonly newId: () => string,
+        private readonly projectCmsSource: () => ChartingSource | null = () => null,
     ) {
         super(record, engine, airProvider, cmsSource, durableIssues);
     }
@@ -37,16 +38,17 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         /** The app's id source: a driver leaving the project becomes an entity and gets an id. */
         newId: () => string,
     ): OpenISDDriverEmbedded {
-        return new OpenISDDriverEmbedded(slot, engine, airProvider, cmsSource, durableIssues, newId);
+        return new OpenISDDriverEmbedded(slot, engine, airProvider, cmsSource, durableIssues, newId, cmsSource);
     }
 
     /** A standalone copy of this driver with a NEW id: the driver in a project has no id of its
      *  own, and what leaves the project (to My Drivers, or into an editor that will save it) is
-     *  a different driver from any other copy of it. */
+     *  a different driver from any other copy of it. The copy keeps reading the project's "Cms from Vas" choice, so the editor
+     *  opened on it explains a Cms that disagrees with Vas the way the project does. */
     detach(): OpenISDDriverStandalone {
         const copy = this.cloneDriver();
         copy.uuid = {value: this.newId()};
-        return OpenISDDriverStandalone.wrap(copy, this.engine);
+        return OpenISDDriverStandalone.wrap(copy, this.engine, this.projectCmsSource);
     }
 
     /** Adopt `source`'s values; the id of `source` is not kept, the project's driver has none. */

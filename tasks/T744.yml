@@ -121,4 +121,13 @@ files:
   - packages/design/chart/types.ts
   - packages/design/test/engine/testSolver.ts
   - packages/design/test/domain/driver-edit-parity-w5.test.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/driver/openISDDriverEmbedded.ts
+  - packages/ui/src/hooks/MobileAdvancedTab-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-cms-note.browser.spec.ts
 # QO477 = A (John, 8 Nov): typed Cms works out Vas; stated η0 becomes calculated with the warning.

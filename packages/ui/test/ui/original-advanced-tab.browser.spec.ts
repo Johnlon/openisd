@@ -679,6 +679,18 @@ test.describe('Original Advanced tab', () => {
       for (const key of DESIGN_KEYS) await expect(group.locator(`label[data-field-key="${key}"]`)).toHaveCount(0);
     });
 
+    test('the Compatibility panel lists "Cms from Vas" under "Enable WinISD-style", with its tooltip, and it writes through', async ({ appPage: page }) => {
+      await showAdvancedOn(page, 'abc');
+      const label = page.locator('.option-switch-group label[data-field-key="winisdCmsFromVas"]');
+      await expect(label).toBeVisible();
+      await expect(label).toContainText('Cms from Vas');
+      await expect(label).toHaveAttribute('title', /^Cms from Vas: /);
+      const box = label.locator('input[type=checkbox]');
+      const before = await box.isChecked();
+      await box.click();
+      await expect(box).toBeChecked({checked: !before});
+    });
+
     test('the ABC velocity switch (a WinISD convention, not an error switch) is editable on an ABC box only', async ({ appPage: page }) => {
       const box = page.locator('label[data-field-key="winisdAbcIntraPortVelocity"] input');
       await showAdvancedOn(page, 'vented');
