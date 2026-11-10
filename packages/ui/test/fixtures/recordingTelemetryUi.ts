@@ -31,6 +31,11 @@ export function recordingTelemetryUi(): RecordingTelemetryUi {
       crashReports: new CrashReports(telemetry, errorContext, async () => ''),
       launch: new LaunchReporter(telemetry, () => LAUNCH_ENV, work => work(), new InstallMarker(new NoTelemetry(), createMemoryStorage())),
       actions,
+      // A radiator pick lands in `events` too; the bundled name lookup is radiatorPick.test.ts's job.
+      radiatorPicks: {
+        bundled: id => telemetry.record({kind: 'radiator_pick', source: 'bundled', id, name: ''}),
+        saved: () => telemetry.record({kind: 'radiator_pick', source: 'mine', id: '', name: ''}),
+      },
     },
   };
 }

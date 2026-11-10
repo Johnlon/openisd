@@ -251,7 +251,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-    confirmReset: confirmPort.port, exportNotice: createExportNotice(confirmPort.port), appState, presentation, driverPicked,
+    confirmReset: confirmPort.port, exportNotice: createExportNotice(confirmPort.port), appState, presentation, driverPicked, featureUse,
   });
   const viewStateRepo = createViewStateRepo(storage, storageBackup, forgetCloudSyncRecord);
 

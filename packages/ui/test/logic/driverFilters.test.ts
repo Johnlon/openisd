@@ -3,6 +3,8 @@
  * but the favourite button is selected visible"). Filters are kept between openings, but the list says which
  * are on; Favorites cannot be switched on with no favourites; one action clears every filter.
  */
+import {NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
+import {FeatureUse} from '../../src/logic/telemetry/featureUse.js';
 import {describe, expect, it, vi} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
@@ -68,7 +70,7 @@ describe('the driver list filters', () => {
       }),
       myDriverRepo, prefs: createPrefsRepo(storage, () => undefined), logging,
       selection: createDriverSelection({appState, presentation}), files, confirmReset: {ask: async () => true},
-      exportNotice: {exported: () => undefined}, appState, presentation, driverPicked: () => undefined,
+      exportNotice: {exported: () => undefined}, appState, presentation, driverPicked: () => undefined, featureUse: new FeatureUse(new NoTelemetry()),
     });
     browsing.reloadMyDrivers();
     return {browsing, uuid: saved.uuid, driverUuid: mine.uuid()};

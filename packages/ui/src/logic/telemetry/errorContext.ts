@@ -63,7 +63,8 @@ export type ActionName =
   | 'feature:compat_switch'
   | 'feature:losses'
   | 'feature:signal_generator'
-  | 'feature:save_my_driver';
+  | 'feature:save_my_driver'
+  | 'feature:driver_clone';
 
 /** A ring buffer of the last user actions, oldest first. */
 export class RecentActions {

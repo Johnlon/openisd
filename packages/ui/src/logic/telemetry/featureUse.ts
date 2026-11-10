@@ -32,6 +32,7 @@ const FEATURE_ACTIONS: Record<FeatureName, ActionName> = {
   losses: 'feature:losses',
   signal_generator: 'feature:signal_generator',
   save_my_driver: 'feature:save_my_driver',
+  driver_clone: 'feature:driver_clone',
 };
 
 /** Records each chart viewed and each feature used once per page session. Records only; the

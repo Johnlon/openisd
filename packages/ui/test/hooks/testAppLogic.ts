@@ -4,6 +4,8 @@
  * the composition root's facade without a cast. `overrides` replaces whichever piece the test
  * actually exercises.
  */
+import {NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
+import {FeatureUse} from '../../src/logic/telemetry/featureUse.js';
 import {VersionIndex} from '../../src/logic/versionIndex.js';
 import {
   createBundledDriverRepo,
@@ -71,7 +73,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-    confirmReset: fakeConfirmPort, exportNotice: {exported: () => undefined}, appState, presentation, driverPicked: () => undefined,
+    confirmReset: fakeConfirmPort, exportNotice: {exported: () => undefined}, appState, presentation, driverPicked: () => undefined, featureUse: new FeatureUse(new NoTelemetry()),
   });
   const viewStateRepo = viewStateRepoOn(storage);
   const backup = backupRepoOn(storage);

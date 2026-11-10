@@ -1,3 +1,5 @@
+import {NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
+import {FeatureUse} from '../../src/logic/telemetry/featureUse.js';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
@@ -42,7 +44,7 @@ describe('My Drivers Load File flashes what it did', () => {
       }),
       myDriverRepo: myDriverRepoOn(storage, engine), prefs: createPrefsRepo(storage, () => undefined), logging,
       selection: createDriverSelection({ appState, presentation }), files, confirmReset: fakeConfirmPort, exportNotice: {exported: () => undefined},
-      appState, presentation, driverPicked: () => undefined,
+      appState, presentation, driverPicked: () => undefined, featureUse: new FeatureUse(new NoTelemetry()),
     });
     vi.stubGlobal('HTMLInputElement', FakeInput);
     vi.stubGlobal('FileReader', class {

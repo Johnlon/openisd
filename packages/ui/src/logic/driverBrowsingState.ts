@@ -1,3 +1,4 @@
+import type {FeatureUse} from './telemetry/featureUse.js';
 import {computed, type ComputedRef, type Ref, ref, shallowRef, watch} from 'vue';
 import type {OpenISDDriverStandalone} from '@openisd/design';
 import {Chip, DriverType} from '@openisd/design/filter';
@@ -204,6 +205,8 @@ export interface DriverBrowsingStateDeps {
   /** Told which driver the user chose for a new project, for usage statistics (a pick into an open
    *  project is told by `selection`). BUG_20261110_new-project-wizard-driver-not-counted-in-stats. */
   driverPicked: (driver: OpenISDDriverStandalone) => void;
+  /** Counts a driver cloned to My Drivers. */
+  featureUse: FeatureUse;
 }
 
 export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): DriverBrowsingState {
@@ -582,6 +585,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       statusMsg.value = 'Saved drivers are read-only until the storage problem is resolved';
       return;
     }
+    deps.featureUse.feature('driver_clone');
     statusErr.value = false;
     statusMsg.value = '';
     logging.flash('Cloned to My Drivers');
