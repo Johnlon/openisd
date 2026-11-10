@@ -7,3 +7,8 @@ goal: CI browser jobs need no apt download per run: run them in the pinned Playw
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/T752.yml
+notes: |
+  Prepared, NOT published. Image: .github/ci-image/Dockerfile + expected-fonts.txt, built by ci-image.yml (workflow_dispatch only).
+  OPEN: suite.yml holds the placeholder REPLACE_WITH_CI_IMAGE_DIGEST. The guard test in
+  packages/ui/test/scripts/release-workflows.test.ts ("suite.yml names a real image digest") FAILS until the digest from
+  the ci-image.yml run is put in. Expected until then.

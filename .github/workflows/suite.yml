@@ -154,9 +154,11 @@ jobs:
   browser:
     needs: [plan, build]
     runs-on: ubuntu-latest
-    # The laptop's distribution and fonts, so the screen pictures and row heights match its baselines.
+    # The saved test machine (.github/ci-image, built by ci-image.yml): the laptop's distribution and
+    # fonts, plus Playwright's Chromium, so pictures match the laptop baselines and nothing downloads per run.
     container:
-      image: ubuntu:26.04
+      # T752 PLACEHOLDER: replace REPLACE_WITH_CI_IMAGE_DIGEST with the digest ci-image.yml prints.
+      image: ghcr.io/johnlon/openisd-ci@sha256:REPLACE_WITH_CI_IMAGE_DIGEST
       options: --ipc=host
     timeout-minutes: 45
     strategy:
@@ -164,12 +166,6 @@ jobs:
       matrix:
         shard: ${{ fromJSON(needs.plan.outputs.shards) }}
     steps:
-      - name: the laptop's packages
-        run: |
-          apt-get update -qq
-          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git ca-certificates curl xz-utils fontconfig \
-            fonts-dejavu-core fonts-dejavu-extra fonts-dejavu-mono fonts-droid-fallback fonts-font-awesome fonts-lato \
-            fonts-liberation fonts-liberation-sans-narrow fonts-noto-mono fonts-ubuntu fonts-urw-base35 > /dev/null
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.SHA }}
@@ -182,29 +178,6 @@ jobs:
         with:
           name: test-app
           path: .
-      - id: pw
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
-        id: pw-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-ubuntu2604-${{ steps.pw.outputs.version }}
-      - name: install chromium
-        if: steps.pw-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
-      - name: install chromium system deps
-        if: steps.pw-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
-      # Playwright's dependency install adds fonts the laptop lacks (one draws the ⛶ glyph the laptop
-      # shows as a box); the baselines are the laptop's, so only its font packages stay.
-      - name: only the laptop's fonts
-        shell: bash
-        run: |
-          keep='fonts-dejavu-core fonts-dejavu-extra fonts-dejavu-mono fonts-droid-fallback fonts-font-awesome fonts-lato fonts-liberation fonts-liberation-sans-narrow fonts-noto-mono fonts-ubuntu fonts-urw-base35'
-          extra=$(dpkg-query -W -f='${Package}\n' 'fonts-*' 'xfonts-*' 2>/dev/null | grep -vxF -f <(tr ' ' '\n' <<< "$keep") || true)
-          echo "removing: $extra"
-          [ -z "$extra" ] || DEBIAN_FRONTEND=noninteractive apt-get remove -y -qq $extra > /dev/null
-          fc-cache -f > /dev/null; fc-list | wc -l
       - name: stale mobile worker recovery
         if: matrix.shard == 1
         run: node scripts/hosting/test/legacy-refresh.e2e.mjs

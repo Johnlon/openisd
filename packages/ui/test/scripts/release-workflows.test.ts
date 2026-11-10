@@ -6,7 +6,7 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readdirSync, readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 
 const workflow = (name: string): string =>
@@ -43,5 +43,24 @@ describe('the callers of deploy.yml', () => {
   // site deploy keys arrive empty and test.openisd.app / snapshots.openisd.app never publish (T413).
   it.each(['build.yml', 'release.yml'])('%s passes its secrets to deploy.yml', name => {
     assert.match(workflow(name), /uses: \.\/\.github\/workflows\/deploy\.yml\n\s+secrets: inherit\n/);
+  });
+});
+
+describe('every workflow', () => {
+  const names = readdirSync(fileURLToPath(new URL('../../../../.github/workflows', import.meta.url))).filter((n) =>
+    n.endsWith('.yml'),
+  );
+
+  it('installs nothing with apt or Playwright system-dependency installers (T752: the saved test machine has them)', () => {
+    for (const name of names) {
+      const text = workflow(name);
+      assert.doesNotMatch(text, /apt-get/, `${name} runs apt-get`);
+      assert.doesNotMatch(text, /playwright install --with-deps/, `${name} runs playwright install --with-deps`);
+      assert.doesNotMatch(text, /install-deps/, `${name} runs install-deps`);
+    }
+  });
+
+  it('suite.yml names a real image digest, not the T752 placeholder', () => {
+    assert.doesNotMatch(workflow('suite.yml'), /REPLACE_WITH_CI_IMAGE_DIGEST/);
   });
 });
