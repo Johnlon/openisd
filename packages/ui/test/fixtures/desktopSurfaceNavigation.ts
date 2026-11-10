@@ -83,10 +83,13 @@ export async function openDesktopSurface(page: Page, surface: DesktopSurface): P
       await next.click();
       await page.locator('#np-box-type').selectOption(surface.box ?? 'sealed');
       if (step === 3) return;
-      await next.click();
-      if (step === 4) return;
-      if (surface.box === 'box-passive-radiator' && await next.isDisabled()) { await page.locator('#np-pr-select').click(); await page.locator('.pr-lib-name').first().click(); }
-      await next.click(); return;
+      // A radiator project asks for the radiator before Next goes on; stop when the wanted step shows.
+      const header = page.locator('.np-step').first();
+      for (let guard = 0; guard < 6 && !(await header.innerText()).includes(`Step ${step} of`); guard++) {
+        if (surface.box === 'box-passive-radiator' && await page.locator('#np-pr-select').count() > 0 && await next.isDisabled()) { await page.locator('#np-pr-select').click(); await page.locator('.pr-lib-name').first().click(); }
+        if (!(await header.innerText()).includes(`Step ${step} of`)) await next.click();
+      }
+      return;
     }
   }
 }

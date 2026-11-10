@@ -18,8 +18,6 @@ const RESULTS = '/home/john/work/winisd/ui-gallery/T742-phone-clip';
 const SIZES = [{width: 1280, height: 720}, {width: 1440, height: 900}] as const;
 /** Entries the first scan (10 Nov 2026) found at fault and nobody has fixed yet, as `<id> <width>`. Each then expects the fault (test.fail) and turns red when it is fixed; delete its entry then. */
 const SCAN_KNOWN: ReadonlySet<string> = new Set<string>([
-  'desktop/projects/new/passive-radiator/project-details 1280',
-  'desktop/projects/new/passive-radiator/project-details 1440',
   'desktop/settings/cloud/account-and-activity 1280',
   'desktop/settings/cloud/account-and-activity 1440',
 ]);
