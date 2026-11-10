@@ -1,0 +1,11 @@
+id: T766
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Restore tasks/T750.yml, dropped by the T742 merge
+why: the T742 squash merge deleted tasks/T750.yml (its branch predated T750); task files are the permanent record of why each change was made
+done_test: bash scripts/land/test/task-status.test.sh
+files:
+  - tasks/T766.yml
+  - tasks/T750.yml

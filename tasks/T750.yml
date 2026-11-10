@@ -1,0 +1,36 @@
+id: T750
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: No default parameter values in openisd source: every caller passes every argument (John, 10 Nov: default values are an antipattern)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - CLAUDE.md
+  - docs/SDLC_POLICY.md
+  - tasks/T750.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - .claude/rules/typescript.md
+  - packages/design/test/architecture-no-default-parameters.test.ts
+  - docs/research/DEFAULT_PARAMETERS_REVIEW.md
+  - bugs/BUG_20261110_announcements-default-to-test-server.md
+  - packages/ui/src/logic/announcementCenter.ts
+  - packages/ui/test/logic/announcementCenter.test.ts
+  - packages/ui/test/fixtures/announcementEndpoints.ts
+ruling: "John 10 Nov 2026 (chat): 'ok default values are an antipattrtn'. Gate approval: John's ruling; the gate is a new architecture test with a ceiling that only goes down."
+why: "T744: a default parameter on OpenISDDriverStandalone.wrap gave the driver editor's copy 'no project' and the app air; the compiler and the tests did not catch it."
+design: |
+  - New architecture unit test: counts default parameter values (TypeScript AST: a Parameter with an initializer)
+    in non-test source under packages/*/src and packages/design, persistence; fails when the count rises above
+    a recorded ceiling, and asks for the ceiling to be lowered when it falls (same style as the existing
+    ceilings, e.g. architecture-no-coverage-gaming.test.ts). Ceiling at start: today's count (71 on main 10 Nov).
+  - Then remove them in batches, one package area per commit, each caller passing the value explicitly;
+    behaviour unchanged; ceiling lowered each time; target 0.
+steps:
+  - n: 1
+    do: "Architecture test with the ceiling; red when a default is added."
+  - n: 2
+    do: "Remove defaults: design/domain and engine first (context-like ones), then fields, chart, persistence, ui."
+# John, 10 Nov 2026, board QO482: optional parameters (x?) are banned too ('an optional Param can be a default in disguise'; decided on the ban-every-x? proposal).
+# Step 3: architecture-no-default-parameters.test.ts also counts every optional parameter (x?) in shipped code, with its own ceiling that only goes down; removals as for defaults.
