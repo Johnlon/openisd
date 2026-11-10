@@ -8,6 +8,7 @@ done_test: bash scripts/test.sh packages/ui/test/logic/driverBrowsingState-picks
 files:
   - tasks/T754.yml
   - bugs/BUG_20261110_new-project-wizard-driver-not-counted-in-stats.md
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
   - packages/ui/src/hooks/MobileEnclosureTab-hooks.ts
   - packages/ui/src/hooks/OriginalNewProject-hooks.ts
   - packages/ui/src/hooks/OriginalShell-hooks.ts
