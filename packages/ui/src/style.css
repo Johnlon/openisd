@@ -332,6 +332,9 @@ a { color:var(--acc) }
 .mob-classic .mob-cselect-wide { margin-right: 0; }
 /* The Box type dropdown ends where the number boxes below it end. A page with a ≠W cue row reserves the cue column, which ends those boxes 10px sooner (field-layout rule 4). */
 .mob-classic:has(.mob-ui-field .ui-field-dev) .mob-cselect-aligned { margin-right: calc(var(--mob-col-stepper) + 10px); }
+/* The Box type dropdown is as wide as its longest name needs, never less than where the number boxes below it end and never more than the row (field-layout rules 2 and 4; T770: "Passive Radiator" and "4th Order Bandpass" were cut). */
+.mob-classic .mob-cselect-fit { flex: none; margin-right: 0; field-sizing: content; width: auto; padding-right: 6px; min-width: calc(100% - var(--mob-col-label) - var(--mob-col-stepper)); max-width: calc(100% - var(--mob-col-label)); }
+.mob-classic:has(.mob-ui-field .ui-field-dev) .mob-cselect-fit { min-width: calc(100% - var(--mob-col-label) - var(--mob-col-stepper) - 10px); }
 .mob-classic .mob-cname { flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: var(--mob-input-h); padding: 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background: #f4f4f4; font: inherit; font-size: 15px; font-weight: 600; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }
 /* A dropdown in a pick row ends where the number boxes above and below it end: it leaves the up/down buttons' column blank, as the number boxes do (field-layout rule 4). */
 .mob-classic .ui-pick-field.mob-ui-field .ui-field-value select { margin-right: var(--mob-col-stepper); }
