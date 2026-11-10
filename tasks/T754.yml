@@ -1,0 +1,9 @@
+id: T754
+release_note: internal
+repo: openisd
+owner: learn
+status: open
+goal: Stats: count driver picks made in the New Project wizard, and count passive radiator picks from the wizard and the main screen (John 10 Nov: 'fix it immediately also record the pr picked either on Wiz or in main')
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T754.yml
