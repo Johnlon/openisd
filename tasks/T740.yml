@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: leader
 status: done
+landed: 0644b948661d24c6191862db466bd966417fd933
 goal: Inline expansion sections become popups (John's popup ruling), except the desktop driver editor
 why: John, 8 Nov 2026 - inline expansions mangle the view; "Use a popup every where instead of this"; "all /!\ to use a popup so that view corruption and mangling (pushing out of way) cannot occur". T729 did the field notes. Asked whether done (8 Nov, ~14:30): not done for the other expansions.
 exception: John, 8 Nov 2026 - "the driver editor expansion on desktop works ok ATM - it gets an exception", then "I meant the expansion of the fields mismatch at the bottom of the screen only !!". Only the desktop Driver Editor's field-mismatch (disagree) list at the bottom stays inline.

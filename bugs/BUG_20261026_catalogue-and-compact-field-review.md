@@ -1,5 +1,7 @@
 # Compact field catalogue and renewed preview defects
 
+**Status:** CLOSED, fixed: checked on main 8 Nov 2026, phone PR boxes all one width, real PR name, Qms shown. Closed by John on QO456, 8 Nov 2026.
+
 Status: OPEN — reported by John after reviewing lap:4607.
 
 Reports: Fpr with mass is wider than peer fields; PR still appears as ReplaceMe with missing

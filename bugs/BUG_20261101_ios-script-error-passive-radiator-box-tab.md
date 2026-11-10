@@ -1,5 +1,7 @@
 # iOS: "Script error." ×5 on the passive-radiator box tab, release 7.0.957
 
+**Status:** CLOSED, cannot be reproduced: no error in Chrome on main 8 Nov 2026; iOS Safari not available here. Closed by John on QO456, 8 Nov 2026.
+
 Found: 1 Nov 2026, telemetry Crashes table (crash hash 12bddd7564decce099945c75). Cause not yet known; T639 (1 Nov 2026) makes the next report name it: a masked window error carries its file:line, and a sweep-worker failure is reported with its own message and place instead of reaching the window masked.
 
 ## What happened

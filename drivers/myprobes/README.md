@@ -157,7 +157,7 @@ the wiring. The 2026-10-05 probe (`winisd_research/runs/vccon-probe-20261005/`,
 
 WinISD has no VCCon save or load bug. Its editor has two: with numVC 1 a Series choice saves as 1,
 and editing numVC resets the combo to parallel without undoing the Re/BL rescale
-(`bugs/BUG_20261005_winisd-vccon-editor-combo.md`).
+(`winisd_research/findings/FINDING_20261005_vccon-editor-combo.md`).
 
 ---
 

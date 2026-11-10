@@ -1,5 +1,5 @@
 /**
- * bugs/BUG_20261005_winisd-vccon-editor-combo.md: WinISD saves a one-coil driver set to Series as
+ * winisd_research/findings/FINDING_20261005_vccon-editor-combo.md: WinISD saves a one-coil driver set to Series as
  * VCCon=1, so it reloads as Parallel. OpenISD writes VCCon=2 and reloads Series.
  */
 import {describe, expect, it} from 'vitest';
