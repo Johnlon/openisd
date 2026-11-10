@@ -119,7 +119,6 @@ files:
   - packages/design/domain/project/cmsSource.ts
   - packages/design/test/domain/cms-source.test.ts
   - packages/design/domain/project/projectAdvanced.ts
-  - packages/design/domain/project/openISDProject.ts
   - packages/design/engine/driver/cmsResolver.ts
   - packages/design/engine/driver/DriverEngine.ts
   - packages/design/engine/solverTypes.ts
@@ -127,14 +126,11 @@ files:
   - packages/design/engine/simulation/SimulationEngine.ts
   - packages/design/domain/driver/openIsdDriverSpec.ts
   - packages/design/domain/box/prSpec.ts
-  - packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts
   - packages/design/domain/project/projectSweep.ts
   - packages/design/chart/series.ts
   - packages/design/chart/types.ts
   - packages/design/test/engine/testSolver.ts
   - packages/design/test/domain/driver-edit-parity-w5.test.ts
-  - packages/design/domain/driver/openISDDriver.ts
-  - packages/design/domain/driver/openISDDriverEmbedded.ts
   - packages/ui/src/hooks/MobileAdvancedTab-hooks.ts
   - packages/ui/src/hooks/OriginalShell-hooks.ts
   - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
@@ -145,3 +141,9 @@ files:
   - packages/design/test/domain/driver-detach-uses-project-air.test.ts
   - bugs/BUG_20261110_driver-editor-consistency-note-shows-raw-identifiers.md
 # QO477 = A (John, 8 Nov): typed Cms works out Vas; stated η0 becomes calculated with the warning.
+  - packages/ui/test/ui/original-pr-cms-note.browser.spec.ts
+  - packages/ui/test/ui/new-project-radiator-eight-figures.browser.spec.ts
+  - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
+  - packages/ui/test/ui/original-pr-tab.browser.spec.ts
+  - packages/design/domain/driver/chartFigureNote.ts
+  - packages/design/engine/pr/PrEngine.ts

@@ -2,8 +2,8 @@ import {readFileSync} from 'node:fs';
 import {expect, exportedProjectOwpr, forEachEditorTab, openAProject, openDriverEditor, test} from '../fixtures.js';
 import {setFocusedBoxType} from '../fixtures.js';
 import {NumberField, UNIT_GROUPS} from '@openisd/design/fields';
-import {OpenISDDriver} from '@openisd/design';
-import {createEngine, DEFAULT_VENTED_DESIGN_LIMITS, FixedAir} from '@openisd/design/engine';
+import {OpenISDDriver, OpenISDProject} from '@openisd/design';
+import {createEngine, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
 import {DRIVER_SPEC_FIELD_NAMES, type NumericDriverSpecFieldName} from '../../../design/domain/driver/driverSpecFieldName.js';
 import {z} from 'zod';
 
@@ -58,10 +58,13 @@ function entryValue(value: unknown): unknown {
   return isRecord(value) ? value.value : undefined;
 }
 
-function expectedState(key: string, source: SpecEntry, radiator: boolean): string {
-  return radiator && source.state === 'E' && PR_FIELDS_DERIVED_FROM_WINISD_FIGURES.has(key)
-    ? 'C'
-    : source.state;
+/** The mechanical figures a project's box may show as calculated while the datasheet states them. */
+const CHART_FIGURE_KEYS = new Set<string>(['Cms_m_per_N', 'Mms_kg', 'Rms_kg_per_s']);
+
+// T744 goal 4: the saved record keeps every datasheet entry as stated, state and value. What a box shows may be another
+// (calculated) figure; that is read off the screen, never off the record.
+function expectedState(source: SpecEntry): string {
+  return source.state;
 }
 
 function visibleNumber(cell: unknown, field: NumberField | undefined, unitLabel: string): string {
@@ -80,11 +83,6 @@ function numericEntry(value: unknown, name: string): number {
   return number;
 }
 
-function numericValueOrNull(value: unknown): number | null {
-  const number = entryValue(value);
-  return typeof number === 'number' ? number : null;
-}
-
 function selectedDriverSpecs(project: unknown): Record<string, Record<string, unknown>> {
   if (!isRecord(project) || !isRecord(project.saved)
     || !isRecord(project.saved.driverEmbedding) || !isRecord(project.saved.driverEmbedding.device)
@@ -99,13 +97,11 @@ function selectedDriverSpecs(project: unknown): Record<string, Record<string, un
   return sections;
 }
 
-function detachedEditorSpecs(project: unknown): Record<string, unknown> {
-  if (!isRecord(project) || !isRecord(project.saved) || !isRecord(project.saved.driverEmbedding)
-    || !isRecord(project.saved.driverEmbedding.device)) {
-    throw new Error('exported project has no embedded driver record for the editor draft');
-  }
-  const driver = OpenISDDriver.fromConformingRecord(project.saved.driverEmbedding.device, createEngine());
-  if (Array.isArray(driver)) throw new Error(`exported driver cannot open in editor: ${driver.join(', ')}`);
+/** What the project's driver editor opens on: a copy of the project's driver, read in the project (its air and its "Cms from Vas" choice), as the app does. */
+function detachedEditorSpecs(exported: unknown): Record<string, unknown> {
+  const project = OpenISDProject.fromOwprText(JSON.stringify(exported), createEngine());
+  if (Array.isArray(project)) throw new Error(`exported project cannot be opened: ${project.join(', ')}`);
+  const driver = project.driver.detach();
   return Object.fromEntries(NUMERIC_DRIVER_NAMES.map(key => {
     const field = driver.specField(key);
     return [key, {
@@ -125,10 +121,6 @@ function projectAirValues(project: unknown) {
     c: numericEntry(environment.c_m_per_s, 'environment.c_m_per_s'),
     rho: numericEntry(environment.roo_kg_per_m3, 'environment.roo_kg_per_m3'),
   };
-}
-
-function projectAir(project: unknown) {
-  return new FixedAir(projectAirValues(project));
 }
 
 function projectEngine(project: unknown) {
@@ -176,41 +168,11 @@ function selectedRadiatorSpecs(project: unknown): Record<string, unknown> {
   return project.saved.box.passiveRadiator.component.specs['passive-radiator'];
 }
 
-// QO451 (John 8 Nov 2026): a stated Cms and Mms are kept at the pick; only a stated Rms is
-// dropped and worked out again from Qms, Mms and Cms.
-const PR_DERIVED_FIELD_KEYS = ['Rms_kg_per_s'] as const;
-const PR_FIELDS_DERIVED_FROM_WINISD_FIGURES = new Set<string>(PR_DERIVED_FIELD_KEYS);
-
-function expectedWinisdRadiatorValues(source: Record<string, SpecEntry>, project: unknown) {
-  return createEngine().pr.solveSpec({
-    Fs_hz: numericValueOrNull(source.Fs_hz),
-    Qms: numericValueOrNull(source.Qms),
-    Vas_m3: numericValueOrNull(source.Vas_m3),
-    Sd_m2: numericValueOrNull(source.Sd_m2),
-    Mms_kg: numericValueOrNull(source.Mms_kg),
-    Cms_m_per_N: numericValueOrNull(source.Cms_m_per_N),
-    Rms_kg_per_s: null,
-  }, projectAir(project));
-}
-
-function expectDerivedRadiatorValue(model: string, key: typeof PR_DERIVED_FIELD_KEYS[number], expected: number | null,
-  actual: Record<string, unknown>): void {
-  const value = entryValue(actual[key]);
-  expect(entryState(actual[key]), `${model}.${key} has the wrong derived state`).toBe(expected === null ? 'N' : 'C');
-  if (expected === null) {
-    expect(value, `${model}.${key} became populated without sufficient primary figures`).toBeUndefined();
-  } else {
-    expect(value, `${model}.${key} is not numeric`).toEqual(expect.any(Number));
-    expect(value, `${model}.${key} does not match the WinISD primary figures`).toBeCloseTo(expected, 12);
-  }
-}
-
 function expectEverySourceField(
   model: string,
   expected: Record<string, SpecEntry>,
   actual: Record<string, unknown>,
   freshlyResolved: Record<string, unknown>,
-  radiator = false,
   projectAirForDiagnostics?: {c: number; rho: number},
 ): void {
   const missing = Object.entries(expected)
@@ -221,16 +183,16 @@ function expectEverySourceField(
   for (const [key, source] of Object.entries(expected)) {
     const cell = actual[key];
     expect(entryState(cell), `${model}.${key} changed its Entered/Calculated/Not available state`)
-      .toBe(expectedState(key, source, radiator));
-    const retainedEnteredValue = source.state !== 'E' || expectedState(key, source, radiator) === 'C'
+      .toBe(expectedState(source));
+    const retainedEnteredValue = source.state !== 'E' || expectedState(source) === 'C'
       || Object.is(entryValue(cell), source.value);
     expect(retainedEnteredValue, `${model}.${key} changed its bundled entered value`).toBe(true);
     const requiresCalculation = source.state === 'C'
-      || expectedState(key, source, radiator) === 'C';
+      || expectedState(source) === 'C';
     const calculatedValue = entryValue(cell);
     expect(!requiresCalculation || (typeof calculatedValue === 'number' && Number.isFinite(calculatedValue)),
       `${model}.${key} has no finite calculated value`).toBe(true);
-    if (source.state === 'C' && expectedState(key, source, radiator) === 'C' && key !== 'VCCon') {
+    if (source.state === 'C' && expectedState(source) === 'C' && key !== 'VCCon') {
       const fresh = entryValue(freshlyResolved[key]);
       expect(typeof fresh, `${model}.${key} fresh calculation is not numeric`).toBe('number');
       if (typeof fresh === 'number' && typeof calculatedValue === 'number') {
@@ -310,7 +272,7 @@ test.describe('Original driver bundle selection', () => {
       const actual = actualSections.woofer;
       expect(actual, `${model} has no embedded woofer spec section`).toBeDefined();
       const editorSpecs = detachedEditorSpecs(exported);
-      expectEverySourceField(model, source.specs.woofer, actual, freshlyResolvedBundleSpecs(path, exported), false, projectAirValues(exported));
+      expectEverySourceField(model, source.specs.woofer, actual, freshlyResolvedBundleSpecs(path, exported), projectAirValues(exported));
 
       await openDriverEditor(page);
       const unresolvedCoilKeys = ['Re_ohm', 'BL_Tm'].filter(key =>
@@ -351,7 +313,9 @@ test.describe('Original driver bundle selection', () => {
       const missingUiFields = uiSpecKeys.filter(key => !(key in renderedValues));
       const wrongUiValues = uiSpecKeys.filter(key =>
         renderedValues[key]?.value !== visibleNumber(editorSpecs[key], NumberField.named(key), renderedValues[key]?.unit ?? ''));
-      const wrongUiStates = uiSpecKeys.filter(key => renderedValues[key]?.state !== source.specs.woofer[key]?.state);
+      // T744: a stated Cms, Mms or Rms the charts do not use shows as the calculated figure the charts use (the record keeps the stated one, checked above).
+      const wrongUiStates = uiSpecKeys.filter(key => renderedValues[key]?.state !== source.specs.woofer[key]?.state
+        && !(CHART_FIGURE_KEYS.has(key) && source.specs.woofer[key]?.state === 'E' && renderedValues[key]?.state === 'C'));
       expect(missingUiFields, `${model} editor does not expose every bundled parameter`).toEqual([]);
       expect(wrongUiStates.map(key => ({key, rendered: renderedValues[key]?.state, bundled: source.specs.woofer[key]?.state})),
         `${model} editor changed a bundled field's Entered/Calculated/Not available state`).toEqual([]);
@@ -382,9 +346,7 @@ test.describe('Original driver bundle selection', () => {
       await page.reload();
       const exported = await exportedProjectOwpr(page);
       const actual = selectedRadiatorSpecs(exported);
-      expectEverySourceField(model, source.specs['passive-radiator'], actual, {}, true);
-      const expectedDerived = expectedWinisdRadiatorValues(source.specs['passive-radiator'], exported);
-      for (const key of PR_DERIVED_FIELD_KEYS) expectDerivedRadiatorValue(model, key, expectedDerived[key], actual);
+      expectEverySourceField(model, source.specs['passive-radiator'], actual, {});
 
       const displayedFields = [
         ['Fs_hz', '#og-pr-fs', NumberField.PR_FS_HZ], ['Qms', '#og-pr-qms', NumberField.PR_QMS],
@@ -396,12 +358,14 @@ test.describe('Original driver bundle selection', () => {
       const shown = await Promise.all(displayedFields.map(async ([key, selector, field]) => ({
         key,
         value: await page.locator(selector).inputValue(),
+        calculated: await page.locator(selector).evaluate(element => element.classList.contains('value-c')),
         unit: await page.locator(selector).evaluate(element =>
           element.closest('.field')?.querySelector('.unit-label')?.textContent?.trim() ?? ''),
         field,
       })));
-      const wrongDisplayedValues = shown.filter(item =>
-        item.value !== visibleNumber(actual[item.key], item.field, item.unit)).map(item => item.key);
+      // T744: a stated Cms or Mms the charts do not use shows as the calculated figure the charts use; the record (checked above) keeps the stated one.
+      const wrongDisplayedValues = shown.filter(item => item.value !== visibleNumber(actual[item.key], item.field, item.unit)
+        && !(CHART_FIGURE_KEYS.has(item.key) && item.calculated && item.value !== '')).map(item => item.key);
       expect(wrongDisplayedValues, `${model} page values do not match the embedded project data`).toEqual([]);
     });
   }
