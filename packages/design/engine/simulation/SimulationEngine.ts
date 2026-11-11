@@ -480,8 +480,10 @@ export class SimulationEngineImpl implements SimulationEngine {
     }
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
-    // The circuit runs on Fs, Vas, Qes, Qms, Re, Sd, BL and Le as WinISD's does; the stated Cms, Mms and Rms are not read.
-    const single = withAddedMass(driverValues(this.driver.circuitValues(drv.values)), P.driverAddedMass ?? 0);
+    // The circuit runs on the boxes as they show (QO534); "Chart from Fs, Vas, Qms (WinISD's way)" ticked, on Fs, Vas, Qes, Qms,
+    // Re, Sd, BL and Le as WinISD's does, the stated Cms, Mms and Rms not read (QO539).
+    const circuitDriver = P.winisdChartFromFsVasQms === true ? this.driver.winisdCircuitValues(drv.values, P.air) : this.driver.circuitValues(drv.values);
+    const single = withAddedMass(driverValues(circuitDriver), P.driverAddedMass ?? 0);
     const d = P.loading === 'isobaric' ? isobarikPair(single) : single;
     const circuit = circuitQuantities(d, Le_H, drv.winisdBL_Tm);
     if (circuit.value === null) return { values: null, issues: circuit.issues };

@@ -199,6 +199,7 @@ export abstract class BoxProjectBuilder {
                 winisdWrapPhase: true,
                 winisdDriverCountModel: false,
                 winisdFlatModel: true,
+                winisdChartFromFsVasQms: false,
             },
             charts: {},
         };

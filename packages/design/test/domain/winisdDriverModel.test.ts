@@ -16,6 +16,7 @@ import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {type Engine, createEngine} from '../../engine/Engine.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 import {reproduceWinisdBugs, useWinisdParts} from '../fixtures/domainBuilders.js';
+import {CompatSwitch} from '../../domain/project/compatSwitch.js';
 
 describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', () => {
   // The probe driver. Fs/Cms imply Mms = 0.04346 kg, not the 0.060 entered; Fs/Qms/Mms imply
@@ -28,11 +29,13 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
 
   const P: FrequencyGrid = {fmin: 10, fmax: 1000, N: 120};
 
-  /** A sealed 21 L project at 1 W on the given spec, set to reproduce WinISD exactly. */
+  /** A sealed 21 L project at 1 W on the given spec, set to reproduce WinISD exactly, but charting the Bl, Mms, Cms and Rms boxes
+   *  ("Chart from Fs, Vas, Qms" unticked, QO539): the boxes are what these cases are about. */
   const projectOn = (engine: Engine, spec: Record<string, number>): OpenISDProject => {
     const project = new ProjectBuilder(driverFromSpec(engine, spec), engine)
       .sealed().volume_m3(0.021).build();
     reproduceWinisdBugs(project);
+    CompatSwitch.CHART_FROM_FS_VAS_QMS.of(project).set(false);
     project.powerDrive_W.set(1);
     return project;
   };

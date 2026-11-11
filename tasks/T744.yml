@@ -6,6 +6,7 @@ status: in_progress
 # ruling: QO535 - John, 11 Nov 2026 (What-if): "what if is all about tweaking things you need to buy a different driver to obtain, ie experiments and learning"; "I only want to add inputs" (Qts, Sensitivity, Cms, Rms).
 # ruling: QO532 - John (decided highlight): the boxes that feed the engine are "not dimmed, just accentuated"; "ok but not like that with the input cell fucked up".
 # ruling: QO532 - John, 11 Nov 2026, on the "Desktop: driver editor, Parameters page, Blue dot" picture: "do this" (a blue dot right of the label; no ring, no bold).
+# ruling: QO539 - John, 11 Nov 2026, on driver files whose Mms, Cms, Rms disagree with their Fs, Vas, Qms: "B" (the charts keep the on-screen boxes; an option "Chart from Fs, Vas, Qms (WinISD's way)", unticked by default, charts them WinISD's way; openisdSchema.ts gains the switch).
 # The gate reads the first bare ruling line; QO534 is the driver-model ruling for this task (openIsdDriverSpec.ts changes).
 ruling: QO534
 why: 'John, 11 Nov 2026 (QO534): "the editor and pr settings will use the [on-screen] values not hidden recalcs always"; (QO535) What-if is for experiments and learning'
@@ -17,6 +18,7 @@ goal_detail:
   - "QO535 What-if: adds Qts and Sensitivity to the main group and Cms and Rms to Derived beside Bl and Mms (no read-outs, groups unchanged). A typed result (Fs, Vas, Qts, Qes, Qms, Sensitivity) keeps the other results and moves the parts; a typed part (Mms, Cms, Rms, Bl, Sd, Re) keeps the other parts and moves the results that depend on it. No warning marks in What-if; it never writes to the project. Tests: packages/design/test/engine/what-if-moves.test.ts rows 0-8, packages/design/test/domain/what-if-driver.test.ts, packages/ui/test/hooks/OriginalWhatIf-hooks.test.ts."
   - "QO532 highlight: the boxes that feed the engine (driver Sd, Mms, Cms, Rms, Bl, Re, Le; radiator Sd, Mms, Cms, Rms) carry a blue dot (8 px, 4 px right of the label text, ChartInputs in packages/design) in the driver editor (phone and desktop), the phone Driver tab and the radiator settings; no input changes size, padding or font (no ring, no bold, no tighter spacing). The label column keeps room for the dot so it never runs into the warning mark or the box. Tests: driver-editor-cms-note and original-pr-cms-note browser specs, packages/design/test/fields/chartInputs.test.ts."
   - "WinISD difference: WinISD charts Cms from Vas and Mms from Fs, ignoring a typed Cms, Mms or Rms. Recorded in docs/research/WINISD_PARITY.md and ACCURACY_IMPROVEMENTS.md; the not-equal-W cue sits by Mms and Cms."
+  - "QO539 option: \"Chart from Fs, Vas, Qms (WinISD's way)\" under \"Enable WinISD-style\", unticked in a new project and in a file that does not say; ticked, the charts work Cms, Mms and Rms out from Vas, Fs and Qms as WinISD does (DriverEngine.winisdCircuitValues); the boxes and their warning marks stay either way. Tests: compat-switch.test.ts, driver-circuit-values.test.ts, driver-edit-parity-e150he-44.test.ts (E150HE-44 as its file states)."
   - "Removed from the earlier T744 build (older rule): the 'Cms from Vas' option, the typed-last memory (TypedFigure), the 'shown' chain that replaced a stated Cms/Mms/Rms on screen, and the typed-last-wins pairs."
   - "Done when: the tests above are green; typecheck green; before/after page under ui-gallery/T744-rules passes check-answerable."
 done_test: bash scripts/test.sh packages/design/test/domain/on-screen-values.test.ts
@@ -158,6 +160,21 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
+  - packages/design/fields/field.ts
+  - packages/design/fields/winisdOption.ts
+  - packages/design/domain/project/projectAdvanced.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/test/domain/compat-switch.test.ts
+  - packages/design/test/domain/project/project-sweep-source.test.ts
+  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/design/engine/types.ts
+  - packages/design/fields/sheetField.ts
+  - packages/design/domain/project/sheetSlots.ts
+  - packages/design/test/fields/sheetMode.test.ts
+  - packages/ui/src/hooks/OriginalWhatIf-hooks.ts
+  - packages/design/fields/sheetMode.ts
+  - packages/ui/test/ui/layout-scan-desktop.browser.spec.ts
 # Desktop and phone graph screens: the charts read the boxes as they show (QO534); phone Driver tab: the blue dot by Re (QO532).
 visual:
   - desktop-box-abc

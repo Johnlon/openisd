@@ -32,8 +32,10 @@ import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import {hotRe, perCoilBL_Tm, perCoilRe_ohm, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 import {
-  BL_FROM_QES_CMS_ROUTE, ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
+  BL_FROM_QES_CMS_ROUTE, CMS_FROM_VAS_SD_ROUTE, ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, MMS_FROM_FS_CMS_ROUTE,
+  RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
 } from './routes/index.js';
+import type {DriverRoute} from './routes/index.js';
 
 /** WinISD's fallback for a driver with a Qts and neither Qes nor Qms (decompile `fr_45e090`: `+0x4c8 = 2*Qts`):
  *  both Q's are twice Qts, which makes the total Q equal Qts. */
@@ -118,6 +120,12 @@ export interface DriverEngine {
    *  The one exception is WinISD's fallback for a driver with a Qts and neither Qes nor Qms (decompile `fr_45e090`):
    *  Qes = Qms = 2·Qts, and an Rms or terminal BL the boxes leave empty is worked out from those. */
   circuitValues(values: DriverValues): DriverValues;
+  /** `values` as WinISD's circuit takes them ("Chart from Fs, Vas, Qms (WinISD's way)" ticked, QO539; decompile `fr_45e090`):
+   *  Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms, and the terminal BL from Re, Fs, Qes and that
+   *  Cms. The stated Cms, Mms and Rms are not read. A driver with a Qts but neither Qes nor Qms gets WinISD's fallback,
+   *  Qes = Qms = 2·Qts. Each is replaced only where its own inputs are positive and the result is positive; otherwise the
+   *  stated value stands. `air` is the project's. */
+  winisdCircuitValues(values: DriverValues, air: Air): DriverValues;
   /** The figures the What-if panel moves when `figure` is typed as `value`, from the boxes as they show now (QO535). Pure. */
   whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFigures): WhatIfMoves;
   /** Every figure the What-if rule moves or is typed into, once. */
@@ -190,6 +198,32 @@ export class DriverEngineImpl implements DriverEngine {
     const BL = values.BL_terminal_Tm === null && isPositive(Re_terminal_ohm) && isPositive(Fs_hz) && isPositive(Cms_m_per_N)
       ? BL_FROM_QES_CMS_ROUTE.value({Re_ohm: Re_terminal_ohm, Fs_hz, Qes: fallback, Cms_m_per_N}) : values.BL_terminal_Tm;
     return {...values, Qes: fallback, Qms: fallback, Rms_kg_per_s: Rms, BL_terminal_Tm: BL};
+  }
+
+  winisdCircuitValues(values: DriverValues, air: Air): DriverValues {
+    const {Fs_hz, Vas_m3, Sd_m2} = values;
+    const fallback = this.qFallback(values);
+    const Qes = fallback ?? values.Qes;
+    const Qms = fallback ?? values.Qms;
+    const routeValue = (route: DriverRoute, working: DriverWorkingSet): number | null => {
+      const v = route.value(working);
+      return isPositive(v) ? v : null;
+    };
+    const Cms = isPositive(air.c()) && isPositive(air.rho()) && isPositive(Vas_m3) && isPositive(Sd_m2)
+      ? routeValue(CMS_FROM_VAS_SD_ROUTE, {Vas_m3, Sd_m2, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()}) : null;
+    const Cms_m_per_N = Cms ?? values.Cms_m_per_N;
+    const Mms = isPositive(Fs_hz) && isPositive(Cms_m_per_N)
+      ? routeValue(MMS_FROM_FS_CMS_ROUTE, {Fs_hz, Cms_m_per_N}) : null;
+    const Mms_kg = Mms ?? values.Mms_kg;
+    const Rms = isPositive(Fs_hz) && isPositive(Qms) && isPositive(Mms_kg)
+      ? routeValue(RMS_FROM_FS_MMS_QMS_ROUTE, {Fs_hz, Qms, Mms_kg}) : null;
+    const Re_terminal_ohm = values.Re_terminal_ohm;
+    const BL = isPositive(Re_terminal_ohm) && isPositive(Fs_hz) && isPositive(Qes) && isPositive(Cms_m_per_N)
+      ? BL_FROM_QES_CMS_ROUTE.value({Re_ohm: Re_terminal_ohm, Fs_hz, Qes, Cms_m_per_N}) : null;
+    return {
+      ...values, Qes, Qms, Cms_m_per_N, Mms_kg, Rms_kg_per_s: Rms ?? values.Rms_kg_per_s,
+      BL_terminal_Tm: isPositive(BL) ? BL : values.BL_terminal_Tm,
+    };
   }
 
   /** WinISD's Qes = Qms = 2·Qts for a driver stating a Qts and neither Qes nor Qms; null otherwise. */

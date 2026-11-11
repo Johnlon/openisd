@@ -1581,6 +1581,12 @@ export class ToggleField extends Field {
     label: "Simplified ABC intra-port velocity",
     description: "Simplified ABC intra-port velocity: changes the ABC box's Intra port velocity chart only.\nTicked (default, as WinISD): the velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: OpenISD uses the exact port-mass current. The two differ by up to 1.35 dB and 4.6° near 110 Hz, and by under 0.1 dB elsewhere (W5-1138SMF).",
   }, null, 'intra-port');
+  // The one option a new project has unticked (John, 11 Nov 2026, QO539: picked B): the charts use the Mms, Cms and Rms boxes.
+  static readonly ADV_WINISDCHARTFROMFSVASQMS = new ToggleField({
+    value: "adv_WinisdChartFromFsVasQms",
+    label: "Chart from Fs, Vas, Qms (WinISD's way)",
+    description: "Chart from Fs, Vas, Qms (WinISD's way): changes every chart, only where a driver's Mms, Cms or Rms disagree with its Fs, Vas and Qms.\nTicked: as WinISD, the charts work Cms out from Vas and Sd, Mms from Fs and that Cms, and Rms from Fs, that Mms and Qms. The Mms, Cms and Rms boxes are not read.\nUnticked (default): the charts use the Mms, Cms and Rms boxes as they show.\nEither way the boxes keep their values, and boxes that disagree keep their warning marks.",
+  }, null, 'Qms');
 
   static readonly ALL: readonly ToggleField[] =
     Object.freeze(Object.values(ToggleField).filter((v): v is ToggleField => v instanceof ToggleField));

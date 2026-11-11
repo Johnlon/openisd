@@ -70,7 +70,7 @@ export class ProjectAdvanced {
     get winisdDriverModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdDriverModel');
         return {
-            get value() { return lens.value ?? CompatSwitch.DRIVER_MODEL.winisdValue; },
+            get value() { return lens.value ?? CompatSwitch.DRIVER_MODEL.startValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -83,7 +83,7 @@ export class ProjectAdvanced {
     get winisdVaModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdVaModel');
         return {
-            get value() { return lens.value ?? CompatSwitch.VA_MODEL.winisdValue; },
+            get value() { return lens.value ?? CompatSwitch.VA_MODEL.startValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -95,7 +95,7 @@ export class ProjectAdvanced {
     get winisdAbcIntraPortVelocity(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdAbcIntraPortVelocity');
         return {
-            get value() { return lens.value ?? CompatSwitch.ABC_INTRA_PORT_VELOCITY.winisdValue; },
+            get value() { return lens.value ?? CompatSwitch.ABC_INTRA_PORT_VELOCITY.startValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -106,7 +106,7 @@ export class ProjectAdvanced {
     get winisdPrNprResonance(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdPrNprResonance');
         return {
-            get value() { return lens.value ?? CompatSwitch.PR_NPR_RESONANCE.winisdValue; },
+            get value() { return lens.value ?? CompatSwitch.PR_NPR_RESONANCE.startValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -117,7 +117,7 @@ export class ProjectAdvanced {
     get winisdBesselHighpass(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdBesselHighpass');
         return {
-            get value() { return lens.value ?? CompatSwitch.BESSEL_HIGHPASS.winisdValue; },
+            get value() { return lens.value ?? CompatSwitch.BESSEL_HIGHPASS.startValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -128,7 +128,7 @@ export class ProjectAdvanced {
     get winisdAbcGroupDelay(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdAbcGroupDelay');
         return {
-            get value() { return lens.value ?? CompatSwitch.ABC_GROUP_DELAY.winisdValue; },
+            get value() { return lens.value ?? CompatSwitch.ABC_GROUP_DELAY.startValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -139,7 +139,7 @@ export class ProjectAdvanced {
     get winisdTlPortNoEndCorrection(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdTlPortNoEndCorrection');
         return {
-            get value() { return lens.value ?? CompatSwitch.TL_PORT_END_CORRECTION.winisdValue; },
+            get value() { return lens.value ?? CompatSwitch.TL_PORT_END_CORRECTION.startValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -149,7 +149,7 @@ export class ProjectAdvanced {
     get winisdWrapPhase(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdWrapPhase');
         return {
-            get value() { return lens.value ?? CompatSwitch.WRAP_PHASE.winisdValue; },
+            get value() { return lens.value ?? CompatSwitch.WRAP_PHASE.startValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -160,7 +160,7 @@ export class ProjectAdvanced {
     get winisdDriverCountModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdDriverCountModel');
         return {
-            get value() { return lens.value ?? CompatSwitch.DRIVER_COUNT.winisdValue; },
+            get value() { return lens.value ?? CompatSwitch.DRIVER_COUNT.startValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -171,7 +171,7 @@ export class ProjectAdvanced {
     get winisdSealedPicker(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdSealedPicker');
         return {
-            get value() { return lens.value ?? CompatSwitch.SEALED_PICKER.winisdValue; },
+            get value() { return lens.value ?? CompatSwitch.SEALED_PICKER.startValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -182,7 +182,18 @@ export class ProjectAdvanced {
     get winisdFlatModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdFlatModel');
         return {
-            get value() { return lens.value ?? CompatSwitch.FLAT_MODEL.winisdValue; },
+            get value() { return lens.value ?? CompatSwitch.FLAT_MODEL.startValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "Chart from Fs, Vas, Qms (WinISD's way)": the charts work Cms out from Vas and Sd, Mms from Fs and that
+     *  Cms, and Rms from Fs, that Mms and Qms, as WinISD does. Off: the charts use the Mms, Cms and Rms boxes as they show. Off where
+     *  a project does not say (John, 11 Nov 2026, QO539: picked B). */
+    get winisdChartFromFsVasQms(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdChartFromFsVasQms');
+        return {
+            get value() { return lens.value ?? CompatSwitch.CHART_FROM_FS_VAS_QMS.startValue; },
             set: (on: boolean) => lens.set(on),
         };
     }

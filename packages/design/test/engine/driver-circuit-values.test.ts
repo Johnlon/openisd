@@ -6,6 +6,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 import type {TestSolverQuantities} from './testSolver.js';
 import {sweepDriver} from './testSolver.js';
 
@@ -42,5 +43,27 @@ describe('DriverEngine.circuitValues', () => {
     const v = circuitOf({...STATED, Qms: undefined, Qts: 0.4});
     expect(v.Qes).toBe(0.5);
     expect(v.Qms).toBeNull();
+  });
+});
+
+/** `DriverEngine.winisdCircuitValues`: "Chart from Fs, Vas, Qms (WinISD's way)" ticked (John, 11 Nov 2026, QO539: picked B). */
+describe('DriverEngine.winisdCircuitValues', () => {
+  const {c, rho} = REFERENCE_AIR_VALUES;
+  const winisdOf = (q: TestSolverQuantities) => engine.driver.winisdCircuitValues(sweepDriver(q).values, REFERENCE_AIR);
+
+  it('works Cms out from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms, and BL from Re, Fs, Qes and that Cms; the stated ones are not read', () => {
+    const v = winisdOf(STATED);
+    const cms = 0.02 / (rho * c * c * 0.0132 ** 2);
+    const mms = 1 / ((2 * Math.PI * 40) ** 2 * cms);
+    expect(v.Cms_m_per_N).toBeCloseTo(cms, 12);
+    expect(v.Mms_kg).toBeCloseTo(mms, 12);
+    expect(v.Rms_kg_per_s).toBeCloseTo(2 * Math.PI * 40 * mms / 4, 9);
+    expect(v.BL_terminal_Tm).toBeCloseTo(Math.sqrt(6 / (2 * Math.PI * 40 * 0.5 * cms)), 9);
+  });
+
+  it('with only Qts, takes Qes = Qms = 2·Qts there too', () => {
+    const v = winisdOf({...STATED, Qes: undefined, Qms: undefined, Qts: 0.4});
+    expect(v.Qes).toBeCloseTo(0.8, 12);
+    expect(v.Qms).toBeCloseTo(0.8, 12);
   });
 });

@@ -198,7 +198,7 @@ export class WinisdDeviation {
     winisd: 'WinISD ignores a typed Mms, Cms or Rms: its charts keep using the Cms worked out from Vas, the Mms worked out from Fs and that Cms, and the Rms worked out from Qms.',
     openisd: 'OpenISD charts the boxes as they show: Sd, Mms, Cms, Rms, Bl, Re and Le. A value you type is never overwritten. When the boxes disagree, every box in the disagreeing set carries a warning that says what the maths gives.',
     size: 'The charts differ whenever a typed Mms, Cms or Rms differs from the one WinISD works out: a heavier cone gives a lower resonance and a different bass roll-off.',
-    fix: {kind: 'ignoredInput', seenIn: 'the Mms, Cms and Rms fields of the driver editor.', remedy: 'WinISD has no way to make a typed Mms, Cms or Rms count, so OpenISD has no switch to copy it. Type Fs and Vas to work the way WinISD does.'},
+    fix: {kind: 'ignoredInput', seenIn: 'the Mms, Cms and Rms fields of the driver editor.', remedy: 'Tick "Chart from Fs, Vas, Qms (WinISD\'s way)" under "Enable WinISD-style" in the WinISD Compatibility panel: the charts then work Mms, Cms and Rms out from Fs, Vas and Qms, as WinISD does.'},
     charts: [],
   });
 

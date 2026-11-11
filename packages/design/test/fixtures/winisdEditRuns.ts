@@ -3,6 +3,7 @@
  * OpenISD's charts, the Box and Vents readouts and the driver editor's marks. A driver's test file lists its runs and its known deviations.
  */
 import {describe, expect, it} from 'vitest';
+import {CompatSwitch} from '../../domain/project/compatSwitch.js';
 import {
   BOX_VOLUME, FRONT_BOX_VOLUME, FRONT_TUNING, FRONT_VENT_CROSS_AREA, FRONT_VENT_LENGTH, GROUP_DELAY_BOUND_MS, INTRA_VENT_CROSS_AREA,
   INTRA_VENT_LENGTH, PR_TUNING, SEALED_FSC, SEALED_QTC, UNSTATED_ZERO_KEYS, VENTED_FB, VENT_CROSS_AREA, VENT_LENGTH, applyEdit, unstatedBlankDeviations,
@@ -128,8 +129,15 @@ export function describeRun(driver: DriverRuns, run: Run): void {
     const swept = sweepAfterEdit(project, capture);
     const rules = chartRules(run.box === 'bandpass6' ? BP6_GROUP_DELAY_BOUND_MS : GROUP_DELAY_BOUND_MS);
     if ('spec' in run.edit && (run.edit.spec === 'Mms_kg' || run.edit.spec === 'Cms_m_per_N' || run.edit.spec === 'Rms_kg_per_s')) {
+      // WinISD ignores a typed Mms, Cms or Rms. loadBase ticks "Chart from Fs, Vas, Qms (WinISD's way)", so the charts match WinISD's;
+      // unticked (a new project's default, QO539), the typed part is charted (QO534).
       const spec = run.edit.spec;
-      it(`the typed ${run.edit.field} is kept and moves the charts, which WinISD ignores`, () => assertTypedPartStands(project, capture, swept, rules, spec));
+      for (const q of capture.charts.keys()) it(`"Chart from Fs, Vas, Qms" ticked: ${q} matches`, () => assertChartMatches(capture, swept, q, rules));
+      const chartFromFsVasQms = CompatSwitch.CHART_FROM_FS_VAS_QMS.of(project);
+      chartFromFsVasQms.set(false);
+      const shown = sweepAfterEdit(project, capture);
+      chartFromFsVasQms.set(true);
+      it(`"Chart from Fs, Vas, Qms" unticked: the typed ${run.edit.field} is kept and moves the charts, which WinISD ignores`, () => assertTypedPartStands(project, capture, shown, rules, spec));
       return;
     }
     const checks: Readout[] = [

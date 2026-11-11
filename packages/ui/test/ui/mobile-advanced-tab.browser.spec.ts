@@ -162,7 +162,7 @@ test('the warning mark of every bug switch sits fully inside its row and inside 
 });
 
 test('the "Enable WinISD-style" group has every WinISD option the desktop has, and each one writes through', async ({ page }) => {
-  for (const key of ['winisdWrapPhase', 'winisdFlatModel']) {
+  for (const key of ['winisdWrapPhase', 'winisdFlatModel', 'winisdChartFromFsVasQms']) {
     const checkbox = page.locator(`label[data-field-key="${key}"] input[type=checkbox]`);
     await expect(checkbox, key).toBeVisible();
     const before = await checkbox.isChecked();

@@ -19,7 +19,6 @@ import type {LossChamber, VentPort} from '../../domain/box/box.js';
 import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
 import type {NumericDriverSpecFieldName} from '../../domain/driver/driverSpecFieldName.js';
 import {driverSpecsOf} from '../../domain/openisdSchema.js';
-import {type WinisdPart, winisdParts} from './domainBuilders.js';
 import type {SpecEntryJson} from '../../domain/openisdSchema.js';
 import type {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {readSheetSlot, ventOfSlot, writeSheetSlot} from '../../domain/project/sheetSlots.js';
@@ -341,30 +340,13 @@ type MaxCurves = NonNullable<ReturnType<OpenISDProject['maxCurves']>['values']>;
 
 export interface Swept { readonly sw: Sweep; readonly mx: MaxCurves }
 
-/** One driver box set for a sweep, to be put back as it was. */
-interface HeldBox { readonly spec: WinisdPart; readonly value: number | null; readonly entered: boolean; readonly precision: number | null }
-
-/** The charts after the edit, swept WinISD's way. OpenISD charts the boxes as they show (QO534); WinISD's charts never read Mms, Cms
- *  or Rms: they work Cms out from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, Mms and Qms (decompile `fr_45e090`). For the sweep
- *  those boxes are set to WinISD's figures, then put back, so the editor checks still see the file's own marks. A box the edit typed
- *  into stays: that WinISD ignores it is the difference `assertTypedPartStands` holds. */
+/** The charts after the edit, swept as the project's switches say. `loadBase` ticks every switch, "Chart from Fs, Vas, Qms
+ *  (WinISD's way)" among them (QO539), so the charts work Cms out from Vas and Sd, Mms from Fs and that Cms, and Rms from Fs, Mms and
+ *  Qms, as WinISD's do (decompile `fr_45e090`), whatever the boxes say. */
 export function sweepAfterEdit(project: OpenISDProject, capture: Capture): Swept {
   const grid: FrequencyGrid = {fmin: capture.grid.fmin, fmax: capture.grid.fmax, N: capture.grid.N};
-  const typed = capture.pane === 'Driver' ? capture.field : null;
-  const d = project.driver;
-  const held: HeldBox[] = (['Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s'] as const).map(spec => {
-    const box = d.specField(spec);
-    return {spec, value: box.value, entered: box.entered, precision: box.precision};
-  });
-  const winisd = winisdParts(project);
-  const editorName: Readonly<Record<WinisdPart, string>> = {Mms_kg: 'Mms', Cms_m_per_N: 'Cms', Rms_kg_per_s: 'Rms'};
-  for (const box of held) if (editorName[box.spec] !== typed) d.specField(box.spec).set(winisd[box.spec]);
   const sw = project.sweep(grid);
   const mx = project.maxCurves(grid);
-  for (const box of held) {
-    if (box.entered && box.value !== null) d.specField(box.spec).set(box.value, box.precision ?? undefined);
-    else d.specField(box.spec).clear();
-  }
   if (sw.values === null || mx.values === null) throw new Error('sweep refused: ' + JSON.stringify([sw.issues, mx.issues]));
   return {sw: sw.values, mx: mx.values};
 }

@@ -383,6 +383,11 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdFlatModel;
     }
 
+    /** WinISD Compatibility "Chart from Fs, Vas, Qms (WinISD's way)" — see `ProjectAdvanced.winisdChartFromFsVasQms`. */
+    get winisdChartFromFsVasQms(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdChartFromFsVasQms;
+    }
+
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.
      *  Empty when absent (a project saved before S10, or a fresh one). Plain strings, not
      *  `ChartId`: this is PERSISTED project data (`.owpr`), so it must stay readable across a
@@ -813,6 +818,7 @@ export class OpenISDProject {
             winisdWrapPhase: this.winisdWrapPhase,
             winisdDriverCountModel: this.winisdDriverCountModel,
             winisdFlatModel: this.winisdFlatModel,
+            winisdChartFromFsVasQms: this.winisdChartFromFsVasQms,
             winisdAbcIntraPortVelocity: this.winisdAbcIntraPortVelocity,
             winisdPrNprResonance: this.winisdPrNprResonance,
             winisdBesselHighpass: this.winisdBesselHighpass,

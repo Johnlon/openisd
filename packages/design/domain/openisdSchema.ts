@@ -824,8 +824,8 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // writes it.
     lossMode: z.enum(['lossless', 'conventional-lossy', 'winisd-lossy']).optional(),
     // The WinISD bug and option switches below are optional: absent parses to
-    // `CompatSwitch.winisdValue`, so an absent bug switch is OFF (bug fixed) and an absent option
-    // is ON (WinISD's way).
+    // `CompatSwitch.startValue`, so an absent bug switch is OFF (bug fixed) and an absent option
+    // is ON (WinISD's way), but for "Chart from Fs, Vas, Qms", which is OFF.
     // Bug switch "Two-BL driver": the simulation mixes the entered BL with the BL implied
     // by Fs, Qes and Vas, as WinISD does. Absent parses to OFF.
     winisdDriverModel: z.boolean().optional(),
@@ -859,6 +859,10 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // "Uncapped flat response": force flat as WinISD does it, every point to the TF 0 dB, uncapped;
     // off, boost only to the passband reference, capped. Optional: absent parses to ON.
     winisdFlatModel: z.boolean().optional(),
+    // Option "Chart from Fs, Vas, Qms (WinISD's way)": the charts work Cms out from Vas and Sd, Mms from Fs and that Cms, and Rms
+    // from Fs, that Mms and Qms, as WinISD does; off, they use the Mms, Cms and Rms boxes. Absent parses to OFF, unlike the other
+    // options (John, 11 Nov 2026, QO539: picked B).
+    winisdChartFromFsVasQms: z.boolean().optional(),
 }));
 export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
 

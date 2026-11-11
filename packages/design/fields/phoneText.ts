@@ -326,10 +326,11 @@ export class PhoneHelp {
     {label: ToggleField.ADV_RGATDRIVERSIDE.label, text: 'ticked: each driver gets its own series resistance Rg. Unticked: Rg sits once, at the amplifier.'},
     {label: ToggleField.ADV_SPLXMAXLIMITED.label, text: 'holds the SPL curve down where the cone would move past Xmax.'},
   ]);
-  static readonly ADVANCED_WINISD_STYLE = new PhoneHelpSection('Enable WinISD-style', 'Places where WinISD calculates in its own way. OpenISD copies it by default. Untick a switch for the other form.', [
+  static readonly ADVANCED_WINISD_STYLE = new PhoneHelpSection('Enable WinISD-style', 'Places where WinISD calculates in its own way. OpenISD copies it by default, except where a switch says it starts unticked. Untick a switch for the other form.', [
     styleLine(WinisdOption.WRAP_PHASE, 'ticked: phase curves wrap at ±180°, as in WinISD. Unticked: they run on smoothly.'),
     styleLine(WinisdOption.FLAT_MODEL, 'ticked: Force flat response cuts and boosts without limit, as WinISD does. Unticked: boost only, to 20 dB at most.'),
     styleLine(WinisdOption.ABC_INTRA_PORT_VELOCITY, 'ticked: the ABC intra-port velocity drops a small leak term, as WinISD does. Unticked: the exact velocity.'),
+    styleLine(WinisdOption.CHART_FROM_FS_VAS_QMS, 'ticked: the charts work Mms, Cms and Rms out from Fs, Vas and Qms, as WinISD does. Unticked (the default): they use the Mms, Cms and Rms boxes.'),
   ]);
   static readonly ADVANCED_WINISD_BUGS = new PhoneHelpSection('Enable WinISD bugs', 'Mistakes in WinISD\'s maths. OpenISD gets them right. A yellow switch brings WinISD\'s result back. A switch greyed out does nothing for this box.', [
     bugLine(ToggleField.ADV_WINISDDRIVERMODEL, 'WinISD uses two different BL values.', WinisdDeviation.DRIVER_MODEL),

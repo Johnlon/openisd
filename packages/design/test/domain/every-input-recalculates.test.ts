@@ -267,6 +267,7 @@ const PROJECT_SETTINGS: Readonly<Record<SettingKey, SettingCase>> = {
   winisdAbcGroupDelay: compat,
   winisdTlPortNoEndCorrection: compat,
   winisdFlatModel: compat,
+  winisdChartFromFsVasQms: compat,
   graphs: exempt('which charts are open: view state'),
   cursorF: exempt('chart cursor: view state'),
   pinnedF: exempt('chart cursor: view state'),
@@ -313,6 +314,8 @@ const COMPAT_SCENARIOS: ReadonlyMap<CompatSwitch, CompatScenario | string> = new
   [CompatSwitch.WRAP_PHASE, {box: 'sealed', prepare: () => undefined}],
   [CompatSwitch.FLAT_MODEL, {box: 'sealed', prepare: p => p.forceFlatResponse.set(true)}],
   [CompatSwitch.ABC_INTRA_PORT_VELOCITY, {box: 'abc', prepare: () => undefined}],
+  // A Cms box that disagrees with Vas: the charts follow the box unticked and Vas ticked (QO539).
+  [CompatSwitch.CHART_FROM_FS_VAS_QMS, {box: 'sealed', prepare: p => p.driver.specField('Cms_m_per_N').set(0.0005)}],
 ]);
 
 describe('compat switches', () => {

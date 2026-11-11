@@ -3,7 +3,7 @@ import {ToggleField} from './field.js';
 /** A WinISD option's help text: WinISD's way of a calculation and the other valid form. */
 export interface WinisdOptionSpec {
   readonly title: string;
-  /** What WinISD does (the switch ticked, the default). */
+  /** What WinISD does (the switch ticked; the default for every option but "Chart from Fs, Vas, Qms"). */
   readonly winisd: string;
   /** What OpenISD does with the switch unticked. */
   readonly openisd: string;
@@ -15,7 +15,7 @@ export interface WinisdOptionSpec {
   readonly switchField: ToggleField;
 }
 
-/** A switch under "Enable WinISD-style": WinISD's way of a calculation (ticked, the default) or another valid form. */
+/** A switch under "Enable WinISD-style": WinISD's way of a calculation (ticked) or another valid form. */
 export class WinisdOption {
   readonly title: string;
   readonly winisd: string;
@@ -58,6 +58,15 @@ export class WinisdOption {
     seenIn: 'the Intra port velocity chart, ABC boxes only.',
     size: 'W5-1138SMF ABC box: up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere.',
     switchField: ToggleField.ADV_WINISDABCINTRAPORTVELOCITY,
+  });
+
+  static readonly CHART_FROM_FS_VAS_QMS = new WinisdOption({
+    title: "Chart from Fs, Vas, Qms (WinISD's way)",
+    winisd: 'WinISD charts a driver from Fs, Vas and Qms: it works Cms out from Vas and Sd, Mms from Fs and that Cms, and Rms from Qms. A Mms, Cms or Rms in the file or typed in is not read.',
+    openisd: 'Unticked (the default for this one), OpenISD charts the Mms, Cms and Rms boxes as they show.',
+    seenIn: 'every chart, for a driver whose Mms, Cms or Rms disagree with its Fs, Vas and Qms.',
+    size: 'Dayton E150HE-44 as its file states: the file\'s Mms, Cms and Rms differ a little from the ones Fs, Vas and Qms give, and the curves move with them.',
+    switchField: ToggleField.ADV_WINISDCHARTFROMFSVASQMS,
   });
 
   /** Every option, by reflection; declared last. */

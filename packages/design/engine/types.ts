@@ -199,6 +199,9 @@ export interface SweepParams {
   winisdVaModel?: boolean;
   /** WinISD phase wrapping, [-180°, +180°] (true/absent), or continuous unwrapped phase (false). */
   winisdWrapPhase?: boolean;
+  /** The driver's Cms, Mms and Rms as WinISD charts them, worked out from Vas and Sd, Fs, and Qms (true), or as the boxes show
+   *  them (false/absent; QO534, QO539). */
+  winisdChartFromFsVasQms?: boolean;
   /** ABC intra-chamber port velocity as WinISD charts it, V/(jωMai + Zf) with Ricl left out
    *  (true), or the flow through the intra port, V/(Zi + Zf) with Zi = Ricl ∥ jωMai (false/absent).
    *  `winisd-lossy` only; the other loss models have no Ricl. */
