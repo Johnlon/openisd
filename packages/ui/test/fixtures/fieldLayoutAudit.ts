@@ -128,8 +128,14 @@ export function measureFieldLayoutRules(root: Element, minStepperGapPx: number):
  * text and its box is at most `maxGapPx`, and no label wraps onto a second line. A fault is one line naming the group.
  */
 export function measureLabelGaps(root: Element, maxGapPx: number): string[] {
-  const issues: string[] = [];
   const doc = root.ownerDocument;
+  /** A box the charts read has a blue dot after its label's text (QO532): the dot, its gap before and the same gap after count as text. */
+  const dotRoom = (label: Element): number => {
+    const dot = doc.defaultView?.getComputedStyle(label, '::after');
+    if (dot === undefined) return 0;
+    return dot.content === 'none' || dot.position !== 'absolute' ? 0 : 2 * parseFloat(dot.marginLeft) + parseFloat(dot.width);
+  };
+  const issues: string[] = [];
   const shown = (el: Element) => el.checkVisibility({visibilityProperty: true, opacityProperty: true}) && el.getBoundingClientRect().width > 0;
   const columnSelector = '.vent-col,.pr-controls > div,.driver-columns > div,.box-fields-col,.what-if-panel,[role=dialog],.modal-body,.two-col > div,.tab-section';
   const rows = [...root.querySelectorAll<HTMLElement>('.ui-field,.field,.mob-crow')].filter(shown).flatMap(row => {
@@ -141,7 +147,7 @@ export function measureLabelGaps(root: Element, maxGapPx: number): string[] {
     const lines = new Set([...text.getClientRects()].filter(r => r.width > 0).map(r => Math.round(r.top))).size;
     const column = row.closest(columnSelector);
     return [{
-      label: (label.textContent ?? '').trim().slice(0, 24), labelX: Math.round(label.getBoundingClientRect().x), textRight: text.getBoundingClientRect().right,
+      label: (label.textContent ?? '').trim().slice(0, 24), labelX: Math.round(label.getBoundingClientRect().x), textRight: text.getBoundingClientRect().right + dotRoom(label),
       boxX: control.getBoundingClientRect().x, lines, column: column === null ? 'root' : `${column.className}`.slice(0, 20),
     }];
   });

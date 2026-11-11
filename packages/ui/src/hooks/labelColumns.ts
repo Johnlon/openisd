@@ -1,11 +1,12 @@
-import {DesktopSizes} from '@openisd/design/fields';
+import {ChartInputs, DesktopSizes} from '@openisd/design/fields';
 
 /**
  * Sizes every desktop field group's label column to the group's longest label (John, QO466.c12: "the input fields
  * are too far from the labels"; QO449.c16: "fix the gaps on all fields").
  *
  * A group is the field rows of one screen (a tab, or a dialog) whose labels start at one x: one column of labels.
- * Each row of the group gets `--label-w` = `DesktopSizes.labelColumnPx` of the group's label text widths, so the
+ * Each row of the group gets `--label-w` = `DesktopSizes.labelColumnPx` of the group's label text widths (an accented label's
+ * blue dot counted, QO532), so the
  * boxes share one left edge, right after the longest label and its warning slot (a group with no common field
  * row, such as a pair of plain pick lists, has no warning and so no slot). Only rows whose label column is
  * `--label-w` take part; a row that sizes its labels some other way (a subgrid, a stacked caption) is left alone.
@@ -20,6 +21,8 @@ export interface LabelColumns {
 
 /** A field row: the common field, or a plain row with its own label. */
 const ROW = '.ui-field, .field';
+/** The class of a row the charts read, whose label carries the blue dot (UIFieldBody). */
+const DRIVES_CHARTS = 'ui-field-drives-charts';
 
 export function createLabelColumns(root: HTMLElement): LabelColumns {
   const doc = root.ownerDocument;
@@ -58,7 +61,9 @@ export function createLabelColumns(root: HTMLElement): LabelColumns {
       const screen = screenOf(row);
       const x = Math.round(label.getBoundingClientRect().left);
       const columns = groups.get(screen) ?? new Map<number, {row: HTMLElement; width: number; warns: boolean}[]>();
-      columns.set(x, [...(columns.get(x) ?? []), {row, width: text.getBoundingClientRect().width, warns: row.classList.contains('ui-field')}]);
+      // A box the charts read has its blue dot after the label's text (QO532): the column holds it too.
+      const dot = row.classList.contains(DRIVES_CHARTS) ? ChartInputs.DESKTOP_DOT_ROOM_PX : 0;
+      columns.set(x, [...(columns.get(x) ?? []), {row, width: text.getBoundingClientRect().width + dot, warns: row.classList.contains('ui-field')}]);
       groups.set(screen, columns);
     }
     for (const columns of groups.values()) {

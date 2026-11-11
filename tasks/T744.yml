@@ -5,6 +5,7 @@ status: in_progress
 # ruling text: QO534 - John, 11 Nov 2026: "an entered value is never overwritten with a calculated value"; "going forward the editor and pr settings will use the [on-screen] values not hidden recalcs always"; on the warning mark: "all get the mark".
 # ruling: QO535 - John, 11 Nov 2026 (What-if): "what if is all about tweaking things you need to buy a different driver to obtain, ie experiments and learning"; "I only want to add inputs" (Qts, Sensitivity, Cms, Rms).
 # ruling: QO532 - John (decided highlight): the boxes that feed the engine are "not dimmed, just accentuated"; "ok but not like that with the input cell fucked up".
+# ruling: QO532 - John, 11 Nov 2026, on the "Desktop: driver editor, Parameters page, Blue dot" picture: "do this" (a blue dot right of the label; no ring, no bold).
 # The gate reads the first bare ruling line; QO534 is the driver-model ruling for this task (openIsdDriverSpec.ts changes).
 ruling: QO534
 why: 'John, 11 Nov 2026 (QO534): "the editor and pr settings will use the [on-screen] values not hidden recalcs always"; (QO535) What-if is for experiments and learning'
@@ -14,7 +15,7 @@ goal_detail:
   - "QO534 driver editor and radiator settings: an entered value is never overwritten with a calculated value; an empty box is calculated and shown. The charts use the boxes that feed the engine (Sd, Mms, Cms, Rms, Bl, Re, Le) as they show, never worked out again from Fs, Vas and the Q's. Test: packages/design/test/domain/on-screen-values.test.ts rows 0-4 and the radiator cases."
   - "QO534 warning mark: when boxes disagree, every box in the disagreeing relation carries the existing warning mark; its popup names the boxes and says what the maths gives (e.g. 'Fs, Mms and Cms disagree: Fs = 1/(2π·√(Mms·Cms)) gives Fs 34.9 Hz, the box says 40.00 Hz'). Test: on-screen-values.test.ts 'row 1: the popup'."
   - "QO535 What-if: adds Qts and Sensitivity to the main group and Cms and Rms to Derived beside Bl and Mms (no read-outs, groups unchanged). A typed result (Fs, Vas, Qts, Qes, Qms, Sensitivity) keeps the other results and moves the parts; a typed part (Mms, Cms, Rms, Bl, Sd, Re) keeps the other parts and moves the results that depend on it. No warning marks in What-if; it never writes to the project. Tests: packages/design/test/engine/what-if-moves.test.ts rows 0-8, packages/design/test/domain/what-if-driver.test.ts, packages/ui/test/hooks/OriginalWhatIf-hooks.test.ts."
-  - "QO532 highlight: the boxes that feed the engine (driver Sd, Mms, Cms, Rms, Bl, Re, Le; radiator Sd, Mms, Cms, Rms) get an accent outline and a bold value in the driver editor (phone and desktop), the Driver tab and the radiator settings; box size and padding unchanged. The list is one typed list in packages/design. Help text says these boxes drive the charts."
+  - "QO532 highlight: the boxes that feed the engine (driver Sd, Mms, Cms, Rms, Bl, Re, Le; radiator Sd, Mms, Cms, Rms) carry a blue dot (8 px, 4 px right of the label text, ChartInputs in packages/design) in the driver editor (phone and desktop), the phone Driver tab and the radiator settings; no input changes size, padding or font (no ring, no bold, no tighter spacing). The label column keeps room for the dot so it never runs into the warning mark or the box. Tests: driver-editor-cms-note and original-pr-cms-note browser specs, packages/design/test/fields/chartInputs.test.ts."
   - "WinISD difference: WinISD charts Cms from Vas and Mms from Fs, ignoring a typed Cms, Mms or Rms. Recorded in docs/research/WINISD_PARITY.md and ACCURACY_IMPROVEMENTS.md; the not-equal-W cue sits by Mms and Cms."
   - "Removed from the earlier T744 build (older rule): the 'Cms from Vas' option, the typed-last memory (TypedFigure), the 'shown' chain that replaced a stated Cms/Mms/Rms on screen, and the typed-last-wins pairs."
   - "Done when: the tests above are green; typecheck green; before/after page under ui-gallery/T744-rules passes check-answerable."
@@ -137,3 +138,39 @@ files:
   - packages/ui/test/ui/original-pr-tab.browser.spec.ts
   - packages/ui/test/ui/what-if-panel.browser.spec.ts
   - tasks/T744.yml
+  - packages/design/test/fields/chartInputs.test.ts
+  - packages/ui/src/hooks/labelColumns.ts
+  - packages/ui/src/hooks/phoneLabelColumn.ts
+  - packages/ui/test/fixtures/engineDot.ts
+  - packages/ui/test/fixtures/fieldLayoutAudit.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
+# Desktop and phone graph screens: the charts read the boxes as they show (QO534); phone Driver tab: the blue dot by Re (QO532).
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - mobile-tab-driver
+  - mobile-tab-graph
