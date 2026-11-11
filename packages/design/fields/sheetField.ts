@@ -21,14 +21,17 @@ import {NumberField} from './field.js';
  * - `ventArea`, `rearVentArea`, `frontVentArea`, `intraVentArea` — one port's cross-sectional area,
  *   whatever its shape (round or slotted); where the port has a tuning goal its length follows.
  * - `prAddedMass`, `prCount` — the passive radiator's added mass and number of radiators.
- * - `driverFs`, `driverQes`, `driverQms`, `driverVas` — the driver's own spec.
+ * - `driverFs`, `driverQes`, `driverQms`, `driverVas`, `driverQts`, `driverSpl` — the driver's own results (Sensitivity is
+ *   `driverSpl`).
+ * - `driverCms`, `driverRms` — the driver's suspension parts the charts use (QO535).
  * - `driverCount` — the number of drivers.
  * - `inputPower` — the system input power.
  */
 export type SheetSlot =
   | 'volume' | 'frontVolume' | 'ventTuning' | 'rearTuning'
   | 'ventArea' | 'rearVentArea' | 'frontVentArea' | 'intraVentArea'
-  | 'prAddedMass' | 'prCount' | 'driverFs' | 'driverQes' | 'driverQms' | 'driverVas' | 'driverCount' | 'inputPower';
+  | 'prAddedMass' | 'prCount' | 'driverFs' | 'driverQes' | 'driverQms' | 'driverVas' | 'driverQts' | 'driverSpl'
+  | 'driverCms' | 'driverRms' | 'driverCount' | 'inputPower';
 
 export class SheetField {
   static readonly BOX_VOLUME = new SheetField('volume', NumberField.BOX_VB_L, 'Box volume', 'Box volume', null, 'Vb');
@@ -50,10 +53,20 @@ export class SheetField {
   static readonly DRIVER_QES = new SheetField('driverQes', NumberField.QES, 'Qes', 'Qes');
   static readonly DRIVER_QMS = new SheetField('driverQms', NumberField.QMS, 'Qms', 'Qms');
   static readonly DRIVER_VAS = new SheetField('driverVas', NumberField.VAS_M3, 'Vas', 'Vas');
+  static readonly DRIVER_QTS = new SheetField('driverQts', NumberField.QTS, 'Qts', 'Qts');
+  static readonly DRIVER_SPL = new SheetField('driverSpl', NumberField.SPL_DB, 'Sensitivity', 'Sensitivity');
+  static readonly DRIVER_CMS = new SheetField('driverCms', NumberField.CMS_M_PER_N, 'Cms', 'Cms');
+  static readonly DRIVER_RMS = new SheetField('driverRms', NumberField.RMS_KG_PER_S, 'Rms', 'Rms');
   static readonly DRIVER_COUNT = new SheetField('driverCount', NumberField.DRIVER_NDRIVERS, 'Drivers', 'Drivers');
 
+  /** The driver's results, What-if's main driver group: typing one keeps the other results and moves the parts (QO535). */
+  static readonly DRIVER_RESULTS: readonly SheetField[] = Object.freeze([SheetField.DRIVER_FS, SheetField.DRIVER_VAS, SheetField.DRIVER_QES,
+    SheetField.DRIVER_QMS, SheetField.DRIVER_QTS, SheetField.DRIVER_SPL]);
+  /** The parts the charts use that the phone What-if offers (QO535: Cms and Rms; Bl and Mms are desktop only): typing one keeps
+   *  the other parts and moves the results that follow it. */
+  static readonly DRIVER_PARTS: readonly SheetField[] = Object.freeze([SheetField.DRIVER_CMS, SheetField.DRIVER_RMS]);
   /** The driver's own spec rows: What-if offers them, Tune does not. */
-  static readonly DRIVER_SPEC: readonly SheetField[] = Object.freeze([SheetField.DRIVER_FS, SheetField.DRIVER_VAS, SheetField.DRIVER_QES, SheetField.DRIVER_QMS]);
+  static readonly DRIVER_SPEC: readonly SheetField[] = Object.freeze([...SheetField.DRIVER_RESULTS, ...SheetField.DRIVER_PARTS]);
 
   /** Every member, built by reflection so none can be left out. Declared last. */
   static readonly ALL: readonly SheetField[] = Object.freeze(

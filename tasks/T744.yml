@@ -175,6 +175,12 @@ files:
   - packages/ui/src/hooks/OriginalWhatIf-hooks.ts
   - packages/design/fields/sheetMode.ts
   - packages/ui/test/ui/layout-scan-desktop.browser.spec.ts
+  - packages/design/test/domain/project/sheet-slots.test.ts
+  - packages/design/fields/chartPageText.ts
+  - packages/design/test/fields/chartPage.test.ts
+  - packages/ui/test/ui/mobile-sheet.browser.spec.ts
+  - packages/design/test/fields/toggle-field-label-lines.test.ts
+  - packages/design/test/fields/sheetField.test.ts
 # Desktop and phone graph screens: the charts read the boxes as they show (QO534); phone Driver tab: the blue dot by Re (QO532).
 visual:
   - desktop-box-abc

@@ -26,8 +26,9 @@ export interface WhatIfDriverRow { readonly key: NumSpecField; readonly def: Num
 export interface WhatIfBoxRow { readonly field: SheetField; readonly value: number | null; readonly cell: ClearableUICell | null }
 export interface WhatIfPortLengthRow { readonly key: string; readonly label: string; readonly portName: 'Vent' | 'Rear' | 'Front'; readonly cell: ClearableUICell }
 
-// The driver rows the phone What-if sheet offers (Fs, Qes, Qms, Vas) come from the same design list.
-const SHEET_ROWS: readonly WhatIfDriverRow[] = SheetField.DRIVER_SPEC.flatMap(row => {
+// The driver results the phone What-if sheet offers (Fs, Vas, Qes, Qms, Qts, Sensitivity) come from the same design list; the
+// desktop shows the parts (Cms, Rms) in its Derived group beside Bl and Mms.
+const SHEET_ROWS: readonly WhatIfDriverRow[] = SheetField.DRIVER_RESULTS.flatMap(row => {
   const key = driverSpecOfSlot(row.slot);
   return key === null ? [] : [{ key, def: row.field, label: row.label }];
 });
@@ -94,7 +95,7 @@ export function useOriginalWhatIf(): OriginalWhatIfAPI {
         return ventOfSlot(project.value, type, slot)?.area_m2 ?? missingBoxField(slot);
       case 'prAddedMass': return box.passiveRadiator.addedMass_kg;
       case 'prCount': return missingBoxField(slot);
-      case 'driverFs': case 'driverQes': case 'driverQms': case 'driverVas':
+      case 'driverFs': case 'driverQes': case 'driverQms': case 'driverVas': case 'driverQts': case 'driverSpl': case 'driverCms': case 'driverRms':
       case 'driverCount': case 'inputPower':
         return missingBoxField(slot);
     }

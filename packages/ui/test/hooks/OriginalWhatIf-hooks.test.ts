@@ -71,7 +71,7 @@ describe('OriginalWhatIf-hooks', () => {
       api.boxRows.value.filter(row => row.cell !== null).forEach(row => row.cell!.clear());
       expect(api.portLengthRows.value.map(row => row.label)).toEqual(expectedPorts);
       expect(api.portLengthRows.value.every(row => row.cell.value !== null)).toBe(true);
-      expect(api.sheetRows.map(row => row.key)).toEqual(['Fs_hz', 'Vas_m3', 'Qes', 'Qms']);
+      expect(api.sheetRows.map(row => row.key)).toEqual(['Fs_hz', 'Vas_m3', 'Qes', 'Qms', 'Qts', 'SPL_dB']);
     }
   });
 

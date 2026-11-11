@@ -66,8 +66,6 @@ type NumKey = NumericDriverSpecFieldName;
 interface PanelField { key: NumKey; def: NumberField; label: string }
 const MAIN: PanelField[] = [
   ...whatIf.sheetRows,
-  { key: 'Qts', def: NumberField.QTS,  label: 'Qts' },
-  { key: 'SPL_dB', def: NumberField.SPL_DB,  label: 'Sensitivity' },
   { key: 'Sd_m2', def: NumberField.SD_M2,  label: 'Sd' },
   { key: 'Re_ohm', def: NumberField.RE_OHM,  label: 'Re' },
 ];

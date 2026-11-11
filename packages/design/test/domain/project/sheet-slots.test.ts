@@ -30,14 +30,16 @@ function projectOf(type: BoxType): OpenISDProject {
 
 const ALL_SLOTS: readonly SheetSlot[] = [
   'volume', 'frontVolume', 'ventTuning', 'rearTuning', 'ventArea', 'rearVentArea', 'frontVentArea', 'intraVentArea',
-  'prAddedMass', 'prCount', 'driverFs', 'driverQes', 'driverQms', 'driverVas', 'driverCount', 'inputPower',
+  'prAddedMass', 'prCount', 'driverFs', 'driverQes', 'driverQms', 'driverVas', 'driverQts', 'driverSpl', 'driverCms', 'driverRms',
+  'driverCount', 'inputPower',
 ];
 
 describe('driverSpecOfSlot', () => {
-  it('names the spec of the four driver slots and nothing else', () => {
+  it('names the spec of the eight driver slots and nothing else', () => {
     const named = ALL_SLOTS.map(slot => [slot, driverSpecOfSlot(slot)]);
     expect(named.filter(([, spec]) => spec !== null)).toEqual([
-      ['driverFs', 'Fs_hz'], ['driverQes', 'Qes'], ['driverQms', 'Qms'], ['driverVas', 'Vas_m3'],
+      ['driverFs', 'Fs_hz'], ['driverQes', 'Qes'], ['driverQms', 'Qms'], ['driverVas', 'Vas_m3'], ['driverQts', 'Qts'],
+      ['driverSpl', 'SPL_dB'], ['driverCms', 'Cms_m_per_N'], ['driverRms', 'Rms_kg_per_s'],
     ]);
   });
 });
@@ -53,7 +55,7 @@ describe('ventOfSlot', () => {
     expect(ventOfSlot(abc, 'abc', 'intraVentArea')).not.toBeNull();
     expect(ventOfSlot(abc, 'abc', 'rearVentArea')).not.toBeNull();
     for (const slot of ['volume', 'frontVolume', 'ventTuning', 'rearTuning', 'prAddedMass', 'prCount', 'driverFs', 'driverQes',
-      'driverQms', 'driverVas', 'driverCount', 'inputPower'] as const) {
+      'driverQms', 'driverVas', 'driverQts', 'driverSpl', 'driverCms', 'driverRms', 'driverCount', 'inputPower'] as const) {
       expect(ventOfSlot(abc, 'abc', slot)).toBeNull();
     }
   });

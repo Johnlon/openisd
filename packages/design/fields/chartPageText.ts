@@ -23,6 +23,10 @@ const SHEET_ROW_TEXT: ReadonlyMap<SheetField, string> = new Map([
   [SheetField.DRIVER_QES, 'how sharply the driver resonates, from its motor alone. A stronger motor gives a lower value.'],
   [SheetField.DRIVER_QMS, 'how sharply the driver resonates, from its suspension alone.'],
   [SheetField.DRIVER_VAS, 'the volume of air that is as easy to compress as the suspension is to stretch. A larger Vas needs a larger box.'],
+  [SheetField.DRIVER_QTS, 'how sharply the driver resonates, motor and suspension together. Typing it moves the motor (Qes); Qms stays.'],
+  [SheetField.DRIVER_SPL, 'how loud the driver plays for one watt at one metre. Typing it moves the motor (Qes); Fs and Vas stay.'],
+  [SheetField.DRIVER_CMS, 'how easily the suspension stretches. Typing it keeps the cone\'s mass; Fs and Vas follow it.'],
+  [SheetField.DRIVER_RMS, 'how much the suspension damps the cone. Typing it moves Qms, and Qts follows.'],
   [SheetField.DRIVER_COUNT, 'the number of drivers in the box.'],
 ]);
 

@@ -403,7 +403,7 @@ for (const type of BOX_TYPES) {
       },
     };
     const reason = EXEMPT_WHATIF_ROWS.get(row);
-    // A driver result row (Fs, Vas, Qes, Qms) moves the charts only in a What-if: outside one, the charts use the stated parts (QO534).
+    // A driver row (Fs, Vas, Qes, Qms, Qts, Sensitivity, Cms, Rms) moves the charts only in a What-if: outside one, the charts use the stated parts (QO534).
     if (reason === undefined && SheetField.DRIVER_SPEC.includes(row)) itRecalculatesInWhatIf(type, edit);
     else if (reason === undefined) itRecalculates(type, edit);
     else itMovesNothing(type, edit);
@@ -411,15 +411,18 @@ for (const type of BOX_TYPES) {
 }
 
 describe('the What-if driver rows', () => {
-  it('are Fs, Vas, Qes and Qms in that order: no Qts row', () => {
+  it('are Fs, Vas, Qes, Qms, Qts and Sensitivity, then the parts Cms and Rms (John, QO535: "I only want to add inputs")', () => {
     expect(SheetField.DRIVER_SPEC.map(row => row.field)).toEqual([
-      NumberField.FS_HZ, NumberField.VAS_M3, NumberField.QES, NumberField.QMS,
+      NumberField.FS_HZ, NumberField.VAS_M3, NumberField.QES, NumberField.QMS, NumberField.QTS, NumberField.SPL_DB,
+      NumberField.CMS_M_PER_N, NumberField.RMS_KG_PER_S,
     ]);
+    expect(SheetField.DRIVER_SPEC).toEqual([...SheetField.DRIVER_RESULTS, ...SheetField.DRIVER_PARTS]);
   });
 
-  /** The four driver rows John ruled, written as the sheet will write them: through the driver's own field. */
+  /** The driver rows John ruled, written as the sheet will write them: through the driver's own field. */
   const TARGET_DRIVER_ROWS: readonly (readonly [string, NumericDriverSpecFieldName])[] = [
-    ['Fs', 'Fs_hz'], ['Vas', 'Vas_m3'], ['Qes', 'Qes'], ['Qms', 'Qms'],
+    ['Fs', 'Fs_hz'], ['Vas', 'Vas_m3'], ['Qes', 'Qes'], ['Qms', 'Qms'], ['Qts', 'Qts'], ['Sensitivity', 'SPL_dB'],
+    ['Cms', 'Cms_m_per_N'], ['Rms', 'Rms_kg_per_s'],
   ];
   for (const type of BOX_TYPES) {
     describe.each(TARGET_DRIVER_ROWS)(`${type}: What-if driver row %s`, (_label, spec) => {

@@ -16,7 +16,8 @@ export function ventOfSlot(p: OpenISDProject, type: BoxType, slot: SheetSlot): V
         case 'rearVentArea': return p.box.rearVentGroupOf(type)?.vent ?? null;
         case 'intraVentArea': return p.box.ventPortsOf(type).find(port => port.name === 'Intra')?.vent ?? null;
         case 'volume': case 'frontVolume': case 'ventTuning': case 'rearTuning': case 'prAddedMass': case 'prCount':
-        case 'driverFs': case 'driverQes': case 'driverQms': case 'driverVas': case 'driverCount': case 'inputPower':
+        case 'driverFs': case 'driverQes': case 'driverQms': case 'driverVas': case 'driverQts': case 'driverSpl':
+        case 'driverCms': case 'driverRms': case 'driverCount': case 'inputPower':
             return null;
     }
 }
@@ -28,6 +29,10 @@ export function driverSpecOfSlot(slot: SheetSlot): NumericDriverSpecFieldName | 
         case 'driverQes': return 'Qes';
         case 'driverQms': return 'Qms';
         case 'driverVas': return 'Vas_m3';
+        case 'driverQts': return 'Qts';
+        case 'driverSpl': return 'SPL_dB';
+        case 'driverCms': return 'Cms_m_per_N';
+        case 'driverRms': return 'Rms_kg_per_s';
         case 'volume': case 'frontVolume': case 'ventTuning': case 'rearTuning':
         case 'ventArea': case 'rearVentArea': case 'frontVentArea': case 'intraVentArea':
         case 'prAddedMass': case 'prCount': case 'driverCount': case 'inputPower':
@@ -50,6 +55,10 @@ export function readSheetSlot(p: OpenISDProject, type: BoxType, slot: SheetSlot)
         case 'driverQes': return p.driver.specField('Qes').value;
         case 'driverQms': return p.driver.specField('Qms').value;
         case 'driverVas': return p.driver.specField('Vas_m3').value;
+        case 'driverQts': return p.driver.specField('Qts').value;
+        case 'driverSpl': return p.driver.specField('SPL_dB').value;
+        case 'driverCms': return p.driver.specField('Cms_m_per_N').value;
+        case 'driverRms': return p.driver.specField('Rms_kg_per_s').value;
         case 'driverCount': return p.nDrivers.value;
         case 'inputPower': return p.powerDrive_W.value;
     }
@@ -78,6 +87,10 @@ export function writeSheetSlot(p: OpenISDProject, type: BoxType, slot: SheetSlot
         case 'driverQes': p.driver.specField('Qes').set(v); return;
         case 'driverQms': p.driver.specField('Qms').set(v); return;
         case 'driverVas': p.driver.specField('Vas_m3').set(v); return;
+        case 'driverQts': p.driver.specField('Qts').set(v); return;
+        case 'driverSpl': p.driver.specField('SPL_dB').set(v); return;
+        case 'driverCms': p.driver.specField('Cms_m_per_N').set(v); return;
+        case 'driverRms': p.driver.specField('Rms_kg_per_s').set(v); return;
         case 'driverCount': p.nDrivers.set(Math.round(v)); return;
         case 'inputPower': p.powerDrive_W.set(v); return;
     }

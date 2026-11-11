@@ -32,7 +32,7 @@ describe('ChartPageHelp', () => {
 
   it('the What-if sheet help names the driver rows too and says the design is not changed', () => {
     const vented = ChartPageHelp.forSheet(SheetMode.WHAT_IF, 'vented');
-    expect(vented.rows.map(r => r.label)).toEqual(['Box volume', 'Tuning (Fb)', 'Port area', 'Input power', 'Fs', 'Vas', 'Qes', 'Qms', 'Drivers']);
+    expect(vented.rows.map(r => r.label)).toEqual(['Box volume', 'Tuning (Fb)', 'Port area', 'Input power', 'Fs', 'Vas', 'Qes', 'Qms', 'Qts', 'Sensitivity', 'Cms', 'Rms', 'Drivers']);
     expect(vented.intro).toContain('without changing the design');
   });
 });

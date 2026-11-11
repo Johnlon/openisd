@@ -13,10 +13,15 @@ describe('ToggleField.labelLines', () => {
     expect(ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.labelLines).toEqual(['Simplified ABC intra-port', ' velocity']);
   });
 
+  it('breaks "Chart from Fs, Vas, Qms (WinISD\'s way)" after "Qms"', () => {
+    expect(ToggleField.ADV_WINISDCHARTFROMFSVASQMS.labelLines).toEqual(['Chart from Fs, Vas, Qms', " (WinISD's way)"]);
+  });
+
   it('every other toggle is one line, and every label is its lines joined', () => {
+    const broken: readonly ToggleField[] = [ToggleField.ADV_TLPORTMODEL, ToggleField.ADV_WINISDABCINTRAPORTVELOCITY, ToggleField.ADV_WINISDCHARTFROMFSVASQMS];
     for (const f of ToggleField.ALL) {
       expect(f.labelLines.join(''), f.value).toBe(f.label);
-      if (f !== ToggleField.ADV_TLPORTMODEL && f !== ToggleField.ADV_WINISDABCINTRAPORTVELOCITY) expect(f.labelLines, f.value).toEqual([f.label]);
+      if (!broken.includes(f)) expect(f.labelLines, f.value).toEqual([f.label]);
     }
   });
 
