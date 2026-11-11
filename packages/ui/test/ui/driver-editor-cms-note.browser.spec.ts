@@ -89,12 +89,20 @@ test('on the phone the seven boxes are accented too, bold and not cut, and the D
   await page.getByText('Edit', {exact: true}).click();
   await editorTab(page, 'Parameters');
   await page.setViewportSize({width: 374, height: 2600});
-  await page.evaluate(() => document.fonts.ready);
+  // The bold face loads only when a box first asks for it (font-display: swap): measure once every box's own font has arrived.
+  await page.locator('.de-modal').evaluate(async el => {
+    const faces = [...el.querySelectorAll('input')].map(box => getComputedStyle(box).font).filter(font => font !== '');
+    await Promise.all(faces.map(font => document.fonts.load(font)));
+    await document.fonts.ready;
+  });
   const ringed = await page.locator('.de-modal .ui-field-drives-charts input').evaluateAll(inputs => inputs.map(el => ({
     value: el instanceof HTMLInputElement ? el.value : '', weight: getComputedStyle(el).fontWeight,
     cut: el.scrollWidth - el.clientWidth,
   })));
   expect(ringed).toHaveLength(7);
+  // Only the accented boxes are set tighter; every other box and label keeps the font's own spacing.
+  const plainSpacing = await page.locator('.de-modal .de-fld:not(.ui-field-drives-charts) input, .de-modal label').evaluateAll(els => [...new Set(els.map(el => getComputedStyle(el).letterSpacing))]);
+  expect(plainSpacing).toEqual(['normal']);
   for (const box of ringed) {
     expect(Number(box.weight), JSON.stringify(box)).toBeGreaterThanOrEqual(600);
     expect(box.cut, JSON.stringify(box)).toBeLessThanOrEqual(0);

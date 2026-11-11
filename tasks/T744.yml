@@ -120,6 +120,7 @@ files:
   - packages/ui/src/ui/components/UIFieldBody.vue
   - packages/ui/src/ui/components/UIFixedField.vue
   - packages/ui/src/ui/components/uiFieldBinding.ts
+  - packages/ui/src/ui/joined-fields.css
   - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
   - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
   - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue

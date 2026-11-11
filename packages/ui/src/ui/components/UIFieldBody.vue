@@ -218,9 +218,7 @@ function write(v: number | null, precision?: number): void {
    digit-cursor overlay drawn over the input matches it. */
 .ui-field.ui-field.ui-field.ui-field-drives-charts[data-field] .ui-field-value :deep(.num-input-wrap) { font-weight: 600; }
 .ui-field.ui-field.ui-field.ui-field-drives-charts[data-field] .ui-field-value :deep(input) { box-shadow: inset 0 0 0 2px var(--acc); font-weight: 600; }
-/* The phone's bold face (Roboto 700) is wider than its regular one: a six-digit value would run past the box, so the accented
-   value is set a little tighter instead of the box growing. */
-:global(.app-root-mobile) .ui-field.ui-field.ui-field.ui-field-drives-charts[data-field] .ui-field-value :deep(:is(input, .num-input-wrap)) { letter-spacing: -0.07em; }
+/* The phone's tighter accented value lives in joined-fields.css, beside the phone's font rule. */
 .ui-field-value :deep(input.calculated) { color: var(--acc); }
 .ui-field-value :deep(input.greyed) { background: #e9e9e9; }
 .ui-field-dq { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 4; }
