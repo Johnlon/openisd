@@ -187,18 +187,18 @@ export class WinisdDeviation {
   static readonly PR_MMS_CMS_TYPING = new WinisdDeviation({
     title: 'WinISD has no Mms or Cms on the Passive Radiator tab',
     winisd: 'WinISD takes the passive radiator as Vas, Fs, Qms, Sd and Xmax. It works Mms and Cms out from them and shows neither.',
-    openisd: 'OpenISD shows Mms and Cms, and lets you type them, as a datasheet gives them. A figure you type never moves another; the charts use it, and a Vas that then disagrees carries a warning.',
+    openisd: 'OpenISD shows Mms and Cms, and lets you type them, as a datasheet gives them. A value you type is never overwritten; the charts use the boxes as they show. When the boxes disagree, every box in the disagreeing set carries a warning that says what the maths gives.',
     size: 'The charts differ whenever the Mms or Cms you type differs from the one WinISD works out from Fs and Vas.',
     fix: {kind: 'ignoredInput', seenIn: 'the Mms and Cms fields on the Passive Radiator tab.', remedy: 'WinISD has no way to type these, so OpenISD has no switch to copy it. Type Vas and Fs to work the way WinISD does.'},
     charts: [],
   });
 
   static readonly DRIVER_MMS_CMS_TYPING = new WinisdDeviation({
-    title: 'WinISD ignores a typed Mms or Cms',
-    winisd: 'WinISD ignores a typed Mms or Cms: its charts keep using the Cms worked out from Vas and the Mms worked out from Fs and that Cms.',
-    openisd: 'OpenISD uses the Mms or Cms you type: the box shows it, the charts use it, and nothing you stated moves. A Vas that then disagrees carries a warning.',
-    size: 'The charts differ whenever the typed Mms or Cms differs from the one WinISD works out: a heavier cone gives a lower resonance and a different bass roll-off.',
-    fix: {kind: 'ignoredInput', seenIn: 'the Mms and Cms fields of a driver (the What-if panel and the driver editor).', remedy: 'WinISD has no way to make a typed Mms or Cms count, so OpenISD has no switch to copy it. Type Fs and Vas to work the way WinISD does.'},
+    title: 'WinISD ignores a typed Mms, Cms or Rms',
+    winisd: 'WinISD ignores a typed Mms, Cms or Rms: its charts keep using the Cms worked out from Vas, the Mms worked out from Fs and that Cms, and the Rms worked out from Qms.',
+    openisd: 'OpenISD charts the boxes as they show: Sd, Mms, Cms, Rms, Bl, Re and Le. A value you type is never overwritten. When the boxes disagree, every box in the disagreeing set carries a warning that says what the maths gives.',
+    size: 'The charts differ whenever a typed Mms, Cms or Rms differs from the one WinISD works out: a heavier cone gives a lower resonance and a different bass roll-off.',
+    fix: {kind: 'ignoredInput', seenIn: 'the Mms, Cms and Rms fields of the driver editor.', remedy: 'WinISD has no way to make a typed Mms, Cms or Rms count, so OpenISD has no switch to copy it. Type Fs and Vas to work the way WinISD does.'},
     charts: [],
   });
 

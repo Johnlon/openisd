@@ -172,16 +172,18 @@ describe('OriginalWhatIf-hooks', () => {
     expect(typeof api.dqNote('Fs_hz')).toBe('string');
   });
 
-  it('Mms is calculated by default; a typed Mms is used: the box shows it and the charts use it (T744, QO509: one rule with radiators; Fs is worked out again); clearing it leaves it not entered', async () => {
+  it('Mms is calculated by default; a typed Mms is kept and moves Fs, Vas stays (T744, QO535); clearing it leaves it not entered', async () => {
     const api = await renderHook();
     expect(api.specField('Mms_kg').calculated).toBe(true);
-    const calculatedMms = api.specField('Mms_kg').value;
+    const calculatedMms = api.specField('Mms_kg').value!;
+    const fs = api.specField('Fs_hz').value!;
 
-    api.enterField('Mms_kg', 0.0125);
+    api.enterField('Mms_kg', calculatedMms * 4);
     const entered = api.specField('Mms_kg');
     expect(entered.entered).toBe(true);
-    expect(entered.value).toBeCloseTo(0.0125, 6);
-    expect(api.specField('Fs_hz').entered).toBe(false);
+    expect(entered.value).toBeCloseTo(calculatedMms * 4, 6);
+    expect(api.specField('Fs_hz').value).toBeCloseTo(fs / 2, 6);
+    expect(api.specField('Vas_m3').value).toBe(0.03);
 
     api.clearField('Mms_kg');
     expect(api.specField('Mms_kg').entered).toBe(false);
@@ -196,7 +198,7 @@ describe('OriginalWhatIf-hooks', () => {
     expect(blCell.value).toBeCloseTo(9.5, 6);
   });
 
-  it('a blank Q auto-solves from the other two, and re-tracks when a sibling changes', async () => {
+  it('a blank Q auto-solves from the other two; a typed Qes then keeps Qms and moves Qts (QO535: the other results stay)', async () => {
     const project = createProject();
     project.driver.specs.Qms.set(4.0);
     const api = await renderHook(project);
@@ -209,7 +211,8 @@ describe('OriginalWhatIf-hooks', () => {
     expect(solved).not.toBeNull();
 
     api.enterField('Qes', 0.55);
-    expect(api.specField('Qms').value).not.toBeCloseTo(solved!, 6);
+    expect(api.specField('Qms').value).toBeCloseTo(solved!, 6);
+    expect(api.specField('Qts').value).toBeCloseTo(0.55 * solved! / (0.55 + solved!), 6);
   });
 
   it('clearing a second Q of the trio leaves the dependents not-available, not falsely calculated', async () => {

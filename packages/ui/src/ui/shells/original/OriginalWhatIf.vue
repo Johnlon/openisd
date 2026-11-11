@@ -8,7 +8,7 @@
 import {computed, ref} from 'vue';
 import {useApp} from '../../../logic/app.js';
 import type {NumericDriverSpecFieldName} from '@openisd/design';
-import {NumberField, WinisdDeviation} from '@openisd/design/fields';
+import {NumberField} from '@openisd/design/fields';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
@@ -63,9 +63,11 @@ function setBoxValue(row: SheetBoxRow, value: number): void { whatIf.setBoxField
 // SI-suffixed name (`Fs_hz`, `Vas_m3`). Each row's unit, group and display come from the field's
 // own registry entry through `UIField`, never a second string stated here.
 type NumKey = NumericDriverSpecFieldName;
-interface PanelField { key: NumKey; def: NumberField; label: string; deviation?: WinisdDeviation }
+interface PanelField { key: NumKey; def: NumberField; label: string }
 const MAIN: PanelField[] = [
   ...whatIf.sheetRows,
+  { key: 'Qts', def: NumberField.QTS,  label: 'Qts' },
+  { key: 'SPL_dB', def: NumberField.SPL_DB,  label: 'Sensitivity' },
   { key: 'Sd_m2', def: NumberField.SD_M2,  label: 'Sd' },
   { key: 'Re_ohm', def: NumberField.RE_OHM,  label: 'Re' },
 ];
@@ -74,13 +76,13 @@ const OPTIONAL: PanelField[] = [
   { key: 'Xmax_m', def: NumberField.XMAX_M, label: 'Xmax' },
   { key: 'Pe_W', def: NumberField.PE_W,   label: 'Pe' },
 ];
-// Bl and Mms are ordinary driver fields, not outputs: the ADT derives them when they are not
-// entered and honours them when they are (Driver.enter → state E → fixed-E override), exactly
-// as the driver editor already treats them. So they are edited here like any other field, and
-// the E/C colour says which of the two is happening.
+// The parts the charts use. Typing one keeps the other parts and moves the results that follow it; typing a result above
+// keeps the other results and moves these (QO535, the engine's What-if rule).
 const DERIVED: PanelField[] = [
   { key: 'BL_Tm', def: NumberField.BL_TM,  label: 'Bl' },
-  { key: 'Mms_kg', def: NumberField.MMS_KG, label: 'Mms', deviation: WinisdDeviation.DRIVER_MMS_CMS_TYPING },
+  { key: 'Mms_kg', def: NumberField.MMS_KG, label: 'Mms' },
+  { key: 'Cms_m_per_N', def: NumberField.CMS_M_PER_N, label: 'Cms' },
+  { key: 'Rms_kg_per_s', def: NumberField.RMS_KG_PER_S, label: 'Rms' },
 ];
 
 const ebpVal = whatIf.ebp;
@@ -127,7 +129,7 @@ useEscToClose(() => presentationState.editDriver, close);
 
     <div class="what-if-subsect">Derived</div>
     <div class="what-if-grid">
-      <UIField v-for="f in DERIVED" :key="f.key" class="what-if-fld" :title="`${f.label} is calculated from the parameters above until you type one — then it overrides them. Clear the field to hand it back to the calculation.`" :field="f.def" :label="f.label" :cell="whatIf.specCell(f.key)" :deviation="f.deviation" />
+      <UIField v-for="f in DERIVED" :key="f.key" class="what-if-fld" :title="`Type ${f.label} to try a different part: the other parts stay and Fs, Vas and the Qs follow it.`" :field="f.def" :label="f.label" :cell="whatIf.specCell(f.key)" />
       <!-- EBP is NOT a driver field: the ADT does not derive it and has no slot to override
            (it is ebp() = Fs/Qes, computed in the engine). Making it editable means choosing
            which of Fs or Qes an entered EBP solves backwards — a decision for the human, not

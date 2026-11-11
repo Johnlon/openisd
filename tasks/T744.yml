@@ -103,4 +103,5 @@ files:
   - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
   - packages/ui/test/ui/original-pr-cms-note.browser.spec.ts
   - packages/ui/test/ui/original-pr-tab.browser.spec.ts
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
   - tasks/T744.yml
