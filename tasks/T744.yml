@@ -75,11 +75,13 @@ files:
   - packages/design/test/domain/project-new-defaults.test.ts
   - packages/design/test/domain/project-settings.test.ts
   - packages/design/test/domain/project/project-id.test.ts
+  - packages/design/test/domain/what-if-driver.test.ts
   - packages/design/test/engine/air.test.ts
   - packages/design/test/engine/driver-circuit-values.test.ts
   - packages/design/test/engine/driver-engine-widths.test.ts
   - packages/design/test/engine/formulas.test.ts
   - packages/design/test/engine/testSolver.ts
+  - packages/design/test/engine/what-if-moves.test.ts
   - packages/design/test/fixtures/domainBuilders.ts
   - packages/design/test/fixtures/recordBuilders.ts
   - packages/design/test/fixtures/winisdEditCapture.ts
