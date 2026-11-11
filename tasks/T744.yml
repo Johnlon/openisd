@@ -27,6 +27,7 @@ files:
   - bugs/archive/BUG_20261031_phone-pr-p173-cms-display.md
   - docs/design/FIELD_CLEAR_RULE.md
   - docs/research/ACCURACY_IMPROVEMENTS.md
+  - docs/research/WINISD_EQUIVALENCE.md
   - docs/research/WINISD_PARITY.md
   - packages/design/domain/appContext.ts
   - packages/design/domain/box/openISDBox.ts
