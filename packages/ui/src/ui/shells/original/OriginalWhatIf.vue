@@ -138,19 +138,21 @@ useEscToClose(() => presentationState.editDriver, close);
     </div>
 
     <div class="what-if-btns">
+      <ProvenanceLegend class="what-if-legend" />
       <button title="Back to the design's values" @click="reset">Reset</button>
       <button class="footer-buttons-pri" title="Close. Your project will not be updated." @click="close">Close</button>
     </div>
-      <ProvenanceLegend class="what-if-legend" />
     </div>
   </div>
 </template>
 
 <style scoped>
 /* Width follows its content (two columns of label, input, stepper, dq mark and unit), so no unit runs past the edge. */
+/* It sits 16px off the window's top and bottom: with the four What-if inputs (QO535) the ABC panel is 682px tall,
+   which fits a 1280 x 720 window (688px) without scrolling. */
 .what-if-panel {
-  position: fixed; right: 24px; bottom: 24px; z-index: 60;
-  width: max-content; max-width: calc(100vw - 32px); max-height: calc(100vh - 48px); overflow-y: auto;
+  position: fixed; right: 24px; bottom: 16px; z-index: 60;
+  width: max-content; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); overflow-y: auto;
   background: #f7f7f7; border: 1px solid #888; border-radius: 8px;
   box-shadow: 0 6px 24px rgba(0,0,0,.35); padding: 10px 14px 14px; font-size: 13px;
 }
@@ -162,7 +164,9 @@ useEscToClose(() => presentationState.editDriver, close);
 .what-if-titlebar .close-btn:hover { background: #e64545; color: #fff; }
 .what-if-panel-collapsed { max-height:none; overflow:visible; padding-bottom:8px; }
 .what-if-panel-collapsed .what-if-titlebar { margin-bottom:0; }
-.what-if-legend { margin-top: 10px; border: 1px solid var(--line); border-radius: 4px; }
+/* The colour legend shares the footer row with Reset and Close, so the four What-if inputs (QO535)
+   still fit a 1280 x 720 window without the panel scrolling. */
+.what-if-legend { margin-right: auto; border: 1px solid var(--line); border-radius: 4px; }
 /* The content is a grid, where margins add up instead of merging. The hint keeps the spacing it had
    as a block: 1em above it counting the title bar's 6px, and below it only the next heading's 10px. */
 .what-if-hint { width:0; min-width:100%; color: #777; font-style: italic; font-size: 11.5px; margin: calc(1em - 6px) 0 0; }
@@ -197,8 +201,8 @@ useEscToClose(() => presentationState.editDriver, close);
 .what-if-panel .what-if-content :deep(.ui-field.ui-field[data-field] > .ui-field-label) {
   grid-column:1; grid-row:1; white-space:nowrap; overflow-wrap:normal; text-align:left; padding-right:0;
 }
-.what-if-subsect { color: #7d9fc9; font-weight: 600; font-size: 12px; margin: 10px 0 2px; }
-.what-if-btns { display: flex; gap: 8px; justify-content: flex-end; padding-top: 8px; border-top: 1px solid #ddd; margin-top: 10px; }
+.what-if-subsect { color: #7d9fc9; font-weight: 600; font-size: 12px; margin: 8px 0 2px; }
+.what-if-btns { display: flex; align-items: center; gap: 8px; justify-content: flex-end; padding-top: 8px; border-top: 1px solid #ddd; margin-top: 6px; }
 .what-if-btns button { border: 1px solid #999; background: #f0f0f0; border-radius: 3px; padding: 6px 12px; cursor: pointer; }
 .what-if-btns button:hover { background: #dbeaff; border-color: #7fb3ff; }
 .what-if-btns button.footer-buttons-pri { background: #1868d1; color: #fff; border-color: #1868d1; }
