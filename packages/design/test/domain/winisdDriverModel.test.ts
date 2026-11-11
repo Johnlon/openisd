@@ -4,9 +4,10 @@
  *
  * WinISD 0.7.0.950, probed under wine 2026-09-26 (`winisd_research/PROBE_FINDINGS.md`), keeps all
  * three entered values untouched and simulates from `Fs`, `Vas`, `Qes`, `Qms`, `Sd` and `Re`
- * alone — its equivalent circuit names neither `BL` nor `Rms` except in `CLe`. So with the flag
- * set, an inconsistent driver must sweep as the consistent driver its `Fs`/`Cms`/`Qes`/`Qms`/`Re`
- * imply, and with it clear it must sweep as its entered values say.
+ * alone, except that the motor's push and `CLe` read the entered BL. OpenISD charts the boxes as they
+ * show (QO534: "the editor and pr settings will use the [on-screen] values not hidden recalcs
+ * always"). With the flag set, the damping runs on the BL Qes implies and the push on the Bl box;
+ * with it clear there is one BL, the Bl box's.
  */
 import {describe, expect, it} from 'vitest';
 import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
@@ -14,8 +15,7 @@ import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {type Engine, createEngine} from '../../engine/Engine.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
-import {reproduceWinisdBugs} from '../fixtures/domainBuilders.js';
-import {REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
+import {reproduceWinisdBugs, useWinisdParts} from '../fixtures/domainBuilders.js';
 
 describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', () => {
   // The probe driver. Fs/Cms imply Mms = 0.04346 kg, not the 0.060 entered; Fs/Qms/Mms imply
@@ -43,11 +43,12 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     return {re: zmag * Math.cos(ph) - Re, im: zmag * Math.sin(ph)};
   };
 
-  it('set: the inconsistent driver has the consistent one\'s impedance and SPL shape; its entered BL sets the SPL level and the motional impedance\'s scale', () => {
+  it('set: a typed BL keeps the impedance and SPL shape; it sets the SPL level and the motional impedance\'s scale', () => {
     const engine = createEngine();
-    const entered = projectOn(engine, {...SHARED, ...CONTRADICTORY});
+    const entered = projectOn(engine, {...SHARED, BL_Tm: CONTRADICTORY.BL_Tm});
     entered.winisdDriverModel.set(true);
     const winisd = projectOn(engine, {...SHARED});
+    winisd.winisdDriverModel.set(true);
 
     const mine = entered.sweep(P).values;
     const theirs = winisd.sweep(P).values;
@@ -85,18 +86,18 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     });
   });
 
-  it('clear: one BL — a typed BL moves no chart, the BL Re, Fs, Qes and Vas imply drives push and damping alike', () => {
+  it('clear: one BL, the Bl box\'s — a typed BL moves push and damping alike, so the SPL shape changes', () => {
     const engine = createEngine();
     const a = projectOn(engine, {...SHARED, BL_Tm: 7.17});
     const b = projectOn(engine, {...SHARED, BL_Tm: 5.0});
     a.winisdDriverModel.set(false);
     b.winisdDriverModel.set(false);
     const sa = a.sweep(P).values!, sb = b.sweep(P).values!;
-    sa.spl.forEach((db, i) => expect(sb.spl[i]).toBeCloseTo(db, 9));
-    sa.zmag.forEach((z, i) => expect(sb.zmag[i]).toBeCloseTo(z, 9));
+    const shift = sa.spl.map((db, i) => sb.spl[i] - db);
+    expect(Math.max(...shift) - Math.min(...shift)).toBeGreaterThan(0.5);
   });
 
-  it('clear: the entered Mms, BL and Rms are not read — the contradictory driver sweeps as the consistent one', () => {
+  it('clear: the entered Mms, BL and Rms are read — the contradictory driver sweeps as its boxes say, not as the consistent one', () => {
     const engine = createEngine();
     const entered = projectOn(engine, {...SHARED, ...CONTRADICTORY});
     entered.winisdDriverModel.set(false);
@@ -105,31 +106,21 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
 
     const mine = entered.sweep(P).values!;
     const theirs = winisd.sweep(P).values!;
-    mine.spl.forEach((db, i) => expect(db).toBeCloseTo(theirs.spl[i], 9));
+    expect(Math.max(...mine.spl.map((db, i) => Math.abs(db - theirs.spl[i])))).toBeGreaterThan(1);
   });
 
-  it('set: Vas, not the entered Cms, is what the compliance comes from', () => {
-    // WinISD takes Cms from Vas (debugger capture, winisd_research 4d818e2). This driver's Vas is
-    // 20% larger than its entered Cms implies, so the two disagree and only one can drive the
-    // sweep. Driver B states the Cms that Vas implies at the project's own air, reached here by
-    // asking the engine for it rather than by writing a number this test would have to maintain.
+  it('the Cms box, not Vas, is what the compliance comes from, whichever way the switch is', () => {
+    // WinISD takes Cms from Vas (debugger capture, winisd_research 4d818e2); OpenISD charts the Cms box (QO534).
+    // Driver B states a Vas 20% larger beside the same Cms: the two disagree, and the stated Cms drives the sweep.
     const engine = createEngine();
-    const air = REFERENCE_AIR_VALUES;
-    const Vas_m3 = SHARED.Vas_m3 * 1.2;
-    const cmsFromVas = Vas_m3 / (air.rho * air.c * air.c * SHARED.Sd_m2 * SHARED.Sd_m2);
-
-    const byVas = projectOn(engine, {...SHARED, Vas_m3});
-    const byCms = projectOn(engine, {...SHARED, Vas_m3, Cms_m_per_N: cmsFromVas});
-
-    const mine = byVas.sweep(P).values!;
-    const theirs = byCms.sweep(P).values!;
-    mine.spl.forEach((db, i) => expect(db).toBeCloseTo(theirs.spl[i], 6));
-
-    // ...and cleared they still sweep alike: the circuit never reads the entered Cms, whichever way the switch is.
-    byVas.winisdDriverModel.set(false);
-    byCms.winisdDriverModel.set(false);
-    const a = byVas.sweep(P).values!, b = byCms.sweep(P).values!;
-    a.spl.forEach((db, i) => expect(db).toBeCloseTo(b.spl[i], 6));
+    const byCms = projectOn(engine, {...SHARED});
+    const withBigVas = projectOn(engine, {...SHARED, Vas_m3: SHARED.Vas_m3 * 1.2});
+    for (const on of [true, false]) {
+      byCms.winisdDriverModel.set(on);
+      withBigVas.winisdDriverModel.set(on);
+      const a = byCms.sweep(P).values!, b = withBigVas.sweep(P).values!;
+      a.spl.forEach((db, i) => expect(b.spl[i]).toBeCloseTo(db, 6));
+    }
   });
 
   it('defaults off — a new project has WinISD\'s two-BL bug fixed (John, 2026-10-04)', () => {
@@ -155,13 +146,15 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
   describe('the W5-1138SMF against WinISD\'s debugger values (winisd_research runs/sweep-w5-sealed-*)', () => {
     const W5 = {
       Fs_hz: 45, Qes: 0.57, Qms: 3.56, Qts: 0.49, Vas_m3: 0.00485, Sd_m2: 0.0094, Re_ohm: 3.4,
-      BL_Tm: 7.17, Le_H: 0.00034, Cms_m_per_N: 0.00036872, Mms_kg: 0.02881, Rms_kg_per_s: 2.2881560650261163,
-      Xmax_m: 0.00925, Pe_W: 40,
+      // WinISD's charts never read the datasheet's Cms 0.00036872, Mms 0.02881 or Rms 2.288: they work them out from Fs, Vas and Qms.
+      // OpenISD charts the boxes as they show (QO534), so they are set to WinISD's own figures (`useWinisdParts`).
+      BL_Tm: 7.17, Le_H: 0.00034, Xmax_m: 0.00925, Pe_W: 40,
     };
     const w5 = (engine: Engine): OpenISDProject => {
       const project = new ProjectBuilder(driverFromSpec(engine, W5), engine)
         .sealed().volume_m3(0.00448).build();
       reproduceWinisdBugs(project);
+      useWinisdParts(project);
       project.powerDrive_W.set(1);
       project.Rs_ohm.set(0.1);
       project.rgAtDriverSide.set(false);

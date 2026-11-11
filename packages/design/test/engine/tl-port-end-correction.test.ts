@@ -17,6 +17,7 @@ import {createEngine} from '../../engine/Engine.js';
 import {WinisdDeviation} from '../../fields/winisdDeviation.js';
 import {ToggleField} from '../../fields/field.js';
 import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
+import {useWinisdParts} from '../fixtures/domainBuilders.js';
 
 const engine = createEngine();
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'winisd', 'fixtures');
@@ -26,6 +27,8 @@ function w5Vented(): OpenISDProject {
   const text = readFileSync(join(FIXTURES, 'vented-w5-tlports.wpr'), 'utf8');
   const {value, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
   if (value === null) throw new Error('import failed: ' + JSON.stringify(errors));
+  // WinISD's charts never read the file's Mms, Cms and Rms; OpenISD charts the boxes (QO534), so they take WinISD's figures.
+  useWinisdParts(value);
   value.winisdDriverModel.set(true);
   value.rgAtDriverSide.set(false);
   value.useTransmissionLinePortModel.set(false);

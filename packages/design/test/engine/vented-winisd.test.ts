@@ -16,6 +16,7 @@ import {createEngine} from '../../engine/Engine.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {WINISD_VENTED_CAPTURE, type WinIsdComplexPoint} from '../fixtures/winisdVentedCapture.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
+import {useWinisdParts} from '../fixtures/domainBuilders.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const WPR_PATH = join(here, '..', 'winisd', 'fixtures', 'vented-w5-2.wpr');
@@ -34,6 +35,8 @@ function setUpProject(): OpenISDProject {
   const text = readFileSync(WPR_PATH, 'utf8');
   const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
+  // WinISD's charts never read the file's Mms, Cms and Rms; OpenISD charts the boxes (QO534), so they take WinISD's figures.
+  useWinisdParts(project);
   // WinISD Advanced/Compatibility switches this capture ran under (fixture header comment):
   // VCInd off (circuitModel stays its 'winisd' default — Le excluded), Rg NOT at driver side.
   project.winisdDriverModel.set(true);

@@ -30,6 +30,7 @@ import {reproduceWinisdBugs} from '../fixtures/domainBuilders.js';
 import {WINISD_ABC_CAPTURE} from '../fixtures/winisdAbcCapture.js';
 import type {WinIsdComplexPoint} from '../fixtures/winisdVentedCapture.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
+import {useWinisdParts} from '../fixtures/domainBuilders.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -47,6 +48,8 @@ function setUpProject(wprFile: string): OpenISDProject {
   const text = readFileSync(join(here, '..', 'winisd', 'fixtures', wprFile), 'utf8');
   const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
+  // WinISD's charts never read the file's Mms, Cms and Rms; OpenISD charts the boxes (QO534), so they take WinISD's figures.
+  useWinisdParts(project);
   // The capture's own condition (this file's header, and the fixture's own doc comment): VCInd
   // off, "Two-BL driver" on, winisd-lossy, WinISD's own air model, Rg NOT at
   // driver side. `reproduceWinisdBugs` covers every one of those except `rgAtDriverSide`

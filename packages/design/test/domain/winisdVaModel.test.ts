@@ -8,18 +8,20 @@ import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {createEngine} from '../../engine/Engine.js';
-import {reproduceWinisdBugs} from '../fixtures/domainBuilders.js';
+import {reproduceWinisdBugs, useWinisdParts} from '../fixtures/domainBuilders.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 const W5 = {
   Fs_hz: 45, Qes: 0.57, Qms: 3.56, Qts: 0.49, Vas_m3: 0.00485, Sd_m2: 0.0094, Re_ohm: 3.4,
-  BL_Tm: 7.17, Le_H: 0.00034, Cms_m_per_N: 0.00036872, Mms_kg: 0.02881, Rms_kg_per_s: 2.2881560650261163,
-  Xmax_m: 0.00925, Pe_W: 40,
+  // WinISD's charts never read the datasheet's Cms 0.00036872, Mms 0.02881 or Rms 2.288: they work them out from Fs, Vas and Qms.
+  // OpenISD charts the boxes as they show (QO534), so they are set to WinISD's own figures (`useWinisdParts`).
+  BL_Tm: 7.17, Le_H: 0.00034, Xmax_m: 0.00925, Pe_W: 40,
 };
 const engine = createEngine();
 const w5 = (): OpenISDProject => {
   const project = new ProjectBuilder(driverFromSpec(engine, W5), engine).sealed().volume_m3(0.00448).build();
   reproduceWinisdBugs(project);
+  useWinisdParts(project);
   project.powerDrive_W.set(1);
   project.Rs_ohm.set(1);
   project.rgAtDriverSide.set(false);

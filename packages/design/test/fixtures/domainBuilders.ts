@@ -3,6 +3,7 @@ import type {AppServices} from '../../domain/appContext.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {CompatSwitch} from '../../domain/project/compatSwitch.js';
+import {CMS_FROM_VAS_SD_ROUTE, MMS_FROM_FS_CMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE} from '../../engine/driver/routes/index.js';
 import type {OpenISDProject} from '../../domain/project/openISDProject.js';
 
 export function fixedAppContext(id: string, isoDate = '2026-01-01T00:00:00.000Z', platformUser: string | null = null): AppServices {
@@ -158,6 +159,32 @@ export function driverJson(p: {
 
 /** A sealed 30 L project on a plain RS225 woofer with Re unstated — the starting point for the
  *  project-settings and signal scenarios. */
+/** Driver boxes WinISD's charts never read. */
+export type WinisdPart = 'Mms_kg' | 'Cms_m_per_N' | 'Rms_kg_per_s';
+
+/** WinISD's own figure for each part. */
+export interface WinisdParts { readonly Mms_kg: number; readonly Cms_m_per_N: number; readonly Rms_kg_per_s: number }
+
+/** The Cms, Mms and Rms WinISD's charts use for `p`'s driver, whatever its boxes say: Cms from Vas and Sd at the project's air, Mms
+ *  from Fs and that Cms, Rms from Fs, Mms and Qms (decompile `fr_45e090`). OpenISD charts the boxes as they show (QO534), so a test
+ *  held to WinISD's numbers sets these into the boxes first. */
+export function winisdParts(p: OpenISDProject): WinisdParts {
+  const d = p.driver;
+  const Fs_hz = d.specField('Fs_hz').value, Vas_m3 = d.specField('Vas_m3').value, Sd_m2 = d.specField('Sd_m2').value, Qms = d.specField('Qms').value;
+  if (Fs_hz === null || Vas_m3 === null || Sd_m2 === null || Qms === null) throw new Error('WinISD\'s Cms, Mms and Rms need Fs, Vas, Sd and Qms');
+  const Cms_m_per_N = CMS_FROM_VAS_SD_ROUTE.value({Vas_m3, Sd_m2, c_m_per_s: p.air.c(), roo_kg_per_m3: p.air.rho()});
+  const Mms_kg = Cms_m_per_N === null ? null : MMS_FROM_FS_CMS_ROUTE.value({Fs_hz, Cms_m_per_N});
+  const Rms_kg_per_s = Mms_kg === null ? null : RMS_FROM_FS_MMS_QMS_ROUTE.value({Fs_hz, Mms_kg, Qms});
+  if (Cms_m_per_N === null || Mms_kg === null || Rms_kg_per_s === null) throw new Error('WinISD\'s Cms, Mms and Rms cannot be worked out');
+  return {Mms_kg, Cms_m_per_N, Rms_kg_per_s};
+}
+
+/** `p`'s Mms, Cms and Rms boxes set to WinISD's own figures (`winisdParts`). */
+export function useWinisdParts(p: OpenISDProject): void {
+  const parts = winisdParts(p);
+  for (const part of ['Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s'] as const) p.driver.specField(part).set(parts[part]);
+}
+
 /** `p` set to reproduce WinISD exactly: every option and every WinISD bug ticked. */
 export function reproduceWinisdBugs(p: OpenISDProject): void {
   for (const s of CompatSwitch.ALL) s.of(p).set(true);

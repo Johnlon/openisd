@@ -19,7 +19,7 @@ import type {LossChamber, VentPort} from '../../domain/box/box.js';
 import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
 import type {NumericDriverSpecFieldName} from '../../domain/driver/driverSpecFieldName.js';
 import {driverSpecsOf} from '../../domain/openisdSchema.js';
-import {CMS_FROM_VAS_SD_ROUTE, MMS_FROM_FS_CMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE} from '../../engine/driver/routes/index.js';
+import {type WinisdPart, winisdParts} from './domainBuilders.js';
 import type {SpecEntryJson} from '../../domain/openisdSchema.js';
 import type {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {readSheetSlot, ventOfSlot, writeSheetSlot} from '../../domain/project/sheetSlots.js';
@@ -342,7 +342,7 @@ type MaxCurves = NonNullable<ReturnType<OpenISDProject['maxCurves']>['values']>;
 export interface Swept { readonly sw: Sweep; readonly mx: MaxCurves }
 
 /** One driver box set for a sweep, to be put back as it was. */
-interface HeldBox { readonly spec: 'Mms_kg' | 'Cms_m_per_N' | 'Rms_kg_per_s'; readonly value: number | null; readonly entered: boolean; readonly precision: number | null }
+interface HeldBox { readonly spec: WinisdPart; readonly value: number | null; readonly entered: boolean; readonly precision: number | null }
 
 /** The charts after the edit, swept WinISD's way. OpenISD charts the boxes as they show (QO534); WinISD's charts never read Mms, Cms
  *  or Rms: they work Cms out from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, Mms and Qms (decompile `fr_45e090`). For the sweep
@@ -356,17 +356,9 @@ export function sweepAfterEdit(project: OpenISDProject, capture: Capture): Swept
     const box = d.specField(spec);
     return {spec, value: box.value, entered: box.entered, precision: box.precision};
   });
-  const Fs_hz = d.specField('Fs_hz').value, Vas_m3 = d.specField('Vas_m3').value, Sd_m2 = d.specField('Sd_m2').value, Qms = d.specField('Qms').value;
-  if (Fs_hz !== null && Vas_m3 !== null && Sd_m2 !== null && Qms !== null) {
-    const air = project.air;
-    const Cms_m_per_N = CMS_FROM_VAS_SD_ROUTE.value({Vas_m3, Sd_m2, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()});
-    const Mms_kg = Cms_m_per_N === null ? null : MMS_FROM_FS_CMS_ROUTE.value({Fs_hz, Cms_m_per_N});
-    const Rms_kg_per_s = Mms_kg === null ? null : RMS_FROM_FS_MMS_QMS_ROUTE.value({Fs_hz, Mms_kg, Qms});
-    if (Cms_m_per_N === null || Mms_kg === null || Rms_kg_per_s === null) throw new Error(`${capture.run}: WinISD's Cms, Mms and Rms cannot be worked out`);
-    const winisd: Readonly<Record<'Mms_kg' | 'Cms_m_per_N' | 'Rms_kg_per_s', number>> = {Mms_kg, Cms_m_per_N, Rms_kg_per_s};
-    const editorName: Readonly<Record<'Mms_kg' | 'Cms_m_per_N' | 'Rms_kg_per_s', string>> = {Mms_kg: 'Mms', Cms_m_per_N: 'Cms', Rms_kg_per_s: 'Rms'};
-    for (const box of held) if (editorName[box.spec] !== typed) d.specField(box.spec).set(winisd[box.spec]);
-  }
+  const winisd = winisdParts(project);
+  const editorName: Readonly<Record<WinisdPart, string>> = {Mms_kg: 'Mms', Cms_m_per_N: 'Cms', Rms_kg_per_s: 'Rms'};
+  for (const box of held) if (editorName[box.spec] !== typed) d.specField(box.spec).set(winisd[box.spec]);
   const sw = project.sweep(grid);
   const mx = project.maxCurves(grid);
   for (const box of held) {

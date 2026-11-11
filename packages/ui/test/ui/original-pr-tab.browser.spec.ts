@@ -235,7 +235,9 @@ test.describe('Original Passive Radiator tab', () => {
       await expect(page.locator('#og-pr-cms')).toHaveValue(/^0\.79/);
       await expect(page.locator('#og-pr-cms')).toHaveClass(/dq-flag/);
 
-      await page.locator('#og-pr-cms').fill('');
+      await page.locator('#og-pr-cms').click();
+      await page.locator('#og-pr-cms').press('ControlOrMeta+a');
+      await page.locator('#og-pr-cms').press('Delete');
       await page.locator('#og-pr-cms').press('Tab');
       await expect(page.locator('#og-pr-cms')).toHaveClass(/value-c/);
       await expect(page.locator('#og-pr-vas')).not.toHaveClass(/dq-flag/);

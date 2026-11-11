@@ -17,6 +17,7 @@ import {WINISD_TL_PORTS_LOSSLESS_CAPTURE as VENTED_LOSSLESS} from '../fixtures/w
 import {WINISD_BP4_TL_PORTS_CAPTURE as BP4} from '../fixtures/winisdBp4TlPortsCapture.js';
 import {WINISD_BP6_TL_PORTS_CAPTURE as BP6} from '../fixtures/winisdBp6TlPortsCapture.js';
 import {WINISD_ABC_TL_PORTS_CAPTURE as ABC} from '../fixtures/winisdAbcTlPortsCapture.js';
+import {useWinisdParts} from '../fixtures/domainBuilders.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'winisd', 'fixtures');
 
@@ -76,6 +77,8 @@ const CASES: readonly Case[] = [
 function setUpProject(c: Case): OpenISDProject {
   const {value: project, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(readFileSync(join(FIXTURES, `${c.wpr}.wpr`), 'utf8'));
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
+  // WinISD's charts never read the file's Mms, Cms and Rms; OpenISD charts the boxes (QO534), so they take WinISD's figures.
+  useWinisdParts(project);
   project.winisdDriverModel.set(true);
   project.rgAtDriverSide.set(false);
   // WinISD's own pipe, without the end correction.

@@ -14,12 +14,15 @@ import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {WINISD_BP6_PORT_GAIN_CAPTURE as BP6, type WinIsdPlottedPoint} from '../fixtures/winisdBp6PortGainCapture.js';
 import {WINISD_ABC_PORT_GAIN_CAPTURE as ABC} from '../fixtures/winisdAbcPortGainCapture.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
+import {useWinisdParts} from '../fixtures/domainBuilders.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'winisd', 'fixtures');
 
 function project(wpr: string): OpenISDProject {
   const {value, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(readFileSync(join(FIXTURES, wpr), 'utf8'));
   if (value === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
+  // WinISD's charts never read the file's Mms, Cms and Rms; OpenISD charts the boxes (QO534), so they take WinISD's figures.
+  useWinisdParts(value);
   value.winisdDriverModel.set(true);
   value.rgAtDriverSide.set(false);
   return value;

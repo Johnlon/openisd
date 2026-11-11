@@ -22,6 +22,8 @@ import {createEngine} from '../../engine/index.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
+import {useWinisdParts} from '../fixtures/domainBuilders.js';
+import {BL_FROM_QES_CMS_ROUTE} from '../../engine/driver/routes/index.js';
 
 const DIR = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'fixtures', 'air-migration');
 const GRID: FrequencyGrid = {fmin: 10, fmax: 2000, N: 120};
@@ -63,12 +65,27 @@ function load(file: string): Loaded {
   return {project: result.project, repaired: result.repaired.map(path => JSON.stringify(path))};
 }
 
+/** The earlier build's charts worked Mms, Cms and Rms out from Fs, Vas and Qms as WinISD does, and BL from Re, Fs, Qes and that
+ *  Cms. This build charts the boxes as they show (QO534), so for the goldens' chart numbers the boxes are set to those figures. */
+function useEarlierBuildBoxes(project: OpenISDProject): void {
+  useWinisdParts(project);
+  const d = project.driver;
+  const Re_ohm = d.specField('Re_ohm').value, Fs_hz = d.specField('Fs_hz').value, Qes = d.specField('Qes').value, Cms_m_per_N = d.specField('Cms_m_per_N').value;
+  if (Re_ohm === null || Fs_hz === null || Qes === null || Cms_m_per_N === null) throw new Error('the earlier build\'s BL needs Re, Fs, Qes and Cms');
+  const BL_Tm = BL_FROM_QES_CMS_ROUTE.value({Re_ohm, Fs_hz, Qes, Cms_m_per_N});
+  if (BL_Tm === null) throw new Error('the earlier build\'s BL cannot be worked out');
+  d.specField('BL_Tm').set(BL_Tm);
+}
+
+/** What the load shows; the chart numbers are read with the earlier build's boxes (`useEarlierBuildBoxes`), after the load's own facts. */
 function observe({project, repaired}: Loaded): Observed {
+  const modified = project.isModified();
+  useEarlierBuildBoxes(project);
   const numbers: (number | null)[] = [];
   collect(project.sweep(GRID).values, numbers);
   collect(project.maxCurves(GRID).values, numbers);
   return {
-    errors: null, repaired, modified: project.isModified(),
+    errors: null, repaired, modified,
     T: project.envTempK.value ?? NaN, RH: project.envHumidityPct.value ?? NaN, p: project.envPressurePa.value ?? NaN,
     c: project.envC_m_per_s.value, rho: project.envRoo_kg_per_m3.value, numbers,
   };

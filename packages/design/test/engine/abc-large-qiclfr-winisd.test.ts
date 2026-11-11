@@ -24,6 +24,7 @@ import {WINISD_ABC_CAPTURE} from '../fixtures/winisdAbcCapture.js';
 import {WINISD_ABC_HUGE_QICL_CAPTURE} from '../fixtures/winisdAbcHugeQiclCapture.js';
 import type {WinIsdComplexPoint} from '../fixtures/winisdVentedCapture.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
+import {useWinisdParts} from '../fixtures/domainBuilders.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -32,6 +33,8 @@ function setUpProject(wprFile: string, winisdChart: boolean, Qicl: number | null
   const text = readFileSync(join(here, '..', 'winisd', 'fixtures', wprFile), 'utf8');
   const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
+  // WinISD's charts never read the file's Mms, Cms and Rms; OpenISD charts the boxes (QO534), so they take WinISD's figures.
+  useWinisdParts(project);
   reproduceWinisdBugs(project);
   project.rgAtDriverSide.set(false);
   project.winisdAbcIntraPortVelocity.set(winisdChart);

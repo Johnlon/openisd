@@ -12,12 +12,15 @@ import {createEngine} from '../../engine/Engine.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {WINISD_ISOBARIK_CAPTURE as CAP, type WinIsdPlottedPoint} from '../fixtures/winisdIsobarikCapture.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
+import {useWinisdParts} from '../fixtures/domainBuilders.js';
 
 const WPR_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'winisd', 'fixtures', 'sealed-w5-isobarik.wpr');
 
 function setUpProject(): OpenISDProject {
   const {value: project, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(readFileSync(WPR_PATH, 'utf8'));
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
+  // WinISD's charts never read the file's Mms, Cms and Rms; OpenISD charts the boxes (QO534), so they take WinISD's figures.
+  useWinisdParts(project);
   project.winisdDriverModel.set(true);
   project.rgAtDriverSide.set(false);
   project.loading.set('isobaric');

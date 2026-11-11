@@ -18,6 +18,7 @@ import {WINISD_TWO_DRIVERS_BP4_CAPTURE as BP4} from '../fixtures/winisdTwoDriver
 import {WINISD_TWO_DRIVERS_BP6_CAPTURE as BP6} from '../fixtures/winisdTwoDriversBp6Capture.js';
 import {WINISD_TWO_DRIVERS_ABC_CAPTURE as ABC} from '../fixtures/winisdTwoDriversAbcCapture.js';
 import {WINISD_TWO_DRIVERS_PR_CAPTURE as PR} from '../fixtures/winisdTwoDriversPrCapture.js';
+import {useWinisdParts} from '../fixtures/domainBuilders.js';
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'winisd', 'fixtures');
 
@@ -84,6 +85,8 @@ const CASES: readonly Case[] = [
 function setUpProject(c: Case): OpenISDProject {
   const {value: project, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(readFileSync(join(FIXTURES, `${c.wpr}.wpr`), 'utf8'));
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
+  // WinISD's charts never read the file's Mms, Cms and Rms; OpenISD charts the boxes (QO534), so they take WinISD's figures.
+  useWinisdParts(project);
   project.winisdDriverModel.set(true);
   project.winisdDriverCountModel.set(true);   // WinISD's per-driver impedance: a WinISD bug, off by default
   project.rgAtDriverSide.set(false);

@@ -72,18 +72,42 @@ files:
   - packages/design/test/domain/pr-sd-edit.test.ts
   - packages/design/test/domain/pr-spec-conflict.test.ts
   - packages/design/test/domain/pr-spec-resolve.test.ts
+  - packages/design/test/domain/project-air-migration.test.ts
   - packages/design/test/domain/project-modified-stamp.test.ts
   - packages/design/test/domain/project-new-defaults.test.ts
   - packages/design/test/domain/project-settings.test.ts
   - packages/design/test/domain/project/project-id.test.ts
   - packages/design/test/domain/what-if-driver.test.ts
+  - packages/design/test/domain/winisdDriverModel.test.ts
+  - packages/design/test/domain/winisdVaModel.test.ts
+  - packages/design/test/engine/abc-group-delay-winisd.test.ts
+  - packages/design/test/engine/abc-large-qiclfr-winisd.test.ts
+  - packages/design/test/engine/abc-winisd.test.ts
   - packages/design/test/engine/air.test.ts
+  - packages/design/test/engine/bandpass4-winisd.test.ts
+  - packages/design/test/engine/bandpass6-winisd.test.ts
+  - packages/design/test/engine/bp4-front-port-gain-winisd.test.ts
+  - packages/design/test/engine/bp6-abc-port-gain-winisd.test.ts
+  - packages/design/test/engine/dq-issue-text.test.ts
   - packages/design/test/engine/driver-circuit-values.test.ts
+  - packages/design/test/engine/driver-count-winisd.test.ts
   - packages/design/test/engine/driver-engine-widths.test.ts
+  - packages/design/test/engine/find-impedance-peak.test.ts
+  - packages/design/test/engine/force-flat-response-winisd.test.ts
   - packages/design/test/engine/formulas.test.ts
+  - packages/design/test/engine/isobarik-loading-winisd.test.ts
+  - packages/design/test/engine/passive-radiator-count-winisd.test.ts
+  - packages/design/test/engine/passive-radiator-tf-winisd.test.ts
+  - packages/design/test/engine/passive-radiator-winisd.test.ts
   - packages/design/test/engine/testSolver.ts
+  - packages/design/test/engine/tl-port-end-correction.test.ts
+  - packages/design/test/engine/tl-port-model-winisd.test.ts
+  - packages/design/test/engine/vc-temperature-drive-winisd.test.ts
+  - packages/design/test/engine/vented-port-gain-winisd.test.ts
+  - packages/design/test/engine/vented-winisd.test.ts
   - packages/design/test/engine/what-if-moves.test.ts
   - packages/design/test/fixtures/domainBuilders.ts
+  - packages/design/test/fixtures/driverSolverGolden.ts
   - packages/design/test/fixtures/recordBuilders.ts
   - packages/design/test/fixtures/winisdEditCapture.ts
   - packages/design/test/fixtures/winisdEditRuns.ts
