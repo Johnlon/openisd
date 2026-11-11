@@ -17,9 +17,10 @@
  * An input that legitimately moves no chart is in an EXEMPT table with its reason. An exempt input
  * is also proven to move nothing, so an exemption cannot go stale.
  *
- * Target behaviour (John, 18 Oct 2026): the circuit is driven from Fs, Vas, Qes, Qms, Re, Sd, BL, Le
- * as WinISD does. Cms, Mms, Rms are display only; Qts only fills a missing Qes/Qms or shows a
- * conflict; the What-if driver rows are Fs, Vas, Qes, Qms (no Qts).
+ * Target behaviour (QO534, John 11 Nov 2026: "the editor and pr settings will use the [on-screen] values not hidden
+ * recalcs always"): the circuit is driven from the boxes Sd, Mms, Cms, Rms, Bl, Re and Le as they show. With those
+ * entered, as on this library driver, Fs, Vas, Qes and Qms feed no chart: a change to one of them is marked as a
+ * disagreement instead. In the What-if panel a typed Fs, Vas, Qes or Qms moves the parts (QO535), so it moves a chart there.
  */
 import {describe, expect, it} from 'vitest';
 import type {BoxType, Filter} from '../../engine/index.js';
@@ -109,6 +110,19 @@ function itRecalculates(box: BoxType, edit: Edit, prepare: (project: OpenISDProj
   });
 }
 
+/** An input that moves a chart in a What-if (where a typed figure moves the parts that follow it, QO535), and a cancel puts every chart back. */
+function itRecalculatesInWhatIf(box: BoxType, edit: Edit): void {
+  it('a What-if edit moves a chart and cancel puts every chart back', () => {
+    const project = PROJECTS[box]();
+    const before = chartsOf(project);
+    project.beginWhatIf();
+    edit.apply(project);
+    expect(changedSeries(before, chartsOf(project))).not.toEqual([]);
+    project.cancelWhatIf();
+    expect(changedSeries(before, chartsOf(project))).toEqual([]);
+  });
+}
+
 function itMovesNothing(box: BoxType, edit: Edit, prepare: (project: OpenISDProject) => void = () => undefined): void {
   it('an exempt input moves no chart', () => {
     const project = PROJECTS[box]();
@@ -124,9 +138,10 @@ function itMovesNothing(box: BoxType, edit: Edit, prepare: (project: OpenISDProj
 /** Driver spec fields that legitimately move no chart, each with its reason. */
 const EXEMPT_DRIVER_FIELDS: ReadonlyMap<NumericDriverSpecFieldName, string> = new Map([
   ['Qts', 'Qts only fills a missing Qes or Qms or shows a conflict; it feeds no other calculation (John, 18 Oct 2026)'],
-  ['BL_Tm', 'with "Two-BL driver" unticked (the default) there is one BL, the one Re, Fs, Qes and Vas imply; a typed BL is not read (John, 18 Oct 2026). Ticked, it moves the charts: see the compat switch cases'],
-  ['Mms_kg', 'display only: the circuit is driven from Fs, Vas, Qes, Qms (John, 18 Oct 2026)'],
-  ['Rms_kg_per_s', 'display only: the circuit is driven from Fs, Vas, Qes, Qms (John, 18 Oct 2026)'],
+  ['Fs_hz', 'with Mms and Cms entered the charts use those boxes; an edited Fs is marked as disagreeing with them (QO534)'],
+  ['Vas_m3', 'with Cms and Sd entered the charts use those boxes; an edited Vas is marked as disagreeing with them (QO534)'],
+  ['Qes', 'with Bl, Re and Mms entered the charts use those boxes; an edited Qes is marked as disagreeing with them (QO534)'],
+  ['Qms', 'with Rms and Mms entered the charts use those boxes; an edited Qms is marked as disagreeing with them (QO534)'],
   ['Znom_ohm', 'nominal impedance is a catalogue label; the circuit uses Re'],
   ['fLe_hz', 'a Le measurement frequency; Le itself is the input'],
   ['KLe_H_sqrtHz', 'lossy-inductance model constant the sweep does not read'],
@@ -385,7 +400,9 @@ for (const type of BOX_TYPES) {
       },
     };
     const reason = EXEMPT_WHATIF_ROWS.get(row);
-    if (reason === undefined) itRecalculates(type, edit);
+    // A driver result row (Fs, Vas, Qes, Qms) moves the charts only in a What-if: outside one, the charts use the stated parts (QO534).
+    if (reason === undefined && SheetField.DRIVER_SPEC.includes(row)) itRecalculatesInWhatIf(type, edit);
+    else if (reason === undefined) itRecalculates(type, edit);
     else itMovesNothing(type, edit);
   });
 }
@@ -403,7 +420,7 @@ describe('the What-if driver rows', () => {
   ];
   for (const type of BOX_TYPES) {
     describe.each(TARGET_DRIVER_ROWS)(`${type}: What-if driver row %s`, (_label, spec) => {
-      itRecalculates(type, driverEdit(spec));
+      itRecalculatesInWhatIf(type, driverEdit(spec));
     });
   }
 });

@@ -236,11 +236,15 @@ function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | u
       [{ formula: `${field} is a directly entered or derived driver quantity`, required: [field], missing: [field] }]));
   }
   if (issues.length > 0) return { value: null, issues };
+  const BL_Qes_Tm = blFromQes(q.Re_terminal_ohm!, q.Cms_m_per_N!, q.Fs_hz, q.Qes);
+  // "Two-BL driver" (WinISD's bug, BL_typed_Tm given): the damping runs on the BL Qes implies, the push on the typed BL.
+  // Otherwise there is one BL, the Bl box's (QO534).
+  const twoBL = BL_typed_Tm !== null && BL_typed_Tm > 0 && BL_Qes_Tm !== undefined;
   return {
     value: {
-      Sd_m2: q.Sd_m2!, Re_terminal_ohm: q.Re_terminal_ohm!, BL_terminal_Tm: q.BL_terminal_Tm!,
+      Sd_m2: q.Sd_m2!, Re_terminal_ohm: q.Re_terminal_ohm!, BL_terminal_Tm: twoBL ? BL_Qes_Tm : q.BL_terminal_Tm!,
       Cms_m_per_N: q.Cms_m_per_N!, Mms_kg: q.Mms_kg!, Rms_kg_per_s: q.Rms_kg_per_s!, Le_H,
-      BL_Qes_Tm: blFromQes(q.Re_terminal_ohm!, q.Cms_m_per_N!, q.Fs_hz, q.Qes),
+      BL_Qes_Tm,
       BL_entered_Tm: enteredTerminalBL_Tm(q, BL_typed_Tm),
     },
     issues: [],

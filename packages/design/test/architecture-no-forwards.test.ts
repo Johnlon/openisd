@@ -44,6 +44,7 @@ const FORWARDS_BASELINE: ReadonlySet<string> = new Set([
   "packages/design/domain/cell.ts#EnteredFieldImpl.clear",
   "packages/design/domain/cell.ts#EnteredFieldImpl.set",
   "packages/design/domain/cell.ts#SetOnlyFieldImpl.set",
+  "packages/design/domain/passiveRadiator/openISDPassiveRadiatorEmbedded.ts#OpenISDPassiveRadiatorEmbedded.update",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.#notify",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.batch",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.classifyFinite",

@@ -341,7 +341,7 @@ export type SweepPlan =
     | { readonly kind: 'blocked'; readonly issues: readonly SweepIssue[] };
 
 /** The driver as the sweep reads it. "Two-BL driver" ticked is WinISD's bug: the typed BL sets the motor's
- *  push while Qes sets the damping. Unticked there is one BL, the one Re, Fs, Qes and Vas imply, and a typed BL is not read. */
+ *  push while Qes sets the damping. Unticked there is one BL, the Bl box's (QO534). */
 function sweepDriverOf(source: ProjectSweepSource, air: Air): SweepDriver {
     const entered = source.driver.specs.sweepDriverIn(air);
     return source.winisdDriverModel.value ? entered : {...entered, winisdBL_Tm: null};
