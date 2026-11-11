@@ -69,36 +69,25 @@ Bold marks what changed.
 | Rg | Rg E | Rg | **Rg C, 0.1 ohm** | 3: default |
 | Filter | frequency E | frequency | **frequency N**<br>shown red | 4: no source, no default |
 
-## Passive radiator pairs — the figure typed last wins
+## Typed T/S values: the boxes the charts read (QO534, QO535)
 
-John, QO530, 10 Nov 2026: "build it" — a Cms or Mms typed on a radiator or a driver moves nothing; the rows for them below are that rule. The driver editor follows the same rule; in the What-if panel a typed Mms is added mass (Fs, Qes, Qms follow, Cms stays).
+John, QO534, 11 Nov 2026: "an entered value is never overwritten with a calculated value"; "the editor and pr settings will use
+the [on-screen] values not hidden recalcs always"; "all get the mark".
 
-John, QO463, 8 Nov 2026: "b and record this as a diff to winisd"; "make sure the rule is recorded as a
-design decision so the app works intuitively, and if a person enters the calculated value then it flips
-back to E"; "it's all about intention".
+- Driver editor, Driver tab and radiator settings: the charts use the boxes Sd, Mms, Cms, Rms, Bl, Re and Le (radiator: Sd, Mms,
+  Cms, Rms) as they show. Those boxes are accented (QO532; the list is `ChartInputs` in `packages/design/fields/chartInputs.ts`).
+- A typed value moves no other box. An empty box is calculated and shown.
+- When the boxes disagree, every box in the disagreeing set carries the warning mark; its popup names them and says what the maths
+  gives (E150HE-44 with Mms typed 34.6 g: "Fs, Mms and Cms disagree: … gives Fs 34.9 Hz, the box says 40 Hz.").
+- Clearing a box lets the others work it out.
 
-Why: the charts read a radiator's Cms, Mms and Rms (with Sd, Xmax, the count and the added mass). Vas,
-Fs and Qms reach them only through those: Vas gives Cms (with Sd and the air), Fs gives Mms (with Cms),
-Qms gives Rms (with Mms and Cms). A typed value that moved nothing would be pointless, so a typed value
-is taken as meant to move the simulation.
+John, QO535, 11 Nov 2026: "what if is all about tweaking things you need to buy a different driver to obtain, ie experiments and
+learning"; "I only want to add inputs".
 
-Rule: typing a figure works out again (E becomes C) each stated figure it would otherwise contradict.
-
-| Typed | Worked out again, when stated |
-|---|---|
-| Vas | Cms; Mms when Fs is stated; Rms when Qms is stated |
-| Sd, with Vas stated | as Vas typed (Vas is kept) |
-| Fs | Mms; Rms when Qms is stated |
-| Qms | Rms |
-| Cms | nothing (QO530): the charts use it; a stated Vas keeps its number and carries a warning |
-| Mms | nothing (QO530): the charts use it with Fs; a stated Vas keeps its number and carries a warning |
-| Rms | Qms |
-
-- Typing into a worked-out box makes it E again and works its partner out (e.g. type Cms after Vas: Cms
-  E, Vas C).
-- A figure is worked out only when its inputs are there; otherwise it stays as stated.
-- At the pick a stated figure is kept as stated (QO451); a stated pair that disagrees keeps both, each
-  marked. Only a later edit applies this rule.
-- Code: `OpenIsdPassiveRadiatorSpec` (`#vasMoves` and the rest), dropped in the same write by `prSpec`.
-  Test: `packages/design/test/domain/pr-typed-value-wins.test.ts`.
-
+- What-if panel: typing a result (Fs, Vas, Qts, Qes, Qms, Sensitivity) keeps the other results and moves the parts. Qts and
+  Sensitivity move Qes via Bl; Qms stays.
+- Typing a part (Mms, Cms, Rms, Bl, Sd, Re) keeps the other parts and moves the results that depend on it. Mms moves Fs and the Qs,
+  not Vas.
+- No warning marks in the What-if panel; it never writes to the project.
+- Code: `packages/design/engine/driver/whatIfMoves.ts`. Tests: `packages/design/test/domain/on-screen-values.test.ts`,
+  `packages/design/test/engine/what-if-moves.test.ts`, `packages/design/test/domain/what-if-driver.test.ts`.

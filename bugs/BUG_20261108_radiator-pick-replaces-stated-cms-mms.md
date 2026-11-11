@@ -24,6 +24,9 @@ when it stated Qms, so the project's resolve recalculated them (the 31 Oct table
   Vas 24 L agree within their rounding, so neither is marked.
 - A Vas typed over a kept Cms marks both; clearing Cms lets Vas drive the radiator again (the
   5 Oct 2026 "PR Vas is disconnected" ruling: the edit is never silent).
+- T744 (QO534, John 11 Nov 2026: "an entered value is never overwritten with a calculated value"):
+  the charts use the radiator's Sd, Mms, Cms and Rms as the boxes show; a typed figure moves no
+  other, and every box of a disagreeing set is marked.
 - The ≠W cue on Mms and Cms now says charts differ when a datasheet's Mms or Cms disagrees with its
   Fs or Vas.
 
@@ -35,3 +38,5 @@ calculation by John's choice, no switch. Recorded in `docs/research/WINISD_PARIT
 ## Tests
 - `packages/design/test/domain/pr-adopt-datasheet-figures.test.ts`
 - `packages/ui/test/ui/new-project-radiator-eight-figures.browser.spec.ts` (P173, both skins, wizard and project)
+- `packages/design/test/domain/on-screen-values.test.ts` (radiator: typed Vas and Fs mark every box of the set)
+- `packages/ui/test/ui/original-pr-tab.browser.spec.ts` (ND140-PR: a typed Vas marks Vas and Cms; clearing Cms lets Vas drive)
