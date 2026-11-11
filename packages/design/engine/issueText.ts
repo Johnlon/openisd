@@ -63,6 +63,8 @@ function plainName(key: string): string {
     case 'BL_terminal_Tm': return 'force factor at the terminals (BL)';
     case 'BL_Tm': return 'force factor (BL)';
     case 'Xmax_m': return 'peak excursion (Xmax)';
+    case 'roo_kg_per_m3': return 'air density (rho)';
+    case 'c_m_per_s': return 'speed of sound (c)';
     case 'Vb_m3': return 'box volume (Vb)';
     case 'volume_m3': return 'box volume';
     case 'length_m': return 'vent length';

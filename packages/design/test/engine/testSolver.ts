@@ -10,7 +10,7 @@ import type {
   VentSolverParams,
 } from '@openisd/design/engine';
 import {createEngine} from '@openisd/design/engine';
-import {VAS_WINS} from '../../domain/project/chartingSources.js';
+import {BL_FROM_QES_CMS_ROUTE, CMS_FROM_VAS_SD_ROUTE, MMS_FROM_FS_CMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE} from '../../engine/driver/routes/index.js';
 import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {halfUlp} from '../../domain/precision.js';
 
@@ -108,16 +108,25 @@ function fakeInput(value: number | undefined): SolverInput<number> {
  *  calls `Engine.sweep()`/`maxCurves()` directly (S2-10: they now take handles, not a bag). */
 /** The plain driver `SimulationEngine.sweep`/`maxCurves` take. A stated BL counts as entered, as
  *  `driverParams`' handles mark every stated value. */
-export function sweepDriver(d: TestSolverQuantities, air: Air = REFERENCE_AIR): SweepDriver {
+export function sweepDriver(d: TestSolverQuantities): SweepDriver {
+  return sweepDriverIn(d, REFERENCE_AIR);
+}
+
+/** `sweepDriver` in `air`. The boxes a WinISD-style driver leaves empty (Cms, Mms, Rms, terminal BL) are filled the way the
+ *  domain's solve fills them for such a driver: Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Qms, BL from Qes.
+ *  A stated figure is kept: the charts use the boxes as they show (QO534). */
+export function sweepDriverIn(d: TestSolverQuantities, air: Air): SweepDriver {
   const stated = sweepValues(d);
-  // What the domain hands the sweep: the figures WinISD's chain works out (Cms from Vas, Mms, Rms, terminal BL), in `air`.
-  const chain = createEngine().driver.shownMechanics(stated, air, VAS_WINS);
+  const ok = (x: number | null | undefined): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
+  const {Fs_hz, Vas_m3, Sd_m2, Qes, Qms, Re_terminal_ohm} = stated;
+  const fromVas = ok(Vas_m3) && ok(Sd_m2) ? CMS_FROM_VAS_SD_ROUTE.value({Vas_m3, Sd_m2, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()}) : null;
+  const Cms = stated.Cms_m_per_N ?? fromVas;
+  const Mms = stated.Mms_kg ?? (ok(Fs_hz) && ok(Cms) ? MMS_FROM_FS_CMS_ROUTE.value({Fs_hz, Cms_m_per_N: Cms}) : null);
+  const Rms = stated.Rms_kg_per_s ?? (ok(Fs_hz) && ok(Mms) && ok(Qms) ? RMS_FROM_FS_MMS_QMS_ROUTE.value({Fs_hz, Mms_kg: Mms, Qms}) : null);
+  const BL = stated.BL_terminal_Tm ?? (ok(Re_terminal_ohm) && ok(Fs_hz) && ok(Qes) && ok(Cms)
+    ? BL_FROM_QES_CMS_ROUTE.value({Re_ohm: Re_terminal_ohm, Fs_hz, Qes, Cms_m_per_N: Cms}) : null);
   return {
-    values: {
-      ...stated,
-      Cms_m_per_N: chain.Cms_m_per_N ?? stated.Cms_m_per_N, Mms_kg: chain.Mms_kg ?? stated.Mms_kg,
-      Rms_kg_per_s: chain.Rms_kg_per_s ?? stated.Rms_kg_per_s, BL_terminal_Tm: chain.BL_terminal_Tm ?? stated.BL_terminal_Tm,
-    },
+    values: {...stated, Cms_m_per_N: Cms, Mms_kg: Mms, Rms_kg_per_s: Rms, BL_terminal_Tm: BL},
     winisdBL_Tm: d.BL_Tm ?? null,
   };
 }

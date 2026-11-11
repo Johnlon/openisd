@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { Air, BoxType, ChartingSource, DqIssue, VentedAlignment } from '../../engine/index.js';
+import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
 import { CalculatedFieldImpl, DerivableFieldImpl, DualWriteFieldImpl, absentCell, enteredCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, settlingNullableField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
@@ -7,8 +7,6 @@ import { WINISD_BOX_LOSSES } from '../boxDefaults.js';
 import type { OpenISDBoxJson, SpecEntryJson } from '../openisdSchema.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import { OpenISDPassiveRadiatorEmbedded } from '../passiveRadiator/openISDPassiveRadiatorEmbedded.js';
-import type { TypedFigure } from '../project/typedFigure.js';
-import { RadiatorProjectContext } from '../passiveRadiator/radiatorContext.js';
 import { OpenISDPassiveRadiatorStandalone } from '../passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import { NumberField } from '../../fields/field.js';
 import { DEFAULT_SEALED_QTC } from '../../fields/defaults.js';
@@ -158,8 +156,6 @@ export class OpenISDBox implements Box {
         ventTuningExtra: () => DqIssue | null,
         air: () => Air,
         nDrivers: () => number,
-        cmsSource: () => ChartingSource,
-        typed: TypedFigure,
     ) {
         this.#driver = driver;
         this.#engine = engine;
@@ -414,7 +410,7 @@ export class OpenISDBox implements Box {
         const pr = focus(lens, 'passiveRadiator');
         const prSlot = focus(pr, 'component');
         const getRadiator = (): OpenISDPassiveRadiatorEmbedded => {
-            return new OpenISDPassiveRadiatorEmbedded(prSlot, () => issues().radiator, RadiatorProjectContext.of(cmsSource, air, engine.pr, typed));
+            return new OpenISDPassiveRadiatorEmbedded(prSlot, () => issues().radiator);
         };
         const prVolume = settlingNullableField(pr, 'volume_m3', () => STARTING_SHARED_VOLUME_M3, (v) => engine.issues.requiredPositiveIssue('Box volume', v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
@@ -770,10 +766,8 @@ export class OpenISDBox implements Box {
         ventTuningExtra: () => DqIssue | null,
         air: () => Air,
         nDrivers: () => number,
-        cmsSource: () => ChartingSource,
-        typed: TypedFigure,
     ): OpenISDBox {
-        return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air, nDrivers, cmsSource, typed);
+        return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air, nDrivers);
     }
 
     /** The Vas of the starting radiator's compliance on `sd`, in `air`: the engine's solve works it out (the Vas-from-Cms route). */

@@ -13,8 +13,8 @@
  */
 
 import type {Air} from '../air.js';
-import {resolveCms} from './cmsResolver.js';
-import type {ChartingSource, ShownMechanics} from './cmsResolver.js';
+import {whatIfMoves} from './whatIfMoves.js';
+import type {WhatIfFigure, WhatIfFigures, WhatIfMoves} from './whatIfMoves.js';
 import {
     referenceEfficiency,
     splFromEfficiency
@@ -32,7 +32,7 @@ import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import {hotRe, perCoilBL_Tm, perCoilRe_ohm, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 import {
-  ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, RouteGroup, withQuantity,
+  BL_FROM_QES_CMS_ROUTE, ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
 } from './routes/index.js';
 
 /** WinISD's fallback for a driver with a Qts and neither Qes nor Qms (decompile `fr_45e090`: `+0x4c8 = 2*Qts`):
@@ -113,17 +113,13 @@ export interface DriverEngine {
    *  stated `c_m_per_s`/`roo_kg_per_m3`, which come back as `air`'s. The handle solve above runs
    *  this same group. */
   solveValues(stated: DriverWorkingSet, air: Air): DriverWorkingSet;
-  /** `values` as the circuit takes them, the way WinISD builds its simulation (decompile `fr_45e090`):
-   *  Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms, and the
-   *  terminal BL from Re, Fs, Qes and that Cms. The entered Cms, Mms and Rms are not read.
-   *  A driver with a Qts but neither Qes nor Qms gets WinISD's fallback, Qes = Qms = 2·Qts.
-   *  Each is replaced only where its own inputs are positive and the result is positive;
-   *  otherwise the stated value stands. `air` is the project's. */
+  /** `values` as the circuit takes them: the figures the boxes show, Cms, Mms, Rms and BL included, never worked out again
+   *  from Fs, Vas and the Q's (QO534: "the editor and pr settings will use the [on-screen] values not hidden recalcs always").
+   *  The one exception is WinISD's fallback for a driver with a Qts and neither Qes nor Qms (decompile `fr_45e090`):
+   *  Qes = Qms = 2·Qts, and an Rms or terminal BL the boxes leave empty is worked out from those. */
   circuitValues(values: DriverValues): DriverValues;
-  /** The mechanical figures WinISD's chain works out for the charts, from Fs, Vas, Sd, Qes, Qms and Re: Cms from Vas and Sd,
-   *  Mms from Fs and that Cms, Rms from Fs, Mms and Qms, BL from Re, Fs, Qes and that Cms. A figure the chain cannot reach is null.
-   *  Pure: nothing is stored. */
-  shownMechanics(values: DriverValues, air: Air, source: ChartingSource): ShownMechanics;
+  /** The figures the What-if panel moves when `figure` is typed as `value`, from the boxes as they show now (QO535). Pure. */
+  whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFigures): WhatIfMoves;
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
   ebp(Fs_hz: number, Qes: number): number;
   /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
@@ -180,19 +176,17 @@ export class DriverEngineImpl implements DriverEngine {
   readonly terminalBL_Tm = terminalBL_Tm;
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
   readonly rangeIssue = rangeIssue;
+  readonly whatIfMoves = whatIfMoves;
 
   circuitValues(values: DriverValues): DriverValues {
     const fallback = this.qFallback(values);
-    return fallback === null ? values : {...values, Qes: fallback, Qms: fallback};
-  }
-
-  shownMechanics(values: DriverValues, air: Air, source: ChartingSource): ShownMechanics {
-    const fallback = this.qFallback(values);
-    return resolveCms(source, {
-      Fs_hz: values.Fs_hz, Vas_m3: values.Vas_m3, Sd_m2: values.Sd_m2,
-      Qes: fallback ?? values.Qes, Qms: fallback ?? values.Qms,
-      Cms_m_per_N: values.Cms_m_per_N, Mms_kg: values.Mms_kg, Re_terminal_ohm: values.Re_terminal_ohm,
-    }, air);
+    if (fallback === null) return values;
+    const {Fs_hz, Mms_kg, Cms_m_per_N, Re_terminal_ohm} = values;
+    const Rms = values.Rms_kg_per_s === null && isPositive(Fs_hz) && isPositive(Mms_kg)
+      ? RMS_FROM_FS_MMS_QMS_ROUTE.value({Fs_hz, Mms_kg, Qms: fallback}) : values.Rms_kg_per_s;
+    const BL = values.BL_terminal_Tm === null && isPositive(Re_terminal_ohm) && isPositive(Fs_hz) && isPositive(Cms_m_per_N)
+      ? BL_FROM_QES_CMS_ROUTE.value({Re_ohm: Re_terminal_ohm, Fs_hz, Qes: fallback, Cms_m_per_N}) : values.BL_terminal_Tm;
+    return {...values, Qes: fallback, Qms: fallback, Rms_kg_per_s: Rms, BL_terminal_Tm: BL};
   }
 
   /** WinISD's Qes = Qms = 2·Qts for a driver stating a Qts and neither Qes nor Qms; null otherwise. */

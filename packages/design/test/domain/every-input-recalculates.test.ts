@@ -252,7 +252,6 @@ const PROJECT_SETTINGS: Readonly<Record<SettingKey, SettingCase>> = {
   winisdAbcGroupDelay: compat,
   winisdTlPortNoEndCorrection: compat,
   winisdFlatModel: compat,
-  winisdCmsFromVas: compat,
   graphs: exempt('which charts are open: view state'),
   cursorF: exempt('chart cursor: view state'),
   pinnedF: exempt('chart cursor: view state'),
@@ -299,7 +298,6 @@ const COMPAT_SCENARIOS: ReadonlyMap<CompatSwitch, CompatScenario | string> = new
   [CompatSwitch.WRAP_PHASE, {box: 'sealed', prepare: () => undefined}],
   [CompatSwitch.FLAT_MODEL, {box: 'sealed', prepare: p => p.forceFlatResponse.set(true)}],
   [CompatSwitch.ABC_INTRA_PORT_VELOCITY, {box: 'abc', prepare: () => undefined}],
-  [CompatSwitch.CMS_FROM_VAS, {box: 'sealed', prepare: () => undefined}],
 ]);
 
 describe('compat switches', () => {

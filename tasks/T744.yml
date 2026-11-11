@@ -1,181 +1,86 @@
 id: T744
 repo: openisd
 owner: leader
-status: done
-# ruling text: QO463 - John, 8 Nov 2026 chat: "ok kick off the CMS plan" (taken as A, the plan as written; also the data-model ruling for the new saved field)
-# ruling text: QO530 - John, 10 Nov 2026, "build it": the typed Mms/Cms rules below (the gate reads one bare QO; QO463 above is the earlier ruling for the same task)
-ruling: QO530
-why: 'John, 10 Nov 2026 (QO530): "build it"'
-release_note: A Cms or Mms you type is used by the charts and moves nothing else you stated, on drivers and radiators alike; a Vas that then disagrees carries a one-sentence warning. A new WinISD-style option "Cms from Vas" decides which wins when a loaded datasheet states Cms and Vas and they disagree.
-goal: Cms, Vas, Mms and Rms follow one rule on drivers and radiators; the charts use what the boxes show
+status: in_progress
+# ruling text: QO534 - John, 11 Nov 2026: "an entered value is never overwritten with a calculated value"; "going forward the editor and pr settings will use the [on-screen] values not hidden recalcs always"; on the warning mark: "all get the mark".
+# ruling: QO535 - John, 11 Nov 2026 (What-if): "what if is all about tweaking things you need to buy a different driver to obtain, ie experiments and learning"; "I only want to add inputs" (Qts, Sensitivity, Cms, Rms).
+# ruling: QO532 - John (decided highlight): the boxes that feed the engine are "not dimmed, just accentuated"; "ok but not like that with the input cell fucked up".
+# The gate reads the first bare ruling line; QO534 is the driver-model ruling for this task (openIsdDriverSpec.ts changes).
+ruling: QO534
+why: 'John, 11 Nov 2026 (QO534): "the editor and pr settings will use the [on-screen] values not hidden recalcs always"; (QO535) What-if is for experiments and learning'
+release_note: The driver editor and the passive radiator settings chart exactly the values in their boxes; a value you type is never replaced, and when boxes disagree every box involved is marked and its note says what the maths gives. The boxes that feed the charts are highlighted. The What-if panel gains Qts, Sensitivity, Cms and Rms, and a typed value moves the figures that follow it, so the boxes always agree.
+goal: The editor and radiator settings chart what the boxes show; What-if gains four inputs and a move rule; the engine-feeding boxes are highlighted
 goal_detail:
-  # QO530, John 10 Nov 2026 (replaces 9 Nov point 1 "typed last wins"; 8 Nov points 2-6 stand)
-  - "1 What-if panel: a typed heavier Mms acts like added mass: Fs drops, Vas (Cms) stays; Qes and Qms follow the new Mms with Bl, Re, Rms fixed. Test: typed-mms-cms.test.ts 'rule 1'."
-  - "2 The Added mass box (driver and radiator) is unchanged: already WinISD-exact."
-  - "3 Driver editor: a value the user typed never moves. Fs typed, Vas blank, type Mms: Vas and Cms are worked out and shown as calculated. Test: 'rule 3' (driver), 'rule 6 (3)' (radiator)."
-  - "4 Driver editor: Fs, Vas, Mms stated and the user changes Mms: nothing moves; the charts use Fs and the new Mms (Cms from them); Vas keeps its number and carries the existing warning mark, whose popup says in one plain sentence that Vas disagrees and the charts use Fs and Mms. Test: 'rule 4', 'rule 6 (4)', browser driver-editor-cms-note."
-  - "5 Driver editor: Vas stated, the user types Cms: Vas stays, the charts use the typed Cms, warning mark on Vas (popup: Vas disagrees with your Cms, the charts use your Cms). Test: 'rule 5', 'rule 6 (5)', browser driver-editor-cms-note."
-  - "6 Radiator tab: the same as the driver editor (3-5)."
-  - "7 A loaded file whose stated Cms and Vas disagree: the WinISD Compatibility option 'Cms from Vas' decides (ticked default = charts use Vas). Test: 'rule 7', cms-from-vas.test.ts."
-  - "Still in force from 8 Nov: the charts use exactly what the boxes show (box value == sweep input in every case); saved datasheet values stay as saved and worked-out values are never stored; the user is told only by the existing warning mark (no new boxes or icons)."
-  - "WinISD difference: WinISD's charts ignore a typed Cms or Mms. An ignored input is a plain WinISD bug: no bug switch; a not-equal-W difference icon by those boxes (WinisdDeviation.DRIVER_MMS_CMS_TYPING, PR_MMS_CMS_TYPING); recorded in docs/research/WINISD_PARITY.md and ACCURACY_IMPROVEMENTS.md."
-  - "Typed-last memory: TypedFigure (domain/project/typedFigure.ts) is held by the project, never saved; it counts only while the box still holds the typed number. A reloaded file has none and the option decides (point 7)."
-  - "Done when: a test proves each of 1-7 for driver and radiator; box value equals sweep input in every case; before/after pictures on the QO530 page; WinISD parity row written."
-
-# Orchestration: leader (Opus) only plans, briefs, reviews and lands. Each step is one cheap worker
-# (Sonnet subagent, or agy Flash through the tools session for pictures), run one after another in this
-# worktree, each committing to branch t744. A step starts only when the one before is committed and its
-# test is green. Every worker reads CLAUDE.md, .claude/rules/{testing,verify,general,ui}.md first.
-
-design:
-  - "One decision point: CompatSwitch.CMS_FROM_VAS (kind 'option') in packages/design/domain/project/compatSwitch.ts. Read once where the project becomes engine inputs."
-  - "One typed choice: a sum type CmsSource = VasWins | StatedCmsWins in packages/design/domain, built from the switch at that one point. Passed to the driver engine and the radiator spec. No booleans threaded through, no string keys, no new constants."
-  - "One Cms resolver shared by both parts: the field solve (what the box shows) and the sweep (what the charts use) call the same function, so they cannot differ. Formulas stay in the existing routes (CMS_FROM_VAS_SD_ROUTE, MMS_FROM_FS_CMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE)."
-  - "Warning: reuse the existing Cms/Vas conflict check (driver checkConsistency, radiator pr-spec-conflict); text says which value the charts use. No new warning type."
-  - "Typed last wins: typing Cms works out Vas (and the other way round), driver as radiator."
-
-steps:
-  - n: 1
-    worker: sonnet
-    do: "Red tests only (TDD). packages/design/test/domain/cms-from-vas.test.ts: (a) driver, typed Cms moves the SPL sweep; (b) driver, typed Cms works out Vas; (c) datasheet states both, switch ticked: charts and box use Cms from Vas, warning shown; (d) switch unticked: charts and box use the stated Cms, warning shown; (e) radiator same four; (f) box value equals sweep input value in every case. Each test fails today for the right reason."
-    done: "bash scripts/test.sh packages/design/test/domain/cms-from-vas.test.ts runs, every case red, committed."
-  - n: 2
-    worker: sonnet
-    do: "Data model (ruling QO463): ToggleField ADV_WINISDCMSFROMVAS (title 'Cms from Vas', tooltip in plain words what ticked and unticked do) in packages/design fields; project field winisdCmsFromVas in openisdSchema.ts and the project; CompatSwitch.CMS_FROM_VAS. Missing in a file = ticked (CompatSwitch.winisdValue). Save/load round trip test."
-    done: "round-trip test green; typecheck green."
-  - n: 3
-    worker: sonnet
-    do: "CmsSource sum type and its one constructor from the project; exhaustive match where it is read. Unit test for the mapping."
-    done: "unit test green; no other file reads the switch (grep in the test)."
-  - n: 4
-    worker: sonnet
-    do: "One Cms resolver for both parts; DriverEngine.circuitValues and the radiator spec resolve take CmsSource and call it; remove the duplicate derivations. Steps 1 (a, c, d, f) go green."
-    done: "cms-from-vas.test.ts cases a,c,d,f green; existing driver and PR engine tests green."
-    # QO472.c19 / c22 / c23 (John, 8 Nov): (c19) the box's Cms is an on-demand engine read, never stored or cached in the domain object;
-    # the record keeps the datasheet Cms and Vas; every save/export writes the stored value (test: save, reload, Cms still there).
-    # (c22) the sweep must not work Cms/Mms/Rms/BL out of Vas itself: it reads the same field values the box shows.
-    # (c23) audit of Cms/Mms/Rms/BL derivations outside the field solve:
-    #   engine/driver/DriverEngine.ts:circuitValues - Cms (route), Mms, Rms, BL derived for the sweep. TO REMOVE (c22); step 4 so far only routes Cms through resolveCms(CmsSource).
-    #   engine/pr/PrEngine.ts:cmsFromVas / mmdFromFs / rmsFromQms - public helpers with no caller outside PrEngine and tests. Dead; remove with their tests.
-    #   domain/box/openISDBox.ts:635,694 - PrEngine.vas(starting Cms, Sd): seeds a NEW radiator's Vas from a starting Cms. Kept: a default for an empty box, goes through a field set.
-    #   projectResolve / PR spec resolve / What-if / exports: no own derivation (they call the field solve).
-    # State: step 4 and 5 for the driver done (typed last wins in OpenIsdDriverSpec slot, Vas-from-typed-Cms first in DriverEngine.solveValues, CmsSource on SweepDriver).
-    # c19/c22 built (commit after bdc51ac2a): DriverEngine.shownMechanics (WinISD chain), OpenIsdDriverSpec shows it on demand (stored entries untouched, resolve uses stored), circuitValues = Qts fallback only,
-    #   CmsSource provider plumbed (project: switch; standalone: StoredShown). driver-edit-parity-e150he-44 'stated fields' is green now (968 passed, 17 expected fail); driver case b vs golden Vas route precedence was open when this note was written.
-    # Left (old note): c19 on-demand Cms read (case c), c22 removal from circuitValues, radiator c/d (step 6/7 adopt), radiator typed-last.
-  - n: 5
-    worker: sonnet
-    do: "Driver typed last wins: typing Cms works out Vas, typing Vas works out Cms, as the radiator does. Case b green."
-    done: "case b green; driver solve tests green."
-  - n: 6
-    worker: sonnet
-    do: "Bring T732 (branch t732, held) onto this: radiator pick keeps the stated values; which wins comes from CmsSource. Case e green. T732 is closed into T744, not landed separately."
-    done: "case e green; pr-typed-value-wins, pr-spec-resolve, pr-spec-conflict, pr-adopt-datasheet-figures green."
-    # Step 6 state (9 Nov): carried T732 (0f1e8963c, 56a17d9fe) and T713 (dfc08cc68) by cherry-pick, then fitted by hand.
-    #   Carried: typed-last-wins on every radiator pair (prSpec `follows` list replaces T744's single `partner`; kept T744's `shown` read),
-    #     pr-typed-value-wins.test.ts, bug files, parity/accuracy rows, FIELD_CLEAR_RULE.md, recordBuilders half-widths, pr-sd-edit, winisdDeviation text, T732/T713 task files.
-    #   Dropped: the tests' claim that a stated Cms/Mms/Rms reads entered at the pick (T744 goal_detail 5: the box shows the chart figure, calculated, with the warning;
-    #     the record keeps the stated value). pr-adopt-datasheet-figures, pr-spec-resolve and 2 hook tests went back to T744's expectations.
-    #   DONE (9 Nov, wizard): the wizard 'typed Cms' hook test was never red in the app; the worktree's node_modules was a symlink to ../openisd/node_modules, so ui specs imported @openisd/design from the MAIN checkout (stale). node_modules is now a real dir linking @openisd/* to this worktree. Added pr-standalone-typed-cms.test.ts. With correct resolution two other hook tests are red against T744 behaviour ((a) clearing Vas expects null; SP22R Qms 4.813 vs 4.8365): stale expectations, John's verdict needed.
-    #   Open: the radiator browser specs from T732/T713
-    #     (new-project-radiator-eight-figures, original-driver-bundle-selection, original-pr-tab) still assert the entered-as-stated reading and need rewriting to T744.
-  - n: 7
-    worker: sonnet
-    do: "Warning text on the existing conflict check: says the two disagree and which the charts use. Field-note popup (T729 style)."
-    done: "warning unit test green."
-  - n: 8
-    worker: sonnet + agy
-    do: "Screen: the switch shows in the WinISD Compatibility panel through CompatSwitch.OPTIONS (no UI code per switch). Before/after pictures, both skins: the panel, the Cms box with warning (driver and radiator, P173). mark-diff boxes, agy checks, Look at / Recommend / Checked, impact line; page passes check-answerable.mjs. To John before landing."
-    done: "page link with agy PASS, sent to John on the board."
-  - n: 9
-    worker: sonnet
-    do: "Records: WINISD_PARITY.md row (an option, not a bug); WINISD_EQUIVALENCE register cell and README parity bullets if a cell changes; close bugs/BUG_20261108_driver-typed-cms-mms-rms-ignored-by-charts.md and the T732 bug; help page entry for the switch; the (?) help for Cms, Vas, Fs, Mms, Qms and Rms on driver and radiator says in plain words that in each pair the one you typed last wins and the other is worked out again (John, QO470: last wins is ok as long as the help says so)."
-    done: "docs committed."
-  - n: 10
-    worker: sonnet (read-only reviewer)
-    do: "Architecture review against ~/.claude/CLAUDE.md guardrails: one decision point, no string routing, no casts, no new constants, exhaustive match, no wrapper methods. Findings go to the leader; fixes are a new worker."
-    done: "no open findings."
-  - n: 11
-    worker: leader
-    do: "Set done_test, bash scripts/land.sh T744."
-
-done_test: bash scripts/test.sh packages/design/test/domain/cms-from-vas.test.ts
+  - "QO534 driver editor and radiator settings: an entered value is never overwritten with a calculated value; an empty box is calculated and shown. The charts use the boxes that feed the engine (Sd, Mms, Cms, Rms, Bl, Re, Le) as they show, never worked out again from Fs, Vas and the Q's. Test: packages/design/test/domain/on-screen-values.test.ts rows 0-4 and the radiator cases."
+  - "QO534 warning mark: when boxes disagree, every box in the disagreeing relation carries the existing warning mark; its popup names the boxes and says what the maths gives (e.g. 'Fs, Mms and Cms disagree: Fs = 1/(2π·√(Mms·Cms)) gives Fs 34.9 Hz, the box says 40.00 Hz'). Test: on-screen-values.test.ts 'row 1: the popup'."
+  - "QO535 What-if: adds Qts and Sensitivity to the main group and Cms and Rms to Derived beside Bl and Mms (no read-outs, groups unchanged). A typed result (Fs, Vas, Qts, Qes, Qms, Sensitivity) keeps the other results and moves the parts; a typed part (Mms, Cms, Rms, Bl, Sd, Re) keeps the other parts and moves the results that depend on it. No warning marks in What-if; it never writes to the project. Tests: packages/design/test/engine/what-if-moves.test.ts rows 0-8, packages/design/test/domain/what-if-driver.test.ts, packages/ui/test/hooks/OriginalWhatIf-hooks.test.ts."
+  - "QO532 highlight: the boxes that feed the engine (driver Sd, Mms, Cms, Rms, Bl, Re, Le; radiator Sd, Mms, Cms, Rms) get an accent outline and a bold value in the driver editor (phone and desktop), the Driver tab and the radiator settings; box size and padding unchanged. The list is one typed list in packages/design. Help text says these boxes drive the charts."
+  - "WinISD difference: WinISD charts Cms from Vas and Mms from Fs, ignoring a typed Cms, Mms or Rms. Recorded in docs/research/WINISD_PARITY.md and ACCURACY_IMPROVEMENTS.md; the not-equal-W cue sits by Mms and Cms."
+  - "Removed from the earlier T744 build (older rule): the 'Cms from Vas' option, the typed-last memory (TypedFigure), the 'shown' chain that replaced a stated Cms/Mms/Rms on screen, and the typed-last-wins pairs."
+  - "Done when: the tests above are green; typecheck green; before/after page under ui-gallery/T744-rules passes check-answerable."
+done_test: bash scripts/test.sh packages/design/test/domain/on-screen-values.test.ts
 files:
-  - tasks/T744.yml
-  - packages/design/domain/passiveRadiator/radiatorContext.ts
-  - packages/design/domain/passiveRadiator/openISDPassiveRadiator.ts
-  - packages/design/domain/passiveRadiator/openISDPassiveRadiatorEmbedded.ts
-  - packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts
-  - packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts
-  - packages/design/domain/box/openISDBox.ts
-  - packages/design/test/domain/detach-keeps-project-context.test.ts
-  - packages/design/test/architecture-no-forwards.test.ts
-  - packages/design/domain/driver/driverContext.ts
-  - packages/design/domain/driver/openISDDriver.ts
-  - packages/design/domain/driver/openISDDriverEmbedded.ts
-  - packages/design/domain/project/openISDProject.ts
-  - packages/design/test/domain/cms-from-vas.test.ts
-  - packages/design/test/domain/winisd-cms-from-vas-switch.test.ts
-  - packages/design/test/domain/every-input-recalculates.test.ts
-  - packages/design/test/domain/compat-switch.test.ts
-  - packages/design/fields/field.ts
-  - packages/design/fields/winisdOption.ts
-  - packages/design/domain/openisdSchema.ts
-  - packages/design/domain/openisdTransforms.ts
-  - packages/design/domain/project/compatSwitch.ts
-  - packages/design/domain/project/cmsSource.ts
-  - packages/design/test/domain/cms-source.test.ts
-  - packages/design/domain/project/projectAdvanced.ts
-  - packages/design/engine/driver/cmsResolver.ts
-  - packages/design/engine/driver/DriverEngine.ts
-  - packages/design/engine/solverTypes.ts
-  - packages/design/engine/index.ts
-  - packages/design/engine/simulation/SimulationEngine.ts
-  - packages/design/domain/driver/openIsdDriverSpec.ts
-  - packages/design/domain/box/prSpec.ts
-  - packages/design/domain/project/projectSweep.ts
-  - packages/design/chart/series.ts
-  - packages/design/chart/types.ts
-  - packages/design/test/engine/testSolver.ts
-  - packages/design/test/domain/driver-edit-parity-w5.test.ts
-  - packages/ui/src/hooks/MobileAdvancedTab-hooks.ts
-  - packages/ui/src/hooks/OriginalShell-hooks.ts
-  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
-  - packages/ui/src/ui/shells/original/OriginalShell.vue
-  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
-  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
-  - packages/ui/test/ui/driver-editor-cms-note.browser.spec.ts
-  - packages/design/test/domain/driver-detach-uses-project-air.test.ts
-  - bugs/BUG_20261110_driver-editor-consistency-note-shows-raw-identifiers.md
-  - packages/ui/test/ui/original-pr-cms-note.browser.spec.ts
-  - packages/ui/test/ui/new-project-radiator-eight-figures.browser.spec.ts
-  - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
-  - packages/ui/test/ui/original-pr-tab.browser.spec.ts
-  - packages/design/domain/driver/chartFigureNote.ts
-  - packages/design/engine/pr/PrEngine.ts
   - BACKLOG.md
   - bugs/BUG_20261108_driver-typed-cms-mms-rms-ignored-by-charts.md
   - bugs/BUG_20261108_pr-pick-replaces-stated-cms-mms.md
   - bugs/BUG_20261108_radiator-pick-replaces-stated-cms-mms.md
+  - bugs/BUG_20261110_driver-editor-consistency-note-shows-raw-identifiers.md
   - bugs/archive/BUG_20261031_phone-pr-p173-cms-display.md
   - docs/design/FIELD_CLEAR_RULE.md
   - docs/research/ACCURACY_IMPROVEMENTS.md
   - docs/research/WINISD_PARITY.md
   - packages/design/domain/appContext.ts
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/box/prSpec.ts
   - packages/design/domain/driver/blankDeviceRecord.ts
   - packages/design/domain/driver/chartFigureNote.ts
+  - packages/design/domain/driver/disagreementNote.ts
+  - packages/design/domain/driver/driverContext.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/driver/openISDDriverEmbedded.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
   - packages/design/domain/index.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/openisdTransforms.ts
+  - packages/design/domain/passiveRadiator/openISDPassiveRadiator.ts
+  - packages/design/domain/passiveRadiator/openISDPassiveRadiatorEmbedded.ts
+  - packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts
+  - packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts
+  - packages/design/domain/passiveRadiator/radiatorContext.ts
   - packages/design/domain/project/chartingSources.ts
+  - packages/design/domain/project/cmsSource.ts
+  - packages/design/domain/project/compatSwitch.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectAdvanced.ts
+  - packages/design/domain/project/typedFigure.ts
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/engine/driver/cmsResolver.ts
   - packages/design/engine/driver/routes/index.ts
   - packages/design/engine/driver/routes/smallSignalRoutes.ts
+  - packages/design/engine/driver/whatIfMoves.ts
+  - packages/design/engine/index.ts
+  - packages/design/engine/issueText.ts
   - packages/design/engine/pr/PrEngine.ts
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/fields/field.ts
   - packages/design/fields/phoneText.ts
   - packages/design/fields/winisdDeviation.ts
+  - packages/design/fields/winisdOption.ts
+  - packages/design/test/architecture-no-forwards.test.ts
+  - packages/design/test/architecture-project-has-three-fields.test.ts
+  - packages/design/test/domain/cms-from-vas.test.ts
+  - packages/design/test/domain/cms-source.test.ts
+  - packages/design/test/domain/compat-switch.test.ts
+  - packages/design/test/domain/detach-keeps-project-context.test.ts
   - packages/design/test/domain/driver-cms-note-w5.test.ts
+  - packages/design/test/domain/driver-detach-uses-project-air.test.ts
   - packages/design/test/domain/driver-edit-parity-e150he-44.test.ts
   - packages/design/test/domain/driver-edit.test.ts
   - packages/design/test/domain/driver-record.test.ts
+  - packages/design/test/domain/error-switches.test.ts
+  - packages/design/test/domain/every-input-recalculates.test.ts
   - packages/design/test/domain/field-clear-rule.test.ts
+  - packages/design/test/domain/on-screen-values.test.ts
   - packages/design/test/domain/openIsdDriverSpec.test.ts
   - packages/design/test/domain/openIsdPassiveRadiatorSpec.test.ts
   - packages/design/test/domain/pr-adopt-datasheet-figures.test.ts
@@ -188,25 +93,32 @@ files:
   - packages/design/test/domain/project-new-defaults.test.ts
   - packages/design/test/domain/project-settings.test.ts
   - packages/design/test/domain/project/project-id.test.ts
+  - packages/design/test/domain/typed-mms-cms.test.ts
+  - packages/design/test/domain/winisd-cms-from-vas-switch.test.ts
   - packages/design/test/engine/air.test.ts
   - packages/design/test/engine/driver-circuit-values.test.ts
   - packages/design/test/engine/driver-engine-widths.test.ts
   - packages/design/test/engine/formulas.test.ts
+  - packages/design/test/engine/testSolver.ts
   - packages/design/test/fixtures/domainBuilders.ts
   - packages/design/test/fixtures/recordBuilders.ts
   - packages/design/test/fixtures/winisdEditCapture.ts
   - packages/design/test/fixtures/winisdEditRuns.ts
+  - packages/ui/src/hooks/MobileAdvancedTab-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
   - packages/ui/src/logic/appState.ts
   - packages/ui/src/logic/driverDraft.ts
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
   - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+  - packages/ui/test/hooks/OriginalWhatIf-hooks.test.ts
+  - packages/ui/test/ui/driver-editor-cms-note.browser.spec.ts
+  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
   - packages/ui/test/ui/new-project-radiator-eight-figures.browser.spec.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
   - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
   - packages/ui/test/ui/original-pr-cms-note.browser.spec.ts
   - packages/ui/test/ui/original-pr-tab.browser.spec.ts
-  - packages/ui/test/hooks/OriginalWhatIf-hooks.test.ts
-  - packages/design/domain/project/typedFigure.ts
-  - packages/design/test/architecture-project-has-three-fields.test.ts
-  - packages/design/test/domain/error-switches.test.ts
-  - packages/design/test/domain/typed-mms-cms.test.ts
-  - packages/ui/src/ui/components/DriverEditorModal.vue
-  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
+  - tasks/T744.yml

@@ -36,7 +36,6 @@ export class CompatSwitch {
 
     static readonly WRAP_PHASE = new CompatSwitch(ToggleField.ADV_WINISDWRAPPHASE, 'option', p => p.winisdWrapPhase);
     static readonly FLAT_MODEL = new CompatSwitch(ToggleField.ADV_WINISDFLATMODEL, 'option', p => p.winisdFlatModel);
-    static readonly CMS_FROM_VAS = new CompatSwitch(ToggleField.ADV_WINISDCMSFROMVAS, 'option', p => p.winisdCmsFromVas);
     static readonly ABC_INTRA_PORT_VELOCITY = new CompatSwitch(ToggleField.ADV_WINISDABCINTRAPORTVELOCITY, 'option', p => p.winisdAbcIntraPortVelocity, p => p.winisdAbcIntraPortVelocityApplies);
 
     /** What a new project, or a file that does not say, has:

@@ -25,8 +25,6 @@ import { storedTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, 
 import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
-import { cmsSourceOf } from './cmsSource.js';
-import { TypedFigure } from './typedFigure.js';
 import { ProjectContext } from '../driver/driverContext.js';
 
 import { withNullEmbeddedDriverId } from './nullDriverId.js';
@@ -87,8 +85,6 @@ export class OpenISDProject {
      *  reached through a module-scoped instance. Every acoustic figure the project reports comes
      *  from this reference and from nowhere else. */
     readonly #engine: Engine;
-    /** The Cms or Mms the user typed last, so the charts use it as typed (T744). */
-    readonly #typed = new TypedFigure();
 
     /** The clock `modified` is stamped from. */
     readonly #appContext: AppServices;
@@ -111,7 +107,7 @@ export class OpenISDProject {
         return OpenISDDriverEmbedded.wrap(
             focus(focus(root, 'driverEmbedding'), 'device'),
             this.#engine,
-            ProjectContext.of(() => cmsSourceOf(this), () => this.#airOver(root), this.#engine.driver, this.#typed, () => this.isWhatIfActive()),
+            ProjectContext.of(() => this.#airOver(root), () => this.isWhatIfActive()),
             () => this.#issues.driver,
             () => this.#appContext.newId(),
         );
@@ -148,8 +144,6 @@ export class OpenISDProject {
             () => this.#issues.ventTuningExtra,
             () => this.#airOver(root),
             () => root.value.driverEmbedding.nDrivers,
-            () => cmsSourceOf(this),
-            this.#typed,
         );
     }
 
@@ -387,11 +381,6 @@ export class OpenISDProject {
     /** WinISD Compatibility "Uncapped flat response" — see `ProjectAdvanced.winisdFlatModel`. */
     get winisdFlatModel(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdFlatModel;
-    }
-
-    /** WinISD Compatibility "Cms from Vas" — see `ProjectAdvanced.winisdCmsFromVas`. */
-    get winisdCmsFromVas(): SimpleField<boolean> {
-        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdCmsFromVas;
     }
 
     /** Which charts are open (S10/QO130) — PROJECT-scoped, reversing QO90 for this field.
