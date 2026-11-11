@@ -47,14 +47,6 @@ const DESKTOP_STEPPER_GAP_PX = 0;
 
 async function measure(page: Page, root: string): Promise<string[]> {
   const phone = (page.viewportSize()?.width ?? 0) <= 600;
-  // A face (the phone's bold Roboto) loads only when a box first asks for it, and shows in a fallback until then (font-display: swap):
-  // measure the settled screen, after every box's own font has arrived.
-  await page.locator(root).first().evaluate(async el => {
-    const fonts = el.ownerDocument.fonts;
-    const faces = [...el.querySelectorAll('input, select')].map(box => getComputedStyle(box).font).filter(font => font !== '');
-    await Promise.all(faces.map(font => fonts.load(font)));
-    await fonts.ready;
-  });
   return page.locator(root).first().evaluate(measureFieldLayoutRules, phone ? PhoneRowColumns.MIN_STEPPER_GAP_PX : DESKTOP_STEPPER_GAP_PX);
 }
 
