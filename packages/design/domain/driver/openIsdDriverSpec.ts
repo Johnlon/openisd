@@ -1,4 +1,3 @@
-import {isWhatIfFigure, WHAT_IF_FIGURES} from '../../engine/index.js';
 import type {Air, CalculationIssue, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, DriverValues, IssueEngine, OutOfRangeIssue, SolverInput, SweepDriver, WhatIfFigure, WhatIfFigures, Wiring} from '../../engine/index.js';
 import {NumberField} from '../../fields/field.js';
 import type {ValueFloor} from '../../fields/field.js';
@@ -255,7 +254,8 @@ export class OpenIsdDriverSpec {
                 if (v === undefined) { sectionLens.set(rest); return; }
                 // In the What-if panel a typed figure moves the ones that follow it, in the same write, so the boxes always agree (QO535).
                 // Each moved figure keeps its own state. Outside the What-if nothing else moves: a typed value never overwrites another (QO534).
-                const moved = v.state === 'E' && context.inWhatIf() && isWhatIfFigure(key) ? this.#whatIfEntries(key, v.value) : {};
+                const figure = this.#driver.whatIfFigures.find(name => name === key);
+                const moved = v.state === 'E' && context.inWhatIf() && figure !== undefined ? this.#whatIfEntries(figure, v.value) : {};
                 sectionLens.set({...spec, ...moved, [key]: v});
             },
         });
@@ -426,7 +426,7 @@ export class OpenIsdDriverSpec {
         } satisfies WhatIfFigures;
         const moves = this.#driver.whatIfMoves(key, value, shown);
         const out: Partial<Record<WhatIfFigure, SpecEntryJson>> = {};
-        for (const name of WHAT_IF_FIGURES) {
+        for (const name of this.#driver.whatIfFigures) {
             const moved = moves[name];
             if (moved !== undefined) out[name] = {state: field(name).entered ? 'E' : 'C', value: moved};
         }
@@ -467,11 +467,7 @@ export class OpenIsdDriverSpec {
      *  project (a standalone driver's own chart) uses `solverParams()`, which carries the
      *  driver's own stated pair; `solverParamsIn(air)` is the project's. */
     solverParams(): DriverSolverParams {
-        return this.#boxParams();
-    }
-
-    /** The boxes as the charts take them: every figure as the box shows it, Bl at the terminals as the wiring makes it. */
-    #boxParams(): DriverSolverParams {
+        // The boxes as the charts take them: every figure as the box shows it, Bl at the terminals as the wiring makes it.
         const wiring: Wiring = this.VCCon.value === VoiceCoilWiring.Series ? 'series' : 'parallel';
         const Re_ohm = this.Re_ohm.value;
         const BL_Tm = this.BL_Tm.value;
@@ -492,7 +488,7 @@ export class OpenIsdDriverSpec {
 
     /** `solverParams` with the circuit's air taken from `air` (the project's) instead of the driver's own pair. */
     solverParamsIn(air: Air): DriverSolverParams {
-        return {...this.#boxParams(), c_m_per_s: computedSlot(air.c()), roo_kg_per_m3: computedSlot(air.rho())};
+        return {...this.solverParams(), c_m_per_s: computedSlot(air.c()), roo_kg_per_m3: computedSlot(air.rho())};
     }
 
     /** `solverParams`' values as plain data for `SimulationEngine.sweep`/`maxCurves`, with the

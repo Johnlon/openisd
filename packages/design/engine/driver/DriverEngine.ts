@@ -13,7 +13,7 @@
  */
 
 import type {Air} from '../air.js';
-import {whatIfMoves} from './whatIfMoves.js';
+import {WHAT_IF_FIGURES, whatIfMoves} from './whatIfMoves.js';
 import type {WhatIfFigure, WhatIfFigures, WhatIfMoves} from './whatIfMoves.js';
 import {
     referenceEfficiency,
@@ -120,6 +120,8 @@ export interface DriverEngine {
   circuitValues(values: DriverValues): DriverValues;
   /** The figures the What-if panel moves when `figure` is typed as `value`, from the boxes as they show now (QO535). Pure. */
   whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFigures): WhatIfMoves;
+  /** Every figure the What-if rule moves or is typed into, once. */
+  readonly whatIfFigures: readonly WhatIfFigure[];
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
   ebp(Fs_hz: number, Qes: number): number;
   /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
@@ -177,6 +179,7 @@ export class DriverEngineImpl implements DriverEngine {
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
   readonly rangeIssue = rangeIssue;
   readonly whatIfMoves = whatIfMoves;
+  readonly whatIfFigures = WHAT_IF_FIGURES;
 
   circuitValues(values: DriverValues): DriverValues {
     const fallback = this.qFallback(values);

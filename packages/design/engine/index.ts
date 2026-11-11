@@ -49,7 +49,6 @@ export type { SignalEngine, SignalQuantityName, SignalIssue } from './signal/Sig
 export type { SimulationEngine, SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './simulation/SimulationEngine.js';
 export { createSimulationEngine } from './simulation/SimulationEngine.js';
 export type {DriverEngine, DriverQuantityName, DriverIssue, DriverPrerequisite} from './driver/DriverEngine.js';
-export {isWhatIfFigure, WHAT_IF_FIGURES} from './driver/whatIfMoves.js';
 export type {WhatIfFigure, WhatIfFigures, WhatIfMoves} from './driver/whatIfMoves.js';
 export type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
 export type {AirInput, AirInputs, AirIssue, AirQuantityName, AirSolution, AirSolvedValues} from './environment/airSolver.js';

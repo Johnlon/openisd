@@ -19,6 +19,7 @@ import type {LossChamber, VentPort} from '../../domain/box/box.js';
 import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
 import type {NumericDriverSpecFieldName} from '../../domain/driver/driverSpecFieldName.js';
 import {driverSpecsOf} from '../../domain/openisdSchema.js';
+import {CMS_FROM_VAS_SD_ROUTE, MMS_FROM_FS_CMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE} from '../../engine/driver/routes/index.js';
 import type {SpecEntryJson} from '../../domain/openisdSchema.js';
 import type {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {readSheetSlot, ventOfSlot, writeSheetSlot} from '../../domain/project/sheetSlots.js';
@@ -340,10 +341,38 @@ type MaxCurves = NonNullable<ReturnType<OpenISDProject['maxCurves']>['values']>;
 
 export interface Swept { readonly sw: Sweep; readonly mx: MaxCurves }
 
+/** One driver box set for a sweep, to be put back as it was. */
+interface HeldBox { readonly spec: 'Mms_kg' | 'Cms_m_per_N' | 'Rms_kg_per_s'; readonly value: number | null; readonly entered: boolean; readonly precision: number | null }
+
+/** The charts after the edit, swept WinISD's way. OpenISD charts the boxes as they show (QO534); WinISD's charts never read Mms, Cms
+ *  or Rms: they work Cms out from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, Mms and Qms (decompile `fr_45e090`). For the sweep
+ *  those boxes are set to WinISD's figures, then put back, so the editor checks still see the file's own marks. A box the edit typed
+ *  into stays: that WinISD ignores it is the difference `assertTypedPartStands` holds. */
 export function sweepAfterEdit(project: OpenISDProject, capture: Capture): Swept {
   const grid: FrequencyGrid = {fmin: capture.grid.fmin, fmax: capture.grid.fmax, N: capture.grid.N};
+  const typed = capture.pane === 'Driver' ? capture.field : null;
+  const d = project.driver;
+  const held: HeldBox[] = (['Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s'] as const).map(spec => {
+    const box = d.specField(spec);
+    return {spec, value: box.value, entered: box.entered, precision: box.precision};
+  });
+  const Fs_hz = d.specField('Fs_hz').value, Vas_m3 = d.specField('Vas_m3').value, Sd_m2 = d.specField('Sd_m2').value, Qms = d.specField('Qms').value;
+  if (Fs_hz !== null && Vas_m3 !== null && Sd_m2 !== null && Qms !== null) {
+    const air = project.air;
+    const Cms_m_per_N = CMS_FROM_VAS_SD_ROUTE.value({Vas_m3, Sd_m2, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()});
+    const Mms_kg = Cms_m_per_N === null ? null : MMS_FROM_FS_CMS_ROUTE.value({Fs_hz, Cms_m_per_N});
+    const Rms_kg_per_s = Mms_kg === null ? null : RMS_FROM_FS_MMS_QMS_ROUTE.value({Fs_hz, Mms_kg, Qms});
+    if (Cms_m_per_N === null || Mms_kg === null || Rms_kg_per_s === null) throw new Error(`${capture.run}: WinISD's Cms, Mms and Rms cannot be worked out`);
+    const winisd: Readonly<Record<'Mms_kg' | 'Cms_m_per_N' | 'Rms_kg_per_s', number>> = {Mms_kg, Cms_m_per_N, Rms_kg_per_s};
+    const editorName: Readonly<Record<'Mms_kg' | 'Cms_m_per_N' | 'Rms_kg_per_s', string>> = {Mms_kg: 'Mms', Cms_m_per_N: 'Cms', Rms_kg_per_s: 'Rms'};
+    for (const box of held) if (editorName[box.spec] !== typed) d.specField(box.spec).set(winisd[box.spec]);
+  }
   const sw = project.sweep(grid);
   const mx = project.maxCurves(grid);
+  for (const box of held) {
+    if (box.entered && box.value !== null) d.specField(box.spec).set(box.value, box.precision ?? undefined);
+    else d.specField(box.spec).clear();
+  }
   if (sw.values === null || mx.values === null) throw new Error('sweep refused: ' + JSON.stringify([sw.issues, mx.issues]));
   return {sw: sw.values, mx: mx.values};
 }
@@ -478,10 +507,6 @@ export function unstatedBlankDeviations(project: OpenISDProject, capture: Captur
   return out;
 }
 
-/** The figures WinISD's charts work out (Vas, Sd, Fs, Qes, Qms, Re) while its editor shows the stated ones: the saved record keeps WinISD's
- *  stated value as E, and OpenISD's box shows the figure the charts use, marked C (John, QO472.c1). */
-const CHART_WORKED_OUT: readonly NumericDriverSpecFieldName[] = ['Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s'];
-
 /** The saved record's entry for one woofer field, after the unsaved edit is saved. */
 function savedEntry(project: OpenISDProject, spec: NumericDriverSpecFieldName): SpecEntryJson | undefined {
   project.save();
@@ -489,54 +514,30 @@ function savedEntry(project: OpenISDProject, spec: NumericDriverSpecFieldName): 
   return specs?.woofer[spec];
 }
 
-/** Every editor field: OpenISD's mark equals WinISD's, and its value rounds to what WinISD printed.
- *  A chart-worked-out figure is held to WinISD's editor in the saved record, and shown as C in the box. */
+/** Every editor field: OpenISD's mark equals WinISD's, and its value rounds to what WinISD printed. */
 export function editorDeviations(project: OpenISDProject, capture: Capture, only: (f: EditorField) => boolean): readonly string[] {
   const out: string[] = [];
   if (capture.editor === null) return out;
   for (const [f, cell] of capture.editor) {
     if (!only(f)) continue;
-    // Typed last wins (QO463): typing Vas drops the entered Cms and typing Cms drops the entered Vas, where WinISD keeps both as entered.
-    // OpenISD works the dropped one out again, so it reads C, and the box tab and the charts follow the typed one.
-    const droppedByTyping = capture.pane === 'Driver' && ((capture.field === 'Vas' && f.spec === 'Cms_m_per_N') || (capture.field === 'Cms' && f.spec === 'Vas_m3'));
-    if (droppedByTyping) {
-      if (openIsdMark(project, f.spec) !== 'C') out.push(`${f.key}: dropped by the typed ${capture.field}, expected mark C, got ${openIsdMark(project, f.spec)}`);
-      continue;
-    }
-    const want = number(cell.text, f.key);
-    const decimals = (cell.text.split('.')[1] ?? '').length;
-    const close = (got: number | null): boolean => got !== null && Math.abs(got * f.printScale - want) <= 0.5 * 10 ** -decimals * (1 + 1e-9);
-    if (CHART_WORKED_OUT.includes(f.spec)) {
-      const saved = savedEntry(project, f.spec);
-      const savedMark = saved === undefined || saved.state === 'N' ? 'N' : saved.state;
-      if (savedMark !== cell.mark) out.push(`${f.key}: saved mark ${savedMark}, WinISD ${cell.mark}`);
-      if (saved === undefined || saved.state === 'N' || !close(saved.value)) out.push(`${f.key}: saved value ${saved === undefined || saved.state === 'N' ? null : saved.value}, WinISD printed ${cell.text}`);
-      const shown = project.driver.specField(f.spec);
-      if (!shown.calculated) out.push(`${f.key}: box mark ${openIsdMark(project, f.spec)}, the charts' figure is shown as C`);
-      continue;
-    }
     const mark = openIsdMark(project, f.spec);
     if (mark !== cell.mark) out.push(`${f.key}: mark ${mark}, WinISD ${cell.mark}`);
-    if (!close(project.driver.specField(f.spec).value)) out.push(`${f.key}: value ${project.driver.specField(f.spec).value}, WinISD printed ${cell.text}`);
+    const want = number(cell.text, f.key);
+    const decimals = (cell.text.split('.')[1] ?? '').length;
+    const raw = project.driver.specField(f.spec).value;
+    const got = raw === null ? null : raw * f.printScale;
+    if (got === null || Math.abs(got - want) > 0.5 * 10 ** -decimals * (1 + 1e-9)) out.push(`${f.key}: value ${got}, WinISD printed ${cell.text}`);
   }
   return out;
 }
 
-/** A typed Cms (QO463): WinISD ignores it in every chart and keeps the entered Vas; OpenISD's charts follow it, so its
- *  charts differ from WinISD's, the saved record keeps the typed Cms as E, and the stated Vas stays (QO530: a typed value moves nothing).
- *  (cms-from-vas.test.ts holds the rule itself.) */
-export function assertTypedCmsStands(project: OpenISDProject, capture: EditCapture, swept: ReturnType<typeof sweepAfterEdit>, rules: ReturnType<typeof chartRules>): void {
-  assert.throws(() => assertChartMatches(capture, swept, 'spl', rules), 'WinISD ignores a typed Cms; OpenISD does not');
-  const saved = savedEntry(project, 'Cms_m_per_N');
-  assert.ok(saved !== undefined && saved.state === 'E' && saved.value === capture.typed, 'the typed Cms is saved as entered');
-  assert.equal(project.driver.specField('Vas_m3').entered, true);
-}
-
-/** A typed driver Mms (T744, QO530): WinISD's charts ignore it, OpenISD's follow it. It is saved as typed, the box shows it, and the stated Fs stays. */
-export function assertTypedMmsStands(project: OpenISDProject, capture: EditCapture, swept: ReturnType<typeof sweepAfterEdit>, rules: ReturnType<typeof chartRules>): void {
-  assert.throws(() => assertChartMatches(capture, swept, 'spl', rules), 'WinISD ignores a typed Mms; OpenISD does not');
-  const saved = savedEntry(project, 'Mms_kg');
-  assert.ok(saved !== undefined && saved.state === 'E' && saved.value === capture.typed, 'the typed Mms is saved as entered');
-  assert.equal(project.driver.specs.Mms_kg.value, capture.typed);
-  assert.equal(project.driver.specField('Fs_hz').entered, true);
+/** A typed Mms, Cms or Rms: WinISD's charts ignore it (they work the three out from Fs, Vas and Qms), OpenISD's follow it (QO534). So the
+ *  charts differ from WinISD's, the saved record keeps the typed value as E, the box shows it, and the stated Fs, Vas and Qms stay. */
+export function assertTypedPartStands(project: OpenISDProject, capture: EditCapture, swept: ReturnType<typeof sweepAfterEdit>, rules: ReturnType<typeof chartRules>,
+  spec: 'Mms_kg' | 'Cms_m_per_N' | 'Rms_kg_per_s'): void {
+  assert.throws(() => assertChartMatches(capture, swept, 'spl', rules), `WinISD ignores a typed ${capture.field}; OpenISD does not`);
+  const saved = savedEntry(project, spec);
+  assert.ok(saved !== undefined && saved.state === 'E' && saved.value === capture.typed, `the typed ${capture.field} is saved as entered`);
+  assert.equal(project.driver.specField(spec).value, capture.typed);
+  for (const stated of ['Fs_hz', 'Vas_m3', 'Qms'] as const) assert.equal(project.driver.specField(stated).entered, true, `${stated} stays as stated`);
 }

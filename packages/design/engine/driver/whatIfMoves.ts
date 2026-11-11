@@ -38,11 +38,6 @@ type _MissingWhatIfFigure = Exclude<WhatIfFigure, typeof WHAT_IF_FIGURES[number]
 const _whatIfFiguresComplete: _MissingWhatIfFigure extends never ? true : never = true;
 void _whatIfFiguresComplete;
 
-/** Whether the What-if rule applies to the figure `name` names. */
-export function isWhatIfFigure(name: string): name is WhatIfFigure {
-  return WHAT_IF_FIGURES.some(figure => figure === name);
-}
-
 /** The figures a typed one moves, each with its new value. A figure that does not move, or whose box is empty, is absent. */
 export type WhatIfMoves = Partial<Record<WhatIfFigure, number>>;
 

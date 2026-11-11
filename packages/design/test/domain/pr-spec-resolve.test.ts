@@ -1,6 +1,7 @@
 /**
- * A radiator's Mms, Cms and Rms are calculated values: the project's resolve fills them from the
- * radiator's Fs, Qms, Vas and Sd through the driver consistency relations, and a typed value wins.
+ * A radiator's Mms, Cms and Rms, when not stated, are calculated: the project's resolve fills them from the radiator's Fs, Qms,
+ * Vas and Sd through the consistency relations. A stated or typed one is kept and charted as the box shows (QO534, John 11 Nov
+ * 2026: "an entered value is never overwritten with a calculated value"); a set that disagrees is marked, every box of it.
  */
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
@@ -40,18 +41,19 @@ describe('radiator Mms, Cms and Rms are calculated', () => {
     }
   });
 
-  it('a record carrying entered Mms, Cms and Rms embeds them as calculated, driven by the four', () => {
+  it('a record carrying entered Mms, Cms and Rms keeps them as stated; they disagree with the four, so every box is marked', () => {
     const spec = prProject(createEngine(), {...four, Mms_kg: 1, Cms_m_per_N: 1, Rms_kg_per_s: 1}).box.passiveRadiator.radiator.spec;
     for (const f of [spec.Mms_kg, spec.Cms_m_per_N, spec.Rms_kg_per_s]) {
-      expect(f.entered).toBe(false);
-      expect(f.value).not.toBe(1);
+      expect(f.entered).toBe(true);
+      expect(f.value).toBe(1);
+      expect(f.dq.length).toBeGreaterThan(0);
     }
+    for (const f of [spec.Fs_hz, spec.Vas_m3, spec.Qms]) expect(f.dq.length).toBeGreaterThan(0);
   });
 
-  // John, 2026-10-05: "PR Vas is disconnected" — the New Project wizard builds the project through
-  // ProjectBuilder.radiator(); a catalogue radiator (ND140-PR) also states Mms and Cms, and those
-  // must not freeze the radiator against a later Vas, Fs, Qms or Sd edit.
-  it('a project built with a radiator stating Mms, Cms and Rms lets the four drive them', () => {
+  // John, 2026-10-05: "PR Vas is disconnected" — an edit is never silent. A catalogue radiator (ND140-PR) states Mms and Cms; QO534
+  // keeps them. A typed Vas marks Vas and Cms; clearing Cms lets the Vas drive it and the charts.
+  it('a project built with a radiator stating Mms and Cms: a typed Vas marks Vas and Cms, and clearing Cms lets Vas drive', () => {
     const engine = createEngine();
     const driver = driverFromSpec(engine, {
       Fs_hz: 30, Qes: 0.4, Qms: 4, Qts: 1 / (1 / 4 + 1 / 0.4), Re_ohm: 6.4,
@@ -66,6 +68,11 @@ describe('radiator Mms, Cms and Rms are calculated', () => {
     const cms = pr.radiator.spec.Cms_m_per_N.value;
     const plan = JSON.stringify(project.sweepPlan(grid));
     pr.radiator.spec.Vas_m3.set(0.02);
+    expect(pr.radiator.spec.Cms_m_per_N.value).toBe(cms);
+    expect(pr.radiator.spec.Vas_m3.dq.length).toBeGreaterThan(0);
+    expect(pr.radiator.spec.Cms_m_per_N.dq.length).toBeGreaterThan(0);
+    expect(JSON.stringify(project.sweepPlan(grid))).toBe(plan);
+    pr.radiator.spec.Cms_m_per_N.clear();
     expect(pr.radiator.spec.Cms_m_per_N.value).not.toBe(cms);
     expect(JSON.stringify(project.sweepPlan(grid))).not.toBe(plan);
   });

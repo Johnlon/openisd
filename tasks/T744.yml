@@ -22,7 +22,6 @@ done_test: bash scripts/test.sh packages/design/test/domain/on-screen-values.tes
 files:
   - BACKLOG.md
   - bugs/BUG_20261108_driver-typed-cms-mms-rms-ignored-by-charts.md
-  - bugs/BUG_20261108_pr-pick-replaces-stated-cms-mms.md
   - bugs/BUG_20261108_radiator-pick-replaces-stated-cms-mms.md
   - bugs/BUG_20261110_driver-editor-consistency-note-shows-raw-identifiers.md
   - bugs/archive/BUG_20261031_phone-pr-p173-cms-display.md
