@@ -281,8 +281,8 @@ test.describe('What-if panel', () => {
       await mms.press('Control+a');
       await mms.pressSequentially(String(Math.round(mmsBefore * 1.5 * 10) / 10));
       await mms.press('Tab');
-      await expect.poll(() => fs.inputValue()).not.toBe(fsBefore);
-      expect(await vas.inputValue()).toBe(vasBefore);
+      await expect(fs).not.toHaveValue(fsBefore);
+      await expect(vas).toHaveValue(vasBefore);
       await expect(page.locator('.what-if-panel .dq-flag')).toHaveCount(0);
     });
 
@@ -303,7 +303,8 @@ test.describe('What-if panel', () => {
       // One width for the whole panel — a field that sizes to its container instead of its content
       // would vary with the column it landed in.
       expect(new Set(widths).size, JSON.stringify(named)).toBe(1);
-      expect(widths[0], 'joined box includes its 29px unit rail, 25% narrower than 124px (John, 8 Nov 2026)').toBe(93);
+      // 93px, 25% narrower than 124px (John, 8 Nov 2026), and 9px wider for the 38px unit rail mm/N and Ns/m need (QO535).
+      expect(widths[0], 'joined box includes its 38px unit rail').toBe(102);
       const railWidths = await page.locator('.what-if-panel .what-if-fld:not(.what-if-ro) input').evaluateAll(els => els.filter(el => el.closest('.what-if-fld')?.querySelector('.ui-field-unit')?.textContent?.trim()).map(el => { const css = getComputedStyle(el); return el.getBoundingClientRect().width - parseFloat(css.paddingRight); }));
       for (const width of railWidths) expect(width, 'numeric rail stays narrow').toBeLessThanOrEqual(90);
       // ...and genuinely narrower than the cell holding it, i.e. leftover whitespace exists.

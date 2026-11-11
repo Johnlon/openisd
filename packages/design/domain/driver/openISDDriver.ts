@@ -506,7 +506,7 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
         return OpenISDDriverStandalone.#over(heldRecord(json), engine, context);
     }
 
-    /** A copy of a project's driver: it is read with the project's context, its air and its "Cms from Vas" choice. */
+    /** A copy of a project's driver: it is read with the project's context: its air, and whether a What-if is open. */
     static wrapProjectCopy(json: DriverDeviceJson, engine: Engine, context: ProjectContext): OpenISDDriverStandalone {
         return OpenISDDriverStandalone.#over(heldRecord(json), engine, context);
     }

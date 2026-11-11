@@ -43,6 +43,7 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
   dqState: undefined,
   allowOutOfRange: false,
   defaulted: undefined,
+  chartInputs: undefined,
 });
 
 const scope = useCellScope();
@@ -50,6 +51,8 @@ const generatedId = useId();
 /** The row's column widths as CSS variables, from the design constant. The label column is the page's (it follows the page's longest label). */
 const columnVars = Object.fromEntries([...PhoneRowColumns.STANDARD.cssVars()].filter(([name]) => name !== PhoneRowColumns.LABEL_COLUMN_VAR));
 const id = computed(() => props.inputId ?? generatedId);
+/** This box is one the charts read (QO532): accented, never resized. */
+const drivesCharts = computed(() => props.chartInputs?.includes(props.field) === true);
 
 /** The cell read once per change of the hosting view: Vue cannot see the cell itself change. */
 const view = computed(() => {
@@ -152,7 +155,7 @@ function write(v: number | null, precision?: number): void {
 </script>
 
 <template>
-  <div ref="root" @focusout="closeOnFocusLeave" :data-field="field.value" :data-access="readonly ? 'readonly' : 'writable'" :style="columnVars" :class="['ui-field', {'ui-field-readout': readonly, 'ui-field-defaulted': defaulted === true, 'ui-field-stored': defaulted === false}]">
+  <div ref="root" @focusout="closeOnFocusLeave" :data-field="field.value" :data-access="readonly ? 'readonly' : 'writable'" :style="columnVars" :class="['ui-field', {'ui-field-readout': readonly, 'ui-field-defaulted': defaulted === true, 'ui-field-stored': defaulted === false, 'ui-field-drives-charts': drivesCharts}]">
     <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ label ?? field.label }}</label>
     <span class="ui-field-dq">
       <button v-if="reason" type="button" class="ui-field-dq-btn" :title="reason" :aria-expanded="reasonOpen"
@@ -209,6 +212,15 @@ function write(v: number | null, precision?: number): void {
   background: #fff; font: inherit; text-align: left;
 }
 .ui-field-value :deep(.num-stepper) { margin-left: 0; }
+/* A box the charts read (QO532, "not dimmed, just accentuated"): an inset accent ring and a bold value. The ring is a shadow
+   inside the border, so the box keeps its size, padding and alignment, and a red warning border still shows round it. */
+/* Chained to outrank the shared field rules in joined-fields.css, which set the input's whole font. The wrap is bold too, so the
+   digit-cursor overlay drawn over the input matches it. */
+.ui-field.ui-field.ui-field.ui-field-drives-charts[data-field] .ui-field-value :deep(.num-input-wrap) { font-weight: 600; }
+.ui-field.ui-field.ui-field.ui-field-drives-charts[data-field] .ui-field-value :deep(input) { box-shadow: inset 0 0 0 2px var(--acc); font-weight: 600; }
+/* The phone's bold face (Roboto 700) is wider than its regular one: a six-digit value would run past the box, so the accented
+   value is set a little tighter instead of the box growing. */
+:global(.app-root-mobile) .ui-field.ui-field.ui-field.ui-field-drives-charts[data-field] .ui-field-value :deep(:is(input, .num-input-wrap)) { letter-spacing: -0.07em; }
 .ui-field-value :deep(input.calculated) { color: var(--acc); }
 .ui-field-value :deep(input.greyed) { background: #e9e9e9; }
 .ui-field-dq { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 4; }

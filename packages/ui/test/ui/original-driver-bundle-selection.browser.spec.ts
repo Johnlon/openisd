@@ -97,7 +97,7 @@ function selectedDriverSpecs(project: unknown): Record<string, Record<string, un
   return sections;
 }
 
-/** What the project's driver editor opens on: a copy of the project's driver, read in the project (its air and its "Cms from Vas" choice), as the app does. */
+/** What the project's driver editor opens on: a copy of the project's driver, read in the project (its air), as the app does. */
 function detachedEditorSpecs(exported: unknown): Record<string, unknown> {
   const project = OpenISDProject.fromOwprText(JSON.stringify(exported), createEngine());
   if (Array.isArray(project)) throw new Error(`exported project cannot be opened: ${project.join(', ')}`);

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField, WinisdDeviation} from '@openisd/design/fields';
+import {ChartInputs, DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField, WinisdDeviation} from '@openisd/design/fields';
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import {computed, nextTick, onBeforeUnmount, provide, ref, watch} from 'vue';
 import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../hooks/phoneLabelColumn.js';
@@ -751,11 +751,11 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_THIELE_SMALL" />
               <div v-else class="de-hdr">Thiele/Small parameters<button type="button" class="de-help-button" aria-label="Help: Thiele/Small parameters" @click="showHelp(PhoneHelp.EDITOR_THIELE_SMALL)">?</button></div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Qes')]" data-field-key="Qes" :style="getFieldStyle('Qes')" :field="NumberField.QES" :cell="fieldOf('Qes')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Qms')]" data-field-key="Qms" :style="getFieldStyle('Qms')" :field="NumberField.QMS" :cell="fieldOf('Qms')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Qts')]" data-field-key="Qts" :style="getFieldStyle('Qts')" :field="NumberField.QTS" :cell="fieldOf('Qts')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Fs_hz')]" data-field-key="Fs_hz" :style="getFieldStyle('Fs_hz')" :field="NumberField.FS_HZ" :cell="fieldOf('Fs_hz')" required />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Vas_m3')]" data-field-key="Vas_m3" :style="getFieldStyle('Vas_m3')" :field="NumberField.VAS_M3" :cell="fieldOf('Vas_m3')" required />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Qes')]" data-field-key="Qes" :style="getFieldStyle('Qes')" :field="NumberField.QES" :cell="fieldOf('Qes')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Qms')]" data-field-key="Qms" :style="getFieldStyle('Qms')" :field="NumberField.QMS" :cell="fieldOf('Qms')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Qts')]" data-field-key="Qts" :style="getFieldStyle('Qts')" :field="NumberField.QTS" :cell="fieldOf('Qts')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Fs_hz')]" data-field-key="Fs_hz" :style="getFieldStyle('Fs_hz')" :field="NumberField.FS_HZ" :cell="fieldOf('Fs_hz')" required />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Vas_m3')]" data-field-key="Vas_m3" :style="getFieldStyle('Vas_m3')" :field="NumberField.VAS_M3" :cell="fieldOf('Vas_m3')" required />
               </div>
             </div>
 
@@ -763,19 +763,19 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_ELECTRO_MECHANICAL" />
               <div v-else class="de-hdr">Electro-Mechanical parameters<button type="button" class="de-help-button" aria-label="Help: Electro-Mechanical parameters" @click="showHelp(PhoneHelp.EDITOR_ELECTRO_MECHANICAL)">?</button></div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" :deviation="WinisdDeviation.DRIVER_MMS_CMS_TYPING" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Cms_m_per_N')]" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')"  :deviation="WinisdDeviation.DRIVER_MMS_CMS_TYPING" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Rms_kg_per_s')]" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Re_ohm')]" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" required />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('BL_Tm')]" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Dd_m')]" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :field="NumberField.DD_M" :cell="fieldOf('Dd_m')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Le_H')]" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :field="NumberField.LE_H" :cell="fieldOf('Le_H')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Sd_m2')]" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :field="NumberField.SD_M2" :cell="fieldOf('Sd_m2')" required />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" :deviation="WinisdDeviation.DRIVER_MMS_CMS_TYPING" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Cms_m_per_N')]" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')"  :deviation="WinisdDeviation.DRIVER_MMS_CMS_TYPING" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Rms_kg_per_s')]" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Re_ohm')]" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" required />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('BL_Tm')]" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Dd_m')]" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :field="NumberField.DD_M" :cell="fieldOf('Dd_m')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Le_H')]" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :field="NumberField.LE_H" :cell="fieldOf('Le_H')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Sd_m2')]" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :field="NumberField.SD_M2" :cell="fieldOf('Sd_m2')" required />
                 <!-- fLe is STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and shown in kHz, so the
                      scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
                      Hz as kHz and put the field out by 1e6. -->
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('fLe_hz')]" data-field-key="fLe_hz" :style="getFieldStyle('fLe_hz')" :field="NumberField.FLE_HZ" :cell="fieldOf('fLe_hz')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('KLe_H_sqrtHz')]" data-field-key="KLe_H_sqrtHz" :style="getFieldStyle('KLe_H_sqrtHz')" :field="NumberField.KLE_H_SQRTHZ" :cell="fieldOf('KLe_H_sqrtHz')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('fLe_hz')]" data-field-key="fLe_hz" :style="getFieldStyle('fLe_hz')" :field="NumberField.FLE_HZ" :cell="fieldOf('fLe_hz')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('KLe_H_sqrtHz')]" data-field-key="KLe_H_sqrtHz" :style="getFieldStyle('KLe_H_sqrtHz')" :field="NumberField.KLE_H_SQRTHZ" :cell="fieldOf('KLe_H_sqrtHz')" />
               </div>
             </div>
 
@@ -783,13 +783,13 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_LARGE_SIGNAL" />
               <div v-else class="de-hdr">Large-Signal parameters<button type="button" class="de-help-button" aria-label="Help: Large-Signal parameters" @click="showHelp(PhoneHelp.EDITOR_LARGE_SIGNAL)">?</button></div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Xmax_m')]" data-field-key="Xmax_m" :style="getFieldStyle('Xmax_m')" :field="NumberField.XMAX_M" :cell="fieldOf('Xmax_m')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Hc_m')]" data-field-key="Hc_m" :style="getFieldStyle('Hc_m')" :field="NumberField.HC_M" :cell="fieldOf('Hc_m')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Hg_m')]" data-field-key="Hg_m" :style="getFieldStyle('Hg_m')" :field="NumberField.HG_M" :cell="fieldOf('Hg_m')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Xmax_m')]" data-field-key="Xmax_m" :style="getFieldStyle('Xmax_m')" :field="NumberField.XMAX_M" :cell="fieldOf('Xmax_m')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Hc_m')]" data-field-key="Hc_m" :style="getFieldStyle('Hc_m')" :field="NumberField.HC_M" :cell="fieldOf('Hc_m')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Hg_m')]" data-field-key="Hg_m" :style="getFieldStyle('Hg_m')" :field="NumberField.HG_M" :cell="fieldOf('Hg_m')" />
 
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Vd_m3')]" data-field-key="Vd_m3" :style="getFieldStyle('Vd_m3')" :field="NumberField.VD_M3" :cell="fieldOf('Vd_m3')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Xlim_m')]" data-field-key="Xlim_m" :style="getFieldStyle('Xlim_m')" :field="NumberField.XLIM_M" :cell="fieldOf('Xlim_m')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Pe_W')]" data-field-key="Pe_W" :style="getFieldStyle('Pe_W')" :field="NumberField.PE_W" :cell="fieldOf('Pe_W')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Vd_m3')]" data-field-key="Vd_m3" :style="getFieldStyle('Vd_m3')" :field="NumberField.VD_M3" :cell="fieldOf('Vd_m3')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Xlim_m')]" data-field-key="Xlim_m" :style="getFieldStyle('Xlim_m')" :field="NumberField.XLIM_M" :cell="fieldOf('Xlim_m')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Pe_W')]" data-field-key="Pe_W" :style="getFieldStyle('Pe_W')" :field="NumberField.PE_W" :cell="fieldOf('Pe_W')" />
               </div>
             </div>
 
@@ -797,15 +797,15 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_MISCELLANEOUS" />
               <div v-else class="de-hdr">Miscellaneous parameters<button type="button" class="de-help-button" aria-label="Help: Miscellaneous parameters" @click="showHelp(PhoneHelp.EDITOR_MISCELLANEOUS)">?</button></div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('no')]" data-field-key="no" :style="getFieldStyle('no')" :field="NumberField.NO" :cell="fieldOf('no')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Znom_ohm')]" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :field="NumberField.ZNOM_OHM" :cell="fieldOf('Znom_ohm')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('USPL_dB')]" data-field-key="USPL_dB" :style="getFieldStyle('USPL_dB')" :field="NumberField.USPL_DB" :cell="fieldOf('USPL_dB')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('SPL_dB')]" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :field="NumberField.SPL_DB" :cell="fieldOf('SPL_dB')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('numVC')]" data-field-key="numVC" :style="getFieldStyle('numVC')" :field="NumberField.NUMVC" :cell="fieldOf('numVC')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('no')]" data-field-key="no" :style="getFieldStyle('no')" :field="NumberField.NO" :cell="fieldOf('no')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Znom_ohm')]" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :field="NumberField.ZNOM_OHM" :cell="fieldOf('Znom_ohm')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('USPL_dB')]" data-field-key="USPL_dB" :style="getFieldStyle('USPL_dB')" :field="NumberField.USPL_DB" :cell="fieldOf('USPL_dB')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('SPL_dB')]" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :field="NumberField.SPL_DB" :cell="fieldOf('SPL_dB')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('numVC')]" data-field-key="numVC" :style="getFieldStyle('numVC')" :field="NumberField.NUMVC" :cell="fieldOf('numVC')" />
                 <UIPickField class="de-fld de-conn" :class="skin?.field" data-field-key="VCCon" :title="EnumField.VCCON.description" :label="EnumField.VCCON.label" input-id="de-conn-sel">
                   <select id="de-conn-sel" class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
                 </UIPickField>
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('power_peak_W')]" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :field="NumberField.POWER_PEAK_W" :cell="fieldOf('power_peak_W')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('power_peak_W')]" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :field="NumberField.POWER_PEAK_W" :cell="fieldOf('power_peak_W')" />
               </div>
             </div>
           </div>
@@ -816,9 +816,9 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_THERMAL" />
               <div v-else class="de-hdr">Thermal parameters<button type="button" class="de-help-button" aria-label="Help: Thermal parameters" @click="showHelp(PhoneHelp.EDITOR_THERMAL)">?</button></div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('alfaVC_per_K')]" data-field-key="alfaVC_per_K" :style="getFieldStyle('alfaVC_per_K')" :field="NumberField.ALFAVC_PER_K" :cell="fieldOf('alfaVC_per_K')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Rt_K_per_W')]" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :field="NumberField.RT_K_PER_W" :cell="fieldOf('Rt_K_per_W')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Ct_J_per_K')]" data-field-key="Ct_J_per_K" :style="getFieldStyle('Ct_J_per_K')" :field="NumberField.CT_J_PER_K" :cell="fieldOf('Ct_J_per_K')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('alfaVC_per_K')]" data-field-key="alfaVC_per_K" :style="getFieldStyle('alfaVC_per_K')" :field="NumberField.ALFAVC_PER_K" :cell="fieldOf('alfaVC_per_K')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Rt_K_per_W')]" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :field="NumberField.RT_K_PER_W" :cell="fieldOf('Rt_K_per_W')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Ct_J_per_K')]" data-field-key="Ct_J_per_K" :style="getFieldStyle('Ct_J_per_K')" :field="NumberField.CT_J_PER_K" :cell="fieldOf('Ct_J_per_K')" />
               </div>
             </div>
 
@@ -826,16 +826,16 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_FIGURE_OF_MERIT" />
               <div v-else class="de-hdr">Figure of merits<button type="button" class="de-help-button" aria-label="Help: Figure of merits" @click="showHelp(PhoneHelp.EDITOR_FIGURE_OF_MERIT)">?</button></div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('SPLmaxLF_dB')]" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :field="NumberField.SPLMAXLF_DB" :cell="fieldOf('SPLmaxLF_dB')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('SPLmax_dB')]" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :field="NumberField.SPLMAX_DB" :cell="fieldOf('SPLmax_dB')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Rme_kg_per_s')]" data-field-key="Rme_kg_per_s" :style="getFieldStyle('Rme_kg_per_s')" :field="NumberField.RME_KG_PER_S" :cell="fieldOf('Rme_kg_per_s')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('gamma_m_per_s2_A')]" data-field-key="gamma_m_per_s2_A" :style="getFieldStyle('gamma_m_per_s2_A')" :field="NumberField.GAMMA_M_PER_S2_A" :cell="fieldOf('gamma_m_per_s2_A')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Mpow_N_per_sqrtW')]" data-field-key="Mpow_N_per_sqrtW" :style="getFieldStyle('Mpow_N_per_sqrtW')" :field="NumberField.MPOW_N_PER_SQRTW" :cell="fieldOf('Mpow_N_per_sqrtW')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Mcost_kg_per_s')]" data-field-key="Mcost_kg_per_s" :style="getFieldStyle('Mcost_kg_per_s')" :field="NumberField.MCOST_KG_PER_S" :cell="fieldOf('Mcost_kg_per_s')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('EBP_hz')]" data-field-key="EBP_hz" :style="getFieldStyle('EBP_hz')" :field="NumberField.EBP_HZ" :cell="fieldOf('EBP_hz')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('SPLmaxLF_dB')]" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :field="NumberField.SPLMAXLF_DB" :cell="fieldOf('SPLmaxLF_dB')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('SPLmax_dB')]" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :field="NumberField.SPLMAX_DB" :cell="fieldOf('SPLmax_dB')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Rme_kg_per_s')]" data-field-key="Rme_kg_per_s" :style="getFieldStyle('Rme_kg_per_s')" :field="NumberField.RME_KG_PER_S" :cell="fieldOf('Rme_kg_per_s')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('gamma_m_per_s2_A')]" data-field-key="gamma_m_per_s2_A" :style="getFieldStyle('gamma_m_per_s2_A')" :field="NumberField.GAMMA_M_PER_S2_A" :cell="fieldOf('gamma_m_per_s2_A')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Mpow_N_per_sqrtW')]" data-field-key="Mpow_N_per_sqrtW" :style="getFieldStyle('Mpow_N_per_sqrtW')" :field="NumberField.MPOW_N_PER_SQRTW" :cell="fieldOf('Mpow_N_per_sqrtW')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Mcost_kg_per_s')]" data-field-key="Mcost_kg_per_s" :style="getFieldStyle('Mcost_kg_per_s')" :field="NumberField.MCOST_KG_PER_S" :cell="fieldOf('Mcost_kg_per_s')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('EBP_hz')]" data-field-key="EBP_hz" :style="getFieldStyle('EBP_hz')" :field="NumberField.EBP_HZ" :cell="fieldOf('EBP_hz')" />
                 <!-- The model holds the FRACTION the .wdr carries; WinISD's pane prints a
                      percentage. The `percent` unit group is the ONE place that ×100 lives. -->
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Gloss')]" data-field-key="Gloss" :style="getFieldStyle('Gloss')" :field="NumberField.GLOSS" :cell="fieldOf('Gloss')" />
+                <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Gloss')]" data-field-key="Gloss" :style="getFieldStyle('Gloss')" :field="NumberField.GLOSS" :cell="fieldOf('Gloss')" />
               </div>
             </div>
 
@@ -858,14 +858,14 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
                    the same unit the Parameters tab uses for Xmax/Hc/Hg/Dd, and one of the units
                    WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
                    Thick read a metre value under an inches label. -->
-              <UIField class="de-fld" :class="skin?.field" data-field-key="Thick_m" :label="skin ? PhoneLabels.THICK : undefined" :field="NumberField.THICK_M" :cell="fieldOf('Thick_m')" />
-              <UIField class="de-fld" :class="[skin?.field, inspectClass('Depth_m')]" data-field-key="Depth_m" :label="skin ? PhoneLabels.DEPTH : undefined" :style="getFieldStyle('Depth_m')" :field="NumberField.DEPTH_M" :cell="fieldOf('Depth_m')" />
-              <UIField class="de-fld" :class="[skin?.field, inspectClass('MagDepth_m')]" data-field-key="MagDepth_m" :label="skin ? PhoneLabels.MAG_DEPTH : undefined" :style="getFieldStyle('MagDepth_m')" :field="NumberField.MAGDEPTH_M" :cell="fieldOf('MagDepth_m')" />
-              <UIField class="de-fld" :class="[skin?.field, inspectClass('Magnet_m')]" data-field-key="Magnet_m" :label="skin ? PhoneLabels.MAGNET : undefined" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
-              <UIField class="de-fld" :class="skin?.field" data-field-key="Basket_m" :label="skin ? PhoneLabels.BASKET : undefined" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
-              <UIField class="de-fld" :class="skin?.field" data-field-key="Outer_m" :label="skin ? PhoneLabels.OUTER : undefined" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
-              <UIField class="de-fld" :class="skin?.field" data-field-key="Vcd_m" :label="skin ? PhoneLabels.VCD : undefined" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
-              <UIField class="de-fld" :class="[skin?.field, inspectClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : undefined" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
+              <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="skin?.field" data-field-key="Thick_m" :label="skin ? PhoneLabels.THICK : undefined" :field="NumberField.THICK_M" :cell="fieldOf('Thick_m')" />
+              <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Depth_m')]" data-field-key="Depth_m" :label="skin ? PhoneLabels.DEPTH : undefined" :style="getFieldStyle('Depth_m')" :field="NumberField.DEPTH_M" :cell="fieldOf('Depth_m')" />
+              <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('MagDepth_m')]" data-field-key="MagDepth_m" :label="skin ? PhoneLabels.MAG_DEPTH : undefined" :style="getFieldStyle('MagDepth_m')" :field="NumberField.MAGDEPTH_M" :cell="fieldOf('MagDepth_m')" />
+              <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Magnet_m')]" data-field-key="Magnet_m" :label="skin ? PhoneLabels.MAGNET : undefined" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
+              <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="skin?.field" data-field-key="Basket_m" :label="skin ? PhoneLabels.BASKET : undefined" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
+              <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="skin?.field" data-field-key="Outer_m" :label="skin ? PhoneLabels.OUTER : undefined" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
+              <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="skin?.field" data-field-key="Vcd_m" :label="skin ? PhoneLabels.VCD : undefined" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
+              <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : undefined" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
             </div>
 
             <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">

@@ -21,7 +21,7 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         super(record, engine, projectContext, durableIssues);
     }
 
-    /** Takes the lens onto the project's `driver` slot and the project's context (its air and "Cms from Vas" choice), which this driver and
+    /** Takes the lens onto the project's `driver` slot and the project's context (its air, and whether a What-if is open), which this driver and
      *  every copy of it use. The project builds it, so the driver needs no reference back to the project itself. */
     static wrap(
         slot: SimpleField<DriverDeviceJson>,

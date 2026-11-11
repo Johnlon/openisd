@@ -115,22 +115,23 @@ for (const [name, skin] of [['desktop', DESKTOP], ['phone', PHONE]] as const) {
       await expect(await skin.projectRms(p)).toHaveValue(/^2\.2/);
     });
 
-    // QO530 (John, 10 Nov 2026): a typed Cms moves nothing; the stated Vas keeps its number. The wizard has no charts, so the project reads the Cms as stated.
-    test('a Cms typed over a stated Vas leaves Vas as stated and reaches the project', async ({page, appPage}) => {
+    // QO534 (John, 11 Nov 2026): "an entered value is never overwritten"; "all get the mark". A typed Cms keeps the stated Vas, and both carry the warning.
+    test('a Cms typed over a stated Vas leaves Vas as stated, both boxes show the mark, and it reaches the project', async ({page, appPage}) => {
       const p = pageOf({page, appPage});
       await pickThenBack(p, skin, 'ASP190');
       const root = skin.root(p);
       const vasBefore = await root.locator('#np-pr-vas').inputValue();
       await root.locator('#np-pr-cms').fill('1');
       await root.locator('#np-pr-cms').press('Tab');
-      await expect(root.locator('#np-pr-vas')).not.toHaveClass(/value-c/);
       await expect(root.locator('#np-pr-vas')).toHaveValue(vasBefore);
+      await expect(root.locator('#np-pr-cms')).toHaveClass(/dq-flag/);
+      await expect(root.locator('#np-pr-vas')).toHaveClass(/dq-flag/);
       await createProject(p, skin);
-      await expect(await skin.projectCms(p)).toBeVisible();
+      await expect(await skin.projectCms(p)).toHaveValue(/^1(\.0*)?$/);
     });
 
-    // John, QO451, 8 Nov 2026: "a stated 1.01 must not be replaced by other numbers" - in the wizard, which shows the datasheet.
-    test('P173: the wizard shows the stated Cms 1.01 and Mms 15 as stated, entered', async ({page, appPage}) => {
+    // John, QO451, 8 Nov 2026: "a stated 1.01 must not be replaced by other numbers"; QO534: the charts use the boxes as they show.
+    test('P173: the wizard and the project show the stated Cms 1.01 and Mms 15, entered', async ({page, appPage}) => {
       const p = pageOf({page, appPage});
       await pickThenBack(p, skin, 'P173');
       const root = skin.root(p);
@@ -138,21 +139,13 @@ for (const [name, skin] of [['desktop', DESKTOP], ['phone', PHONE]] as const) {
       await expect(root.locator('#np-pr-cms')).toHaveClass(/value-e/);
       await expect(root.locator('#np-pr-mms')).toHaveValue(/^15(\.0*)?$/);
       await expect(root.locator('#np-pr-mms')).toHaveClass(/value-e/);
-    });
-
-    // QO463 / T744 goal 5: a datasheet stating Cms and Vas that disagree is charted with Cms from Vas (the option is ticked by default);
-    // the project's box shows that figure as calculated, and Mms follows it. The record keeps the stated 1.01 (unit-tested).
-    test('P173 in the project: Cms and Mms are the figures the charts use, calculated, and Cms carries the warning', async ({page, appPage}) => {
-      const p = pageOf({page, appPage});
-      await pickThenBack(p, skin, 'P173');
       await createProject(p, skin);
       const cms = await skin.projectCms(p);
-      await expect(cms).toHaveValue(/^1\.0011$/);
-      await expect(cms).toHaveClass(/value-c/);
-      await expect(cms).toHaveClass(/dq-flag/);
+      await expect(cms).toHaveValue(/^1\.010*$/);
+      await expect(cms).toHaveClass(/value-e/);
       const mms = await skin.projectMms(p);
-      await expect(mms).toHaveClass(/value-c/);
-      await expect(mms).not.toHaveValue(/^15(\.0*)?$/);
+      await expect(mms).toHaveValue(/^15(\.0*)?$/);
+      await expect(mms).toHaveClass(/value-e/);
     });
 
     test('P173 gives nothing to calculate Qms from: the box stays empty', async ({page, appPage}) => {

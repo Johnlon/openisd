@@ -52,4 +52,6 @@ export interface UIFieldCommon {
   allowOutOfRange?: boolean;
   /** A value that is a default, not entered (true: blue); false: entered (green). Unset: no provenance. */
   defaulted?: boolean;
+  /** The boxes the charts read on this screen (`ChartInputs.DRIVER` or `.RADIATOR`): a field in it is accented (QO532). */
+  chartInputs?: readonly NumberField[];
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // The mobile Driver tab — identity, driver count, voice-coil wiring and the driver's key figures.
 // Thin: all state and domain reads/writes live in useMobileDriverTab() (src/hooks/MobileDriverTab-hooks.ts).
-import {NumberField, PhoneHelp, PhoneLabels} from '@openisd/design/fields';
+import {ChartInputs, NumberField, PhoneHelp, PhoneLabels} from '@openisd/design/fields';
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import PhoneButton from './PhoneButton.vue';
@@ -34,11 +34,11 @@ const { project, fullName, keyFigures, consistencyReasons, browseDrivers, editDr
 
     <PhoneBand :section="PhoneHelp.KEY_FIGURES" />
     <!-- Tapping a key figure opens the driver editor (the mock's Key figures help: "Tap one to edit the driver."). -->
-    <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.FS_HZ" label="Fs" :value="keyFigures.Fs" readonly plain />
-    <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.QTS" label="Qts" :value="keyFigures.Qts" readonly plain />
-    <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.VAS_M3" label="Vas" :value="keyFigures.Vas" readonly plain />
-    <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.RE_OHM" label="Re" :value="keyFigures.Re" readonly plain />
-    <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.XMAX_M" label="Xmax" :value="keyFigures.Xmax" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" :chart-inputs="ChartInputs.DRIVER" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.FS_HZ" label="Fs" :value="keyFigures.Fs" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" :chart-inputs="ChartInputs.DRIVER" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.QTS" label="Qts" :value="keyFigures.Qts" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" :chart-inputs="ChartInputs.DRIVER" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.VAS_M3" label="Vas" :value="keyFigures.Vas" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" :chart-inputs="ChartInputs.DRIVER" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.RE_OHM" label="Re" :value="keyFigures.Re" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" :chart-inputs="ChartInputs.DRIVER" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.XMAX_M" label="Xmax" :value="keyFigures.Xmax" readonly plain />
     <DriverConsistencyList :count="consistencyReasons.length" @open="showDisagreements" />
   </PhoneClassicPage>
 </template>

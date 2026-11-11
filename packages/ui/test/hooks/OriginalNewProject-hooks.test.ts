@@ -1064,17 +1064,20 @@ describe('the radiator step holds all eight figures, stated or calculated (T703)
     expect(cells.Qms.value).toBeNull();
   });
 
-  // QO530 (John, 10 Nov 2026): a value the user typed never moves; a typed Cms leaves the stated Vas as it is.
-  it('a Cms typed over a record stating Vas reaches the project, with Vas left as stated', async () => {
+  // QO534 (John, 11 Nov 2026): "an entered value is never overwritten"; "all get the mark".
+  it('a Cms typed over a record stating Vas reaches the project, with Vas left as stated, and both carry the conflict mark', async () => {
     const wizard = await pickedThenBack('accuton/asp190');
     wizard.passiveRadiatorCells.Cms_m_per_N.set(0.001);
     expect(wizard.passiveRadiatorCells.Cms_m_per_N.entered).toBe(true);
     expect(wizard.passiveRadiatorCells.Vas_m3.provenance).toBe('E');
+    expect(wizard.passiveRadiatorCells.Cms_m_per_N.dq.length).toBeGreaterThan(0);
+    expect(wizard.passiveRadiatorCells.Vas_m3.dq.length).toBeGreaterThan(0);
     wizard.next();
     wizard.projName.value = 'Typed Cms';
 
     const spec = wizard.createProject()?.box.passiveRadiator.radiator.spec;
-    // The wizard's copy has no project to chart in, so the project reads the Cms as stated: its "Cms from Vas" option decides, and the box shows what the charts use.
+    expect(spec?.Cms_m_per_N.entered).toBe(true);
+    expect(spec?.Cms_m_per_N.value).toBe(0.001);
     expect(spec?.Vas_m3.entered).toBe(true);
     expect(spec?.Vas_m3.value).toBe(0.027);
   });

@@ -53,9 +53,11 @@ files:
   - packages/design/engine/issueText.ts
   - packages/design/engine/pr/PrEngine.ts
   - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/fields/chartInputs.ts
+  - packages/design/fields/desktopHelp.ts
+  - packages/design/fields/index.ts
   - packages/design/fields/phoneText.ts
   - packages/design/fields/winisdDeviation.ts
-  - packages/design/test/domain/compat-switch.test.ts
   - packages/design/test/domain/detach-keeps-project-context.test.ts
   - packages/design/test/domain/driver-detach-uses-project-air.test.ts
   - packages/design/test/domain/driver-edit-parity-e150he-44.test.ts
@@ -91,15 +93,20 @@ files:
   - packages/ui/src/logic/appState.ts
   - packages/ui/src/logic/driverDraft.ts
   - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/components/UIField.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/UIFixedField.vue
+  - packages/ui/src/ui/components/uiFieldBinding.ts
   - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
   - packages/ui/src/ui/shells/original/OriginalShell.vue
   - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
   - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
   - packages/ui/test/hooks/OriginalWhatIf-hooks.test.ts
   - packages/ui/test/ui/driver-editor-cms-note.browser.spec.ts
-  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/field-layout-rules.browser.spec.ts
   - packages/ui/test/ui/new-project-radiator-eight-figures.browser.spec.ts
-  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
   - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
   - packages/ui/test/ui/original-pr-cms-note.browser.spec.ts
   - packages/ui/test/ui/original-pr-tab.browser.spec.ts

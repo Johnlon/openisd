@@ -3,7 +3,7 @@
 // vent the box draws, the passive radiator, and the Chart section holding the velocity limit.
 // Thin: all state and domain reads/writes live in useMobileEnclosureTab()
 // (src/hooks/MobileEnclosureTab-hooks.ts). PRBrowser is the app's existing overlay, reused unchanged.
-import {NumberField, PhoneBoxText, PhoneHelp, PhoneLabels, TextField, WinisdDeviation} from '@openisd/design/fields';
+import {ChartInputs, NumberField, PhoneBoxText, PhoneHelp, PhoneLabels, TextField, WinisdDeviation} from '@openisd/design/fields';
 import {inputValue, selectedOption} from '../../../logic/domEvents.js';
 import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
@@ -71,14 +71,14 @@ const {
     <PRBrowser v-if="prBrowseOpen" phone @close="prBrowseOpen = false"
       @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
 
-    <UIField class="mob-ui-field" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.PR_SD_CM2" :cell="project.box.passiveRadiator.radiator.spec.Sd_m2" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.MMS_KG" :cell="project.box.passiveRadiator.radiator.spec.Mms_kg" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.CMS_M_PER_N" :cell="project.box.passiveRadiator.radiator.spec.Cms_m_per_N" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.RMS_KG_PER_S" :cell="project.box.passiveRadiator.radiator.spec.Rms_kg_per_s" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" stepper />
+    <UIField class="mob-ui-field" :chart-inputs="ChartInputs.RADIATOR" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" stepper />
+    <UIField class="mob-ui-field" :chart-inputs="ChartInputs.RADIATOR" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" stepper />
+    <UIField class="mob-ui-field" :chart-inputs="ChartInputs.RADIATOR" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" stepper />
+    <UIField class="mob-ui-field" :chart-inputs="ChartInputs.RADIATOR" :field="NumberField.PR_SD_CM2" :cell="project.box.passiveRadiator.radiator.spec.Sd_m2" stepper />
+    <UIField class="mob-ui-field" :chart-inputs="ChartInputs.RADIATOR" :field="NumberField.MMS_KG" :cell="project.box.passiveRadiator.radiator.spec.Mms_kg" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" stepper />
+    <UIField class="mob-ui-field" :chart-inputs="ChartInputs.RADIATOR" :field="NumberField.CMS_M_PER_N" :cell="project.box.passiveRadiator.radiator.spec.Cms_m_per_N" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" stepper />
+    <UIField class="mob-ui-field" :chart-inputs="ChartInputs.RADIATOR" :field="NumberField.RMS_KG_PER_S" :cell="project.box.passiveRadiator.radiator.spec.Rms_kg_per_s" stepper />
+    <UIField class="mob-ui-field" :chart-inputs="ChartInputs.RADIATOR" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" stepper />
 
     </section>
 

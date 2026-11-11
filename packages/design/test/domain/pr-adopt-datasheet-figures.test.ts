@@ -1,9 +1,7 @@
 /**
- * Picking a radiator into a project (BUG_20261031_phone-pr-p173-cms-display, John 31 Oct 2026):
- * each of Mms, Cms and Rms is copied as entered or left out, never copied and then flipped to
- * calculated. Left out when the record states its other half (Fs, Vas, Qms); the project's
- * resolve then fills it. The "can't calculate" warning marks only the empty box, never a box
- * that has a value.
+ * Picking a radiator into a project (BUG_20261031_phone-pr-p173-cms-display, John 31 Oct 2026; QO534, John 11 Nov 2026: "an entered
+ * value is never overwritten with a calculated value"): each of Mms, Cms and Rms the record states is copied as entered, never flipped
+ * to calculated; one it does not state is filled by the project's resolve. The "can't calculate" warning marks only the empty box.
  */
 import {describe, expect, it} from 'vitest';
 import {type Engine, FixedAir, createEngine} from '@openisd/design/engine';
@@ -26,14 +24,13 @@ const p173 = {Fs_hz: 41, Vas_m3: 0.024, Sd_m2: 0.013, Mms_kg: 0.015, Cms_m_per_N
 
 const missing = (f: {dq: readonly {kind: string}[]}) => f.dq.some(i => i.kind === 'missing-dependencies');
 
-describe('picking a radiator: datasheet Mms, Cms, Rms are copied or left out, never flipped', () => {
-  it('P173: Mms and Cms are left out (Fs and Vas give them) and read calculated; Rms is unknown', () => {
+describe('picking a radiator: datasheet Mms, Cms, Rms are copied as entered, never flipped', () => {
+  it('P173: Mms and Cms stay entered at the datasheet values; Rms is unknown', () => {
     const spec = pick(createEngine(), p173);
-    expect(spec.Mms_kg.entered).toBe(false);
-    expect(spec.Mms_kg.calculated).toBe(true);
-    expect(spec.Cms_m_per_N.entered).toBe(false);
-    expect(spec.Cms_m_per_N.calculated).toBe(true);
-    expect(spec.Cms_m_per_N.value).toBeCloseTo(0.00101, 4);
+    expect(spec.Mms_kg.entered).toBe(true);
+    expect(spec.Mms_kg.value).toBe(0.015);
+    expect(spec.Cms_m_per_N.entered).toBe(true);
+    expect(spec.Cms_m_per_N.value).toBe(0.00101);
     expect(spec.Rms_kg_per_s.value).toBeNull();
   });
 
@@ -43,10 +40,11 @@ describe('picking a radiator: datasheet Mms, Cms, Rms are copied or left out, ne
     expect(spec.Rms_kg_per_s.value).toBe(2.2);
   });
 
-  it('a record stating Qms and Rms leaves Rms out: Qms drives it', () => {
+  it('a record stating Qms and Rms keeps both entered', () => {
     const spec = pick(createEngine(), {...p173, Qms: 5, Rms_kg_per_s: 2.2});
-    expect(spec.Rms_kg_per_s.entered).toBe(false);
-    expect(spec.Rms_kg_per_s.value).not.toBe(2.2);
+    expect(spec.Rms_kg_per_s.entered).toBe(true);
+    expect(spec.Rms_kg_per_s.value).toBe(2.2);
+    expect(spec.Qms.value).toBe(5);
   });
 
   it('a record stating Cms but no Vas keeps Cms entered', () => {
@@ -97,7 +95,7 @@ describe('a radiator edited before the project exists (the New Project wizard)',
     expect(radiator.spec.Vas_m3.dq.length).toBeGreaterThan(0);
   });
 
-  it('the builder takes it as it stands: Cms and Vas stay stated, and the box shows the Cms the charts use, with a warning', () => {
+  it('the builder takes it as it stands: Cms and Vas stay stated as typed, and both carry the disagreement warning', () => {
     const engine = createEngine();
     const driver = driverFromSpec(engine, {
       Fs_hz: 30, Qes: 0.4, Qms: 4, Qts: 1 / (1 / 4 + 1 / 0.4), Re_ohm: 6.4,
@@ -105,8 +103,9 @@ describe('a radiator edited before the project exists (the New Project wizard)',
     });
     const spec = new ProjectBuilder(driver, engine).passiveRadiator().volume_m3(0.03).editedRadiator(edited(engine)).build().box.passiveRadiator.radiator.spec;
     expect(spec.Vas_m3.entered).toBe(true);
-    expect(spec.Cms_m_per_N.calculated).toBe(true);
-    expect(spec.Cms_m_per_N.value).toBeCloseTo(0.00101, 4);
-    expect(spec.Cms_m_per_N.dq.map(i => i.text).join(' ')).toMatch(/The stated Cms and Vas disagree, so the charts use Cms from Vas \([\d.]+ mm\/N\)\.$/); // the stated Fs, Mms and Cms also disagree here, and say so first
+    expect(spec.Cms_m_per_N.entered).toBe(true);
+    expect(spec.Cms_m_per_N.value).toBe(0.01);
+    expect(spec.Cms_m_per_N.dq.map(i => i.text).join(' ')).toMatch(/Vas.*Cms.* disagree/);
+    expect(spec.Vas_m3.dq.length).toBeGreaterThan(0);
   });
 });

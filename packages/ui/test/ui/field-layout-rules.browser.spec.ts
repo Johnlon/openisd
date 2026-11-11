@@ -286,8 +286,9 @@ test(`desktop Passive Radiator tab: Num. of PRs is ${SHORT_DROPDOWN_PX} px, noth
 /** The widest blank allowed between the longest label of a What-if column and that column's boxes:
  *  the desktop's 22px warning slot after every label, and a few px. */
 const WHAT_IF_LABEL_GAP_MAX_PX = 22 + 8;
-/** The What-if number box, 25% narrower than the 124px it had (John, 8 Nov 2026: "reduce the field widths by 25%"). */
-const WHAT_IF_BOX_PX = 93;
+/** The What-if number box: 25% narrower than the 124px it had (John, 8 Nov 2026: "reduce the field widths by 25%"), 93px, and 9px
+ *  wider since the Cms and Rms boxes came (QO535): their units, mm/N and Ns/m, need a 38px chip, and the value keeps its 64px. */
+const WHAT_IF_BOX_PX = 102;
 
 for (const box of ['vented', 'bandpass6', 'abc'] as const) {
   // John, 8 Nov 2026, QO449.c11/c16: "there is too much space between labels and cells"; "the what if on the desktop".

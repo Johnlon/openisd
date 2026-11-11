@@ -107,6 +107,7 @@ export class DesktopHelp {
     captioned(PhoneHelpRows.PR_QMS, NumberField.PR_QMS.label),
     captioned(PhoneHelpRows.PR_VAS, NumberField.PR_VAS_L.label),
     captioned(PhoneHelpRows.PR_XMAX, NumberField.PR_XMAX_MM.label),
+    PhoneHelpRows.PR_DRIVING,
   ]);
 
   static readonly USER_OPTIONS = new PhoneHelpSection(PhoneHelp.USER_OPTIONS.title, PhoneHelp.USER_OPTIONS.intro, [
