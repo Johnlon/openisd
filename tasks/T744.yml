@@ -158,6 +158,7 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
   - packages/design/fields/field.ts
@@ -181,7 +182,8 @@ files:
   - packages/ui/test/ui/mobile-sheet.browser.spec.ts
   - packages/design/test/fields/toggle-field-label-lines.test.ts
   - packages/design/test/fields/sheetField.test.ts
-# Desktop and phone graph screens: the charts read the boxes as they show (QO534); phone Driver tab: the blue dot by Re (QO532).
+# Desktop and phone graph screens: the charts read the boxes as they show (QO534); phone Driver tab: the blue dot by Re (QO532);
+# both Advanced tabs: the "Chart from Fs, Vas, Qms (WinISD's way)" switch (QO539); every desktop screen: the saved size of a new project (its new switch).
 visual:
   - desktop-box-abc
   - desktop-box-bandpass4
@@ -195,5 +197,6 @@ visual:
   - desktop-tab-filters
   - desktop-tab-project
   - desktop-tab-signal
+  - mobile-tab-advanced
   - mobile-tab-driver
   - mobile-tab-graph
