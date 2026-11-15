@@ -1,0 +1,16 @@
+id: T809
+release_note: internal
+repo: openisd
+owner: phone-title
+status: done
+goal: The phone Driver tab driver-name row grows with a long wrapped driver name, so no line is clipped under the header or over the Select driver row (BUG_20261115_phone-driver-name-button-clipped-under-header)
+why: John, 15 Nov 2026: nothing clipped (field-layout rule 2; QO923)
+visual_note: No screen's picture changes. CI's re-take (visual-retake run 43681930140, zero tolerance, drawn twice) found every committed picture identical; only a driver name longer than one line changes (the name row grows), and no baseline screen has one. Only SOURCES.sha256 is new.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T809.yml
+  - bugs/BUG_20261115_phone-driver-name-button-clipped-under-header.md
+  - packages/ui/src/style.css
+  - packages/ui/test/ui/mobile-long-driver-name-fits.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+blocked_reason: merge of portingle/main conflicts in: packages/ui/test/visual/SOURCES.sha256 
