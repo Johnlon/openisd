@@ -110,12 +110,16 @@ for (const [name, skin] of [['desktop', DESKTOP], ['phone', PHONE]] as const) {
       const p = pageOf({page, appPage});
       await pickThenBack(p, skin, 'ASP190');
       const root = skin.root(p);
-      await root.locator('#np-pr-cms').fill('1');
+      // The box is in mm/N, so 2 is 0.002 m/N: Vas = rho*c^2*Sd^2*Cms = 141855 Pa * 0.0202^2 m^4 * 0.002 m/N = 0.1158 m3
+      // against the stated 0.027 m3, 4.3 times apart. (1 mm/N gave 0.0579 m3, 2.1 times apart, but a typed 1 carries
+      // 0.5 of precision, which alone moves Vas by 0.029 m3, so it was within the print's slack once the air may
+      // differ by 2.5% (T804).)
+      await root.locator('#np-pr-cms').fill('2');
       await root.locator('#np-pr-cms').press('Tab');
       await expect(root.locator('#np-pr-cms')).toHaveClass(/dq-flag/);
       await expect(root.locator('#np-pr-vas')).toHaveClass(/dq-flag/);
       await createProject(p, skin);
-      await expect(await skin.projectCms(p)).toHaveValue(/^1(\.0*)?$/);
+      await expect(await skin.projectCms(p)).toHaveValue(/^2(\.0*)?$/);
     });
 
     test('P173 gives nothing to calculate Qms from: the box stays empty', async ({page, appPage}) => {
