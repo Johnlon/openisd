@@ -6,6 +6,15 @@
  *  replaces a stored key — restore, delete, migrate, repair write-back, reset — first goes
  *  through `guard`. There is no path without it, and `storageBackup.test.ts` enumerates them.
  *
+ *  Compressed (T827, QO940.c4, John 15 Nov 2026: "compress"): the copy is written packed, by lz-string's
+ *  `compressToUTF16`, as a JSON envelope that declares `encoding` and its version (`storageSnapshot.ts`).
+ *  A real store packs to about 10 to 13% of its plain text, so a backup no longer takes a 46% store to the
+ *  nearly-full popup or fails to fit at 60%. Every space rule below is measured in stored (packed)
+ *  characters. A downloaded or exported backup is plain text. A reader switches on the declared
+ *  encoding; one it does not know refuses the backup with a message and keeps it untouched. A build that
+ *  knows no encodings reads the envelope's `layout` (stated as 1000) as "written by a newer OpenISD", lists,
+ *  counts, keeps and drops it like any backup, and restores nothing from it.
+ *
  *  Space: the copy is measured by writing it. When it does not fit, these go, in order, until it
  *  does: the older backups (oldest first), then the pre-repair copies, then the newest backup of
  *  each layout — a copy of live data outranks a copy of yesterday's (John, 14 Oct 2026, T153).
@@ -189,8 +198,8 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
   const snapshots = createStorageSnapshot(storage, now);
   function infoOf(key: string): BackupInfo {
     const text = storage.get(key) ?? '';
-    const read = readEnvelope(text);
-    if (read.kind === 'invalid') return {key, layout: 0, build: null, takenAt: '', reason: null, size: text.length};
+    const read = readEnvelope(text, {headerOnly: true});
+    if (read.kind === 'invalid') return {key, layout: read.layout ?? 0, build: null, takenAt: '', reason: null, size: text.length};
     return {key, layout: read.snapshot.layout, build: read.snapshot.build, takenAt: read.snapshot.exportedAt, reason: read.reason, size: text.length};
   }
 
@@ -287,7 +296,7 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
   function take(reason: BackupReason): BackupResult {
     const snapshot = snapshots.take();
     if (snapshot === null) return {kind: 'nothingToBackUp'};
-    const text = envelopeText(snapshot, false, reason);
+    const text = envelopeText(snapshot, false, reason, true);
     const noRoom = (): BackupResult => ({kind: 'noRoom', shortfall: {copyChars: text.length, storeChars: storeChars()}});
     const key = freeKey(`${OPENISD_BACKUP_PREFIX}${snapshot.build.text}_${snapshot.exportedAt}`);
     if (key === null) return noRoom();

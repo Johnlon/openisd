@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import {createBackupRepo} from '../src/repos/backupRepo.js';
 import {createStorageBackup} from '../src/repos/storageBackup.js';
 import {createStorageHistory} from '../src/repos/storageHistory.js';
-import {envelopeText} from '../src/repos/storageSnapshot.js';
+import {envelopeText, readEnvelope} from '../src/repos/storageSnapshot.js';
+import {readFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {BuildStamp} from '../src/repos/buildStamp.js';
 import {
   OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_MY_DRIVERS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_PROJECTS_KEY, OPENISD_STORAGE_BUILD_KEY, OPENISD_STORAGE_LAYOUT_KEY,
@@ -86,7 +89,9 @@ describe('storage history actions', () => {
 
   it('Export hands over the backup text under a name carrying when it was taken', () => {
     const storage = seeded();
-    assert.deepEqual(historyOver(storage).exportFile(KEY_NEW), {fileName: 'openisd-backup-20260101T000000Z.json', text: storage.get(KEY_NEW) ?? ''});
+    const file = historyOver(storage).exportFile(KEY_NEW);
+    assert.equal(file?.fileName, 'openisd-backup-20260101T000000Z.json');
+    assert.deepEqual(readEnvelope(file?.text ?? ''), readEnvelope(storage.get(KEY_NEW) ?? ''));
     assert.equal(historyOver(storage).exportFile(`${OPENISD_BACKUP_PREFIX}none`), null);
   });
 
@@ -188,3 +193,93 @@ describe('storage history actions', () => {
   });
 });
 
+
+// --- compressed backups (T827, QO940.c4) -------------------------------------------------------
+
+const REAL_BACKUP: {key: string; text: string} = (() => {
+  const parsed: unknown = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'stored-backup-v20261108T0032Z.json'), 'utf8'));
+  if (typeof parsed !== 'object' || parsed === null || !('key' in parsed) || typeof parsed.key !== 'string' || !('text' in parsed) || typeof parsed.text !== 'string') throw new Error('fixture');
+  return {key: parsed.key, text: parsed.text};
+})();
+
+describe('storage history over compressed backups', () => {
+  const liveWith = (n: number) => createMemoryStorage({
+    [OPENISD_PROJECTS_KEY]: projects(n), [OPENISD_STORAGE_LAYOUT_KEY]: String(APP_RULES.layout), [OPENISD_STORAGE_BUILD_KEY]: 'v20261115T1520Z',
+  });
+
+  it('a backup taken now is held compressed, listed with its real stored size, and counts its projects', () => {
+    const storage = liveWith(3);
+    const history = historyOver(storage);
+    const taken = history.backUpNow();
+    assert.ok(taken.kind === 'taken');
+    assert.match(storage.get(taken.key) ?? '', /"encoding":"lz-utf16-1"/);
+    const [row] = history.rows();
+    assert.deepEqual([row.projectCount, row.layout, row.readable, row.restorable, row.size], [3, APP_RULES.layout, true, true, (storage.get(taken.key) ?? '').length]);
+  });
+
+  it('whole-store restore from a compressed backup puts back every key', () => {
+    const storage = liveWith(3);
+    const history = historyOver(storage);
+    const taken = history.backUpNow();
+    assert.ok(taken.kind === 'taken');
+    storage.set(OPENISD_PROJECTS_KEY, projects(1));
+    assert.equal(history.restore(taken.key).kind, 'ok');
+    assert.equal(storage.get(OPENISD_PROJECTS_KEY), projects(3));
+  });
+
+  it('Export of a compressed backup is plain, portable text that restores in any build', () => {
+    const storage = liveWith(2);
+    const history = historyOver(storage);
+    const taken = history.backUpNow();
+    assert.ok(taken.kind === 'taken');
+    const file = history.exportFile(taken.key);
+    assert.ok(file !== null);
+    const outer: unknown = JSON.parse(file.text);
+    assert.ok(typeof outer === 'object' && outer !== null && 'schemaVersion' in outer && outer.schemaVersion === 1 && !('encoding' in outer));
+    const other = liveWith(0);
+    const backup = createStorageBackup(other, () => FIXED_NOW_MS);
+    assert.equal(createBackupRepo(other, backup, () => FIXED_NOW_MS, APP_RULES, () => undefined).importAll(file.text, {replaceEverything: true}).kind, 'ok');
+    assert.equal(other.get(OPENISD_PROJECTS_KEY), projects(2));
+  });
+
+  it('a damaged compressed backup is a row that can only be exported or deleted, and Restore changes nothing', () => {
+    const storage = liveWith(2);
+    const history = historyOver(storage);
+    const taken = history.backUpNow();
+    assert.ok(taken.kind === 'taken');
+    const outer: unknown = JSON.parse(storage.get(taken.key) ?? '');
+    assert.ok(typeof outer === 'object' && outer !== null && 'packed' in outer && typeof outer.packed === 'string');
+    storage.set(taken.key, JSON.stringify({...outer, packed: outer.packed.slice(0, 12)}));
+    const row = history.rows().find(r => r.key === taken.key);
+    assert.deepEqual(row && [row.readable, row.restorable], [false, false]);
+    assert.equal(history.restore(taken.key).kind, 'invalid');
+    assert.equal(storage.get(OPENISD_PROJECTS_KEY), projects(2));
+    assert.equal(history.remove(taken.key), true);
+  });
+
+  it('a backup written by the production build before compression is still listed, counted and restored', () => {
+    const storage = liveWith(1);
+    storage.set(REAL_BACKUP.key, REAL_BACKUP.text);
+    const history = historyOver(storage);
+    const row = history.rows().find(r => r.key === REAL_BACKUP.key);
+    assert.ok(row !== undefined);
+    assert.deepEqual([row.readable, row.restorable, row.layout, row.build, row.size], [true, true, 5, 'v20261108T0032Z', REAL_BACKUP.text.length]);
+    assert.ok(row.projectCount > 0);
+    assert.equal(history.restore(REAL_BACKUP.key).kind, 'ok');
+    assert.notEqual(storage.get(OPENISD_PROJECTS_KEY), projects(1));
+  });
+
+  it('a backup with an encoding this build does not know is kept, listed as of its stated layout, and not restored', () => {
+    const storage = liveWith(2);
+    const history = historyOver(storage);
+    const taken = history.backUpNow();
+    assert.ok(taken.kind === 'taken');
+    const outer: unknown = JSON.parse(storage.get(taken.key) ?? '');
+    assert.ok(typeof outer === 'object' && outer !== null);
+    storage.set(taken.key, JSON.stringify({...outer, encoding: 'zstd-9'}));
+    const row = history.rows().find(r => r.key === taken.key);
+    assert.deepEqual(row && [row.readable, row.restorable, row.layout], [false, false, 1000]);
+    assert.equal(history.restore(taken.key).kind, 'invalid');
+    assert.equal(createStorageBackup(storage, () => FIXED_NOW_MS).list().find(b => b.key === taken.key)?.layout, 1000);
+  });
+});

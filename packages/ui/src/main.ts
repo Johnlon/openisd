@@ -58,6 +58,7 @@ import {provideCloudSync} from './hooks/CloudSync-hooks.js';
 import {handleOAuthBoot} from './logic/boot.js';
 import {createLogging} from './logging/flash.js';
 import {flashStartupUse} from './logic/startupUsageNotice.js';
+import {announceUpgradeRefused} from './logic/upgradeRefusedNotice.js';
 import {storedUseOf} from './logic/storedUse.js';
 import {createFaultLog} from './diagnostics/faultLog.js';
 import {createDriverSelection} from './logic/driverSelection.js';
@@ -237,7 +238,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const selection = createDriverSelection({ appState, presentation, driverPicked });
   // Stored projects written by earlier builds are indented and carry dq_calculated: rewritten once,
   // behind the whole-store backup, and Cloud sync follows it so it sees no edit. A read-only view of a backup is never written.
-  if (!store.readOnly) createStoredTextCompaction(storage, storageBackup, createLedgerFollowsRewrite(storage, randomBytes)).run();
+  // The backup that must come first is compressed; when it still does not fit, nothing is rewritten and the user is told below.
+  const upgrade = store.readOnly ? {kind: 'nothingToDo' as const} : createStoredTextCompaction(storage, storageBackup, createLedgerFollowsRewrite(storage, randomBytes)).run();
   // Refused copies replace the old quarantine copy of the session: it is removed once, behind the backup.
   if (!store.readOnly) createQuarantineRetirement(storage, storageBackup).run();
   const projectRepo = createProjectRepo(engine, fileStorage, storage, new URL('./', window.location.href).href, storageBackup, exportedFiles, report => faultLog.recordRepair(report), saves.notify);
@@ -470,6 +472,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   overlay?.onAppMounted();
   flashStartupUse(storedUseOf(projectRepo, storageUsage), createUsageNoticeTab(tabStore), logging.flash);
   if (store.readOnly) logging.flash('Showing a backup read-only. Nothing you change is saved.');
+  void announceUpgradeRefused(upgrade, confirmPort.port);
   // A key that was here at the last start and is gone now: say so, and wait for a click.
   void announceLostKeys(store.lostKeys, {
     confirm: confirmPort.port,

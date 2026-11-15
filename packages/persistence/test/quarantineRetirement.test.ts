@@ -2,6 +2,7 @@
  * The old quarantine copy of the open-project session is retired: refused copies replace it, and
  * the key is removed once, behind the whole-store backup.
  */
+import {readEnvelope} from '../src/repos/storageSnapshot.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createQuarantineRetirement} from '../src/repos/quarantineRetirement.js';
@@ -22,7 +23,8 @@ describe('quarantine retirement', () => {
     assert.equal(createQuarantineRetirement(storage, backupOn(storage)).run(), 'retired');
     assert.equal(storage.get(OPENISD_QUARANTINE_SESSION_KEY), null);
     const [backupKey] = storage.keys().filter(key => key.startsWith(OPENISD_BACKUP_PREFIX));
-    assert.ok(backupOn(storage).read(backupKey)?.includes('openisd_quarantine_session'));
+    const held = readEnvelope(backupOn(storage).read(backupKey) ?? '');
+    assert.ok(held.kind === 'ok' && OPENISD_QUARANTINE_SESSION_KEY in held.snapshot.data);
   });
 
   it('refuses, and removes nothing it did not have to, when live data alone cannot be backed up', () => {

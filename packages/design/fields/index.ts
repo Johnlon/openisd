@@ -125,6 +125,7 @@ export {
   browserNameOf,
   persistenceLine,
   persistenceWarning,
+  UPGRADE_REFUSED_NOTICE,
   savedNotice,
   startupNotice,
   siteStorageLine,
