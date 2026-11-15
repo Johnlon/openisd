@@ -237,12 +237,11 @@
         }
       },
       "VCCon": {
-        "definition": "dual-coil wiring the published T/S was measured in (1 = parallel, 2 = series)",
+        "definition": "voice-coil wiring the published T/S was measured in, by name: series or parallel",
         "readings": {
           "manufacturer_product_page": {
-            "actual_reading": "2",
-            "read_precision": 0.5,
-            "read_value": 2.0
+            "actual_reading": "Beide Schwingspulen in Reihe",
+            "read_value": "series"
           }
         }
       },

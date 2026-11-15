@@ -26,7 +26,6 @@ import {WinISDDriver} from '@openisd/design/winisd';
 import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
-import {withNamedWiringReadings} from '../fixtures/scraperWiringShape.js';
 import {createEngine} from '../../engine/Engine.js';
 import type {WiredMotor} from '../../engine/solvers/driverQuantities.js';
 import {
@@ -39,7 +38,7 @@ const SNAPSHOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures',
 const recordSchema = z.object({
   specs: z.object({
     woofer: z.record(z.string(), z.object({
-      readings: z.record(z.string(), z.object({read_value: z.number().optional(), read_precision: z.number().optional()}).passthrough()),
+      readings: z.record(z.string(), z.object({read_value: z.union([z.number(), z.string()]).optional(), read_precision: z.number().optional()}).passthrough()),
     }).passthrough()),
   }).passthrough(),
 }).passthrough();
@@ -56,8 +55,8 @@ interface Printed {
 function printedOf(path: string, field: string): Printed {
   const parsed = recordSchema.parse(JSON.parse(textOf(path)));
   const readings = Object.values(parsed.specs.woofer[field].readings);
-  const read = readings.find(r => r.read_value !== undefined && r.read_precision !== undefined);
-  if (read?.read_value === undefined || read.read_precision === undefined) throw new Error(`${path}: ${field} prints no number`);
+  const read = readings.find(r => typeof r.read_value === 'number' && r.read_precision !== undefined);
+  if (typeof read?.read_value !== 'number' || read.read_precision === undefined) throw new Error(`${path}: ${field} prints no number`);
   return {value: read.read_value, precision: read.read_precision};
 }
 
@@ -86,10 +85,9 @@ interface Projection {
   readonly wdr: WinISDDriver;
 }
 
-/** `path` through the bridge, its VCCon readings in the scraper's QO914 shape (`withNamedWiringReadings`):
- *  the vendored snapshot still holds the retired 1/2 code until it is regenerated and re-synced. */
+/** `path` through the bridge. */
 function project(path: string, edit?: (record: Record<string, unknown>) => void): Projection {
-  const result = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(withNamedWiringReadings(textOf(path)));
+  const result = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(textOf(path));
   expect(result.errors.filter(e => e.level === 'error')).toEqual([]);
   if (result.openisd === null || result.wdr === null) throw new Error(`${path} did not project`);
   const record = z.record(z.string(), z.unknown()).parse(JSON.parse(result.openisd));
@@ -189,21 +187,26 @@ describe('Dayton MX6-22 (2 coils; sheet: "All specifications measured with voice
     expect(inconsistencies(project(MX6).driver)).toEqual([]);
   });
 
-  it('wiring data quality: the VCCon reading is the words "wired in series" (rejected, no number), so the measured wiring is not stated by the scraper; OpenISD infers series from Re 4.7 on "2 Ohms Per Coil" (4.7/2 = 2.35x >= 1.5x, QO903 R4) and notes it', () => {
-    // Until the scraper fix lands. A note, not the "not stated" warning: inferred replaces it (QO909: inferred -> note).
+  // printed on datasheet: Znom "2 + 2 ohms *" (each coil 2). Measured in series (the sheet's own statement), so the bridge
+  // stores 2 + 2 = 4 Ω, marked E (BUG_20261115_multi-coil-znom-stored-per-coil); the product page prints the same 4 ohms series.
+  it('Znom "2 + 2 ohms" per coil, series: stored 4, marked E', () => {
     const {driver} = project(MX6);
-    expect(wiringKinds(driver)).toEqual(['wiring-inferred']);
-    expect(driver.issues().find(i => i.kind === 'wiring-inferred')?.text).toBe('Wiring inferred: series (Re 4.7 Ω on 2 Ω coils).');
-    expect(driver.specs.VCCon.value).toBe(VoiceCoilWiring.Series);
-    expect(driver.specs.VCCon.entered).toBe(false);
-    expect(driver.specs.VCCon.calculated).toBe(true);
+    expect(driver.specs.Znom_ohm.value).toBe(4);
+    expect(driver.specs.Znom_ohm.entered).toBe(true);
   });
 
-  it('.wdr: Re 4.7 and BL 12.3 as stored, marked E; VCCon 2 (series, the inferred wiring) marked C', () => {
+  it('wiring data quality: the VCCon reading is the sheet\'s "All specifications measured with voice coils wired in series." (an approved wording, QO901), so the measured wiring is stated: series, entered, no wiring issue', () => {
+    const {driver} = project(MX6);
+    expect(wiringKinds(driver)).toEqual([]);
+    expect(driver.specs.VCCon.value).toBe(VoiceCoilWiring.Series);
+    expect(driver.specs.VCCon.entered).toBe(true);
+  });
+
+  it('.wdr: Re 4.7 and BL 12.3 as stored, marked E; VCCon 2 (series, stated) marked E', () => {
     const {wdr} = project(MX6);
     expect(wdr.cell('Re')).toEqual({value: '4.7', state: 'entered'});
     expect(wdr.cell('BL')).toEqual({value: '12.3', state: 'entered'});
-    expect(wdr.cell('VCCon')).toEqual({value: '2', state: 'calculated'});
+    expect(wdr.cell('VCCon')).toEqual({value: '2', state: 'entered'});
   });
 
   // convertWiring is the only reader of the wiring (plan "How the wiring maths works after the fix").
@@ -388,6 +391,15 @@ describe('SB Acoustics SB34SWPL76-3-DV (2 coils; "(par./ser.)" rows, series set 
     expect(wiringKinds(driver)).toEqual([]);
     expect(driver.specs.VCCon.value).toBe(VoiceCoilWiring.Series);
     expect(driver.specs.VCCon.entered).toBe(true);
+  });
+
+  // printed on the product page: Znom "2 x 3 Ω" (one coil's 3). Like Re, the bridge states it for the measured wiring (series):
+  // 2 · 3 = 6 Ω, marked E (BUG_20261115_multi-coil-znom-stored-per-coil). Stored per coil, Znom 3 sat below the series Re 5.
+  it('Znom "2 x 3 Ω" per coil, series: stored 6, marked E, precision 2 · 0.5', () => {
+    const {driver} = project(SB34);
+    expect(driver.specs.Znom_ohm.value).toBe(6);
+    expect(driver.specs.Znom_ohm.entered).toBe(true);
+    expect(driver.specs.Znom_ohm.precision).toBe(1);
   });
 
   it('.wdr: Re 5 and BL 19.5 as stored, marked E; VCCon 2 marked E', () => {

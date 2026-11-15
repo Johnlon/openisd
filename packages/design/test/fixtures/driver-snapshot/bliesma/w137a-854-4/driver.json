@@ -224,7 +224,7 @@
         }
       },
       "VCCon": {
-        "definition": "dual-coil wiring the published T/S was measured in (1 = parallel, 2 = series)",
+        "definition": "voice-coil wiring the published T/S was measured in, by name: series or parallel",
         "readings": {
           "manufacturer_datasheet": {
             "actual_reading": "wiring diagram",

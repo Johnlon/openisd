@@ -323,17 +323,15 @@
         }
       },
       "VCCon": {
-        "definition": "dual-coil wiring the published T/S was measured in (1 = parallel, 2 = series)",
+        "definition": "voice-coil wiring the published T/S was measured in, by name: series or parallel",
         "readings": {
           "manufacturer_datasheet": {
-            "actual_reading": "(par./ser.) 9.7/19.5 Tm",
-            "read_precision": 0.5,
-            "read_value": 2.0
+            "actual_reading": "(par./ser.)",
+            "read_value": "series"
           },
           "manufacturer_product_page": {
-            "actual_reading": "(par./ser.) 9.7/19.5 Tm",
-            "read_precision": 0.5,
-            "read_value": 2.0
+            "actual_reading": "(par./ser.)",
+            "read_value": "series"
           }
         }
       },

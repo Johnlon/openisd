@@ -158,39 +158,59 @@ function isKeyedObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-/** A per-coil resistance as printed: "N x r" or "N × r" (e.g. "2 x 2.5 Ω"). */
-const PER_COIL_PRINTED = /^\s*(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)/i;
+/** A per-coil figure as printed: "N x r" or "N × r" (e.g. "2 x 2.5 Ω"). */
+const PER_COIL_COUNT_TIMES = /^\s*(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)/i;
+/** A per-coil figure as printed: one term per coil, "r + r" (e.g. "2 + 2 ohms", "4+4 ohms"). */
+const PER_COIL_SUM = /^\s*(\d+(?:\.\d+)?)((?:\s*\+\s*\d+(?:\.\d+)?)+)/;
 
-/** Re printed per coil ("N x r") stored as the measured wiring's value (QO915; QO919: the file may
- *  mark it E though the bridge worked it out): series N·r, parallel r/N, the read precision scaled
- *  the same way. Needs the section's numVC of 2 or more and its VCCon naming the wiring; with the
- *  wiring unstated Re stays as printed, and the engine's "measured wiring not stated" warning stands.
+/** Figures a sheet may print per coil, each stated for the measured wiring by `withPerCoilFiguresForWiring`. */
+const PER_COIL_FIELDS = Object.freeze(['Re_ohm', 'Znom_ohm'] as const);
+
+/** The coil count a per-coil quote prints ("2 x 2.5 Ω": 2; "2 + 2 ohms": 2), or null when it is not one. The "r + r" form
+ *  needs every term equal: unequal terms are not identical coils. */
+function perCoilCount(quote: string): number | null {
+  const times = PER_COIL_COUNT_TIMES.exec(quote);
+  if (times !== null) return Number(times[1]);
+  const sum = PER_COIL_SUM.exec(quote);
+  if (sum === null) return null;
+  const terms = [sum[1], ...sum[2].split('+').map(t => t.trim()).filter(t => t !== '')].map(Number);
+  return terms.every(t => t === terms[0]) ? terms.length : null;
+}
+
+/** Re and Znom printed per coil ("N x r", "r + r") stored as the measured wiring's value (QO915; QO919: the file may mark it
+ *  E though the bridge worked it out; BUG_20261115_multi-coil-znom-stored-per-coil): series N·r, parallel r/N, the read
+ *  precision scaled the same way. Needs the section's numVC of 2 or more and its VCCon naming the wiring; with the wiring
+ *  unstated the figure stays as printed, and the engine's "measured wiring not stated" warning stands.
  *  Returns `fields` itself when nothing applies. */
-function withPerCoilReForWiring(fields: Record<string, unknown>): Record<string, unknown> {
-  const re = fields.Re_ohm;
+function withPerCoilFiguresForWiring(fields: Record<string, unknown>): Record<string, unknown> {
   const numVC = fields.numVC;
   const wiring = fields.VCCon;
-  if (!isKeyedObject(re) || re.state !== "E" || typeof re.value !== "number" || typeof re.origin !== "string") return fields;
   if (!isKeyedObject(numVC) || numVC.state !== "E" || typeof numVC.value !== "number" || numVC.value < 2) return fields;
   if (!isKeyedObject(wiring) || wiring.state !== "E") return fields;
   if (wiring.value !== "series" && wiring.value !== "parallel") return fields;
-  const readings = re.readings;
-  const winner = isKeyedObject(readings) ? readings[re.origin] : undefined;
-  if (!isKeyedObject(winner) || typeof winner.actual_reading !== "string") return fields;
-  const match = PER_COIL_PRINTED.exec(winner.actual_reading);
-  if (match === null) return fields;
-  const coils = Number(match[1]);
-  if (coils < 2) return fields;
-  const factor = wiring.value === "series" ? coils : 1 / coils;
-  const scaledWinner = typeof winner.read_precision === "number"
-    ? { ...winner, read_precision: winner.read_precision * factor }
-    : winner;
-  const scaledRe = {
-    ...re,
-    value: re.value * factor,
-    readings: { ...(isKeyedObject(readings) ? readings : {}), [re.origin]: scaledWinner },
-  };
-  return { ...fields, Re_ohm: scaledRe };
+  let out = fields;
+  for (const field of PER_COIL_FIELDS) {
+    const entry = fields[field];
+    if (!isKeyedObject(entry) || entry.state !== "E" || typeof entry.value !== "number" || typeof entry.origin !== "string") continue;
+    const readings = entry.readings;
+    const winner = isKeyedObject(readings) ? readings[entry.origin] : undefined;
+    if (!isKeyedObject(winner) || typeof winner.actual_reading !== "string") continue;
+    const coils = perCoilCount(winner.actual_reading);
+    if (coils === null || coils < 2) continue;
+    const factor = wiring.value === "series" ? coils : 1 / coils;
+    const scaledWinner = typeof winner.read_precision === "number"
+      ? { ...winner, read_precision: winner.read_precision * factor }
+      : winner;
+    out = {
+      ...out,
+      [field]: {
+        ...entry,
+        value: entry.value * factor,
+        readings: { ...(isKeyedObject(readings) ? readings : {}), [entry.origin]: scaledWinner },
+      },
+    };
+  }
+  return out;
 }
 
 /** One spec entry without the app-only key (`APP_ONLY_SPEC_ENTRY_KEY`). Rebuilt, not deleted
@@ -832,7 +852,7 @@ export class DriverRecordConverter {
         const projected = this.#projectScraperEntry(entry, sectionKey, field, warnings);
         fields[field] = entryWithoutAppOnlyKeys(projected);
       }
-      sections[sectionKey] = withPerCoilReForWiring(fields);
+      sections[sectionKey] = withPerCoilFiguresForWiring(fields);
     }
     return sections;
   }
