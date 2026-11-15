@@ -1,0 +1,13 @@
+id: T826
+release_note: internal
+repo: openisd
+owner: claude-sub
+status: done
+goal: main is green: bridge-bundle.test.ts provokes its Re_ohm warning with an input that still warns after QO935
+why: John, 2026-11-15: main must stay green (QO935, PR 121 broke bridge-bundle.test.ts)
+done_test: bash scripts/test.sh packages/design/test/winisd/bridge-bundle.test.ts
+files:
+  - tasks/T826.yml
+  - packages/design/test/winisd/bridge-bundle.test.ts
+  - scripts/land/unit-changed.sh
+  - bugs/BUG_20261115_unit-gate-misses-the-built-bridge-test.md
