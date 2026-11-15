@@ -5,8 +5,8 @@
 #                                                  interrupted wait, or a GitHub API rate limit); nothing is pushed
 # Pushes HEAD to a throwaway branch visual-retake/<branch>-<sha>; that push runs .github/workflows/visual-retake.yml,
 # which draws every screen in the suite's test machine, draws them again to prove the drawing is stable, and uploads
-# the pictures that differ from the committed ones (each stamped with the run id) with the UI sources' hash. This
-# waits for it, copies the pictures over the committed ones, writes SOURCES.sha256, and deletes the throwaway branch.
+# the pictures that differ from the committed ones (each stamped with the run id) with the UI sources' hash, which must equal this tree's (the run drew this tree). This
+# waits for it, copies the pictures over the committed ones, and deletes the throwaway branch.
 # Needs: a clean tree (commit first), network, and gh logged in. Takes minutes.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
@@ -42,13 +42,12 @@ if ! "$GH" run watch "$run" -R "$REPO" --interval 20 --exit-status > "$work/watc
 fi
 "$GH" run download "$run" -R "$REPO" -n visual-baselines -D "$work/r"
 [ "$(cat "$work/r/SOURCES.sha256")" = "$(visual_sources_hash)" ] || { echo "retake-ci: CI drew from other sources than these (the UI sources hash differs); nothing taken" >&2; exit 1; }
-# no picture differs: the artifact has no pictures/ folder and an empty manifest; there is nothing to check or copy
+# no picture differs: the artifact has no pictures/ folder and an empty manifest, and there is nothing to check or copy
 if [ -s "$work/r/MANIFEST.sha256" ]; then
-  { [ -d "$work/r/pictures" ] && ( cd "$work/r/pictures" && sha256sum -c --quiet "$work/r/MANIFEST.sha256" ); } || { echo "retake-ci: a downloaded picture does not match the run's manifest; nothing taken" >&2; exit 1; }
+  [ -d "$work/r/pictures" ] && ( cd "$work/r/pictures" && sha256sum -c --quiet "$work/r/MANIFEST.sha256" ) || { echo "retake-ci: a downloaded picture does not match the run's manifest; nothing taken" >&2; exit 1; }
   mkdir -p "$VISUAL_SNAPSHOT_DIR"; cp -f "$work"/r/pictures/*.png "$VISUAL_SNAPSHOT_DIR/"
 else
   echo "retake-ci: no picture changed"
 fi
-cp "$work/r/SOURCES.sha256" "$VISUAL_SOURCES_HASH_FILE"
 git status --short -- packages/ui/test/visual | sed -n 's#^.. .*/\([^/]*\)\.png$#visual: changed \1#p'
 echo "retake-ci: done (run $run); list the changed screens under visual: and commit"

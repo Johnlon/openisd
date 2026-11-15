@@ -101,7 +101,7 @@ rm scratch.txt
 bash scripts/visual/update.sh > "$SCRATCH/out" 2>&1 && ok "update.sh on a machine that cannot draw gets the pictures from CI" || fail "update.sh: $(cat "$SCRATCH/out")"
 [ ! -s "$SCRATCH_CALLS" ] && ok "no browser ran on this machine" || fail "a local browser run: $(cat "$SCRATCH_CALLS")"
 [ "$(LC_ALL=C grep -a -o 'openisd-visual-run.run=[0-9]*' "$SNAP/mobile-a.png" | sed 's/.*run=//')" = 55 ] && ok "the picture is the one CI drew (stamped with its run)" || fail "picture not from CI"
-[ "$(cat packages/ui/test/visual/SOURCES.sha256)" = "$(cat "$FIX/SOURCES.sha256")" ] && ok "SOURCES.sha256 is the hash CI computed for these sources" || fail "sources hash"
+[ ! -e packages/ui/test/visual/SOURCES.sha256 ] && ok "no committed sources hash is written (T810: it conflicted between every two UI pull requests)" || fail "a sources hash file was written"
 grep -q "^run list .*--branch visual-retake/t1" "$GH_CALLS" && ok "CI is asked for this branch's commit" || fail "calls: $(cat "$GH_CALLS")"
 [ -z "$(git ls-remote origin 'refs/heads/visual-retake/*')" ] && ok "the temporary retake branch is deleted afterwards" || fail "retake branch left on the remote"
 # a GitHub API failure while waiting is not reported as a failed run, and --run takes a finished run without pushing
@@ -122,18 +122,31 @@ VISUAL_GH="$SCRATCH/gh3" bash scripts/visual/update.sh > "$SCRATCH/out" 2>&1 && 
 sed -i 's/"run watch") echo.*/"run watch") exit 0 ;;/' "$SCRATCH/gh3"
 VISUAL_GH="$SCRATCH/gh3" bash scripts/visual/retake-ci.sh --run 55 > "$SCRATCH/out" 2>&1 && ok "--run takes a finished run" || fail "--run: $(cat "$SCRATCH/out")"
 ! grep -q "^run list" "$GH_CALLS" && [ -z "$(git ls-remote origin 'refs/heads/visual-retake/*')" ] && ok "--run pushes nothing and looks nothing up" || fail "--run pushed or searched: $(cat "$GH_CALLS")"
-# a re-take that changed no picture: the artifact has no pictures/ folder and an empty manifest. The sources hash is taken, exit 0.
+# an empty re-take (no picture differs, so the artifact has no pictures/ folder and an empty manifest) is taken: nothing changes
 EMPTY="$SCRATCH/empty"; mkdir -p "$EMPTY"; : > "$EMPTY/MANIFEST.sha256"; ( . scripts/visual/lib.sh; visual_sources_hash > "$EMPTY/SOURCES.sha256" )
 sed -i "s#cp -r \"\$FIX/.\"#cp -r \"\${FIX_DIR:-\$FIX}/.\"#" "$SCRATCH/gh3"
-echo stale > packages/ui/test/visual/SOURCES.sha256; git add -A; git commit -qm stale-hash
-FIX_DIR="$EMPTY" VISUAL_GH="$SCRATCH/gh3" bash scripts/visual/retake-ci.sh --run 55 > "$SCRATCH/out" 2>&1 && ok "an empty re-take (no pictures folder, empty manifest) exits 0" || fail "empty re-take: $(cat "$SCRATCH/out")"
-grep -q "no picture changed" "$SCRATCH/out" && ok "an empty re-take says no picture changed" || fail "empty re-take text: $(cat "$SCRATCH/out")"
-[ "$(cat packages/ui/test/visual/SOURCES.sha256)" = "$(cat "$EMPTY/SOURCES.sha256")" ] && [ -z "$(git status --short -- "$SNAP")" ] && ok "an empty re-take records the sources hash and changes no picture" || fail "empty re-take wrote wrongly: $(git status --short)"
-git checkout -q -- . 2> /dev/null; git clean -fdq 2> /dev/null
+git status --short > "$SCRATCH/before"
+FIX_DIR="$EMPTY" VISUAL_GH="$SCRATCH/gh3" bash scripts/visual/retake-ci.sh --run 55 > "$SCRATCH/out" 2>&1 && ok "an empty re-take (no pictures folder, empty manifest) is taken" || fail "empty re-take: $(cat "$SCRATCH/out")"
+grep -q "no picture changed" "$SCRATCH/out" && [ "$(git status --short)" = "$(cat "$SCRATCH/before")" ] && ok "an empty re-take says no picture changed and changes nothing" || fail "empty re-take changed files: $(git status --short)"
 echo wrong > "$FIX/SOURCES.sha256"
 # a CI result whose sources hash differs from this tree's (the tree moved after the push) is refused
 bash scripts/visual/update.sh > "$SCRATCH/out" 2>&1 && fail "a result for other sources was taken" || { grep -q "sources" "$SCRATCH/out" && ok "a result drawn from other sources is refused" || fail "text: $(cat "$SCRATCH/out")"; }
 unset VISUAL_GH
+
+# --- which pull requests run the visual spec on the merged result (pr.yml job visual): only those that can change a picture
+cd "$SCRATCH" && rm -rf w3 && mkdir w3 && cd w3 && git init -q -b main . && mkdir -p scripts packages/ui/src packages/ui/test/visual/visual.browser.spec.ts-snapshots packages/ui/test/ui docs && cp -r "$REPO/scripts/visual" scripts/
+printf a > packages/ui/src/A.vue; printf a > packages/ui/test/ui/x.spec.ts; printf a > docs/d.md; stamped one packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-a.png 3
+git add -A; git commit -qm base; b=$(git rev-parse HEAD)
+git checkout -q -B pr "$b"; printf b > docs/d.md; git commit -qam docs; git checkout -q -B m1 "$b"; git merge -q --no-ff -m merge pr
+[ "$(bash scripts/visual/pr-needs-visual.sh pull_request "")" = false ] && ok "a pull request that changes no source and no picture does not run the visual spec" || fail "docs-only PR runs the visual spec"
+git checkout -q -B pr "$b"; printf b > packages/ui/src/A.vue; git commit -qam src; git checkout -q -B m2 "$b"; git merge -q --no-ff -m merge pr
+[ "$(bash scripts/visual/pr-needs-visual.sh pull_request "")" = true ] && ok "a UI source change runs the visual spec" || fail "source PR skips the visual spec"
+git checkout -q -B pr "$b"; printf b > packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-a.png; git commit -qam pic; git checkout -q -B m3 "$b"; git merge -q --no-ff -m merge pr
+[ "$(bash scripts/visual/pr-needs-visual.sh pull_request "")" = true ] && ok "a changed picture runs the visual spec" || fail "picture PR skips the visual spec"
+git checkout -q -B pr "$b"; printf b > packages/ui/test/ui/x.spec.ts; git commit -qam spec; git checkout -q -B m4 "$b"; git merge -q --no-ff -m merge pr
+[ "$(bash scripts/visual/pr-needs-visual.sh pull_request "")" = false ] && ok "an ordinary UI spec change does not" || fail "ordinary spec runs the visual spec"
+git checkout -q -B queue "$b"; git checkout -q -B pr "$b"; printf b > packages/ui/src/A.vue; git commit -qam src; git checkout -q queue; git merge -q --no-ff -m "queue merge" pr
+[ "$(bash scripts/visual/pr-needs-visual.sh merge_group "$b")" = true ] && ok "the merge queue's run measures against the group's base" || fail "merge_group base"
 
 # --- scripts/test.sh refuses to update snapshots on a machine that cannot draw
 cd "$REPO" || exit 2

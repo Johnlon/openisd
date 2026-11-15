@@ -160,11 +160,11 @@ for t in "${IDS[@]}"; do
 done
 
 # 3c. the visual checks, exactly as the pull request's `task` job runs them (T799): a baseline picture not drawn by CI's
-# test machine, a baseline change the task does not list, and UI sources changed without a re-take, are refused before the
+# test machine, and a baseline change the task does not list, are refused before the
 # push. Nothing is drawn or asked of GitHub here; the pull request check also verifies each stamp's run through the API.
-if [ -f scripts/visual/check-task.sh ] && [ -f scripts/visual/check-sources.sh ]; then
+if [ -f scripts/visual/check-task.sh ]; then
   vt=(); for t in "${IDS[@]}"; do vt+=("tasks/$t.yml"); done
-  vis="$(bash scripts/visual/check-task.sh "${vt[@]}" "$SHIP_REMOTE/main" HEAD 2>&1 && bash scripts/visual/check-sources.sh "$SHIP_REMOTE/main" HEAD 2>&1)" || {
+  vis="$(bash scripts/visual/check-task.sh "${vt[@]}" "$SHIP_REMOTE/main" HEAD 2>&1)" || {
     printf '%s\n' "$vis" >&2
     echo "ship: the visual baseline checks refuse ${IDS[*]} (the pull request's task check would fail); nothing pushed" >&2
     exit 1

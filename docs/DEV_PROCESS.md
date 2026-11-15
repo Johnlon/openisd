@@ -116,7 +116,7 @@ other ids' worktrees go if they are clean and their branches if their commits ar
   `GATE_FILES` change; attribution guard on every commit message;
 - lint on the changed files, typecheck, the unit tests the change reaches, every architecture unit test
   (`scripts/land/unit-architecture.sh`, whatever changed: they read the source tree), `done_test`, the visual
-  `SOURCES.sha256` check;
+    (retired T810: the `visual` job runs the spec on the merged result);
 - that is all: 6 jobs, about 5 minutes. The full suite does not run on a pull request (John, QO501, 10 Nov 2026,
   "pick A": GitHub's free plan runs 20 jobs at once for the whole account, so 22-job pull requests queued one
   after another).
