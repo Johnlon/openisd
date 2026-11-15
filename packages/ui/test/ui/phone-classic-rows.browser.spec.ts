@@ -426,12 +426,17 @@ test('classic wizard: step 5 has the name and description boxes with their label
  * label column is 82 px (General: 128 px), value boxes share one left edge with a 14 px text gutter,
  * the key strip sits under the tabs, section bands are 28 px with a ?, and there is one primary button.
  */
-/** Per tab: the label column and the fewest section bands. every tab uses the one label column; General has no bands. */
+/**
+ * Per tab: the fewest section bands; General has no bands. Since T742 (John, 10 Nov 2026: "there is tons of empty space, don't blame the label")
+ * each tab sizes its own label column to its longest label: every row of a tab has the one column, which holds the longest label's text and
+ * is no more than MAX_LABEL_GAP_PX wider (the label's 8 px right padding, the 22 px warning slot and 2 px).
+ */
+const MAX_LABEL_GAP_PX = 8 + 22 + 2;
 const EDITOR_TABS = {
-  General: {labelPx: PhoneRowColumns.STANDARD.labelPx, minBands: 0},
-  Parameters: {labelPx: PhoneRowColumns.STANDARD.labelPx, minBands: 1},
-  Advanced: {labelPx: PhoneRowColumns.STANDARD.labelPx, minBands: 1},
-  Dimensions: {labelPx: PhoneRowColumns.STANDARD.labelPx, minBands: 1},
+  General: {minBands: 0},
+  Parameters: {minBands: 1},
+  Advanced: {minBands: 1},
+  Dimensions: {minBands: 1},
 } as const;
 
 for (const size of PHONE_SIZES) {
@@ -461,13 +466,23 @@ for (const size of PHONE_SIZES) {
         return [{
           left: box.left, gutter: parseFloat(getComputedStyle(input).paddingLeft), isSelect: input.tagName === 'SELECT',
           labelCol: parseFloat(getComputedStyle(row).gridTemplateColumns.split(' ')[0]),
+          labelText: (() => {
+            const label = row.querySelector('label');
+            if (label === null) return 0;
+            const range = document.createRange();
+            range.selectNodeContents(label);
+            return range.getBoundingClientRect().width;
+          })(),
           chipInside: chip === undefined || chip.width === 0 || (chip.left >= box.left && chip.right <= box.right + 0.5),
         }];
       }));
       expect(boxes.length).toBeGreaterThan(0);
+      const widestLabel = Math.max(...boxes.map(b => b.labelText));
       for (const b of boxes) {
         expect(Math.abs(b.left - boxes[0].left), 'value boxes share one left edge').toBeLessThanOrEqual(TOL);
-        expect(b.labelCol, 'label column').toBeCloseTo(tabSpec.labelPx, 0);
+        expect(b.labelCol, 'one label column on the tab').toBeCloseTo(boxes[0].labelCol, 0);
+        expect(b.labelCol - widestLabel, 'the label column holds the longest label').toBeGreaterThanOrEqual(-0.5);
+        expect(b.labelCol - widestLabel, 'and is no wider than the label, its padding and a warning slot').toBeLessThanOrEqual(MAX_LABEL_GAP_PX);
         expect(b.isSelect || b.gutter === GUTTER_PX, `text gutter ${b.gutter}`).toBe(true);
         expect(b.chipInside, 'unit chip inside its box').toBe(true);
       }

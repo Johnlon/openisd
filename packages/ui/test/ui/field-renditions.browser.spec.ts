@@ -21,6 +21,9 @@ function comparePaint(issues: string[], name: string, actual: Record<string, str
   }
 }
 
+/** The reference's right padding of a box with a wide unit chip, and what it is since T742. */
+const WIDE_CHIP_PADDING: Record<string, string> = {'60px': '50px'};
+
 function unitTextExpectation(form: FieldAppearance): string | RegExp { return form.units === FieldUnits.None ? '' : /\S/; }
 
 test('every numeric catalogue rendition matches the reviewed control paint and dimensions exactly', async ({page}) => {
@@ -37,7 +40,8 @@ test('every numeric catalogue rendition matches the reviewed control paint and d
     const row = page.locator(`[data-specimen="${form.id}"] .ui-field`);
     const control = row.locator('input,select');
     const reference=approvedCataloguePaint(form.id);
-    const expected=reference.control;
+    // T742 (PhoneRowColumns.WIDE_CHIP_PX): a wide unit chip (mm/N, 1000/K) is 50 px, not the frozen reference's 60 px, so the box's right padding is 50 px; 60 px left a 7-figure value cut at 374 px.
+    const expected={...reference.control,paddingRight:WIDE_CHIP_PADDING[String(reference.control.paddingRight)] ?? reference.control.paddingRight};
     comparePaint(issues, form.id, await paint(control), expected);
     const displayedUnit = row.locator('.ui-field-unit');
     const expectedUnit=requiredPaint(reference.unit,'unit '+form.id);
