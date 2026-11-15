@@ -45,7 +45,14 @@ for (const skin of [WalkSkin.Phone, WalkSkin.Desktop]) {
   steps.push([skin, 'shared/about-page', staticPage('/about/')]);
   steps.push([skin, 'shared/install-page', staticPage('/install/')]);
 }
-steps.push([WalkSkin.Phone, 'refresh', staticPage('/about/refresh/')]);
+/** The refresh page is an address a user types and a page they never stay on: it clears the old app files, then replaces itself
+ *  with the latest app (and moves the address to `/?_openisd_refresh=…`). What the user is left looking at is that app with
+ *  their project open, so the step waits for it: shot earlier, the picture is the "Updating" page or the app starting. */
+steps.push([WalkSkin.Phone, 'refresh', {root: 'body', open: async page => {
+  await page.goto('/about/refresh/');
+  await page.waitForURL(/_openisd_refresh=/);
+  await page.locator('#mob-box-type').waitFor({state: 'visible'});
+}}]);
 steps.push([WalkSkin.Phone, 'menu', {root: '.mob-menu', open: page => page.locator('.mob-hamburger').click()}]);
 steps.push([WalkSkin.Phone, 'chart-picker', {root: '.mob-chart-list', open: async page => { await phoneTab(page, 'Graph'); await page.locator('.mob-chart-pick').click(); }}]);
 steps.push([WalkSkin.Phone, 'driver-more', {root: '.de-more-menu', open: async page => { await driverEditor(page, WalkSkin.Phone); await page.locator('.de-more').click(); }}]);

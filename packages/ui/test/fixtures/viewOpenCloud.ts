@@ -1,3 +1,4 @@
+import {expect} from '@playwright/test';
 import type {Page} from '@playwright/test';
 import {openAMobileProject, openAProject} from '../fixtures.js';
 import {DriveEmulator} from './driveEmulator.js';
@@ -68,6 +69,9 @@ const reconnectStrip = (skin: WalkSkin): OpenStep => ({root: skin === WalkSkin.P
   await savedAccount(page, 'reconnect');
   await launch(page, skin);
   await page.locator(skin === WalkSkin.Phone ? '.mob-reconnect-banner' : '.cloud-reconnect-strip').waitFor({state: 'visible'});
+  // The strip shows at once with "1 change not synced"; the app counts the project it saved on opening only when its
+  // 3 s sync debounce fires, and the strip then reads "2 changes not synced". That is the settled screen: wait for it.
+  await expect(page.locator(skin === WalkSkin.Phone ? '.mob-reconnect-banner' : '.cloud-reconnect-strip')).toContainText('2 changes not synced');
 }});
 
 /** A driver edited on two devices: Drive (stand-in) holds the other device's copy, this browser holds its own. */
@@ -91,6 +95,10 @@ const conflictNotice = (skin: WalkSkin): OpenStep => ({root: skin === WalkSkin.P
   }, [bucket, MY_DRIVERS_KEY, CURRENT_STORAGE_LAYOUT] as const);
   await launch(page, skin);
   await page.locator(skin === WalkSkin.Phone ? '.mob-conflict-banner' : '.cloud-conflict-notice:not(.update-strip)').waitFor({state: 'visible'});
+  // The notice shows while the first run is still ending: the toolbar badge reads "N changes will sync in a moment"
+  // (busy glyph) and the project rows "not on Drive yet" until the second run, 3 s later, uploads the conflict copy.
+  // The settled screen is the badge saying both copies are kept (alert glyph) and every row on Drive.
+  await expect(page.locator('.cloud-sync-badge')).toHaveAttribute('title', /Tap to see them\./);
 }});
 
 /** The second launch of a build with cloud sync and no account: the hint offers to turn it on. */
