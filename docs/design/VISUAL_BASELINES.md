@@ -9,7 +9,7 @@ seen, named and approved; it is never a surprise.
 | The spec | `packages/ui/test/visual/visual.browser.spec.ts`, one `toHaveScreenshot` per screen |
 | Baselines | `packages/ui/test/visual/visual.browser.spec.ts-snapshots/<skin>-<screen>.png` |
 | Windows | phone 390×844, desktop 1880×1000 (`VisualSkin`) |
-| Tolerance | none; the build stamp is masked, and so is any part the machine decides, named per screen in `Screen.mask` (on dialogs only the phone About's build date; the storage quota is fixed by `VisualSkin.start`, and the test server's address is the same port 4300 in the suite and the re-take) |
+| Tolerance | none; the build stamp is the one masked element |
 | Who draws the baselines | CI's test machine only: `.github/workflows/visual-retake.yml`, in the same image as the suite's browser job. Never a developer machine (T799) |
 
 ## Rules

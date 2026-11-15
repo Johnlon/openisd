@@ -2,7 +2,7 @@ id: T793
 release_note: internal
 repo: openisd
 owner: poop
-status: done
+status: open
 goal: Every dialog, and each tab of a tabbed dialog, has a visual baseline in both skins
 why: John, 2026-11-15 (via fixer, approved in session): "every screen in the app is meant to have regression testing"; BUG_20261115_visual-baselines-cover-no-dialogs
 done_test: bash scripts/quiet-test.sh npm run typecheck

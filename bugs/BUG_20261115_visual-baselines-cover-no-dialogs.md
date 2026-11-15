@@ -1,6 +1,13 @@
-# BUG_20261115_visual-baselines-cover-no-dialogs
+> **REVERTED by T817 (15 Nov 2026).** T793 (PR 76, a45abc07) merged and turned main red: `unit-label-underline` and
+> `field-visual-contract` iterate the visual screen list (grown from 60 to 245) and fail on the new `dialog-*` screens, and
+> the shell test `scripts/land/test/visual-page.test.sh` failed. It also merged before review findings were dealt with
+> (some baselines do not show the view they are named for). The bug is OPEN again. The rework must (a) make
+> unit-label-underline and field-visual-contract pass with the new screens, and (b) fix the review findings, before
+> merging again.
 
-**Status:** FIXED by T793 (the left-out views below are listed with their reasons)
+
+# BUG_20261115_visual-baselines-cover-no-dialogs
+**Status:** OPEN, T793 was reverted by T817 (was: FIXED by T793, the left-out views below are listed with their reasons)
 
 ## Symptom
 
