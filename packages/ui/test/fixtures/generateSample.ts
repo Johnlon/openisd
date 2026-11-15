@@ -2,7 +2,7 @@ import {mkdirSync, readFileSync, renameSync, writeFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {z} from 'zod';
-import {createEngine, OpenISDDriver, ProjectBuilder} from '@openisd/design';
+import {type AppContext, createEngine, OpenISDDriver, ProjectBuilder, realAppContext} from '@openisd/design';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
 import {COMPLETE_DRIVER_PROJECT_OWPR, FIXTURE_DATE, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
 
@@ -28,6 +28,14 @@ function writeWhole(path: string, text: string): void {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+/** The ids and the clock a fixture is built with: the same every time it is generated (T834). A random id made a stored backup of the
+ *  project pack to a different size from run to run, and a picture of "4.7 KB" and "4.8 KB" cannot be the same. Each fixture has its
+ *  own `series`, so the sample and the complete project never share an id. */
+function fixtureContext(series: number): AppContext {
+  let n = 0;
+  return {...realAppContext, now: () => FIXTURE_DATE, newId: () => `00000000-0000-4000-${String(series).padStart(4, '0')}-${String(++n).padStart(12, '0')}`};
+}
+
 const driverStr = readFileSync(join(__dirname, '../../public/drivers/tang-band/w5-1138smf.json'), 'utf-8');
 const driverJson = driverRecordSchema.parse(JSON.parse(driverStr));
 const engine = createEngine();
@@ -37,7 +45,7 @@ if (Array.isArray(maybeDriver)) {
 }
 const driver = maybeDriver;
 
-const builder = new ProjectBuilder(driver, engine);
+const builder = new ProjectBuilder(driver, engine, fixtureContext(1));
 
 // WinISD's default vented alignment (C4/SC4), designed as the New Project wizard does it
 // (docs/research/VENTED_ALIGNMENT_FORMULAS.md); a hardcoded volume/tuning here would drift from
@@ -97,7 +105,7 @@ if (Array.isArray(completeDriver)) {
     throw new Error(`complete driver is not conforming: ${completeDriver.join(', ')}`);
 }
 
-const completeBuilder = new ProjectBuilder(completeDriver, engine);
+const completeBuilder = new ProjectBuilder(completeDriver, engine, fixtureContext(2));
 const completeProject = completeBuilder.vented().volume_m3(0.03).tuning_goal_hz(35).build();
 completeProject.name.set("Complete Fixture Project");
 completeProject.created.set(fixtureStamp);

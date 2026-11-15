@@ -77,15 +77,14 @@ function screen(skin: VisualSkin, name: string, open: (page: Page) => Promise<vo
 
 /**
  * Parts of a dialog the build decides, masked on every dialog screen (a selector that matches nothing masks nothing):
- * - the phone About's "Build · <date>" line: the build's own date, which differs with every build;
- * - the sizes Options, Your data states of the stored data (the usage line and warning, each row's figure, a backup's size and the backups total):
- *   a backup is stored packed, and its packed size differs by a few characters from run to run because the project's id is random, so a
- *   size that sits at a rounding edge ("4.7 KB" or "4.8 KB") drew differently in the re-take's second pass (T830).
- * The storage quota line is not masked: `VisualSkin.start` fixes the browser's answer. The "saved in this browser at
- * http://localhost:<port>/" line is not masked: the suite and the re-take both serve on port 4300 (OPENISD_TEST_PORT).
+ * - the phone About's "Build · <date>" line: the build's own date, which differs with every build.
+ * The sizes Options, Your data states are not masked (T834, QO924): a backup is stored packed, and its packed size followed the sample
+ * project's random id until the sample projects were generated with fixed ids (`generateSample.ts`). The storage quota line is not
+ * masked either: `VisualSkin.start` fixes the browser's answer. The "saved in this browser at http://localhost:<port>/" line is not
+ * masked: the suite and the re-take both serve on port 4300 (OPENISD_TEST_PORT).
  */
 const MACHINE_DECIDED_PARTS: readonly string[] = [
-  '[data-testid="about-version-line"]', '.su-used', '.su-warning', '.su-row dd', '.sh-total', '.sh-projects',
+  '[data-testid="about-version-line"]',
 ];
 
 const DESKTOP_TABS = ['Box', 'Driver', 'Signal', 'Filters', 'Advanced', 'Project'] as const;

@@ -1,6 +1,5 @@
 import { dateStamp } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
-import { newUuid } from '../newUuid.js';
 import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import type { DriverSpecsJson, RadiatorSpecsJson } from '../openisdSchema.js';
 
@@ -24,7 +23,7 @@ export function blankDeviceRecord<S extends DriverSpecsJson | RadiatorSpecsJson>
 ): Omit<OpenISDDeviceJson, 'specs'> & {specs: S} {
     const platformUser = appContext.platformUser();
     return {
-        uuid: {value: newUuid()},
+        uuid: {value: appContext.newId()},
         // Stated as empty rather than omitted: the guard requires all three, and an editor
         // overwrites them the moment the user types. `Field`'s own reader reports an empty
         // string as `not-available`, so a blank still renders blank.
