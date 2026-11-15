@@ -1,0 +1,173 @@
+{
+ "_source": "Real run of a scratch Playwright project (serial.spec.ts: serial describe whose first test fails; plain.spec.ts: pass, test.fail that fails, test.fail that passes), reporters json + scripts/telemetry-reporter.mjs, one run. Trimmed.",
+ "suites": [
+  {
+   "title": "plain.spec.ts",
+   "specs": [
+    {
+     "title": "plain pass",
+     "ok": true,
+     "tests": [
+      {
+       "timeout": 30000,
+       "annotations": [],
+       "expectedStatus": "passed",
+       "projectId": "",
+       "projectName": "",
+       "results": [
+        {
+         "status": "passed",
+         "duration": 8,
+         "retry": 0
+        }
+       ],
+       "status": "expected"
+      }
+     ],
+     "file": "plain.spec.ts",
+     "line": 2,
+     "column": 1
+    },
+    {
+     "title": "expected failure that fails",
+     "ok": true,
+     "tests": [
+      {
+       "timeout": 30000,
+       "annotations": [
+        {
+         "type": "fail"
+        }
+       ],
+       "expectedStatus": "failed",
+       "projectId": "",
+       "projectName": "",
+       "results": [
+        {
+         "status": "failed",
+         "duration": 6,
+         "retry": 0
+        }
+       ],
+       "status": "expected"
+      }
+     ],
+     "file": "plain.spec.ts",
+     "line": 3,
+     "column": 6
+    },
+    {
+     "title": "expected failure that passes",
+     "ok": false,
+     "tests": [
+      {
+       "timeout": 30000,
+       "annotations": [
+        {
+         "type": "fail"
+        }
+       ],
+       "expectedStatus": "failed",
+       "projectId": "",
+       "projectName": "",
+       "results": [
+        {
+         "status": "passed",
+         "duration": 1,
+         "retry": 0
+        }
+       ],
+       "status": "unexpected"
+      }
+     ],
+     "file": "plain.spec.ts",
+     "line": 4,
+     "column": 6
+    }
+   ],
+   "suites": []
+  },
+  {
+   "title": "serial.spec.ts",
+   "specs": [
+    {
+     "title": "first fails",
+     "ok": false,
+     "tests": [
+      {
+       "timeout": 30000,
+       "annotations": [],
+       "expectedStatus": "passed",
+       "projectId": "",
+       "projectName": "",
+       "results": [
+        {
+         "status": "failed",
+         "duration": 6,
+         "retry": 0
+        }
+       ],
+       "status": "unexpected"
+      }
+     ],
+     "file": "serial.spec.ts",
+     "line": 3,
+     "column": 1
+    },
+    {
+     "title": "second is skipped after the failure",
+     "ok": true,
+     "tests": [
+      {
+       "timeout": 30000,
+       "annotations": [],
+       "expectedStatus": "passed",
+       "projectId": "",
+       "projectName": "",
+       "results": [
+        {
+         "status": "skipped",
+         "duration": 0,
+         "retry": 0
+        }
+       ],
+       "status": "skipped"
+      }
+     ],
+     "file": "serial.spec.ts",
+     "line": 4,
+     "column": 1
+    },
+    {
+     "title": "expected failure",
+     "ok": true,
+     "tests": [
+      {
+       "timeout": 30000,
+       "annotations": [
+        {
+         "type": "fail"
+        }
+       ],
+       "expectedStatus": "passed",
+       "projectId": "",
+       "projectName": "",
+       "results": [
+        {
+         "status": "skipped",
+         "duration": 0,
+         "retry": 0
+        }
+       ],
+       "status": "skipped"
+      }
+     ],
+     "file": "serial.spec.ts",
+     "line": 5,
+     "column": 6
+    }
+   ],
+   "suites": []
+  }
+ ]
+}

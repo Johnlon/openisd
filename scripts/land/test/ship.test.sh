@@ -21,6 +21,7 @@ cat > "$SCRATCH/gh" <<EOF2
 case "\$1 \$2" in
   "pr list") echo "" ;;
   "pr create") echo "https://github.com/o/r/pull/7" ;;
+  "pr view") echo "OPEN auto" ;;     # GitHub confirms the auto-merge request (T815: ship.sh asks)
 esac
 EOF2
 chmod +x "$SCRATCH/gh"

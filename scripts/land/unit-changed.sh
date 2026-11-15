@@ -35,5 +35,12 @@ done
 run_start "unit-changed"
 rc=0
 node_modules/.bin/vitest run --changed origin/main --passWithNoTests || rc=$?
+# Tests that name a type this change edited, which the import graph above cannot see (type imports are erased; T815).
+named=()
+if reach="$(node scripts/lib/typeReach.mjs origin/main)"; then [ -z "$reach" ] || mapfile -t named <<< "$reach"; else echo "unit: type reach failed" >&2; rc=1; fi
+if [ "${#named[@]}" -gt 0 ]; then
+  echo "unit: ${#named[@]} more test files name a type this change edited"
+  node_modules/.bin/vitest run "${named[@]}" || rc=$?
+fi
 run_end "unit-changed" "$rc"
 exit "$rc"

@@ -8,6 +8,13 @@
 #                                                       branch is reused, saying so on stderr)
 #   pr.sh close <number> <reason>                       comments the reason, closes it
 #   pr.sh state <number>                                prints OPEN, CLOSED or MERGED
+#   pr.sh queued <number>                               exit 0 and prints merged | auto-merge | in-merge-queue when GitHub holds
+#                                                       the pull request that way; exit 1 and prints NOT queued otherwise (T815)
+#   pr.sh queue <number>                                gh pr merge --auto --squash, then `queued`: exit 1 when GitHub still has
+#                                                       no request and no queue entry (the merge call can exit 0 and leave none)
+#                                                       exit 4 and `HELD` when the pull request carries the label `hold` (nothing is queued)
+#   pr.sh label <number> <label>                        adds a label with the REST call. `gh pr edit --add-label` fails on this
+#                                                       repo (Projects classic GraphQL deprecation); never use it
 #
 # Env: ACTIONS_REPO (owner/name, from land.conf), LAND_GH (default gh; the tests put a stand-in here).
 set -uo pipefail
@@ -32,7 +39,8 @@ case "${1:-}" in
     open_num="$(head -n 1 <<< "$open_num")"
     if [ -n "$open_num" ]; then
       [[ "$open_num" =~ ^[0-9]+$ ]] || die "gh listed no pull request number for $3: $open_num"
-      gh_net pr edit "$open_num" --repo "$REPO" --title "$4" --body-file "$5" > /dev/null 2>&1 \
+      # REST, not `gh pr edit`: that is a GraphQL call and fails on this repo (Projects classic deprecation), which made every re-ship refuse (T815)
+      gh_net api -X PATCH "repos/$REPO/pulls/$open_num" -f "title=$4" -F "body=@$5" > /dev/null 2>&1 \
         || die "gh could not retitle pull request #$open_num on $3"
       echo "pull request #$open_num was already open on $3; this run reuses it" >&2
       echo "$open_num"
@@ -54,5 +62,39 @@ case "${1:-}" in
     [ $# = 2 ] || die "usage: pr.sh state <number>"
     gh_net pr view "$2" --repo "$REPO" --json state --jq .state 2> /dev/null || die "gh could not read pull request #$2"
     ;;
-  *) die "usage: pr.sh open|close|state ..." ;;
+  queued)
+    [ $# = 2 ] || die "usage: pr.sh queued <number>"
+    view="$(gh_net pr view "$2" --repo "$REPO" --json state,autoMergeRequest --jq '.state + " " + (if .autoMergeRequest then "auto" else "none" end)' 2> /dev/null)" \
+      || { echo "NOT queued (gh could not read pull request #$2)"; exit 1; }
+    case "$view" in
+      MERGED*) echo merged; exit 0 ;;
+      "OPEN auto") echo auto-merge; exit 0 ;;
+      "OPEN none")
+        inq="$(gh_net api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){isInMergeQueue}}}' \
+          -f o="${REPO%%/*}" -f r="${REPO#*/}" -F n="$2" --jq .data.repository.pullRequest.isInMergeQueue 2> /dev/null)"
+        [ "$inq" = true ] && { echo in-merge-queue; exit 0; }
+        echo "NOT queued (pull request #$2 is open with no auto-merge request and is not in the merge queue)"; exit 1 ;;
+      *) echo "NOT queued (pull request #$2 is $view)"; exit 1 ;;
+    esac
+    ;;
+  queue)
+    [ $# = 2 ] || die "usage: pr.sh queue <number>"
+    # A pull request a lead or reviewer holds (label `hold`) is never queued by an author (T815). Exit 4: HELD. Labels that cannot be read refuse (exit 1).
+    labels="$(gh_net api "repos/$REPO/issues/$2/labels" --jq '.[].name' 2> /dev/null)" \
+      || { echo "NOT queued: cannot read the labels of pull request #$2, so a hold cannot be ruled out" >&2; exit 1; }
+    if grep -qx hold <<< "$labels"; then
+      echo "HELD: pull request #$2 has the label hold; not queued. Whoever set the hold removes the label, then: bash scripts/land/pr-queue.sh $2" >&2
+      exit 4
+    fi
+    out="$(gh_net pr merge "$2" --repo "$REPO" --auto --squash 2>&1)"; mrc=$?
+    if verdict="$(bash "${BASH_SOURCE[0]}" queued "$2")"; then echo "queued: $verdict"; exit 0; fi
+    printf '%s\n' "$out" | tail -3 >&2
+    echo "$verdict; gh pr merge exited $mrc. Run: gh pr merge $2 -R $REPO --auto --squash" >&2
+    exit 1
+    ;;
+  label)
+    [ $# = 3 ] || die "usage: pr.sh label <number> <label>"
+    gh_net api -X POST "repos/$REPO/issues/$2/labels" -f "labels[]=$3" > /dev/null 2>&1 || die "gh could not add label $3 to pull request #$2"
+    ;;
+  *) die "usage: pr.sh open|close|state|queued|queue|label ..." ;;
 esac

@@ -2,13 +2,18 @@
 # Ship one finished task: its branch goes to GitHub as a pull request that merges itself when the checks pass
 # (T749, QO481 A, John 10 Nov 2026), and its worktree goes at once.
 #
-#   bash scripts/ship.sh T<n> [T<m>...] [--no-local-check]     run from the first task's own worktree
+#   bash scripts/ship.sh T<n> [T<m>...] [--no-local-check] [--fixes]     run from the first task's own worktree
 #
 # Several ids open ONE pull request carrying all of them (John, 10 Nov 2026: "go with A"). The work of every id is in
 # this worktree's branch (the first id's; merge the other branches into it first) and each tasks/<id>.yml is in the
 # tree. The pull request's checks accept it when every changed file is in at least one carried task's allowlist, and
 # run every carried task's done_test. The other ids' clean worktrees and local branches go too, once their commits
 # are in this branch.
+#
+# --fixes (or `label: fixes` in the task file) labels the pull request `fixes` with the REST call (gh pr edit --add-label fails here).
+# After `gh pr merge --auto` the script asks GitHub whether the pull request is really queued and refuses (exit 1, nothing
+# removed) when it is not; if a later queue ejection drops the request, `bash scripts/land/pr-queue.sh <n>` re-queues it, and
+# `bash scripts/land/pr-fix.sh T<n>` makes a fresh worktree from the pushed branch to fix a red check (T815).
 #
 #   exit 0  pushed, pull request open with auto-merge, worktree and local branch removed (the branch on GitHub keeps the work)
 #   exit 1  a local check is red (nothing pushed), or GitHub refused the push / pull request / auto-merge (nothing removed)
@@ -47,15 +52,17 @@ if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.
 export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 
 LOCAL_CHECK=1
+FIXES=""
 IDS=()
 for arg in "$@"; do
   case "$arg" in
     --no-local-check) LOCAL_CHECK="" ;;
+    --fixes) FIXES=1 ;;
     T[0-9]*) IDS+=("$arg") ;;
-    *) echo "usage: ship.sh T<n> [T<m>...] [--no-local-check]" >&2; exit 2 ;;
+    *) echo "usage: ship.sh T<n> [T<m>...] [--no-local-check] [--fixes]" >&2; exit 2 ;;
   esac
 done
-[ "${#IDS[@]}" -gt 0 ] || { echo "usage: ship.sh T<n> [T<m>...] [--no-local-check]" >&2; exit 2; }
+[ "${#IDS[@]}" -gt 0 ] || { echo "usage: ship.sh T<n> [T<m>...] [--no-local-check] [--fixes]" >&2; exit 2; }
 ID="${IDS[0]}"            # the first id names the branch and the pull request; the others ride along
 OTHERS=("${IDS[@]:1}")
 BRANCH="$(printf '%s' "$ID" | tr 'T' 't')"
@@ -179,6 +186,15 @@ if [ -n "$LOCAL_CHECK" ]; then
     bash -c "$LINT_CMD \"\$@\"" ship "${changed[@]}" > "$WORK/check.out" 2>&1 \
       || { tail -30 "$WORK/check.out" >&2; echo "ship: lint failed; nothing pushed" >&2; exit 1; }
   fi
+  # The same architecture and unit runs the pull request's jobs make (T815): they failed after the push on four PRs.
+  if [ -n "${SHIP_ARCH_CMD:-}" ]; then
+    bash -c "$SHIP_ARCH_CMD" > "$WORK/check.out" 2>&1 \
+      || { tail -40 "$WORK/check.out" >&2; echo "ship: the architecture tests failed (pr-gate's architecture job would fail); nothing pushed" >&2; exit 1; }
+  fi
+  if [ -n "${SHIP_UNIT_CMD:-}" ] && [ "${#changed[@]}" -gt 0 ]; then
+    bash -c "$SHIP_UNIT_CMD \"\$@\"" ship "${changed[@]}" > "$WORK/check.out" 2>&1 \
+      || { tail -40 "$WORK/check.out" >&2; echo "ship: the unit tests this change reaches failed (pr-gate's unit job would fail); nothing pushed" >&2; exit 1; }
+  fi
   if [ -n "${TYPECHECK_CMD:-}" ]; then
     bash -c "$TYPECHECK_CMD" > "$WORK/check.out" 2>&1 \
       || { tail -30 "$WORK/check.out" >&2; echo "ship: typecheck failed; nothing pushed" >&2; exit 1; }
@@ -196,8 +212,17 @@ remote_sha="$(net git ls-remote "$SHIP_REMOTE" "refs/heads/$BRANCH" | cut -f1)"
 title="$(pr_title "(auto) $LABEL" "$goal")"
 pr="$(ACTIONS_REPO="$REPO" LAND_GH="$GH" bash "$HERE/land/pr.sh" open "$ID" "$BRANCH" "$title" "$WORK/body.md")" \
   || { echo "ship: no pull request; branch $BRANCH is on GitHub, nothing removed" >&2; exit 1; }
-net "$GH" pr merge "$pr" --repo "$REPO" --auto --squash > "$WORK/merge.out" 2>&1 \
-  || { tail -3 "$WORK/merge.out" >&2; echo "ship: auto-merge not set on pull request #$pr; nothing removed" >&2; exit 1; }
+queued="$(ACTIONS_REPO="$REPO" LAND_GH="$GH" bash "$HERE/land/pr.sh" queue "$pr" 2> "$WORK/queue.err")"; qrc=$?
+HELD=""
+if [ "$qrc" = 4 ]; then HELD=1; cat "$WORK/queue.err" >&2
+elif [ "$qrc" != 0 ]; then
+  cat "$WORK/queue.err" >&2; echo "ship: pull request #$pr is NOT queued (auto-merge not set); nothing removed. Fix: bash scripts/land/pr-queue.sh $pr" >&2; exit 1
+fi
+label="$(task_field "$TASK" label)"; [ -z "$FIXES" ] || label=fixes
+if [ -n "$label" ]; then
+  ACTIONS_REPO="$REPO" LAND_GH="$GH" bash "$HERE/land/pr.sh" label "$pr" "$label" \
+    || { echo "ship: pull request #$pr is open and queued but the label '$label' was not added; nothing removed. Run: gh api -X POST repos/$REPO/issues/$pr/labels -f 'labels[]=$label'" >&2; exit 1; }
+fi
 
 # 7. the worktree and the local branch go; the branch on GitHub holds the work
 main_dir="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"
@@ -209,4 +234,6 @@ for ob in "${GONE[@]}"; do
   if [ -n "$wt" ]; then git worktree remove "$wt" 2> /dev/null || { echo "ship: left $wt (not clean); remove it when its work is safe" >&2; continue; }; fi
   git branch -q -D "$ob" 2> /dev/null || true
 done
-echo "ship: $LABEL shipped: https://github.com/$REPO/pull/$pr (auto-merge on; worktree removed)"
+[ -z "$HELD" ] || { echo "ship: $LABEL PUSHED BUT HELD: pull request #$pr has the label hold and is NOT queued; the holder lifts it (remove the label) and queues it. Do not queue it yourself" >&2; }
+echo "ship: $LABEL shipped: https://github.com/$REPO/pull/$pr (${HELD:+HELD, not queued; }${HELD:-auto-merge on; ${queued}; }worktree removed)"
+echo "ship: if a check fails, make a fresh worktree from the branch with: bash scripts/land/pr-fix.sh $ID  (a queue ejection: bash scripts/land/pr-queue.sh $pr)"

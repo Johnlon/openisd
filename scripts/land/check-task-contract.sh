@@ -74,6 +74,8 @@ fi
 # because its done_test ran a single method). Refused selectors: unittest Class or Class.method after the file's module
 # name, pytest ::, -k, vitest -t, --testNamePattern, --test-name-pattern, --grep/-g. Not seen (accepted): a selector inside a
 # wrapper script or environment variable. A touched test file that adds `.only(` is refused too.
+dt_problem="$(task_done_test_problem "$(task_field "$TASK" done_test)")"
+[ -z "$dt_problem" ] || fail done_test "$TASK: $dt_problem"
 if [ -n "$PR_MODE" ]; then
   dt="$(task_field "$TASK" done_test)"
   while read -r f; do

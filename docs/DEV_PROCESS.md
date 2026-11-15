@@ -72,7 +72,9 @@ Every finished task is a GitHub pull request into main, merged by the merge queu
 turns on auto-merge (squash) and deletes the worktree at once; the branch on GitHub holds the work. The one
 required check, `pr-gate`, runs on the pull request and again in the queue on the merged result, so main only
 ever gets green commits. A red pull request stops only itself: its owner reads the failing job, makes a fresh
-worktree from the branch, fixes and pushes. Nothing else waits.
+worktree from the branch with `bash scripts/land/pr-fix.sh T<n>`, fixes and ships again. Nothing else waits. The worktree
+goes at once on purpose (a kept one goes stale and holds a branch another session may need); the one command recreates it.
+What `ship.sh` checks before the push, and what only the agent can, is in `.claude/rules/shipping.md` (T815).
 
 Landed and abandoned work is removed by `scripts/land/tidy-branches.sh`, run by the watchdog every tick (T334,
 John 17 Oct 2026): a worktree goes when it is clean, nothing runs inside it and its commits are on origin/main;
@@ -81,6 +83,28 @@ folders holding only generated folders go. A decision to drop a task is `bash sc
 <who> "<why>"`: it lands nothing on main (John, 17 Oct 2026: "don't commit abandoned") and deletes the worktree, even with
 uncommitted work, and the branch, local and on origin, even with later commits; the decision is the authority.
 Nothing is archived: the record is one line in `build/test-logs/tidy-branches.log` (who, why, tip, task goal).
+
+### Design note: a gate script may ask a reviewer (not built; John, 15 Nov 2026)
+
+"Your gate scripts themselves can send things to agents": a gate may call an AI CLI (`codex exec`, `agy -p`, `claude -p`) to do a
+review nobody remembers to ask for. First candidate: baseline pictures. Hook point: `ship.sh` step 3c, after
+`scripts/visual/check-task.sh`, for each picture the diff changes. It would hand the reviewer the picture and the task's
+`visual_note` (what the screen is meant to be) through `$SHIP_PICTURE_REVIEW_CMD` (default: the real CLI; the tests set a stand-in,
+as `SYNC_BUNDLE_CMD` does for the sync), expecting one line `OK` or `FINDING <severity>: <text>`. Exit codes: 0 no serious
+finding; 1 serious finding unacknowledged (ship exits 1, nothing pushed); 3 the CLI is missing, not logged in or answers
+something else (also refuses: never a silent pass). Acknowledgement: the task file gets `review: <picture> <short hash>: <how it was resolved>`
+per finding, so a changed picture is asked again. It runs only in `ship.sh` on the laptop, never in `pr.yml` (the CLIs are not
+logged in on GitHub's runners); `pr-gate` would only check that every changed picture has its `review:` line. Not built in T815: the
+CI-side review is also left as design: it would be a job in its own workflow (never `pull_request` from forks, which get no
+secrets; `push` to collaborator branches such as `visual-retake/**`), running `openai/codex-action@v1` with `sandbox: read-only` and
+the same entry point and one-line findings format as the local run. With no credential configured it writes a visible warning to
+the job summary and neither passes silently nor fails the gate. John provides the secret (`OPENAI_API_KEY`, or a workspace
+`CODEX_ACCESS_TOKEN` on a Business or Enterprise plan; its use on a public repo is his call); no agent creates, reads or stores a
+credential. The review itself would be written once as a skill in this repo's `.claude/skills/` (what to look for in a baseline picture, the
+duplicate scan, the findings format; adapt the workspace draft `.claude/skills/review-pictures/SKILL.md`, written for a lead), run
+locally as `claude -p "/skill …"`, in CI through `anthropics/claude-code-action@v1` (same-repo branches only, write-access users
+only; John sets `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` himself with `/install-github-app`), and as a plain prompt for Codex
+or agy. The by-hand method is still being settled (PR #76's picture review), and the tests need that method's output format first.
 
 Cannot proceed: set `status: blocked` with one plain sentence, and stop.
 
@@ -105,7 +129,14 @@ other ids' worktrees go if they are clean and their branches if their commits ar
 3. The task contract, as the pull request's `task` job runs it (`scripts/land/check-task-contract.sh --pr`: locked
    hashes, `files` allowlist, status, gate files), then, optionally, lint and typecheck on the changed files. A
    file outside the allowlist exits 1 naming it, before anything is pushed.
-4. Push `t<nnn>` (never forced; refused if the remote branch holds a commit this branch lacks), open or reuse the pull request, `gh pr merge --auto --squash`.
+   Then the architecture tests (`SHIP_ARCH_CMD`, `unit-architecture.sh`: every architecture test and `branch-map.test.ts`) and the
+   unit tests the change reaches (`SHIP_UNIT_CMD`, `unit-changed.sh`), the same scripts as `pr-gate`'s jobs; red exits 1, nothing pushed.
+   A `done_test` naming a browser spec is refused here too.
+4. Push `t<nnn>` (never forced; refused if the remote branch holds a commit this branch lacks), open or reuse the pull request, `gh pr merge --auto --squash`, then ask
+   GitHub whether the pull request is queued (auto-merge request or merge-queue entry): not queued exits 1, nothing removed.
+   `--fixes`, or `label: fixes` in the task, adds the label with the REST call (`gh pr edit --add-label` fails on this repo).
+   A pull request labelled `hold` is pushed but not queued (`ship.sh` says HELD) and `pr-gate`'s `hold` job is red until the label is removed (T815).
+   A queue ejection drops the request: `bash scripts/land/pr-queue.sh <n>` re-queues and confirms.
 5. Delete the worktree.
 
 `pr-gate` (`.github/workflows/pr.yml`), on the pull request and in the merge queue:

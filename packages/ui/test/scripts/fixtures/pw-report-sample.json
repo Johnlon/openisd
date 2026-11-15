@@ -1,0 +1,104 @@
+{
+ "_source": "Cut from real Playwright JSON reports of main's suite runs (4a920cd9 report-10, df948c87 report-5), results trimmed. The test-level `status` is expected|unexpected|flaky|skipped; there is no `outcome` key.",
+ "suites": [
+  {
+   "title": "sample.spec.ts",
+   "specs": [
+    {
+     "title": "Original: a typed c no temperature gives is marked on the c box and the temperature box, with the reason",
+     "ok": true,
+     "tests": [
+      {
+       "timeout": 0,
+       "annotations": [],
+       "expectedStatus": "passed",
+       "projectId": "",
+       "projectName": "",
+       "results": [
+        {
+         "status": "passed",
+         "duration": 9572,
+         "retry": 0
+        }
+       ],
+       "status": "expected"
+      }
+     ],
+     "file": "ui/air-dq-marks.browser.spec.ts",
+     "line": 23,
+     "column": 1
+    },
+    {
+     "title": "every number box on box-vented has room for the longest value its field can show in any unit",
+     "ok": true,
+     "tests": [
+      {
+       "timeout": 0,
+       "annotations": [
+        {
+         "type": "fail",
+         "description": "BUG_20261110_layout-scan-first-run"
+        }
+       ],
+       "expectedStatus": "failed",
+       "projectId": "",
+       "projectName": "",
+       "results": [
+        {
+         "status": "failed",
+         "duration": 1839,
+         "error": {
+          "message": "(trimmed)"
+         },
+         "retry": 0,
+         "errorLocation": {
+          "file": "/__w/openisd/openisd/packages/ui/test/ui/layout-long-values.browser.spec.ts",
+          "column": 21,
+          "line": 63
+         }
+        }
+       ],
+       "status": "expected"
+      }
+     ],
+     "file": "ui/layout-long-values.browser.spec.ts",
+     "line": 39,
+     "column": 3
+    },
+    {
+     "title": "under 8 px nothing changes, and a click selects one digit",
+     "ok": false,
+     "tests": [
+      {
+       "timeout": 0,
+       "annotations": [],
+       "expectedStatus": "passed",
+       "projectId": "",
+       "projectName": "",
+       "results": [
+        {
+         "status": "failed",
+         "duration": 2442,
+         "error": {
+          "message": "(trimmed)"
+         },
+         "retry": 0,
+         "errorLocation": {
+          "file": "/__w/openisd/openisd/packages/ui/test/ui/number-box-drag-spin.browser.spec.ts",
+          "column": 51,
+          "line": 136
+         }
+        }
+       ],
+       "status": "unexpected"
+      }
+     ],
+     "file": "ui/number-box-drag-spin.browser.spec.ts",
+     "line": 125,
+     "column": 3
+    }
+   ],
+   "suites": []
+  }
+ ]
+}

@@ -8,6 +8,8 @@ name: pr
 on:
   pull_request:
     branches: [main]
+    # labeled and unlabeled: adding or lifting the `hold` label re-runs the gate (the `hold` job below); any label change restarts it
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   merge_group:
 
 permissions:
@@ -233,10 +235,28 @@ jobs:
         if: steps.scripts.outputs.run == 'true'
         run: bash scripts/test-shell.sh
 
+  # A held pull request cannot merge (T815): red while the label `hold` is on, so a lead's hold survives any push or `gh pr merge --auto`.
+  hold:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: not held by the label hold
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.event.merge_group.head_ref }}
+        run: bash scripts/ci/check-hold.sh
+
   # The one name the main ruleset requires. Red when any job above is not green.
   pr-gate:
     if: ${{ always() }}
-    needs: [task, lint, typecheck, unit, architecture, done-test, visual, shell]
+    needs: [task, lint, typecheck, unit, architecture, done-test, visual, shell, hold]
     runs-on: ubuntu-latest
     steps:
       - name: every gate green
