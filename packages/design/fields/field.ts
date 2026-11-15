@@ -1144,6 +1144,33 @@ export class NumberField extends Field {
     precision: 2,
     description: "Outer Mounting Diameter\nOverall diameter of the front mounting flange.",
   });
+  static readonly OUTERX_M = new NumberField({
+    value: "OuterX_m",
+    label: "Frame Size X (OuterX)",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
+    limits: {min: 0, max: 5},
+    floor: "positive",
+    precision: 2,
+    description: "Rectangular Frame Size, X\nOne side of the frame, for a driver with a rectangular (not round) frame. WinISD has no such field.",
+  });
+  static readonly OUTERY_M = new NumberField({
+    value: "OuterY_m",
+    label: "Frame Size Y (OuterY)",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
+    limits: {min: 0, max: 5},
+    floor: "positive",
+    precision: 2,
+    description: "Rectangular Frame Size, Y\nThe other side of the frame, for a driver with a rectangular (not round) frame. WinISD has no such field.",
+  });
+  static readonly WEIGHT_KG = new NumberField({
+    value: "weight_kg",
+    label: "Driver Weight (Weight)",
+    display: {kind: 'switchable', group: 'mass', base: 'kg'},
+    limits: {min: 0, max: 500},
+    floor: "positive",
+    precision: 3,
+    description: "Driver Weight\nHow much the whole driver weighs, as the maker states it. It is for planning the baffle and mounting. WinISD has no such field.",
+  });
   static readonly VCD_M = new NumberField({
     value: "Vcd_m",
     label: "Voice Coil Dia (Vcd)",

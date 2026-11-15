@@ -74,7 +74,10 @@ export class PhoneLabels {
   static readonly MAG_DEPTH = 'MagDpt';
   static readonly MAGNET = 'Magnet';
   static readonly BASKET = 'Basket';
-  static readonly OUTER = 'Outer';
+  static readonly OUTER = 'Outer dia';
+  static readonly OUTER_X = 'OuterX';
+  static readonly OUTER_Y = 'OuterY';
+  static readonly WEIGHT = 'Weight';
   static readonly VCD = 'Vcd';
   static readonly DVOL = 'DVol';
 }
@@ -297,6 +300,8 @@ export class PhoneHelp {
   static readonly EDITOR_DIMENSIONS = new PhoneHelpSection("Dimensions", "Physical fit and reference information. These dimensions are not the core inputs that determine the bass response.", [
     {"label": "Frame, basket and mounting dimensions", "text": "Use these to check the cut-out, fixing clearance and outside size against the manufacturer’s drawing."},
     {"label": "Depth and magnet dimensions", "text": "Check space behind the baffle and clearance around the magnet, including any ventilation space required by the manufacturer."},
+    {"label": "Rectangular frame size", "text": "OuterX and OuterY are the two sides of a rectangular frame, for drivers whose frame is not round. WinISD has no such fields."},
+    {"label": "Weight", "text": "How much the whole driver weighs, as the maker states it. WinISD has no such field."},
     {"label": "Voice-coil diameter", "text": "Physical coil size; it is not the effective radiating cone diameter used to determine Sd."},
     {"label": "Driver volume", "text": "The volume occupied by the driver. Useful when planning net enclosure volume; keep physical displacement separate from the acoustic Vas parameter."},
   ]);

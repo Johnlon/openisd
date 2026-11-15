@@ -864,6 +864,9 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <UIField class="de-fld" :class="[skin?.field, inspectClass('Magnet_m')]" data-field-key="Magnet_m" :label="skin ? PhoneLabels.MAGNET : undefined" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Basket_m" :label="skin ? PhoneLabels.BASKET : undefined" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Outer_m" :label="skin ? PhoneLabels.OUTER : undefined" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="OuterX_m" :label="skin ? PhoneLabels.OUTER_X : undefined" :field="NumberField.OUTERX_M" :cell="fieldOf('OuterX_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="OuterY_m" :label="skin ? PhoneLabels.OUTER_Y : undefined" :field="NumberField.OUTERY_M" :cell="fieldOf('OuterY_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="weight_kg" :label="skin ? PhoneLabels.WEIGHT : undefined" :field="NumberField.WEIGHT_KG" :cell="fieldOf('weight_kg')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Vcd_m" :label="skin ? PhoneLabels.VCD : undefined" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
               <UIField class="de-fld" :class="[skin?.field, inspectClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : undefined" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
             </div>

@@ -329,6 +329,9 @@ describe('driver editor — precision comes from the field registry', () => {
     ['Magnet Diameter (Magnet)', NumberField.MAGNET_M],
     ['Basket Diameter (Basket)', NumberField.BASKET_M],
     ['Outer Diameter (Outer)', NumberField.OUTER_M],
+    ['Frame Size X (OuterX)', NumberField.OUTERX_M],
+    ['Frame Size Y (OuterY)', NumberField.OUTERY_M],
+    ['Driver Weight (Weight)', NumberField.WEIGHT_KG],
     ['Voice Coil Dia (Vcd)', NumberField.VCD_M],
     ['Driver Displacement Volume (DVol)', NumberField.DVOL_M3],
   ]);

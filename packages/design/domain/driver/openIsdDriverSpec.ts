@@ -74,15 +74,15 @@ const FLOORS: Readonly<Record<DriverSpecFieldName, ValueFloor>> = Object.freeze(
     freq_low_hz: 'positive',
     freq_high_hz: 'positive',
     power_peak_W: NumberField.POWER_PEAK_W.floor,
-    weight_kg: 'positive',
+    weight_kg: NumberField.WEIGHT_KG.floor,
     Thick_m: NumberField.THICK_M.floor,
     Depth_m: NumberField.DEPTH_M.floor,
     MagDepth_m: NumberField.MAGDEPTH_M.floor,
     Magnet_m: NumberField.MAGNET_M.floor,
     Basket_m: NumberField.BASKET_M.floor,
     Outer_m: NumberField.OUTER_M.floor,
-    OuterX_m: 'positive',
-    OuterY_m: 'positive',
+    OuterX_m: NumberField.OUTERX_M.floor,
+    OuterY_m: NumberField.OUTERY_M.floor,
     DVol_m3: NumberField.DVOL_M3.floor,
 });
 
