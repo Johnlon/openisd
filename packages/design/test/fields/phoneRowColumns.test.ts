@@ -2,6 +2,13 @@ import {describe, expect, it} from 'vitest';
 import {PhoneRowColumns} from '../../fields/index.js';
 
 describe('PhoneRowColumns', () => {
+  it('lists every column but the label column for a root that measures its own', () => {
+    const all = PhoneRowColumns.STANDARD.cssVars();
+    const rest = PhoneRowColumns.STANDARD.cssVarsWithoutLabelColumn();
+    expect(all.has(PhoneRowColumns.LABEL_COLUMN_VAR)).toBe(true);
+    expect(rest.has(PhoneRowColumns.LABEL_COLUMN_VAR)).toBe(false);
+    expect(rest.size).toBe(all.size - 1);
+  });
   it('gives the one mobile column set one control inset and permanent cue-rail dimensions', () => {
     for (const columns of [PhoneRowColumns.STANDARD]) {
       expect(columns.cssVars().get('--mob-col-gutter')).toBe('16px');

@@ -104,6 +104,12 @@ export class PhoneRowColumns {
     readonly edgePx: number = PhoneRowColumns.EDGE_PX,
   ) {}
 
+  /** The widths as CSS custom properties, except the label column: that one is its page's, written by the page's own measure of its labels
+   *  (`PhoneRowColumns.LABEL_COLUMN_VAR`), so no element's style binding may also write it. */
+  cssVarsWithoutLabelColumn(): ReadonlyMap<string, string> {
+    return new Map([...this.cssVars()].filter(([name]) => name !== PhoneRowColumns.LABEL_COLUMN_VAR));
+  }
+
   /** The widths as CSS custom properties. */
   cssVars(): ReadonlyMap<string, string> {
     return new Map([

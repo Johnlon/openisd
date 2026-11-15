@@ -27,3 +27,10 @@ the page has settled; it failed 20 of 20 before the fix and passes after.
 ## Verification
 `visual mobile wizard-vented-step3` passes `--repeat-each 20`; the full visual spec passes with no baseline changed;
 `field-layout-rules.browser.spec.ts` passes; typecheck and lint are green.
+
+## Follow-up (T798): one writer
+Two writers set `--mob-col-label` on the page root: the style bindings (the design's default, rewritten on every render) and the measure.
+Now `PhoneRowColumns.cssVarsWithoutLabelColumn()` is what PhoneClassicPage, PhoneDialogPage, the driver editor and MobileSheet bind, and
+`createPhoneLabelColumn` is the only writer (it writes the default itself when no label qualifies). The style-attribute observer of T795
+is gone. Test first: `packages/ui/test/ui/phone-label-column-one-writer.browser.spec.ts` records the root's column across box-type changes
+(failed before with `123px, 62px, 123px, 62px, ...`, passes after). Step-3 sweep: 60 of 60 on this tree, also with 16 busy loops on 12 cores.

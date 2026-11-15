@@ -198,7 +198,7 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
 
   return {
     isOpen, lines: session.lines, rows: session.rows, rowSlots: session.rowSlots, mode,
-    sizeStyle: [...PhoneRowSizes.CLASSIC.cssVars(), ...PhoneRowColumns.STANDARD.cssVars()].map(([name, value]) => `${name}: ${value}`).join('; '), help,
+    sizeStyle: [...PhoneRowSizes.CLASSIC.cssVars(), ...PhoneRowColumns.STANDARD.cssVarsWithoutLabelColumn()].map(([name, value]) => `${name}: ${value}`).join('; '), help,
     portEditor, portView, portValuePress, closePortEditor, sheetEl, rowsEl, sheetStyle, setValue, openSheet, close, reset,
     onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp,
   };

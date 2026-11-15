@@ -4,8 +4,9 @@ import {PhoneRowColumns} from '@openisd/design/fields';
  * Sizes a phone page's (or popup's) label column to its longest label (John, 10 Nov 2026: "there is tons of
  * empty space between the label and the text box"). Every row of the page reads `--mob-col-label`; this sets
  * it on the page root to `PhoneRowColumns.labelColumnPx` of the labels shown, so the box takes the rest.
- * It measures again whenever the DOM under `root` changes, `root`'s own style is rewritten (a Vue `:style` binding
- * puts the design's default column back on every render of its page), `root` resizes or a font finishes loading.
+ * It is the only writer of that property on `root` (no style binding of the root carries it; see
+ * `PhoneRowColumns.cssVarsWithoutLabelColumn`); with no label to size to it writes the design's default column.
+ * It measures again whenever the DOM under `root` changes, `root` resizes or a font finishes loading.
  */
 export interface PhoneLabelColumn {
   /** Stops watching and takes back the width it set (the design's default column applies again). */
@@ -35,16 +36,14 @@ export function createPhoneLabelColumn(root: HTMLElement): PhoneLabelColumn {
       canvas.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`; // the font shorthand reads back empty
       widths.push(canvas.measureText(text).width + (parseFloat(style.marginRight) || 0));
     }
-    if (widths.length === 0) return;
-    const px = `${PhoneRowColumns.labelColumnPx(widths)}px`;
+    // No label to size to: the design's default column (no element's style binding writes it any more).
+    const px = `${widths.length === 0 ? PhoneRowColumns.STANDARD.labelPx : PhoneRowColumns.labelColumnPx(widths)}px`;
     if (root.style.getPropertyValue(PhoneRowColumns.LABEL_COLUMN_VAR) !== px) root.style.setProperty(PhoneRowColumns.LABEL_COLUMN_VAR, px);
   };
 
   const schedule = (): void => { if (frame === null) frame = view.requestAnimationFrame(measure); };
   const mutations = new view.MutationObserver(schedule);
   mutations.observe(root, {subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['class']});
-  const restyles = new view.MutationObserver(schedule);
-  restyles.observe(root, {attributes: true, attributeFilter: ['style']});
   const resizes = new view.ResizeObserver(schedule);
   resizes.observe(root);
   doc.fonts.addEventListener('loadingdone', schedule);
@@ -54,7 +53,6 @@ export function createPhoneLabelColumn(root: HTMLElement): PhoneLabelColumn {
   return {
     stop(): void {
       mutations.disconnect();
-      restyles.disconnect();
       resizes.disconnect();
       doc.fonts.removeEventListener('loadingdone', schedule);
       if (frame !== null) view.cancelAnimationFrame(frame);

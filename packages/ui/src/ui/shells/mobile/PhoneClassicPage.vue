@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {onBeforeUnmount, onMounted, ref} from 'vue';
-import {phoneClassicFieldVars} from './phoneClassicFieldVars.js';
+import {phoneClassicPageVars} from './phoneClassicFieldVars.js';
 import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../../hooks/phoneLabelColumn.js';
 
 const root = ref<HTMLElement | null>(null);
@@ -10,5 +10,5 @@ onBeforeUnmount(() => labelColumn?.stop());
 </script>
 
 <template>
-  <div ref="root" class="mob-classic" :style="phoneClassicFieldVars"><slot /></div>
+  <div ref="root" class="mob-classic" :style="phoneClassicPageVars"><slot /></div>
 </template>
