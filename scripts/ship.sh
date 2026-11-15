@@ -159,6 +159,19 @@ for t in "${IDS[@]}"; do
   printf '%s\n' "$contract" | awk -F'\t' '$1 == "WARN" { print "ship: warning (" $2 "): " $3 }' >&2
 done
 
+# 3c. the visual checks, exactly as the pull request's `task` job runs them (T799): a baseline picture not drawn by CI's
+# test machine, a baseline change the task does not list, and UI sources changed without a re-take, are refused before the
+# push. Nothing is drawn or asked of GitHub here; the pull request check also verifies each stamp's run through the API.
+if [ -f scripts/visual/check-task.sh ] && [ -f scripts/visual/check-sources.sh ]; then
+  vt=(); for t in "${IDS[@]}"; do vt+=("tasks/$t.yml"); done
+  vis="$(bash scripts/visual/check-task.sh "${vt[@]}" "$SHIP_REMOTE/main" HEAD 2>&1 && bash scripts/visual/check-sources.sh "$SHIP_REMOTE/main" HEAD 2>&1)" || {
+    printf '%s\n' "$vis" >&2
+    echo "ship: the visual baseline checks refuse ${IDS[*]} (the pull request's task check would fail); nothing pushed" >&2
+    exit 1
+  }
+  printf '%s\n' "$vis" | grep '^visual: warning' >&2 || true
+fi
+
 # 4. quick local check: lint on the changed files, typecheck
 if [ -n "$LOCAL_CHECK" ]; then
   mapfile -t changed < <(git diff --name-only --diff-filter=d "$SHIP_REMOTE/main" HEAD)

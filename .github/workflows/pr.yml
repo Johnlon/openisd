@@ -27,6 +27,10 @@ jobs:
   task:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # actions: read lets the baseline check ask which visual-retake run drew each changed picture (T799).
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -55,7 +59,12 @@ jobs:
           # a driver model change needs the ruling on one of the carried tasks
           for t in $PR_TASK; do bash "$RUNNER_TEMP/check-model-ruling.sh" "$t" origin/main HEAD > "$RUNNER_TEMP/ruling.out" && exit 0; done
           cat "$RUNNER_TEMP/ruling.out"; exit 1
-      - name: visual baselines match the task's visual list
+      - name: visual baselines match the task's visual list and were drawn by CI's test machine
+        # VISUAL_VERIFY_RUN: each changed picture's stamp must name a successful visual-retake run whose manifest holds its hash.
+        env:
+          VISUAL_VERIFY_RUN: '1'
+          GH_TOKEN: ${{ github.token }}
+          VISUAL_REPO: ${{ github.repository }}
         run: bash scripts/visual/check-task.sh $(for t in $PR_TASK; do echo "tasks/$t.yml"; done) origin/main HEAD
       - name: visual baselines match the UI sources (SOURCES.sha256)
         run: bash scripts/visual/check-sources.sh origin/main HEAD

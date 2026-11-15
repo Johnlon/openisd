@@ -155,5 +155,20 @@ ship T1; r=$?
   && grep -q '^pr|create|--repo|c/r|' "$CALLS" && grep -qx 'pr|merge|7|--repo|c/r|--auto|--squash' "$CALLS" \
   && ok "SHIP_REMOTE and SHIP_REPO send the branch and the pull request to the copy, not origin" || fail "copy (r=$r): $(tail -5 "$SCRATCH/out"); $(cat "$CALLS")"
 
+# (i) T799: baseline pictures must be drawn by CI's test machine: an unstamped picture is refused before any push
+SNAPD=packages/ui/test/visual/visual.browser.spec.ts-snapshots
+visual_setup() {   # $1: printf format of the picture's bytes
+  setup 0; cp -r "$REPO/scripts/visual" "$SCRATCH/w/main/scripts/"; ( cd "$SCRATCH/w/main" && git add -A && git commit -qm visual && git push -q origin main ) && git -C "$SCRATCH/w/wt" merge -q main
+  mkdir -p "$SCRATCH/w/wt/$SNAPD"; printf "$1" > "$SCRATCH/w/wt/$SNAPD/mobile-a.png"
+  printf '  - %s/mobile-a.png\nvisual:\n  - mobile-a\nvisual_note: a changed\n' "$SNAPD" >> "$SCRATCH/w/wt/tasks/T1.yml"
+}
+visual_setup 'drawn on a laptop'
+ship T1; r=$?
+[ $r = 1 ] && [ -z "$(remote_t1)" ] && [ -d "$SCRATCH/w/wt" ] && [ ! -s "$CALLS" ] && grep -q 'mobile-a' "$SCRATCH/out" && grep -q 'update.sh' "$SCRATCH/out" \
+  && ok "a baseline picture not drawn by CI pushes nothing and says how to re-take" || fail "unstamped picture (r=$r): $(tail -6 "$SCRATCH/out")"
+visual_setup 'drawn by ci\0openisd-visual-run\0run=9'
+ship T1; r=$?
+[ $r = 0 ] && [ -n "$(remote_t1)" ] && ok "a baseline picture stamped by a visual-retake run ships" || fail "stamped picture (r=$r): $(tail -6 "$SCRATCH/out")"
+
 [ $fails = 0 ] && { echo "ship: all passed"; exit 0; }
 echo "ship: $fails failed"; exit 1
