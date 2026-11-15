@@ -123,6 +123,11 @@ describe('bundledDriverIndexRowOf', () => {
     assert.equal(row.dq, false);
   });
 
+  it('carries the size class worked out from Sd as a search key, and null when Sd is not stated', () => {
+    assert.equal(bundledDriverIndexRowOf(driverOf({ Fs_hz: 45, Sd_m2: 0.0213206, Znom_ohm: 8 }), 'a/b/openisd.yml').sizeFromSd_in, 8);
+    assert.equal(bundledDriverIndexRowOf(driverOf({ Fs_hz: 45, Znom_ohm: 8 }), 'a/b/openisd.yml').sizeFromSd_in, null);
+  });
+
   it('a figure the record does not state and the solver cannot derive is null, not 0 or undefined', () => {
     const row = bundledDriverIndexRowOf(driverOf({}), 'a/b/openisd.yml');
     assert.equal(row.Fs_hz, null);
@@ -137,7 +142,7 @@ describe('bundledDriverIndexRowOf', () => {
     const row = bundledDriverIndexRowOf(driverOf({ Fs_hz: 45 }), 'a/b/openisd.yml');
     assert.deepEqual(Object.keys(row).sort(), [
       'Fs_hz', 'Sd_m2', 'Vd_m3', 'Xmax_m', 'Znom_ohm', 'canonical', 'chips', 'datasheet', 'dq',
-      'freq_high_hz', 'freq_low_hz', 'listingPage', 'name', 'path', 'productPage', 'uuid',
+      'freq_high_hz', 'freq_low_hz', 'listingPage', 'name', 'path', 'productPage', 'sizeFromSd_in', 'uuid',
     ]);
   });
 });

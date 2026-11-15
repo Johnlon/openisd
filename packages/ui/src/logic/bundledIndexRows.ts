@@ -13,6 +13,7 @@
  */
 import type {OpenISDDriverStandalone, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 import type {BundledDriverIndexRow, BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
+import {SizeClass} from '@openisd/design/filter';
 import {chipsOf, displayNameOf, driverHasDqIssues, radiatorHasDqIssues} from './driverDisplay.js';
 
 export function bundledDriverIndexRowOf(driver: OpenISDDriverStandalone, path: string): BundledDriverIndexRow {
@@ -35,6 +36,7 @@ export function bundledDriverIndexRowOf(driver: OpenISDDriverStandalone, path: s
     Znom_ohm: s.Znom_ohm.value,
     freq_low_hz: s.freq_low_hz.value,
     freq_high_hz: s.freq_high_hz.value,
+    sizeFromSd_in: SizeClass.ofSd(s.Sd_m2.value)?.inches ?? null,
   };
 }
 

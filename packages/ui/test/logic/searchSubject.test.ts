@@ -48,11 +48,11 @@ const row: BundledDriverIndexRow = {
   datasheet: null, productPage: null, listingPage: null,
   chips: chipsOf(driver).types, canonical: chipsOf(driver).canonical,
   Fs_hz: 45, Sd_m2: 0.0075, Xmax_m: null, Vd_m3: null, Znom_ohm: 4,
-  freq_low_hz: null, freq_high_hz: null,
+  freq_low_hz: null, freq_high_hz: null, sizeFromSd_in: 5,
 };
 
 const noCriteria: SearchCriteria = {
-  query: '', typeStates: {}, fsMin: '', fsMax: '', rangeFrom: '', rangeTo: '', rangeKeepUnstated: true, sdMin: '', sdMax: '', selZ: [],
+  query: '', typeStates: {}, fsMin: '', fsMax: '', rangeFrom: '', rangeTo: '', rangeKeepUnstated: true, sdMin: '', sdMax: '', selZ: [], sizes: [],
   favoritesOnly: false, favorites: [],
 };
 
@@ -88,6 +88,13 @@ describe('matchesCriteria over a subject', () => {
     assert.equal(matchesCriteria(searchSubjectOfIndexRow(row), { ...noCriteria, sdMin: '70', sdMax: '80' }), true, 'Sd in cm²');
     assert.equal(matchesCriteria(searchSubjectOfIndexRow(row), { ...noCriteria, selZ: ['4'] }), true);
     assert.equal(matchesCriteria(searchSubjectOfIndexRow(row), { ...noCriteria, selZ: ['8'] }), false);
+  });
+
+  it('size chips admit the class worked out from Sd (a 5 inch class here), and a subject with no Sd is out when one is on', () => {
+    assert.equal(matchesCriteria(searchSubjectOfIndexRow(row), { ...noCriteria, sizes: ['5', '8'] }), true);
+    assert.equal(matchesCriteria(searchSubjectOfIndexRow(row), { ...noCriteria, sizes: ['8'] }), false);
+    assert.equal(matchesCriteria({ ...searchSubjectOfIndexRow(row), sizeFromSd_in: null }, { ...noCriteria, sizes: ['5'] }), false);
+    assert.equal(matchesCriteria({ ...searchSubjectOfIndexRow(row), sizeFromSd_in: null }, noCriteria), true);
   });
 
   it('favourites-only admits a subject whose id is starred', () => {

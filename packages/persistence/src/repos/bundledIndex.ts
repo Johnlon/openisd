@@ -47,6 +47,9 @@ export interface BundledDriverIndexRow extends BundledIndexRow {
   /** The frequency range the maker states: what the stated range filter reads. */
   readonly freq_low_hz: number | null;
   readonly freq_high_hz: number | null;
+  /** The size class (inches) worked out from Sd: a SEARCH KEY, calculated, null when Sd is not stated.
+   *  Never the maker's nominal size and never shown as a datasheet value. */
+  readonly sizeFromSd_in: number | null;
 }
 
 /** One bundled passive radiator as the PR browser lists it. Raw SI, as the record states it —

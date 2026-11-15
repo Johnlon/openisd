@@ -69,6 +69,20 @@ const EXTRA: readonly Screen[] = [
     await page.locator('.overlay.open .modal-footer').getByText('Next', {exact: true}).click();
     await page.locator('.np-step').getByText('Step 2').waitFor();
   }},
+  {id: 'desktop Driver library with a size chosen', skin: 'desktop', root: '.wb-modal', open: async page => {
+    await startDesktop(page, 'vented');
+    await page.locator('[title*="librar" i]').first().click();
+    await page.locator('.size-row .zchip', {hasText: /^5$/}).click();
+    await page.locator('.filters-on').waitFor();
+  }},
+  {id: 'phone Driver library filters open with a size chosen', skin: 'phone', root: '.wb-modal', open: async page => {
+    await startPhone(page, 'vented');
+    await page.locator('.mob-tab', {hasText: 'Driver'}).click();
+    await page.getByText('Select driver').click();
+    await page.locator('.dl-filters-toggle').click();
+    await page.locator('.size-row .zchip', {hasText: /^5$/}).click();
+    await page.locator('.dl-filters-toggle', {hasText: '(1)'}).waitFor();
+  }},
   {id: 'phone New project wizard step 2', skin: 'phone', root: '.mob-np-body', open: async page => {
     await page.setViewportSize({width: 374, height: 705});
     await forceMobileSkin(page);

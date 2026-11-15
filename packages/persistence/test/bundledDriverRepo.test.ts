@@ -38,6 +38,7 @@ const driverRow = {
   Znom_ohm: 4,
   freq_low_hz: 30,
   freq_high_hz: null,
+  sizeFromSd_in: 8,
 };
 
 const radiatorRow = {

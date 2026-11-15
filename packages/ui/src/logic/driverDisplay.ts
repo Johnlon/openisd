@@ -7,7 +7,7 @@
  */
 import type {OpenISDDriver, OpenISDDriverStandalone, OpenISDPassiveRadiatorStandalone, Readable} from '@openisd/design';
 import type {BundledDriverIndexRow, BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
-import {Chip, DriverType} from '@openisd/design/filter';
+import {Chip, DriverType, SizeClass} from '@openisd/design/filter';
 import {NumberField} from '@openisd/design/fields';
 import {DriverScope} from '../driverScope.js';
 
@@ -32,6 +32,8 @@ export interface SearchCriteria {
   sdMin: string; sdMax: string;
   /** Nominal impedances to admit, as strings: '4', '8', '16'. */
   selZ: string[];
+  /** Size classes to admit, as `SizeClass.value` strings: '6.5', '8'. Matched on the class worked out from Sd. */
+  sizes: string[];
   /** When true only subjects whose id is in `favorites` are admitted. */
   favoritesOnly: boolean;
   favorites: readonly string[];
@@ -51,17 +53,21 @@ export interface SearchSubject {
   /** The frequency range the maker states. */
   readonly freq_low_hz: number | null;
   readonly freq_high_hz: number | null;
+  /** The size class worked out from Sd (search only), inches. */
+  readonly sizeFromSd_in: number | null;
 }
 
 export function searchSubjectOfDriver(driver: OpenISDDriverStandalone): SearchSubject {
   const s = specSummaryOf(driver);
   return { id: driver.uuid(), name: displayNameOf(driver), chips: chipsOf(driver).types, Fs_hz: s.Fs, Sd_m2: s.Sd, Znom_ohm: s.Znom,
-    freq_low_hz: driver.specs.freq_low_hz.value, freq_high_hz: driver.specs.freq_high_hz.value };
+    freq_low_hz: driver.specs.freq_low_hz.value, freq_high_hz: driver.specs.freq_high_hz.value,
+    sizeFromSd_in: SizeClass.ofSd(s.Sd)?.inches ?? null };
 }
 
 export function searchSubjectOfIndexRow(row: BundledDriverIndexRow): SearchSubject {
   return { id: row.uuid, name: row.name, chips: row.chips, Fs_hz: row.Fs_hz, Sd_m2: row.Sd_m2, Znom_ohm: row.Znom_ohm,
-    freq_low_hz: row.freq_low_hz, freq_high_hz: row.freq_high_hz };
+    freq_low_hz: row.freq_low_hz, freq_high_hz: row.freq_high_hz,
+    sizeFromSd_in: row.sizeFromSd_in };
 }
 
 /** The stated T/S numbers of one driver's active section, plus its derived inductance — the
@@ -180,6 +186,8 @@ export function matchesCriteria(subject: SearchSubject, c: SearchCriteria): bool
   if (c.selZ.length &&
       !c.selZ.some(oz => Znom != null && Math.abs(Znom - parseFloat(oz)) < 1.5)) return false;
 
+  if (!SizeClass.admits(c.sizes, subject.sizeFromSd_in)) return false;
+
   if (c.favoritesOnly && !c.favorites.includes(subject.id)) return false;
   return true;
 }
@@ -225,6 +233,8 @@ export function activeFilterLabels(c: SearchCriteria, scope: DriverScope): strin
   const sd = rangeLabel('Sd', c.sdMin, c.sdMax, NumberField.SD_M2.unitLabel('cm2'));
   if (sd) labels.push(sd);
   if (c.selZ.length) labels.push(`Z ${c.selZ.map(z => `${z}${NumberField.ZNOM_OHM.unitLabel()}`).join(' or ')}`);
+  const size = SizeClass.filterLabel(c.sizes);
+  if (size) labels.push(size);
   if (scope !== DriverScope.All) labels.push(`${scope.label} only`);
   if (c.favoritesOnly) labels.push('Favorites');
   return labels;

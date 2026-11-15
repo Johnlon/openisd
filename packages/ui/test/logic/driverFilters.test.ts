@@ -15,14 +15,15 @@ import {createBundledDriverRepo, createFileStorage, createMemoryStorage, createP
 import type {Logging} from '../../src/logging/flash.js';
 import {createDriverSelection} from '../../src/logic/driverSelection.js';
 import {createDriverBrowsingState} from '../../src/logic/driverBrowsingState.js';
-import {activeFilterLabels, type SearchCriteria} from '../../src/logic/driverDisplay.js';
+import {SizeClass} from '@openisd/design/filter';
+import {activeFilterLabels, searchSubjectOfDriver, type SearchCriteria} from '../../src/logic/driverDisplay.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {ProjectFileFormat} from '../../src/fileFormat.js';
 import {DriverScope} from '../../src/driverScope.js';
 import {myDriverRepoOn, projectRepoOn, exportedFilesOn} from '../fixtures/repoOn.js';
 
 const NONE: SearchCriteria = {
-  query: '', typeStates: {}, fsMin: '', fsMax: '', rangeFrom: '', rangeTo: '', rangeKeepUnstated: true, sdMin: '', sdMax: '', selZ: [], favoritesOnly: false, favorites: [],
+  query: '', typeStates: {}, fsMin: '', fsMax: '', rangeFrom: '', rangeTo: '', rangeKeepUnstated: true, sdMin: '', sdMax: '', selZ: [], sizes: [], favoritesOnly: false, favorites: [],
 };
 
 describe('activeFilterLabels: which filters are on, in words', () => {
@@ -37,6 +38,10 @@ describe('activeFilterLabels: which filters are on, in words', () => {
     }, DriverScope.Mine)).toEqual([
       '"W5-1138"', 'not Sub', 'Tweet', 'Fs 20–40 Hz', 'Sd ≥ 90 cm²', 'Z 4Ω or 8Ω', 'My Drivers only', 'Favorites',
     ]);
+  });
+
+  it('names the size classes, saying they are worked out from Sd', () => {
+    expect(activeFilterLabels({...NONE, sizes: ['10', '8']}, DriverScope.All)).toEqual(['Size ≈ 8 or 10 in (from Sd)']);
   });
 
   it('names a maximum alone', () => {
@@ -101,6 +106,23 @@ describe('the driver list filters', () => {
     browsing.toggleFavorite(id);
     expect(browsing.favoritesOnly.value).toBe(false);
     expect(browsing.filteredMyDrivers.value).toHaveLength(1);
+  });
+
+  it('the size chips narrow My Drivers by the class worked out from Sd, and Clear filters turns them off', () => {
+    const {browsing} = setUp();
+    const own = searchSubjectOfDriver(browsing.myDrivers.value[0].driver).sizeFromSd_in;
+    expect(own).not.toBeNull();
+    const other = SizeClass.ALL.find(c => c.inches !== own);
+    if (!other) throw new Error('there is more than one class');
+    browsing.toggleSize(other.value);
+    expect(browsing.filteredMyDrivers.value).toHaveLength(0);
+    expect(browsing.activeFilters.value).toEqual([SizeClass.filterLabel([other.value])]);
+    browsing.toggleSize(String(own));
+    expect(browsing.filteredMyDrivers.value).toHaveLength(1);
+    browsing.toggleSize(other.value);
+    browsing.toggleSize(String(own));
+    browsing.clearParamFilters();
+    expect(browsing.selSizes.value).toEqual([]);
   });
 
   it('says which filters are on, and Clear filters clears every one', () => {

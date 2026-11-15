@@ -1,0 +1,32 @@
+id: T796
+release_note: internal
+repo: openisd
+owner: search-builder
+status: done
+goal: Driver library can be searched by size: a size chip row filters drivers by nominal-size class worked out from Sd, shown as derived and never stored
+why: John, 14 Nov 2026: search by size, size from Sd for search only (issue 516, QO923)
+done_test: bash scripts/test.sh packages/design/test/filter/sizeClass.test.ts
+files:
+  - tasks/T796.yml
+  - DOCUMENTATION.md
+  - docs/plans/PLAN_20261115_DRIVER_SEARCH.md
+  - packages/design/filter/sizeClass.ts
+  - packages/design/filter/index.ts
+  - packages/design/test/filter/sizeClass.test.ts
+  - packages/persistence/src/repos/bundledIndex.ts
+  - packages/persistence/src/repos/bundledDriverRepo.ts
+  - packages/ui/src/logic/bundledIndexRows.ts
+  - packages/ui/src/logic/driverDisplay.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/public/drivers-index.json
+  - packages/ui/test/logic/bundledIndexRows.test.ts
+  - packages/ui/test/logic/driverFilters.test.ts
+  - packages/ui/test/logic/searchSubject.test.ts
+  - packages/ui/test/ui/driver-size-search.browser.spec.ts
+  - packages/ui/test/ui/field-layout-rules.browser.spec.ts
+  - bugs/BUG_20261110_layout-gate-misses-screens.md
+  - scripts/driver-snapshot.pin
+  - packages/ui/test/fixtures/branchMap/shared.ts
+  - packages/persistence/test/bundledDriverRepo.test.ts
+  - packages/ui/test/logic/driverPick.test.ts
