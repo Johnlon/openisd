@@ -32,6 +32,7 @@ outside every repo (John, 17 Oct 2026). `inbox.py` reads and writes it.
 | Document                                                                     | What it covers                                           |
 |------------------------------------------------------------------------------|-----------------------------------------------------------|
 | [docs/design/WINISD_SCHEMA.md](docs/design/WINISD_SCHEMA.md)                 | The `.wdr` and `.wpr` formats, reverse-engineered        |
+| [docs/design/CLAUDE_REVIEW.md](docs/design/CLAUDE_REVIEW.md)                 | Claude reviews every pull request and its baseline pictures; advisory; how to switch it off |
 | [docs/design/WDR_LOGIC.md](docs/design/WDR_LOGIC.md)                         | How `.wdr` files are loaded and saved                    |
 | [docs/design/STATE_MODEL.md](docs/design/STATE_MODEL.md)                     | Dialog drafts, commit and cancel rules                   |
 | [docs/design/REACTIVITY.md](docs/design/REACTIVITY.md)                       | How domain changes reach Vue                             |

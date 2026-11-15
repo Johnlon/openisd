@@ -31,6 +31,12 @@ Pages are written under `/home/john/work/winisd/visual-pages/` and served at
 The scripts are in `scripts/visual/`; `scripts/land/test/visual-ci.test.sh` proves the CI re-take, the stamp and the refusals, `scripts/land/test/visual.e2e.test.sh` proves the rest in a scratch
 repo, `land.e2e.test.sh` proves the land gate and `post-land.e2e.test.sh` the red report.
 
+## Who looks at the pictures
+
+A pull request that adds or changes a baseline gets an automatic review of the pictures by Claude on GitHub's runners
+(`docs/design/CLAUDE_REVIEW.md`): identical and near-identical pictures, a screen that shows less than its name says,
+machine-specific text. It is advisory and reports on the pull request.
+
 ## Changing the test machine
 
 The pictures are only as stable as the image. `.github/ci-image/Dockerfile` carries one fixed font set; `suite.yml` and
