@@ -43,6 +43,26 @@ describe('driver range check through the driver.yml projection', () => {
   });
 });
 
+describe('an exact printed zero is not provided (QO935)', () => {
+  // Accuton C51-6-286 prints Mms "0 g": a placeholder, the same as no figure. The field is not
+  // available (the scraper keeps the zero as printed) and raises no physical-limit line.
+  it.each([
+    ['Mms_kg', '0 g'], ['Cms_m_per_N', '0 mm/N'], ['Rms_kg_per_s', '0 kg/s'], ['Le_H', '0 mH'], ['Xmax_m', '0 mm'],
+  ])('%s printed as zero raises no physical-limit warning', (field, printed) => {
+    const result = new DriverRecordConverter(createEngine())
+      .driverYmlToOpenisdAndWdr(gf200With(field, printed, 0, 0.0005));
+
+    expect(result.errors.filter(e => e.message.includes('physical limit'))).toEqual([]);
+  });
+
+  it('a negative figure in a positive field is still reported', () => {
+    const result = new DriverRecordConverter(createEngine())
+      .driverYmlToOpenisdAndWdr(gf200With('Mms_kg', '-1 g', -0.001, 0.0005));
+
+    expect(result.errors.some(e => e.message.includes('physical limit'))).toBe(true);
+  });
+});
+
 describe('driver calc check through the driver.yml projection', () => {
   it('reports a stated Qts that Qes/Qms contradict as a warn on Qts', () => {
     // Qes 0.37 and Qms 4.12 imply Qts ≈ 0.34.

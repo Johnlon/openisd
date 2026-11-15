@@ -951,6 +951,9 @@ export class DriverRecordConverter {
     // (winisd_tools BUG_20260823 range/calc marks; AI triage of calculation-field failures).
     for (const [, r] of Object.entries(readings).sort(byRoleName)) {
       if (!isUsable(r)) continue;
+      // An exact printed zero in a field that is physically positive is the same as not provided
+      // (John, QO935, 2026-11-15): the field is not available, so there is no value to be out of range.
+      if (r.read_value === 0) continue;
       const issue = this.engine.driver.rangeIssue(field, r.read_value);
       if (issue) warnings.push({ level: "warn", field, message: issue.text });
     }
