@@ -1,6 +1,6 @@
 # BUG_20261115_visual-stamp-run-id-reads-the-png-crc-digit
 
-**Status:** OPEN
+**Status:** RESOLVED (T833)
 
 ## Symptom
 About one re-take in 26 stamps every picture with a run id that is wrong by one digit, and the pull request's `task` job refuses them:
@@ -22,3 +22,9 @@ Not done here. Read the chunk by its length (parse the PNG chunks), or end the s
 
 ## Verification
 `check-task.sh` reads 43746606329 from a picture stamped with that run.
+
+## Resolution (T833)
+`visual_stamp_run` (scripts/visual/lib.sh) reads the stamp by the tEXt chunk's declared length, and check-task.sh uses it. The test
+(`scripts/land/test/visual-ci.test.sh`) stamps a real PNG with `png-stamp.mjs` for run 43746606329 (CRC `30a9d6d3`, the same bytes the four real
+pictures of that run carry) and for run 4242 (CRC `b355a42f`), and asks check-task.sh with a stand-in for gh; before the fix it asked for run
+437466063290. The reader agrees with `png-stamp.mjs read` on the four real pictures of the run and on every committed baseline.

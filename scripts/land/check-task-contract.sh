@@ -81,7 +81,10 @@ if [ -n "$PR_MODE" ]; then
   while read -r f; do
     case "$f" in *_test.*|*.test.*|*.spec.*|*/test_*.py) ;; *) continue ;; esac
     stem="$(basename "${f%.*}")"
-    if git diff "$BASE" "$HEAD_REF" -- "$f" | grep -Eq '^\+.*\.only\('; then
+    # the whole diff is read before it is searched: `git diff | grep -q` leaves at the first match, git dies of SIGPIPE and
+    # pipefail answers "no .only(" for a long diff (T833). A diff that cannot be read refuses.
+    file_diff="$(git diff "$BASE" "$HEAD_REF" -- "$f")" || { fail done_test "cannot read the diff of $f"; continue; }
+    if grep -Eq '^\+.*\.only\(' <<< "$file_diff"; then
       fail done_test "$f adds .only(, which runs one test and hides the rest"
     fi
     grep -qwF "$stem" <<< "$dt" || continue

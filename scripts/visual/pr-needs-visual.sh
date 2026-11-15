@@ -15,4 +15,10 @@ git cat-file -e "$base^{commit}" 2> /dev/null || git fetch -q origin "$base"
 # shellcheck source=./lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 mapfile -t extra < <(printf '%s\n' packages/ui/test/visual packages/ui/test/fixtures packages/ui/test/fixtures.ts playwright.config.js .github/ci-image package-lock.json)
-{ visual_sources_changed "$base" HEAD; git diff --no-renames --name-only "$base" HEAD -- "${extra[@]}"; } | grep -q . && echo true || echo false
+# Read each whole list into a variable, then test it. Never `list | grep -q . && echo true || echo false`: grep -q leaves at
+# the first line, the next writer dies of SIGPIPE, pipefail fails the pipeline and `|| echo false` answered false for a change
+# that touched a UI source and the lockfile (PR #127, T833). A failure of a git call here ends the script (set -e) without an
+# answer, so the job fails: a gate that cannot decide must refuse.
+sources="$(visual_sources_changed "$base" HEAD)"
+others="$(git diff --no-renames --name-only "$base" HEAD -- "${extra[@]}")"
+if [ -n "$sources$others" ]; then echo true; else echo false; fi

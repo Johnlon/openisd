@@ -31,7 +31,7 @@ GH="${VISUAL_GH:-gh}"; REPO="${VISUAL_REPO:-${GITHUB_REPOSITORY:-portingle/openi
 unstamped=(); wrong=(); declare -A runs=()
 while IFS= read -r f; do
   [ -n "$f" ] || continue
-  run="$(git show "$head:$f" | { LC_ALL=C grep -a -o 'openisd-visual-run.run=[0-9]*' || true; } | head -n 1 | sed 's/.*run=//')"
+  run="$(git show "$head:$f" | visual_stamp_run)"
   id="$(basename "$f" .png)"
   if [ -z "$run" ]; then unstamped+=("$id"); continue; fi
   runs[$run]+="$f "

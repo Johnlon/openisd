@@ -16,7 +16,8 @@ cp -r "$REPO/scripts/visual" "$REPO/scripts/feedback" scripts/
 export VISUAL_PAGES_DIR="$SCRATCH/pages" VISUAL_PAGES_URL="http://example.test/pages"
 SNAP=packages/ui/test/visual/visual.browser.spec.ts-snapshots
 mkdir -p "$SNAP"
-png() { printf '\211PNG\r\n\032\n%s\0openisd-visual-run\0run=7' "$1" > "$2"; }   # not a real picture; the scripts only move bytes; stamped as a visual-retake run draws it (T799)
+. "$REPO/scripts/land/test/stamp-chunk.sh"
+png() { printf '\211PNG\r\n\032\n%s' "$1" > "$2"; stamp_chunk 7 >> "$2"; }   # not a real picture; the scripts only move bytes; stamped as a visual-retake run draws it (T799)
 png one "$SNAP/mobile-a.png"; png one "$SNAP/desktop-b.png"
 git add -A && git commit -qm base && base=$(git rev-parse HEAD)
 

@@ -1,6 +1,6 @@
 # BUG_20261115_pr-visual-job-skipped-when-sources-and-lockfile-both-change
 
-**Status:** OPEN
+**Status:** RESOLVED (T833)
 
 ## Symptom
 The pull request gate's `visual` job reported success without running the visual spec on a change that altered four pictures
@@ -37,3 +37,11 @@ or `grep .` to /dev/null instead of `grep -q .`. A test with a change that touch
 ## Verification
 `pr-needs-visual.sh` answers `true` for a change touching `packages/ui/src/main.ts` and `package-lock.json`; the `visual` job then runs on such a pull request
 and fails a picture that changed.
+
+## Resolution (T833)
+Reproduced first with `scripts/land/test/pr-needs-visual.test.sh`: a source and the lockfile answered `false` on the unfixed script (a
+source alone and the lockfile alone answered `true`), also with 3000 changed sources filling the pipe. Fixed: each list is read whole into a
+variable and then tested; a git failure ends the script with no answer; pr.yml's `visual` job takes the answer in an assignment, so the
+script's failure fails the job (inside `echo "run=$(...)"` it had been lost, and an empty answer reads as "not run"). The same shape was
+removed from `scripts/integrate.sh` (stored-data corpus gate), `scripts/land/check-task-contract.sh` (`.only(` check, which missed a
+`.only(` in a diff longer than the pipe), `scripts/land/pr-task.sh` and pr.yml's `shell` job.

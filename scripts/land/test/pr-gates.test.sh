@@ -107,5 +107,16 @@ done
 n=$((n+1)); sel $n "python3 -m unittest t.foo_test" > /dev/null && ok "a dotted whole-module path passes" || bad "dotted whole-module path passes"
 n=$((n+1)); sel $n "pytest other_test.py -k a" > /dev/null && ok "a selector on an untouched file passes" || bad "untouched file passes"
 
+# T833: an only-call is found however long the rest of the diff is. grep -q left at the first line, git diff then died of
+# SIGPIPE writing the rest, pipefail failed the pipeline and the `if` read "none". The added file is over 64 KiB (a pipe's buffer).
+# The call is spelled from parts: this file is a test file too, and the check refuses any added line that holds it.
+only=".on""ly("
+git switch -q main; git switch -q -c onlybig; task T1
+{ echo "it${only}'x', () => {});"; seq 1 12000 | sed "s/.*/it('case &', () => {});/"; } > src/big.test.ts
+git add -A; git commit -qm "(auto) T1: a big test file with the call"
+[ "$(git diff main HEAD -- src/big.test.ts | wc -c)" -gt 200000 ] || bad "the fixture does not fill the pipe"
+out="$(bash scripts/land/check-task-contract.sh T1 main HEAD --pr)"
+grep -q $'REFUSE\tdone_test\t.*big.test.ts adds' <<< "$out" && ok "an only-call at the top of a very long added file is refused" || bad "an only-call at the top of a very long added file is refused ($(head -c 300 <<< "$out"))"
+
 echo "pr-gates: $([ "$fails" = 0 ] && echo 'all passed' || echo "$fails failed")"
 [ "$fails" = 0 ]

@@ -1,0 +1,29 @@
+id: T833
+release_note: internal
+repo: openisd
+owner: visualgate
+status: done
+goal: pr-needs-visual.sh answers true whenever a UI source, picture, lockfile etc changed (never false on a pipe failure; a failure refuses), and check-task.sh reads exactly the stamp's run id (not the PNG CRC digit)
+why: John, 15 Nov 2026: main must stay green; PR #127 skipped the visual spec and a correctly drawn baseline (run 43746606329) was refused
+done_test: bash scripts/land/test/pr-needs-visual.test.sh && bash scripts/land/test/visual-ci.test.sh && bash scripts/land/test/pr-gates.test.sh
+files:
+  - tasks/T833.yml
+  - scripts/visual/pr-needs-visual.sh
+  - scripts/visual/check-task.sh
+  - scripts/land/test/pr-needs-visual.test.sh
+  - scripts/land/test/visual-ci.test.sh
+  - scripts/land/test/visual.e2e.test.sh
+  - scripts/land/test/pr-gates.test.sh
+  - scripts/land/test/stamp-chunk.sh
+  - scripts/land/test/land.e2e.test.sh
+  - scripts/land/test/ship.test.sh
+  - scripts/land/test/land-visual-conflict.e2e.test.sh
+  - scripts/integrate.sh
+  - scripts/land/check-task-contract.sh
+  - scripts/land/pr-task.sh
+  - scripts/visual/lib.sh
+  - scripts/visual/png-stamp.mjs
+  - .github/workflows/pr.yml
+  - bugs/BUG_20261115_pr-visual-job-skipped-when-sources-and-lockfile-both-change.md
+  - bugs/BUG_20261115_visual-stamp-run-id-reads-the-png-crc-digit.md
+  - docs/design/VISUAL_BASELINES.md

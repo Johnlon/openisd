@@ -6,6 +6,7 @@ printf '[user]\n\tname = t\n\temail = t@t\n[core]\n\tautocrlf = false\n[init]\n\
 export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+. "$REPO/scripts/land/test/stamp-chunk.sh"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/ship.XXXXXX")"
 export OPENISD_RUNTIME_DIR="$SCRATCH/rt" OPENISD_STATE_DIR="$SCRATCH/state"; mkdir -p "$OPENISD_RUNTIME_DIR"
 fails=0
@@ -167,7 +168,7 @@ visual_setup 'drawn on a laptop'
 ship T1; r=$?
 [ $r = 1 ] && [ -z "$(remote_t1)" ] && [ -d "$SCRATCH/w/wt" ] && [ ! -s "$CALLS" ] && grep -q 'mobile-a' "$SCRATCH/out" && grep -q 'update.sh' "$SCRATCH/out" \
   && ok "a baseline picture not drawn by CI pushes nothing and says how to re-take" || fail "unstamped picture (r=$r): $(tail -6 "$SCRATCH/out")"
-visual_setup 'drawn by ci\0openisd-visual-run\0run=9'
+visual_setup "drawn by ci$(stamp_chunk 9 | od -An -vtx1 | tr -d ' \n' | sed 's/../\\x&/g')"
 ship T1; r=$?
 [ $r = 0 ] && [ -n "$(remote_t1)" ] && ok "a baseline picture stamped by a visual-retake run ships" || fail "stamped picture (r=$r): $(tail -6 "$SCRATCH/out")"
 

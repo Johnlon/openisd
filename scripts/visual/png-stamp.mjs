@@ -3,7 +3,8 @@
 // Playwright's comparison, do not change.
 //   node scripts/visual/png-stamp.mjs stamp <run-id> <file.png>...    write the mark
 //   node scripts/visual/png-stamp.mjs read <file.png>                 print the run id, or nothing
-// check-task.sh reads the mark without node (grep), so the chunk is `openisd-visual-run` NUL `run=<id>`.
+// check-task.sh reads the mark without node (visual_stamp_run in lib.sh, by the chunk's declared length), so the chunk is
+// `openisd-visual-run` NUL `run=<id>` and the 4-byte CRC after it is not part of the id.
 import {readFileSync, writeFileSync} from 'node:fs';
 
 const KEY = 'openisd-visual-run';

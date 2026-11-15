@@ -36,7 +36,8 @@ while(at<b.length){const n=b.readUInt32BE(at),t=b.toString('latin1',at+4,at+8);i
 process.exit(ok?0:1)" && ok "a stamped picture keeps its pixel data" || fail "stamped picture lost its pixels"
 
 # --- the provenance gate in check-task.sh
-stamped() { printf '\211PNG\r\n\032\n%s\0openisd-visual-run\0run=%s' "$1" "${3:-7}" > "$2"; }
+. "$REPO/scripts/land/test/stamp-chunk.sh"
+stamped() { printf '\211PNG\r\n\032\n%s' "$1" > "$2"; stamp_chunk "${3:-7}" >> "$2"; }
 unstamped() { printf '\211PNG\r\n\032\n%s' "$1" > "$2"; }
 W="$SCRATCH/w"; mkdir -p "$W" && cd "$W" || exit 2
 git init -q -b main . && mkdir -p scripts tasks "$SNAP" && cp -r "$REPO/scripts/visual" scripts/
@@ -49,6 +50,33 @@ stamped two "$SNAP/mobile-a.png" 9; git commit -qam ci-drawn; good=$(git rev-par
 bash scripts/visual/check-task.sh tasks/T1.yml "$base" "$good" > "$SCRATCH/out" 2>&1 && ok "a baseline stamped by a visual-retake run passes" || fail "stamped refused: $(cat "$SCRATCH/out")"
 git rm -q "$SNAP/mobile-a.png"; git commit -qm removed; gone=$(git rev-parse HEAD)
 bash scripts/visual/check-task.sh tasks/T1.yml "$base" "$gone" > "$SCRATCH/out" 2>&1 && ok "removing a baseline needs no stamp" || fail "removal refused: $(cat "$SCRATCH/out")"
+
+# T833: the run id is the stamp's value, read by the tEXt chunk's declared length. The chunk is followed by its CRC-32, which
+# depends only on the text, so every picture of a run carries the same four bytes; when the first is an ASCII digit a
+# pattern read (run=[0-9]*) took it as part of the id (run 43746606329 -> 437466063290 -> GitHub 404 -> the task check refused
+# a correctly drawn picture). The pictures are stamped by png-stamp.mjs, which draws the chunk as CI does; the CRC after
+# 43746606329 is 30a9d6d3 (its four real pictures, taken from the run's artifact, carry exactly those bytes), 4242's is b355a42f.
+cat > "$SCRATCH/gh-any" <<'EOF2'
+#!/usr/bin/env bash
+echo "$*" >> "$GH_CALLS"
+case "$1 $2" in
+  "api repos/o/r/actions/runs/"*) printf '%s\t%s\n' .github/workflows/visual-retake.yml success ;;
+  "run download") d="${@: -1}"; mkdir -p "$d"; printf '%s\n' "$MANIFEST" > "$d/MANIFEST.sha256" ;;
+  *) echo "gh stub: unexpected $*" >&2; exit 1 ;;
+esac
+EOF2
+chmod +x "$SCRATCH/gh-any"
+for run in 43746606329 4242; do
+  mkdir -p "$SNAP" && cp "$SCRATCH/real.png" "$SNAP/mobile-a.png" && node "$REPO/scripts/visual/png-stamp.mjs" stamp "$run" "$SNAP/mobile-a.png"
+  git add -A; git commit -qm "real stamp $run"; real=$(git rev-parse HEAD)
+  [ "$(node "$REPO/scripts/visual/png-stamp.mjs" read "$SNAP/mobile-a.png")" = "$run" ] || fail "the fixture is not stamped with $run"
+  : > "$SCRATCH/calls3"
+  MANIFEST="$(sha256sum < "$SNAP/mobile-a.png" | cut -d' ' -f1)  mobile-a.png" GH_CALLS="$SCRATCH/calls3" VISUAL_GH="$SCRATCH/gh-any" VISUAL_REPO=o/r VISUAL_VERIFY_RUN=1 \
+    bash scripts/visual/check-task.sh tasks/T1.yml "$base" "$real" > "$SCRATCH/out" 2>&1 \
+    && { grep -Fqx "api repos/o/r/actions/runs/$run --jq [.path, .conclusion] | @tsv" "$SCRATCH/calls3" && ! grep -q "runs/${run}[0-9]" "$SCRATCH/calls3" \
+      && ok "a picture stamped with run $run asks GitHub for exactly run $run" || fail "run $run: asked $(cat "$SCRATCH/calls3")"; } \
+    || fail "a picture stamped with run $run was refused: $(cat "$SCRATCH/out") $(cat "$SCRATCH/calls3")"
+done
 
 # with the run verified through the GitHub API (the pull request check): a gh stand-in answers for run 9
 cat > "$SCRATCH/gh" <<'EOF2'
@@ -100,7 +128,7 @@ bash scripts/visual/update.sh > "$SCRATCH/out" 2>&1 && fail "retake ran with unc
 rm scratch.txt
 bash scripts/visual/update.sh > "$SCRATCH/out" 2>&1 && ok "update.sh on a machine that cannot draw gets the pictures from CI" || fail "update.sh: $(cat "$SCRATCH/out")"
 [ ! -s "$SCRATCH_CALLS" ] && ok "no browser ran on this machine" || fail "a local browser run: $(cat "$SCRATCH_CALLS")"
-[ "$(LC_ALL=C grep -a -o 'openisd-visual-run.run=[0-9]*' "$SNAP/mobile-a.png" | sed 's/.*run=//')" = 55 ] && ok "the picture is the one CI drew (stamped with its run)" || fail "picture not from CI"
+[ "$(. scripts/visual/lib.sh; visual_stamp_run < "$SNAP/mobile-a.png")" = 55 ] && ok "the picture is the one CI drew (stamped with its run)" || fail "picture not from CI"
 [ ! -e packages/ui/test/visual/SOURCES.sha256 ] && ok "no committed sources hash is written (T810: it conflicted between every two UI pull requests)" || fail "a sources hash file was written"
 grep -q "^run list .*--branch visual-retake/t1" "$GH_CALLS" && ok "CI is asked for this branch's commit" || fail "calls: $(cat "$GH_CALLS")"
 [ -z "$(git ls-remote origin 'refs/heads/visual-retake/*')" ] && ok "the temporary retake branch is deleted afterwards" || fail "retake branch left on the remote"

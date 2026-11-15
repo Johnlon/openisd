@@ -176,7 +176,10 @@ jobs:
         id: needs
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          echo "run=$(bash scripts/visual/pr-needs-visual.sh "$EVENT" "$GROUP_BASE")" >> "$GITHUB_OUTPUT"
+          # assigned first: a failure of the script fails this step (inside echo "run=$(...)" it would be lost, and an empty
+          # answer reads as "not run"); a gate that cannot decide must refuse (T833)
+          run="$(bash scripts/visual/pr-needs-visual.sh "$EVENT" "$GROUP_BASE")"
+          echo "run=$run" >> "$GITHUB_OUTPUT"
       - if: steps.needs.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
@@ -217,7 +220,9 @@ jobs:
         run: |
           if [ "$EVENT" = merge_group ]; then base="$GROUP_BASE"; else base="$(git rev-parse HEAD^1)"; fi
           git cat-file -e "$base^{commit}" 2> /dev/null || git fetch -q origin "$base"
-          if git diff --name-only "$base" HEAD | grep -q -e '^scripts/' -e '^land.conf$' -e '^\.github/workflows/'; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
+          # the list is read before it is searched: a git failure must fail the step, never answer "false" (T833)
+          names="$(git diff --name-only "$base" HEAD)"
+          if grep -q -e '^scripts/' -e '^land.conf$' -e '^\.github/workflows/' <<< "$names"; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "run=false" >> "$GITHUB_OUTPUT"; fi
       - if: steps.scripts.outputs.run == 'true'
         run: |
           git config --global user.email ci@example.invalid
