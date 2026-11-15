@@ -37,7 +37,7 @@ Open tasks may overlap; claimed tasks may not (checked at claim).
 | 1    | `bash scripts/land/task-gates/claim.sh T<nnn>`  | status claimed; `.task` written                 |
 | 2    | edit only the listed files                      | pre-commit refuses anything else                |
 | 3    | run `done_test` until it exits 0                | —                                               |
-| 4    | `bash scripts/ship.sh T<nnn>`                   | exit 0 shipped (PR open, auto-merge on, worktree deleted), 1 refused, 3 blocked by a rebase conflict |
+| 4    | `bash scripts/ship.sh T<nnn>`                   | exit 0 shipped (PR open, auto-merge on, worktree deleted), 1 refused, 3 blocked by a merge conflict |
 
 The `why:` line says why the change is made: at least 20 characters, not the goal, naming who decided and when
 ("John, 10 Nov 2026") or a `QO<n>`, `F<n>` or `BUG` id; it may cite a bug file. Every pull request carries a task
@@ -101,11 +101,11 @@ other ids' worktrees go if they are clean and their branches if their commits ar
 `ship.sh`, in order:
 
 1. Commit everything in the worktree; set status done.
-2. Rebase onto origin/main. A conflict aborts the rebase, marks the task blocked, exits 3; nothing is removed.
+2. Merge origin/main into the branch (no rebase, no force). A conflict aborts the merge, marks the task blocked, exits 3; nothing is removed.
 3. The task contract, as the pull request's `task` job runs it (`scripts/land/check-task-contract.sh --pr`: locked
    hashes, `files` allowlist, status, gate files), then, optionally, lint and typecheck on the changed files. A
    file outside the allowlist exits 1 naming it, before anything is pushed.
-4. Push `t<nnn>` (never forced), open or reuse the pull request, `gh pr merge --auto --squash`.
+4. Push `t<nnn>` (never forced; refused if the remote branch holds a commit this branch lacks), open or reuse the pull request, `gh pr merge --auto --squash`.
 5. Delete the worktree.
 
 `pr-gate` (`.github/workflows/pr.yml`), on the pull request and in the merge queue:

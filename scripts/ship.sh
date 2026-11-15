@@ -13,12 +13,13 @@
 #   exit 0  pushed, pull request open with auto-merge, worktree and local branch removed (the branch on GitHub keeps the work)
 #   exit 1  a local check is red (nothing pushed), or GitHub refused the push / pull request / auto-merge (nothing removed)
 #   exit 2  cannot ship (no task file, no land.conf, not the task's own branch, fetch failed, main folder)
-#   exit 3  blocked: the rebase conflicts; it is aborted, the task says status: blocked and why, the branch is
+#   exit 3  blocked: merging $SHIP_REMOTE/main into the branch conflicts; the merge is aborted, the task says status: blocked and why, the branch is
 #           pushed, and nothing is removed
 #
-# Steps: 1 commit everything (nothing discarded; the hooks run), 2 status done, 3 fetch and rebase onto $SHIP_REMOTE/main,
+# Steps: 1 commit everything (nothing discarded; the hooks run), 2 status done, 3 fetch and merge $SHIP_REMOTE/main into the branch,
 # 3b the task contract (the PR `task` job's check, run locally; a refusal exits 1, nothing pushed), 4 quick local check (lint on the changed files + typecheck; --no-local-check skips), 5 push branch t<n> (the only
-# ref this script ever pushes; --force-with-lease against the sha it just read, because a rebase rewrites history),
+# ref this script ever pushes; a plain fast-forward push, never forced (QO920, John, 14 Nov 2026), and refused when the
+# remote branch holds a commit this branch does not contain: that is someone else's branch),
 # 6 open or reuse the pull request, gh pr merge --auto --squash, 7 remove the worktree and local branch once the
 # remote branch is the local commit.
 set -uo pipefail
@@ -87,15 +88,24 @@ REPO="${SHIP_REPO:?ship: SHIP_REPO is not set in land.conf}"
 SHIP_REMOTE="${SHIP_REMOTE:?ship: SHIP_REMOTE is not set in land.conf}"
 
 # push_branch: the only push. It names the task's own branch and nothing else.
+# Never forced (QO920). If the remote branch already exists and its head is not an ancestor of HEAD, the branch is
+# someone else's (or diverged): refuse, naming the branch and the foreign head, and touch nothing.
 push_branch() {
   local remote_sha
   remote_sha="$(net git ls-remote "$SHIP_REMOTE" "refs/heads/$BRANCH" | cut -f1)" || return 1
-  net git push -q --force-with-lease="refs/heads/$BRANCH:$remote_sha" "$SHIP_REMOTE" "HEAD:refs/heads/$BRANCH"
+  if [ -n "$remote_sha" ]; then
+    net git fetch -q "$SHIP_REMOTE" "refs/heads/$BRANCH" 2> /dev/null
+    if ! git cat-file -e "$remote_sha^{commit}" 2> /dev/null || ! git merge-base --is-ancestor "$remote_sha" HEAD; then
+      echo "ship: REFUSED: $SHIP_REMOTE already has branch $BRANCH at $remote_sha, which this branch does not contain; it is someone else's work (or a task id collision). Nothing pushed; ship never forces" >&2
+      return 1
+    fi
+  fi
+  net git push -q "$SHIP_REMOTE" "HEAD:refs/heads/$BRANCH"
 }
 goal="$(task_field "$TASK" goal)"
 for other in "${OTHERS[@]}"; do goal="$goal / $(task_field "tasks/$other.yml" goal)"; done
 
-# The other ids' branches whose commits are already in this one (checked before the rebase rewrites it): their clean
+# The other ids' branches whose commits are already in this one (checked before the merge): their clean
 # worktrees and local branches go with this one's once the pull request is open (step 7).
 GONE=()
 for other in "${OTHERS[@]}"; do
@@ -122,16 +132,16 @@ for t in "${IDS[@]}"; do
   esac
 done
 
-# 3. fetch, rebase onto $SHIP_REMOTE/main
+# 3. fetch, merge $SHIP_REMOTE/main into the branch (no rebase: history is never rewritten, so the push never needs force)
 net git fetch -q "$SHIP_REMOTE" main || { echo "ship: fetch failed" >&2; exit 2; }
 if ! git merge-base --is-ancestor "$SHIP_REMOTE/main" HEAD; then
-  if ! git rebase -q "$SHIP_REMOTE/main" > "$WORK/rebase.out" 2>&1; then
+  if ! git merge -q --no-edit "$SHIP_REMOTE/main" > "$WORK/merge.out" 2>&1; then
     conflicts="$(git diff --name-only --diff-filter=U | tr '\n' ' ')"
-    git rebase --abort
-    task_mark_blocked "$TASK" "rebase onto $SHIP_REMOTE/main conflicts in: ${conflicts:-unknown files}"
-    git add -- "$TASK" && git commit -q -m "(auto) $ID: blocked, rebase onto $SHIP_REMOTE/main conflicts"
+    git merge --abort
+    task_mark_blocked "$TASK" "merge of $SHIP_REMOTE/main conflicts in: ${conflicts:-unknown files}"
+    git add -- "$TASK" && git commit -q -m "(auto) $ID: blocked, merge of $SHIP_REMOTE/main conflicts"
     push_branch || echo "ship: could not push $BRANCH" >&2
-    echo "ship: BLOCKED $ID: rebase conflicts in ${conflicts:-unknown files}; branch $BRANCH is pushed, nothing removed" >&2
+    echo "ship: BLOCKED $ID: merge conflicts in ${conflicts:-unknown files}; branch $BRANCH is pushed, nothing removed" >&2
     exit 3
   fi
 fi

@@ -15,10 +15,13 @@ fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
 cd "$SCRATCH" || exit 2
 git init -q --bare -b main origin.git
+git init -q --bare -b main portingle.git
 git clone -q origin.git openisd 2> /dev/null
 cd openisd || exit 2
 mkdir -p scripts tasks; cp "$REPO/scripts/new-task.sh" scripts/
 printf 'id: T005\nowner: t\nstatus: done\n' > tasks/T005.yml
+printf 'SHIP_REMOTE=portingle\nSHIP_REPO=portingle/openisd\n' > ship.conf
+git remote add portingle "$SCRATCH/portingle.git"
 git add -A; git commit -qm base; git push -q origin main
 git branch t006 main                 # a branch someone holds
 mkdir "$SCRATCH/openisd-t007"        # a directory someone made
@@ -40,5 +43,27 @@ grep -q '^why: Because John said so (John, 10 Nov 2026)$' "${out3#* }/tasks/$id3
 bash scripts/new-task.sh a > "$SCRATCH/a.out" 2>&1 & bash scripts/new-task.sh b > "$SCRATCH/b.out" 2>&1 & wait
 ida="$(cut -d' ' -f1 "$SCRATCH/a.out")"; idb="$(cut -d' ' -f1 "$SCRATCH/b.out")"
 [ -n "$ida" ] && [ -n "$idb" ] && [ "$ida" != "$idb" ] && ok "concurrent claims differ: $ida $idb" || fail "concurrent: '$ida' '$idb' $(cat "$SCRATCH/a.out" "$SCRATCH/b.out")"
+
+# T792 (QO920): an id that exists only on the ship remote is skipped. The fetch is made useless so only ls-remote can see it.
+git config remote.portingle.fetch '+refs/heads/nothing:refs/remotes/portingle/nothing'
+git push -q portingle main:t030
+out4="$(bash scripts/new-task.sh dave 2>&1)"
+[ "${out4%% *}" = "T031" ] && ok "skips t030, which only the ship remote has: $out4" || fail "ship-remote id: $out4"
+git push -q origin main:t040
+out4b="$(bash scripts/new-task.sh dave 2>&1)"
+[ "${out4b%% *}" = "T041" ] && ok "skips t040, which only origin has (live heads): $out4b" || fail "origin id: $out4b"
+
+# two claims at once with the ship remote in play still differ
+bash scripts/new-task.sh a > "$SCRATCH/a.out" 2>&1 & bash scripts/new-task.sh b > "$SCRATCH/b.out" 2>&1 & wait
+ida="$(cut -d' ' -f1 "$SCRATCH/a.out")"; idb="$(cut -d' ' -f1 "$SCRATCH/b.out")"
+[ -n "$ida" ] && [ -n "$idb" ] && [ "$ida" != "$idb" ] && ok "concurrent claims differ again: $ida $idb" || fail "concurrent 2: '$ida' '$idb'"
+
+# no ship remote configured: refuse, claim nothing, say the exact command
+git remote remove portingle
+before="$(ls -d "$SCRATCH"/openisd-t* | wc -l)"; brbefore="$(git branch --list 't*' | wc -l)"
+out5="$(bash scripts/new-task.sh erin 2>&1)"; r=$?
+[ $r = 1 ] && printf '%s' "$out5" | grep -q 'git remote add portingle git@github.com:portingle/openisd.git' \
+  && [ "$(ls -d "$SCRATCH"/openisd-t* | wc -l)" = "$before" ] && [ "$(git branch --list 't*' | wc -l)" = "$brbefore" ] \
+  && ok "refuses without the ship remote, names the git remote add, claims nothing" || fail "no ship remote (r=$r): $out5"
 
 [ "$fails" -eq 0 ] && echo "new-task.test: all passed" || { echo "new-task.test: $fails failed"; exit 1; }

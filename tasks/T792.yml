@@ -1,0 +1,16 @@
+id: T792
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: ship.sh never force-pushes: it merges the base into the task branch and pushes fast-forward only, refusing any push the remote rejects; new-task.sh counts ids on the ship remote and refuses without it
+why: John 14 Nov 2026: QO920 (force pushes off, ruleset + ship.sh merge); task-id collision T788 vs portingle PR #62
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/ship.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/new-task.test.sh
+files:
+  - tasks/T792.yml
+  - scripts/ship.sh
+  - scripts/new-task.sh
+  - scripts/land/test/ship.test.sh
+  - scripts/land/test/new-task.test.sh
+  - docs/DEV_PROCESS.md
+  - .claude/rules/verify.md
