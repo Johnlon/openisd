@@ -60,6 +60,12 @@ function printedOf(path: string, field: string): Printed {
   return {value: read.read_value, precision: read.read_precision};
 }
 
+/** One source's reading of `field` as the record holds it: its read_value and rejection reason, if any. */
+function readingOf(path: string, field: string, source: string): {read_value?: unknown; rejected?: unknown} {
+  const parsed = recordSchema.parse(JSON.parse(textOf(path)));
+  return parsed.specs.woofer[field].readings[source];
+}
+
 /** The range of `formula` with every input anywhere in its printed value ± precision (corner search; the formulas are monotone per input). */
 function rangeOf(path: string, fields: readonly string[], formula: (v: readonly number[]) => number, perCoilRe = 1): {lo: number; hi: number; mid: number} {
   // A per-coil "N x r" Re is stored for the measured wiring: N coils in series, value and precision both N times (QO915).
@@ -120,6 +126,7 @@ const withoutQ = (record: Record<string, unknown>): void => {
 
 const MX6 = 'dayton-audio/mx6-22';
 const RSS = 'dayton-audio/rss265ho-44';
+const RSS315 = 'dayton-audio/rss315ho-44';
 const W137 = 'bliesma/w137a-854-4';
 const GF250 = 'visaton/gf-250-2-x-4-ohm';
 const SB34 = 'sb-acoustics/sb34swpl76-3-dv';
@@ -223,7 +230,7 @@ describe('Dayton MX6-22 (2 coils; sheet: "All specifications measured with voice
   });
 });
 
-describe('Dayton RSS265HO-44 (2 coils; wiring not stated; "4 Ohms Per Coil", printed Znom 2 ohms)', () => {
+describe('Dayton RSS265HO-44 (2 coils; product page: "measured with the voice coils wired in parallel for a 2 ohm load"; "4 Ohms Per Coil", printed Znom 2 ohms)', () => {
   // printed on datasheet: Fs 27.6 Hz, Mms 161 g, Re 1.6 ohms, BL 9.39 Tm, Qes 0.50 (±0.005).
   it('Qes, Rme and Mpow on the printed figures', () => {
     checkTheMaths(RSS, {
@@ -254,19 +261,113 @@ describe('Dayton RSS265HO-44 (2 coils; wiring not stated; "4 Ohms Per Coil", pri
     expect(texts[0]).toContain('Vas = ρ·c²·Sd²·Cms');
   });
 
-  it('wiring data quality: no stated wiring; "4 Ohms Per Coil" with Re 1.6 (0.4x <= 0.6x) infers parallel, a note', () => {
+  // Evidence: the product page (https://daytonaudio.com/product/1108/rss265ho-44-10-reference-ho-dvc-subwoofer-4-ohms-per-coil) prints
+  // "Specifications below were measured with the voice coils wired in parallel for a 2 ohm load." John's ruling QO926: a maker's
+  // product-page statement counts like the datasheet. The record's VCCon reading (manufacturer_product_page) is "parallel".
+  // Re 1.6 beside "4 Ohms Per Coil" is 0.4x of 4, which is what parallel looks like: the stated wiring agrees with the title.
+  it('wiring data quality: the product page states parallel (QO926), so VCCon is parallel, entered, and there is no wiring issue (no inference note)', () => {
     const {driver} = project(RSS);
-    expect(wiringKinds(driver)).toEqual(['wiring-inferred']);
-    expect(driver.issues().find(i => i.kind === 'wiring-inferred')?.text).toContain('parallel');
+    expect(readingOf(RSS, 'VCCon', 'manufacturer_product_page').read_value).toBe('parallel');
+    expect(wiringKinds(driver)).toEqual([]);
     expect(driver.specs.VCCon.value).toBe(VoiceCoilWiring.Parallel);
-    expect(driver.specs.VCCon.calculated).toBe(true);
+    expect(driver.specs.VCCon.entered).toBe(true);
+    expect(driver.specs.VCCon.calculated).toBe(false);
   });
 
-  it('.wdr: Re 1.6 and BL 9.39 as stored, marked E; VCCon 1 (parallel, inferred) marked C', () => {
+  it('.wdr: Re 1.6 and BL 9.39 as stored, marked E; VCCon 1 (parallel, stated) marked E', () => {
     const {wdr} = project(RSS);
     expect(wdr.cell('Re')).toEqual({value: '1.6', state: 'entered'});
     expect(wdr.cell('BL')).toEqual({value: '9.39', state: 'entered'});
-    expect(wdr.cell('VCCon')).toEqual({value: '1', state: 'calculated'});
+    expect(wdr.cell('VCCon')).toEqual({value: '1', state: 'entered'});
+  });
+});
+
+describe('Dayton RSS315HO-44 (2 coils; wiring NOT stated anywhere; "4 Ohms Per Coil", Re 6.5, printed Znom "4+4 ohms"): the inference rule, QO903 R4', () => {
+  // Why this record: it is the one catalogue record with a per-coil nominal in its title and no stated wiring (neither the
+  // datasheet nor the product page says how the coils were wired; contrast RSS265HO-44, whose product page does, QO926).
+  // printed on datasheet: Fs 21.5 Hz, Re 6.5 ohms, BL 26.5 Tm, Cms 0.17 mm/N, Qes 0.41 (+-0.005), Qts 0.37, Qms 3.70.
+  // Mms is printed "327.7" with no unit, so the scraper rejected it (unit-not-recognised): the record holds no Mms number and the
+  // engine calculates Mms from Cms and Fs (the projection marks it C). 327.7 read as grams is the sheet's own figure.
+  const w = 2 * Math.PI * 21.5;
+
+  it('Mms is calculated from Cms and Fs, because the printed "327.7" has no unit and was rejected', () => {
+    const {driver} = project(RSS315);
+    expect(readingOf(RSS315, 'Mms_kg', 'manufacturer_datasheet').rejected).toBe('unit-not-recognised');
+    // calculated: Mms = 1/((2π·21.5)²·Cms) = 1/(135.088² · 0.00017) = 1/(18248.9 · 0.00017) = 1/3.1023 = 0.32234 kg (323.4 g).
+    expect(num(driver.specs.Mms_kg.value)).toBeCloseTo(0.32234, 5);
+    expect(driver.specs.Mms_kg.calculated).toBe(true);
+    // The sheet's own 327.7 g is 0.0054 kg above the calculated value, inside the calculated value's own precision (+-0.011 kg).
+    expect(Math.abs(0.3277 - num(driver.specs.Mms_kg.value))).toBeLessThan(0.011);
+  });
+
+  it('Qes, Rme and Mpow on the printed figures', () => {
+    const {driver} = project(RSS315);
+    for (const [field, value] of Object.entries({Fs_hz: 21.5, Re_ohm: 6.5, BL_Tm: 26.5, Cms_m_per_N: 0.00017, Qes: 0.41})) {
+      expect(printedOf(RSS315, field).value, `printed ${field}`).toBe(value);
+    }
+    // Re is stored as printed (Znom is per coil but the wiring is only inferred, QO915 needs a STATED wiring): 6.5, not 13.
+    expect(num(driver.specs.Re_ohm.value)).toBe(6.5);
+    // calculated: Qes = 2π·Fs·Mms·Re/BL² = 135.088·0.32234·6.5/26.5² = 283.04/702.25 = 0.4030. The printed Qes 0.41 +-0.005 is 0.007 away
+    // from the centre, so they do NOT agree at the centres; they agree only through the printing precision of Fs, Re, BL, Cms
+    // (range 0.386..0.421 with each at its printed edge; the printed 0.405..0.415 overlaps it).
+    const qesMid = w * 0.32234016 * 6.5 / (26.5 * 26.5);
+    expect(qesMid).toBeCloseTo(0.4030, 4);
+    const qes = (f: number, re: number, bl: number, cms: number): number => 2 * Math.PI * f * (1 / ((2 * Math.PI * f) ** 2 * cms)) * re / (bl * bl);
+    expect(qes(21.55, 6.45, 26.55, 0.000175)).toBeCloseTo(0.386, 3);
+    expect(qes(21.45, 6.55, 26.45, 0.000165)).toBeCloseTo(0.421, 3);
+    expect(agrees({lo: 0.386, hi: 0.421}, printedOf(RSS315, 'Qes'))).toBe(true);
+    // With Qes, Qts, Qms removed the engine derives the same Qes from Fs, Mms, Re, BL.
+    expect(num(project(RSS315, withoutQ).driver.specs.Qes.value)).toBeCloseTo(0.4030, 4);
+    // calculated: Rme = 2π·Fs·Mms/Qes = 135.088·0.32234/0.41 = 106.21 (printed Qes 0.41); BL²/Re = 26.5²/6.5 = 108.04. Route 1 spans
+    // 101..111 (Mms +-0.011, Qes +-0.005, Fs +-0.05) and route 2 spans 106.8..109.3: they overlap, so the two agree within precision.
+    expect(num(driver.specs.Rme_kg_per_s.value)).toBeCloseTo(106.21, 2);
+    expect(26.5 * 26.5 / 6.5).toBeCloseTo(108.04, 2);
+    expect(26.45 ** 2 / 6.55).toBeLessThan(109.4);
+    expect(26.55 ** 2 / 6.45).toBeGreaterThan(101);
+    // calculated: Mpow = BL/sqrt(Re) = 26.5/sqrt(6.5) = 26.5/2.5495 = 10.394.
+    expect(num(driver.specs.Mpow_N_per_sqrtW.value)).toBeCloseTo(10.394, 3);
+  });
+
+  it('no inconsistent-inputs issue (the printed figures agree within precision)', () => {
+    expect(inconsistencies(project(RSS315).driver)).toEqual([]);
+  });
+
+  // Znom is printed per coil, "4+4 ohms" (stored read_value 4, precision 0.5). The per-coil rule (QO915) needs a STATED wiring to
+  // say which wiring the per-coil figure converts to; here the wiring is only inferred, so the rule does not apply and the app
+  // stores the printed 4 as it is. Consequence: Re 6.5 (series-scale) sits beside Znom 4 (one coil), not the 8 a series pair gives.
+  it('Znom "4+4 ohms": stored as printed, 4, entered; no per-coil conversion because the wiring is not stated (QO915)', () => {
+    const {driver} = project(RSS315);
+    expect(driver.specs.Znom_ohm.value).toBe(4);
+    expect(driver.specs.Znom_ohm.entered).toBe(true);
+  });
+
+  it('wiring data quality: no stated wiring; "4 Ohms Per Coil" with Re 6.5 (6.5/4 = 1.625x >= 1.5x) infers series, a note, marked calculated', () => {
+    const {driver} = project(RSS315);
+    expect(wiringKinds(driver)).toEqual(['wiring-inferred']);
+    expect(driver.issues().find(i => i.kind === 'wiring-inferred')?.text).toContain('series');
+    expect(driver.specs.VCCon.value).toBe(VoiceCoilWiring.Series);
+    expect(driver.specs.VCCon.calculated).toBe(true);
+    expect(driver.specs.VCCon.entered).toBe(false);
+  });
+
+  it('.wdr: Re 6.5 and BL 26.5 as stored, marked E; VCCon 2 (series, inferred) marked C', () => {
+    const {wdr} = project(RSS315);
+    expect(wdr.cell('Re')).toEqual({value: '6.5', state: 'entered'});
+    expect(wdr.cell('BL')).toEqual({value: '26.5', state: 'entered'});
+    expect(wdr.cell('VCCon')).toEqual({value: '2', state: 'calculated'});
+  });
+
+  it('series -> parallel: Re 6.5/2² = 1.625, BL 26.5/2 = 13.25, Qes unchanged 0.4030', () => {
+    const {driver} = project(RSS315);
+    const result = engine.driver.convertWiring(motorOf(driver), 2, 'series', 'parallel');
+    if (!result.converted) throw new Error(result.reason);
+    expect(result.motor.Re_ohm).toBeCloseTo(1.625, 12);
+    expect(result.motor.BL_Tm).toBeCloseTo(13.25, 12);
+    // calculated: Qes = 135.088·0.32234·1.625/13.25² = 70.76/175.56 = 0.4030, the same as before the rewiring.
+    const mms = num(driver.specs.Mms_kg.value);
+    const qesOf = (m: WiredMotor): number => w * mms * m.Re_ohm / (m.BL_Tm * m.BL_Tm);
+    expect(qesOf(result.motor)).toBeCloseTo(0.4030, 4);
+    expect(qesOf(result.motor)).toBeCloseTo(qesOf(motorOf(driver)), 12);
   });
 });
 

@@ -486,6 +486,10 @@
           "manufacturer_datasheet": {
             "actual_reading": "All specifications measured with voice coils wired in series.",
             "read_value": "series"
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "Note: All specifications measured with the voice coils wired in series for a 4-ohm load.",
+            "read_value": "series"
           }
         }
       },

@@ -57,6 +57,7 @@
     "tweeter.weight_kg: sources disagree: manufacturer_datasheet=# g, manufacturer_product_page=# kg": 1,
     "tweeter.weight_kg: sources disagree: manufacturer_datasheet=# kg, manufacturer_product_page=# g": 2,
     "tweeter.weight_kg: sources disagree: manufacturer_datasheet=#,# kg, manufacturer_product_page=# kg": 1,
+    "weight_kg: weight # is above the physical limit #.": 2,
     "winisd-safe-text:data_sources.value.manufacturer_product_page: WinISD cannot carry \"″\" (U+#); wrote \"\"\" in its place": 3,
     "winisd-safe-text:description.value: WinISD cannot carry \" \" (U+#A#); wrote \" \" in its place": 305,
     "winisd-safe-text:description.value: WinISD cannot carry \"–\" (U+#); wrote \"-\" in its place": 27,
@@ -177,10 +178,11 @@
     "woofer.weight_kg: sources disagree: distributor_datasheet=# kg, manufacturer_datasheet=# kg": 1,
     "woofer.weight_kg: sources disagree: manufacturer_datasheet=# g, manufacturer_product_page=# g": 1,
     "woofer.weight_kg: sources disagree: manufacturer_datasheet=#,# kg, manufacturer_product_page=# g": 1,
-    "woofer.weight_kg: sources disagree: manufacturer_datasheet=#,# kg, manufacturer_product_page=# kg": 4
+    "woofer.weight_kg: sources disagree: manufacturer_datasheet=#,# kg, manufacturer_product_page=# kg": 2
   },
   "rulings": {
     "VCCon: Measured wiring not stated: the datasheet gives # voice coils but not how they were wired when Re and BL were measured.": "QO909",
-    "numVC: The title names several voice coils, but the number of voice coils is not stated.": "QO909"
+    "numVC: The title names several voice coils, but the number of voice coils is not stated.": "QO909",
+    "weight_kg: weight # is above the physical limit #.": "QO929"
   }
 }

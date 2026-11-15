@@ -35,13 +35,14 @@ export SYNC_BUNDLE_CMD="$SCRATCH/bin/fake-bundle" SCRATCH_ARGS="$SCRATCH/args" \
   SCRATCH_CORPUS_FILE="$SCRATCH/corpus-value" SCRATCH_UNTRACKED="$SCRATCH/untracked-in-bundle"
 
 D="$C/snapshot/datasheets"
-mkdir -p "$D/accuton/bd90-6-727" "$D/dayton-audio/da215-8" "$D/other/x" "$D/dayton-audio/mx6-22" "$D/dayton-audio/rss265ho-44" "$D/bliesma/w137a-854-4" "$D/visaton/gf-250-2-x-4-ohm" "$D/sb-acoustics/sb34swpl76-3-dv"
+mkdir -p "$D/accuton/bd90-6-727" "$D/dayton-audio/da215-8" "$D/other/x" "$D/dayton-audio/mx6-22" "$D/dayton-audio/rss265ho-44" "$D/dayton-audio/rss315ho-44" "$D/bliesma/w137a-854-4" "$D/visaton/gf-250-2-x-4-ohm" "$D/sb-acoustics/sb34swpl76-3-dv"
 echo '{"a":1}' > "$D/accuton/bd90-6-727/driver.json"
 echo '{"b":2}' > "$D/accuton/bd90-6-727/openisd.json"
 echo '{"c":3}' > "$D/dayton-audio/da215-8/openisd.json"
 echo '{"d":4}' > "$D/other/x/openisd.json"
 echo '{"m":"dayton-audio/mx6-22"}' > "$D/dayton-audio/mx6-22/driver.json"
 echo '{"m":"dayton-audio/rss265ho-44"}' > "$D/dayton-audio/rss265ho-44/driver.json"
+echo '{"m":"dayton-audio/rss315ho-44"}' > "$D/dayton-audio/rss315ho-44/driver.json"
 echo '{"m":"bliesma/w137a-854-4"}' > "$D/bliesma/w137a-854-4/driver.json"
 echo '{"m":"visaton/gf-250-2-x-4-ohm"}' > "$D/visaton/gf-250-2-x-4-ohm/driver.json"
 echo '{"m":"sb-acoustics/sb34swpl76-3-dv"}' > "$D/sb-acoustics/sb34swpl76-3-dv/driver.json"
@@ -51,7 +52,7 @@ SHA="$(git -C "$C" rev-parse HEAD)"
 SNAP="$R/packages/design/test/fixtures/driver-snapshot"
 EXPECTED="$SCRATCH/expected"
 mkdir -p "$EXPECTED"
-for f in accuton/bd90-6-727/driver.json accuton/bd90-6-727/openisd.json dayton-audio/da215-8/openisd.json dayton-audio/mx6-22/driver.json dayton-audio/rss265ho-44/driver.json bliesma/w137a-854-4/driver.json visaton/gf-250-2-x-4-ohm/driver.json sb-acoustics/sb34swpl76-3-dv/driver.json; do
+for f in accuton/bd90-6-727/driver.json accuton/bd90-6-727/openisd.json dayton-audio/da215-8/openisd.json dayton-audio/mx6-22/driver.json dayton-audio/rss265ho-44/driver.json dayton-audio/rss315ho-44/driver.json bliesma/w137a-854-4/driver.json visaton/gf-250-2-x-4-ohm/driver.json sb-acoustics/sb34swpl76-3-dv/driver.json; do
   mkdir -p "$EXPECTED/$(dirname "$f")"
   git -C "$C" show "${SHA}:snapshot/datasheets/$f" > "$EXPECTED/$f"
 done
@@ -80,11 +81,11 @@ tr -d '\r' < "$SCRATCH_CORPUS_FILE" | cmp - <(git -C "$C" show "${SHA}:snapshot/
 PIN="$R/scripts/driver-snapshot.pin"
 grep -q "\"winisd_drivers_commit\": \"$SHA\"" "$PIN" && ok "pin names the corpus commit" || fail "pin commit: $(cat "$PIN" 2>/dev/null)"
 bad=0
-for f in accuton/bd90-6-727/driver.json accuton/bd90-6-727/openisd.json dayton-audio/da215-8/openisd.json dayton-audio/mx6-22/driver.json dayton-audio/rss265ho-44/driver.json bliesma/w137a-854-4/driver.json visaton/gf-250-2-x-4-ohm/driver.json sb-acoustics/sb34swpl76-3-dv/driver.json; do
+for f in accuton/bd90-6-727/driver.json accuton/bd90-6-727/openisd.json dayton-audio/da215-8/openisd.json dayton-audio/mx6-22/driver.json dayton-audio/rss265ho-44/driver.json dayton-audio/rss315ho-44/driver.json bliesma/w137a-854-4/driver.json visaton/gf-250-2-x-4-ohm/driver.json sb-acoustics/sb34swpl76-3-dv/driver.json; do
   h="$(sha256sum "$SNAP/$f" | cut -d' ' -f1)"
   tr -d '\r' < "$SNAP/$f" | cmp -s - "$EXPECTED/$f" && grep -q "\"$f\": \"$h\"" "$PIN" || bad=1
 done
-[ $bad = 0 ] && [ "$(find "$SNAP" -type f | wc -l)" = 8 ] && ok "8 fixtures copied, hashes match the pin" || fail "fixtures differ from the pin"
+[ $bad = 0 ] && [ "$(find "$SNAP" -type f | wc -l)" = 9 ] && ok "9 fixtures copied, hashes match the pin" || fail "fixtures differ from the pin"
 grep -q "args: --corpus .* --only-record accuton/bd90-6-727 --force" "$SCRATCH/args" \
   && ok "bundle run against selected committed snapshot record" || fail "bundle args: $(cat "$SCRATCH/args" 2>/dev/null)"
 want="$(cd "$R/packages/ui/public" && for f in $(find drivers-index.json passive-radiators-index.json drivers -type f | LC_ALL=C sort); do printf '%s\t%s\n' "$f" "$(sha256sum "$f" | cut -d' ' -f1)"; done | sha256sum | cut -d' ' -f1)"

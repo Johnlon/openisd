@@ -1,14 +1,15 @@
 {
-  "winisd_drivers_commit": "75d5866a9742fc25ed1c66dc4a89a3674f1f2f62",
+  "winisd_drivers_commit": "0ae6348d8d34afe94a5f6bdcc10199dc91495964",
   "fixtures": {
     "accuton/bd90-6-727/driver.json": "be4429f5e61c7cd84caa4e9c938e357f20ef72221d4b4608093291f94f5b4383",
     "accuton/bd90-6-727/openisd.json": "445442ad1b7d5a0d197e87177d68e6a6e5ee20f1fc8016cf618714cd2fb7af73",
     "bliesma/w137a-854-4/driver.json": "b83e23cb17bea530801e5ed4a62ec8780e49d7e333f515075e01191115b03d0b",
     "dayton-audio/da215-8/openisd.json": "4759b81e228a197fd48f4ee72eea562ab3e53945635c0d7677f74b898a044c1e",
-    "dayton-audio/mx6-22/driver.json": "59c9434f2f4b792da5fd32a09a663212c6267aff3b3960c29c0b99c4d6ba46dd",
-    "dayton-audio/rss265ho-44/driver.json": "d3ede4cd64f3d0569cd8e32b2b8ec2ef6f28e261afd3ec54d31bc15be83cfc86",
+    "dayton-audio/mx6-22/driver.json": "0f4bee7f1c4e8582c8963b3dfc41746f9369f86235eba4dd1899f044b1da4726",
+    "dayton-audio/rss265ho-44/driver.json": "42e9a12ed6845f518a22bcdd48b44012a597203f3fbf3e1eb4e8dda876f60c6a",
+    "dayton-audio/rss315ho-44/driver.json": "e8deda2cb5d6b919716d38b0311754ef8c828b4dba821348c5a0e09e9b91d57f",
     "sb-acoustics/sb34swpl76-3-dv/driver.json": "a8bb2cc4713c7c7f0efcf5895cea4e4067557bfb1bfbe6aa515575f5d195cdb3",
     "visaton/gf-250-2-x-4-ohm/driver.json": "a60e4345bc7c435db28c913819329113d37ed19f580d85c1dc44a6f719cea9e0"
   },
-  "bundle_sha256": "b946f5ce5a0acdec8f94e8d9dd69d10afc1964dac3b121dd7b4b4f497312e94b"
+  "bundle_sha256": "ad78830e8485085307e9d61a154cd6751684e4cb5a1c68dcabadfed8f4806cf0"
 }

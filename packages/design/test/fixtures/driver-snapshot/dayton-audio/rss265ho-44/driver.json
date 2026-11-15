@@ -443,6 +443,16 @@
           }
         }
       },
+      "VCCon": {
+        "definition": "voice-coil wiring the published T/S was measured in, by name: series or parallel",
+        "dq_scraper": [],
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "Specifications below were measured with the voice coils wired in parallel for a 2 ohm load.",
+            "read_value": "parallel"
+          }
+        }
+      },
       "Vas_m3": {
         "definition": "equivalent compliance volume — stored in m³, not litres",
         "readings": {

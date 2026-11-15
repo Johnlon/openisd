@@ -42,7 +42,7 @@ DQ_BASELINE="$ROOT/scripts/driver-snapshot.dq-baseline.json"
 node "$ROOT/scripts/dqRatchet.mjs" check "$DATASHEETS" "$DQ_BASELINE" $DQ_RULING || die "Gate A: dq.alert counts rose above scripts/driver-snapshot.dq-baseline.json"
 
 FIXTURES=(accuton/bd90-6-727/driver.json accuton/bd90-6-727/openisd.json dayton-audio/da215-8/openisd.json
-  dayton-audio/mx6-22/driver.json dayton-audio/rss265ho-44/driver.json bliesma/w137a-854-4/driver.json visaton/gf-250-2-x-4-ohm/driver.json sb-acoustics/sb34swpl76-3-dv/driver.json)
+  dayton-audio/mx6-22/driver.json dayton-audio/rss265ho-44/driver.json dayton-audio/rss315ho-44/driver.json bliesma/w137a-854-4/driver.json visaton/gf-250-2-x-4-ohm/driver.json sb-acoustics/sb34swpl76-3-dv/driver.json)
 SNAP="$ROOT/packages/design/test/fixtures/driver-snapshot"
 START=$SECONDS; STEPS=3
 progress() { local el=$((SECONDS - START)); echo "sync $1/$STEPS ($((100 * $1 / STEPS))%) ${el}s elapsed, ETA $(( $1 > 0 ? el * (STEPS - $1) / $1 : 0 ))s: $2"; }
