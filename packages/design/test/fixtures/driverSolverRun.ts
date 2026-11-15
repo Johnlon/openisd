@@ -41,6 +41,7 @@ function outcomeOfIssue(issue: DriverIssue): IssueOutcome {
   switch (issue.kind) {
     case 'missing-dependencies':
     case 'approximate-charts':
+    case 'result-refused':
       return {kind: issue.kind, fields: issue.fields, text: issue.text};
     case 'inconsistent-inputs':
       return {

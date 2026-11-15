@@ -40,6 +40,14 @@ export type CalculationIssue<Q extends string> =
       readonly target: Q;
       readonly fields: readonly Q[];
       readonly text: string;
+    }
+  | {
+      /** Every input was stated, but the relation's answer contradicts what it was computed
+       *  from (a magnet deeper than the driver). The target stays not-available; `text` says why. */
+      readonly kind: 'result-refused';
+      readonly target: Q;
+      readonly fields: readonly Q[];
+      readonly text: string;
     };
 
 /** A stated target (a vent's `length_m`, a passive radiator's `addedMass_kg`) whose geometry is
@@ -187,6 +195,12 @@ export function approximateCharts<Q extends string>(target: Q, fields: readonly 
   return {kind: 'approximate-charts', target, fields, text};
 }
 
+/** A calculated value refused because it contradicts the values it came from. A note on the target
+ *  alone: nothing else is wrong with the stated inputs. */
+export function resultRefused<Q extends string>(target: Q, text: string): CalculationIssue<Q> {
+  return {kind: 'result-refused', target, fields: [target], text};
+}
+
 /** A driver field outside its physically possible band (D14). */
 export function outOfRange(
   field: string, value: number, limit: number, side: 'below' | 'above',
@@ -274,6 +288,7 @@ export function issueFormula<Q extends string>(issue: CalculationIssue<Q>): stri
   switch (issue.kind) {
     case 'inconsistent-inputs': return issue.formula;
     case 'approximate-charts': return issue.text;
+    case 'result-refused': return issue.text;
     case 'missing-dependencies': break;
   }
   return issue.routes.map(r => r.formula).join('; or ');

@@ -184,6 +184,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                     return [{subject: this.engine.issues.plainNames(issue.target), text: this.engine.issues.plainNames(`cannot be calculated yet — needs ${issue.routes.map(r => r.missing.join(', ')).join(' or ')}`)}];
                 case 'inconsistent-inputs':
                 case 'approximate-charts':
+                case 'result-refused':
                 case 'out-of-range':
                 case 'wiring-not-stated':
                 case 'wiring-inferred':
@@ -283,6 +284,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                     }];
                 case 'missing-dependencies':
                 case 'approximate-charts':
+                case 'result-refused':
                 case 'out-of-range':
                 case 'wiring-not-stated':
                 case 'wiring-inferred':
@@ -307,6 +309,9 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                 case 'approximate-charts':
                     return [{level: 'warn', field: issue.target, message: issue.text}];
                 // A note, not a warning: the wiring was inferred, and the issue says from what.
+                // A refused calculation is a note too: the field says why it is empty, and the data
+                // quality count does not move for a value the app declined to invent.
+                case 'result-refused':
                 case 'wiring-inferred':
                 case 'missing-dependencies':
                     return [];

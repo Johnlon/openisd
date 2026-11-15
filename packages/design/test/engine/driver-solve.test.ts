@@ -431,6 +431,56 @@ describe('Engine.solveDriver', () => {
     });
   });
 
+  /**
+   * BUG_20261115_calculated-dimension-contradicts-its-own-geometry: a dimension the geometry
+   * relation computes must lie inside the driver it was computed from, else the field stays
+   * not-available and says why. Purifi PTT10.0X04-NAB-01 (Sd 360 cm2, Vcd 52 mm, DVol 1.40 L,
+   * Depth 145 mm, Magnet 140 mm, all printed on the datasheet) gave MagDepth 3.98 m.
+   */
+  describe('DVol geometry lock — a result outside the driver is refused, with a reason', () => {
+    const refusals = (issues: ReturnType<typeof engine.driver.solve>) => issues.flatMap(i => i.kind === 'result-refused' ? [i] : []);
+
+    it('Purifi PTT10.0X04: MagDepth is not calculated (the relation gives 3.98 m, deeper than the 145 mm driver) and says why', () => {
+      const p = driverParams({Sd_m2: 0.036, Vcd_m: 0.052, DVol_m3: 0.0014, Depth_m: 0.145, Magnet_m: 0.14});
+      const issues = engine.driver.solve(p, AIR_E);
+      expect(p.MagDepth_m.value).toBeNull();
+      expect(p.MagDepth_m.calculated).toBe(false);
+      expect(refusals(issues)).toMatchObject([{kind: 'result-refused', target: 'MagDepth_m'}]);
+      const text = refusals(issues)[0]?.text ?? '';
+      expect(text).toMatch(/MagDepth/);
+      expect(text).toMatch(/3\d{3} mm/);
+      expect(text).toMatch(/145 mm/);
+    });
+
+    it('a MagDepth inside the driver is still calculated (Dd 90, Vcd 25, Depth 55, Magnet 60 mm, DVol from MagDepth 20 mm)', () => {
+      const p = driverParams({Dd_m: 0.090, Vcd_m: 0.025, Depth_m: 0.055, Magnet_m: 0.060, DVol_m3: 0.00015711235760296454});
+      const issues = engine.driver.solve(p, AIR_E);
+      expect(refusals(issues)).toEqual([]);
+      expect(p.MagDepth_m.value).toBeCloseTo(0.020, 9);
+    });
+
+    it('Depth that would not clear the magnet is refused (DVol 10 cm3 is too small for a 20 mm magnet of 60 mm)', () => {
+      const p = driverParams({Dd_m: 0.090, Vcd_m: 0.025, DVol_m3: 1e-5, MagDepth_m: 0.020, Magnet_m: 0.060});
+      const issues = engine.driver.solve(p, AIR_E);
+      expect(p.Depth_m.value).toBeNull();
+      expect(refusals(issues)).toMatchObject([{target: 'Depth_m'}]);
+    });
+
+    it('a Magnet whose DVol is too small for the cone is refused (no real diameter fits)', () => {
+      const p = driverParams({Dd_m: 0.090, Vcd_m: 0.025, Depth_m: 0.055, MagDepth_m: 0.020, DVol_m3: 1e-5});
+      const issues = engine.driver.solve(p, AIR_E);
+      expect(p.Magnet_m.value).toBeNull();
+      expect(refusals(issues)).toMatchObject([{target: 'Magnet_m'}]);
+    });
+
+    it('a Magnet narrower than the voice coil is still calculated: the relation does not rule it out', () => {
+      const p = driverParams({Dd_m: 0.090, Vcd_m: 0.025, Depth_m: 0.055, MagDepth_m: 0.020, DVol_m3: 0.00010684687514552788});
+      const issues = engine.driver.solve(p, AIR_E);
+      expect(refusals(issues)).toEqual([]);
+      expect(p.Magnet_m.value).toBeCloseTo(0.020, 9);
+  });
+  });
+
   // A calculated value's half-width is the guaranteed first-order bound its entered inputs give
   // it: Σ |∂f/∂x|·d(x) — winisd_tools' former lib/precision.py, CALCULATIONS.md §1.3.
   describe('DriverEngine.solve — a calculated value carries the precision its inputs give it', () => {

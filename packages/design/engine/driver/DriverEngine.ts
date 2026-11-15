@@ -23,8 +23,9 @@ import type {
     SolverField,
     SolverInput,
 } from '../solverTypes.js';
-import {approximateCharts, missingDependencies} from '../consistency.js';
+import {approximateCharts, missingDependencies, resultRefused} from '../consistency.js';
 import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue, WiringIssue} from '../consistency.js';
+import {geometryRefusal} from '../dvolRelation.js';
 import {checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import {convertWiring, hotRe} from '../solvers/driverQuantities.js';
@@ -81,6 +82,18 @@ const DERIVATIVE_STEP = 1e-3;
  *  as if it had been typed (matches `checkConsistency`'s own contract). */
 function enteredDriverValue(field: SolverInput): number | undefined {
   return field.entered ? field.value ?? undefined : undefined;
+}
+
+/** A refusal for each geometry dimension the user left blank and the relation gave no answer for
+ *  because its answer contradicts the geometry (`geometryRefusal`). */
+function geometryRefusals(entered: DriverWorkingSet, solved: DriverWorkingSet): DriverIssue[] {
+  const dims = {Dd: solved.Dd_m, Vcd: solved.Vcd_m, DVol: solved.DVol_m3, Depth: solved.Depth_m, MagDepth: solved.MagDepth_m, Magnet: solved.Magnet_m};
+  const targets = [['DVol', 'DVol_m3'], ['Depth', 'Depth_m'], ['MagDepth', 'MagDepth_m'], ['Magnet', 'Magnet_m']] as const;
+  return targets.flatMap(([name, key]) => {
+    if (entered[key] != null || solved[key] != null) return [];
+    const reason = geometryRefusal(name, dims);
+    return reason === null ? [] : [resultRefused(key, reason)];
+  });
 }
 
 /** Write `value` onto a non-entered handle: derived, with the width its entered inputs give
@@ -227,6 +240,7 @@ export class DriverEngineImpl implements DriverEngine {
     const issues: DriverIssue[] = [
       ...this.checkConsistency(working, params, air), ...checkRange(params),
     ];
+    issues.push(...geometryRefusals(working, solved));
     const widths = this.calculatedWidths(working, solved, air, field => params[field].precision ?? 0);
 
     writeDriverBack(params.Fs_hz, solved.Fs_hz, widths.Fs_hz); writeDriverBack(params.Re_ohm, solved.Re_ohm, widths.Re_ohm);
