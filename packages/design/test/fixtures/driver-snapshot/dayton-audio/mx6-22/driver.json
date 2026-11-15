@@ -60,6 +60,11 @@
     "origin": "manufacturer_product_page",
     "value": "MX6-22 6-1/2\" Max-X High Excursion DVC Subwoofer Driver 2 Ohms Per Coil"
   },
+  "nominal_size_cm": {
+    "definition": "nominal (marketing) diameter in cm",
+    "origin": "manufacturer_product_page",
+    "value": 16.51
+  },
   "printed": [
     {
       "actual_reading": "MX6-22 6-1/2\" Max-X High Excursion DVC Subwoofer Driver 2 Ohms Per Coil",

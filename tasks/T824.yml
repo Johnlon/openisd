@@ -1,0 +1,15 @@
+id: T824
+release_note: internal
+repo: openisd
+owner: sync
+status: done
+goal: OpenISD's bundled driver catalogue is rebuilt from the current committed winisd_drivers snapshot (a7a9fd39e): Peerless TG9FC02-04 weighs 0.24 kg, Dayton CE32A-4 Re is 3.57 ohm, 22 Tang Band records carry their datasheet BL
+why: John, 15 Nov 2026: data fixes made today must reach test.openisd.app; the lead ruled the three true new data-quality findings may enter the baseline (QO939)
+ruling: QO939
+done_test: bash scripts/test.sh packages/design/test/domain/multi-coil-goldens.test.ts
+files:
+  - tasks/T824.yml
+  - packages/ui/public/**
+  - packages/design/test/fixtures/driver-snapshot/**
+  - scripts/driver-snapshot.pin
+  - scripts/driver-snapshot.dq-baseline.json

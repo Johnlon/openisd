@@ -40,6 +40,11 @@
     "origin": "manufacturer_product_page",
     "value": "SB34SWPL76-3-DV"
   },
+  "nominal_size_cm": {
+    "definition": "nominal (marketing) diameter in cm",
+    "origin": "manufacturer_product_page",
+    "value": 30.48
+  },
   "printed": [
     {
       "actual_reading": "12″ SB34SWPL76-3-DV / Paper",

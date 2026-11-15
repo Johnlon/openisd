@@ -39,6 +39,11 @@
     "origin": "manufacturer_product_page",
     "value": "GF 250 2 X 4 OHM"
   },
+  "nominal_size_cm": {
+    "definition": "nominal (marketing) diameter in cm",
+    "origin": "manufacturer_product_page",
+    "value": 25.0
+  },
   "printed": [
     {
       "actual_reading": ".",

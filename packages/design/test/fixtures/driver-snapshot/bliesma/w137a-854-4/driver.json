@@ -34,6 +34,11 @@
     "origin": "manufacturer_datasheet",
     "value": "W137A-854 4 Ω"
   },
+  "nominal_size_cm": {
+    "definition": "nominal (marketing) diameter in cm",
+    "origin": "manufacturer_listing_page",
+    "value": 13.7
+  },
   "printed": [
     {
       "actual_reading": "W137A-854 137mm Aluminum-Magnesium Alloy Dome Woofer",
