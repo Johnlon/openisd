@@ -23,7 +23,7 @@ export {
 } from './air.js';
 export type { Air, AppAir, AirWorkingName, AirValues, AirEnvironment, EnvironmentQuantityName, EnvironmentIssue } from './air.js';
 export { FixedAir } from './air.js';
-export type { CalculationIssue, SolveRoute, DqIssue, TargetUnreachableIssue, OutOfRangeIssue } from './consistency.js';
+export type { CalculationIssue, SolveRoute, DqIssue, TargetUnreachableIssue, OutOfRangeIssue, WiringIssue } from './consistency.js';
 // APPLICATION SETTINGS reach a calculation through the collaborator `createEngine(settings)`
 // takes, never a module constant read behind the caller's back. The factory band crosses as a
 // VALUE for the same reason the air reference constants do: the Settings tab has to show the
@@ -49,6 +49,7 @@ export type { SignalEngine, SignalQuantityName, SignalIssue } from './signal/Sig
 export type { SimulationEngine, SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './simulation/SimulationEngine.js';
 export { createSimulationEngine } from './simulation/SimulationEngine.js';
 export type {DriverEngine, DriverQuantityName, DriverIssue, DriverPrerequisite} from './driver/DriverEngine.js';
+export type {WiredMotor, WiringConversion, WiringConverted, WiringRefused} from './solvers/driverQuantities.js';
 export type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
 export type {AirInput, AirInputs, AirIssue, AirQuantityName, AirSolution, AirSolvedValues} from './environment/airSolver.js';
 export type {IssueEngine} from './issues/IssueEngine.js';

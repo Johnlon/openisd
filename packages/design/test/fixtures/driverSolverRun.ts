@@ -18,7 +18,7 @@ export interface RecordFieldOutcome {
 /** One issue, reduced to its kind, the fields it names and what it states. Numbers are absent where
  *  the kind carries none. */
 export interface IssueOutcome {
-  readonly kind: 'missing-dependencies' | 'inconsistent-inputs' | 'approximate-charts' | 'out-of-range';
+  readonly kind: DriverIssue['kind'];
   readonly fields: readonly string[];
   readonly text: string;
   readonly expected?: number;
@@ -49,6 +49,10 @@ function outcomeOfIssue(issue: DriverIssue): IssueOutcome {
       };
     case 'out-of-range':
       return {kind: issue.kind, fields: [issue.field], text: issue.text, actual: issue.value};
+    case 'wiring-not-stated':
+    case 'wiring-inferred':
+    case 'multi-coil-without-numvc':
+      return {kind: issue.kind, fields: [issue.field], text: issue.text};
   }
 }
 

@@ -5,6 +5,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {readFileSync} from 'node:fs';
+import {withNamedWiringReadings} from '../fixtures/scraperWiringShape.js';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {parse, stringify} from 'yaml';
@@ -27,7 +28,7 @@ const cell = (value: number, literal: string) => ({actual_reading: literal, read
 
 /** The Dayton driver.yml with `reads` added to the Fs_hz datasheet reading. */
 function ymlWithFsReads(reads: Record<string, unknown>): string {
-  const doc: unknown = parse(readFileSync(FIXTURE, 'utf8'));
+  const doc: unknown = parse(withNamedWiringReadings(readFileSync(FIXTURE, 'utf8')));
   if (!isRecord(doc)) throw new Error('driver.yml is not a record');
   const fs = child(child(child(doc, 'specs'), 'woofer'), 'Fs_hz');
   child(child(fs, 'readings'), 'manufacturer_datasheet').reads = reads;
@@ -96,7 +97,7 @@ describe('driver.yml readings with reads', () => {
   });
 
   it('a reading without reads converts exactly as before: no reader warning', () => {
-    const {errors} = convert(readFileSync(FIXTURE, 'utf8'));
+    const {errors} = convert(withNamedWiringReadings(readFileSync(FIXTURE, 'utf8')));
     expect(errors.filter(e => e.message.includes('readers disagree'))).toEqual([]);
   });
 });

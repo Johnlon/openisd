@@ -184,6 +184,25 @@ def _tag_state_7(v):
 
 SpecEntry = Annotated[Union[Annotated[EnteredEntry, Tag("<E>")], Annotated[CalculatedEntry, Tag("<C>")], Annotated[NotAvailableEntry, Tag("<N>")]], Discriminator(_tag_state_7)]
 
+class WiringEntryJsonSchemaE(Strict):
+    state: Literal["E"]
+    value: Literal["series", "parallel"]
+
+class WiringEntryJsonSchemaC(Strict):
+    state: Literal["C"]
+    value: Literal["series", "parallel"]
+
+class NotAvailableEntry2(Strict):
+    state: Literal["N"]
+    readings: NotAvailableEntryReadings = None
+
+def _tag_state_8(v):
+    if isinstance(v, dict) and v.get("state") in ("E", "C", "N"):
+        return '<' + v["state"] + '>'
+    return None
+
+WiringEntry = Annotated[Union[Annotated[WiringEntryJsonSchemaE, Tag("<E>")], Annotated[WiringEntryJsonSchemaC, Tag("<C>")], Annotated[NotAvailableEntry2, Tag("<N>")]], Discriminator(_tag_state_8)]
+
 class DriverSpecsWoofer(Strict):
     Fs_hz: SpecEntry = None
     Re_ohm: SpecEntry = None
@@ -207,7 +226,7 @@ class DriverSpecsWoofer(Strict):
     Dd_m: SpecEntry = None
     EBP_hz: SpecEntry = None
     numVC: SpecEntry = None
-    VCCon: SpecEntry = None
+    VCCon: WiringEntry = None
     Vd_m3: SpecEntry = None
     no: SpecEntry = None
     SPLmax_dB: SpecEntry = None
@@ -268,7 +287,7 @@ class RadiatorSpecsPassiveRadiator(Strict):
 class RadiatorSpecs(Strict):
     passive_radiator: RadiatorSpecsPassiveRadiator = Field(alias="passive-radiator")
 
-def _dispatch_specs_json_schema_8(v):
+def _dispatch_specs_json_schema_9(v):
     keyed = isinstance(v, dict)
     claims_0 = keyed and "woofer" in v
     claims_1 = keyed and "passive-radiator" in v
@@ -276,7 +295,7 @@ def _dispatch_specs_json_schema_8(v):
         return None  # a driver (a 'woofer' section, optionally with a 'tweeter' section) or a passive radiator (a 'passive-radiator' section) — not both, not neither
     return "<woofer>" if claims_0 else "<passive-radiator>"
 
-Specs = Annotated[Union[Annotated[DriverSpecs, Tag("<woofer>")], Annotated[RadiatorSpecs, Tag("<passive-radiator>")]], Discriminator(_dispatch_specs_json_schema_8)]
+Specs = Annotated[Union[Annotated[DriverSpecs, Tag("<woofer>")], Annotated[RadiatorSpecs, Tag("<passive-radiator>")]], Discriminator(_dispatch_specs_json_schema_9)]
 
 class RootCurvesValue(Strict):
     type: str
@@ -310,4 +329,4 @@ class Root(Strict):
 ROOT = Root
 TAGS = frozenset({"<woofer>", "<E>", "<C>", "<N>", "<passive-radiator>"})
 DISPATCH_TAGS = frozenset({"<woofer>", "<passive-radiator>"})
-DISCRIMINATOR_FIELD = {"_tag_state_7": "state", "_dispatch_specs_json_schema_8": None}
+DISCRIMINATOR_FIELD = {"_tag_state_7": "state", "_tag_state_8": "state", "_dispatch_specs_json_schema_9": None}

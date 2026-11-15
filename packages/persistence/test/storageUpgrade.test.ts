@@ -233,7 +233,7 @@ describe('exported files: an older file opens, and the current app writes the la
       assert.equal(read(fromFive.text), read(fromOne.text), 'the slim file reads the same');
       assert.deepEqual(Object.values(expected), [read(fromOne.text)]);
       assert.ok(file5.startsWith('{\n  "layout": 5,'));
-      assert.ok(file4.includes('"schemaVersion": 3'), 'the current app writes the schema version');
+      assert.ok(file4.includes('"schemaVersion": 4'), 'the current app writes the schema version');
     });
   }
 });

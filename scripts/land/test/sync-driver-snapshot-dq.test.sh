@@ -26,6 +26,10 @@ mkdir -p "$D/accuton/bd90-6-727" "$D/dayton-audio/da215-8" "$D/other/x" "$D/othe
 echo '{"a":1}' > "$D/accuton/bd90-6-727/driver.json"
 echo '{"b":2}' > "$D/accuton/bd90-6-727/openisd.json"
 echo '{"c":3}' > "$D/dayton-audio/da215-8/openisd.json"
+# The multi-coil fixtures sync-driver-snapshot.sh also copies (T788).
+for f in dayton-audio/mx6-22 dayton-audio/rss265ho-44 bliesma/w137a-854-4 visaton/gf-250-2-x-4-ohm sb-acoustics/sb34swpl76-3-dv; do
+  mkdir -p "$D/$f"; echo "{\"m\":\"$f\"}" > "$D/$f/driver.json"
+done
 cat > "$D/other/x/dq.alert" <<'EOS'
 Qes: Qes disagree by 12.5%: Qes = 2π·Fs
 Fs_hz: Fs disagree by 3%

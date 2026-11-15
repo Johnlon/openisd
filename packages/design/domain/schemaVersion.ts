@@ -1,15 +1,17 @@
 /**
  * Schema version numbers for saved data (QO395, John 4 Nov 2026). A saved project (.owpr), a saved
- * driver (.owdr, stored record) and openisd.json carry `schemaVersion`. The slim format is 3; a
- * file with none is 2. Load upgrades it one step at a time, on the parsed JSON, BEFORE the strict
+ * driver (.owdr, stored record) and openisd.json carry `schemaVersion`. The slim format is 3, and
+ * 4 stores a multi-coil driver's Re and BL as published; a file with none is 2. Load upgrades it
+ * one step at a time, on the parsed JSON, BEFORE the strict
  * schema reads it (the schema refuses undeclared keys, so removed fields must be gone first).
  * A file newer than this app knows is refused with a message saying so: never a blank, never a
  * silent drop of what the older app cannot read.
  */
 import {withoutRetiredSpecKeys} from './retiredSpecKeys.js';
 import {withSlimModel} from './slimModel.js';
+import {withMultiCoilAsPublished} from './multiCoilAsPublished.js';
 
-export const CURRENT_SCHEMA_VERSION = 3;
+export const CURRENT_SCHEMA_VERSION = 4;
 /** What a file with no `schemaVersion` is: everything saved before versions existed. */
 export const UNVERSIONED_SCHEMA_VERSION = 2;
 
@@ -33,10 +35,22 @@ function recordOr(upgraded: unknown, fallback: PlainRecord): PlainRecord {
 
 /** 2 to 3: the retired spec keys go, and the record becomes the slim model (`slimModel.ts`): the
  *  stated reading precision moves onto each entered value, then readings, origin, quality and the
- *  rest are dropped. */
+ *  rest are dropped.
+ *  3 to 4: a multi-coil driver's per-coil Re and BL become the published figures, and a defaulted
+ *  wiring becomes unknown (`multiCoilAsPublished.ts`, QO908). */
 const UPGRADE_STEPS: readonly UpgradeStep[] = Object.freeze([
-    {from: 2, upgrade: (value: PlainRecord) => recordOr(withSlimModel(withoutRetiredSpecKeys(value)), value)},
+    Object.freeze({from: 2, upgrade: (value: PlainRecord) => recordOr(withSlimModel(withoutRetiredSpecKeys(value)), value)}),
+    Object.freeze({from: 3, upgrade: (value: PlainRecord) => recordOr(withMultiCoilAsPublished(value), value)}),
 ]);
+
+/**
+ * `value` built now from a source that states its figures as published — a `driver.json`, a
+ * `.wdr` — stamped with the current version, so no upgrade step meant for saved data runs on it:
+ * the retired spec keys go, and the load still makes it slim.
+ */
+export function asCurrentRecord(value: PlainRecord): PlainRecord {
+    return {...recordOr(withoutRetiredSpecKeys(value), value), schemaVersion: CURRENT_SCHEMA_VERSION};
+}
 
 function versionOf(value: PlainRecord): number | string {
     if (!('schemaVersion' in value)) return UNVERSIONED_SCHEMA_VERSION;

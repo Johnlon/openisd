@@ -86,7 +86,7 @@ export interface DriverSpecsSection {
     readonly Dd_m?: SpecEntryJson;
     readonly EBP_hz?: SpecEntryJson;
     readonly numVC?: SpecEntryJson;
-    readonly VCCon?: SpecEntryJson;
+    readonly VCCon?: WiringEntryJson;
     // Ordinarily derived, but WinISD lets a human TYPE any of them, and an entered value is a fact.
     readonly Vd_m3?: SpecEntryJson;
     readonly no?: SpecEntryJson;
@@ -288,6 +288,25 @@ export type RejectedReadingJson =
     | RejectedParsedReadingJson | RejectedUnparsedReadingJson
     | RejectedUnrecognisedParsedReadingJson | RejectedUnrecognisedUnparsedReadingJson;
 
+/** The voice-coil wiring as a stored value: its name (QO914, #514). WinISD's 1/2 code exists only
+ *  in the `.wdr`/`.wpr` adapter. */
+const wiringValueSchema = z.enum(['series', 'parallel']);
+
+/** A source's reading of VCCon with the wiring read: `read_value` is the name, `actual_reading`
+ *  the quote that states it (QO914). A wiring is not a measurement, so there is no
+ *  `read_precision`; a numeric `read_value` (the retired 1/2 code) is refused. */
+const usableWiringReadingJsonSchema = z.strictObject({
+    ...readingCommonShape,
+    read_value: wiringValueSchema,
+    note: z.string().optional(),
+});
+/** One source's reading of VCCon: the wiring read, or rejected with no value read. */
+export const wiringReadingJsonSchema = z.union([
+    usableWiringReadingJsonSchema, rejectedUnparsedReadingJsonSchema, rejectedUnrecognisedUnparsedReadingJsonSchema,
+]);
+export type WiringReadingJson = z.infer<typeof wiringReadingJsonSchema>;
+export type UsableWiringReadingJson = z.infer<typeof usableWiringReadingJsonSchema>;
+
 /** An entered spec entry: a `value` plus `state:'E'`, and the precision it states. Nothing else is
  *  stored (QO395, John 3 Nov 2026: openisd.json is the slim model): which source won, every
  *  source's reading and the cross-source verdict stay in driver.json. */
@@ -340,6 +359,18 @@ export const specEntryJsonSchema =
     z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema, notAvailableEntrySchema]);
 
 export type SpecEntryJson = z.infer<typeof specEntryJsonSchema>;
+/**
+ * VCCon, the wiring Re and BL were measured in (QO914, #514): `state` + the wiring's NAME, and no
+ * `precision` (a name is not a measurement). An unknown wiring is an absent key; `N` is a
+ * reading that gave no wiring, as on every spec field.
+ */
+export const wiringEntryJsonSchema = z.discriminatedUnion('state', [
+    z.strictObject({state: z.literal('E'), value: wiringValueSchema}),
+    z.strictObject({state: z.literal('C'), value: wiringValueSchema}),
+    notAvailableEntrySchema,
+]);
+export type WiringEntryJson = z.infer<typeof wiringEntryJsonSchema>;
+
 /** The Entered and Calculated variants alone: a value that is never not-available, so it fits a spec
  *  entry and a signal entry alike. */
 export type EnteredEntryJson = z.infer<typeof enteredEntrySchema>;
@@ -390,7 +421,7 @@ const driverSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strict
     Fs_hz: e, Re_ohm: e, Le_H: e, fLe_hz: e, KLe_H_sqrtHz: e, Znom_ohm: e,
     Qts: e, Qes: e, Qms: e, Vas_m3: e, Sd_m2: e, BL_Tm: e,
     Mms_kg: e, Cms_m_per_N: e, Rms_kg_per_s: e, Xmax_m: e, Xlim_m: e, SPL_dB: e,
-    Pe_W: e, Dd_m: e, EBP_hz: e, numVC: e, VCCon: e,
+    Pe_W: e, Dd_m: e, EBP_hz: e, numVC: e, VCCon: wiringEntryJsonSchema,
     Vd_m3: e, no: e, SPLmax_dB: e, SPLmaxLF_dB: e, USPL_dB: e, alfaVC_per_K: e,
     Rt_K_per_W: e, Ct_J_per_K: e, gamma_m_per_s2_A: e, Rme_kg_per_s: e, Mpow_N_per_sqrtW: e, Mcost_kg_per_s: e,
     Gloss: e, c_m_per_s: e, roo_kg_per_m3: e, Vcd_m: e, Hg_m: e, Hc_m: e,

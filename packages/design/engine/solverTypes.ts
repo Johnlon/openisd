@@ -153,9 +153,11 @@ export interface DriverSolverParams {
   roo_kg_per_m3: SolverField;
   Re_terminal_ohm: SolverField;
   BL_terminal_Tm: SolverField;
-  /** Read only: the domain defaults a not-entered coil count itself; the solve never derives one. */
+  /** The coil count; null when not stated. Not read by the solve: the relations run on the
+   *  published Re and BL (QO900 R1). Carried for the wiring conversion. */
   numVC: SolverInput;
-  /** Read only: the domain defaults a not-entered wiring itself; the solve never derives one. */
+  /** The wiring Re and BL were measured in; null when unknown. Not read by the solve, never
+   *  derived by it. Carried for the wiring conversion. */
   wiring: SolverInput<'series' | 'parallel'>;
 }
 

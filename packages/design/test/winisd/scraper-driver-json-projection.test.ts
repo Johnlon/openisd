@@ -81,7 +81,19 @@ describe('driver.json the scraper writes today', () => {
 });
 
 describe('records whose T/S values disagree (QO414: consistency warnings never refuse a record)', () => {
-  for (const code of ['w137a-854-8', 'w137p-854-8']) {
+  // w137a-854-8 disagreed only while its published Re/BL were converted per coil (#512,
+  // bugs/BUG_20261114_engine-per-coil-basis.md); as published it agrees, and its 3 coils with no
+  // stated wiring are a warning of their own (QO909).
+  it('bliesma w137a-854-8 (3 voice coils) projects as published with no disagreement, and warns the wiring is not stated', () => {
+    const text = readFileSync(join(FIXTURES, 'bliesma-w137a-854-8.driver.json'), 'utf8');
+    const result = project(text);
+    assert.deepEqual(result.errors.filter(e => e.level === 'error'), []);
+    assert.ok(result.openisd !== null && result.wdr !== null);
+    assert.deepEqual(result.errors.filter(e => /disagree/.test(e.message)).map(e => e.message), []);
+    assert.ok(result.errors.some(e => e.level === 'warn' && e.field === 'VCCon' && /Measured wiring not stated/.test(e.message)));
+  });
+
+  for (const code of ['w137p-854-8']) {
     it(`bliesma ${code} (3 voice coils, printed T/S disagree) projects; the disagreement is a warning only`, () => {
       const text = readFileSync(join(FIXTURES, `bliesma-${code}.driver.json`), 'utf8');
       const result = project(text);

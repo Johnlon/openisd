@@ -36,12 +36,14 @@ import type {CellState} from "../winisd/cellState.js";
 import {
   type DriverSpec,
   readingJsonSchema,
+  wiringReadingJsonSchema,
 } from "./openisdSchema.js";
-import {winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
+import {wdrVCConCode, winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
+import {asCurrentRecord} from "./schemaVersion.js";
 import {sortKeysDeep} from "./openIsdDeviceJsonIo.js";
 import {slimmedDevice} from "./slimModel.js";
 import {dqMarks} from "./specEntry.js";
-import {selectOrigin} from "./selectOrigin.js";
+import {selectOrigin, selectWiringOrigin} from "./selectOrigin.js";
 import {sourceRank} from "./sourceRank.js";
 import {Corroboration, ReaderAgreement, corroborate, isRecognisedRejection, isUsable, readerVerdict, type Reading} from "./corroboration.js";
 import {Reader} from "./reader.js";
@@ -156,6 +158,41 @@ function isKeyedObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+/** A per-coil resistance as printed: "N x r" or "N × r" (e.g. "2 x 2.5 Ω"). */
+const PER_COIL_PRINTED = /^\s*(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)/i;
+
+/** Re printed per coil ("N x r") stored as the measured wiring's value (QO915; QO919: the file may
+ *  mark it E though the bridge worked it out): series N·r, parallel r/N, the read precision scaled
+ *  the same way. Needs the section's numVC of 2 or more and its VCCon naming the wiring; with the
+ *  wiring unstated Re stays as printed, and the engine's "measured wiring not stated" warning stands.
+ *  Returns `fields` itself when nothing applies. */
+function withPerCoilReForWiring(fields: Record<string, unknown>): Record<string, unknown> {
+  const re = fields.Re_ohm;
+  const numVC = fields.numVC;
+  const wiring = fields.VCCon;
+  if (!isKeyedObject(re) || re.state !== "E" || typeof re.value !== "number" || typeof re.origin !== "string") return fields;
+  if (!isKeyedObject(numVC) || numVC.state !== "E" || typeof numVC.value !== "number" || numVC.value < 2) return fields;
+  if (!isKeyedObject(wiring) || wiring.state !== "E") return fields;
+  if (wiring.value !== "series" && wiring.value !== "parallel") return fields;
+  const readings = re.readings;
+  const winner = isKeyedObject(readings) ? readings[re.origin] : undefined;
+  if (!isKeyedObject(winner) || typeof winner.actual_reading !== "string") return fields;
+  const match = PER_COIL_PRINTED.exec(winner.actual_reading);
+  if (match === null) return fields;
+  const coils = Number(match[1]);
+  if (coils < 2) return fields;
+  const factor = wiring.value === "series" ? coils : 1 / coils;
+  const scaledWinner = typeof winner.read_precision === "number"
+    ? { ...winner, read_precision: winner.read_precision * factor }
+    : winner;
+  const scaledRe = {
+    ...re,
+    value: re.value * factor,
+    readings: { ...(isKeyedObject(readings) ? readings : {}), [re.origin]: scaledWinner },
+  };
+  return { ...fields, Re_ohm: scaledRe };
+}
+
 /** One spec entry without the app-only key (`APP_ONLY_SPEC_ENTRY_KEY`). Rebuilt, not deleted
  *  from, for the reason `stripDefinitionField` gives. */
 function entryWithoutAppOnlyKeys(entry: unknown): unknown {
@@ -199,6 +236,28 @@ const scraperEntrySchema = z.strictObject({
 
 /** One scraper-supplied entry as the schema parsed it. */
 type ScraperEntry = z.infer<typeof scraperEntrySchema>;
+
+/** `scraperEntrySchema` for VCCon (QO914, #514): each reading names the wiring, or is rejected
+ *  with no value read. */
+const wiringScraperEntrySchema = z.strictObject({
+  readings: z.record(z.string(), wiringReadingJsonSchema).refine(
+    (r) => Object.keys(r).length > 0, "expected at least one reading"
+  ),
+  dq_scraper: dqMarks(),
+});
+type WiringScraperEntry = z.infer<typeof wiringScraperEntrySchema>;
+
+/** A VCCon scraper entry once the app has picked its wiring. */
+type ProjectedWiringEntry =
+  | { state: "N"; readings: WiringScraperEntry["readings"] }
+  | { state: "E"; value: string; origin: string; readings: WiringScraperEntry["readings"] };
+
+/** Does any of `entry`'s readings carry a number as its `read_value`? */
+function hasNumericReadValue(entry: Record<string, unknown>): boolean {
+  const readings = entry.readings;
+  return isKeyedObject(readings)
+    && Object.values(readings).some(r => isKeyedObject(r) && typeof r.read_value === "number");
+}
 
 /** A scraper entry once the app has picked its value: no reading won (`N`), or one did (`E`). */
 type ProjectedEntry =
@@ -326,23 +385,20 @@ type OpenisdRecordResult =
 
 
 /**
- * `VCCon` — the voice-coil connection row, which is MANDATORY in a `.wdr`.
+ * `VCCon` — the voice-coil connection row, which is MANDATORY in a `.wdr`: the wiring Re and BL
+ * were measured in.
  *
- * `1` = parallel, `2` = series: `docs/design/WINISD_SCHEMA.md` §3.2, ParState slot 46.
+ * `1` = parallel, `2` = series (`wdrVCConCode`): `docs/design/WINISD_SCHEMA.md` §3.2, ParState slot 46.
  *
- * Always marked E (John, 2026-10-05). WinISD writes N here whatever the wiring, so the mark carries
- * nothing and the reader takes the value on presence as entered (`winIsdDriverImport.ts`). Writing
- * N for a default would make the second save differ from the first: the reader turns the written
- * `1` into an entered parallel, which the next save marks E. Writing E every time is a fixed point.
+ * Marked E when the wiring is stated. When it is not (QO900 R1, overriding the 5 Oct "always E"
+ * ruling for this case): `1` marked C when unknown, the inferred wiring marked C when inferred.
+ * The reader reads a C row as unknown (`winIsdDriverImport.ts`), so the round trip is a fixed point.
  */
 function wdrVCCon(spec: DriverSpec): WdrCell {
   const cell = spec.VCCon;
-  // A resolved driver always states a wiring — `resolve()` stores `calcVCCon()`'s default as a
-  // 'C' entry — so the exporter asks the driver and does not decide this fact itself; a null
-  // could only reach here from an unresolved record, and writes parallel, the same default.
   return {
-    value: cell.value === "series" ? "2" : "1",
-    state: "entered",
+    value: wdrVCConCode(cell.value),
+    state: cell.entered ? "entered" : "calculated",
   };
 }
 
@@ -359,9 +415,10 @@ function wdrVCCon(spec: DriverSpec): WdrCell {
  * Exceptions (handled before the main loop, in file order):
  *   VCCon entered parallel   →  1,  mark E
  *   VCCon entered series     →  2,  mark E
- *   VCCon calculated default →  1,  mark E
+ *   VCCon inferred           →  1 or 2,  mark C
+ *   VCCon unknown            →  1,  mark C
  *   numVC entered            →  stated count,  mark E
- *   numVC not-available      →  1,             mark C  (OpenISD's own default, not the record's)
+ *   numVC not-available      →  1,             mark C  (WinISD needs a count; not the record's)
  *   Xlim  entered            →  no key written, mark E on slot 10 only
  *   Xlim  not-available      →  no key written, mark N on slot 10 only
  *   c, roo (any)             →  air model value,  mark C
@@ -375,15 +432,6 @@ function wdrVCCon(spec: DriverSpec): WdrCell {
  *  an entered value is E; a derived one is C when WinISD itself would derive it, E otherwise (the
  *  Sd ruling — openisd derives Sd from Dd beyond WinISD, so it is written E, never C, John
  *  2026-09-05). An absent value is written `0` mark N. */
-/** A per-coil field written as its terminal value: the value is the terminal one, the entered
- *  mark is the field's own. */
-function terminalCell(
-  perCoil: Entered,
-  value: number | null
-): Pick<Readable<number | null>, "value"> & Entered {
-  return { value, entered: perCoil.entered };
-}
-
 function wdrRow(
   errors: DriverError[],
   field: Pick<Readable<number | null>, "value"> & Entered,
@@ -509,17 +557,11 @@ export function openIsdDriverToWinIsdDriver(
   const cCell = spec.c_m_per_s;
   const rooCell = spec.roo_kg_per_m3;
 
-  // `cell.value` is never null: an unstated coil count reads back as the driver's own
-  // calculated default (`calcNumVC()`), not absence — the exporter asks the driver, it does
-  // not decide this fact itself. WinISD's own New -> Save writes E here from a hardcoded store
-  // in its blank-driver init; that claims a reading nobody supplied, and this is the one slot
-  // where the writer parts company with it (SPEC_ENGINE.md "openisd writes C in the numVC
-  // slot, not E").
+  // An unstated coil count is written 1 marked C: WinISD needs a count, and the C mark says the
+  // record does not state one, so the reader leaves it unstated. WinISD's own New -> Save writes
+  // E here from a hardcoded store in its blank-driver init; that claims a reading nobody
+  // supplied (SPEC_ENGINE.md "openisd writes C in the numVC slot, not E").
   const numVC = spec.numVC;
-
-  // `Re` and `BL` in a `.wdr` are TERMINAL values (WINISD_PARITY.md section 11b); the record holds
-  // them per coil. The entered mark stays the per-coil field's own.
-  const terminal = spec.solverParams();
 
   // THE FIXED 48-ROW STRUCTURE, each row written explicitly in WinISD's file order, plus Xlim's
   // slot-10 mark last. `.wdr` is a FIXED structure — no loops, no row-order list: the sequence
@@ -531,11 +573,11 @@ export function openIsdDriverToWinIsdDriver(
     wdrRow(errors, spec.Fs_hz, true, "Fs"),
     wdrRow(errors, spec.Pe_W, true, "Pe"),
     wdrRow(errors, spec.SPL_dB, true, "SPL"),
-    wdrRow(errors, terminalCell(spec.Re_ohm, terminal.Re_terminal_ohm.value), true, "Re"),
+    wdrRow(errors, spec.Re_ohm, true, "Re"),
     wdrRow(errors, spec.Le_H, false, "Le"),
     wdrRow(errors, spec.fLe_hz, false, "fLe"),
     wdrRow(errors, spec.KLe_H_sqrtHz, true, "KLe"),
-    wdrRow(errors, terminalCell(spec.BL_Tm, terminal.BL_terminal_Tm.value), true, "BL"),
+    wdrRow(errors, spec.BL_Tm, true, "BL"),
     wdrRow(errors, spec.Xmax_m, false, "Xmax"),
     wdrRow(errors, spec.Cms_m_per_N, true, "Cms"),
     wdrRow(errors, spec.Qms, true, "Qms"),
@@ -553,7 +595,7 @@ export function openIsdDriverToWinIsdDriver(
     [
       "numVC",
       {
-        value: String(numVC.value),
+        value: String(numVC.value ?? 1),
         state: numVC.entered ? "entered" : "calculated",
       },
     ],
@@ -743,10 +785,14 @@ export class DriverRecordConverter {
     // adds one per character it had to rewrite, to the same array.
     const warnings: DriverError[] = [];
     const record = this.#stripScraperOnlyFieldsFromJavascriptObject(withoutScraperOnlyFields(javascriptThing),  warnings);
+    // A reading the model refuses outright (a numeric VCCon, QO914) stops the record here.
+    const refusal = warnings.find((w) => w.level === "error");
+    if (refusal !== undefined) return { ok: false, error: refusal };
 
     // The record leaves the bridge in the slim model (QO395): the readings, origin and verdicts above
     // decided each value and its precision, and stay in driver.json.
-    return { ok: true, record: makeObjectTextWinisdSafe(slimmedDevice(record), "", warnings), warnings };
+    // Its Re and BL are as published, so it is a current-version record (QO900 R1).
+    return { ok: true, record: asCurrentRecord(makeObjectTextWinisdSafe(slimmedDevice(record), "", warnings)), warnings };
   }
 
   /**
@@ -786,50 +832,9 @@ export class DriverRecordConverter {
         const projected = this.#projectScraperEntry(entry, sectionKey, field, warnings);
         fields[field] = entryWithoutAppOnlyKeys(projected);
       }
-      this.#derivePerCoilVoiceCoilFields(fields);
-      sections[sectionKey] = fields;
+      sections[sectionKey] = withPerCoilReForWiring(fields);
     }
     return sections;
-  }
-
-  #derivePerCoilVoiceCoilFields(fields: Record<string, unknown>): void {
-    const numVc = fields.numVC;
-    if (!isKeyedObject(numVc) || numVc.state !== 'E' || typeof numVc.value !== 'number') return;
-    const numCoils = numVc.value;
-    if (!Number.isInteger(numCoils) || numCoils < 2 || numCoils > 4) return;
-
-    const vcCon = fields.VCCon;
-    if (!isKeyedObject(vcCon) || vcCon.state !== 'E' || typeof vcCon.value !== 'number') return;
-    const connection = vcCon.value;
-    if (connection !== 1 && connection !== 2) return;
-
-    const isPerCoilReForm = (entry: Record<string, unknown>): boolean => {
-      const origin = typeof entry.origin === 'string' ? entry.origin : undefined;
-      if (!origin || !isKeyedObject(entry.readings)) return false;
-      const reading = entry.readings[origin];
-      if (!isKeyedObject(reading) || typeof reading.actual_reading !== 'string') return false;
-      return /^\s*\d+\s*[x×]\s*/.test(reading.actual_reading);
-    };
-
-    if (connection === 2) {
-      const re = fields.Re_ohm;
-      if (isKeyedObject(re) && re.state === 'E' && typeof re.value === 'number') {
-        if (!isPerCoilReForm(re)) {
-          fields.Re_ohm = { ...re, value: re.value / numCoils };
-        }
-      }
-      const bl = fields.BL_Tm;
-      if (isKeyedObject(bl) && bl.state === 'E' && typeof bl.value === 'number') {
-        fields.BL_Tm = { ...bl, value: bl.value / numCoils };
-      }
-    } else if (connection === 1) {
-      const re = fields.Re_ohm;
-      if (isKeyedObject(re) && re.state === 'E' && typeof re.value === 'number') {
-        if (!isPerCoilReForm(re)) {
-          fields.Re_ohm = { ...re, value: re.value * numCoils };
-        }
-      }
-    }
   }
 
   /** One scraper-supplied spec entry — `scraperEntrySchema`'s shape — projected into the entry the
@@ -859,9 +864,39 @@ export class DriverRecordConverter {
     // `driver.json` scraped before D9/D10/D11 (`entryForScraperSchema`, above) would otherwise trip
     // `scraperEntrySchema`'s `strictObject` and silently fall through to "return entry unchanged"
     // below.
+    if (field === "VCCon") return this.#projectWiringEntry(entry, section, warnings);
     const parsed = scraperEntrySchema.safeParse(entryForScraperSchema(entry));
     if (!parsed.success) return entry;
     return this.#projectParsedEntry(parsed.data, section, field, warnings);
+  }
+
+  /** VCCon's scraper entry (QO914, #514): a reading's `read_value` is the wiring's name. A numeric
+   *  `read_value` is the retired 1/2 code, and the record is refused with an error naming the
+   *  field: there is one model version, so it is not translated. The winner is the stored name,
+   *  entered; sources naming different wirings push the same warning as any field's. */
+  #projectWiringEntry(entry: Record<string, unknown>, section: string, warnings: DriverError[]): unknown {
+    if (hasNumericReadValue(entry)) {
+      warnings.push({
+        level: "error",
+        field: `${section}.VCCon`,
+        message: 'a VCCon read_value is the wiring\'s name, "series" or "parallel" (QO914); a number (the retired 1/2 code) is refused',
+      });
+      return entry;
+    }
+    const parsed = wiringScraperEntrySchema.safeParse(entryForScraperSchema(entry));
+    if (!parsed.success) return entry;
+    const {readings} = parsed.data;
+    const named = Object.entries(readings).sort(byRoleName)
+      .flatMap(([role, r]) => "rejected" in r ? [] : [`${role}=${r.actual_reading ?? r.read_value}`]);
+    const wirings = new Set(Object.values(readings).flatMap(r => "rejected" in r ? [] : [r.read_value]));
+    if (wirings.size > 1) {
+      warnings.push({ level: "warn", field: `${section}.VCCon`, message: `sources disagree: ${named.join(", ")}` });
+    }
+    const origin = selectWiringOrigin(readings);
+    const projected: ProjectedWiringEntry = origin.kind === "none"
+      ? { state: "N", readings }
+      : { state: "E", value: origin.reading.read_value, origin: origin.role, readings };
+    return projected;
   }
 
   /** `#projectScraperEntry` for an entry that already parsed as `scraperEntrySchema`: always

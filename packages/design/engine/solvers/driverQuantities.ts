@@ -87,10 +87,7 @@ export function withAddedMass(drv: Readonly<DriverWorkingSet>, MaddKg: number): 
   const Mms = drv.Mms_kg + MaddKg;
   const ws  = 1 / Math.sqrt(Mms * Cms_m_per_N);      // ωs = 1/√(Mms·Cms)
   const Qms = ws * Mms / Rms_kg_per_s;               // ωs·Mms/Rms
-  // Qes runs on the TERMINAL Re and BL (a multi-coil driver's wiring changes both).
-  const Re_t = terminalRe_ohm(Re_ohm, drv.numVC, drv.wiring);
-  const BL_t = terminalBL_Tm(BL_Tm, drv.numVC, drv.wiring);
-  const Qes = ws * Mms * Re_t / (BL_t * BL_t);       // ωs·Mms·Re/Bl², terminal Re and Bl
+  const Qes = ws * Mms * Re_ohm / (BL_Tm * BL_Tm);   // ωs·Mms·Re/Bl², the published Re and Bl
   out.Mms_kg = Mms;
   out.Fs_hz  = ws / (2 * Math.PI);
   out.Qms    = Qms;
@@ -115,35 +112,46 @@ export function isobarikPair(drv: Readonly<DriverWorkingSet>): DriverWorkingSet 
   return out;
 }
 
+/** A multi-coil driver's wiring-dependent figures: Re, BL, and Le and Znom where known. */
+export interface WiredMotor {
+  readonly Re_ohm: number;
+  readonly BL_Tm: number;
+  readonly Le_H: number | null;
+  readonly Znom_ohm: number | null;
+}
+
+/** `motor` for the requested wiring. */
+export interface WiringConverted {
+  readonly converted: true;
+  readonly motor: WiredMotor;
+}
+
+/** Why `motor` cannot be given for the requested wiring. */
+export interface WiringRefused {
+  readonly converted: false;
+  readonly reason: string;
+}
+
+export type WiringConversion = WiringConverted | WiringRefused;
+
 /**
- * Re AS THE AMPLIFIER SEES IT. N coils of resistance r are r/N in parallel and N·r in series.
+ * The published figures of a driver with `numVC` identical coils, measured in `measured`, as they
+ * are in `target` (QO900 R1). Series → parallel: Re ÷ N², BL ÷ N, Le and Znom ÷ N²; parallel →
+ * series the inverse; the same wiring unchanged. Fs, the Q's, Mms, Cms and Vas do not depend on
+ * the wiring, and Qes = 2π·Fs·Mms·Re/BL² comes out the same either way.
  *
- * Its own function, beside the solver rather than inside it: this is not a consistency relation —
- * nothing else in the group constrains it, and it answers a question about WIRING, not about the
- * driver's Thiele/Small parameters. The caller stores it in `Re_terminal_ohm`, never over
- * `Re_ohm`: WinISD rewrites the stated value in place and leaves it marked entered, so its file
- * claims the user typed a number the app computed.
+ * Refused for fewer than 2 coils, an unknown measured wiring, and 3 coils (published in one
+ * configuration, not necessarily identical coils).
  */
-export function terminalRe_ohm(Re_ohm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
-  const coils = numVC != null && numVC >= 1 ? numVC : 1;
-  return wiring === 'series' ? Re_ohm * coils : Re_ohm / coils;
-}
-
-/** BL as the amplifier sees it — `bl` per coil, `N·bl` in series, unchanged in parallel. Same
- *  rule as `terminalRe_ohm`: the caller stores it beside the stated value, never over it. */
-export function terminalBL_Tm(BL_Tm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
-  const coils = numVC != null && numVC >= 1 ? numVC : 1;
-  return wiring === 'series' ? BL_Tm * coils : BL_Tm;
-}
-
-/** The per-coil Re behind a terminal Re: the inverse of `terminalRe_ohm`. */
-export function perCoilRe_ohm(Re_terminal_ohm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
-  const coils = numVC != null && numVC >= 1 ? numVC : 1;
-  return wiring === 'series' ? Re_terminal_ohm / coils : Re_terminal_ohm * coils;
-}
-
-/** The per-coil BL behind a terminal BL: the inverse of `terminalBL_Tm`. */
-export function perCoilBL_Tm(BL_terminal_Tm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
-  const coils = numVC != null && numVC >= 1 ? numVC : 1;
-  return wiring === 'series' ? BL_terminal_Tm / coils : BL_terminal_Tm;
+export function convertWiring(motor: WiredMotor, numVC: number | null, measured: Wiring | null, target: Wiring): WiringConversion {
+  if (numVC === null || numVC < 2) return {converted: false, reason: 'A driver with fewer than 2 voice coils has no wiring to change.'};
+  if (measured === null) return {converted: false, reason: 'The measured wiring is not known, so the figures cannot be converted to another wiring.'};
+  if (numVC === 3) return {converted: false, reason: 'A driver with 3 voice coils is published in one configuration and cannot be rewired here.'};
+  if (measured === target) return {converted: true, motor};
+  const n = target === 'parallel' ? 1 / numVC : numVC;
+  const scaled = (v: number | null): number | null => v === null ? null : v * n * n;
+  return {
+    converted: true,
+    motor: {Re_ohm: motor.Re_ohm * n * n, BL_Tm: motor.BL_Tm * n, Le_H: scaled(motor.Le_H), Znom_ohm: scaled(motor.Znom_ohm)},
+  };
 }

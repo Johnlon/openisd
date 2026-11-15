@@ -24,10 +24,11 @@ import type {
     SolverInput,
 } from '../solverTypes.js';
 import {approximateCharts, missingDependencies} from '../consistency.js';
-import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue} from '../consistency.js';
+import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue, WiringIssue} from '../consistency.js';
 import {checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
-import {hotRe, perCoilBL_Tm, perCoilRe_ohm, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
+import {convertWiring, hotRe} from '../solvers/driverQuantities.js';
+import type {WiringConversion, WiredMotor} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 import {
   CMS_FROM_VAS_SD_ROUTE, ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, MMS_FROM_FS_CMS_ROUTE,
@@ -40,7 +41,8 @@ import type {DriverRoute} from './routes/index.js';
 const WINISD_Q_FALLBACK_FACTOR = 2;
 
 export type DriverQuantityName = keyof DriverSolverParams;
-export type DriverIssue = CalculationIssue<DriverQuantityName> | OutOfRangeIssue;
+/** `WiringIssue`s are the domain's: the engine's own solve never raises one. */
+export type DriverIssue = CalculationIssue<DriverQuantityName> | OutOfRangeIssue | WiringIssue;
 export type DriverPrerequisite = CalculationPrerequisite<DriverQuantityName>;
 
 // ---------------------------------------------------------------------------------------------
@@ -51,8 +53,9 @@ export type DriverPrerequisite = CalculationPrerequisite<DriverQuantityName>;
 // ---------------------------------------------------------------------------------------------
 
 /** Every field this module's relations read or predict is numeric — `wiring` is the one
- *  non-numeric driver quantity, and `numVC` is a `SolverInput` with no `.precision` of its own
- *  (the domain defaults a not-entered coil count itself); no relation below names either. */
+ *  non-numeric driver quantity, and `numVC` is a `SolverInput` with no `.precision` of its own;
+ *  no relation below names either: the relations run on the published figures whatever the
+ *  coils and their wiring (QO900 R1). */
 type NumericDriverQuantityName = Exclude<DriverQuantityName, 'wiring' | 'numVC'>;
 
 /** Every numeric driver quantity — what a calculated value's inherited width is measured over. */
@@ -133,11 +136,9 @@ export interface DriverEngine {
    *  when Qms/Qes/Re are unavailable (a driver carrying only Qts).
    *  winisd_research/SEALED_FSC_MODEL.md §5. */
   sourceLoadedQts(qms: number, qes: number, re: number, rg: number, fallbackQts: number): number;
-  /** Re as the amplifier sees it: N coils of resistance r are r/N in parallel, N·r in series.
-   *  A separate answer from `Re_ohm`, never a replacement for it. */
-  terminalRe_ohm(Re_ohm: number, numVC: number | undefined, wiring: Wiring | undefined): number;
-  /** BL as the amplifier sees it — `bl` per coil, `N·bl` in series, unchanged in parallel. */
-  terminalBL_Tm(BL_Tm: number, numVC: number | undefined, wiring: Wiring | undefined): number;
+  /** A multi-coil driver's published Re/BL/Le/Znom, measured in `measured`, as they are in
+   *  `target`, for `numVC` identical coils; or why not. Never written over the stored figures. */
+  convertWiring(motor: WiredMotor, numVC: number | null, measured: Wiring | null, target: Wiring): WiringConversion;
   /** Re at a voice-coil temperature rise: `Re·(1 + alfaVC·ΔT)`. WinISD drives from it and
    *  states maximum power into it. */
   hotRe(Re_ohm: number, alfaVC_per_K: number, dT_K: number): number;
@@ -150,16 +151,6 @@ export interface DriverEngine {
   findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null;
 }
 
-/** `p` with `Re_ohm` and `BL_Tm` (stored per coil) replaced by what the amplifier sees, given the
- *  set's own coil count and wiring. */
-function toTerminalSpace(p: DriverWorkingSet): DriverWorkingSet {
-  return {
-    ...p,
-    ...(p.Re_ohm == null ? {} : {Re_ohm: terminalRe_ohm(p.Re_ohm, p.numVC, p.wiring)}),
-    ...(p.BL_Tm == null ? {} : {BL_Tm: terminalBL_Tm(p.BL_Tm, p.numVC, p.wiring)}),
-  };
-}
-
 export class DriverEngineImpl implements DriverEngine {
   constructor(
     private readonly routes: RouteGroup,
@@ -169,9 +160,8 @@ export class DriverEngineImpl implements DriverEngine {
   /** Shared with the consistency group and the sweep, so these stay free functions and the
    *  area publishes them as-is. */
   readonly ebp = ebp;
-  readonly terminalRe_ohm = terminalRe_ohm;
+  readonly convertWiring = convertWiring;
   readonly hotRe = hotRe;
-  readonly terminalBL_Tm = terminalBL_Tm;
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
   readonly rangeIssue = rangeIssue;
 
@@ -273,36 +263,23 @@ export class DriverEngineImpl implements DriverEngine {
    * All equations: https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
    *
    * The result is a SUPERSET of the input: every quantity handed in comes back out, plus what the
-   * solver derived. `numVC` and `wiring` ride along untouched: the solver READS them, to finish the
-   * terminal values below, and never consumes them; dropping them would make re-solving lossy.
+   * solver derived. `numVC` and `wiring` ride along untouched and are not read: a datasheet's Re
+   * and BL are the whole driver's, in the wiring it was measured in, and the relations hold for
+   * them as published (QO900 R1).
    */
   solveValues(p: DriverWorkingSet, air: Air): DriverWorkingSet {
-    // THE RELATIONS RUN ON TERMINAL Re AND BL. A `.wdr`'s Qes, Rme and Mpow describe the driver the
-    // amplifier sees, and a multi-coil driver's wiring changes both Re and BL. The record keeps them
-    // per coil, so they are converted in here and back at the end; callers see per-coil values.
-    const r = this.solveTerminal(toTerminalSpace(p), air);
+    const r = this.solveGroup(p, air);
 
-    // THE TERMINAL VALUES, LAST. Not a relation - nothing else in the group constrains them, and
-    // they answer a question about the WIRING rather than about the driver's parameters. `r.Re_ohm`
-    // and `r.BL_Tm` ARE terminal here, so they are the terminal values.
-    //
-    // Here rather than at the caller because `sweep` REQUIRES this pair. A solver that stopped short
-    // of it left every caller to finish the job, and a caller that forgot got a driver the engine
-    // refused with a message naming a field it had never been able to supply.
+    // THE TERMINAL VALUES, LAST: the stored figures, which the sweep REQUIRES. Here rather than at
+    // the caller, so no caller can forget them.
     if (r.Re_terminal_ohm == null && r.Re_ohm != null) r.Re_terminal_ohm = r.Re_ohm;
     if (r.BL_terminal_Tm == null && r.BL_Tm != null) r.BL_terminal_Tm = r.BL_Tm;
-
-    // Back to per coil. A value the caller stated is returned exactly as stated, never as a
-    // terminal round trip of it.
-    if (r.Re_ohm != null) r.Re_ohm = p.Re_ohm ?? perCoilRe_ohm(r.Re_ohm, r.numVC, r.wiring);
-    if (r.BL_Tm != null) r.BL_Tm = p.BL_Tm ?? perCoilBL_Tm(r.BL_Tm, r.numVC, r.wiring);
 
     return r;
   }
 
-  /** The consistency group over a set whose `Re_ohm` and `BL_Tm` are TERMINAL values; the result's
-   *  are terminal too. The relations are written for the driver the amplifier sees. */
-  private solveTerminal(p: DriverWorkingSet, air: Air): DriverWorkingSet {
+  /** The consistency group alone, without the terminal values. */
+  private solveGroup(p: DriverWorkingSet, air: Air): DriverWorkingSet {
     // `run` puts `air` into the working set's c/roo, so the result shows the air used.
     const r = this.routes.run(p, air);
 
@@ -358,15 +335,8 @@ export class DriverEngineImpl implements DriverEngine {
    * interval is, never recomputed from the resolved number here.
    */
   private checkConsistency(entered: DriverWorkingSet, params: DriverSolverParams, air: Air): DriverIssue[] {
-    // Checked in terminal space, where the relations hold. A half-width scales like its value.
-    const terminalPrecision = (field: NumericDriverQuantityName): number => {
-      const width = params[field].precision ?? 0;
-      if (field === 'Re_ohm') return terminalRe_ohm(width, entered.numVC, entered.wiring);
-      if (field === 'BL_Tm') return terminalBL_Tm(width, entered.numVC, entered.wiring);
-      return width;
-    };
     const issues: DriverIssue[] = this.consistency.check(
-      toTerminalSpace(entered), stated => this.solveTerminal(stated, air), terminalPrecision);
+      entered, stated => this.solveGroup(stated, air), field => params[field].precision ?? 0);
 
     // Qts has no route besides Qes+Qms (WinISD has no third input to this triple) — a driver
     // stating fewer than two of the three cannot solve it, and the caller needs to know exactly

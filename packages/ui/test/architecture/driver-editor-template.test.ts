@@ -440,33 +440,29 @@ describe('driver editor — every bound cell is one the driver model answers', (
     }
   });
 
-  it('Voicecoils reads WinISD\'s default of 1, marked calculated so it is not mistaken for entered', () => {
-    // John, 2026-09-08: "use the existing WinIsd default values - but some of these are
-    // functions like calcVcCon() ... which isn't really a calc but plays that role if the VCCon
-    // isn't yet stated". WinISD's own blank-driver screen
-    // (docs/images/winisd/edit-driver-page2-parameters.png) shows 1 there, and `calculated`
-    // is exactly how the panel distinguishes that from a number the user typed.
+  it('Voicecoils reads blank, not available, when the driver states no coil count (QO900 R1: no default)', () => {
+    // bugs/BUG_20261114_vccon-default-feeds-maths.md: a coil count nobody stated is not one
+    // coil; it stays empty, as a box the datasheet never states does (QO424).
     const f = byLabel('Voicecoils');
     const d = coreDriver();
     if (!isNumSpecField(f.field, d)) assert.fail(`Voicecoils binds cellVal('${f.field}'), not a numeric spec field`);
     const cell = driverCellOf(d, f.field);
-    assert.equal(cell.calculated, true, `Voicecoils cell is ${cell.provenance} — an unstated coil count reads as the default, derived`);
-    assert.equal(cell.value, 1, 'and the default is WinISD\'s 1');
-    assert.equal(d.specs.numVC.value ?? 1, 1, 'the ENGINE-facing driver must still default numVC to 1 for simulation');
+    assert.equal(cell.provenance, 'N', `Voicecoils cell is ${cell.provenance} — an unstated coil count must read not available`);
+    assert.equal(d.specs.numVC.value, null, 'the driver holds no coil count');
   });
 
   it('the Connection control carries a provenance mark, like every cell beside it', () => {
     // BUG_20260924_defaulted-fields-are-neither-marked-nor-recorded: the wiring select was the
     // one control in the dialog with no mark, so a Parallel nobody stated looked exactly like a
-    // Parallel the user picked. VCCon is entry-backed now — a resolve stores the default as 'C'
-    // — so there is a real provenance for the control to show.
+    // Parallel the user picked. An unstated wiring is unknown (QO900 R1: no default), so it reads
+    // not available; a picked one reads entered.
     const sel = /<select [^>]*class="de-conn-sel"[^>]*>/.exec(src);
     assert.ok(sel, 'no wiring <select> in the editor');
     assert.match(sel![0], /:class="wiringClass"/, 'the wiring select binds no provenance class');
 
     const blank = blankDriver();
-    assert.equal(cellClassOf(blank.specs.VCCon), CellClass.Calculated,
-      'an unstated wiring does not read as calculated');
+    assert.equal(cellClassOf(blank.specs.VCCon), CellClass.NotAvailable,
+      'an unstated wiring does not read as not available');
     const chosen = blankDriver();
     chosen.specs.VCCon.set(VoiceCoilWiring.Series);
     assert.equal(cellClassOf(chosen.specs.VCCon), CellClass.Entered,

@@ -46,6 +46,8 @@ describe('Dia is not part of the driver model (QO398)', () => {
         const parsed: unknown = JSON.parse(JSON.stringify(record));
         if (!isRecord(parsed) || !isRecord(parsed.specs) || !isRecord(parsed.specs.woofer)) throw new Error('fixture shape');
         parsed.specs.woofer.Dia_m = {state: 'E', value: 0.123, origin: 'manual', readings: {manual: {actual_reading: '0.123', read_value: 0.123}}};
+        // Stored before Dia was retired, so before schema versions: the import's own stamp goes.
+        delete parsed.schemaVersion;
         const result = OpenISDDeviceJson.fromDriverYmlRecord(parsed);
         if ('problems' in result) throw new Error(result.problems.join(', '));
         assert.equal(JSON.stringify(result.json).includes('Dia_m'), false);

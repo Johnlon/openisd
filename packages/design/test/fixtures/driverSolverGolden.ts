@@ -274,11 +274,18 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
  },
  {
   name: "terminal values series coils",
-  values: [{field: "Re_ohm", value: 3}, {field: "Znom_ohm", value: 8}, {field: "BL_Tm", value: 6}, {field: "Rme_kg_per_s", value: 24}, {field: "Mpow_N_per_sqrtW", value: 4.898979485566357}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 6}, {field: "BL_terminal_Tm", value: 12}],
+  // T788 (John, QO913): figures are as published, no per-coil conversion. Re 3, BL 6, numVC 2.
+  //   Znom 4: the published Re 3 -> nominal 4 (the nominal-impedance step, no wiring factor).
+  //   Rme 12 = BL^2 / Re = 36 / 3.   Mpow 3.4641016151377544 = BL / sqrt(Re) = 6 / sqrt(3) = sqrt(12).
+  //   Re_terminal 3, BL_terminal 6: the terminal figures are the published ones (no user wiring).
+  values: [{field: "Re_ohm", value: 3}, {field: "Znom_ohm", value: 4}, {field: "BL_Tm", value: 6}, {field: "Rme_kg_per_s", value: 12}, {field: "Mpow_N_per_sqrtW", value: 3.4641016151377544}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 3}, {field: "BL_terminal_Tm", value: 6}],
  },
  {
   name: "terminal values parallel coils",
-  values: [{field: "Re_ohm", value: 3}, {field: "Znom_ohm", value: 2}, {field: "BL_Tm", value: 6}, {field: "Rme_kg_per_s", value: 24}, {field: "Mpow_N_per_sqrtW", value: 4.898979485566357}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 1.5}, {field: "BL_terminal_Tm", value: 6}],
+  // T788 (John, QO913): same inputs as the series case (Re 3, BL 6, numVC 2), so the same results.
+  //   Znom 4 (as above). Rme 12 = BL^2 / Re = 36 / 3.   Mpow 3.4641016151377544 = 6 / sqrt(3) = sqrt(12).
+  //   Re_terminal 3, BL_terminal 6: published, no user wiring.
+  values: [{field: "Re_ohm", value: 3}, {field: "Znom_ohm", value: 4}, {field: "BL_Tm", value: 6}, {field: "Rme_kg_per_s", value: 12}, {field: "Mpow_N_per_sqrtW", value: 3.4641016151377544}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 3}, {field: "BL_terminal_Tm", value: 6}],
  },
  {
   name: "a stated value is never overwritten",

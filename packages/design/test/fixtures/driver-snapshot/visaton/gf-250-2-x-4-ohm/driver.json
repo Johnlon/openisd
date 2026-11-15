@@ -1,0 +1,325 @@
+{
+  "added": {
+    "definition": "when this record was added, ISO yyyy-mm-dd",
+    "origin": "openisd",
+    "value": "2026-10-19"
+  },
+  "brand": {
+    "definition": "the selling brand; equals the manufacturer except for house brands",
+    "origin": "manufacturer_product_page",
+    "value": "Visaton"
+  },
+  "data_sources": {
+    "definition": "the record-wide provenance index — every source role used anywhere in this file resolves to a URL here",
+    "value": {
+      "manufacturer_listing_page": "https://www.visaton.de/en/products/drivers-accessories/archive",
+      "manufacturer_product_page": "https://www.visaton.de/en/products/drivers/archive/gf-250-2-x-4-ohm"
+    }
+  },
+  "description": {
+    "definition": "the manufacturer's own product blurb, page chrome stripped",
+    "origin": "manufacturer_product_page",
+    "value": "25 cm (10\") High-End woofer with black glass fiber cone, solid aluminium die-cast basket and elastic rubber surround. Designed for multi-purpose applications due to 2 x 4 ohms double voice-coil, with excellent properties as 8 ohms drivers in series configuration. The long stroke voice-coil in conjunction with the extended rear pole plate, the vented damper, the vented magnet and the capton voice-coil carrier guarantees long strokes and highest power handling."
+  },
+  "discontinued": true,
+  "driver_type": {
+    "definition": "what kind of driver this is (closed vocabulary); decides which specs section applies",
+    "origin": "manufacturer_product_page",
+    "value": [
+      "woofer"
+    ]
+  },
+  "manufacturer": {
+    "definition": "the company that makes the driver; a second-order descriptive field, shown only when it differs from the brand",
+    "origin": "manufacturer_product_page",
+    "value": "Visaton"
+  },
+  "model": {
+    "definition": "the vendor's exact designation including the impedance variant — unique within a brand, and the name shown in the driver browser",
+    "origin": "manufacturer_product_page",
+    "value": "GF 250 2 X 4 OHM"
+  },
+  "printed": [
+    {
+      "actual_reading": ".",
+      "label": "(fu: Lower cut-off frequency depending on cabinet)",
+      "locator": "https://www.visaton.de/en/products/drivers/archive/gf-250-2-x-4-ohm: Technical Data: (fu: Lower cut-off frequency depending on cabinet)",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "fu - 6000 Hz",
+      "label": "Frequency response",
+      "locator": "https://www.visaton.de/en/products/drivers/archive/gf-250-2-x-4-ohm: Technical Data: Frequency response",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "8 mm",
+      "label": "Height of front pole-plate",
+      "locator": "https://www.visaton.de/en/products/drivers/archive/gf-250-2-x-4-ohm: Technical Data: Height of front pole-plate",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Eine Schwingspule offen: 1400 µ Weber / Beide Schwingspulen in Reihe: 1430 µ Weber / Beide Schwingspulen parallel: 1430 µ Weber",
+      "label": "Magnetic flux",
+      "locator": "https://www.visaton.de/en/products/drivers/archive/gf-250-2-x-4-ohm: Technical Data: Magnetic flux",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "1.1 Tesla",
+      "label": "Magnetic induction",
+      "locator": "https://www.visaton.de/en/products/drivers/archive/gf-250-2-x-4-ohm: Technical Data: Magnetic induction",
+      "origin": "manufacturer_product_page"
+    }
+  ],
+  "product_image": {
+    "definition": "the manufacturer's product photo for this driver",
+    "origin": "manufacturer_product_page",
+    "value": "https://www.visaton.de/sites/default/files/dd_product/gf250.jpg"
+  },
+  "provided_by": {
+    "definition": "who supplied this record — the OpenISD project for a pipeline-emitted record",
+    "origin": "openisd",
+    "value": "OpenIsd"
+  },
+  "quality": {},
+  "scraper_meta": {
+    "scraper": {
+      "definition": "the vendor scraper/extraction method that produced this record",
+      "value": "visaton_html_extractor"
+    }
+  },
+  "sku": {
+    "definition": "the canonical identity code — the vendor designation slugified, impedance variant included; names the record directory (guard-enforced equal) and is unique within the manufacturer",
+    "grounds": [
+      {
+        "definition": "the printed designation the code was derived from",
+        "origin": "manufacturer_product_page",
+        "reading": "GF 250 2 X 4 OHM"
+      },
+      {
+        "definition": "the source URL that corroborated the derivation",
+        "origin": "manufacturer_product_page",
+        "reading": "https://www.visaton.de/en/products/drivers/archive/gf-250-2-x-4-ohm"
+      }
+    ],
+    "value": "gf-250-2-x-4-ohm"
+  },
+  "specs": {
+    "woofer": {
+      "BL_Tm": {
+        "definition": "motor force factor (T·m)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "13 T m",
+            "read_precision": 0.5,
+            "read_value": 13.0
+          }
+        }
+      },
+      "Basket_m": {
+        "definition": "basket diameter — the baffle cutout, stored in m",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "235 mmm",
+            "rejected": "unit-not-recognised"
+          }
+        }
+      },
+      "Fs_hz": {
+        "definition": "free-air resonance frequency (Hz)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "24 Hz",
+            "read_precision": 0.5,
+            "read_value": 24.0
+          }
+        }
+      },
+      "Hc_m": {
+        "definition": "voice-coil winding height — stored in m, not mm",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "20 mm",
+            "read_precision": 0.0005,
+            "read_value": 0.02
+          }
+        }
+      },
+      "Le_H": {
+        "definition": "voice-coil inductance (H)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "1.54 mH",
+            "read_precision": 5e-06,
+            "read_value": 0.00154
+          }
+        }
+      },
+      "Mms_kg": {
+        "definition": "moving mass including air load — stored in kg, not g",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "54 g",
+            "read_precision": 0.0005,
+            "read_value": 0.054
+          }
+        }
+      },
+      "Pe_W": {
+        "definition": "rated thermal power handling (W, IEC 268-5)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "150 Watt",
+            "read_precision": 0.5,
+            "read_value": 150.0
+          }
+        }
+      },
+      "Qes": {
+        "definition": "electrical Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "0.29",
+            "read_precision": 0.005,
+            "read_value": 0.29
+          }
+        }
+      },
+      "Qms": {
+        "definition": "mechanical Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "4.35",
+            "read_precision": 0.005,
+            "read_value": 4.35
+          }
+        }
+      },
+      "Qts": {
+        "definition": "total Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "0.28",
+            "read_precision": 0.005,
+            "read_value": 0.28
+          }
+        }
+      },
+      "Re_ohm": {
+        "definition": "DC voice coil resistance (Ω)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "6.2 Ohm",
+            "read_precision": 0.05,
+            "read_value": 6.2
+          }
+        }
+      },
+      "SPL_dB": {
+        "definition": "sensitivity (dB)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "90 dB (1 W/1 m)",
+            "note": "1W/1m",
+            "read_precision": 0.5,
+            "read_value": 90.0
+          }
+        }
+      },
+      "Sd_m2": {
+        "definition": "effective piston area — stored in m², not cm²",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "346 cm2",
+            "read_precision": 5e-05,
+            "read_value": 0.0346
+          }
+        }
+      },
+      "VCCon": {
+        "definition": "dual-coil wiring the published T/S was measured in (1 = parallel, 2 = series)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "2",
+            "read_precision": 0.5,
+            "read_value": 2.0
+          }
+        }
+      },
+      "Vas_m3": {
+        "definition": "equivalent compliance volume — stored in m³, not litres",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "134 l",
+            "read_precision": 0.0005,
+            "read_value": 0.134
+          }
+        }
+      },
+      "Vcd_m": {
+        "definition": "voice coil diameter — stored in m, not mm",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "50 mm",
+            "read_precision": 0.0005,
+            "read_value": 0.05
+          }
+        }
+      },
+      "Xlim_m": {
+        "definition": "one-way mechanical excursion limit before damage — stored in m, not mm; distinct from Xmax, the linear limit",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "20 mm",
+            "read_precision": 0.0005,
+            "read_value": 0.02
+          }
+        }
+      },
+      "Znom_ohm": {
+        "definition": "nominal impedance (Ω)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "8 Ohm",
+            "read_precision": 0.5,
+            "read_value": 8.0
+          }
+        }
+      },
+      "numVC": {
+        "definition": "number of voice coils; 2 marks a dual-voice-coil driver",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "2 X 4 OHM",
+            "read_precision": 0.5,
+            "read_value": 2.0
+          }
+        }
+      },
+      "power_peak_W": {
+        "definition": "short-term/peak power handling (W)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "200 Watt",
+            "read_precision": 0.5,
+            "read_value": 200.0
+          }
+        }
+      },
+      "weight_kg": {
+        "definition": "net driver weight (kg)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "4 kg",
+            "read_precision": 0.5,
+            "read_value": 4.0
+          }
+        }
+      }
+    }
+  },
+  "uuid": {
+    "definition": "stable record identity, minted by the pipeline at first emit and never re-derived",
+    "value": "a1249384-c3de-41f3-bb29-49f52860d32f"
+  }
+}

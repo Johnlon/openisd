@@ -183,6 +183,9 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                 case 'inconsistent-inputs':
                 case 'approximate-charts':
                 case 'out-of-range':
+                case 'wiring-not-stated':
+                case 'wiring-inferred':
+                case 'multi-coil-without-numvc':
                     return [];
             }
         });
@@ -279,6 +282,9 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                 case 'missing-dependencies':
                 case 'approximate-charts':
                 case 'out-of-range':
+                case 'wiring-not-stated':
+                case 'wiring-inferred':
+                case 'multi-coil-without-numvc':
                     return [];
             }
         });
@@ -292,10 +298,14 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return this.issues().flatMap((issue): DriverError[] => {
             switch (issue.kind) {
                 case 'out-of-range':
+                case 'wiring-not-stated':
+                case 'multi-coil-without-numvc':
                     return [{level: 'warn', field: issue.field, message: issue.text}];
                 case 'inconsistent-inputs':
                 case 'approximate-charts':
                     return [{level: 'warn', field: issue.target, message: issue.text}];
+                // A note, not a warning: the wiring was inferred, and the issue says from what.
+                case 'wiring-inferred':
                 case 'missing-dependencies':
                     return [];
             }

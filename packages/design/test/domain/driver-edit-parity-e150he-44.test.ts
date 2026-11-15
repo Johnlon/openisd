@@ -171,10 +171,8 @@ describe('E150HE-44 passive radiator, Vb typed in the Box tab (sweep-t429-e150-p
   });
 });
 
-// numVC is not a simulation input in WinISD: typed or loaded, every chart and USPL stay at the one-coil figures (Re and BL are
-// terminal values). OpenISD stores Re and BL per coil, so the coil count moves the terminal values and the charts.
-const BUG_NUMVC = 'winisd_research/findings/FINDING_20261019_numvc-is-not-a-simulation-input.md';
-
+// numVC is not a simulation input, in WinISD or in OpenISD: typed or loaded, every chart and USPL stay
+// as the file states them, because Re and BL are the published figures (QO900 R1).
 describe('E150HE-44 sealed, numVC typed in the Driver editor (sweep-t429-e150-sealed-edit-numvc)', () => {
   const capture = loadEditCapture('e150he-44', 'sealed-numvc');
   const project = loadBase(capture);
@@ -182,22 +180,14 @@ describe('E150HE-44 sealed, numVC typed in the Driver editor (sweep-t429-e150-se
   expectEdit(capture, 'Driver', 'numVC');
   project.driver.specField('numVC').set(capture.typed);
   const swept = sweepAfterEdit(project, capture);
-  chartCases(capture, swept, ['tfmag', 'groupdelay', 'tfphase']);
-  for (const q of ['spl', 'excursion', 'impedance', 'impedancephase', 'maxpower', 'maxspl'] as const) {
-    // FINDING_20261019_numvc-is-not-a-simulation-input (BUG_NUMVC)
-    it.fails(`${q} after numVC edit — ${BUG_NUMVC}`, () => assertChartMatches(capture, swept, q, rules));
-  }
+  chartCases(capture, swept, ['tfmag', 'groupdelay', 'tfphase', 'spl', 'excursion', 'impedance', 'impedancephase', 'maxpower', 'maxspl']);
   it('Box tab: Vb, Fsc and Qtc read as WinISD prints them', () => {
     assertReadout(capture, BOX_VOLUME, project.box.sealed.volume_m3.value, 'Vb');
     assertReadout(capture, SEALED_FSC, project.box.sealed.resonance_hz.value, 'Fsc');
     assertReadout(capture, SEALED_QTC, project.box.sealed.q_tc.value, 'Qtc');
   });
-  it('Driver editor: every stated field except USPL has WinISD\'s value and E/C mark', () => {
-    expect(editorDeviations(project, capture, (f) => !UNSTATED_ZERO_KEYS.includes(f.key) && f.key !== 'USPL')).toEqual([]);
-  });
-  // FINDING_20261019_numvc-is-not-a-simulation-input (BUG_NUMVC)
-  it.fails(`Driver editor: USPL after numVC edit — ${BUG_NUMVC}`, () => {
-    expect(editorDeviations(project, capture, (f) => f.key === 'USPL')).toEqual([]);
+  it('Driver editor: every stated field, USPL included, has WinISD\'s value and E/C mark', () => {
+    expect(editorDeviations(project, capture, (f) => !UNSTATED_ZERO_KEYS.includes(f.key))).toEqual([]);
   });
 });
 

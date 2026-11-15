@@ -40,9 +40,8 @@ export function calculatedEntry(value: number): CalculatedEntryJson {
 }
 
 /** WinISD's own default when a vented box states no port count (`[VentRear] Num`) — one port.
- *  Read-time fallback in the same style as `calcNumVC()` (`voiceCoilWiring.ts`): a record without
- *  a count, or with one that is not a whole number of at least one, READS as this calculated
- *  value. */
+ *  Read-time fallback: a record without a count, or with one that is not a whole number of at
+ *  least one, READS as this calculated value. */
 export function calcVentCount(): number {
     return 1;
 }

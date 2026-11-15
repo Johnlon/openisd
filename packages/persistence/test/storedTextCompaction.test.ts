@@ -62,7 +62,7 @@ describe('run', () => {
     const storage = createMemoryStorage({[OPENISD_STATE_KEY]: JSON.stringify({id: 'p1', ...JSON.parse(saved)})});
     const compaction = createStoredTextCompaction(storage, backupOn(storage), () => undefined);
     assert.equal(compaction.run().kind, 'rewritten');
-    assert.match(storage.get(OPENISD_STATE_KEY) ?? '', /"schemaVersion":3,/);
+    assert.match(storage.get(OPENISD_STATE_KEY) ?? '', /"schemaVersion":4,/);
     assert.deepEqual(compaction.run(), {kind: 'nothingToDo'});
   });
 

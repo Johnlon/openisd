@@ -6,6 +6,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {readFileSync} from 'node:fs';
+import {withNamedWiringReadings} from '../fixtures/scraperWiringShape.js';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
@@ -16,7 +17,7 @@ const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 
 /** The Visaton record's `driver.json` with one woofer reading replaced. JSON is YAML, so the
  *  text goes to the projection as it is. */
 function gf200With(field: string, actualReading: string, value: number, precision: number): string {
-  const record: unknown = JSON.parse(readFileSync(FIXTURE, 'utf8'));
+  const record: unknown = JSON.parse(withNamedWiringReadings(readFileSync(FIXTURE, 'utf8')));
   if (typeof record !== 'object' || record === null || !('specs' in record)) throw new Error('fixture shape');
   const specs = record.specs;
   if (typeof specs !== 'object' || specs === null || !('woofer' in specs)) throw new Error('fixture shape');

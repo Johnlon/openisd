@@ -124,6 +124,7 @@ function itMovesNothing(box: BoxType, edit: Edit, prepare: (project: OpenISDProj
 /** Driver spec fields that legitimately move no chart, each with its reason. */
 const EXEMPT_DRIVER_FIELDS: ReadonlyMap<NumericDriverSpecFieldName, string> = new Map([
   ['Qts', 'Qts only fills a missing Qes or Qms or shows a conflict; it feeds no other calculation (John, 18 Oct 2026)'],
+  ['numVC', 'not a simulation input: Re and BL are the published figures, whatever the coil count (QO900 R1; WinISD does the same, FINDING_20261019_numvc-is-not-a-simulation-input)'],
   ['BL_Tm', 'with "Two-BL driver" unticked (the default) there is one BL, the one Re, Fs, Qes and Vas imply; a typed BL is not read (John, 18 Oct 2026). Ticked, it moves the charts: see the compat switch cases'],
   ['Cms_m_per_N', 'display only: the circuit is driven from Fs, Vas, Qes, Qms (John, 18 Oct 2026)'],
   ['Mms_kg', 'display only: the circuit is driven from Fs, Vas, Qes, Qms (John, 18 Oct 2026)'],

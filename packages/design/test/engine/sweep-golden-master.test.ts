@@ -62,15 +62,14 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
         BL_Tm: driverRaw.BL, Mms_kg: driverRaw.Mms, Cms_m_per_N: driverRaw.Cms,
         Rms_kg_per_s: driverRaw.Rms, Xmax_m: driverRaw.Xmax, Pe_W: driverRaw.Pe};
       const solved = solveConsistencyGroup(q);
-      // The terminal pair is the CALLER's, and it is derived AFTER the solve: `Re_ohm`/`BL_Tm`
-      // are themselves derivable, so a fixture stating neither still has both by now. The solver
-      // no longer does this, so that a stated per-coil value can never be overwritten.
+      // The terminal pair is the published Re/BL (QO900 R1), taken AFTER the solve: `Re_ohm`/`BL_Tm`
+      // are themselves derivable, so a fixture stating neither still has both by now.
       const drv: TestSolverQuantities = {
         ...solved,
         Re_terminal_ohm: solved.Re_ohm === undefined ? undefined
-          : engine.driver.terminalRe_ohm(solved.Re_ohm!, solved.numVC, solved.wiring),
+          : solved.Re_ohm,
         BL_terminal_Tm: solved.BL_Tm === undefined ? undefined
-          : engine.driver.terminalBL_Tm(solved.BL_Tm!, solved.numVC, solved.wiring),
+          : solved.BL_Tm,
       };
       const sw = engine.simulation.sweep(sweepDriver(drv), driverRaw.Le, box, sweepParamsOf(P)).values;
       const mx = engine.simulation.maxCurves(sweepDriver(drv), driverRaw.Le, box, sweepParamsOf(P)).values;
