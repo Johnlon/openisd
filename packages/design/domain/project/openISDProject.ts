@@ -27,6 +27,7 @@ import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf,
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
 import { withNullEmbeddedDriverId } from './nullDriverId.js';
 import type { ProjectIssues } from './projectIssues.js';
+import { ProjectCoilWiring } from './projectCoilWiring.js';
 import { ProjectMeta } from './projectMeta.js';
 import { ProjectListeners } from './projectListeners.js';
 import { resolveProject, usableRe } from './projectResolve.js';
@@ -108,6 +109,7 @@ export class OpenISDProject {
             () => this.#airOver(root),
             () => this.#issues.driver,
             () => this.#appContext.newId(),
+            () => root.value.driverEmbedding.coilWiring,
         );
     }
 
@@ -151,6 +153,7 @@ export class OpenISDProject {
      *  changes. */
     setDriver(source: OpenISDDriver): void {
         this.driver.update(source.copyAsNew(() => this.#appContext.newId()));
+        this.coilWiring.clear();
     }
 
     /** Adopt a driver that came from outside this project — a library pick, or a `.wdr`/`.owdr`
@@ -162,6 +165,7 @@ export class OpenISDProject {
             throw new Error('loadDriver(): source must be a standalone OpenISDDriver, not an embedded project driver');
         }
         this.driver.update(source.copyAsNew(() => this.#appContext.newId()));
+        this.coilWiring.clear();
     }
 
     /** How many units of the embedded driver this project's array uses, and how they're wired
@@ -169,6 +173,12 @@ export class OpenISDProject {
      *  goes back to one driver (John, 2026-10-09). */
     get nDrivers(): SimpleField<number> & Clearable {
         return defaultedField(focus(this.#slot('driverEmbedding'), 'nDrivers'), 1);
+    }
+
+    /** "My wiring": how the user wires a multi-coil driver's own coils, beside the wiring it was
+     *  measured in. The amplifier-side figures use it; the stored ones stay as published. */
+    get coilWiring(): ProjectCoilWiring {
+        return new ProjectCoilWiring(this.#slot('driverEmbedding'), this.driver, this.#engine);
     }
 
     get wiring(): SimpleField<'series' | 'parallel'> {

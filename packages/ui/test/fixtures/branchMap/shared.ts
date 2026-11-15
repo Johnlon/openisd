@@ -93,6 +93,15 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'surface-root-7ef5d415fc2fd6a3':{kind:'view',view:'driver-picker'}, // components/DriverBrowser.vue:71
   'surface-root-59f7d487da7c3b15':{kind:'partOf',view:'driver-picker'}, // components/DriverBrowser.vue:72
   'native-ui-c382f453397ca34c':{kind:'notAView',reason:'close button of the driver browser'}, // components/DriverBrowser.vue:75
+  'conditional-branch-0fdf5743a6c58221':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:14
+  'conditional-branch-2df8a662be33ccd8':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:22
+  'conditional-branch-ee0e4d8b4b24688d':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:26
+  'conditional-branch-f8fac5ec15196e61':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:27
+  'conditional-branch-6c3da573b565bf6c':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:29
+  'native-ui-c47a0ae5c0e6ae45':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:31
+  'conditional-branch-ca84381e783b798e':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:38
+  'conditional-branch-ee0e4d8b4b24688d-2':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:43
+  'conditional-branch-f8fac5ec15196e61-2':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:44
   'conditional-branch-b989dd12d68f1ae3':{kind:'notAView',reason:'summary button that opens the driver disagreements list'}, // components/DriverConsistencyList.vue:12
   'surface-root-45df5e0dad260e9f':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:703
   'surface-root-f94135dc62e865bf':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:704

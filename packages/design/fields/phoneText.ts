@@ -278,7 +278,7 @@ export class PhoneHelp {
   static readonly EDITOR_MISCELLANEOUS = new PhoneHelpSection("Miscellaneous parameters", "These fields describe sensitivity, rated load and wiring. Optional reference figures are not additional core requirements.", [
     {"label": "Efficiency, SPL and USPL", "text": "Efficiency and sensitivity describe how much sound is produced for a stated input. Power-based and voltage-based sensitivities use different reference conditions; they are not interchangeable."},
     {"label": "Znom", "text": "Nominal impedance rating, such as 4 or 8 ohms, for amplifier matching. Re is the measured DC resistance."},
-    {"label": "Voicecoils and Connection", "text": "The number of voice coils and how they are connected. These determine the driver’s terminal electrical properties; enter the configuration you intend to model."},
+    {"label": "Voicecoils and Connection", "text": "The number of voice coils, and the wiring the maker measured Re and BL in (series, parallel or not stated). Re and BL stay as published for that wiring. Your own wiring is My wiring, on the project’s Driver tab."},
     {"label": "Peak power — optional reference", "text": "Short-term power rating. It is not the continuous Pe rating used for thermal limits."},
   ]);
   static readonly EDITOR_THERMAL = new PhoneHelpSection("Thermal parameters", "Thermal information is separate from the core small-signal inputs.", [

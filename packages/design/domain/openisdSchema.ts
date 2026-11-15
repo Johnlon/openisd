@@ -921,6 +921,12 @@ const openISDDriverEmbeddingJsonSchema = z.strictObject({
     nDrivers: z.number(),
     // WinISD Driver tab: "Voice coil connection".
     wiring: z.enum(['series', 'parallel']),
+    // "My wiring" (QO907): how the user wires a multi-coil driver's own voice coils. Absent means
+    // the wiring the maker measured in. Deliberately NOT a schemaVersion bump (coordinator ruling,
+    // 15 Nov 2026): the key is optional, absent in every project saved before it, and no released
+    // build sits between. Not WinISD's "Voice coil connection" above, which joins
+    // several drivers.
+    coilWiring: z.enum(['series', 'parallel']).optional(),
     // WinISD Driver tab: "Voice coil temp rise".
     vcTempRise_K: z.number(),
     Rs_ohm: z.number(),

@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { Air, DriverIssue } from '../../engine/index.js';
+import type { Air, DriverIssue, Wiring } from '../../engine/index.js';
 import type { SimpleField } from '../cell.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
 import { OpenISDDriver, OpenISDDriverStandalone } from './openISDDriver.js';
@@ -16,8 +16,9 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         airProvider: () => Air,
         durableIssues: () => readonly DriverIssue[],
         private readonly newId: () => string,
+        myWiring: () => Wiring | undefined,
     ) {
-        super(record, engine, airProvider, durableIssues);
+        super(record, engine, airProvider, durableIssues, myWiring);
     }
 
     /** Takes the lens onto the project's `driver` slot and the project's air — the air every
@@ -33,8 +34,10 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         durableIssues: () => readonly DriverIssue[],
         /** The app's id source: a driver leaving the project becomes an entity and gets an id. */
         newId: () => string,
+        /** The project's "My wiring" (undefined: the measured wiring). */
+        myWiring: () => Wiring | undefined,
     ): OpenISDDriverEmbedded {
-        return new OpenISDDriverEmbedded(slot, engine, airProvider, durableIssues, newId);
+        return new OpenISDDriverEmbedded(slot, engine, airProvider, durableIssues, newId, myWiring);
     }
 
     /** A standalone copy of this driver with a NEW id: the driver in a project has no id of its

@@ -80,27 +80,27 @@ rating. OpenISD adds `power_peak_W` for the datasheet's separate peak number. It
 from or written to a `.wdr`/`.wpr` file: a driver imported from WinISD reads it as not-entered,
 and a driver saved back to `.wdr` never carries it.
 
-**Neither `numVC` nor `VCCon` is a simulation input.** In WinISD the wiring combo performs a ONE-SHOT REWRITE of the
-driver's stored `Re` and `BL` at the moment it changes — parallel→series multiplies `BL` by
-`numVC` and `Re` by `numVC²` — and nothing reads either field during a simulation (decompiled,
-`winisd_research` FINDING-009). The arithmetic is correct physics: `N` coils of resistance `r`
-give `r/N` in parallel and `N·r` in series.
+**Voice-coil wiring: measured wiring and "My wiring" (QO900, QO907, issue 512).** `Re`, `BL`, `Le` and `Znom` are
+stored as the maker published them, for the wiring the maker measured in. `VCCon` is that measured wiring: `series`,
+`parallel`, or unknown, with no default. It is stated (entered), inferred from a printed per-coil impedance (calculated,
+shown as "inferred"), or not stated. The Thiele/Small relations and the consistency checks run on the stored figures and
+never read `VCCon`.
 
-**OpenISD deviates deliberately.** WinISD leaves the rewritten value marked as *entered by the
-user*, so the file claims you typed a number the app computed. OpenISD keeps two fields instead —
-`Re` per coil (what you type, never rewritten) and the terminal value as wired (derived, shown
-read-only on the Placement panel beside the wiring control). The `.wdr`/`.wpr` files stay
-byte-compatible: the writer emits the terminal values, exactly what WinISD would have written.
-See `docs/research/WINISD_PARITY.md` §11b and ledger QO96.
+The project carries **My wiring** (`driverEmbedding.coilWiring`, `series` or `parallel`): how the user will wire the
+coils. Absent means the measured wiring, so a project saved before it existed behaves as measured. Only the amplifier
+side reads it: impedance, SPL and excursion against voltage, power, and Rg loading use the figures converted from the
+measured wiring to My wiring, for N identical coils. Series to parallel: `Re` and `Le` and `Znom` divided by N², `BL`
+divided by N; parallel to series the inverse. `Fs`, `Qes`, `Qms`, `Qts`, `Mms`, `Cms` and `Vas` do not change. The
+Dayton MX6-22 (series, 4.7 Ω, 12.3 Tm) in parallel is 1.175 Ω, 6.15 Tm, and `Qes` stays 0.373. The choice is
+disabled, with the reason shown, for a driver whose measured wiring is not stated, for three coils (published in one
+configuration) and for one coil. A different driver in the project resets it.
 
-**Reading a WinISD file back.** A `.wdr` carries one `Re`, always the terminal value, and its
-`VCCon` can disagree with that `Re`: editing `numVC` in WinISD's editor resets the combo to parallel
-without undoing the rescale (`WINISD_PARITY.md` §12). OpenISD trusts
-the file's `VCCon` anyway, and that is safe because the same factor is applied on the way in and
-on the way back out, so it cancels: the terminal `Re` reaching the simulation is the file's own
-`Re` byte for byte, and a file read then rewritten is unchanged. **The only thing a mismatched
-`VCCon` affects is the per-coil figure shown on screen**, and only when `numVC` is above 1 — for a
-single-coil driver the factor is 1 and there is nothing to get wrong. Ledger QO97.
+Files: the driver `.wdr` and `.owdr` carry the stored figures with the measured wiring. A `.wpr` project carries the
+figures converted to My wiring, with My wiring as its `VCCon`. WinISD's own wiring combo is a one-shot rewrite of the
+stored `Re` and `BL` that leaves the result marked entered (`winisd_research` FINDING-009); OpenISD never rewrites a
+stored figure. The project's "Voice coil connection" control is a different thing: how several drivers (Num. of
+drivers) are joined to the amplifier, as in WinISD. See `docs/research/WINISD_PARITY.md` §11b and
+`docs/plans/PLAN_20261114_DVC_WIRING_AND_DQ.md`.
 
 ## Driver — sensitivity
 

@@ -6,7 +6,7 @@ import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../hooks/phoneLa
 import type {NumSpecField} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {useApp} from '../../logic/app.js';
-import {wiringOptions} from '../../logic/driverDraft.js';
+import {wiringNotStatedLabel, wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/driverCells.js';
@@ -28,7 +28,7 @@ import PhoneHelpSheet from '../shells/mobile/PhoneHelpSheet.vue';
 import SaveToLibraryDialog from './SaveToLibraryDialog.vue';
 import type {SaveNameField} from '../../hooks/saveNameField.js';
 import {getProvenanceInfo, PROVENANCE_MAP} from '../../logic/provenance.js';
-import {editableFrom, elementFrom, inputFrom, selectedOption} from '../../logic/domEvents.js';
+import {editableFrom, elementFrom, inputFrom, selectedOption, selectValue} from '../../logic/domEvents.js';
 import {FIELD_EDIT_MODE} from '../../logic/fieldEditMode.js';
 
 function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calculated {
@@ -201,6 +201,7 @@ function setText(field: TextKey | 'comment', e: Event) {
  *  `setNum`'s table is numeric, and routing a wiring through it would put a 1 or a 2 where the
  *  domain expects 'parallel'/'series'. */
 const WIRING_OPTIONS = wiringOptions();
+const WIRING_NOT_STATED = wiringNotStatedLabel();
 /** The Connection control's provenance mark. Read off the same cell every numeric field beside
  *  it is read off, so an unstated wiring shows calculated (the record's own 'C' parallel) and a
  *  chosen one shows entered — it was the one control in the dialog with no mark
@@ -211,9 +212,12 @@ const wiringClass = computed(() => {
   return cellClassOf(d.specs.VCCon);
 });
 function setWiring(e: Event) {
-  const wiring = selectedOption(e, WIRING_OPTIONS);
-  if (wiring === null) return;
-  draft.setWiring(wiring);
+  if (selectValue(e) === '') draft.clearWiring();
+  else {
+    const wiring = selectedOption(e, WIRING_OPTIONS);
+    if (wiring === null) return;
+    draft.setWiring(wiring);
+  }
   forceUpdate();
 }
 
@@ -803,7 +807,7 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('SPL_dB')]" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :field="NumberField.SPL_DB" :cell="fieldOf('SPL_dB')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('numVC')]" data-field-key="numVC" :style="getFieldStyle('numVC')" :field="NumberField.NUMVC" :cell="fieldOf('numVC')" />
                 <UIPickField class="de-fld de-conn" :class="skin?.field" data-field-key="VCCon" :title="EnumField.VCCON.description" :label="EnumField.VCCON.label" input-id="de-conn-sel">
-                  <select id="de-conn-sel" class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
+                  <select id="de-conn-sel" class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? ''" @change="setWiring"><option value="">{{ WIRING_NOT_STATED }}</option><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
                 </UIPickField>
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('power_peak_W')]" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :field="NumberField.POWER_PEAK_W" :cell="fieldOf('power_peak_W')" />
               </div>

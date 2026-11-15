@@ -1,5 +1,5 @@
 import {type Engine, FixedAir} from '../../engine/index.js';
-import type { Air, DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
+import type { Air, DriverError, Wiring, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -130,13 +130,15 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         airProvider: () => Air,
         /** See `OpenIsdDriverSpec`'s own parameter — only an embedded driver supplies one. */
         durableIssues?: () => readonly DriverIssue[],
+        /** The project's "My wiring"; only an embedded driver supplies one. */
+        myWiring?: () => Wiring | undefined,
     ) {
         super(record);
         this.engine = engine;
         this.record = record;
         this.airProvider = airProvider;
         this.durableIssues = durableIssues;
-        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, airProvider, durableIssues);
+        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, airProvider, durableIssues, myWiring);
     }
 
     /** T11/S2-7c: resolve this driver's spec — write every derivable quantity back

@@ -4,6 +4,7 @@
 import {NumberField, PhoneHelp, PhoneLabels} from '@openisd/design/fields';
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
+import DriverCoilWiring from '../../components/DriverCoilWiring.vue';
 import PhoneButton from './PhoneButton.vue';
 import PhoneBand from './PhoneBand.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
@@ -31,6 +32,7 @@ const { project, fullName, keyFigures, consistencyReasons, browseDrivers, editDr
         <option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
       </select>
     </div>
+    <DriverCoilWiring phone />
 
     <PhoneBand :section="PhoneHelp.KEY_FIGURES" />
     <!-- Tapping a key figure opens the driver editor (the mock's Key figures help: "Tap one to edit the driver."). -->

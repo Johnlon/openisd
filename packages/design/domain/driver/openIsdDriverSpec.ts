@@ -131,6 +131,14 @@ void _assertDriverQuantityNamesComplete;
  *
  * Fields are constructed eagerly to preserve object identity for reactivity.
  */
+/** The wiring-dependent figures, null where the record states none. */
+export interface TerminalMotor {
+    readonly Re_ohm: number | null;
+    readonly BL_Tm: number | null;
+    readonly Le_H: number | null;
+    readonly Znom_ohm: number | null;
+}
+
 export class OpenIsdDriverSpec {
     // Thiele/Small.
     readonly Fs_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
@@ -214,6 +222,8 @@ export class OpenIsdDriverSpec {
     /** The record's title, which may print a per-coil nominal impedance. */
     readonly #title: () => string;
     #issues: readonly DriverIssue[] = [];
+    /** The wiring the user builds with (the project's "My wiring"); undefined follows the measured one. */
+    readonly #myWiring: () => Wiring | undefined;
 
     constructor(
         record: SimpleField<DriverDeviceJson>,
@@ -229,7 +239,10 @@ export class OpenIsdDriverSpec {
          *  durable instance and keeps its own. Same rule, and same reason, as the vent/PR groups
          *  (`entryField`'s `issuesSource`). */
         durableIssues?: () => readonly DriverIssue[],
+        /** The project's "My wiring" choice; omitted by a standalone driver, which is not wired. */
+        myWiring: () => Wiring | undefined = () => undefined,
     ) {
+        this.#myWiring = myWiring;
         this.#driver = driver;
         this.#issueEngine = issues;
         this.#title = () => record.value.model.value;
@@ -469,14 +482,31 @@ export class OpenIsdDriverSpec {
         const wiring: Wiring | null = measured === null ? null : measured === VoiceCoilWiring.Series ? 'series' : 'parallel';
         const wiringInput: SolverInput<Wiring> = { value: wiring, entered: this.VCCon.entered };
 
-        // The amplifier sees the published figures, in the measured wiring.
+        // The amplifier sees the figures in the wiring the user builds with.
+        const terminal = this.terminalMotor();
         return {
             ...this,
             SPLref_dB: NO_SLOT,
-            Re_terminal_ohm: computedSlot(this.Re_ohm.value),
-            BL_terminal_Tm: computedSlot(this.BL_Tm.value),
+            Re_terminal_ohm: computedSlot(terminal.Re_ohm),
+            BL_terminal_Tm: computedSlot(terminal.BL_Tm),
             wiring: wiringInput,
         };
+    }
+
+    /** Re, BL, Le and Znom as the amplifier sees them: converted from the measured wiring to
+     *  "My wiring" when the project chose another one and the driver can be rewired, otherwise
+     *  as published. The stored figures are never changed. */
+    terminalMotor(): TerminalMotor {
+        const published: TerminalMotor = {
+            Re_ohm: this.Re_ohm.value, BL_Tm: this.BL_Tm.value, Le_H: this.Le_H.value, Znom_ohm: this.Znom_ohm.value,
+        };
+        const mine = this.#myWiring();
+        const measured = this.VCCon.value;
+        const Re = published.Re_ohm;
+        if (mine === undefined || measured === null || Re === null) return published;
+        // An absent BL has nothing to convert: it goes through as 1 and comes back absent.
+        const result = this.#driver.convertWiring({...published, Re_ohm: Re, BL_Tm: published.BL_Tm ?? 1}, this.numVC.value, measured, mine);
+        return result.converted ? {...result.motor, BL_Tm: published.BL_Tm === null ? null : result.motor.BL_Tm} : published;
     }
 
     /** `solverParams` with the circuit's air taken from `air` (the project's) instead of the driver's own pair. */
@@ -496,7 +526,7 @@ export class OpenIsdDriverSpec {
     }
 
     #enteredBL(): number | null {
-        return this.BL_Tm.entered ? this.BL_Tm.value : null;
+        return this.BL_Tm.entered ? this.terminalMotor().BL_Tm : null;
     }
 
     /** The issues the last `resolve()` produced — empty before the first one has run. */

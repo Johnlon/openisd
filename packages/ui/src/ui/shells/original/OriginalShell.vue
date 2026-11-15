@@ -11,6 +11,7 @@ import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import UIField from '../../components/UIField.vue';
 import PortShapeToggle from '../../components/PortShapeToggle.vue';
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
+import DriverCoilWiring from '../../components/DriverCoilWiring.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import UIPickField from '../../components/UIPickField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
@@ -476,6 +477,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <select id="og-wiring" :value="project.wiring.value" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) project.wiring.set(w); }"><option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
                 </UIPickField>
               </div>
+              <DriverCoilWiring />
             </div>
             <div>
               <DesktopBand :section="advancedOptionsHelp" @help="openSectionHelp" />

@@ -9,7 +9,7 @@
  * wiring enum.
  */
 import {OpenISDDriver, OpenISDDriverStandalone, type VoiceCoilWiring} from '@openisd/design';
-import {type SelectorOption, VC_CONNECTION_OPTIONS} from '@openisd/design/fields';
+import {type SelectorOption, MEASURED_WIRING_NOT_STATED_LABEL, VC_CONNECTION_OPTIONS} from '@openisd/design/fields';
 import type {AppContext} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {EditorDraftSeed} from './driverSelection.js';
@@ -32,6 +32,8 @@ export interface DriverDraft {
   /** Set the coil wiring. The select's option list (`VC_CONNECTION_OPTIONS`) carries the domain's
    *  own wiring values, so the chosen option is written as-is — nothing to map. */
   setWiring(choice: VoiceCoilWiring): void;
+  /** Say the maker did not state the measured wiring. */
+  clearWiring(): void;
   /** Whether the draft currently derives unknowns. Every seed this session ever holds is a
    *  detached `OpenISDDriverStandalone` — reads `true` only if that narrowing ever stopped
    *  holding, which would itself be a bug elsewhere worth seeing rather than masking. */
@@ -80,6 +82,9 @@ export class DriverDrafts {
         const d = current;
         d.specs.VCCon.set(choice);
       },
+      clearWiring() {
+        current.specs.VCCon.clear();
+      },
       get autoCalculate() {
         return current.autoCalculate;
       },
@@ -88,4 +93,9 @@ export class DriverDrafts {
       },
     };
   }
+}
+
+/** The label of the editor's "measured wiring not stated" choice. */
+export function wiringNotStatedLabel(): string {
+  return MEASURED_WIRING_NOT_STATED_LABEL;
 }

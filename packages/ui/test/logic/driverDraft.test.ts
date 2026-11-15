@@ -108,6 +108,14 @@ describe('DriverDrafts.open — wiring, expressed without naming the domain', ()
 
     expect(series).not.toBe(parallel);
   });
+
+  it('clearWiring makes the measured wiring not stated again, so nothing is claimed', () => {
+    const draft = new DriverDrafts(createEngine(), appState.appContext).open({ kind: 'myDriver', openedAs: '', seed: aDriver('A', 'B') });
+    draft.setWiring('series');
+    expect(draft.driver.specs.VCCon.value).toBe('series');
+    draft.clearWiring();
+    expect(draft.driver.specs.VCCon.value).toBeNull();
+  });
 });
 
 describe('DriverDrafts — copies, project subjects and the auto-calculate switch', () => {

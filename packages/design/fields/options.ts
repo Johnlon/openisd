@@ -37,6 +37,9 @@ export const VC_CONNECTION_OPTIONS: readonly SelectorOption<VoiceCoilWiring>[] =
   Object.freeze({ value: 'series', label: 'Series' }),
 ]);
 
+/** The driver editor's choice for a measured wiring the maker did not state. */
+export const MEASURED_WIRING_NOT_STATED_LABEL = 'Not stated';
+
 /** How a multi-driver array is wired to the amplifier. */
 export const ARRAY_WIRING_OPTIONS: readonly SelectorOption<Wiring>[] = Object.freeze([
   Object.freeze({ value: 'parallel', label: 'Parallel' }),

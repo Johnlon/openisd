@@ -978,21 +978,24 @@ below — editing `numVC` resets the combo to parallel without scaling `Re`/`BL`
 quadruple their driver twice without warning: set series (`Re`×4), edit `numVC` (combo back to
 parallel, `Re` still ×4, file says parallel), set series again (`Re`×16).
 
-**OPENISD DEVIATES, on John's ruling 2026-08-28 ("evil", "make it two"):**
+**OPENISD DEVIATES (QO900 and QO907, 14 Nov 2026, superseding the per-coil basis of QO96 and QO97):**
 
-|                         | WinISD                                                   | OpenISD                                                                                       |
-| ----------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| fields                  | one `Re`, whose meaning changes silently with the wiring | `Re_per_coil` (entered, never rewritten) and `Re_terminal` (calculated) — same split for `BL` |
-| on a wiring change      | rewrites the stored value in place                       | recomputes the derived field; the typed value is untouched                                    |
-| provenance              | rewritten value stays marked `E`                         | entered stays entered, calculated is marked calculated                                        |
-| where the scaling lives | in the editor                                            | ONLY in the `.wdr`/`.wpr` adapter                                                             |
+|                         | WinISD                                                   | OpenISD                                                                                                  |
+| ----------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| fields                  | one `Re`, whose meaning changes silently with the wiring | `Re`, `BL`, `Le`, `Znom` as the maker published them, for the measured wiring (`VCCon`: series, parallel or unknown) |
+| on a wiring change      | rewrites the stored value in place                       | nothing stored changes; the project's "My wiring" converts the figures the amplifier side reads        |
+| provenance              | rewritten value stays marked `E`                         | stored figures keep their marks; converted figures are never stored                                    |
+| where the scaling lives | in the editor                                            | the engine's `convertWiring`, read by the sweep, power, Rg loading and the `.wpr` writer               |
 
-**The files stay byte-compatible** — the writer emits the effective (terminal) values, exactly
-what WinISD would have written. The deviation is in what OpenISD KEEPS, not in what it produces.
+N identical coils, series to parallel: `Re`, `Le`, `Znom` divided by N², `BL` by N. `Qes`, `Fs`, `Mms`, `Cms`,
+`Vas` never change. Three coils cannot be rewired. A `.wdr` of the driver carries the stored figures with the
+measured wiring; a `.wpr` carries the figures converted to My wiring, with My wiring as `VCCon`. The control WinISD
+labels "Voice coil connection" on the Driver tab (several drivers joined to the amplifier) is a different control
+and is unchanged.
 
 Two reasons this is worth diverging over: OpenISD round-trips and TESTS the `E`/`C`/`N` marks, so
 a false `E` corrupts the parity suite itself; and a destructive edit of a typed value is
-unrecoverable — the user cannot get 6.4 back out of 25.6 without knowing what happened to it.
+unrecoverable.
 
 ### Reading a `.wdr` back — the rule, and why a known-broken field is safe to trust
 

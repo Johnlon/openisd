@@ -1425,15 +1425,15 @@ export class EnumField extends Field {
   // ── Driver ────────────────────────────────────────────────────────────────────────────────
   static readonly VCCON = new EnumField({
     value: "VCCon",
-    label: "Connection",
+    label: "Coil wiring",
     options: VC_CONNECTION_OPTIONS,
-    description: "Voice Coil Wiring\nSeries or parallel — sets the driver's total terminal Re and BL for a multi-coil driver.",
+    description: "Measured Wiring\nHow the voice coils of a multi-coil driver were wired when the maker measured Re and BL: series, parallel, or not stated. Re, BL, Le and Znom are kept as published for this wiring. Your own wiring is set in the project (Driver tab, My wiring).",
   });
   static readonly DRIVER_ARRAYWIRING = new EnumField({
     value: "driver_ArrayWiring",
     label: "Voice coil connection",
     options: ARRAY_WIRING_OPTIONS,
-    description: "Driver Array Wiring\nParallel or series — sets the total load impedance seen by the amplifier.",
+    description: "Driver Array Wiring\nHow several drivers (Num. of drivers) are joined to the amplifier: parallel or series. With one driver there is nothing to join and it changes nothing. The wiring of one driver's own voice coils is My wiring.",
   });
 
   // ── Filters ───────────────────────────────────────────────────────────────────────────────

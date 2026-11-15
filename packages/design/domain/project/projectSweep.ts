@@ -358,7 +358,7 @@ export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): Sweep
     if (Vb === null) return {kind: 'blocked', issues: boxParamsIssuesOf(source)};
     return {kind: 'ready', job: {
         driver: sweepDriverOf(source, air),
-        Le_H: undefinedIfNull(source.driver.specs.Le_H.value),
+        Le_H: undefinedIfNull(source.driver.specs.terminalMotor().Le_H),
         box,
         air: {c: air.c(), rho: air.rho()},
         sweep: sweepParamsOf(source, P, source.driveVoltage_V, box, Vb),
