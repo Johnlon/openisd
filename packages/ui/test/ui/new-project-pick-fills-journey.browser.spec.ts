@@ -119,6 +119,8 @@ function mustNotBeBlank(record: Record_, key: string): boolean {
     case 'Hg_m': return stated('Xmax_m') && stated('Hc_m');
     case 'Pe_W': return !stated('Xmax_m');
     case 'fLe_hz': case 'Xlim_m': case 'power_peak_W': return false;
+    // QO900 (John, 14 Nov 2026): no numVC/VCCon default. A single-coil record that states no coil count has none; the engine reads an absent count as one coil (multiCoilAsPublished.ts: numVC < 2 leaves Re/BL as published), so charting is unaffected.
+    case 'numVC': return stated('numVC');
     default: return true;
   }
 }
