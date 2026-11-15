@@ -1105,7 +1105,7 @@ onMounted(openedLibrary);
 }
 
 /* ── Classic phone list (screens 6 and 7): filters folded behind one button, the list gets the screen ── */
-.driver-library.dl-phone { gap: 0; }
+.driver-library.dl-phone { gap: 0; --dl-row-min: 52px; --dl-list-min: calc(2 * var(--dl-row-min)); }
 .driver-library.dl-phone :deep(.mob-band) { flex: none; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; height: 28px; margin-top: 12px; padding: 0 16px; background: #ececec; color: #333; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
 .driver-library.dl-phone > :deep(.mob-band:first-child) { margin-top: 0; }
 .driver-library.dl-phone :deep(.mob-band-help) { width: 22px; height: 22px; padding: 0; border: 1px solid #999; border-radius: 50%; background: #fff; color: #333; font: inherit; font-size: 12px; font-weight: 600; line-height: 1; cursor: pointer; }
@@ -1114,7 +1114,9 @@ onMounted(openedLibrary);
 .driver-library.dl-phone .dl-filters-toggle { flex: none; height: 40px; padding: 0 12px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer; color: #000; }
 .driver-library.dl-phone .dl-filters-toggle.on { background: #e0efff; border-color: #7fb3ff; color: #0b4f9e; font-weight: 600; }
 .driver-library.dl-phone .type-row { flex: none; flex-wrap: wrap; gap: 6px; padding: 6px 16px; }
-.driver-library.dl-phone .filters-block { display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0; max-height: 50vh; overflow-y: auto; }
+/* The filters take what the list leaves and scroll inside themselves: the list keeps `--dl-list-min`, so it always shows a row
+   or its empty state with Clear filters, whatever rows the dialog gains and whatever the phone. */
+.driver-library.dl-phone .filters-block { display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0; overflow-y: auto; }
 .driver-library.dl-phone .size-row { flex: none; gap: 6px; padding: 6px 16px; }
 .driver-library.dl-phone .dsize { font-size: 12px; color: #666; white-space: normal; }
 .driver-library.dl-phone .dl-sub .dsize + .dpdf::before { content: ' · '; }
@@ -1127,8 +1129,8 @@ onMounted(openedLibrary);
 .driver-library.dl-phone .statusrow { flex: none; min-height: 36px; padding: 0 16px; border-bottom: 1px solid #e6e6e6; }
 .driver-library.dl-phone .status { font-size: 13px; }
 .driver-library.dl-phone .dl-clear { height: 30px; padding: 0 10px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 13px; cursor: pointer; color: #000; }
-.driver-library.dl-phone .dlist { border: none !important; border-radius: 0 !important; min-height: 0; max-height: none; }
-.driver-library.dl-phone .ditem { display: flex; align-items: center; min-height: 52px; padding: 4px 0 4px 16px; border-bottom: 1px solid #eef0f2; cursor: pointer; }
+.driver-library.dl-phone .dlist { border: none !important; border-radius: 0 !important; min-height: var(--dl-list-min); max-height: none; }
+.driver-library.dl-phone .ditem { display: flex; align-items: center; min-height: var(--dl-row-min); padding: 4px 0 4px 16px; border-bottom: 1px solid #eef0f2; cursor: pointer; }
 .driver-library.dl-phone .dl-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .driver-library.dl-phone .dl-head { display: flex; align-items: center; min-width: 0; }
 .driver-library.dl-phone .dl-name { display: block; min-width: 0; font-size: 15px; font-weight: 600; white-space: normal; overflow-wrap: anywhere; }

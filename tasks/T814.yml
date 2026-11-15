@@ -1,0 +1,12 @@
+id: T814
+release_note: internal
+repo: openisd
+owner: search-builder
+status: done
+goal: The phone driver library keeps its list (a row or the empty state with Clear filters) and footer in view at any phone size: the filters block takes what is left and scrolls inside itself, no viewport arithmetic
+why: Main red after T796 (suite run 43690654499, mobile-driver-browser spec, Clear filters not in viewport); John, 14 Nov 2026 issue 516
+done_test: bash scripts/test.sh packages/ui/test/logic/driverFilters.test.ts
+files:
+  - tasks/T814.yml
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/test/ui/driver-size-search.browser.spec.ts

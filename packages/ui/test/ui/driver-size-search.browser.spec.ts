@@ -82,17 +82,34 @@ for (const size of [{width: 1880, height: 1000}, {width: 1280, height: 720}]) {
   });
 }
 
-for (const size of [{width: 390, height: 844}, {width: 374, height: 705}]) {
+/** The dialog's short-screen behaviour belongs to this feature: the filters give way (and scroll inside themselves)
+ *  so the list always shows a row or its empty state, and the footer stays in view, on any phone size. */
+const PHONES = [{width: 360, height: 640}, {width: 374, height: 705}, {width: 390, height: 844}, {width: 412, height: 600}];
+
+async function openPhoneLibraryWithSize(page: Page, size: {width: number; height: number}, chip: string): Promise<void> {
+  await page.setViewportSize(size);
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await openAMobileProject(page);
+  await page.locator('.mob-tab', {hasText: 'Driver'}).click();
+  await page.getByText('Select driver').click();
+  await page.locator('.dl-filters-toggle').click();
+  await page.locator('.size-row .zchip', {hasText: new RegExp(`^${chip}$`)}).click();
+}
+
+for (const size of PHONES) {
   test(`phone ${size.width}x${size.height}: filters open with a size chosen, the footer buttons stay in view and the list keeps a row`, async ({page}) => {
-    await page.setViewportSize(size);
-    await forceMobileSkin(page);
-    await page.goto('/');
-    await openAMobileProject(page);
-    await page.locator('.mob-tab', {hasText: 'Driver'}).click();
-    await page.getByText('Select driver').click();
-    await page.locator('.dl-filters-toggle').click();
-    await page.locator('.size-row .zchip', {hasText: /^5$/}).click();
+    await openPhoneLibraryWithSize(page, size, '5');
     await expect(page.locator('.dlist .ditem:not(.my-ditem)')).toHaveCount(3);
     await expectFooterWholeAndListShowsARow(page, '.overlay.on .wb-modal');
+  });
+
+  test(`phone ${size.width}x${size.height}: a size nothing matches shows the empty list with Clear filters in view`, async ({page}) => {
+    await openPhoneLibraryWithSize(page, size, '21');
+    await expect(page.locator('.dlist')).toContainText('No drivers match');
+    await expect(page.locator('.dlist .filters-clear')).toBeInViewport({ratio: 1});
+    const footer = await page.locator('.driver-library .browser-footer button', {hasText: 'Load File…'}).boundingBox();
+    expect(footer).not.toBeNull();
+    expect(footer!.y + footer!.height).toBeLessThanOrEqual(size.height);
   });
 }
