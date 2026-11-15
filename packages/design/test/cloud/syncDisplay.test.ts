@@ -105,6 +105,31 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       ]);
     });
 
+    it('lists items moved in the same minute by name, however the uploads happened to finish', () => {
+      const at = new Date(2026, 9, 14, 14, 56).getTime();
+      const box = {kind: 'moved', direction: 'up', change: 'saved', item: 'project', device: ''} as const;
+      const lines = (activity: SyncDisplayInputs['activity']) => syncDisplayOf({
+        ...defaultInputs({kind: 'synced', account: 'john@gmail.com', at_ms: sampleTime, conflicts: 0}),
+        activity,
+      }).dialog.activity;
+      // newest first, as the ledger keeps them: the order depends on which upload Drive answered first
+      const finishedBAFirst = lines([{...box, at_ms: at + 7, name: 'Box A'}, {...box, at_ms: at + 3, name: 'Box B'}]);
+      const finishedABFirst = lines([{...box, at_ms: at + 7, name: 'Box B'}, {...box, at_ms: at + 3, name: 'Box A'}]);
+      expect(finishedBAFirst).toEqual(['14:56  ↑ Project "Box A" sent', '14:56  ↑ Project "Box B" sent']);
+      expect(finishedABFirst).toEqual(finishedBAFirst);
+    });
+
+    it('keeps a later minute above an earlier one, whatever the names', () => {
+      const early = new Date(2026, 9, 14, 14, 56).getTime();
+      const late = new Date(2026, 9, 14, 14, 57).getTime();
+      const box = {kind: 'moved', direction: 'up', change: 'saved', item: 'project', device: ''} as const;
+      const display = syncDisplayOf({
+        ...defaultInputs({kind: 'synced', account: 'john@gmail.com', at_ms: sampleTime, conflicts: 0}),
+        activity: [{...box, at_ms: late, name: 'Zed'}, {...box, at_ms: early, name: 'Alpha'}],
+      });
+      expect(display.dialog.activity).toEqual(['14:57  ↑ Project "Zed" sent', '14:56  ↑ Project "Alpha" sent']);
+    });
+
     it('row 1: off when not configured', () => {
       const display = syncDisplayOf(defaultInputs({kind: 'off'}, false));
       expect(display.dialog.buttons).toEqual([
