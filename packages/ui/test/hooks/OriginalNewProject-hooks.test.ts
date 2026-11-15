@@ -1066,7 +1066,10 @@ describe('the radiator step holds all eight figures, stated or calculated (T703)
 
   it('a Cms typed over a record stating Vas reaches the project, with Vas, and both carry the conflict mark', async () => {
     const wizard = await pickedThenBack('accuton/asp190');
-    wizard.passiveRadiatorCells.Cms_m_per_N.set(0.001);
+    // Vas = rho*c^2*Sd^2*Cms = 141853 Pa * 0.0202^2 m^4 * 0.002 m/N = 0.1158 m3 against the stated 0.027 m3: 4.3 times
+    // apart. (0.001 gave 0.0579 m3, 2.1 times apart, but a typed 0.001 carries 0.0005 of precision, which alone
+    // moves Vas by 0.0289 m3, so that pair was within the print's own slack once the air may differ by 2.5% (T804).)
+    wizard.passiveRadiatorCells.Cms_m_per_N.set(0.002);
     expect(wizard.passiveRadiatorCells.Cms_m_per_N.entered).toBe(true);
     expect(wizard.passiveRadiatorCells.Cms_m_per_N.dq.length).toBeGreaterThan(0);
     expect(wizard.passiveRadiatorCells.Vas_m3.dq.length).toBeGreaterThan(0);
@@ -1075,7 +1078,7 @@ describe('the radiator step holds all eight figures, stated or calculated (T703)
 
     const spec = wizard.createProject()?.box.passiveRadiator.radiator.spec;
     expect(spec?.Cms_m_per_N.entered).toBe(true);
-    expect(spec?.Cms_m_per_N.value).toBe(0.001);
+    expect(spec?.Cms_m_per_N.value).toBe(0.002);
     expect(spec?.Vas_m3.value).toBe(0.027);
   });
 

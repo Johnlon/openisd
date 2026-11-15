@@ -48,6 +48,7 @@ import {sourceRank} from "./sourceRank.js";
 import {Corroboration, ReaderAgreement, corroborate, isRecognisedRejection, isUsable, readerVerdict, type Reading} from "./corroboration.js";
 import {Reader} from "./reader.js";
 import {DriverRoundTripCheck, type DriverFromRecord} from "./driverRoundTripDiffs.js";
+import {printsUnderOtherDefinition} from "./printedDefinitions.js";
 
 /** Both derived artefacts and every problem found producing them. `openisd`/`wdr` are null when a
  *  blocking failure stopped that artefact being produced; `errors` is always an array. */
@@ -150,6 +151,15 @@ function stripMetadataOrigin(
     out[key] = field;
   }
   return out;
+}
+
+/** The maker a record names (`manufacturer`, else `brand`), or null when it names none. */
+function makerOf(record: object): string | null {
+  for (const key of ["manufacturer", "brand"]) {
+    const entry: unknown = Reflect.get(record, key);
+    if (isKeyedObject(entry) && typeof entry.value === "string") return entry.value;
+  }
+  return null;
 }
 
 /** A plain keyed object — what `Object.entries` yields for any non-null object value. Written as
@@ -833,13 +843,13 @@ export class DriverRecordConverter {
       if (key === SCRAPER_ONLY_KEY || key === SCRAPER_PRINTED_KEY) continue;
       out[key] =
         key === "specs"
-          ? this.#projectSpecs(stripDefinitionField(value),  warnings)
+          ? this.#projectSpecs(stripDefinitionField(value), makerOf(driverYml), warnings)
           : stripDefinitionField(value);
     }
     return stripMetadataOrigin(out);
   }
 
-  #projectSpecs(specs: unknown, warnings: DriverError[]): unknown {
+  #projectSpecs(specs: unknown, maker: string | null, warnings: DriverError[]): unknown {
     if (!isKeyedObject(specs)) return specs;
     const sections: Record<string, unknown> = {};
     for (const [sectionKey, section] of Object.entries(specs)) {
@@ -849,7 +859,7 @@ export class DriverRecordConverter {
       }
       const fields: Record<string, unknown> = {};
       for (const [field, entry] of Object.entries(section)) {
-        const projected = this.#projectScraperEntry(entry, sectionKey, field, warnings);
+        const projected = this.#projectScraperEntry(entry, sectionKey, field, maker, warnings);
         fields[field] = entryWithoutAppOnlyKeys(projected);
       }
       sections[sectionKey] = withPerCoilFiguresForWiring(fields);
@@ -877,6 +887,7 @@ export class DriverRecordConverter {
     entry: unknown,
     section: string,
     field: string,
+    maker: string | null,
     warnings: DriverError[]
   ): unknown {
     if (!isKeyedObject(entry) || "state" in entry) return entry;
@@ -887,6 +898,12 @@ export class DriverRecordConverter {
     if (field === "VCCon") return this.#projectWiringEntry(entry, section, warnings);
     const parsed = scraperEntrySchema.safeParse(entryForScraperSchema(entry));
     if (!parsed.success) return entry;
+    // A figure the maker prints under another definition (Purifi's EBP is Fs/Qts) is not this field's
+    // value: nothing wins, the reading stays, and the app calculates the field.
+    if (printsUnderOtherDefinition(maker, field)) {
+      const notThisQuantity: ProjectedEntry = { state: "N", readings: parsed.data.readings };
+      return notThisQuantity;
+    }
     return this.#projectParsedEntry(parsed.data, section, field, warnings);
   }
 
