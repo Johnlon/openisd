@@ -1,5 +1,5 @@
 /**
- * The Driver tab's "Measured wiring" / "My wiring" rows (QO907, issue 512). Dayton MX6-22: measured
+ * The Driver tab's "My wiring" row; no measured-wiring row (QO941) (QO907, issue 512). Dayton MX6-22: measured
  * in series, Re 4.7 Ω, BL 12.3 T·m, 2 coils (datasheet); in parallel Re 1.175 Ω, BL 6.15 T·m
  * (Re ÷ 4, BL ÷ 2). Bliesma W137A-854-4 states no wiring.
  */
@@ -22,13 +22,13 @@ function hookFor(path: string) {
 }
 
 describe('useDriverCoilWiring', () => {
-  it('MX6-22: shows the stated measured wiring, My wiring equal to it, both figure lines, and is enabled', () => {
+  it('MX6-22: My wiring equal to the measured wiring, no separate published line, enabled', () => {
     const {wiring} = hookFor('dayton-audio/mx6-22');
     expect(wiring.shown.value).toBe(true);
-    expect(wiring.measuredText.value).toBe('Series (stated)');
+    expect('measuredText' in wiring).toBe(false);
+    expect(wiring.showPublished.value).toBe(false);
     expect(wiring.mine.value).toBe('series');
-    expect(wiring.disabled.value).toBe(false);
-    expect(wiring.publishedFigures.value).toBe('Re 4.70 Ω · BL 12.30 Tm');
+        expect(wiring.publishedFigures.value).toBe('Re 4.70 Ω · BL 12.30 Tm');
     expect(wiring.mineFigures.value).toBe('Re 4.70 Ω · BL 12.30 Tm');
     expect(wiring.options.value.map(o => o.value)).toEqual(['series', 'parallel']);
   });
@@ -39,15 +39,15 @@ describe('useDriverCoilWiring', () => {
     expect(project.coilWiring.mine).toBe('parallel');
     expect(wiring.mine.value).toBe('parallel');
     expect(wiring.mineFigures.value).toBe('Re 1.175 Ω · BL 6.15 Tm');
+    expect(wiring.showPublished.value).toBe(true);
     expect(wiring.publishedFigures.value).toBe('Re 4.70 Ω · BL 12.30 Tm');
   });
 
-  it('Bliesma W137A-854-4: wiring not stated, the choice is disabled and says why', () => {
+  it('Bliesma W137A-854-4: wiring not stated, so nothing is drawn (the data-quality mark in the editor is the only sign)', () => {
     const {wiring} = hookFor('bliesma/w137a-854-4');
-    expect(wiring.shown.value).toBe(true);
-    expect(wiring.measuredText.value).toBe('Not stated');
-    expect(wiring.disabled.value).toBe(true);
-    expect(wiring.reason.value).toContain('not stated');
+    expect(wiring.shown.value).toBe(false);
+    expect('disabled' in wiring).toBe(false);
+    expect('reason' in wiring).toBe(false);
   });
 
   it('a single-coil driver shows nothing', () => {

@@ -30,7 +30,8 @@ for (const [skin, skinName] of [[DESKTOP, 'desktop'], [PHONE, 'phone']] as const
   test(`${skinName}: the measured wiring shows, My wiring defaults to it, and parallel converts the figures the amplifier side uses`, async ({page}) => {
     await skin.open(page);
     await selectDriver(page, MX6_22);
-    await expect(page.getByTestId('coil-wiring-measured')).toContainText('Series (stated)');
+    await expect(page.getByText('Measured wiring')).toHaveCount(0);
+    await expect(page.getByTestId('coil-wiring-figures')).not.toContainText('As published');
     await expect(page.locator(skin.select)).toHaveValue('series');
     await expect(page.getByTestId('coil-wiring-figures')).toContainText('My wiring: Re 4.70 Ω · BL 12.30 Tm');
     await openTab(page, 'Signal');
@@ -48,18 +49,19 @@ for (const [skin, skinName] of [[DESKTOP, 'desktop'], [PHONE, 'phone']] as const
   test(`${skinName}: a parallel-measured driver (RSS265HO-44, 1.6 Ω, 9.39 Tm, wiring stated on the maker's product page) rewired in series: Re x 4 = 6.4 Ω, BL x 2 = 18.78 Tm`, async ({page}) => {
     await skin.open(page);
     await selectDriver(page, RSS265HO);
-    await expect(page.getByTestId('coil-wiring-measured')).toContainText('Parallel (stated)');
+    await expect(page.getByText('Measured wiring')).toHaveCount(0);
     await page.locator(skin.select).selectOption('series');
     await expect(page.getByTestId('coil-wiring-figures')).toContainText('As published: Re 1.60 Ω · BL 9.39 Tm');
     await expect(page.getByTestId('coil-wiring-figures')).toContainText('My wiring: Re 6.40 Ω · BL 18.78 Tm');
   });
 
-  test(`${skinName}: a driver that does not state its wiring disables My wiring and says why`, async ({page}) => {
+  test(`${skinName}: a driver that does not state its wiring shows no wiring block at all`, async ({page}) => {
     await skin.open(page);
     await selectDriver(page, W137A);
-    await expect(page.getByTestId('coil-wiring-measured')).toContainText('Not stated');
-    await expect(page.locator(skin.select)).toBeDisabled();
-    await expect(page.getByTestId('coil-wiring-reason')).toContainText('not stated');
+    await expect(page.getByText('Measured wiring')).toHaveCount(0);
+    await expect(page.locator(skin.select)).toHaveCount(0);
+    await expect(page.getByTestId('coil-wiring-figures')).toHaveCount(0);
+    await expect(page.getByText('My wiring')).toHaveCount(0);
   });
 
   test(`${skinName}: a single-coil driver shows no wiring rows`, async ({page}) => {

@@ -82,8 +82,8 @@ and a driver saved back to `.wdr` never carries it.
 
 **Voice-coil wiring: measured wiring and "My wiring" (QO900, QO907, issue 512).** `Re`, `BL`, `Le` and `Znom` are
 stored as the maker published them, for the wiring the maker measured in. `VCCon` is that measured wiring: `series`,
-`parallel`, or unknown, with no default. It is stated (entered), inferred from a printed per-coil impedance (calculated,
-shown as "inferred"), or not stated. The Thiele/Small relations and the consistency checks run on the stored figures and
+`parallel`, or unknown, with no default. It is stated (entered), inferred from a printed per-coil impedance (calculated;
+the Driver editor shows it as calculated, and the Driver tab does not show the measured wiring at all, QO941), or not stated. The Thiele/Small relations and the consistency checks run on the stored figures and
 never read `VCCon`.
 
 The project carries **My wiring** (`driverEmbedding.coilWiring`, `series` or `parallel`): how the user will wire the
@@ -100,7 +100,7 @@ figures converted to My wiring, with My wiring as its `VCCon`. WinISD's own wiri
 stored `Re` and `BL` that leaves the result marked entered (`winisd_research` FINDING-009); OpenISD never rewrites a
 stored figure. The project's "Voice coil connection" control is a different thing: how several drivers (Num. of
 drivers) are joined to the amplifier, as in WinISD. See `docs/research/WINISD_PARITY.md` §11b and
-`docs/plans/PLAN_20261114_DVC_WIRING_AND_DQ.md`.
+`docs/plans/PLAN_20261114_DVC_WIRING_AND_DQ.md`. That sentence is wrong about WinISD (it has no wiring of several drivers); the correction and the migration are in `docs/plans/PLAN_20261115_COIL_WIRING_REPLICATES_WINISD.md`.
 
 ## Driver — sensitivity
 

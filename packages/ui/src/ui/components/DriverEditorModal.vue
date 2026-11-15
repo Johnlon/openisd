@@ -10,6 +10,7 @@ import {wiringNotStatedLabel, wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/driverCells.js';
+import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
 import {commitMyDriver, useDriverEditorHelp} from '../../hooks/DriverEditorModal-hooks.js';
 import {useFeatureUse} from '../../hooks/telemetryContext.js';
 import type {DqReason} from '@openisd/design';
@@ -210,6 +211,13 @@ const wiringClass = computed(() => {
   void trigger.value;
   const d = draftDriver.value;
   return cellClassOf(d.specs.VCCon);
+});
+/** Why the wiring is flagged (a multi-coil driver whose wiring is not stated): the field's own data-quality
+ *  sentence, shown as the ⚠ beside Coil wiring. The Driver tab shows no wiring, so this is the user's
+ *  only sign (John, 2026-11-15, QO941). '' when nothing is flagged. */
+const wiringDqReason = computed(() => {
+  void trigger.value;
+  return dqReason(dqOfCell(draftDriver.value.specs.VCCon));
 });
 function setWiring(e: Event) {
   if (selectValue(e) === '') draft.clearWiring();
@@ -808,6 +816,7 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('numVC')]" data-field-key="numVC" :style="getFieldStyle('numVC')" :field="NumberField.NUMVC" :cell="fieldOf('numVC')" />
                 <UIPickField class="de-fld de-conn" :class="skin?.field" data-field-key="VCCon" :title="EnumField.VCCON.description" :label="EnumField.VCCON.label" input-id="de-conn-sel">
                   <select id="de-conn-sel" class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? ''" @change="setWiring"><option value="">{{ WIRING_NOT_STATED }}</option><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
+                  <template #dq><button v-if="wiringDqReason" type="button" class="ui-field-dq-btn" :title="wiringDqReason" aria-label="Why this value is flagged">&#9888;</button></template>
                 </UIPickField>
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('power_peak_W')]" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :field="NumberField.POWER_PEAK_W" :cell="fieldOf('power_peak_W')" />
               </div>

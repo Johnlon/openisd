@@ -194,9 +194,9 @@ describe('My wiring is not offered when it cannot be applied', () => {
 });
 
 describe('My wiring: the words the Driver tab shows', () => {
-  it('stated series, nothing chosen: measured line and both figure lines', () => {
+  it('stated series, nothing chosen: both figure lines', () => {
     const w = projectOf(MX6_22).coilWiring;
-    expect(w.measuredText).toBe('Series (stated)');
+    expect(w.measuredBasis).toBe('stated');
     expect(w.publishedFigures).toBe('Re 4.70 Ω · BL 12.30 Tm');
     expect(w.mineFigures).toBe('Re 4.70 Ω · BL 12.30 Tm');
   });
@@ -209,8 +209,8 @@ describe('My wiring: the words the Driver tab shows', () => {
   });
 
   it('not stated and one coil', () => {
-    expect(projectOf({...MOTOR, numVC: 2, Re_ohm: 4.7, BL_Tm: 12.3}).coilWiring.measuredText).toBe('Not stated');
-    expect(projectOf({...MOTOR, numVC: 1, Re_ohm: 4.7, BL_Tm: 12.3}).coilWiring.measuredText).toBeNull();
+    expect(projectOf({...MOTOR, numVC: 2, Re_ohm: 4.7, BL_Tm: 12.3}).coilWiring.measuredBasis).toBe('not-stated');
+    expect(projectOf({...MOTOR, numVC: 1, Re_ohm: 4.7, BL_Tm: 12.3}).coilWiring.measuredBasis).toBe('single-coil');
   });
 
   it('inferred from the title: says so, with the reason', () => {
@@ -220,6 +220,5 @@ describe('My wiring: the words the Driver tab shows', () => {
     driver.model.set('RSS265HO-44 Dual 4 Ohm');
     const w = new ProjectBuilder(driver, engine).sealed().volume_m3(0.03).build().coilWiring;
     expect(w.measuredBasis).toBe('inferred');
-    expect(w.measuredText).toBe('Parallel (inferred)');
   });
 });

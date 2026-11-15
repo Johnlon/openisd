@@ -111,25 +111,6 @@ export class ProjectCoilWiring {
         return copy;
     }
 
-    /** The measured wiring in words, with where it comes from; null for a driver with one coil. */
-    get measuredText(): string | null {
-        const measured = this.measured;
-        const name = measured === null ? '' : measured === 'series' ? 'Series' : 'Parallel';
-        switch (this.measuredBasis) {
-            case 'single-coil': return null;
-            case 'not-stated': return 'Not stated';
-            case 'stated': return `${name} (stated)`;
-            case 'inferred': return `${name} (inferred)`;
-        }
-    }
-
-    /** Why the measured wiring was inferred (a tooltip); null unless it was. */
-    get inferredReason(): string | null {
-        if (this.measuredBasis !== 'inferred') return null;
-        const issue = this.#driver.issues().find(i => i.kind === 'wiring-inferred');
-        return issue === undefined ? null : issue.text;
-    }
-
     /** Re and BL as published, in words. */
     get publishedFigures(): string {
         return figuresText(this.published);
