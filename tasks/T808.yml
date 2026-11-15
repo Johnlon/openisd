@@ -1,0 +1,12 @@
+id: T808
+release_note: internal
+repo: openisd
+owner: ci-baselines
+status: done
+goal: land e2e tests write stamped baseline pictures, so the visual provenance gate (T799) does not refuse their fixtures
+why: John, 15 Nov 2026: main suite must be green (QO923); T799's stamp gate turned two shell tests red on main
+done_test: bash scripts/land/test/land-visual-conflict.e2e.test.sh && bash scripts/land/test/land.e2e.test.sh
+files:
+  - tasks/T808.yml
+  - scripts/land/test/land-visual-conflict.e2e.test.sh
+  - scripts/land/test/land.e2e.test.sh

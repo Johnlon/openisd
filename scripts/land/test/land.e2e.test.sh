@@ -233,7 +233,7 @@ export VISUAL_PAGES_DIR="$SCRATCH/pages" VISUAL_PAGES_URL="http://example.test/p
 SNAP=packages/ui/test/visual/visual.browser.spec.ts-snapshots
 setup; mkdir -p "$SCRATCH/w/w1/$SNAP"; printf one > "$SCRATCH/w/w1/$SNAP/mobile-a.png"
 git -C "$SCRATCH/w/w1" add -A; git -C "$SCRATCH/w/w1" commit -qm "baseline"; git -C "$SCRATCH/w/w1" push -q origin main
-task w1 T1 "*"; printf two > "$SCRATCH/w/w1/$SNAP/mobile-a.png"; git -C "$SCRATCH/w/w1" commit -qam "change a screen"
+task w1 T1 "*"; printf 'two\0openisd-visual-run\0run=7' > "$SCRATCH/w/w1/$SNAP/mobile-a.png"; git -C "$SCRATCH/w/w1" commit -qam "change a screen"
 before=$(origin_head); land w1 T1; r=$?
 if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "visual" "$SCRATCH/out.w1" && grep -q "mobile-a" "$SCRATCH/out.w1"; then
     ok "a changed baseline the task does not list is refused, naming the screen"; else fail "unlisted baseline (r=$r): $(cat "$SCRATCH/out.w1")"; fi

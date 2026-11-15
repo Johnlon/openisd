@@ -36,7 +36,7 @@ setup() {
 #!/usr/bin/env bash
 [ -f gates/retake-fails ] && { echo "retake: browser failed"; exit 1; }
 . scripts/visual/lib.sh
-cat packages/ui/src/*.txt > "$VISUAL_SNAPSHOT_DIR/screen-a.png"
+{ cat packages/ui/src/*.txt; printf "\0openisd-visual-run\0run=7"; } > "$VISUAL_SNAPSHOT_DIR/screen-a.png"   # stamped, as a visual-retake run draws it (T799)
 visual_sources_hash > "$VISUAL_SOURCES_HASH_FILE"
 SH
     cat > land.conf <<EOF
@@ -85,7 +85,7 @@ on_main() { git -C "$ORIGIN" show "main:$1" 2> /dev/null; }
 #    sources hash that matches main's sources
 setup; task w2 T2 2-two.txt; land w2 T2 || fail "the first landing failed: $(tail -5 "$SCRATCH/out.w2")"
 task w1 T1 1-one.txt; land w1 T1; r=$?
-pic="$(on_main "$SNAP/screen-a.png" | tr '\n' ' ')"
+pic="$(on_main "$SNAP/screen-a.png" | tr -d '\0' | sed 's/openisd-visual-runrun=7$//' | tr '\n' ' ')"
 git clone -q "$ORIGIN" "$SCRATCH/w/check"; want="$(cd "$SCRATCH/w/check" && . scripts/visual/lib.sh && visual_sources_hash)"
 if [ $r = 0 ] && [ "$pic" = "base T1 T2 " ] && [ "$(on_main "$HASH")" = "$want" ] && grep -q 're-taking the visual baselines' "$SCRATCH/out.w1"; then
     ok "a conflict on baselines only: main's taken, re-taken on both changes, landed"
