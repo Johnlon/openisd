@@ -725,7 +725,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <!-- Save rail — stacked on the right edge so the buttons consume no vertical space. -->
         <div class="save-rail">
           <button v-if="projectOpen && tabHelpShown" type="button" class="tab-help-btn" aria-label="Help: this tab" title="What this tab is for" @click="openTabHelp">?</button>
-          <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try values &amp; watch the charts. Your project will not be updated." @click="startWhatIf">&#9835; What-if</button>
+          <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try values &amp; watch the charts. Your project will not be updated." @click="startWhatIf"><svg class="whatif-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3 13 1.5V10.5" /><path d="M6 3V12" /><ellipse cx="4.2" cy="12.2" rx="2.2" ry="1.6" /><ellipse cx="11.2" cy="10.7" rx="2.2" ry="1.6" /></svg> What-if</button>
           <button v-if="projectOpen" class="edit-btn project-save-btn" title="Save the project to browser storage" @click="saveProject">Save</button>
           <button v-if="projectOpen" class="edit-btn revert-btn" :disabled="!isModified" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="resetProjectToGround(confirmDiscard)">Revert</button>
         </div>
@@ -1414,6 +1414,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .radio-group { display:flex; align-items:center; gap:14px; }
 .radio-group label { display:flex; align-items:center; gap:4px; }
 .edit-btn, .link-btn, .action-btn { background:#f0f0f0; border:1px solid #999; border-radius:3px; padding:4px 10px; cursor:pointer; }
+.what-if-btn .whatif-icon { width:12px; height:12px; vertical-align:-2px; fill:currentColor; stroke:currentColor; stroke-width:1.4; }
 .edit-btn:hover, .link-btn:hover, .action-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 /* What-if? — the one coloured button on this rail. */
 .what-if-btn { background:#2f76d6; border-color:#2a68bd; color:#fff; }

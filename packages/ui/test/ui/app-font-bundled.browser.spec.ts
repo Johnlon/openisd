@@ -2,7 +2,9 @@
  * The app carries its own fonts and draws every skin in its own one (John, QO466, T742): desktop in Selawik,
  * phone in Roboto, fixed-width text in the mono face; all from our own origin, none a device default.
  * Every text element and form control, on every tab and in the Driver Editor and Options dialogs, computes
- * to exactly its skin's family, and that family is loaded.
+ * to exactly its skin's family, and that family is loaded. That is the DECLARED font; which font painted each glyph is
+ * asked of the browser by test/visual/visual-fonts.browser.spec.ts (a glyph no bundled face has falls to a device font
+ * though the computed family is right).
  */
 import {expect, openAMobileProject, openAProject, test} from '../fixtures.js';
 import {SkinFonts} from '../../../design/fields/appFonts.js';

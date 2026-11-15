@@ -16,12 +16,28 @@ const SOURCE_FILES = execFileSync('git', ['ls-files', 'packages/ui/src', 'packag
 /** Characters with no glyph in any bundled face by design: NO-BREAK SPACE is whitespace. */
 const WHITESPACE = new Set([' ']);
 
+/**
+ * A character reaches the screen as itself or as an escape: an HTML entity (`&#9835;`, `&#x266B;`), a script escape
+ * (`\u266B`, `\u{1F3B5}`) or a CSS escape in `content` (`\266B`). Scanning literals alone missed `&#9632;` and `&#9835;`, which
+ * drew in DejaVu Sans on the machine that had it (John, 2026-11-15); the line is decoded before it is scanned.
+ */
+export function decodeEscapes(line: string): string {
+  // A `\uXXXX` inside a regular-expression literal matches input (the Arabic digits a user may type); it is never drawn.
+  const inRegex = /\/[^/]*\\u[0-9a-fA-F{][^/]*\//.test(line);
+  return (inRegex ? line.replace(/\\u\{?[0-9a-fA-F]+\}?/g, '') : line)
+    .replace(/&#(\d+);/g, (_all, dec: string) => String.fromCodePoint(Number(dec)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_all, hex: string) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/\\u\{([0-9a-fA-F]+)\}/g, (_all, hex: string) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/\\u([0-9a-fA-F]{4})/g, (_all, hex: string) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/content:\s*(["'])\\([0-9a-fA-F]{2,6})\s*\1/g, (_all, _q: string, hex: string) => String.fromCodePoint(parseInt(hex, 16)));
+}
+
 function shownNonAscii(): Set<string> {
   const found = new Set<string>();
   for (const file of SOURCE_FILES) {
     for (const line of readFileSync(ROOT + file, 'utf8').split('\n')) {
       if (/^\s*(\/\/|\*|\/\*)/.test(line)) continue;
-      for (const ch of line) if (ch.codePointAt(0)! > 127 && !WHITESPACE.has(ch)) found.add(ch);
+      for (const ch of decodeEscapes(line)) if (ch.codePointAt(0)! > 127 && !WHITESPACE.has(ch)) found.add(ch);
     }
   }
   return found;
@@ -60,6 +76,11 @@ const TEXT_FACES: Readonly<Record<string, string>> = {
 describe('every non-ASCII character the UI shows is drawn by a bundled face', () => {
   const chars = shownNonAscii();
   const faces = symbolsFaces();
+
+  it('decodes the escapes a literal scan cannot see', () => {
+    expect(decodeEscapes('x.replace(/[\\u0660-\\u0669]/g, d => d)')).not.toContain('\u0660');
+    expect(decodeEscapes('<i>&#9632;</i> &#x266B; \\u25A0 \\u{1F3B5} content: "\\25A0"')).toBe('<i>■</i> ♫ ■ 🎵 ■');
+  });
 
   it('finds the characters', () => expect(chars.size).toBeGreaterThan(40));
 

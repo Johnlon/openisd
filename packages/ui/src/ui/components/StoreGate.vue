@@ -34,7 +34,7 @@ const phone = window.matchMedia(`(max-width: ${PHONE_MAX_WIDTH_PX}px)`).matches;
 .store-gate {
   position: fixed; inset: 0; z-index: 10001; box-sizing: border-box;
   display: flex; align-items: center; justify-content: center; padding: 16px;
-  background: var(--bg, #fff); color: var(--fg, #222); overflow-y: auto;
+  background: var(--bg, #fff); color: var(--fg, #222); overflow-y: auto; font-family: var(--font-ui);
 }
 .store-gate-body { width: min(560px, 100%); }
 .store-gate h1 { font-size: 18px; margin: 0 0 12px; }
@@ -47,7 +47,7 @@ button { min-height: 40px; padding: 0 14px; }
 
 /* Phone (accepted mock, store-gate): the page runs top to bottom, each backup is a card, and Export everything is a full-width button at the foot. */
 @media (max-width: 600px) {
-  .store-gate { display: block; padding: 0; }
+  .store-gate { display: block; padding: 0; --font-ui: var(--font-phone); }
   .store-gate-body { box-sizing: border-box; min-height: 100%; display: flex; flex-direction: column; padding: 20px 16px; }
   .store-gate-brand { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 16px; font-weight: 700; color: var(--acc, #1868d1); }
   .store-gate-brand img { width: 24px; height: 24px; }

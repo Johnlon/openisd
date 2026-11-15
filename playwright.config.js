@@ -152,6 +152,8 @@ export default defineConfig({
   // memory so the suite backs off instead of OOM-killing the WSL VM under memory pressure.
   workers: WORKERS,
   use: {
+    // One time zone for every machine: a time on a screen is formatted in the browser's zone, and CI's is UTC (a picture read 13:00 here, 12:00 there).
+    timezoneId: 'UTC',
     actionTimeout: 20000,
     // A page load under heavy machine load (other sessions running suites) can take tens of
     // seconds; 20 s flickered red at load ~18 (John, 2026-10-04: navigation 60 s).

@@ -479,7 +479,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     crashReports.capture(err);
   };
 
-  for (const [name, value] of SkinFonts.cssVars()) document.documentElement.style.setProperty(name, value);
+  applySkinFonts();
   for (const [name, value] of DesktopSizes.cssVars()) document.documentElement.style.setProperty(name, value);
   for (const [name, value] of PhoneRowSizes.TAB.cssVars()) document.documentElement.style.setProperty(name, value);
   app.mount('#app');
@@ -566,6 +566,12 @@ const recordedProjectIdStore: RecordedProjectIdStore = {
     try { sessionStorage.removeItem(REDIRECT_PROJECT_KEY); } catch { /* ignore */ }
   },
 };
+
+/** The bundled fonts as CSS variables on the page, before anything draws: the store gate shows without the app and needs them as much as the app does. */
+function applySkinFonts(): void {
+  for (const [name, value] of SkinFonts.cssVars()) document.documentElement.style.setProperty(name, value);
+}
+applySkinFonts();
 
 if (opening.kind === 'ready') {
   startApp(opening, loadingOverlay, recordedProjectIdStore);

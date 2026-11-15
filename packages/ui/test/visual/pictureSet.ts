@@ -49,6 +49,7 @@ export const WAITING_FOR_FIX: ReadonlyMap<string, string> = new Map([
 
 /** Screens that draw the same picture because the screen is the same, each group named. */
 export const SAME_PICTURE: readonly {readonly screens: readonly string[]; readonly why: string}[] = [
+  {screens: ['desktop-box-vented', 'desktop-tab-box'], why: 'The sample project is a vented box and opens on the Box tab: setting the box type to vented changes nothing.'},
   {screens: ['desktop-wizard-abc-step4', 'desktop-wizard-bandpass6-step4'], why: 'Wizard step 4 holds the same fields for these two box types.'},
   {
     screens: ['desktop-wizard-abc-step5', 'desktop-wizard-bandpass4-step5', 'desktop-wizard-bandpass6-step5', 'desktop-wizard-sealed-step5', 'desktop-wizard-vented-step5'],
