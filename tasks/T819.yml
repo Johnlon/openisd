@@ -1,0 +1,13 @@
+id: T819
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: admit.sh stops a killed run's job group at once, not after the 10 s KILL timer, so admit-term-group.test.sh no longer fails on a loaded runner
+why: John, 15 Nov 2026: main red on the suite run for 63dc2681; a flaky test is a defect with a cause (BUG_20261115_admit-stop-waits-out-kill-timer)
+done_test: bash scripts/land/test/admit-term-fast.test.sh
+files:
+  - tasks/T819.yml
+  - scripts/admit.sh
+  - scripts/land/test/admit-term-fast.test.sh
+  - bugs/BUG_20261115_admit-stop-waits-out-kill-timer.md
