@@ -87,8 +87,8 @@ const splash = provideSplashModal(presentationState, {
   driverCount: async () => (await bundledDrivers.index()).length,
   passiveRadiatorCount: async () => (await bundledPassiveRadiators.index()).length,
 }, versionIndex);
-// About's Force refresh asks the same unsaved-changes question the update prompt does.
-provideAppUpdateUi(createAppUpdateUi(appUpdate, () => openProjects().some(p => appState.projectHasUnsavedChanges(p)), confirmPort.port));
+// About's Force refresh asks the same question the update prompt does, and only when a reload would lose something.
+provideAppUpdateUi(createAppUpdateUi(appUpdate, confirmPort.port));
 
 // One help page "OpenISD and WinISD differences": the Help menus, the WinISD Compatibility group
 // headings and the ≠W cues all open this instance.
@@ -117,7 +117,6 @@ onMounted(async () => {
     projectRepo,
     viewStateRepo,
     logging,
-    editProjectDriver: () => selection.editProjectDriver(),
     appState,
     presentation: presentationState,
     recordedProjectId,

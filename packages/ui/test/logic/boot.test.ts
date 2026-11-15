@@ -59,7 +59,6 @@ function recording(overrides: {
     },
     viewStateRepo: {load: () => { log.push('view'); return overrides.view ? overrides.view() : null; }},
     logging: {flash: (m: string) => { log.push('flash: ' + m); }},
-    editProjectDriver: () => { log.push('open-editor'); },
     appState, presentation: presentationState,
     recordedProjectId: overrides.recordedProjectId ?? (() => null),
   };
@@ -150,12 +149,16 @@ describe('bootApplication', () => {
     expect(appState.openProjects()).toHaveLength(1);
   });
 
-  it('reopens a panel the stored view left open, once a project is there to open it on', async () => {
+  // T829: the driver editor's typed values and the What-if's values are never stored, so a panel reopened by a
+  // reload would show the old values as if nothing was lost. The stored open flags are not restored.
+  it('does not reopen a panel the stored view left open: its contents were not kept', async () => {
     const session = {projects: [project('one')], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
-    const {log, deps} = recording({session: () => session, view: () => ({ui: {originalWhatIfOpen: true, originalEditorOpen: true}})});
+    const {deps} = recording({session: () => session, view: () => ({ui: {originalWhatIfOpen: true, originalEditorOpen: true}})});
     await bootApplication(deps);
-    expect(presentationState.editDriver).toBe(true);
-    expect(log.indexOf('view')).toBeLessThan(log.indexOf('open-editor'));
+    expect(presentationState.editDriver).toBe(false);
+    expect(presentationState.editDriverInfo).toBe(false);
+    expect(presentationState.ui.originalWhatIfOpen).toBe(false);
+    expect(presentationState.ui.originalEditorOpen).toBe(false);
   });
 
   // John 2026-10-05: close the last project, reload, and the last project came back.

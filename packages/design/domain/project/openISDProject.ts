@@ -960,6 +960,14 @@ export class OpenISDProject {
         return this.#whatif !== null;
     }
 
+    /** Whether the What-if layer holds values that differ from the design. A What-if is never saved
+     *  with the session, so these values are gone when the page reloads. False when none is open, and
+     *  when one is open but untouched. */
+    hasWhatIfChanges(): boolean {
+        const whatIf = this.#whatif;
+        return whatIf !== null && JSON.stringify(whatIf) !== JSON.stringify(this.#committed());
+    }
+
     /** Keep the What-if layer: its values become ordinary unsaved edits of the design and the
      *  layer closes. A no-op when no What-if is open. */
     commitWhatIf(): void {

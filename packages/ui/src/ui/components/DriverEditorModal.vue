@@ -273,6 +273,8 @@ const modalRootEl = ref<HTMLElement | null>(null);
 let phoneLabelColumn: PhoneLabelColumn | null = null;
 watch(modalRootEl, el => { phoneLabelColumn?.stop(); phoneLabelColumn = el !== null && props.skin !== undefined ? createPhoneLabelColumn(el) : null; }, {flush: 'post'});
 onBeforeUnmount(() => phoneLabelColumn?.stop());
+// Closed by OK or Cancel: the draft is no longer work a reload would throw away (T829).
+onBeforeUnmount(() => draft.release());
 const popupStyle = ref<Record<string, string>>({});
 // Phone: height of the docked card. The editor body gets this much bottom padding and scroll
 // padding, so every row can be scrolled clear of the card and the tapped row is kept above it.

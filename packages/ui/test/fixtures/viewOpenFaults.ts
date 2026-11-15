@@ -1,7 +1,7 @@
 import type {Page} from '@playwright/test';
 import {dirtyFocusedDesign} from '../fixtures.js';
 import {tapMobileMenuItem} from './mobileSkin.js';
-import {deliverWaitingBuild} from './updateHost.js';
+import {deliverWaitingBuild, refuseSessionWrites} from './updateHost.js';
 import {WalkSkin} from './viewOpenTypes.js';
 import type {OpenStep} from './viewOpenTypes.js';
 
@@ -29,8 +29,10 @@ const updateStrip: OpenStep = {root: '[data-testid="update-strip"]', open: async
   await page.getByTestId('update-strip').waitFor({state: 'visible'});
 }};
 
-/** The same offer, Reload pressed: the app asks about the unsaved edits first. */
+/** The same offer, Reload pressed after the browser's store stopped taking the session: a reload would lose the
+ *  edits made since, so the app asks and says so. (Unsaved edits the store holds are kept and are not asked about.) */
 const updateReloadAsk: OpenStep = {root: '.confirm-modal', open: async page => {
+  await refuseSessionWrites(page);
   await dirtyFocusedDesign(page);
   await deliverWaitingBuild(page);
   await page.getByTestId('update-reload').click();

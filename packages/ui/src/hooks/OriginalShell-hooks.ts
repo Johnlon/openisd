@@ -776,7 +776,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   useEscToClose(() => cloudDialogOpen.value, closeCloudDialog);
 
   // The update prompt (a newer build waits and edits are unsaved) takes the cloud strip's place.
-  const updateUi = createAppUpdateUi(appUpdate, () => anyUnsaved.value, confirmPort.port);
+  const updateUi = createAppUpdateUi(appUpdate, confirmPort.port);
   const { offered: updateOffered, reload: reloadForUpdate, dismiss: dismissUpdate } = updateUi;
   const {
     available: cloudAvailable,

@@ -167,7 +167,7 @@ export { type EbpBadge, type WizardInfoCard, PhoneWizardText, PhoneWizardHelp } 
 export { DesktopSizes, PickWidth } from './desktopSizes.js';
 export { SheetMode, type SheetEdits } from './sheetMode.js';
 export { NO_PROJECT_OPEN } from './noProject.js';
-export { APP_UPDATE_TEXT, UNSAVED_RELOAD_CONFIRM } from './appUpdateText.js';
+export { APP_UPDATE_TEXT, reloadLossConfirm, type ReloadLoss } from './appUpdateText.js';
 
 export { TuneText } from './tuneText.js';
 export { PhoneDialogHelp, ImportChoiceText, AboutText } from './phoneDialogText.js';

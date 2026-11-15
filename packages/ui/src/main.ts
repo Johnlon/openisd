@@ -1,4 +1,5 @@
 import {AppUpdate} from './logic/appUpdate.js';
+import {reloadLosses, type ReloadFacts} from './logic/reloadLosses.js';
 import {ScriptedUpdateHost} from './logic/scriptedUpdateHost.js';
 import {createLoadingOverlay, type LoadingOverlay} from './logic/loadingOverlay.js';
 import {createStoreGateSession} from './logic/storeGate.js';
@@ -271,12 +272,25 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const updateHost = new ScriptedUpdateHost(location.origin + import.meta.env.BASE_URL);
   const testBuild = import.meta.env.MODE === 'test';
   const controlledAtLoad = testBuild || ('serviceWorker' in navigator && navigator.serviceWorker.controller !== null);
+  // What a reload would lose (T829): unsaved edits are kept by the stored session, so they count only when the
+  // store did not take them; an open driver editor and a What-if are never stored.
+  const reloadFacts = (): ReloadFacts => {
+    const open = appState.openProjects();
+    return {
+      anyUnsaved: open.some(p => appState.projectHasUnsavedChanges(p)),
+      sessionStored: projectRepo.openSessionIsStored(),
+      readOnlyStore: store.readOnly,
+      editorDraftChanged: driverDrafts.hasUnappliedChanges(),
+      whatIfChanged: open.some(p => p.hasWhatIfChanges()),
+    };
+  };
   const appUpdate = new AppUpdate({
     controlledAtLoad,
     container: testBuild ? updateHost : navigator.serviceWorker,
     visibility: {onVisible: listener => document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') listener(); })},
     timer: {every: (ms, listener) => { setInterval(listener, ms); }},
-    anyUnsaved: () => appState.openProjects().some(p => appState.projectHasUnsavedChanges(p)),
+    anyUnsaved: () => { const facts = reloadFacts(); return facts.anyUnsaved || facts.editorDraftChanged || facts.whatIfChanged; },
+    losses: () => reloadLosses(reloadFacts()),
     reload: () => location.reload(),
     caches: {keys: () => globalThis.caches.keys(), delete: name => globalThis.caches.delete(name)},
   });

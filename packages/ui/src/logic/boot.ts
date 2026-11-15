@@ -24,7 +24,6 @@ export interface BootDeps {
   readonly logging: {flash(message: string): void};
   /** Opens the Driver Editor on the focused project — the shell's own action, injected so the
    *  boot does not reach into the selection service itself. */
-  readonly editProjectDriver: () => void;
   readonly appState: AppState;
   readonly presentation: PresentationState;
   readonly recordedProjectId: () => string | null;
@@ -90,13 +89,12 @@ function restoreView(deps: BootDeps): void {
   if (view) deps.appState.applyViewSnapshot(view);
 }
 
-/** Panels the stored view left open. Both read the focused project, so this phase does nothing
- *  without one — the view outlives the project it was stored with. */
-function restorePanels(deps: BootDeps): void {
-  if (deps.appState.focusedProject() === null) return;
-  const presentation = deps.presentation;
-  if (presentation.ui.originalWhatIfOpen === true) presentation.editDriver = true;
-  if (presentation.ui.originalEditorOpen === true && !presentation.editDriverInfo) deps.editProjectDriver();
+/** Panels the stored view left open are NOT reopened (T829): the driver editor's typed values and the What-if's values
+ *  are never stored, so a reopened panel would show the old values as if nothing was lost. The flags are cleared so
+ *  the stored view stops saying they are open. */
+function forgetPanels(deps: BootDeps): void {
+  deps.presentation.ui.originalWhatIfOpen = false;
+  deps.presentation.ui.originalEditorOpen = false;
 }
 
 export interface OAuthBootLocation {
@@ -137,7 +135,7 @@ export async function bootApplication(deps: BootDeps): Promise<void> {
   const session = restoreSession(deps);
   if (session === 'none') restoreLegacyProject(deps);
   restoreView(deps);
-  restorePanels(deps);
+  forgetPanels(deps);
   const recordedId = deps.recordedProjectId();
   if (recordedId !== null) {
     const projects = deps.appState.openProjects();

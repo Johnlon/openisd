@@ -174,7 +174,7 @@ site data, uninstall OpenISD, or lose saved projects to update. Every release th
 service-worker behavior MUST verify an upgrade from a previously installed worker in a persistent
 mobile browser profile. Keep automatic worker activation and controller takeover enabled; update checks
 must bypass HTTP caches. Reload only when there are no unsaved edits; otherwise offer the update and
-keep the current app usable. Keep /about/refresh/ as the recovery link for older workers, because old
+keep the current app usable. Unsaved edits survive a reload (every edit is written to the stored open-project session as it is made and comes back still unsaved), so the Reload and Force refresh question is asked only for what a reload really loses (the store refused the session, a read-only backup, driver editor values not applied, What-if values) and says which (T829, John 2026-11-15). Keep /about/refresh/ as the recovery link for older workers, because old
 workers bypass /about/ but may serve their cached app shell for a new top-level path. Never tell users
 to clear all site data: that can delete their projects.
 

@@ -97,6 +97,48 @@ describe('DriverDrafts.open — a My Driver subject', () => {
   });
 });
 
+describe('DriverDrafts.hasUnappliedChanges — what a reload would throw away (T829)', () => {
+  const drafts = () => new DriverDrafts(createEngine(), appState.appContext);
+
+  it('is false with no editor open, and with one open and left alone', () => {
+    const d = drafts();
+    expect(d.hasUnappliedChanges()).toBe(false);
+    d.open({ kind: 'myDriver', openedAs: 'uuid-1', seed: aDriver('Dayton', 'RS225') });
+    expect(d.hasUnappliedChanges()).toBe(false);
+  });
+
+  it('is false for a new blank My Driver nobody has typed into', () => {
+    const d = drafts();
+    d.open({ kind: 'myDriver', openedAs: '', seed: null });
+    expect(d.hasUnappliedChanges()).toBe(false);
+  });
+
+  it('is true once a value of the open draft differs from what it was opened on', () => {
+    const d = drafts();
+    const draft = d.open({ kind: 'myDriver', openedAs: 'uuid-1', seed: aDriver('Dayton', 'RS225') });
+    draft.driver.model.set('Edited');
+    expect(d.hasUnappliedChanges()).toBe(true);
+  });
+
+  it('is false again after reset(), and after the editor is released (OK or Cancel)', () => {
+    const d = drafts();
+    const draft = d.open({ kind: 'myDriver', openedAs: 'uuid-1', seed: aDriver('Dayton', 'RS225') });
+    draft.driver.model.set('Edited');
+    draft.reset();
+    expect(d.hasUnappliedChanges()).toBe(false);
+    draft.driver.model.set('Edited again');
+    draft.release();
+    expect(d.hasUnappliedChanges()).toBe(false);
+  });
+
+  it('is true when a driver read from a file replaced the draft', () => {
+    const d = drafts();
+    const draft = d.open({ kind: 'myDriver', openedAs: '', seed: null });
+    draft.replace(aDriver('Peerless', 'SLS-830667'));
+    expect(d.hasUnappliedChanges()).toBe(true);
+  });
+});
+
 describe('DriverDrafts.open — wiring, expressed without naming the domain', () => {
   it('setWiring takes the UI word, so no component names the domain enum', () => {
     const draft = new DriverDrafts(createEngine(), appState.appContext).open({ kind: 'myDriver', openedAs: '', seed: aDriver('A', 'B') });

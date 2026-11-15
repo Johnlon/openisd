@@ -171,6 +171,45 @@ describe('projectRepo', () => {
     });
   });
 
+  // T829: the browser's storage swallows a write it cannot take (full, disabled), so a reload only brings
+  // an edit back when the stored session really holds it. The app asks the repo, never assumes.
+  describe('whether the stored session holds the open projects as they are now', () => {
+    /** A storage that stops taking writes when told, as the browser's does once it is full. */
+    function fillable() {
+      const inner = createMemoryStorage();
+      let full = false;
+      const storage: ListableStorage = {...inner, set(key, value) { if (!full) inner.set(key, value); }};
+      return {storage, fill: () => { full = true; }};
+    }
+
+    it('is true after the session was saved, and false once a write did not reach the store', () => {
+      const {storage, fill} = fillable();
+      const repoHere = projectRepoOn(engine, noFiles, storage, 'http://localhost');
+      const project = ProjectBuilder.empty(engine);
+      project.name.set('first');
+      repoHere.saveOpenProjects([project], project, new Set());
+      expect(repoHere.openSessionIsStored()).toBe(true);
+
+      fill();
+      project.name.set('second');
+      repoHere.saveOpenProjects([project], project, new Set());
+      expect(repoHere.openSessionIsStored()).toBe(false);
+    });
+
+    // A session adopted from another tab mints fresh driver ids, so what this tab would serialise differs from
+    // the stored text; the stored text still holds every edit, so a reload loses nothing (review of T829).
+    it('stays true for a session adopted from another tab, and is true again once a refused write is replaced by one that fits', () => {
+      const shared = createSharedMemoryStorage();
+      const project = ProjectBuilder.empty(engine);
+      project.name.set('other tab');
+      projectRepoOn(engine, noFiles, shared.tab(), 'http://localhost').saveOpenProjects([project], project, new Set());
+      const mine = projectRepoOn(engine, noFiles, shared.tab(), 'http://localhost');
+      const session = mine.loadOpenProjects();
+      if (session === null || Array.isArray(session)) throw new Error('expected a session');
+      expect(mine.openSessionIsStored()).toBe(true);
+    });
+  });
+
   describe('a stored box type this build knows is restored', () => {
     it('restores a project stored as "sealed"', () => {
       const result = repo().readProjectText(JSON.stringify(payloadWithBoxType('sealed')));

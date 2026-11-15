@@ -27,6 +27,8 @@ export interface DriverDraft {
   readonly driver: OpenISDDriverStandalone;
   /** Throw the edits away and start again from the same seed. */
   reset(): void;
+  /** The editor closed (OK or Cancel): this draft no longer counts as unapplied work. */
+  release(): void;
   /** Adopt a driver read from a file as the new draft, replacing what was there. */
   replace(driver: OpenISDDriverStandalone): void;
   /** Set the coil wiring. The select's option list (`VC_CONNECTION_OPTIONS`) carries the domain's
@@ -46,7 +48,16 @@ export interface DriverDraft {
 /** Opens the driver editor's editing sessions. Holds the engine and app context a blank My
  *  Driver is built with; constructed once at the composition root. */
 export class DriverDrafts {
+  /** The editing sessions that are open, each with a way to say whether it holds values not yet applied. */
+  private readonly openDrafts = new Set<{changed(): boolean}>();
+
   constructor(private readonly engine: Engine, private readonly appContext: AppContext) {}
+
+  /** Whether an open editor holds values that were typed but not applied (OK) or saved. A reload
+   *  throws these away: they live only in the open dialog, never in the stored session. */
+  hasUnappliedChanges(): boolean {
+    return [...this.openDrafts].some(draft => draft.changed());
+  }
 
   /** `driver` as a new entity: an independent standalone copy with a new id from the app context. */
   copyAsNew(driver: OpenISDDriver): OpenISDDriverStandalone {
@@ -72,11 +83,16 @@ export class DriverDrafts {
       return subject.seed ? subject.seed.detach() : OpenISDDriver.empty(this.engine, this.appContext);
     };
 
+    const textOf = (driver: OpenISDDriverStandalone): string => JSON.stringify(driver.cloneDriver());
     let current = seedDraft();
+    let openedOn = textOf(current);
+    const session = { changed: () => textOf(current) !== openedOn };
+    this.openDrafts.add(session);
 
     return {
       get driver() { return current; },
-      reset() { current = seedDraft(); },
+      reset() { current = seedDraft(); openedOn = textOf(current); },
+      release: () => { this.openDrafts.delete(session); },
       replace(driver: OpenISDDriverStandalone) { current = driver; },
       setWiring(choice: VoiceCoilWiring) {
         const d = current;

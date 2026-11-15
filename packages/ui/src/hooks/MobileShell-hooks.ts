@@ -379,7 +379,7 @@ export function useMobileShell(): MobileShellApi {
   const anyUnsaved = computed(() => openProjects().some(p => projectHasUnsavedChanges(p)));
 
 
-  const updateUi = createAppUpdateUi(appUpdate, () => anyUnsaved.value, confirmPort.port);
+  const updateUi = createAppUpdateUi(appUpdate, confirmPort.port);
   const updateBannerVisible = updateUi.offered;
   const reloadForUpdate = updateUi.reload;
   const dismissUpdateBanner = updateUi.dismiss;

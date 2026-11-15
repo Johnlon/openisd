@@ -140,15 +140,16 @@ test.describe('What-if panel', () => {
       await expect(fsInput).toHaveValue('42');
     });
 
-    test('an open What-if panel stays open across a reload', async ({ page }) => {
+    // T829: a What-if's values are never stored, so a reload does not reopen the panel showing old values as if
+    // nothing was lost. (It used to; this test pinned that.)
+    test('an open What-if panel is not reopened by a reload: its values were not kept', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await page.locator('.save-rail .what-if-btn').click();
-
-      await page.waitForFunction(() => (localStorage.getItem('openisd_view') || '').includes('originalWhatIfOpen'),
-        undefined); // the open-panel flag is persisted
+      await expect(page.locator('.what-if-panel')).toBeVisible();
       await page.reload({ waitUntil: 'domcontentloaded' });
 
-      await expect(page.locator('.what-if-panel')).toBeVisible();          // What-if reopened
+      await page.locator('.project-row').first().waitFor({ state: 'visible' });
+      await expect(page.locator('.what-if-panel')).toHaveCount(0);
     });
 
     test('the What-if panel stays open when the box type changes underneath it', async ({ page }) => {
