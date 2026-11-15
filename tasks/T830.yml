@@ -1,0 +1,24 @@
+id: T830
+release_note: internal
+repo: openisd
+owner: claude-upgrade-incremental
+status: done
+goal: The four baseline pictures that show backup sizes (dialog-options-your-data and dialog-shared-storage-restore-picker, desktop and phone) are re-drawn for the packed backup sizes, so main is green again
+why: John, 15 Nov 2026: main must stay green (T827's compressed backups changed the sizes those four screens show, and the PR gate's visual job did not run)
+done_test: bash scripts/test.sh packages/ui/test/architecture/visual-baselines-distinct.test.ts
+visual:
+  - desktop-dialog-settings-options-your-data
+  - desktop-dialog-shared-storage-restore-picker
+  - mobile-dialog-options-your-data
+  - mobile-dialog-shared-storage-restore-picker
+visual_note: The sizes on Options, Your data are not drawn in the pictures any more (a packed backup is a few characters different each run); the figures themselves read as before.
+label: fixes
+files:
+  - tasks/T830.yml
+  - packages/ui/test/visual/screens.ts
+  - bugs/BUG_20261115_pr-visual-job-skipped-when-sources-and-lockfile-both-change.md
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-settings-options-your-data.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-storage-restore-picker.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-options-your-data.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-storage-restore-picker.png
+  - bugs/BUG_20261115_visual-stamp-run-id-reads-the-png-crc-digit.md
