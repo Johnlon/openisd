@@ -121,10 +121,9 @@ const saveNote: OpenStep = {root: '.mob-save-wrap', open: async page => {
   await page.locator('.mob-save-note').waitFor({state: 'visible'});
 }};
 
-/** Save pressed: the short message strip above the tab bar. */
+/** The short message strip above the tab bar. Pressing Save does not raise it (Save shows the note under the Save button, `phone/save-note`);
+ *  the strip carries the app's other messages, here "Project imported from ...", which is on screen for 2 s after the project opens. */
 const flashStrip: OpenStep = {root: '[data-testid="flash-strip"]', open: async page => {
-  await dirtyFocusedDesign(page);
-  await page.getByTestId('mob-save').click();
   await page.getByTestId('flash-strip').waitFor({state: 'visible'});
 }};
 

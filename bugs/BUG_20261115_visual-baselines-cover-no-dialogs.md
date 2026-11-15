@@ -1,13 +1,6 @@
-> **REVERTED by T817 (15 Nov 2026).** T793 (PR 76, a45abc07) merged and turned main red: `unit-label-underline` and
-> `field-visual-contract` iterate the visual screen list (grown from 60 to 245) and fail on the new `dialog-*` screens, and
-> the shell test `scripts/land/test/visual-page.test.sh` failed. It also merged before review findings were dealt with
-> (some baselines do not show the view they are named for). The bug is OPEN again. The rework must (a) make
-> unit-label-underline and field-visual-contract pass with the new screens, and (b) fix the review findings, before
-> merging again.
-
-
 # BUG_20261115_visual-baselines-cover-no-dialogs
-**Status:** OPEN, T793 was reverted by T817 (was: FIXED by T793, the left-out views below are listed with their reasons)
+
+**Status:** FIXED by T793 (reworked after the T817 revert: see the last section) (the left-out views below are listed with their reasons)
 
 ## Symptom
 
@@ -88,3 +81,61 @@ the phone Box page per box type): about 100 more. Those are screens, not popups,
 
 - The existing baselines `mobile-wizard-bandpass6-step3` and `mobile-wizard-bandpass4-step3` each failed once on a re-run: the same box-type width flake
   as BUG_20261115_mobile-wizard-box-type-select-width-varies. T793 left main's picture in place.
+
+## Review of the pictures (T816)
+
+A look at the CI-drawn pictures found baselines that did not show the view they were named for. `packages/ui/test/visual/pictureSet.ts` now names each case and
+`packages/ui/test/architecture/visual-baselines-distinct.test.ts` fails when a committed picture breaks it: no two pictures are equal unless declared
+(`SAME_PICTURE`), no `<skin>-dialog-*` picture equals the new base screen `<skin>-complete-project` (the project the popups open from), and a left-out view has no picture.
+
+| Picture | Verdict |
+| --- | --- |
+| `desktop-dialog-projects-import-file`, `desktop-dialog-driver-import-file` | Cannot be shown: Import raises the browser's file chooser; the page was left as the Box tab / the driver editor's Parameters tab. Removed. |
+| `mobile-dialog-refresh` | Cannot be shown: the page replaces itself with the app, so its picture is the base screen. Removed. |
+| `mobile-dialog-driver-import` | Same view as `mobile-dialog-driver-more` (Import is a row of the More menu). Kept the latter. |
+| `mobile-dialog-native-files` | Same view as `mobile-dialog-project-import`. Kept the latter. |
+| `desktop-dialog-shared-winisd-difference-entry` | Same view as `desktop-dialog-difference-cue`: the desktop dialog has every entry unfolded. The phone one (an entry unfolds) stays. |
+| `desktop-dialog-driver-search-filters` | Same dialog as `desktop-dialog-driver-library-overview`. Kept the latter. |
+| `*-vented-tuning-warning` (both skins) | Same screen as `*-vented-volume-warning`: both warnings show in the one wizard step. Kept the volume name. |
+| `mobile-dialog-menu-advanced` | The menu item opens the Advanced page, the tab `mobile-tab-advanced`. Removed. |
+| `mobile-dialog-menu-splashmodal` | Same About dialog as `mobile-dialog-about-version`. Kept the latter. |
+| `desktop-dialog-shared-chart-readout` | Own view: 0.3% of its pixels differ from the base screen, the read-out box. Kept. |
+| `*-losses-front` / `*-losses-rear`, `cloud-hint` / `cloud-reconnect-strip` | Own views (heading, chamber, strip text differ). Kept. |
+| `mobile-wizard-sealed-step1` = `step2` (and desktop) | A screens.ts fault: "step 1" pressed Next once and so showed step 2. Step 1 is now the driver list. |
+| Wizard step 4 (abc, bandpass6) and step 5 (five box types) | Same screen for those box types: declared in `SAME_PICTURE`. |
+
+Other findings: the Options dialogs showed "johnl" as the Username input's placeholder text, written in `OptionsModal.vue`; it is now "Your name". The storage line
+"1.2 MB of the 2.3 GB" on `options-your-data` is the stubbed quota of `VisualSkin.start`, not the runner's; the storage-warning screens set their own stub ("99 B of the 100 B"),
+so no storage screen reads the machine's quota. The phone Tune sheets' rows sit in `.mob-sheet-rows`, `overflow: auto`, 171 px high, and scroll: the cut row is at a scroll edge, reachable.
+The crash report card covering the diagnostics buttons is `BUG_20261115_crash-report-card-covers-diagnostics-buttons`. Masks now: the build version in the phone menu header
+(`[data-testid="app-version"]`, on every screen showing the phone menu: menus, confirmations, exports) and the phone About "Build · <date>" line (`[data-testid="about-version-line"]`).
+
+### After the T817 revert (rework)
+
+- The screen list is split by `Screen.kind`: `page` (empty, wizard steps, tabs, box types), `base` (`complete-project`, the project popups open from) and `popup`.
+  `unit-label-underline`, `field-visual-contract` and `scripts/capture-approved-field-paint.ts` walk `PAGE_SCREENS`: they measure the page's own field surface and
+  compare units with a frozen per-screen reference (`approvedJoinedPaint.json`, never refreshed from the app under test). A popup's page is only its backdrop, and a popup's
+  fields are measured by `view-layout-walk` and `field-layout-rules`, which open every popup. `driver-summary-contract` measures `body` and walks all screens.
+  `scripts/visual/screen-names.mjs` gives every popup and the base screen a plain name.
+- The outside review (REVIEW.md) is resolved: `native-keyboard` joins the cannot-be-shown list; the phone pick-error, tuning-unreachable and incomplete-warning steps scroll to their message
+  (it sat below the first screen); the crash step writes its own stack so no test-harness frame is in the picture; the vented warnings are one screen made with a deliberately narrowed band
+  (1-2 L, 1-2 Hz, set in Options by the step, so the text is true); the storage figures are the app's mixing of two measures (own bug file). `mobile-empty` is right (No project open).
+  The app defects it found each have a bug file dated 20261115.
+
+### Second review round (PR 114)
+
+- Left out of the set, each with its reason in `pictureSet.ts`: `mobile-dialog-project-import` (Open a file raises the browser's file chooser; the picture was the phone menu), and the four
+  storage screens (`WAITING_FOR_FIX`): a real user can see "99% full (1 project, 20.7 KB of 5 MB used)" when the site's allowance is full and the local store is not, so the sentence is an app defect
+  (`BUG_20261115_storage-warning-mixes-site-and-local-numbers`) and a baseline must not freeze it. The architecture test checks the named bug file exists.
+- Nothing is left in a "no stable picture" list any more; each was a cause, not a difficulty:
+  - `flash-message`, `phone/flash-strip`: the strip is a 2 s JS timer (`logging/flash.ts`); the picture pauses the page clock (`page.clock.pauseAt`) the moment the strip shows.
+  - `diagnostic-repairs`, `startup-failure`: the fault text names the build's hashed bundle and address; those parts (the stack lines, the "did not load" line) are masked on those views only. The value belongs to the build.
+  - the four signed-in cloud dialogs: their Google stand-in answered Drive's create with a file list, so sync failed ("Retrying at <time>"). They now use the Drive emulator answering in the order asked
+    (the app sends several creates at once and the Activity list shows the order they finish in), and wait for "Synced".
+- `about-version` scrolls to the Version section and masks its heading and stamp (the running build's own date).
+- Wizard step 1 is now the driver list as the wizard opens it. Before, "step 1" clicked a driver and pressed Next, so it was step 2 (desktop) or the driver summary (phone), and
+  `wizard-sealed-step1` equalled `wizard-sealed-step2`. This corrects a mislabelled baseline on main.
+- `<skin>-complete-project` stays: popups open from the complete-driver project, `tab-box` is the sample project, so only it is the exact "nothing opened" picture the gate compares with.
+- The four driver-editor fields with a heavy border (Fs, Vas, Re, Sd on `desktop-dialog-driver-editor-parameters`) are the driver's mandatory inputs: the app sets
+  `de-input-mandatory` (2 px border) on them by design (`style.css`, `NumInput.vue`). Not a defect.
+- New defect files from the review: `lr2-size-line-states-one-section-not-two`, `qes-qms-qts-help-sentence-ambiguous`.

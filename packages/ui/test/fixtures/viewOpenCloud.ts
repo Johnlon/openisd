@@ -1,3 +1,4 @@
+import {expect} from '@playwright/test';
 import type {Page} from '@playwright/test';
 import {openAMobileProject, openAProject} from '../fixtures.js';
 import {DriveEmulator} from './driveEmulator.js';
@@ -28,6 +29,22 @@ async function savedAccount(page: Page, kind: 'token' | 'reconnect'): Promise<vo
   }, [CURRENT_STORAGE_LAYOUT, kind] as const);
 }
 
+/** Google Drive's stand-in for a signed-in account: it answers every Drive call as Drive does (the stub of `stubGoogleApis` answers a create with a file list, so sync failed). */
+async function driveStandIn(page: Page, drive = new DriveEmulator()): Promise<void> {
+  await page.route('**/www.googleapis.com/**', async route => {
+    const request = route.request();
+    const reply = await drive.fetch(request.url(), {method: request.method(), headers: request.headers(), body: request.postData() ?? undefined});
+    await route.fulfill({status: reply.status, contentType: reply.headers.get('content-type') ?? 'application/json', body: await reply.text()});
+  });
+}
+
+/** The Cloud sync dialog says Synced: the first run has ended and the run it set off after it has too (the badge reads busy and "will sync in a moment" between). */
+async function waitForSynced(page: Page, skin: WalkSkin): Promise<void> {
+  await expect(page.locator(dialogRoot(skin)).locator('.cloud-sync-headline').first()).toContainText(/^\s*Synced/);
+  // Both projects of the list have been sent: Activity has a line for each. The second can arrive in a later run than the first, so "Synced" alone is not the end.
+  await expect(page.locator(dialogRoot(skin)).locator('.cloud-sync-activity-line')).toHaveCount(2);
+}
+
 /** Starts the app and opens a project, as the walk's first screen does, in the skin. */
 async function launch(page: Page, skin: WalkSkin): Promise<void> {
   await page.goto('/');
@@ -50,15 +67,19 @@ const dialogRoot = (skin: WalkSkin) => skin === WalkSkin.Phone ? '.mob-dlg' : '.
 /** Signed in: the dialog shows the account and the activity. */
 const cloudDialog = (skin: WalkSkin): OpenStep => ({root: dialogRoot(skin), open: async page => {
   await savedAccount(page, 'token');
+  await driveStandIn(page);
   await launch(page, skin);
   await openCloudDialog(page, skin);
+  await waitForSynced(page, skin);
 }});
 
 /** Signed in, Disconnect pressed: the app asks first. */
 const cloudConfirm = (skin: WalkSkin): OpenStep => ({root: '.confirm-overlay', open: async page => {
   await savedAccount(page, 'token');
+  await driveStandIn(page);
   await launch(page, skin);
   await openCloudDialog(page, skin);
+  await waitForSynced(page, skin);
   await page.locator(dialogRoot(skin)).locator('button', {hasText: 'Disconnect'}).click();
   await page.locator('.confirm-overlay').waitFor({state: 'visible'});
 }});
@@ -68,6 +89,9 @@ const reconnectStrip = (skin: WalkSkin): OpenStep => ({root: skin === WalkSkin.P
   await savedAccount(page, 'reconnect');
   await launch(page, skin);
   await page.locator(skin === WalkSkin.Phone ? '.mob-reconnect-banner' : '.cloud-reconnect-strip').waitFor({state: 'visible'});
+  // The strip shows at once with "1 change not synced"; the app counts the project it saved on opening only when its
+  // 3 s sync debounce fires, and the strip then reads "2 changes not synced". That is the settled screen: wait for it.
+  await expect(page.locator(skin === WalkSkin.Phone ? '.mob-reconnect-banner' : '.cloud-reconnect-strip')).toContainText('2 changes not synced');
 }});
 
 /** A driver edited on two devices: Drive (stand-in) holds the other device's copy, this browser holds its own. */
@@ -91,6 +115,10 @@ const conflictNotice = (skin: WalkSkin): OpenStep => ({root: skin === WalkSkin.P
   }, [bucket, MY_DRIVERS_KEY, CURRENT_STORAGE_LAYOUT] as const);
   await launch(page, skin);
   await page.locator(skin === WalkSkin.Phone ? '.mob-conflict-banner' : '.cloud-conflict-notice:not(.update-strip)').waitFor({state: 'visible'});
+  // The notice shows while the first run is still ending: the toolbar badge reads "N changes will sync in a moment"
+  // (busy glyph) and the project rows "not on Drive yet" until the second run, 3 s later, uploads the conflict copy.
+  // The settled screen is the badge saying both copies are kept (alert glyph) and every row on Drive.
+  await expect(page.locator('.cloud-sync-badge')).toHaveAttribute('title', /Tap to see them\./);
 }});
 
 /** The second launch of a build with cloud sync and no account: the hint offers to turn it on. */

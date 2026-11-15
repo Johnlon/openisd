@@ -3,7 +3,7 @@ import {expect, test} from '../fixtures.js';
 import type {Locator} from '@playwright/test';
 import {ALL_FIELDS, NumberField} from '@openisd/design/fields';
 import {referenceUnitPaint, measureUnitPaint} from '../fixtures/referenceUnitPaint.js';
-import {SCREENS} from '../visual/screens.js';
+import {PAGE_SCREENS} from '../visual/screens.js';
 
 async function waitForLabelsWhereExpected(screenName: string, labels: Locator): Promise<void> {
   if (!/^(tab-box|tab-driver|tab-advanced|tab-enclosure|box-|wizard-.*-step4)/.test(screenName)) return;
@@ -13,7 +13,7 @@ async function waitForLabelsWhereExpected(screenName: string, labels: Locator): 
 // Render the complete app surface: project tabs, all six box types, and every new-project step.
 // This catches fields that never acquire the shared component, even when their visible label or
 // toggle metadata is missing.
-const project_screens = SCREENS.filter(s => s.name !== 'empty');
+const project_screens = PAGE_SCREENS.filter(s => s.name !== 'empty');
 
 for (const screen of project_screens) {
   test(`unit labels match the selected reference ${screen.skin.name} ${screen.name}`, async ({page}) => {

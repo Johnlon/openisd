@@ -32,6 +32,8 @@ const want = {
   'desktop-box-bandpass6': 'Desktop, 6th order bandpass box project',
   'desktop-empty': 'Desktop, no project open',
   'mobile-menu': 'Phone, menu',
+  'desktop-dialog-driver-editor-general': 'Desktop, popup, driver editor general',
+  'mobile-complete-project': 'Phone, complete driver project open, nothing else showing',
 };
 for (const [name, plain] of Object.entries(want)) check(plainScreenName(name) === plain, `${name} -> ${plainScreenName(name)}, wanted ${plain}`);
 const warned = [];

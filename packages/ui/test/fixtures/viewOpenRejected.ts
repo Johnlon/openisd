@@ -72,7 +72,9 @@ async function wizardAtVentedAlignment(page: Page, skin: WalkSkin): Promise<void
   }
 }
 
-/** Narrow the design band to 1 to 2 litres and 1 to 2 Hz in Options, then design a vented box: its volume and tuning fall outside. */
+/** Narrow the design band to 1 to 2 litres and 1 to 2 Hz in Options, then design a vented box: its volume and tuning fall outside.
+ *  The band is set here on purpose (the default is 1 to 100 L and 10 to 150 Hz), so the warning's "1 L - 2 L / 1 Hz - 2 Hz band set in Settings" is true and the
+ *  picture is of a contrived but real state. Both warnings show at once, so volume and tuning are one screen (pictureSet.ts). */
 const ventedBandWarning = (skin: WalkSkin, testid: string): OpenStep => ({root: skin === P ? '.mob-np-overlay' : '.overlay.open .modal', open: async page => {
   await returningUser(page);
   await page.goto('/');

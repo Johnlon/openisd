@@ -9,7 +9,7 @@ seen, named and approved; it is never a surprise.
 | The spec | `packages/ui/test/visual/visual.browser.spec.ts`, one `toHaveScreenshot` per screen |
 | Baselines | `packages/ui/test/visual/visual.browser.spec.ts-snapshots/<skin>-<screen>.png` |
 | Windows | phone 390×844, desktop 1880×1000 (`VisualSkin`) |
-| Tolerance | none; the build stamp is the one masked element |
+| Tolerance | none; the build stamp is masked, and so is any part the machine decides, named per screen in `Screen.mask` (on dialogs only the phone About's build date; the storage quota is fixed by `VisualSkin.start`, and the test server's address is the same port 4300 in the suite and the re-take) |
 | Who draws the baselines | CI's test machine only: `.github/workflows/visual-retake.yml`, in the same image as the suite's browser job. Never a developer machine (T799) |
 
 ## Rules
@@ -23,7 +23,7 @@ seen, named and approved; it is never a surprise.
 | A task changes UI sources | There is no committed hash of the sources (T810: `SOURCES.sha256` conflicted between every two UI pull requests, and each conflict cost a merge plus a full CI re-take just to record a new hash). The guarantee, that the pictures committed are the ones CI draws for the sources committed, is proven by `pr.yml`'s `visual` job: when the change touches a source in `scripts/visual/sources.txt`, a picture, the visual spec, the fixtures, the Playwright config, the test machine's image or the lockfile (`scripts/visual/pr-needs-visual.sh`), it builds the suite's app on the merged result and runs the visual spec in the test machine with no tolerance. It runs on the pull request and again in the merge queue on the queue's merged result, so a picture another pull request made stale is caught before main. A change that touches none of those skips it in seconds. A pull request that changes a screen re-takes its pictures with `update.sh`; one that changes none (a logic change, a text the screens do not show) re-takes nothing, and is never made to conflict. `check-sources.sh` remains only for the retired `land.sh` path. |
 | Two tasks re-took the same baselines | The second to merge conflicts on the pictures they both changed; merge main in, run `update.sh` again, and the `visual` job proves the result. |
 | After a landing that changed baselines | `land.sh` prints `land: visual changes: <url>`, a before/after page for John to approve. |
-| A new screen | Add it to `SCREENS`, take its baseline, list it under `visual:`. |
+| A new screen | Add it to `SCREENS`, take its baseline, list it under `visual:`. A picture must show the view it is named for: `architecture/visual-baselines-distinct.test.ts` fails on two equal pictures not declared in `packages/ui/test/visual/pictureSet.ts`, or on a popup picture equal to `<skin>-complete-project` (a popup that never opened). |
 
 Pages are written under `/home/john/work/winisd/visual-pages/` and served at
 `http://lap:8000/winisd/visual-pages/`.

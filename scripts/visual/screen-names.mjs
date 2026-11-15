@@ -16,6 +16,10 @@ const upper = word => word.charAt(0).toUpperCase() + word.slice(1);
 function screenWords(skin, rest) {
   if (rest === 'empty') return 'no project open';
   if (rest === 'menu') return 'menu';
+  if (rest === 'complete-project') return 'complete driver project open, nothing else showing';
+  // A popup (dialog, sheet, menu, help, note, warning, browser): its view's name in words.
+  let popup = /^dialog-(.+)$/.exec(rest);
+  if (popup) return `popup, ${popup[1].replace(/-/g, ' ')}`;
   let m = /^wizard-(.+)-step(\d)$/.exec(rest);
   if (m && m[1] in BOX_TYPES) {
     const step = Number(m[2]);

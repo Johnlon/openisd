@@ -39,7 +39,12 @@ const updateReloadAsk: OpenStep = {root: '.confirm-modal', open: async page => {
 
 /** An uncaught error in the running page: the crash and report screen. */
 const crash: OpenStep = {root: '[data-testid="crash-screen"]', open: async page => {
-  await page.evaluate(() => { globalThis.dispatchEvent(new ErrorEvent('error', {error: new Error('view walk: uncaught error'), message: 'view walk: uncaught error'})); });
+  // The stack is written out: a real one would name the test harness's frames and their line numbers, which change with its version.
+  await page.evaluate(() => {
+    const error = new Error('view walk: uncaught error');
+    error.stack = 'Error: view walk: uncaught error\n    at checkout (app.js:1:1)';
+    globalThis.dispatchEvent(new ErrorEvent('error', {error, message: 'view walk: uncaught error'}));
+  });
   await page.getByTestId('crash-screen').waitFor({state: 'visible'});
 }};
 
