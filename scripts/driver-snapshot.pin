@@ -1,5 +1,5 @@
 {
-  "winisd_drivers_commit": "a7a9fd39e7a6387bc162c9896ca30f4fdf3d4a70",
+  "winisd_drivers_commit": "9be4f45a13abbc44ae67f149c72784f9fc194895",
   "fixtures": {
     "accuton/bd90-6-727/driver.json": "55e08ce7786cad95e21a6a93544247e25a3b2f3fe17cb8a6806f05f64f8f8a88",
     "accuton/bd90-6-727/openisd.json": "445442ad1b7d5a0d197e87177d68e6a6e5ee20f1fc8016cf618714cd2fb7af73",
@@ -11,5 +11,5 @@
     "sb-acoustics/sb34swpl76-3-dv/driver.json": "db4b0835bd5a5310d5aea40f53a0a33ba030cd034c7c778f34e5f5355f02053e",
     "visaton/gf-250-2-x-4-ohm/driver.json": "4fb31d3804d5ce71c0239506af0ea435f2043241ed140655bf3f45d4ccde48d6"
   },
-  "bundle_sha256": "5b45ea9f0debcfa9ffc65e046bcc9f377f34a44a57d2e22530ce40a74964372e"
+  "bundle_sha256": "f41ae5a00751d51e96b3a7e2bf4cf780658bb5b6feb6d53a82d527ac13001537"
 }
