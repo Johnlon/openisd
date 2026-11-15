@@ -25,7 +25,9 @@ describe('PhoneRowColumns', () => {
     for (const unit of ['Hz', 'L', 'Ω', 'mm']) expect(PhoneRowColumns.chipIsWide(unit)).toBe(false);
   });
 
-  it('gives the phone Signal tab typing box 60% of its column (T720)', () => {
-    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-input-share')).toBe('0.77');
+  it('sizes the phone Signal typing box to the longest value its three fields show (T720, rule 11)', () => {
+    // System input power tops out at 100000.00 W: 9 characters; the volts and the series resistance need 7.
+    expect(PhoneRowColumns.signalInputChars()).toBe(9);
+    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-input-chars')).toBe('9');
   });
 });

@@ -44,9 +44,15 @@ export function measureCompactFields(root: Element, reference: {intrinsic:readon
     if (value instanceof HTMLInputElement && value.readOnly !== readonly) fail('native readonly does not match binding access');
     const box = value.getBoundingClientRect();
     const rowBox = row.getBoundingClientRect();
-    // T720: the phone Signal tab's typing box is 60% of the approved width (PhoneRowColumns.SIGNAL_INPUT_SHARE).
-    const expectedWidth = approved.valueWidth * (value instanceof HTMLInputElement && row.closest('.mob-signal') !== null ? 0.6 : 1);
-    if (Math.abs(box.width-expectedWidth)>0.5)fail(`value width ${box.width}, expected ${expectedWidth}`);
+    // The phone Signal tab's typing box: T720 (John, 8 Nov 2026) asked for it narrower than the 186 px a box had; rule 11 (John, 10 Nov 2026: "a value is never cut")
+    // says it holds the longest value its fields show, 100000.00 W. So it is the narrowest box that holds that figure, its text gutter and its unit chip:
+    // at least the text and no more than one digit wider. Every other box is the approved width.
+    if (value instanceof HTMLInputElement && row.closest('.mob-signal') !== null) {
+      const css = getComputedStyle(value);
+      context.font = css.font;
+      const need = context.measureText('100000.00').width + parseFloat(css.paddingLeft) + parseFloat(css.paddingRight) + parseFloat(css.borderLeftWidth) + parseFloat(css.borderRightWidth);
+      if (box.width < need - 0.5 || box.width > need + context.measureText('0').width + 0.5) fail(`signal box width ${box.width}, expected ${need} to ${need + context.measureText('0').width}`);
+    } else if (Math.abs(box.width-approved.valueWidth)>0.5)fail(`value width ${box.width}, expected ${approved.valueWidth}`);
     if (box.left < rowBox.left || box.right > rowBox.right + 0.5) fail('value leaves the row');
     if (!row.classList.contains('ui-field-note-open') && Math.abs(rowBox.height-approved.rowHeight)>0.5)fail(`row depth ${rowBox.height}, expected ${approved.rowHeight}`);
     const style = getComputedStyle(value);

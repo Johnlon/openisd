@@ -30,14 +30,20 @@ function longestStrings(): Longest[] {
 
 const PAGES = MOBILE_SURFACES.filter(surface => surface.route !== MobileRoute.Manual && surface.root !== '');
 
-/** Views whose Vb box cannot show its top limit in cm3 (100000 L is 100000000 cm3, 76 px; the box holds 68 px beside the 126 px label column). Needs John: lower the limit, or a narrower label column. test.fail: red when fixed, then delete the id. */
-const KNOWN: ReadonlySet<string> = new Set(['box-vented', 'box-bandpass4', 'box-bandpass6', 'box-abc']);
+/** Views whose box cannot show its field's top limit in every unit, with the bug file that says why. Needs John. test.fail: red when fixed, then delete the id. */
+const KNOWN: ReadonlyMap<string, string> = new Map([
+  // Vb top limit in cm3 (100000 L is 100000000 cm3, 76 px; the box holds 68 px beside the 126 px label column): lower the limit, or a narrower label column.
+  ['box-vented', 'BUG_20261110_layout-scan-first-run'],
+  ['box-bandpass4', 'BUG_20261110_layout-scan-first-run'],
+  ['box-bandpass6', 'BUG_20261110_layout-scan-first-run'],
+  ['box-abc', 'BUG_20261110_layout-scan-first-run'],
+]);
 
 for (const surface of PAGES) {
   const id = surface.id;
 
   test(`every number box on ${id} has room for the longest value its field can show in any unit`, async ({page}) => {
-    test.fail(KNOWN.has(id), 'BUG_20261110_layout-scan-first-run');
+    test.fail(KNOWN.has(id), KNOWN.get(id) ?? '');
     await forceMobileSkin(page);
     await page.setViewportSize({width: PIXEL_9.width, height: 2600});
     await page.goto('/');

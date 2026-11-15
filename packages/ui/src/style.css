@@ -292,11 +292,15 @@ a { color:var(--acc) }
   height: var(--mob-input-h); margin-right: calc(var(--mob-tail) + 1px); display: flex; align-items: center; justify-content: center;
   font-size: 13px;
 }
-/* Signal tab (T720): the typing box takes a share (PhoneRowColumns.SIGNAL_INPUT_SHARE) of its column,
+/* Signal tab (T720): the typing box holds PhoneRowColumns.signalInputChars() digits (rule 11), its text gutter and its unit chip,
    left edge unchanged; the unit chip stays on the box's right edge. */
-.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-value .num-input-wrap { width: calc(100% * var(--mob-col-input-share)); justify-self: start; }
-.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-unit { margin-right: calc(100% * (1 - var(--mob-col-input-share))); }
-.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-value .num-stepper { grid-column: 2; grid-row: 1; justify-self: start; margin-left: calc(100% * var(--mob-col-input-share)) !important; }
+.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-value .num-input-wrap { width: var(--mob-signal-w); justify-self: start; }
+/* A registered length, so the row resolves its 1ch (the box's own 15 px digit) once and the chip and the arrows, in other fonts, read pixels. */
+@property --mob-signal-w { syntax: '<length>'; inherits: true; initial-value: 0px; }
+/* 1ch is a digit of the number box's own font: this row sets it to the box's 15 px. */
+.mob-classic.mob-signal .mob-ui-field.ui-field { font-size: 15px; font-family: var(--font-ui); --mob-signal-w: round(up, calc(var(--mob-col-input-chars) * 1ch + var(--mob-col-gutter) + var(--mob-chip)), 1px); }
+.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-unit { margin-right: calc(100% - var(--mob-signal-w)); }
+.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-value .num-stepper { grid-column: 2; grid-row: 1; justify-self: start; margin-left: var(--mob-signal-w) !important; }
 /* Phone chips sit inside the value box and retain their own divider. A mandatory
    value's stronger top/bottom outline must continue through the unit segment. */
 .mob-classic .mob-ui-field.ui-field .ui-field-unit.unit-toggle { height: var(--mob-input-h); }

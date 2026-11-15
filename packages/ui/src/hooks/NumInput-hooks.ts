@@ -144,6 +144,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     nativeTextSelection = e.shiftKey;
     touchCaret = e.pointerType === 'touch';
     lastStep = null;   // a tap or click in the box puts the caret, even where the last step left it
+    pressedDigitAtDown = {kind: 'none'};
     const el = inputEl.value;
     if (el === null || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
     pointerEntering = document.activeElement !== el;
@@ -153,6 +154,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     }
     if (isReadonly.value) return;
     const pressed = pressedDigitOf(el, e.clientX);
+    pressedDigitAtDown = pressed;
     dragAbort?.abort();
     const abort = new AbortController();
     dragAbort = abort;
@@ -222,6 +224,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
   let dragSpinning = false;
   let touchCaret = false;
   let pointerSpinOccurred = false;
+  let pressedDigitAtDown: StepAt = {kind: 'none'};
   let pointerTextSelecting = false;
   let nativeTextSelection = false;
 
@@ -247,7 +250,8 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
       rememberCaret();
       return;
     }
-    const at = pressedDigitOf(el, event.clientX);
+    // A press that drifts less than the spin threshold is still a click on the digit it pressed, whatever width that digit has in the font.
+    const at = pressedDigitAtDown.kind === 'digit' ? pressedDigitAtDown : pressedDigitOf(el, event.clientX);
     if (at.kind === 'digit') chooseDigit(at.at);
   }
 
