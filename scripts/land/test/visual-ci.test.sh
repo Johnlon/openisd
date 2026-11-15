@@ -104,8 +104,26 @@ bash scripts/visual/update.sh > "$SCRATCH/out" 2>&1 && ok "update.sh on a machin
 [ "$(cat packages/ui/test/visual/SOURCES.sha256)" = "$(cat "$FIX/SOURCES.sha256")" ] && ok "SOURCES.sha256 is the hash CI computed for these sources" || fail "sources hash"
 grep -q "^run list .*--branch visual-retake/t1" "$GH_CALLS" && ok "CI is asked for this branch's commit" || fail "calls: $(cat "$GH_CALLS")"
 [ -z "$(git ls-remote origin 'refs/heads/visual-retake/*')" ] && ok "the temporary retake branch is deleted afterwards" || fail "retake branch left on the remote"
+# a GitHub API failure while waiting is not reported as a failed run, and --run takes a finished run without pushing
+git add -A; git commit -qm "re-taken"
+cat > "$SCRATCH/gh3" <<'EOF2'
+#!/usr/bin/env bash
+echo "$*" >> "$GH_CALLS"
+case "$1 $2" in
+  "run list") echo 55 ;;
+  "run watch") echo "HTTP 403: API rate limit exceeded"; exit 1 ;;
+  "run view") exit 1 ;;
+  "run download") d="${@: -1}"; mkdir -p "$d"; cp -r "$FIX/." "$d/" ;;
+esac
+EOF2
+chmod +x "$SCRATCH/gh3"
+VISUAL_GH="$SCRATCH/gh3" bash scripts/visual/update.sh > "$SCRATCH/out" 2>&1 && fail "an unreadable run was taken" || { grep -q "could not read run 55" "$SCRATCH/out" && grep -q -- "--run 55" "$SCRATCH/out" && ok "a GitHub API error is not called a failed run, and the resume command is named" || fail "api text: $(cat "$SCRATCH/out")"; }
+: > "$GH_CALLS"
+sed -i 's/"run watch") echo.*/"run watch") exit 0 ;;/' "$SCRATCH/gh3"
+VISUAL_GH="$SCRATCH/gh3" bash scripts/visual/retake-ci.sh --run 55 > "$SCRATCH/out" 2>&1 && ok "--run takes a finished run" || fail "--run: $(cat "$SCRATCH/out")"
+! grep -q "^run list" "$GH_CALLS" && [ -z "$(git ls-remote origin 'refs/heads/visual-retake/*')" ] && ok "--run pushes nothing and looks nothing up" || fail "--run pushed or searched: $(cat "$GH_CALLS")"
+echo wrong > "$FIX/SOURCES.sha256"
 # a CI result whose sources hash differs from this tree's (the tree moved after the push) is refused
-git add -A; git commit -qm "re-taken"; echo wrong > "$FIX/SOURCES.sha256"
 bash scripts/visual/update.sh > "$SCRATCH/out" 2>&1 && fail "a result for other sources was taken" || { grep -q "sources" "$SCRATCH/out" && ok "a result drawn from other sources is refused" || fail "text: $(cat "$SCRATCH/out")"; }
 unset VISUAL_GH
 
