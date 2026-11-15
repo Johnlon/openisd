@@ -42,8 +42,13 @@ if ! "$GH" run watch "$run" -R "$REPO" --interval 20 --exit-status > "$work/watc
 fi
 "$GH" run download "$run" -R "$REPO" -n visual-baselines -D "$work/r"
 [ "$(cat "$work/r/SOURCES.sha256")" = "$(visual_sources_hash)" ] || { echo "retake-ci: CI drew from other sources than these (the UI sources hash differs); nothing taken" >&2; exit 1; }
-( cd "$work/r/pictures" && { [ -z "$(ls -A .)" ] || sha256sum -c --quiet "$work/r/MANIFEST.sha256"; } ) || { echo "retake-ci: a downloaded picture does not match the run's manifest; nothing taken" >&2; exit 1; }
-mkdir -p "$VISUAL_SNAPSHOT_DIR"; cp -f "$work"/r/pictures/*.png "$VISUAL_SNAPSHOT_DIR/" 2> /dev/null || true
+# no picture differs: the artifact has no pictures/ folder and an empty manifest; there is nothing to check or copy
+if [ -s "$work/r/MANIFEST.sha256" ]; then
+  { [ -d "$work/r/pictures" ] && ( cd "$work/r/pictures" && sha256sum -c --quiet "$work/r/MANIFEST.sha256" ); } || { echo "retake-ci: a downloaded picture does not match the run's manifest; nothing taken" >&2; exit 1; }
+  mkdir -p "$VISUAL_SNAPSHOT_DIR"; cp -f "$work"/r/pictures/*.png "$VISUAL_SNAPSHOT_DIR/"
+else
+  echo "retake-ci: no picture changed"
+fi
 cp "$work/r/SOURCES.sha256" "$VISUAL_SOURCES_HASH_FILE"
 git status --short -- packages/ui/test/visual | sed -n 's#^.. .*/\([^/]*\)\.png$#visual: changed \1#p'
 echo "retake-ci: done (run $run); list the changed screens under visual: and commit"

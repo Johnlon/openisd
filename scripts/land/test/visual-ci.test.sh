@@ -122,6 +122,14 @@ VISUAL_GH="$SCRATCH/gh3" bash scripts/visual/update.sh > "$SCRATCH/out" 2>&1 && 
 sed -i 's/"run watch") echo.*/"run watch") exit 0 ;;/' "$SCRATCH/gh3"
 VISUAL_GH="$SCRATCH/gh3" bash scripts/visual/retake-ci.sh --run 55 > "$SCRATCH/out" 2>&1 && ok "--run takes a finished run" || fail "--run: $(cat "$SCRATCH/out")"
 ! grep -q "^run list" "$GH_CALLS" && [ -z "$(git ls-remote origin 'refs/heads/visual-retake/*')" ] && ok "--run pushes nothing and looks nothing up" || fail "--run pushed or searched: $(cat "$GH_CALLS")"
+# a re-take that changed no picture: the artifact has no pictures/ folder and an empty manifest. The sources hash is taken, exit 0.
+EMPTY="$SCRATCH/empty"; mkdir -p "$EMPTY"; : > "$EMPTY/MANIFEST.sha256"; ( . scripts/visual/lib.sh; visual_sources_hash > "$EMPTY/SOURCES.sha256" )
+sed -i "s#cp -r \"\$FIX/.\"#cp -r \"\${FIX_DIR:-\$FIX}/.\"#" "$SCRATCH/gh3"
+echo stale > packages/ui/test/visual/SOURCES.sha256; git add -A; git commit -qm stale-hash
+FIX_DIR="$EMPTY" VISUAL_GH="$SCRATCH/gh3" bash scripts/visual/retake-ci.sh --run 55 > "$SCRATCH/out" 2>&1 && ok "an empty re-take (no pictures folder, empty manifest) exits 0" || fail "empty re-take: $(cat "$SCRATCH/out")"
+grep -q "no picture changed" "$SCRATCH/out" && ok "an empty re-take says no picture changed" || fail "empty re-take text: $(cat "$SCRATCH/out")"
+[ "$(cat packages/ui/test/visual/SOURCES.sha256)" = "$(cat "$EMPTY/SOURCES.sha256")" ] && [ -z "$(git status --short -- "$SNAP")" ] && ok "an empty re-take records the sources hash and changes no picture" || fail "empty re-take wrote wrongly: $(git status --short)"
+git checkout -q -- . 2> /dev/null; git clean -fdq 2> /dev/null
 echo wrong > "$FIX/SOURCES.sha256"
 # a CI result whose sources hash differs from this tree's (the tree moved after the push) is refused
 bash scripts/visual/update.sh > "$SCRATCH/out" 2>&1 && fail "a result for other sources was taken" || { grep -q "sources" "$SCRATCH/out" && ok "a result drawn from other sources is refused" || fail "text: $(cat "$SCRATCH/out")"; }
