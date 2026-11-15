@@ -201,8 +201,10 @@ const usableReadingJsonSchema = z.strictObject({
  *  (John, 2026-10-20: "the scraper collects facts it read"). One list per variant; add a reason
  *  here and every exhaustive match sees it. */
 export const UNPARSED_REJECTION_REASONS = ['no-numeric-value', 'unit-not-recognised', 'multiple-values'] as const;
-/** Why a number WAS read but is refused. */
-export const PARSED_REJECTION_REASONS = ['ohm-glyph-merged-as-digit'] as const;
+/** Why a number WAS read but is refused: a digit merged in from an ohm glyph, or a number outside the
+ *  field's physical band (a unit slip such as `750 kHz` for 750 Hz, or `-0.55 mH`). The refused number
+ *  stays in `read_value`; it never wins (ruling QO934, QO935). */
+export const PARSED_REJECTION_REASONS = ['ohm-glyph-merged-as-digit', 'out-of-physical-range'] as const;
 export type UnparsedRejectionReason = typeof UNPARSED_REJECTION_REASONS[number];
 export type ParsedRejectionReason = typeof PARSED_REJECTION_REASONS[number];
 
@@ -253,7 +255,7 @@ const rejectedUnrecognisedParsedReadingJsonSchema = z.strictObject({
  *
  * - Usable `{actual_reading?, read_value: number}`: the printed text parsed to a number.
  * - RejectedParsed `{actual_reading, read_value, rejected}`: a number was read and refused, e.g.
- *   `ohm-glyph-merged-as-digit`.
+ *   `ohm-glyph-merged-as-digit` or `out-of-physical-range`.
  * - RejectedUnparsed `{actual_reading?, rejected}`: no number was read, e.g. `no-numeric-value`.
  *   It has no `read_value`.
  *

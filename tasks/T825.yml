@@ -1,0 +1,16 @@
+id: T825
+release_note: internal
+repo: openisd
+owner: claude-sub
+status: done
+goal: The app knows the scraper rejection reason out-of-physical-range: a refused out-of-range reading raises no unrecognised-reason line and reads sensibly where rejected readings are shown
+why: John, 15 Nov 2026 (QO934, QO935): the scraper starts writing out-of-physical-range; BUG_20261115_out-of-physical-range-reason-unknown-to-the-app
+ruling: QO934
+done_test: bash scripts/test.sh packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+files:
+  - tasks/T825.yml
+  - bugs/BUG_20261115_out-of-physical-range-reason-unknown-to-the-app.md
+  - bugs/BUG_20261115_provenance-view-cannot-show-a-refused-sibling-reading.md
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - scripts/schemagen/out/driver_model.py

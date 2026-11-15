@@ -271,6 +271,42 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.equal(at(re, 'readings', 'manufacturer_datasheet', 'actual_reading'), 'banana');
     });
 
+    // The scraper refuses a reading that parses outside the field's physical band (QO934/QO935):
+    // wavecor/tw030wa21 Fs printed "750 kHz" on the sheet and "750 Hz" on the page.
+    it('a reading refused as out-of-physical-range is a known reason: kept, no unknown-reason warning, the other source wins', () => {
+      const record: unknown = parse(daytonDriverYml());
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
+      const refused = {actual_reading: '750 kHz', read_value: 750000, read_precision: 500, rejected: 'out-of-physical-range'};
+      woofer.Fs_hz = {readings: {
+        manufacturer_datasheet: refused,
+        manufacturer_product_page: {actual_reading: '750 Hz', read_value: 750, read_precision: 0.5},
+      }};
+      const {openisd, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      assert.ok(openisd !== null, `errors: ${JSON.stringify(errors)}`);
+      assert.deepEqual(errors.filter(e => e.message.includes('unrecognised rejection reason')), []);
+      assert.deepEqual(errors.filter(e => e.message.includes('physical limit') && e.field.endsWith('Fs_hz')), []);
+      const fs = at(parse(openisd), 'specs', 'woofer', 'Fs_hz');
+      assert.equal(at(fs, 'state'), 'E');
+      assert.equal(at(fs, 'value'), 750);
+    });
+
+    it('a field whose only reading was refused as out-of-physical-range is not available and the comment says why', () => {
+      const record: unknown = parse(daytonDriverYml());
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
+      woofer.Xlim_m = {readings: {manufacturer_datasheet:
+        {actual_reading: '750 kHz', read_value: 750000, read_precision: 500, rejected: 'out-of-physical-range'}}};
+      const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      assert.ok(openisd !== null && wdr !== null, `errors: ${JSON.stringify(errors)}`);
+      assert.deepEqual(errors.filter(e => e.message.includes('unrecognised rejection reason')), []);
+      const re = at(parse(openisd), 'specs', 'woofer', 'Xlim_m');
+      assert.equal(at(re, 'state'), 'N');
+      assert.equal(at(re, 'readings', 'manufacturer_datasheet', 'rejected'), 'out-of-physical-range');
+      const commentLine = wdr.split(/\r?\n/).find(l => l.startsWith('Comment='));
+      assert.ok(commentLine?.includes('Xlim_m: manufacturer_datasheet 750 kHz — out-of-physical-range'), `got: ${commentLine}`);
+    });
+
     it('an unknown rejection reason loads and raises one named warning', () => {
       const record: unknown = parse(daytonDriverYml());
       const woofer = at(record, 'specs', 'woofer');
