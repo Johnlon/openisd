@@ -120,4 +120,14 @@ describe('createPassiveRadiatorActions', () => {
     expect(radiatorPicks.saved).toHaveBeenCalledTimes(1);
     expect(radiatorPicks.bundled).not.toHaveBeenCalled();
   });
+
+  it('Info shows Date added as the dashed day whether the radiator holds the stamp or the dashed day', () => {
+    const { project, actions } = setUp();
+    project.box.passiveRadiator.radiator.added.set('20261116');
+    actions.openPRInfo();
+    expect(actions.prInfo.value?.lines.find(l => l.label === 'Date added')?.value).toBe('2026-11-16');
+    project.box.passiveRadiator.radiator.added.set('2026-09-12');
+    actions.openPRInfo();
+    expect(actions.prInfo.value?.lines.find(l => l.label === 'Date added')?.value).toBe('2026-09-12');
+  });
 });

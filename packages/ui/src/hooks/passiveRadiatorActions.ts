@@ -5,7 +5,7 @@
  * Skin-neutral: shared by every shell's PR page (one implementation, two presentations).
  */
 import {ref} from 'vue';
-import {NumberField} from '@openisd/design/fields';
+import {isoDay, NumberField} from '@openisd/design/fields';
 import type {ComputedRef} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 import type {BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo} from '@openisd/persistence';
@@ -97,7 +97,7 @@ export function createPassiveRadiatorActions({ project, myPassiveRadiators, bund
       lines: [
         { label: 'Brand', value: r.brand.value }, { label: 'Model', value: r.model.value },
         { label: 'Manufacturer', value: r.manufacturer.value }, { label: 'Measured by', value: r.providedBy.value ?? '' },
-        { label: 'Date added', value: r.added.value ?? '' }, { label: 'Description', value: r.comment.value ?? '' },
+        { label: 'Date added', value: isoDay(r.added.value ?? '') }, { label: 'Description', value: r.comment.value ?? '' },
       ].filter(l => l.value !== ''),
     };
   }

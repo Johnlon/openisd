@@ -12,7 +12,7 @@ import type {ComputedRef, Ref} from 'vue';
 import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 import type {MyPassiveRadiatorRepo} from '@openisd/persistence';
 import {type EnvironmentEngine, FixedAir, type PrEngine} from '@openisd/design/engine';
-import {NumberField} from '@openisd/design/fields';
+import {isoDay, NumberField} from '@openisd/design/fields';
 import type {ClearableUICell} from '../ui/components/uiFieldBinding.js';
 import type {PassiveRadiatorStepCells} from './OriginalNewProject-hooks.js';
 import {PROVENANCE_MAP} from '../logic/provenance.js';
@@ -198,7 +198,7 @@ export function createPassiveRadiatorEditor({myPassiveRadiators, resolve, files}
     const pr = draft.value;
     return {
       manufacturer: pr?.manufacturer.value ?? '', brand: pr?.brand.value ?? '', model: pr?.model.value ?? '',
-      providedBy: pr?.providedBy.value ?? '', added: pr?.added.value ?? '', comment: pr?.comment.value ?? '',
+      providedBy: pr?.providedBy.value ?? '', added: isoDay(pr?.added.value ?? ''), comment: pr?.comment.value ?? '',
     };
   });
   const canSave = computed(() => name.value.trim() !== '');

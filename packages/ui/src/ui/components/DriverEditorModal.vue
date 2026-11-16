@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
+import {DateField, isoDay, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import {computed, nextTick, onBeforeUnmount, provide, ref, watch} from 'vue';
 import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../hooks/phoneLabelColumn.js';
@@ -146,7 +146,7 @@ const driverRaw = computed(() => {
     manufacturer: d.manufacturer.value,
     providedBy: d.providedBy.value,
     comment: d.comment.value,
-    added: d.added.value,
+    added: isoDay(d.added.value ?? ''),
     sku: d.sku.value,
     VCCon: d.specs.VCCon.value,
   };

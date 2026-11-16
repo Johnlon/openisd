@@ -197,3 +197,19 @@ describe('createPassiveRadiatorEditor — the General fields the radiator record
     expect(apply.mock.calls[0]?.[0]?.comment.value).toBe('Measured at home');
   });
 });
+
+// Issue 157: Define new showed Date added as 20261116 while Edit of an existing radiator showed 2026-09-12.
+describe('createPassiveRadiatorEditor — Date added', () => {
+  it('shows a newly defined radiator\'s date the way an existing one is shown, with dashes', () => {
+    const {editor} = setUp();
+    editor.open(OpenISDPassiveRadiatorStandalone.empty(), 'Define new', vi.fn<ApplyRadiator>());
+    expect(editor.identity.value.added).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('reads a file saved with the dash-less stamp back with dashes', () => {
+    const {editor, source} = setUp();
+    source.added.set('20260912');
+    editor.open(source, 'Edit', vi.fn<ApplyRadiator>());
+    expect(editor.identity.value.added).toBe('2026-09-12');
+  });
+});

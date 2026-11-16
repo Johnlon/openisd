@@ -1,5 +1,5 @@
 import {afterEach, describe, it, expect, vi} from 'vitest';
-import {dateStampFrom, formatCount, formatDate, formatDateStamp, formatDateTime, parseBasicUtc} from '../../fields/format.js';
+import {dateStampFrom, isoDay, formatCount, formatDate, formatDateStamp, formatDateTime, parseBasicUtc} from '../../fields/format.js';
 
 // John, 2026-10-05: "never never never use US style" dates. Date and time for a user: day, month
 // name, year, 24-hour clock, no seconds ("1 Jan 2026, 01:02", T056); a bare date stays yyyy-mm-dd.
@@ -83,5 +83,15 @@ describe('project Created/Modified stamps', () => {
 
   it('round-trips: what is shown reads back as the same stamp', () => {
     expect(dateStampFrom(formatDateStamp('20261016'), '')).toBe('20261016');
+  });
+});
+
+describe('isoDay (issue 157: Date added reads one way everywhere)', () => {
+  it('shows a WinISD stamp with dashes, leaves an ISO day alone, keeps other text as stored', () => {
+    expect(isoDay('20261116')).toBe('2026-11-16');
+    expect(isoDay('2026-09-12')).toBe('2026-09-12');
+    expect(isoDay('20261340')).toBe('20261340');
+    expect(isoDay('')).toBe('');
+    expect(isoDay('sometime')).toBe('sometime');
   });
 });
