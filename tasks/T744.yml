@@ -1,17 +1,18 @@
 id: T744
 repo: openisd
 owner: leader
-status: in_progress
+status: done
 # ruling text: QO534 - John, 11 Nov 2026: "an entered value is never overwritten with a calculated value"; "going forward the editor and pr settings will use the [on-screen] values not hidden recalcs always"; on the warning mark: "all get the mark".
 # ruling: QO535 - John, 11 Nov 2026 (What-if): "what if is all about tweaking things you need to buy a different driver to obtain, ie experiments and learning"; "I only want to add inputs" (Qts, Sensitivity, Cms, Rms).
 # ruling: QO532 - John (decided highlight): the boxes that feed the engine are "not dimmed, just accentuated"; "ok but not like that with the input cell fucked up".
 # ruling: QO532 - John, 11 Nov 2026, on the "Desktop: driver editor, Parameters page, Blue dot" picture: "do this" (a blue dot right of the label; no ring, no bold).
 # ruling: QO539 - John, 11 Nov 2026, on driver files whose Mms, Cms, Rms disagree with their Fs, Vas, Qms: "B" (the charts keep the on-screen boxes; an option "Chart from Fs, Vas, Qms (WinISD's way)", unticked by default, charts them WinISD's way; openisdSchema.ts gains the switch).
+# ruling: QO539 help text - John approved 16 Nov 2026 14:51 UTC (woody board QO946.c167) the switch help "Chart from Fs, Vas, Qms: WinISD draws its charts from Fs, Vas and Qms ... Tick this to draw from Fs, Vas and Qms as WinISD does." (field.ts ADV_WINISDCHARTFROMFSVASQMS; phone line in phoneText.ts).
 # The gate reads the first bare ruling line; QO534 is the driver-model ruling for this task (openIsdDriverSpec.ts changes).
 ruling: QO534
-why: 'John, 11 Nov 2026 (QO534): "the editor and pr settings will use the [on-screen] values not hidden recalcs always"; (QO535) What-if is for experiments and learning'
+why: 'John, 11 Nov 2026 (QO534): "an entered value is never overwritten with a calculated value"; "the editor and pr settings will use the [on-screen] values not hidden recalcs always"; "all get the mark". (QO535) What-if is for experiments and learning: "I only want to add inputs". (QO532) the boxes the charts read get a blue dot. (QO539, B) WinISD''s way stays one tick away, unticked by default.'
 release_note: The driver editor and the passive radiator settings chart exactly the values in their boxes; a value you type is never replaced, and when boxes disagree every box involved is marked and its note says what the maths gives. The boxes that feed the charts are highlighted. The What-if panel gains Qts, Sensitivity, Cms and Rms, and a typed value moves the figures that follow it, so the boxes always agree.
-goal: The editor and radiator settings chart what the boxes show; What-if gains four inputs and a move rule; the engine-feeding boxes are highlighted
+goal: The driver editor and radiator settings chart what the boxes show and mark every box of a disagreeing set; What-if gains Qts, Sensitivity, Cms and Rms and a move rule; a blue dot marks every box the charts read; the "Chart from Fs, Vas, Qms" switch (unticked) charts WinISD's way
 goal_detail:
   - "QO534 driver editor and radiator settings: an entered value is never overwritten with a calculated value; an empty box is calculated and shown. The charts use the boxes that feed the engine (Sd, Mms, Cms, Rms, Bl, Re, Le) as they show, never worked out again from Fs, Vas and the Q's. Test: packages/design/test/domain/on-screen-values.test.ts rows 0-4 and the radiator cases."
   - "QO534 warning mark: when boxes disagree, every box in the disagreeing relation carries the existing warning mark; its popup names the boxes and says what the maths gives (e.g. 'Fs, Mms and Cms disagree: Fs = 1/(2π·√(Mms·Cms)) gives Fs 34.9 Hz, the box says 40.00 Hz'). Test: on-screen-values.test.ts 'row 1: the popup'."
@@ -145,13 +146,11 @@ files:
   - packages/ui/src/hooks/phoneLabelColumn.ts
   - packages/ui/test/fixtures/engineDot.ts
   - packages/ui/test/fixtures/fieldLayoutAudit.ts
-  - packages/ui/test/visual/SOURCES.sha256
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
@@ -174,14 +173,14 @@ files:
   - packages/design/domain/project/sheetSlots.ts
   - packages/design/test/fields/sheetMode.test.ts
   - packages/ui/src/hooks/OriginalWhatIf-hooks.ts
-  - packages/design/fields/sheetMode.ts
-  - packages/ui/test/ui/layout-scan-desktop.browser.spec.ts
   - packages/design/test/domain/project/sheet-slots.test.ts
   - packages/design/fields/chartPageText.ts
   - packages/design/test/fields/chartPage.test.ts
   - packages/ui/test/ui/mobile-sheet.browser.spec.ts
   - packages/design/test/fields/toggle-field-label-lines.test.ts
   - packages/design/test/fields/sheetField.test.ts
+  - packages/design/test/domain/blank-device-id.test.ts
+  - packages/ui/test/fixtures/generateSample.ts
 # Desktop and phone graph screens: the charts read the boxes as they show (QO534); phone Driver tab: the blue dot by Re (QO532);
 # both Advanced tabs: the "Chart from Fs, Vas, Qms (WinISD's way)" switch (QO539); every desktop screen: the saved size of a new project (its new switch).
 visual:
@@ -190,7 +189,6 @@ visual:
   - desktop-box-bandpass6
   - desktop-box-box-passive-radiator
   - desktop-box-sealed
-  - desktop-box-vented
   - desktop-tab-advanced
   - desktop-tab-box
   - desktop-tab-driver
