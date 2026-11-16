@@ -169,6 +169,9 @@ files:
   - packages/design/test/fields/sheetField.test.ts
   - packages/design/test/domain/blank-device-id.test.ts
   - packages/ui/test/fixtures/generateSample.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-pr-edit.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-passive-radiator-info.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-passive-radiator-edit.png
   - packages/ui/test/ui/pr-editor.browser.spec.ts
   - packages/ui/src/ui/components/PREditorDialog.vue
   - packages/design/domain/project/projectResolve.ts
@@ -232,6 +235,9 @@ files:
 # both Advanced tabs: the "Chart from Fs, Vas, Qms (WinISD's way)" switch (QO539); every desktop screen: the saved size of a new project (its new switch).
 # Driver editor and radiator dialogs: the blue dots and ≠W cues; other dialogs over a project: its saved size (re-taken by CI after the merge with main, 16 Nov).
 visual:
+  - mobile-dialog-pr-edit
+  - desktop-dialog-enclosure-passive-radiator-info
+  - desktop-dialog-enclosure-passive-radiator-edit
   - desktop-box-abc
   - desktop-box-bandpass4
   - desktop-box-bandpass6
