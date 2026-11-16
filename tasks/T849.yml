@@ -1,0 +1,17 @@
+id: T849
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: The release prepare step and the layout scans no longer need /home/john - the UI gallery folder is found from the repo's own location, so they run on both machines
+why: "John, 16 Nov 2026: scripts/release.sh --prepare fails on the johnl machine (EACCES mkdir /home/john/work/winisd/ui-gallery) because scripts/ui-gallery/capture.mjs hard-coded /home/john. Committed files use repo-relative paths. The gallery root is now <repo>/../ui-gallery, computed from the script's location; the two layout-scan specs use the same resolver (only the path changed)."
+done_test: bash scripts/test.sh packages/ui/test/scripts/gallery-root.test.ts
+files:
+  - tasks/T849.yml
+  - scripts/ui-gallery/galleryRoot.mjs
+  - scripts/ui-gallery/galleryRoot.d.mts
+  - scripts/ui-gallery/capture.mjs
+  - scripts/ui-gallery/README.md
+  - packages/ui/test/scripts/gallery-root.test.ts
+  - packages/ui/test/ui/layout-scan.browser.spec.ts
+  - packages/ui/test/ui/layout-scan-desktop.browser.spec.ts

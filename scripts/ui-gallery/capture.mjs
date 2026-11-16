@@ -7,11 +7,12 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { SCREENS, reset } from './screens.mjs';
 import { measure } from './measure.mjs';
+import { galleryRoot } from './galleryRoot.mjs';
 
 const DEFAULT_BEFORE = 'https://snapshots.openisd.app/v/20261015T1542Z/';
 // The newest snapshot: a real deployed build, so cloud sync shows as users see it.
 const DEFAULT_AFTER = 'https://test.openisd.app/';
-const DEFAULT_ROOT = '/home/john/work/winisd/ui-gallery';
+const DEFAULT_ROOT = galleryRoot();
 
 const VIEWPORTS = {
   d: { name: 'desktop', label: 'Desktop 1440x900', displayWidth: 560, ctx: { viewport: { width: 1440, height: 900 } } },

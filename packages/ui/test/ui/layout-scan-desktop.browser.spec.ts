@@ -8,6 +8,8 @@
  */
 import type {Page} from '@playwright/test';
 import {appendFileSync, mkdirSync} from 'node:fs';
+import {join} from 'node:path';
+import {galleryRoot} from '../../../../scripts/ui-gallery/galleryRoot.mjs';
 import {COMPLETE_DRIVER_PROJECT_OWPR, openAProject, test, expect} from '../fixtures.js';
 import {measureFieldLayoutRules, measureLabelGaps} from '../fixtures/fieldLayoutAudit.js';
 import {DESKTOP_SURFACES, DesktopRoute} from '../fixtures/desktopSurfaceManifest.js';
@@ -15,7 +17,7 @@ import {openDesktopSurface} from '../fixtures/desktopSurfaceNavigation.js';
 import {DesktopSizes} from '@openisd/design/fields';
 import {enableCloudSync, stubGoogleApis} from './fixtures/cloudSyncStubs.js';
 
-const RESULTS = '/home/john/work/winisd/ui-gallery/T742-phone-clip';
+const RESULTS = join(galleryRoot(), 'T742-phone-clip');
 const SIZES = [{width: 1280, height: 720}, {width: 1440, height: 900}] as const;
 /** The cloud entry exists only in a build with a client id: the same stand-in the cloud specs use for the outside service. */
 async function prepareCloud(page: Page, surface: {readonly route: DesktopRoute}): Promise<void> {
