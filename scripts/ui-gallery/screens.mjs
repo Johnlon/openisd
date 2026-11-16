@@ -85,7 +85,7 @@ const openGroupHelp = async (page) => {
 };
 
 async function saveCurrentProject(page) {
-  if (page.viewportSize().width > 800) await page.getByRole('button', { name: 'Save', exact: true }).click(T);
+  if (page.viewportSize().width > 800) await page.getByTitle('Save the project to browser storage', { exact: true }).click(T);
   else await page.locator('[data-testid="mob-save"]').click(T);
   await page.waitForTimeout(300);
 }
@@ -213,11 +213,11 @@ export const SCREENS = [
   // A vented project: its box tab. Last, because the project stays vented.
   { key: 'tab-enclosure', label: 'Enclosure tab (vented box)', vp: BOTH, covers: ['MobileEnclosureTab', 'VentPortFields', 'OriginalShell'], act: async (p) => { await (p.viewportSize().width > 800 ? clickText(p, 'Box') : clickBtn(p, 'Box')); await makeVented(p); await (p.viewportSize().width > 800 ? clickText(p, 'Vented') : clickIfPresent(p, ENCLOSURE_TAB)); await p.waitForTimeout(400); } },
   // A passive-radiator project: its box tab, the radiator browser, its editor and its info.
-  { key: 'tab-passive-radiator', label: 'Passive radiator tab', vp: BOTH, keep: true, covers: ['MobileEnclosureTab', 'OriginalShell'], act: async (p) => { await (p.viewportSize().width > 800 ? clickText(p, 'Box') : clickBtn(p, 'Box')); await p.locator('select:visible').filter({ hasText: 'Passive Radiator' }).first().selectOption('Passive Radiator'); await p.waitForTimeout(800); await (p.viewportSize().width > 800 ? clickText(p, 'Passive Radiator') : clickIfPresent(p, 'Passive Radiator')); await p.waitForTimeout(400); await saveCurrentProject(p); } },
-  { key: 'pr-browser', label: 'Select passive radiator dialog', vp: BOTH, covers: ['PRBrowser'], act: async (p) => { await p.getByRole('button', { name: p.viewportSize().width > 800 ? 'Select passive radiator' : 'Select PR', exact: true }).click(T); await p.waitForTimeout(500); } },
+  { key: 'tab-passive-radiator', label: 'Passive radiator tab', vp: BOTH, keep: true, covers: ['MobileEnclosureTab', 'OriginalShell'], act: async (p) => { await (p.viewportSize().width > 800 ? clickText(p, 'Box') : clickBtn(p, 'Box')); await p.locator('select:visible').filter({ hasText: 'Passive Radiator' }).first().selectOption('Passive Radiator'); await p.waitForTimeout(800); await (p.viewportSize().width > 800 ? p.locator('.project-nav li', { hasText: 'Passive Radiator' }).click(T) : clickIfPresent(p, 'Passive Radiator')); await p.waitForTimeout(400); await saveCurrentProject(p); } },
+  { key: 'pr-browser', label: 'Select passive radiator dialog', vp: BOTH, covers: ['PRBrowser'], act: async (p) => { await p.getByRole('button', { name: p.viewportSize().width > 800 ? 'Select passive radiator' : 'Select PR', exact: true }).click(T); await p.locator('.pr-filter').waitFor(T); } },
   { key: 'pr-define', label: 'Define new passive radiator dialog', vp: BOTH, covers: ['PREditorDialog'], act: async (p) => { await p.getByRole('button', { name: p.viewportSize().width > 800 ? 'Select passive radiator' : 'Select PR', exact: true }).click(T); await p.getByRole('button', { name: /Define new passive radiator/ }).click(T); await p.getByRole('dialog', { name: 'Define new passive radiator' }).waitFor(T); } },
-  { key: 'pr-editor', label: 'Passive radiator editor', vp: BOTH, covers: ['PREditorDialog'], act: async (p) => { await p.locator(p.viewportSize().width > 800 ? '#og-pr-edit' : '#mob-pr-edit').click(T); await p.locator('.prd-panel').waitFor(T); } },
-  { key: 'pr-info', label: 'Passive radiator info', vp: BOTH, covers: ['PRInfoDialog'], act: async (p) => { await p.locator(p.viewportSize().width > 800 ? '#og-pr-info' : '#mob-pr-info').click(T); await p.locator('.pri-panel').waitFor(T); } },
+  { key: 'pr-editor', label: 'Passive radiator editor', vp: BOTH, covers: ['PREditorDialog'], act: async (p) => { await p.locator(p.viewportSize().width > 800 ? '#og-pr-edit' : '#mob-pr-edit').click(T); await p.getByRole('dialog', { name: "Edit Project's Passive Radiator" }).waitFor(T); } },
+  { key: 'pr-info', label: 'Passive radiator info', vp: BOTH, covers: ['PRInfoDialog'], act: async (p) => { await p.locator(p.viewportSize().width > 800 ? '#og-pr-info' : '#mob-pr-info').click(T); await p.getByRole('dialog').filter({ hasText: 'Passive Radiator' }).waitFor(T); } },
   // The wizard again, this time choosing a passive radiator: its own step, then the radiator browser inside it.
   { key: 'wizard-pr-step', label: 'New project, passive radiator step', vp: BOTH, keep: true, covers: ['NewProjectPassiveRadiatorStep', 'OriginalNewProject', 'MobileNewProject'], act: async (page) => {
       await startWizard(page);

@@ -23,8 +23,8 @@ function parseArgs(argv) {
   const o = { before: DEFAULT_BEFORE, after: DEFAULT_AFTER, root: DEFAULT_ROOT };
   for (let i = 0; i < argv.length; i += 2) {
     const k = argv[i];
-    if (!['--before', '--after', '--root', '--rebuild'].includes(k) || argv[i + 1] === undefined) {
-      console.error('usage: capture.mjs [--rebuild <run dir>] [--before <url|dir of an earlier run after/|none>] [--after <url>] [--root <dir>]');
+    if (!['--before', '--after', '--root', '--rebuild', '--only'].includes(k) || argv[i + 1] === undefined) {
+      console.error('usage: capture.mjs [--rebuild <run dir>] [--before <url|dir of an earlier run after/|none>] [--after <url>] [--root <dir>] [--only <screen keys, comma separated>]');
       process.exit(2);
     }
     o[k.slice(2)] = argv[i + 1];
@@ -45,7 +45,7 @@ async function captureSide(browser, side, dir, flush) {
     page.setDefaultTimeout(4000);
     await page.goto(url, { waitUntil: 'load' });
     await page.waitForTimeout(2500);
-    for (const s of SCREENS.filter((x) => x.vp.includes(vk))) {
+    for (const s of SCREENS.filter((x) => x.vp.includes(vk) && (!opts.only || opts.only.split(',').includes(x.key)))) {
       const id = `${vp.name}-${s.key}`;
       try {
         await s.act(page);
