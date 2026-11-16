@@ -230,7 +230,7 @@ export class DriverEngineImpl implements DriverEngine {
     const fallback = this.qFallback(values);
     const Qes = fallback ?? values.Qes;
     const Qms = fallback ?? values.Qms;
-    const mech = this.winisdMechanics({...values, Qms}, air);
+    const mech = this.winisdRadiatorMechanics({...values, Qms}, air);
     const Cms_m_per_N = mech.Cms_m_per_N;
     const Re_terminal_ohm = values.Re_terminal_ohm;
     const BL = isPositive(Re_terminal_ohm) && isPositive(Fs_hz) && isPositive(Qes) && isPositive(Cms_m_per_N)
@@ -241,13 +241,9 @@ export class DriverEngineImpl implements DriverEngine {
     };
   }
 
-  winisdRadiatorMechanics(radiator: RadiatorFigures, air: Air): RadiatorMechanics {
-    return this.winisdMechanics(radiator, air);
-  }
-
   /** WinISD's Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms; each stated value stands where its
-   *  own inputs are missing or the result is not positive. Shared by the driver and the passive radiator. */
-  private winisdMechanics(f: RadiatorFigures, air: Air): RadiatorMechanics {
+   *  own inputs are missing or the result is not positive. Shared by the driver (`winisdCircuitValues`) and the passive radiator. */
+  winisdRadiatorMechanics(f: RadiatorFigures, air: Air): RadiatorMechanics {
     const {Fs_hz, Vas_m3, Sd_m2, Qms} = f;
     const routeValue = (route: DriverRoute, working: DriverWorkingSet): number | null => {
       const v = route.value(working);
