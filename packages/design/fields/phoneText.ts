@@ -50,7 +50,6 @@ export class PhoneLabels {
   static readonly PR_ADDED_MASS = 'Added mass';
   static readonly PR_FPR_MASS = 'Fpr with mass';
   static readonly DRIVERS = 'Drivers';
-  static readonly CONNECTION = 'Connection';
   static readonly POWER = 'Power';
   static readonly VOLTS = 'Volts';
   static readonly RS = 'Rs';
@@ -149,7 +148,6 @@ export class PhoneHelpRows {
   static readonly PR_RESONANCE_WITH_MASS: PhoneHelpRow = {label: 'Resonance with mass', text: 'the frequency at which the passive radiator vibrates most freely, with the added mass.'};
   static readonly VELOCITY_LIMIT: PhoneHelpRow = {label: 'Velocity limit', text: 'the air speed above which the charts mark the vent as likely to be noisy.'};
   static readonly DRIVERS: PhoneHelpRow = {label: 'Drivers', text: 'the number of drivers in the box.'};
-  static readonly CONNECTION: PhoneHelpRow = {label: 'Connection', text: 'parallel or series wiring of the drivers. It sets the load in ohms the amplifier drives.'};
   static readonly POWER: PhoneHelpRow = {label: 'Power', text: 'the amplifier power, measured into the driver\'s rated load in ohms.'};
   static readonly VOLTS: PhoneHelpRow = {label: 'Volts', text: 'the amplifier output voltage. Power and Volts set each other.'};
   static readonly RS: PhoneHelpRow = {label: 'Rs', text: 'the resistance of the cable and amplifier between the amplifier and the driver.'};
@@ -214,11 +212,10 @@ export class PhoneHelp {
   static readonly CHART = new PhoneHelpSection('Chart', 'Settings for the charts. They do not change the design.', [
     PhoneHelpRows.VELOCITY_LIMIT,
   ]);
-  static readonly DRIVER = new PhoneHelpSection('Driver', 'The driver used in this design and how the drivers are wired.', [
+  static readonly DRIVER = new PhoneHelpSection('Driver', 'The driver used in this design and how many of them the box holds.', [
     {label: 'Select driver', text: 'picks a driver from the library.'},
     {label: 'Edit', text: 'opens the driver\'s parameters.'},
     PhoneHelpRows.DRIVERS,
-    PhoneHelpRows.CONNECTION,
   ]);
   static readonly KEY_FIGURES = new PhoneHelpSection('Key figures', 'The driver\'s main parameters, for reference. Tap one to edit the driver.', [
     {label: 'Fs', text: 'the frequency at which the driver vibrates most freely, out of a box. Lower Fs can reach lower bass.'},
@@ -339,7 +336,6 @@ export class PhoneHelp {
     bugLine(ToggleField.ADV_WINISDPRNPRRESONANCE, 'WinISD takes passive radiator losses at the wrong frequency, with more than one radiator.', WinisdDeviation.PR_NPR_RESONANCE),
     bugLine(ToggleField.ADV_WINISDBESSELHIGHPASS, 'WinISD\'s Bessel high-pass is not the mirror of its low-pass.', WinisdFilterDeviation.BESSEL_HIGHPASS),
     bugLine(ToggleField.ADV_WINISDABCGROUPDELAY, 'WinISD\'s ABC group delay leaves the driver out.', WinisdDeviation.ABC_GROUP_DELAY),
-    bugLine(ToggleField.ADV_WINISDDRIVERCOUNTMODEL, 'with more than one driver, WinISD\'s impedance chart shows one driver.', WinisdDeviation.DRIVER_COUNT),
     bugLine(ToggleField.ADV_WINISDSEALEDPICKER, 'WinISD\'s sealed picker suggests a volume for your Qtc, but the Box tab then shows a different Qtc.', WinisdDeviation.SEALED_PICKER),
     bugLine(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'with the transmission line model on, WinISD leaves out the port end correction and tunes the box higher.', WinisdDeviation.TL_PORT_END_CORRECTION),
   ]);

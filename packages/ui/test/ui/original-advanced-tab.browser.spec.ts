@@ -324,7 +324,7 @@ test.describe('Original Advanced tab', () => {
     test('WinISD Compatibility labels say "optional" or "bug" and are unclipped', async ({ appPage: page }) => {
       const panel = page.locator('.sim-options-box');
       const labels = panel.locator('label[data-field-key]');
-      await expect(labels).toHaveText([/Phase wrapping/, /Uncapped flat response/, /Simplified ABC intra-port velocity/, /Two-BL driver/, /Re without Rg/, /PR Npr resonance/, /Bessel high-pass/, /ABC group delay/, /Per-driver impedance/, /Sealed picker volume/, /TL port without end correction/]);
+      await expect(labels).toHaveText([/Phase wrapping/, /Uncapped flat response/, /Simplified ABC intra-port velocity/, /Two-BL driver/, /Re without Rg/, /PR Npr resonance/, /Bessel high-pass/, /ABC group delay/, /Sealed picker volume/, /TL port without end correction/]);
       // A pane too narrow for every column scrolls sideways: scrolled to its right end, nothing is clipped.
       await page.locator('.tab-section.active').evaluate(el => { el.scrollLeft = el.scrollWidth; });
       const panelBox = (await panel.boundingBox())!;
@@ -468,23 +468,13 @@ test.describe('Original Advanced tab', () => {
       });
     }
 
-    test('the driver count carries the ≠W cue at any count while "Per-driver impedance" is off', async ({ appPage: page }) => {
+    test('the driver count has no ≠W cue and the Per-driver impedance switch is gone (QO941: one driver\'s impedance is WinISD\'s)', async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       const drivers = page.locator('.field', { hasText: 'Num. of drivers' });
-      const cue = drivers.locator('.winisd-deviation-cue');
-      await drivers.locator('select').selectOption('1');
-      await expect(cue).toHaveCount(1);
       await drivers.locator('select').selectOption('2');
-      await expect(cue).toHaveCount(1);
-      await expect(cue).toHaveAttribute('title', /one driver's impedance/);
+      await expect(drivers.locator('.winisd-deviation-cue')).toHaveCount(0);
       await page.locator('li', { hasText: /^Advanced$/ }).click();
-      const sw = page.locator('[data-field-key="winisdDriverCountModel"]');
-      await expect(sw).toHaveClass(/error-switch-marked/);
-      await expect(sw.locator('input')).toBeEnabled();
-      await expect(sw.locator('input')).not.toBeChecked();
-      await sw.locator('input').check();
-      await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-      await expect(cue).toHaveCount(0);
+      await expect(page.locator('[data-field-key="winisdDriverCountModel"]')).toHaveCount(0);
     });
 
     // John, 2026-10-05: at a large browser zoom every switch label wrapped onto 2-3 lines. A page
@@ -494,7 +484,7 @@ test.describe('Original Advanced tab', () => {
         await page.setViewportSize({width, height});
         await showAdvancedOn(page, 'abc');
         const labels = page.locator('.sim-switches label[data-field-key]');
-        await expect(labels).toHaveCount(11);
+        await expect(labels).toHaveCount(10);
         for (const label of await labels.all()) {
           const m = await label.evaluate(el => {
             const r = document.createRange(); r.selectNodeContents(el);
@@ -619,11 +609,11 @@ test.describe('Original Advanced tab', () => {
   });
 
   test.describe('WinISD bugs group', () => {
-    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdDriverCountModel', 'winisdSealedPicker', 'winisdTlPortNoEndCorrection'];
+    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdSealedPicker', 'winisdTlPortNoEndCorrection'];
     /** The box type each error switch acts on; a switch that applies everywhere is shown on an ABC box. */
     const BOX_FOR: Record<string, BoxTypeName> = {winisdPrNprResonance: 'box-passive-radiator', winisdSealedPicker: 'sealed'};
     /** The Bessel switch acts only on a project with a Bessel high-pass filter, so it cannot be ticked here. */
-    const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass' && key !== 'winisdDriverCountModel' && key !== 'winisdTlPortNoEndCorrection');
+    const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass' && key !== 'winisdTlPortNoEndCorrection');
     const DESIGN_KEYS = ['winisdWrapPhase', 'winisdFlatModel', 'winisdAbcIntraPortVelocity'];
 
     test('the error switches carry the warning class, unticked and ticked', async ({ appPage: page }) => {

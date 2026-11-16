@@ -13,7 +13,6 @@ import PortShapeToggle from '../../components/PortShapeToggle.vue';
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import DriverCoilWiring from '../../components/DriverCoilWiring.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
-import UIPickField from '../../components/UIPickField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
@@ -66,7 +65,7 @@ const {
   showEnclosureTab, enclosureNavLabel,
   helpPanel, closeHelp, openSectionHelp, openTabHelp, tabHelpShown, rearChamberHelp, frontChamberHelp, passiveRadiatorHelp, userOptionsHelp,
   placementHelp, advancedOptionsHelp, listeningPlaceHelp, signalSourceHelp, limitsHelp, ventHelp,
-  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
+  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown,
   boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -466,16 +465,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div class="short-pick-fields">
               <DesktopBand :section="placementHelp" style="margin-bottom:4px;" @help="openSectionHelp" />
               <div class="field-row" style="margin-bottom:4px;">
-                <UIFixedField class="field" input-id="og-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="DesktopLabels.NUM_DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" :deviation="driverCountDeviationShown ? WinisdDeviation.DRIVER_COUNT : undefined" />
+                <UIFixedField class="field" input-id="og-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="DesktopLabels.NUM_DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" />
               </div>
               <div class="radio-group field-row" style="margin-bottom:4px;">
                 <label><input type="radio" name="og-placement" value="standard" v-model="placement"> Standard</label>
                 <label><input type="radio" name="og-placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
-              </div>
-              <div class="field-row" style="margin-bottom:4px;">
-                <UIPickField class="field" common :label="DesktopLabels.VOICE_COIL_CONNECTION" input-id="og-wiring">
-                  <select id="og-wiring" :value="project.wiring.value" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) project.wiring.set(w); }"><option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
-                </UIPickField>
               </div>
               <DriverCoilWiring />
             </div>
@@ -681,11 +675,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <div>
                     <ErrorSwitch as="label" field-key="winisdAbcGroupDelay" style="font-size: 12px;" :marked="errorSwitches.abcGroupDelay.marked" :applicable="errorSwitches.abcGroupDelay.applicable" :reproduces-error="errorSwitches.abcGroupDelay.reproducesError" :title="ToggleField.ADV_WINISDABCGROUPDELAY.description">
                       <input type="checkbox" :checked="project.winisdAbcGroupDelay.value" :disabled="!errorSwitches.abcGroupDelay.applicable" @change="e => setCompatSwitch(project.winisdAbcGroupDelay, inputChecked(e))"> {{ ToggleField.ADV_WINISDABCGROUPDELAY.label }}
-                    </ErrorSwitch>
-                  </div>
-                  <div>
-                    <ErrorSwitch as="label" field-key="winisdDriverCountModel" style="font-size: 12px;" :marked="errorSwitches.driverCount.marked" :applicable="errorSwitches.driverCount.applicable" :reproduces-error="errorSwitches.driverCount.reproducesError" :title="ToggleField.ADV_WINISDDRIVERCOUNTMODEL.description">
-                      <input type="checkbox" :checked="project.winisdDriverCountModel.value" :disabled="!errorSwitches.driverCount.applicable" @change="e => setCompatSwitch(project.winisdDriverCountModel, inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
                     </ErrorSwitch>
                   </div>
                   <div>

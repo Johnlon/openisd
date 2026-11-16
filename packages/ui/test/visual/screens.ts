@@ -180,7 +180,10 @@ function screens(): readonly Screen[] {
       await expect(page.locator(FADING_STRIP)).toHaveCount(0, {timeout: 15_000});
     }, [...MACHINE_DECIDED_PARTS, ...(VIEW_MASKS.get(view.id) ?? [])], plan.ownConsoleErrors, 'popup'));
   }
-  return all;
+  // One rule for every screen, not only the popups: a view pictured under another name, or one that cannot be shown, has no
+  // screen of its own (pictureSet.ts). The box screens above are listed by hand, so without this the retake drew
+  // `desktop-box-vented` again although it is declared the same view as `desktop-tab-box`.
+  return all.filter(s => { const key = `${s.skin.name}-${s.name}`; return !(SAME_VIEW.has(key) || CANNOT_BE_SHOWN.has(key) || WAITING_FOR_FIX.has(key)); });
 }
 
 /**

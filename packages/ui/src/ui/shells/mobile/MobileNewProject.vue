@@ -41,8 +41,6 @@ const {
 
   nDrivers,
   placement,
-  wiring,
-  ARRAY_WIRING_OPTIONS,
 
   boxType,
   BOX_OPTIONS,
@@ -185,12 +183,6 @@ function handleCreate() {
           <div class="mob-np-pic mob-np-pic-note">
             <PlacementDiagram :placement="placement" />
             <div v-if="placement === 'iso'" class="mob-np-pic-caption">{{ PhoneWizardText.ISOBARIK_NOT_MODELLED }}</div>
-          </div>
-          <div class="mob-crow">
-            <label class="mob-crow-label" for="np-wiring">{{ PhoneLabels.CONNECTION }}</label>
-            <select id="np-wiring" class="mob-cselect" :value="wiring" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) wiring = w; }">
-              <option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-            </select>
           </div>
         </template>
 

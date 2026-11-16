@@ -57,27 +57,6 @@ describe('errorSwitches', () => {
     expect(p.errorSwitches.prNprResonance).toEqual({marked: true, applicable: true, inScope: true, reproducesError: true});
   });
 
-  it('per-driver impedance: in scope on every box; applicable with more than one driver only; reproducing the bug only when ticked', () => {
-    const p = abcProject();
-    p.nDrivers.set(1);
-    expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: false, inScope: true, reproducesError: false});
-    p.nDrivers.set(2);
-    expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: true, inScope: true, reproducesError: false});
-    p.winisdDriverCountModel.set(true);
-    expect(p.errorSwitches.driverCount).toEqual({marked: true, applicable: true, inScope: true, reproducesError: true});
-  });
-
-  it('per-driver impedance: the cue shows at any driver count while the switch is off (John, 2026-10-05)', () => {
-    const p = abcProject();
-    p.nDrivers.set(1);
-    expect(WinisdDeviation.DRIVER_COUNT.cueShown(p.errorSwitches)).toBe(true);
-    p.nDrivers.set(2);
-    expect(WinisdDeviation.DRIVER_COUNT.cueShown(p.errorSwitches)).toBe(true);
-    expect(WinisdDeviation.DRIVER_COUNT.remedy).toMatch(/"Per-driver impedance"/);
-    p.winisdDriverCountModel.set(true);
-    expect(WinisdDeviation.DRIVER_COUNT.cueShown(p.errorSwitches)).toBe(false);
-  });
-
   it('loss model: not an error switch, whatever the box and model', () => {
     const p = abcProject();
     p.box.boxType.set('box-passive-radiator');
@@ -95,7 +74,7 @@ describe('WinISD deviation cues', () => {
       expect(d.size.length, d.title).toBeGreaterThan(0);
       expect(d.remedy.length, d.title).toBeGreaterThan(0);
     }
-    expect(WinisdDeviation.ALL).toEqual([WinisdDeviation.DRIVER_MODEL, WinisdDeviation.VA_MODEL, WinisdDeviation.PR_NPR_RESONANCE, WinisdDeviation.ABC_GROUP_DELAY, WinisdDeviation.TL_PORT_END_CORRECTION, WinisdDeviation.DRIVER_COUNT, WinisdDeviation.SEALED_PICKER, WinisdDeviation.CLOSED_BOX_TYPING, WinisdDeviation.PR_BOX_TUNING, WinisdDeviation.PR_MMS_CMS_TYPING]);
+    expect(WinisdDeviation.ALL).toEqual([WinisdDeviation.DRIVER_MODEL, WinisdDeviation.VA_MODEL, WinisdDeviation.PR_NPR_RESONANCE, WinisdDeviation.ABC_GROUP_DELAY, WinisdDeviation.TL_PORT_END_CORRECTION, WinisdDeviation.SEALED_PICKER, WinisdDeviation.CLOSED_BOX_TYPING, WinisdDeviation.PR_BOX_TUNING, WinisdDeviation.PR_MMS_CMS_TYPING]);
     expect(WinisdFilterDeviation.ALL).toEqual([WinisdFilterDeviation.ALLPASS_ORDER, WinisdFilterDeviation.LINKWITZ_RILEY_ORDER, WinisdFilterDeviation.BESSEL_HIGHPASS]);
     expect(WinisdFilterDeviation.BESSEL_HIGHPASS.remedy).toMatch(/"Bessel high-pass"/);
     expect(WinisdFilterDeviation.ALLPASS_ORDER.remedy).toMatch(/no switch/);

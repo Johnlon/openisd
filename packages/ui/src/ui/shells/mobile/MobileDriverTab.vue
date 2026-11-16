@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // The mobile Driver tab — identity, driver count, voice-coil wiring and the driver's key figures.
 // Thin: all state and domain reads/writes live in useMobileDriverTab() (src/hooks/MobileDriverTab-hooks.ts).
-import {NumberField, PhoneHelp, PhoneLabels} from '@openisd/design/fields';
+import {EnumField, NumberField, PhoneHelp, PhoneLabels} from '@openisd/design/fields';
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import DriverCoilWiring from '../../components/DriverCoilWiring.vue';
@@ -10,11 +10,11 @@ import PhoneBand from './PhoneBand.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
 import { useMobileDriverTab } from '../../../hooks/MobileDriverTab-hooks.js';
 
-const { project, fullName, keyFigures, consistencyReasons, browseDrivers, editDriver, showDisagreements, showDriverInfo, ARRAY_WIRING_OPTIONS, selectedOption } = useMobileDriverTab();
+const { project, fullName, keyFigures, consistencyReasons, browseDrivers, editDriver, showDisagreements, showDriverInfo } = useMobileDriverTab();
 </script>
 
 <template>
-  <PhoneClassicPage>
+  <PhoneClassicPage :reserve-labels="[EnumField.VCCON.label]">
     <div class="mob-crow">
       <button type="button" class="mob-cname mob-cname-button" :title="fullName" @click="browseDrivers">{{ fullName || 'No driver selected' }}</button>
     </div>
@@ -25,13 +25,6 @@ const { project, fullName, keyFigures, consistencyReasons, browseDrivers, editDr
     </div>
     <PhoneBand :section="PhoneHelp.DRIVER" />
     <UIFixedField class="mob-ui-field" input-id="mob-n-drivers" :field="NumberField.DRIVER_NDRIVERS" :label="PhoneLabels.DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" />
-    <div class="mob-crow">
-      <label class="mob-crow-label" for="mob-wiring">{{ PhoneLabels.CONNECTION }}</label>
-      <select id="mob-wiring" class="mob-cselect" :value="project.wiring.value"
-              @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) project.wiring.set(w); }">
-        <option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-      </select>
-    </div>
     <DriverCoilWiring phone />
 
     <PhoneBand :section="PhoneHelp.KEY_FIGURES" />

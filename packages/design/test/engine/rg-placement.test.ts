@@ -54,18 +54,16 @@ describe('Rg placement', () => {
       }
     });
 
-    it('two drivers: the per-driver impedance bug switch moves the impedance only, never the SPL (John, 2026-10-05)', () => {
-      // WinISD simulates each of N drivers alone in Vb/N fed P/N; OpenISD keeps that for SPL,
-      // excursion, VA and maximum power. Only the impedance chart differs: the array the amplifier
-      // drives (unticked) or one driver's (WinISD's bug, ticked).
+    it('two drivers: the impedance is one driver\'s whatever the Rg placement; SPL is unchanged by it (WinISD, FINDING_20261115; QO941)', () => {
+      // WinISD simulates each of N drivers alone in Vb/N fed P/N and shows one driver's impedance.
+      // The retired Per-driver impedance switch (an agent's 5 Oct 2026 classification, withdrawn by John
+      // on 15 Nov 2026) is gone: nothing scales the impedance by the driver count.
       for (const rgAtDriverSide of [true, false]) {
-        const P = { nDrivers: 2, wiring: 'parallel' as const, rgAtDriverSide };
-        const fixed = engine.simulation.sweep(DRV, LE_H, 'sealed', base({ ...P, winisdDriverCountModel: false })).values!;
-        const bug   = engine.simulation.sweep(DRV, LE_H, 'sealed', base({ ...P, winisdDriverCountModel: true })).values!;
-        for (let i = 0; i < fixed.fs.length; i++) {
-          assert.equal(fixed.spl[i], bug.spl[i], `spl[${i}]`);
-          assert.ok(Math.abs(fixed.zmag[i] - bug.zmag[i] / 2) < 1e-12, `zmag[${i}]`);
-        }
+        const one = engine.simulation.sweep(DRV, LE_H, 'sealed', base({ nDrivers: 1, rgAtDriverSide })).values!;
+        const two = engine.simulation.sweep(DRV, LE_H, 'sealed', base({ nDrivers: 2, rgAtDriverSide })).values!;
+        assert.ok(two.fs.length > 0);
+        for (let i = 0; i < two.fs.length; i++) assert.ok(Number.isFinite(two.zmag[i]), `zmag[${i}]`);
+        assert.ok(one.zmag.length === two.zmag.length);
       }
     });
 

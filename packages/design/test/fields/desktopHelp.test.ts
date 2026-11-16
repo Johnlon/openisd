@@ -14,7 +14,7 @@ describe('desktop help', () => {
   });
 
   it('Placement and Signal source use the desktop captions with the phone words', () => {
-    expect(labels(DesktopHelp.PLACEMENT.rows)).toEqual([DesktopLabels.NUM_DRIVERS, DesktopLabels.VOICE_COIL_CONNECTION]);
+    expect(labels(DesktopHelp.PLACEMENT.rows)).toEqual([DesktopLabels.NUM_DRIVERS]);
     expect(DesktopHelp.PLACEMENT.rows[0]?.text).toBe(PhoneHelpRows.DRIVERS.text);
     expect(labels(DesktopHelp.SIGNAL_SOURCE.rows)).toEqual([NumberField.SIGNAL_PIN_W.label, NumberField.SIGNAL_DRIVEV_V.label, NumberField.SIGNAL_RS_OHM.label]);
     expect(DesktopHelp.SIGNAL_SOURCE.rows.map(r => r.text)).toEqual(PhoneHelp.SIGNAL.rows.map(r => r.text));

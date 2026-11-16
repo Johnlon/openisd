@@ -21,8 +21,8 @@ const NAMES = [
   'vented-single',
   'bandpass4-single',
   'pr-single',
-  'sealed-2drv-parallel',
-  'vented-2drv-series',
+  'sealed-2drv',
+  'vented-2drv',
 ];
 
 const cmpArray = (label: string, got: unknown, exp: unknown[]) => {

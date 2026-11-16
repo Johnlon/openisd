@@ -76,9 +76,6 @@ const {
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdAbcGroupDelay" :marked="errorSwitches.abcGroupDelay.marked" :applicable="errorSwitches.abcGroupDelay.applicable" :reproduces-error="errorSwitches.abcGroupDelay.reproducesError" :title="ToggleField.ADV_WINISDABCGROUPDELAY.description">
         <input type="checkbox" :checked="project.winisdAbcGroupDelay.value" :disabled="!errorSwitches.abcGroupDelay.applicable" @change="e => setCompatSwitch(project.winisdAbcGroupDelay, inputChecked(e))"> {{ ToggleField.ADV_WINISDABCGROUPDELAY.label }}
       </ErrorSwitch>
-      <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdDriverCountModel" :marked="errorSwitches.driverCount.marked" :applicable="errorSwitches.driverCount.applicable" :reproduces-error="errorSwitches.driverCount.reproducesError" :title="ToggleField.ADV_WINISDDRIVERCOUNTMODEL.description">
-        <input type="checkbox" :checked="project.winisdDriverCountModel.value" :disabled="!errorSwitches.driverCount.applicable" @change="e => setCompatSwitch(project.winisdDriverCountModel, inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
-      </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdSealedPicker" :marked="errorSwitches.sealedPicker.marked" :applicable="errorSwitches.sealedPicker.applicable" :reproduces-error="errorSwitches.sealedPicker.reproducesError" :title="ToggleField.ADV_WINISDSEALEDPICKER.description">
         <input type="checkbox" :checked="project.winisdSealedPicker.value" :disabled="!errorSwitches.sealedPicker.applicable" @change="e => setCompatSwitch(project.winisdSealedPicker, inputChecked(e))"> {{ ToggleField.ADV_WINISDSEALEDPICKER.label }}
       </ErrorSwitch>

@@ -154,17 +154,6 @@ export class ProjectAdvanced {
         };
     }
 
-    /** WinISD Compatibility "Per-driver impedance": the impedance chart shows
-     *  one driver's impedance, as WinISD does (BUG_20260928_driver-count-not-winisd). Off: the
-     *  array the amplifier drives, per `wiring`. Off where a project does not say (John, 2026-10-05). */
-    get winisdDriverCountModel(): SimpleField<boolean> {
-        const lens = focus(this.#advanced, 'winisdDriverCountModel');
-        return {
-            get value() { return lens.value ?? CompatSwitch.DRIVER_COUNT.winisdValue; },
-            set: (on: boolean) => lens.set(on),
-        };
-    }
-
     /** WinISD Compatibility "Sealed picker volume": the sealed alignment picker gives WinISD's volume,
      *  with a fixed Rg of 0.1 Ω and Qa of 100 and no box losses. Off: the volume at which the Box tab
      *  shows the picked Qtc. Off where a project does not say. */

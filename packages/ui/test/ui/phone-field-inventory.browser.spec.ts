@@ -7,7 +7,7 @@ import {measureFieldInventory} from '../fixtures/fieldInventory.js';
 import {PHONE_DRIVER_INVENTORY, PHONE_SIGNAL_INVENTORY, PHONE_ALLPASS_INVENTORY} from '../fixtures/fieldInventoryScenarios.js';
 
 const pages: readonly {name: string; tab: RegExp; expected: readonly ExpectedFieldOccurrence[]; controls: number; target: NumberField; afterOpen?: (page: Page) => Promise<void>; mutations?: readonly {name: string; apply: (surface: Locator) => Promise<void>; issue: string}[]}[] = [
-  {name: 'Driver', tab: /^Driver$/, expected: PHONE_DRIVER_INVENTORY, controls: 7, target: NumberField.FS_HZ},
+  {name: 'Driver', tab: /^Driver$/, expected: PHONE_DRIVER_INVENTORY, controls: 6, target: NumberField.FS_HZ},
   {name: 'Signal', tab: /^Signal$/, expected: PHONE_SIGNAL_INVENTORY, controls: 3, target: NumberField.SIGNAL_PIN_W},
   {name: 'Allpass', tab: /^Filters$/, afterOpen: page => page.getByText('+ AP', {exact: true}).click(), expected: PHONE_ALLPASS_INVENTORY, controls: 4, target: NumberField.FILTER_T_S, mutations: [{name: 'wrong enabled state', apply: async surface => { await surface.locator('.mob-fcard-tick input').evaluate(element => { if (element instanceof HTMLInputElement) element.checked = false; }); }, issue: 'checked false, expected true'}]},
 ];

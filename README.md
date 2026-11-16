@@ -28,7 +28,7 @@ Every curve redraws as you type. There is no Calculate button.
 
 - **Box types:**
   - sealed, vented, 4th-order bandpass and passive radiator;
-  - several drivers, wired in series or parallel.
+  - several drivers sharing one box, as WinISD.
 - **Charts:**
   - SPL and transfer function;
   - group delay;

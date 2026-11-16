@@ -382,10 +382,9 @@ describe('useOgNewProject', () => {
     const driver = createTestDriver(engine);
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
 
-    // Step 2: edit nDrivers & wiring
+    // Step 2: edit nDrivers
     wizard.next();
     wizard.nDrivers.value = 2;
-    wizard.wiring.value = 'series';
 
     // Step 3: edit boxType and volume
     wizard.next();
@@ -405,7 +404,6 @@ describe('useOgNewProject', () => {
 
     // Verify all preserved
     expect(wizard.nDrivers.value).toBe(2);
-    expect(wizard.wiring.value).toBe('series');
     expect(wizard.boxType.value).toBe('bandpass4');
     expect(wizard.volume_m3.value).toBe(0.025);
     expect(wizard.frontVolume_m3.value).toBe(0.015);
@@ -419,7 +417,6 @@ describe('useOgNewProject', () => {
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
 
     wizard.nDrivers.value = 2;
-    wizard.wiring.value = 'parallel';
     wizard.boxType.value = 'sealed';
     wizard.setSealedVolume_m3(0.02);
     wizard.projName.value = 'My Sealed Sub';
@@ -431,7 +428,6 @@ describe('useOgNewProject', () => {
       expect(project.name.value).toBe('My Sealed Sub');
       expect(project.description.value).toBe('Test description');
       expect(project.nDrivers.value).toBe(2);
-      expect(project.wiring.value).toBe('parallel');
       expect(project.box.boxType.value).toBe('sealed');
       expect(project.box.sealed.volume_m3.value).toBeCloseTo(0.02, 4);
     }

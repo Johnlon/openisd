@@ -883,8 +883,7 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     winisdTlPortNoEndCorrection: z.boolean().optional(),
     // "Phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
     winisdWrapPhase: z.boolean().optional(),
-    // Bug switch "Per-driver impedance": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N
-    // coils wired into one terminal impedance. Absent parses to OFF.
+    // Retired (QO941) switch "Per-driver impedance": the impedance chart is always one driver's, as WinISD's. Old files carry it; it is read and ignored.
     winisdDriverCountModel: z.boolean().optional(),
     // Bug switch "Sealed picker volume": the sealed alignment picker gives WinISD's volume (Rg 0.1 and
     // Qa 100 fixed, Ql ignored), not the volume at which the Box tab shows the picked Qtc. Absent parses to OFF.
@@ -922,7 +921,9 @@ const openISDDriverEmbeddingJsonSchema = z.strictObject({
     // WinISD Driver tab: "Num. of drivers".
     nDrivers: z.number(),
     // WinISD Driver tab: "Voice coil connection".
-    wiring: z.enum(['series', 'parallel']),
+    // The project's Connection setting (WinISD's project VCCon). It stays in place (John, QO942.c54: "the project already had a connection
+    // setting"); the engine no longer applies it across several drivers (QO941). Its new meaning, the coil wiring, comes with the next change.
+    wiring: z.enum(['series', 'parallel']).optional(),
     // "My wiring" (QO907): how the user wires a multi-coil driver's own voice coils. Absent means
     // the wiring the maker measured in. Deliberately NOT a schemaVersion bump (coordinator ruling,
     // 15 Nov 2026): the key is optional, absent in every project saved before it, and no released

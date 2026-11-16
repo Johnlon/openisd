@@ -91,7 +91,7 @@ const EXTRA: readonly Screen[] = [
     await page.locator('.driver-library input.filter').fill('W5-1138SMF');
     await page.locator('.mob-np-body').getByText('Tang Band W5-1138SMF').first().click();
     await page.locator('.mob-np-footer').getByText('Next ▸', {exact: true}).click();
-    await page.locator('#np-wiring').waitFor();
+    await page.locator('#np-ndrivers').waitFor();
   }},
   {id: 'desktop New project wizard radiator step', skin: 'desktop', root: '.overlay.open .modal-body', open: async page => {
     await page.setViewportSize({width: 1280, height: 720});
@@ -241,7 +241,7 @@ test('desktop Passive Radiator tab: every User options label is on one line and 
   expect(new Set(steps).size).toBe(1);
 });
 
-/** John, QO426.c87, c96, QO428.c2: the Num. of drivers and Voice coil connection dropdowns on the desktop Driver tab
+/** John, QO426.c87, c96, QO428.c2: the Num. of drivers dropdown (the wiring-of-drivers list went with QO941) on the desktop Driver tab
  *  and the wizard's step 2 have no number boxes under them, so they are as wide as "Parallel" and its arrow (90 px,
  *  the old hand-built width), both the same, and nothing in either list is cut off. The Num. of PRs dropdown on the
  *  Passive Radiator tab is the same 90 px (QO428); the number boxes beside it keep their width. */
@@ -264,26 +264,21 @@ async function dropdown(page: Page, id: string) {
   });
 }
 
-const COUNT_SCREENS: readonly {name: string; count: string; wiring: string; open: (page: Page) => Promise<void>}[] = [
-  {name: 'desktop Driver tab', count: 'og-ndrivers', wiring: 'og-wiring', open: async page => {
+const COUNT_SCREENS: readonly {name: string; count: string; open: (page: Page) => Promise<void>}[] = [
+  {name: 'desktop Driver tab', count: 'og-ndrivers', open: async page => {
     await startDesktop(page, 'sealed');
     await page.locator('.project-nav li', {hasText: 'Driver'}).click();
   }},
-  {name: 'wizard step 2', count: 'np-ndrivers', wiring: 'np-wiring', open: EXTRA[1]!.open},
+  {name: 'wizard step 2', count: 'np-ndrivers', open: EXTRA[1]!.open},
 ];
 
 for (const screen of COUNT_SCREENS) {
-  test(`${screen.name}: Num. of drivers and Voice coil connection are ${SHORT_DROPDOWN_PX} px, same edges, nothing cut off`, async ({page}) => {
+  test(`${screen.name}: Num. of drivers is ${SHORT_DROPDOWN_PX} px, same edges, nothing cut off`, async ({page}) => {
     await screen.open(page);
     const count = await dropdown(page, screen.count);
-    const wiring = await dropdown(page, screen.wiring);
     expect(count.width).toBeCloseTo(SHORT_DROPDOWN_PX, 0);
-    expect(wiring.width).toBeCloseTo(SHORT_DROPDOWN_PX, 0);
-    expect(wiring.left).toBeCloseTo(count.left, 1);
-    expect(wiring.right).toBeCloseTo(count.right, 1);
-    expect(wiring.fits, `"${wiring.longest}" ${wiring.textPx}px in ${wiring.width}px`).toBe(true);
     expect(count.fits, `"${count.longest}" ${count.textPx}px in ${count.width}px`).toBe(true);
-    expect(wiring.clipped || count.clipped).toBe(false);
+    expect(count.clipped).toBe(false);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 }

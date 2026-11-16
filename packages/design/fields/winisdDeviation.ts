@@ -148,15 +148,6 @@ export class WinisdDeviation {
     charts: [],
   });
 
-  static readonly DRIVER_COUNT = new WinisdDeviation({
-    title: 'WinISD shows one driver\'s impedance',
-    winisd: 'With more than one driver, WinISD\'s impedance chart shows the impedance of one driver, not of all the drivers the amplifier drives. Its SPL, VA and maximum power charts do show all the drivers.',
-    openisd: 'OpenISD shows the impedance of all the drivers, wired in series or parallel as the project says.',
-    size: 'W5-1138SMF, sealed, 4 drivers: WinISD peaks at 18.6 Ω, the same as one driver. Wired in parallel, the amplifier sees 4.65 Ω.',
-    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDDRIVERCOUNTMODEL, switchOf: s => s.driverCount},
-    charts: [],
-  });
-
   static readonly SEALED_PICKER = new WinisdDeviation({
     title: 'WinISD\'s sealed picker gives a different volume',
     winisd: 'WinISD picks a different volume here: it leaves out box leakage and uses a fixed Rg of 0.1 Ω and Qa of 100, so its Box tab then shows a Qtc a little off the one you picked.',

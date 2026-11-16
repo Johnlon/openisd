@@ -66,7 +66,6 @@ export const CLOSED_BOX_INVENTORY = closedBoxInventory(true);
 export const DESKTOP_CLOSED_BOX_INVENTORY = closedBoxInventory(false);
 export const PHONE_DRIVER_INVENTORY: readonly ExpectedFieldOccurrence[] = [
   countOccurrence(NumberField.DRIVER_NDRIVERS, PhoneLabels.DRIVERS),
-  choice(EnumField.DRIVER_ARRAYWIRING.value, '.mob-crow:has(> #mob-wiring)', PhoneLabels.CONNECTION, EnumField.DRIVER_ARRAYWIRING.options),
   ...[NumberField.FS_HZ, NumberField.QTS, NumberField.VAS_M3, NumberField.RE_OHM, NumberField.XMAX_M].map(field => numericOccurrence(field, READONLY)),
 ];
 export const PHONE_SIGNAL_INVENTORY: readonly ExpectedFieldOccurrence[] = [

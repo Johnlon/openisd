@@ -98,9 +98,11 @@ configuration) and for one coil. A different driver in the project resets it.
 Files: the driver `.wdr` and `.owdr` carry the stored figures with the measured wiring. A `.wpr` project carries the
 figures converted to My wiring, with My wiring as its `VCCon`. WinISD's own wiring combo is a one-shot rewrite of the
 stored `Re` and `BL` that leaves the result marked entered (`winisd_research` FINDING-009); OpenISD never rewrites a
-stored figure. The project's "Voice coil connection" control is a different thing: how several drivers (Num. of
-drivers) are joined to the amplifier, as in WinISD. See `docs/research/WINISD_PARITY.md` §11b and
-`docs/plans/PLAN_20261114_DVC_WIRING_AND_DQ.md`. That sentence is wrong about WinISD (it has no wiring of several drivers); the correction and the migration are in `docs/plans/PLAN_20261115_COIL_WIRING_REPLICATES_WINISD.md`.
+stored figure. WinISD has no wiring of several drivers (its "Voice coil connection" is the coil wiring of one driver), so
+OpenISD applies none either: with more than one driver the impedance chart is one driver's, and the array's impedance is
+ticket Johnlon/openisd#519. The project's `wiring` field (its Connection setting) stays in place, kept exactly as saved (QO946.c23), and is no
+longer applied across drivers. The retired `winisdDriverCountModel` key is read and ignored. See `docs/plans/PLAN_20261115_SEVERAL_DRIVERS_REPLICATE_WINISD.md`, `docs/research/WINISD_PARITY.md` §11b and
+`docs/plans/PLAN_20261114_DVC_WIRING_AND_DQ.md`.
 
 ## Driver — sensitivity
 

@@ -12,6 +12,7 @@ export const BASE_SCREEN = 'complete-project';
 
 /** The same view reached under two names in the view index: pictured once, under the kept name. */
 export const SAME_VIEW: ReadonlyMap<string, {readonly kept: string; readonly why: string}> = new Map([
+  ['desktop-box-vented', {kept: 'desktop-tab-box', why: 'The sample project is a vented box and opens on the Box tab: setting the box type to vented changes nothing. Pictured once: two pictures of the same screen differ by anti-aliasing (20 pixels in the Fb box), so they cannot be kept as identical copies.'}],
   ['mobile-dialog-driver-import', {kept: 'mobile-dialog-driver-more', why: 'Import is a row of the More menu; the picture of the import itself is the browser\'s file chooser (see CANNOT_BE_SHOWN).'}],
   ['desktop-dialog-shared-winisd-difference-entry', {kept: 'desktop-dialog-difference-cue', why: 'The desktop differences dialog shows every entry unfolded; there is no entry to unfold (the phone has one, and is pictured).'}],
   ['desktop-dialog-driver-search-filters', {kept: 'desktop-dialog-driver-library-overview', why: 'The search filters are the top row of the Manage Drivers dialog; one dialog, one picture.'}],
@@ -49,7 +50,6 @@ export const WAITING_FOR_FIX: ReadonlyMap<string, string> = new Map([
 
 /** Screens that draw the same picture because the screen is the same, each group named. */
 export const SAME_PICTURE: readonly {readonly screens: readonly string[]; readonly why: string}[] = [
-  {screens: ['desktop-box-vented', 'desktop-tab-box'], why: 'The sample project is a vented box and opens on the Box tab: setting the box type to vented changes nothing.'},
   {screens: ['desktop-wizard-abc-step4', 'desktop-wizard-bandpass6-step4'], why: 'Wizard step 4 holds the same fields for these two box types.'},
   {
     screens: ['desktop-wizard-abc-step5', 'desktop-wizard-bandpass4-step5', 'desktop-wizard-bandpass6-step5', 'desktop-wizard-sealed-step5', 'desktop-wizard-vented-step5'],

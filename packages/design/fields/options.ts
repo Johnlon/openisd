@@ -1,4 +1,4 @@
-import type {BoxType, FilterType, PassFamily, VentedAlignment, Wiring} from '../engine/index.js';
+import type {BoxType, FilterType, PassFamily, VentedAlignment} from '../engine/index.js';
 import type {VoiceCoilWiring} from '../domain/voiceCoilWiring.js';
 import type {VentShape} from '../domain/vent.js';
 
@@ -39,12 +39,6 @@ export const VC_CONNECTION_OPTIONS: readonly SelectorOption<VoiceCoilWiring>[] =
 
 /** The driver editor's choice for a measured wiring the maker did not state. */
 export const MEASURED_WIRING_NOT_STATED_LABEL = 'Not stated';
-
-/** How a multi-driver array is wired to the amplifier. */
-export const ARRAY_WIRING_OPTIONS: readonly SelectorOption<Wiring>[] = Object.freeze([
-  Object.freeze({ value: 'parallel', label: 'Parallel' }),
-  Object.freeze({ value: 'series', label: 'Series' }),
-]);
 
 /** WinISD's nine sealed-box target-Q (Qtc) choices from the New Project wizard, exact labels.
  *  THE list — `SealedEngine.alignmentOptions()` hands this same object out, never a copy. */

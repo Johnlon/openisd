@@ -67,9 +67,8 @@ const FILTER_ROWS: readonly PhoneHelpRow[] = PHONE_FILTER_CHIPS.map(chip => {
  * line for is written here.
  */
 export class DesktopHelp {
-  static readonly PLACEMENT = new PhoneHelpSection('Placement', 'How many drivers the box holds and how they are wired.', [
+  static readonly PLACEMENT = new PhoneHelpSection('Placement', 'How many drivers the box holds.', [
     captioned(PhoneHelpRows.DRIVERS, DesktopLabels.NUM_DRIVERS),
-    captioned(PhoneHelpRows.CONNECTION, DesktopLabels.VOICE_COIL_CONNECTION),
   ]);
 
   static readonly ADVANCED_OPTIONS = new PhoneHelpSection('Advanced options', 'Extra driver settings: how hot the voice coil runs and mass added to the cone.', [

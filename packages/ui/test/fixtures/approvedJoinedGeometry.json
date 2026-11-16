@@ -3,7 +3,8 @@
     "url": "http://127.0.0.1:4607",
     "build": "v20261027T1419Z",
     "capturedAt": "2026-10-27T17:45:52.133Z",
-    "reviewStatus": "Mobile appearance accepted by John for 607. Desktop paint is a frozen observed test-deployment candidate, awaiting his desktop review; no additional use-case approval implied."
+    "reviewStatus": "Mobile appearance accepted by John for 607. Desktop paint is a frozen observed test-deployment candidate, awaiting his desktop review; no additional use-case approval implied.",
+    "driverRowsNote": "Driver rows re-frozen at 178 px by the lead, QO943.c7 (QO923; John may reverse it), 15 Nov 2026: the value boxes must not move between drivers, so the phone Driver tab's label column is reserved for its longest optional label, \"Coil wiring\", which is 6 px narrower than the removed \"Connection\" that gave 172."
   },
   "geometry": {
     "catalogue": [
@@ -1356,7 +1357,7 @@
       {
         "field": "driver_nDrivers",
         "specimen": null,
-        "valueWidth": 172,
+        "valueWidth": 178,
         "rowHeight": 40,
         "rowWidth": 374,
         "unit": null
@@ -1364,7 +1365,7 @@
       {
         "field": "Fs_hz",
         "specimen": null,
-        "valueWidth": 172,
+        "valueWidth": 178,
         "rowHeight": 40,
         "rowWidth": 374,
         "unit": {
@@ -1377,7 +1378,7 @@
       {
         "field": "Qts",
         "specimen": null,
-        "valueWidth": 172,
+        "valueWidth": 178,
         "rowHeight": 40,
         "rowWidth": 374,
         "unit": null
@@ -1385,7 +1386,7 @@
       {
         "field": "Vas_m3",
         "specimen": null,
-        "valueWidth": 172,
+        "valueWidth": 178,
         "rowHeight": 40,
         "rowWidth": 374,
         "unit": {
@@ -1398,7 +1399,7 @@
       {
         "field": "Re_ohm",
         "specimen": null,
-        "valueWidth": 172,
+        "valueWidth": 178,
         "rowHeight": 40,
         "rowWidth": 374,
         "unit": {
@@ -1411,7 +1412,7 @@
       {
         "field": "Xmax_m",
         "specimen": null,
-        "valueWidth": 172,
+        "valueWidth": 178,
         "rowHeight": 40,
         "rowWidth": 374,
         "unit": {

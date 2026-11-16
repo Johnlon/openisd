@@ -52,7 +52,7 @@ import {
 import type {SelectorOption} from './options.js';
 import type {SpinRule} from './spinnerStep.js';
 import {
-  ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, FILTER_TYPE_OPTIONS,
+  BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, FILTER_TYPE_OPTIONS,
   SEALED_ALIGNMENT_OPTIONS, VC_CONNECTION_OPTIONS, VENT_SHAPE_OPTIONS,
 } from './options.js';
 
@@ -1429,12 +1429,6 @@ export class EnumField extends Field {
     options: VC_CONNECTION_OPTIONS,
     description: "Measured Wiring\nHow the voice coils of a multi-coil driver were wired when the maker measured Re and BL: series, parallel, or not stated. Re, BL, Le and Znom are kept as published for this wiring. Your own wiring is set in the project (Driver tab, My wiring).",
   });
-  static readonly DRIVER_ARRAYWIRING = new EnumField({
-    value: "driver_ArrayWiring",
-    label: "Voice coil connection",
-    options: ARRAY_WIRING_OPTIONS,
-    description: "Driver Array Wiring\nHow several drivers (Num. of drivers) are joined to the amplifier: parallel or series. With one driver there is nothing to join and it changes nothing. The wiring of one driver's own voice coils is My wiring.",
-  });
 
   // ── Filters ───────────────────────────────────────────────────────────────────────────────
   static readonly FILTER_TYPE = new EnumField({
@@ -1585,12 +1579,6 @@ export class ToggleField extends Field {
     label: "TL port without end correction",
     description: "TL port without end correction: with the transmission line model on, WinISD builds the port pipe without the port's end correction, so the box tunes above the Fb on the Box tab.\nTicked: OpenISD works as WinISD does. The pipe is the Fb port length less the end correction. On the W5-1138SMF at Fb 38 Hz, the impedance minimum is 40.3 Hz, against 38.7 Hz unticked.\nUnticked (default): the pipe keeps the end correction and the box tunes where the Box tab says.\nOnly where \"Use transmission line model\" is ticked on a vented, bandpass or ABC box.",
   }, "the Impedance, SPL and Transfer function charts of vented, bandpass and ABC boxes with the transmission line model on. W5-1138SMF, Fb 38 Hz: impedance minimum 40.3 Hz in WinISD against 38.7 Hz with the end correction.");
-
-  static readonly ADV_WINISDDRIVERCOUNTMODEL = new ToggleField({
-    value: "adv_WinisdDriverCountModel",
-    label: "Per-driver impedance",
-    description: "Per-driver impedance: with more than one driver, WinISD's impedance chart shows one driver's impedance.\nTicked: the impedance chart shows one driver's impedance, as WinISD does.\nUnticked (default): the impedance chart shows all the drivers the amplifier drives, wired as the project says: one driver's impedance divided by N in parallel, times N in series.",
-  }, "the Impedance chart, for designs with more than one driver. W5-1138SMF sealed, 4 drivers in parallel: WinISD peaks at 18.6 Ω, all 4 drivers at 4.65 Ω. SPL, Cone excursion, Amplifier apparent load power (VA) and Maximum Power match WinISD either way.");
 
   // ── WinISD Compatibility: options (under "Enable WinISD-style", named by the calculation; ticked is WinISD's way) ──────
   static readonly ADV_WINISDWRAPPHASE = new ToggleField({

@@ -181,10 +181,6 @@ export class OpenISDProject {
         return new ProjectCoilWiring(this.#slot('driverEmbedding'), this.driver, this.#engine);
     }
 
-    get wiring(): SimpleField<'series' | 'parallel'> {
-        return focus(this.#slot('driverEmbedding'), 'wiring');
-    }
-
     /** Thermal power compression: coil temperature rise under drive, Kelvin. */
     get vcTempRise_K(): SimpleField<number> {
         return focus(this.#slot('driverEmbedding'), 'vcTempRise_K');
@@ -326,11 +322,6 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdWrapPhase;
     }
 
-    /** WinISD Compatibility "Per-driver impedance" — see `ProjectAdvanced.winisdDriverCountModel`. */
-    get winisdDriverCountModel(): SimpleField<boolean> {
-        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverCountModel;
-    }
-
     /** WinISD Compatibility "Sealed picker volume" — see `ProjectAdvanced.winisdSealedPicker`. */
     get winisdSealedPicker(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdSealedPicker;
@@ -375,7 +366,6 @@ export class OpenISDProject {
             winisdVaModel: this.winisdVaModel.value,
             winisdPrNprResonance: this.winisdPrNprResonance.value,
             winisdBesselHighpass: this.winisdBesselHighpass.value,
-            winisdDriverCountModel: this.winisdDriverCountModel.value,
             nDrivers: this.nDrivers.value,
             nPassiveRadiators: this.box.passiveRadiator.count.value,
             hasBesselHighpass: this.filters.value.some(f => f.type === 'highpass' && f.family === 'bessel' && f.enabled),
@@ -813,13 +803,11 @@ export class OpenISDProject {
             driver: this.driver,
             box: this.box,
             nDrivers: this.nDrivers,
-            wiring: this.wiring,
             Rs_ohm: this.Rs_ohm,
             circuitModel: this.circuitModel,
             winisdDriverModel: this.winisdDriverModel,
             winisdVaModel: this.winisdVaModel,
             winisdWrapPhase: this.winisdWrapPhase,
-            winisdDriverCountModel: this.winisdDriverCountModel,
             winisdFlatModel: this.winisdFlatModel,
             winisdAbcIntraPortVelocity: this.winisdAbcIntraPortVelocity,
             winisdPrNprResonance: this.winisdPrNprResonance,

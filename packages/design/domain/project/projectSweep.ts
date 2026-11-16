@@ -27,13 +27,11 @@ export interface ProjectSweepSource {
     readonly driver: OpenISDDriverEmbedded;
     readonly box: Box;
     readonly nDrivers: SimpleField<number>;
-    readonly wiring: SimpleField<'series' | 'parallel'>;
     readonly Rs_ohm: SimpleField<number>;
     readonly circuitModel: SimpleField<'winisd' | 'gyrator' | 'winisdGyrator'>;
     readonly winisdDriverModel: SimpleField<boolean>;
     readonly winisdVaModel: SimpleField<boolean>;
     readonly winisdWrapPhase: SimpleField<boolean>;
-    readonly winisdDriverCountModel: SimpleField<boolean>;
     readonly winisdFlatModel: SimpleField<boolean>;
     readonly winisdAbcIntraPortVelocity: SimpleField<boolean>;
     readonly winisdPrNprResonance: SimpleField<boolean>;
@@ -98,12 +96,10 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         fmax: P.fmax,
         N: P.N ?? undefinedIfNull(source.sweepN.value),
         nDrivers: source.nDrivers.value,
-        wiring: source.wiring.value,
         Rs: source.Rs_ohm.value,
         circuitModel: engineCircuitModel(source.circuitModel.value, source.winisdDriverModel.value),
         winisdVaModel: source.winisdVaModel.value,
         winisdWrapPhase: source.winisdWrapPhase.value,
-        winisdDriverCountModel: source.winisdDriverCountModel.value,
         winisdFlatModel: source.winisdFlatModel.value,
         winisdAbcIntraPortVelocity: source.winisdAbcIntraPortVelocity.value,
         winisdPrNprResonance: source.winisdPrNprResonance.value,

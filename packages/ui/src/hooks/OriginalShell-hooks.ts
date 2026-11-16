@@ -35,7 +35,7 @@ import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {createAppUpdateUi} from './appUpdateUi.js';
-import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, dateStampFrom, END_CORRECTION_OPTIONS, formatDateStamp, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
+import {BOX_TYPE_OPTIONS, dateStampFrom, END_CORRECTION_OPTIONS, formatDateStamp, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
@@ -762,8 +762,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     d => openCharts.value.some(id => d.cueShownOnChart(errorSwitches.value, id))) : []);
   /** The passive-radiator Npr cue by the radiator count, at any count (`WinisdDeviation` cue rule). */
   const prNprDeviationShown = computed(() => projectOpen.value && WinisdDeviation.PR_NPR_RESONANCE.cueShown(errorSwitches.value));
-  /** The per-driver impedance cue by the driver count, at any count. */
-  const driverCountDeviationShown = computed(() => projectOpen.value && WinisdDeviation.DRIVER_COUNT.cueShown(errorSwitches.value));
   /** "Simplified ABC intra-port velocity" acts on the open box. */
   const abcVelocityApplies = computed(() => {
     void projectChanged.value;
@@ -825,7 +823,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     genOn, toggleGenerate, genHz, setCompatSwitch: compatSwitchSetter(featureUse),
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel, ...desktopHelp,
-    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
+    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown,
      boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,

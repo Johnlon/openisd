@@ -26,8 +26,6 @@ export interface ErrorSwitchStates {
     readonly besselHighpass: ErrorSwitchState;
     /** WinISD ABC group delay: the driver part held at the chart frequency while the box is stepped. */
     readonly abcGroupDelay: ErrorSwitchState;
-    /** WinISD per-driver impedance: the impedance chart shows one driver's, not the array's. */
-    readonly driverCount: ErrorSwitchState;
     /** WinISD sealed picker volume: the picker's volume does not give the picked Qtc on the Box tab. */
     readonly sealedPicker: ErrorSwitchState;
     /** WinISD TL port without end correction: the transmission-line port pipe leaves out the end correction. */
@@ -40,7 +38,6 @@ export interface ErrorSwitchInputs {
     readonly winisdVaModel: boolean;
     readonly winisdPrNprResonance: boolean;
     readonly winisdBesselHighpass: boolean;
-    readonly winisdDriverCountModel: boolean;
     /** The number of drivers in the box. */
     readonly nDrivers: number;
     /** The number of passive radiators (Npr). */
@@ -65,7 +62,6 @@ export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
         besselHighpass: {marked: true, applicable: i.hasBesselHighpass, inScope: true, reproducesError: i.winisdBesselHighpass},
         prNprResonance: {marked: true, applicable: isPr && i.nPassiveRadiators > 1, inScope: isPr, reproducesError: i.winisdPrNprResonance},
         abcGroupDelay: {marked: true, applicable: isAbc, inScope: isAbc, reproducesError: i.winisdAbcGroupDelay},
-        driverCount: {marked: true, applicable: i.nDrivers > 1, inScope: true, reproducesError: i.winisdDriverCountModel},
         sealedPicker: {marked: true, applicable: isSealed, inScope: isSealed, reproducesError: i.winisdSealedPicker},
         tlPortEndCorrection: {marked: true, applicable: i.tlPortModel && hasLinePort, inScope: hasLinePort, reproducesError: i.winisdTlPortNoEndCorrection},
     };
