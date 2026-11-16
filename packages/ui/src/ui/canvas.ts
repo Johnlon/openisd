@@ -1,6 +1,7 @@
 import {NumberField} from '@openisd/design/fields';
 import type {FrequencyAxis, PlotData} from '@openisd/design/chart';
 import type {DragRange, Geo} from '../types.js';
+import {showReadout} from './readout.js';
 
 /** How a chart is dressed. The phone Graph page shows its legend once above the charts and writes
  *  each reference line's words on the line, so its charts draw neither a legend nor a key. */
@@ -206,7 +207,7 @@ export function drawOne(
         html += `<br>peak <b>${levelAxis.statLabel(st.peak)} ${u}</b>  trough <b>${levelAxis.statLabel(st.trough)} ${u}</b>`;
       }
       html += rolloffLine(plotData, freqAxis, hz);
-      readEl.innerHTML = html; readEl.style.display = 'block';
+      showReadout(readEl, html);
     }
   }
 
@@ -234,7 +235,7 @@ export function drawOne(
       html += ` <span style="color:${s.color}">${levelAxis.readout(y, plotData.unit)}</span>`;
     }
     html += rolloffLine(plotData, freqAxis, hz);
-    if (readEl) { readEl.innerHTML = html; readEl.style.display = 'block'; }
+    if (readEl) showReadout(readEl, html);
   } else if (readEl && !dragRange) {
     readEl.style.display = 'none';
   }

@@ -13,8 +13,7 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'surface-root-5403400e1fdb361a':{kind:'partOf',view:'menu-splashmodal'}, // App.vue:176
   'surface-root-a321f3e72f81713f':{kind:'partOf',view:'menu-announcementsmodal'}, // App.vue:178
   'surface-root-bd4d79550017fe67':{kind:'partOf',view:'menu-winisddifferencesmodal'}, // App.vue:180
-  'imperative-ui-891ef337091a37f4':{kind:'view',view:'shared/chart-readout'}, // canvas.ts:209
-  'imperative-ui-05d81ad62246950f':{kind:'partOf',view:'shared/chart-readout'}, // canvas.ts:237
+  'imperative-ui-7d3d48c1c13b20be':{kind:'view',view:'shared/chart-readout'}, // ui/readout.ts:14
   'conditional-branch-e0e0b1b011c77c89':{kind:'partOf',view:'phone/difference-cue'}, // components/AdvancedOptions.vue:30
   'surface-root-6720ff0276e2bf27':{kind:'view',view:'menu-announcementsmodal'}, // components/AnnouncementsModal.vue:13
   'surface-root-01b2ab0599cd59bf':{kind:'view',view:'menu-announcementsmodal'}, // components/AnnouncementsModal.vue:14
