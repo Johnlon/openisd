@@ -46,6 +46,13 @@ export interface PrEngine {
   /** Free-air resonance loaded with added cone mass: `1/(2π·√((Mmd+Madd)·Cms))` — the
    *  radiator alone, no box. 0 when the total mass or compliance is non-positive. */
   fsWithMass(prMmd: number, prMadd: number, prCms: number): number;
+  /** Displacement, cubic metres: `Vd = Sd·Xmax`. Null without a positive Sd and Xmax. */
+  displacement(prSd_m2: number | null, prXmax_m: number | null): number | null;
+  /** The "2×" rule of thumb as a count of this radiator: the smallest whole N with `N·prVd ≥ 2·nDrivers·driverVd`. Null
+   *  without a positive displacement for both. */
+  countForTwiceDisplacement(prVd_m3: number | null, driverVd_m3: number | null, nDrivers: number): number | null;
+  /** What the "2×" rule asks of the radiators: `2·nDrivers·driverVd`. Null without a positive driver displacement. */
+  twiceDriverDisplacement(driverVd_m3: number | null, nDrivers: number): number | null;
   /** Mechanical Q: `√(Mmd/Cms)/Rms`. 0 when Rms ≤ 0. */
   qms(prMmd: number, prCms: number, prRms: number): number;
   /** The radiator's seven stated figures run through the driver's consistency relations, in
@@ -72,6 +79,22 @@ export interface PrEngine {
 const PR_GEOMETRY: readonly (keyof PrSolverParams)[] = Object.freeze(['Vb_m3', 'prMmd_kg', 'prSd_m2', 'prCms_m_per_N']);
 
 export class PrEngineImpl implements PrEngine {
+  displacement(prSd_m2: number | null, prXmax_m: number | null): number | null {
+    if (prSd_m2 === null || prXmax_m === null || !(prSd_m2 > 0) || !(prXmax_m > 0)) return null;
+    return prSd_m2 * prXmax_m;
+  }
+
+  twiceDriverDisplacement(driverVd_m3: number | null, nDrivers: number): number | null {
+    if (driverVd_m3 === null || !(driverVd_m3 > 0) || !(nDrivers > 0)) return null;
+    return 2 * nDrivers * driverVd_m3;
+  }
+
+  countForTwiceDisplacement(prVd_m3: number | null, driverVd_m3: number | null, nDrivers: number): number | null {
+    if (prVd_m3 === null || driverVd_m3 === null || !(prVd_m3 > 0) || !(driverVd_m3 > 0) || !(nDrivers > 0)) return null;
+    // A relative tolerance keeps an exact fit (200 against 2 × 100) from rounding up on floating-point noise.
+    return Math.max(1, Math.ceil(2 * nDrivers * driverVd_m3 / prVd_m3 - 1e-9));
+  }
+
   constructor(
     private readonly routes: RouteGroup,
     private readonly consistency: ConsistencyCheck,

@@ -70,7 +70,7 @@ describe('mobile surface manifest',()=>{
 
   it('declares desktop PR, current-driver information and editor-help surfaces',()=>{
     const ids=DESKTOP_SURFACES.map(surface=>surface.id);
-    expect(ids).toEqual(expect.arrayContaining(['desktop/enclosure/passive-radiator/select','desktop/enclosure/passive-radiator/save','desktop/enclosure/passive-radiator/data-quality','desktop/driver/current/info','desktop/driver/editor/help/overview']));
+    expect(ids).toEqual(expect.arrayContaining(['desktop/enclosure/passive-radiator/select','desktop/enclosure/passive-radiator/edit','desktop/enclosure/passive-radiator/data-quality','desktop/driver/current/info','desktop/driver/editor/help/overview']));
     expect(ids.filter(id=>id.startsWith('desktop/driver/editor/help/'))).toHaveLength(9);
   });
 

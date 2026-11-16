@@ -35,6 +35,16 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
 
 
 
+    /** `.owdr` text (OpenISD device JSON) back to a radiator, or the reasons it could not be read. The inverse of
+     *  `toOwdrText()`; a driver's file is refused. */
+    static fromOwdrText(text: string): OpenISDPassiveRadiatorStandalone | string[] {
+        const parsed = OpenISDDeviceJson.fromOpenisdDriverJson(text);
+        if ('problems' in parsed) return parsed.problems;
+        const radiator = asRadiatorDevice(parsed.json);
+        if (radiator === null) return ['this file is a driver, not a passive radiator'];
+        return OpenISDPassiveRadiatorStandalone.wrap(radiator);
+    }
+
     private constructor(
         read: () => RadiatorDeviceJson,
         set: (json: RadiatorDeviceJson) => void,
@@ -72,6 +82,11 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
      *  so the scraper bridge and the bundler's round-trip gate read a radiator through the same
      *  seam a driver has. Un-cloned, like the driver's: a caller that stores it clones it
      *  (`clonePassiveRadiator()`). */
+    /** This radiator as `.owdr` text, the form `fromOwdrText` reads back (as `OpenISDDriver.toOwdrText()`). */
+    toOwdrText(): string {
+        return OpenISDDeviceJson.toOpenisdDriverJson(this.slot.value);
+    }
+
     toOpenIsdDeviceJson(): RadiatorDeviceJson {
         return this.slot.value;
     }

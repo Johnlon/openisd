@@ -87,6 +87,15 @@ export class PhoneBoxText {
   static readonly BOX_LOSSES_LINK = 'Box losses (Qa, Ql, Qp)…';
   static readonly FP_TIP = 'Fp: the box tuning you enter for the passive radiator box. The Fh row shows the natural tuning of the box and radiator with no added mass.';
   static readonly INTRA_VENT_NOTE = 'Connects chambers; not open to outside';
+  /** The passive radiator's name row (QO946.c115): its figures are in the editor it opens. */
+  static readonly PR_EDIT_TIP = 'Edit this passive radiator: its name and figures, OK, Cancel or Save to My PRs.';
+  static readonly PR_UNNAMED = 'Unnamed passive radiator';
+  /** The line under the radiator's Key figures (John, 16 Nov 2026 13:00): the "2×" rule of thumb as a count of this
+   *  radiator. `required_m3` is twice the drivers' displacement; `count` the engine's smallest count reaching it. */
+  static twoTimesRule(required_m3: number, count: number): string {
+    const need = `2× rule: radiators need ≥ ${Math.round(required_m3 * 1e6)} cm³`;
+    return count <= 1 ? `${need} — 1 of these is enough` : `${need} — needs ${count} of these`;
+  }
 }
 
 /** One quick-add chip of the phone Filters tab, in WinISD's Filter Editor order, then the two OpenISD-only shelves. */
@@ -137,7 +146,11 @@ export class PhoneHelpRows {
   static readonly FB_VENT: PhoneHelpRow = {label: 'Fb (frequency, box)', text: 'the frequency at which the vent reinforces the bass most: the box and vent resonate together, so the vent gives the most output and the cone moves the least. Lower tuning reaches lower bass.'};
   static readonly FB_FRONT_VENT: PhoneHelpRow = {label: 'Fb (frequency, box)', text: 'the frequency at which the vent reinforces the bass most. Lower tuning reaches lower bass.'};
   static readonly SELECT_PR: PhoneHelpRow = {label: 'Select PR', text: 'picks a passive radiator from the library.'};
-  static readonly SAVE_PR: PhoneHelpRow = {label: 'Save to library', text: 'saves this passive radiator to the library.'};
+  static readonly PR_INFO: PhoneHelpRow = {label: 'Info', text: 'shows the passive radiator\'s figures and where they come from.'};
+  static readonly PR_EDIT: PhoneHelpRow = {label: 'Edit', text: 'opens the passive radiator\'s editor: its name and figures, Export, Import and Copy to My PRs.'};
+  static readonly PR_MMS: PhoneHelpRow = {label: 'Mms', text: 'the moving mass of the cone. Added mass is often judged against it.'};
+  static readonly PR_SD: PhoneHelpRow = {label: 'Sd', text: 'the cone\'s area.'};
+  static readonly PR_VD: PhoneHelpRow = {label: 'Vd', text: 'the volume of air the cone moves at Xmax (Sd × Xmax), to set beside the driver\'s.'};
   static readonly PR_FS: PhoneHelpRow = {label: 'Fs', text: 'the frequency at which the passive radiator vibrates most freely, out of a box.'};
   static readonly PR_QMS: PhoneHelpRow = {label: 'Qms', text: 'how sharply the passive radiator resonates, from its suspension.'};
   static readonly PR_VAS: PhoneHelpRow = {label: 'Vas', text: 'the volume of air that is as easy to compress as the passive radiator\'s suspension is to stretch.'};
@@ -200,11 +213,16 @@ export class PhoneHelp {
   static readonly INTRA_VENT = new PhoneHelpSection('Intra vent', 'The vent between the two chambers. It does not open to the outside.', VENT_ROWS);
   static readonly PASSIVE_RADIATOR = new PhoneHelpSection('Passive radiator', 'A cone with no magnet or coil, moved by the air in the box. It tunes the box in place of a vent.', [
     PhoneHelpRows.SELECT_PR,
-    PhoneHelpRows.SAVE_PR,
+    PhoneHelpRows.PR_INFO,
+    PhoneHelpRows.PR_EDIT,
+  ]);
+  /** The radiator's Key figures on the phone Box tab, as the Driver tab's (John, 16 Nov 2026 12:57, 12:58). */
+  static readonly PR_KEY_FIGURES = new PhoneHelpSection('Key figures', 'The passive radiator\'s main figures, for reference. Tap one to edit the radiator.', [
     PhoneHelpRows.PR_FS,
-    PhoneHelpRows.PR_QMS,
-    PhoneHelpRows.PR_VAS,
+    PhoneHelpRows.PR_MMS,
+    PhoneHelpRows.PR_SD,
     PhoneHelpRows.PR_XMAX,
+    PhoneHelpRows.PR_VD,
     PhoneHelpRows.PR_DRIVING,
   ]);
   static readonly USER_OPTIONS = new PhoneHelpSection('User options', 'The number of passive radiators and any mass added to them.', [
@@ -216,7 +234,8 @@ export class PhoneHelp {
   static readonly CHART = new PhoneHelpSection('Chart', 'Settings for the charts. They do not change the design.', [
     PhoneHelpRows.VELOCITY_LIMIT,
   ]);
-  static readonly DRIVER = new PhoneHelpSection('Driver', 'The driver used in this design and how many of them the box holds.', [
+  /** Headed "User options", as the passive radiator's (John, 16 Nov 2026 12:47: "make both User options"). */
+  static readonly DRIVER = new PhoneHelpSection('User options', 'The driver used in this design and how many of them the box holds.', [
     {label: 'Select driver', text: 'picks a driver from the library.'},
     {label: 'Edit', text: 'opens the driver\'s parameters.'},
     PhoneHelpRows.DRIVERS,

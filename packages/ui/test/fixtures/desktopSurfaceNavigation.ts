@@ -37,7 +37,8 @@ export async function openDesktopSurface(page: Page, surface: DesktopSurface): P
       await page.locator('.tab-section.active .link-btn').filter({hasText: 'Advanced->'}).nth(surface.chamber === 'Front' ? 1 : 0).click(); return;
     case DesktopRoute.Tab: await tab(surface.parameter ?? 'Box'); return;
     case DesktopRoute.PRPicker: await box('box-passive-radiator'); await tab('Passive Radiator'); await page.getByRole('button', {name: 'Select passive radiator', exact: true}).click(); return;
-    case DesktopRoute.PRSave: await box('box-passive-radiator'); await tab('Passive Radiator'); await page.getByRole('button', {name: 'Save to library', exact: true}).click(); return;
+    case DesktopRoute.PRInfo: await box('box-passive-radiator'); await tab('Passive Radiator'); await page.locator('#og-pr-info').click(); return;
+    case DesktopRoute.PREdit: await box('box-passive-radiator'); await tab('Passive Radiator'); await page.locator('#og-pr-edit').click(); return;
     case DesktopRoute.DataQuality:
       await box('box-passive-radiator'); await tab('Passive Radiator');
       await page.locator('#og-pr-vas').fill(''); await page.locator('#og-pr-vas').blur();

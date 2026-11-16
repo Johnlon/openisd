@@ -19,7 +19,7 @@ async function selectDriver(page: Page, file: Buffer): Promise<void> {
   await expect(page.locator('.wb-modal')).toHaveCount(0);
 }
 
-const DESKTOP = {open: async (page: Page) => { await page.goto('/'); await openAProject(page); await page.locator('.project-nav li', {hasText: 'Driver'}).click(); await page.getByRole('button', {name: 'Select Driver'}).click(); }, edit: async (page: Page) => { await page.locator('.edit-btn', {hasText: 'Edit'}).click(); }};
+const DESKTOP = {open: async (page: Page) => { await page.goto('/'); await openAProject(page); await page.locator('.project-nav li', {hasText: 'Driver'}).click(); await page.getByRole('button', {name: 'Select Driver'}).click(); }, edit: async (page: Page) => { await page.locator('.edit-btn[title^="Full editor for this driver"]').click(); }};
 const PHONE = {open: async (page: Page) => { await forceMobileSkin(page); await page.goto('/'); await openAMobileProject(page); await page.locator('.mob-tab', {hasText: 'Driver'}).click(); await page.getByText('Select driver').click(); }, edit: async (page: Page) => { await page.getByRole('button', {name: 'Edit', exact: true}).click(); }};
 
 for (const [skin, skinName] of [[DESKTOP, 'desktop'], [PHONE, 'phone']] as const) {

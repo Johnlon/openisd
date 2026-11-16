@@ -731,7 +731,7 @@ export async function openBoxTab(page: Page): Promise<void> {
 /** Open the Driver Editor the way a user does: Driver tab, Edit, wait for the body. */
 export async function openDriverEditor(page: Page): Promise<void> {
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+  await page.locator('.edit-btn[title^="Full editor for this driver"]').click();
   await page.locator('.de-body').waitFor({ state: 'visible' });
 }
 

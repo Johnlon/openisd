@@ -55,10 +55,16 @@ const prPicker: OpenStep = {root: '.overlay.on .modal', open: async page => {
   await page.locator('.pr-lib-item').first().waitFor({state: 'visible'});
 }};
 
-const prSave: OpenStep = {root: '.save-lib-panel', open: async page => {
+const prEdit: OpenStep = {root: '.prd-panel', open: async page => {
   await boxPage(page, 'box-passive-radiator');
-  await page.getByRole('button', {name: 'Save to library', exact: true}).click();
-  await page.locator('.save-lib-panel').waitFor({state: 'visible'});
+  await page.locator('#mob-pr-edit').click();
+  await page.locator('.prd-panel').waitFor({state: 'visible'});
+}};
+
+const prInfo: OpenStep = {root: '.pri-panel', open: async page => {
+  await boxPage(page, 'box-passive-radiator');
+  await page.locator('#mob-pr-info').click();
+  await page.locator('.pri-panel').waitFor({state: 'visible'});
 }};
 
 const chartData: OpenStep = {root: '.cdata-modal', open: async page => {
@@ -94,7 +100,8 @@ export const PHONE_MENU_STEPS: readonly (readonly [WalkSkin, string, OpenStep])[
   [P, 'sealed-alignment', alignment('sealed')],
   [P, 'vented-alignment', alignment('vented')],
   [P, 'pr-picker', prPicker],
-  [P, 'pr-save', prSave],
+  [P, 'pr-edit', prEdit],
+  [P, 'pr-info', prInfo],
   [P, 'chart-data', chartData],
   [P, 'sheet-port', sheetPort],
   [P, 'exports', exports],

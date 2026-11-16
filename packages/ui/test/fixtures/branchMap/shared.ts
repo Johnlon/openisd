@@ -430,4 +430,31 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'standalone-page-d29873e0b00cdbee':{kind:'view',view:'shared/about-page'}, // packages/ui/about/index.html:1
   'standalone-page-87e618e1833e643a':{kind:'view',view:'shared/install-page'}, // packages/ui/install/index.html:1
   'standalone-page-12dfdce330b8b4e3':{kind:'view',view:'refresh'}, // packages/ui/public/about/refresh/index.html:1
+  'conditional-branch-0fc2c39d1201f7fc':{kind:'partOf',view:'pr-edit'}, // components/PRBrowser.vue editor over the picker
+  'surface-root-d5c5aa9cd4cefd2c':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue scrim
+  'surface-root-d6e23a7648371b0a':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue panel
+  'native-ui-8487a41e83067d89':{kind:'notAView',reason:'button in the passive radiator editor'}, // PREditorDialog.vue X
+  'conditional-branch-f2c5f11f0a436566':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue General tab
+  'conditional-branch-474463a2d245955e':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue Parameters tab
+  'conditional-branch-6ce67509fd5f026f':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue provenance card
+  'conditional-branch-b8f1bacce6a51104':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue formulas
+  'conditional-branch-34a1cf8dd43c7630':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue no formula
+  'native-ui-c0c12b276a49bd88':{kind:'notAView',reason:'button in the passive radiator editor'}, // PREditorDialog.vue Auto calculate
+  'native-ui-9244c0c0acd2c8d5':{kind:'notAView',reason:'button in the passive radiator editor'}, // PREditorDialog.vue Inspect Provenance
+  'conditional-branch-77a6efe87cef7def':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue copy note
+  'native-ui-90902dc99f09b19a':{kind:'notAView',reason:'hidden file input behind Import'}, // PREditorDialog.vue
+  'conditional-branch-316687293d01d1b2':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue desktop footer
+  'native-ui-49117d65e2c43d4d':{kind:'notAView',reason:'button in the passive radiator editor'}, // PREditorDialog.vue Export
+  'native-ui-ddcc3ea30e748c7c':{kind:'notAView',reason:'button in the passive radiator editor'}, // PREditorDialog.vue Import
+  'native-ui-b716ffdff0d07e7b':{kind:'notAView',reason:'button in the passive radiator editor'}, // PREditorDialog.vue Copy to My PRs
+  'native-ui-9418d83a8f414824':{kind:'notAView',reason:'button in the passive radiator editor'}, // PREditorDialog.vue OK
+  'native-ui-bd91b3e9e2f5565f':{kind:'notAView',reason:'button in the passive radiator editor'}, // PREditorDialog.vue Reset
+  'native-ui-4ab2b6e5e916cf22':{kind:'notAView',reason:'button in the passive radiator editor'}, // PREditorDialog.vue Cancel
+  'conditional-branch-1343b28590930e1b':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue phone footer
+  'conditional-branch-2557a15cb1567920':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue More menu
+  'surface-root-0a615f55cd7360a5':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue More scrim
+  'surface-root-5aec341316043804':{kind:'partOf',view:'pr-edit'}, // PREditorDialog.vue More menu
+  'surface-root-a1a9ec574117c19b':{kind:'partOf',view:'pr-info'}, // PRInfoDialog.vue scrim
+  'surface-root-01c819c6acba7489':{kind:'partOf',view:'pr-info'}, // PRInfoDialog.vue panel
+  'conditional-branch-32f96efa28ff34b6':{kind:'partOf',view:'pr-info'}, // PRInfoDialog.vue links
 };

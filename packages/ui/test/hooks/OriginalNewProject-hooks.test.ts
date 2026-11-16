@@ -931,6 +931,27 @@ describe('useOgNewProject — passive-radiator step', () => {
     expect(wizard.passiveRadiatorPickId.value).toBe(2);
   });
 
+  // QO946.c115/c117 (John, 16 Nov 2026): Define opens the passive-radiator editor; its OK makes the new radiator the wizard's.
+  it('Define opens the passive-radiator editor on a blank radiator; OK makes it the step\'s radiator and closes the picker; Cancel keeps nothing', () => {
+    const wizard = atBoxTypeStep(testPassiveRadiators());
+    wizard.next();
+    wizard.passiveRadiatorBrowseOpen.value = true;
+
+    wizard.startDefinePassiveRadiator();
+    expect(wizard.passiveRadiatorEditor.name.value).toBe('');
+    wizard.passiveRadiatorEditor.cancel();
+    expect(wizard.passiveRadiatorView.value).toBeNull();
+
+    wizard.startDefinePassiveRadiator();
+    wizard.passiveRadiatorEditor.setName('Wizard PR');
+    wizard.passiveRadiatorEditor.cells.value?.Xmax_m.set(0.009);
+    wizard.passiveRadiatorEditor.ok();
+
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Wizard PR');
+    expect(wizard.passiveRadiatorView.value?.Xmax_m).toBeCloseTo(0.009, 9);
+    expect(wizard.passiveRadiatorBrowseOpen.value).toBe(false);
+  });
+
   it('a radiator defined at step 4 carries the five parameters typed into it', () => {
     const wizard = atBoxTypeStep(testPassiveRadiators());
     wizard.next();

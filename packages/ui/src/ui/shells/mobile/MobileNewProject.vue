@@ -80,7 +80,8 @@ const {
   passiveRadiatorBrowseOpen,
   loadSavedPassiveRadiator,
   loadBundledPassiveRadiator,
-  defineNewPassiveRadiator,
+  startDefinePassiveRadiator,
+  passiveRadiatorEditor,
 
   projName,
   projDescription,
@@ -244,7 +245,7 @@ function handleCreate() {
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_RADIATOR }}</span></div>
           <NewProjectPassiveRadiatorStep :key="passiveRadiatorPickId" classic field-class="mob-ui-field" :radiator="passiveRadiatorView" :cells="passiveRadiatorCells" :browsing="passiveRadiatorBrowseOpen"
               @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
-            @rename="setPassiveRadiatorName" @load-saved="loadSavedPassiveRadiator" @load-bundled="loadBundledPassiveRadiator" @define="defineNewPassiveRadiator" />
+            @rename="setPassiveRadiatorName" @load-saved="loadSavedPassiveRadiator" @load-bundled="loadBundledPassiveRadiator" :editor="passiveRadiatorEditor" @define="startDefinePassiveRadiator" />
           <div v-if="passiveRadiatorPickError" class="mob-chint mob-chint-warn np-pr-error" role="alert" aria-live="polite">{{ passiveRadiatorPickError }}</div>
           <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
         </template>

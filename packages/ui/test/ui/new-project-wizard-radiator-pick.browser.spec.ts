@@ -33,9 +33,9 @@ test.describe('desktop', () => {
     await expect(page.locator('#np-pr-name')).toHaveValue(/E150HE-PR/);
   });
 
-  test('defining a radiator stays on the step, so its values can be typed', async ({appPage: page}) => {
+  test('with no radiator picked the step stays open, so its values can be typed', async ({appPage: page}) => {
     await page.locator('#np-pr-select').click();
-    await page.locator('button', {hasText: 'Define new passive radiator'}).click();
+    await page.getByRole('button', {name: 'Done'}).click();
     await expect(page.locator('#np-pr-vas')).toBeVisible();
     await expect(page.locator('#np-pr-vas')).toHaveValue('');
   });

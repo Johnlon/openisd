@@ -24,7 +24,7 @@ async function openEditorParameters(page: Page) {
   await page.goto('/');
   await openAProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
   await page.locator('.project-nav li', {hasText: 'Driver'}).click();
-  await page.locator('.edit-btn', {hasText: 'Edit'}).click();
+  await page.locator('.edit-btn[title^="Full editor for this driver"]').click();
   await expect(page.locator('.de-modal')).toBeVisible();
   await page.getByRole('button', {name: 'Parameters', exact: true}).click();
 }

@@ -22,12 +22,17 @@ export interface PRBrowserAPI {
 
 export const PRBrowserKey: InjectionKey<PRBrowserAPI> = Symbol('PRBrowserAPI');
 
-export function usePRBrowser(emit: (event: 'close') => void): PRBrowserAPI {
+/** `savedRevision`: the passive-radiator editor's count of Save to My PRs writes; the Saved list re-reads on each. */
+export function usePRBrowser(emit: (event: 'close') => void, savedRevision?: Readonly<Ref<number>>): PRBrowserAPI {
   const { myPassiveRadiators, bundledPassiveRadiators, prefs, logging } = useApp();
   const filter = ref('');
 
-  const savedRows = ref(passiveRadiatorRows(
-    myPassiveRadiators.list().map(e => ({ id: e.uuid, radiator: e.passiveRadiator }))));
+  /** Bumped by a removal here; with the editor's `savedRevision`, what makes the Saved list re-read the library. */
+  const removals = ref(0);
+  const savedRows = computed(() => {
+    void removals.value; void savedRevision?.value;
+    return passiveRadiatorRows(myPassiveRadiators.list().map(e => ({ id: e.uuid, radiator: e.passiveRadiator })));
+  });
   // The bundled section lists the catalogue index — rows keyed by record uuid, fetched when this
   // browser opens (the repo holds them after the first time). A fetch that fails is shown in the
   // section instead of an empty list.
@@ -56,8 +61,7 @@ export function usePRBrowser(emit: (event: 'close') => void): PRBrowserAPI {
 
   function remove(uuid: string): void {
     flashIfNoRoom(logging, myPassiveRadiators.remove(uuid));
-    savedRows.value = passiveRadiatorRows(
-      myPassiveRadiators.list().map(e => ({ id: e.uuid, radiator: e.passiveRadiator })));
+    removals.value++;
   }
 
   function close(): void {

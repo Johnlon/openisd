@@ -38,8 +38,6 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'conditional-branch-b946a3054685a610':{kind:'partOf',view:'box-vented'}, // MobileEnclosureTab.vue:50
   'conditional-branch-28f6e0fea4f7ce2b':{kind:'view',view:'phone/tuning-unreachable-warning'}, // MobileEnclosureTab.vue:54
   'conditional-branch-258660b326ed880e':{kind:'partOf',view:'box-box-passive-radiator'}, // MobileEnclosureTab.vue:57
-  'native-ui-7cde39dc2c9cc82b':{kind:'notAView',reason:'Save to library button, a trigger for the save dialog'}, // MobileEnclosureTab.vue:66
-  'conditional-branch-19ea85b78eccfeb9':{kind:'view',view:'pr-save'}, // MobileEnclosureTab.vue:68
   'conditional-branch-534f1ce43febe13c':{kind:'view',view:'pr-picker'}, // MobileEnclosureTab.vue:71
   'conditional-branch-4dca507455f940a4':{kind:'partOf',view:'box-vented'}, // MobileEnclosureTab.vue:93
   'conditional-branch-248622210b98b3a7':{kind:'view',view:'phone/filter-card-body'}, // MobileFilterCard.vue:45
@@ -193,4 +191,9 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'surface-root-5dfbbcb405010bcd':{kind:'partOf',view:'section-help'}, // PhoneHelpSheet.vue:22
   'conditional-branch-ef863c233116e5ea':{kind:'partOf',view:'section-help'}, // PhoneHelpSheet.vue:28
   'conditional-branch-543827f4686073bc':{kind:'partOf',view:'section-help'}, // PhoneHelpSheet.vue:29
+  'native-ui-c32234a299fbc8a5':{kind:'notAView',reason:'passive radiator name button, a trigger for the picker'}, // MobileEnclosureTab.vue name row
+  'native-ui-e2016f9ecd236891':{kind:'notAView',reason:'passive radiator Info button, a trigger for the info view'}, // MobileEnclosureTab.vue Info
+  'conditional-branch-86ff1a4fcc05d7e1':{kind:'view',view:'pr-info'}, // MobileEnclosureTab.vue PRInfoDialog
+  'conditional-branch-2f6466aeb10b235a':{kind:'view',view:'pr-edit'}, // MobileEnclosureTab.vue PREditorDialog
+  'conditional-branch-6c675ce194ec8875':{kind:'partOf',view:'box-box-passive-radiator'}, // MobileEnclosureTab.vue 2x rule line
 };
