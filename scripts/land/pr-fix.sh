@@ -11,8 +11,9 @@ set -uo pipefail
 ID="${1:?usage: pr-fix.sh T<n>}"
 [[ "$ID" =~ ^T[0-9]+$ ]] || { echo "pr-fix: '$ID' is not a task id like T815" >&2; exit 2; }
 branch="$(printf '%s' "$ID" | tr 'T' 't')"
-common="$(git rev-parse --git-common-dir)" || exit 2
-src="$(cd "$(dirname "$common")" && pwd)"
+# shellcheck source=../lib/main-checkout.sh
+. "$(dirname "${BASH_SOURCE[0]}")/../lib/main-checkout.sh"
+src="$(main_checkout .)" || exit 2
 SHIP_REMOTE=""; [ -f "$src/ship.conf" ] && . "$src/ship.conf"
 : "${SHIP_REMOTE:?pr-fix: SHIP_REMOTE is not set in ship.conf}"
 dest="$(dirname "$src")/$(basename "$src")-$branch"

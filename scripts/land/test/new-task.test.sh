@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # T083: new-task.sh hands out ids atomically: it skips ids taken by a branch, a directory or a task
-# file, claims the next with mkdir + git branch, adds the worktree, commits the task file, and two
+# file, claims the next with git branch + mkdir, adds the worktree, commits the task file, and two
 # calls never return the same id. Scratch workspace, real git.
 set -uo pipefail
 GITCFG="$(mktemp "${TMPDIR:-/tmp}/new-task-gitconfig.XXXXXX")"
@@ -18,7 +18,7 @@ git init -q --bare -b main origin.git
 git init -q --bare -b main portingle.git
 git clone -q origin.git openisd 2> /dev/null
 cd openisd || exit 2
-mkdir -p scripts tasks; cp "$REPO/scripts/new-task.sh" scripts/
+mkdir -p scripts/lib tasks; cp "$REPO/scripts/new-task.sh" scripts/; cp "$REPO/scripts/lib/main-checkout.sh" scripts/lib/
 printf 'id: T005\nowner: t\nstatus: done\n' > tasks/T005.yml
 printf 'SHIP_REMOTE=portingle\nSHIP_REPO=portingle/openisd\n' > ship.conf
 git remote add portingle "$SCRATCH/portingle.git"

@@ -25,8 +25,10 @@ if [ "${1:-}" = --rejected ]; then VERB=rejected; shift; fi
 WHY="${1:?abandon: say why}"
 case "$ID" in T[0-9]*) ;; *) echo "abandon: $ID is not a task id" >&2; exit 1 ;; esac
 
+# shellcheck source=lib/main-checkout.sh
+. "$(dirname "${BASH_SOURCE[0]}")/lib/main-checkout.sh"
 common="$(cd "$(git rev-parse --git-common-dir)" && pwd)" || exit 1
-main="$(dirname "$common")"
+main="$(main_checkout .)" || exit 1
 LOG="${TIDY_LOG:-$main/build/test-logs/tidy-branches.log}"
 mkdir -p "$(dirname "$LOG")"
 log() { printf '%s tidy-branches: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" | tee -a "$LOG"; }
@@ -52,7 +54,7 @@ while IFS= read -r line; do
     "worktree "*) cur="${line#worktree }" ;;
     "branch refs/heads/$branch") wt="$cur" ;;
   esac
-done < <(g worktree list --porcelain)
+done < <(main_worktree_list "$main")
 [ "$wt" = "$main" ] && { echo "abandon: branch $branch is checked out in the main folder; not touching it" >&2; exit 1; }
 
 note=""

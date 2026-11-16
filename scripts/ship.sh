@@ -34,6 +34,8 @@ ROOT="$(git rev-parse --show-toplevel)" || exit 2
 cd "$ROOT" || exit 2
 # shellcheck source=/dev/null
 . "$HERE/lib/main-folder.sh"
+# shellcheck source=/dev/null
+. "$HERE/lib/main-checkout.sh"
 refuse_in_main_folder ship
 if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.conf"; fi
 [ -f "$CONF" ] || { echo "ship: no land.conf in $ROOT" >&2; exit 2; }
@@ -225,12 +227,12 @@ if [ -n "$label" ]; then
 fi
 
 # 7. the worktree and the local branch go; the branch on GitHub holds the work
-main_dir="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"
+main_dir="$(main_checkout .)" || exit 1
 cd "$main_dir" || exit 1
 git worktree remove --force "$ROOT" && git branch -q -D "$BRANCH" || { echo "ship: pushed, but could not remove $ROOT / $BRANCH" >&2; exit 1; }
 # the carried tasks' own worktrees: removed only when clean (no --force), their branches only when fully inside this one
 for ob in "${GONE[@]}"; do
-  wt="$(git worktree list --porcelain | awk -v b="refs/heads/$ob" '$1=="worktree"{p=$2} $1=="branch"&&$2==b{print p}')"
+  wt="$(main_worktree_list . | awk -v b="refs/heads/$ob" '$1=="worktree"{p=$2} $1=="branch"&&$2==b{print p}')"
   if [ -n "$wt" ]; then git worktree remove "$wt" 2> /dev/null || { echo "ship: left $wt (not clean); remove it when its work is safe" >&2; continue; }; fi
   git branch -q -D "$ob" 2> /dev/null || true
 done

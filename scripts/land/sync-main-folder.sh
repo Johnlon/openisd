@@ -52,7 +52,9 @@ passed=""
 [ "${1:-}" = --passed ] && { passed="${2:?--passed needs a sha}"; shift 2; }
 repo="${1:-.}"
 common="$(cd "$repo" && cd "$(git rev-parse --git-common-dir)" && pwd)" || { echo "sync-main-folder: $repo is not a git checkout" >&2; exit 1; }
-main="$(dirname "$common")"
+# shellcheck source=../lib/main-checkout.sh
+. "$HERE/../lib/main-checkout.sh"
+main="$(main_checkout "$repo")" || { echo "sync-main-folder: $repo is not a git checkout" >&2; exit 1; }
 LOG="${SYNC_LOG:-$main/build/test-logs/sync-main-folder.log}"
 NPM="${SYNC_NPM:-npm}"
 SYSTEMCTL="${SYNC_SYSTEMCTL:-systemctl}"
