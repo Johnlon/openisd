@@ -1,6 +1,8 @@
 /**
  * Rules 2 to 7 of .claude/rules/field-layout.md, measured on what is painted in `root`. Runs inside
  * the page. A fault is one line naming the rule, the group and the controls. No field CSS assumed.
+ * A strip marked `data-carousel` is designed to scroll sideways inside itself (John, 8 Nov 2026: "not a bug,
+ * the strip is a carousel"): what lies beyond its frame is reached by scrolling it, so it is not cut (rule 2).
  */
 export function measureFieldLayoutRules(root: Element, minStepperGapPx: number): string[] {
   const issues: string[] = [];
@@ -15,6 +17,7 @@ export function measureFieldLayoutRules(root: Element, minStepperGapPx: number):
   for (const part of parts) {
     const box = part.getBoundingClientRect();
     const text = (part.textContent ?? '').trim().slice(0, 16);
+    if (part.closest('[data-carousel]') !== null) continue;
     if (box.left < -0.5 || box.right > view.innerWidth + 0.5) issues.push(`R2 ${name(part)} "${text}" leaves the window sideways (${Math.round(box.left)}..${Math.round(box.right)})`);
     let scrollsDown = false; // a part inside a vertical scroller is reached by scrolling, not cut by a frame around the scroller
     for (let ancestor = part.parentElement; ancestor !== null && ancestor !== doc.body; ancestor = ancestor.parentElement) {
@@ -37,7 +40,7 @@ export function measureFieldLayoutRules(root: Element, minStepperGapPx: number):
   for (const scroller of [root, ...root.querySelectorAll('*')]) {
     if (!shown(scroller)) continue;
     const style = view.getComputedStyle(scroller);
-    if (/^(auto|scroll)$/.test(style.overflowX) && scroller.scrollWidth > scroller.clientWidth + 1) issues.push(`R2 ${scroller.tagName.toLowerCase()}.${String(scroller.className).slice(0, 24)} scrolls sideways ${scroller.scrollWidth - scroller.clientWidth}px`);
+    if (/^(auto|scroll)$/.test(style.overflowX) && !scroller.hasAttribute('data-carousel') && scroller.scrollWidth > scroller.clientWidth + 1) issues.push(`R2 ${scroller.tagName.toLowerCase()}.${String(scroller.className).slice(0, 24)} scrolls sideways ${scroller.scrollWidth - scroller.clientWidth}px`);
     if (/^(auto|scroll)$/.test(style.overflowY) && scroller.scrollHeight > scroller.clientHeight + 1 && scroller.matches('.tab-section,.content-panel,.what-if-panel,.modal-body')) issues.push(`R2 ${scroller.tagName.toLowerCase()}.${String(scroller.className).slice(0, 24)} scrolls up and down ${scroller.scrollHeight - scroller.clientHeight}px`);
   }
 
