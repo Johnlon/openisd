@@ -43,14 +43,18 @@ function desktopKind(route:DesktopRoute):ViewKind {
     case DesktopRoute.DataQuality: return ViewKind.FieldNote;
     case DesktopRoute.Library: case DesktopRoute.Picker: case DesktopRoute.PRPicker: case DesktopRoute.DriverInfo: return ViewKind.Browser;
     case DesktopRoute.Cloud: case DesktopRoute.ChartData: case DesktopRoute.Losses: case DesktopRoute.Editor: case DesktopRoute.Options: case DesktopRoute.Info:
-    case DesktopRoute.ProjectImport: case DesktopRoute.DriverImport: case DesktopRoute.DriverSave: case DesktopRoute.PRSave: return ViewKind.Dialog;
+    case DesktopRoute.ProjectImport: case DesktopRoute.DriverImport: case DesktopRoute.DriverSave: case DesktopRoute.PREdit: case DesktopRoute.PRInfo: return ViewKind.Dialog;
   }
 }
+/** John, 16 Nov 2026 (QO946.c117, approved c118): the passive radiator's Info and Edit, as the driver's, on both skins (T840). */
+const PR_INFO_EDIT_RULING:ViewDecision={kind:'ruling',by:'John',date:'2026-11-16',ref:'QO946.c117 (T840)'};
+const PR_INFO_EDIT_VIEWS=new Set(['pr-edit','pr-info','desktop/enclosure/passive-radiator/edit','desktop/enclosure/passive-radiator/info']);
+const decisionOf=(id:string):ViewDecision=>PR_INFO_EDIT_VIEWS.has(id)?PR_INFO_EDIT_RULING:BASELINE;
 function fromMobile(surface:MobileSurface):ViewEntry {
-  return {id:surface.id,skin:ViewSkin.Phone,kind:mobileKind(surface.kind),owner:surface.owner,reach:surface.instructions,decision:BASELINE};
+  return {id:surface.id,skin:ViewSkin.Phone,kind:mobileKind(surface.kind),owner:surface.owner,reach:surface.instructions,decision:decisionOf(surface.id)};
 }
 function fromDesktop(surface:DesktopSurface):ViewEntry {
-  return {id:surface.id,skin:ViewSkin.Desktop,kind:desktopKind(surface.route),owner:surface.owner,reach:surface.relationship,decision:BASELINE};
+  return {id:surface.id,skin:ViewSkin.Desktop,kind:desktopKind(surface.route),owner:surface.owner,reach:surface.relationship,decision:decisionOf(surface.id)};
 }
 const JOHN_RULING:ViewDecision={kind:'ruling',by:'John',date:'2026-11-08',ref:'T739'};
 const SHELL='packages/ui/src/ui/shells/original/OriginalShell.vue',WIZARD='packages/ui/src/ui/shells/original/OriginalNewProject.vue',LIST='packages/ui/src/ui/shells/original/OriginalProjectList.vue';

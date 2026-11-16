@@ -1,7 +1,6 @@
 import type {Locator, Page} from '@playwright/test';
 import {openTab, setFocusedBoxType} from '../fixtures.js';
 import {numInputByLabel} from './numField.js';
-import {mobileFieldRow} from './mobileSkin.js';
 
 /** The passive radiator as its tab shows it, in the units the tab shows; null where a box is empty. */
 export interface ShownPassiveRadiator {
@@ -32,16 +31,19 @@ export async function readPassiveRadiatorTab(page: Page): Promise<ShownPassiveRa
   const phone = await page.locator('.mobile-root').count() > 0;
   if (!phone) await openTab(page, 'Passive Radiator');
   if (phone) {
-    const input = (label: string) => mobileFieldRow(page, label).locator('input').first();
-    return {
-      name: await page.locator('#mob-pr-name').inputValue(),
-      count: Number(await page.locator('#mob-pr-count').inputValue()),
-      vas_L: await numberIn(input('Vas')),
-      qms: await numberIn(input('Qms')),
-      fs_hz: await numberIn(mobileFieldRow(page, 'Fpr').filter({ hasNotText: 'with added mass' }).locator('input').first()),
-      sd_cm2: await numberIn(input('Sd')),
-      xmax_mm: await numberIn(input('Xmax')),
+    // The phone shows the radiator by name; its figures are in the editor (QO946.c115), read and closed with Cancel.
+    const name = (await page.locator('#mob-pr-name-btn').innerText()).trim();
+    const count = Number(await page.locator('#mob-pr-count').inputValue());
+    await page.locator('#mob-pr-edit').click();
+    const editor = page.locator('.prd-panel');
+    const fig = (id: string) => numberIn(editor.locator(`#pr-editor-${id}`));
+    const shown: ShownPassiveRadiator = {
+      name: name === 'Unnamed passive radiator' ? '' : name,
+      count,
+      vas_L: await fig('vas'), qms: await fig('qms'), fs_hz: await fig('fs'), sd_cm2: await fig('sd'), xmax_mm: await fig('xmax'),
     };
+    await editor.getByRole('button', {name: 'Cancel', exact: true}).click();
+    return shown;
   }
   const pane = page.locator('.two-col').filter({ has: page.locator('#og-pr-fs') });
   return {

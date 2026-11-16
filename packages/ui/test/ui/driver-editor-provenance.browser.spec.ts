@@ -84,7 +84,7 @@ test.describe('Driver Editor E/C/N Provenance Class Audit', () => {
     // Open the Driver Editor the way a user does. Services are constructed by the composition
     // root and injected, so there is no module-level instance to import and call.
     await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-    await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+    await page.locator('.edit-btn[title^="Full editor for this driver"]').click();
 
     await page.locator('.de-body').waitFor({ state: 'visible' });
   });

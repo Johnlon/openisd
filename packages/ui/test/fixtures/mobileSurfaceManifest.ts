@@ -41,7 +41,7 @@ const minor:[string,string,string,string][]=[
  ['empty','No project open','MobileShell.vue','Close the last open project'],['menu','Main menu','MobileShell.vue','Tap Menu'],
  ['bin','Project Bin','MobileProjectsPane.vue','Projects → Bin'],['project-actions','Project action sheet','MobileProjectsPane.vue','Menu → Projects → tap the menu button at the right of a project row'],
  ['sealed-alignment','Closed-box alignment','MobileBoxTab.vue','Box → Closed → Choose alignment'],['vented-alignment','Vented alignment','MobileBoxTab.vue','Box → Vented → Choose alignment'],
- ['pr-picker','Passive radiator picker','MobileBoxTab.vue','Box → Passive radiator → Select PR'],['pr-save','Save passive radiator','MobileBoxTab.vue','Passive radiator → Save to library'],
+ ['pr-picker','Passive radiator picker','MobileBoxTab.vue','Box → Passive radiator → Select PR'],['pr-edit','Edit passive radiator','MobileBoxTab.vue','Passive radiator → Edit'],['pr-info','Passive radiator information','MobileBoxTab.vue','Passive radiator → Info'],
  ['chart-picker','Chart picker','MobileChartView.vue','Graph → chart selector'],['chart-data','Chart data table','ChartDataDialog.vue','Graph → Data'],
  ['sheet-port','Tune/What-if port editor','MobileSheet.vue','Graph → Tune or What-if → port value'],
  ['driver-summary-manage','Driver library summary — Manage','DriverLibrary.vue','Manage Drivers → driver row'],['driver-summary-pick','Wizard driver summary — Pick','DriverLibrary.vue','New project → driver row'],

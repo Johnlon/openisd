@@ -659,41 +659,7 @@
         }
       },
       {
-        "field": "pr_Vas_l",
-        "specimen": null,
-        "valueWidth": 146,
-        "rowHeight": 40,
-        "rowWidth": 374,
-        "unit": {
-          "leftFromValueRight": -40,
-          "rightFromValueRight": 0,
-          "topFromValueTop": 0,
-          "height": 34
-        }
-      },
-      {
-        "field": "pr_Qms",
-        "specimen": null,
-        "valueWidth": 146,
-        "rowHeight": 40,
-        "rowWidth": 374,
-        "unit": null
-      },
-      {
         "field": "pr_Fs_hz",
-        "specimen": null,
-        "valueWidth": 146,
-        "rowHeight": 40,
-        "rowWidth": 374,
-        "unit": {
-          "leftFromValueRight": -40,
-          "rightFromValueRight": 0,
-          "topFromValueTop": 0,
-          "height": 34
-        }
-      },
-      {
-        "field": "pr_Sd_cm2",
         "specimen": null,
         "valueWidth": 146,
         "rowHeight": 40,
@@ -719,26 +685,13 @@
         }
       },
       {
-        "field": "Cms_m_per_N",
+        "field": "pr_Sd_cm2",
         "specimen": null,
         "valueWidth": 146,
         "rowHeight": 40,
         "rowWidth": 374,
         "unit": {
-          "leftFromValueRight": -50,
-          "rightFromValueRight": 0,
-          "topFromValueTop": 0,
-          "height": 34
-        }
-      },
-      {
-        "field": "Rms_kg_per_s",
-        "specimen": null,
-        "valueWidth": 146,
-        "rowHeight": 40,
-        "rowWidth": 374,
-        "unit": {
-          "leftFromValueRight": -50,
+          "leftFromValueRight": -40,
           "rightFromValueRight": 0,
           "topFromValueTop": 0,
           "height": 34
@@ -746,6 +699,19 @@
       },
       {
         "field": "pr_Xmax_mm",
+        "specimen": null,
+        "valueWidth": 146,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Vd_m3",
         "specimen": null,
         "valueWidth": 146,
         "rowHeight": 40,
@@ -2374,6 +2340,11 @@
       "date": "2026-11-15",
       "task": "T800",
       "reason": "T742 (John, QO466; 10 Nov 2026: label column hugs the longest label, wide unit chip 50 px) and T790 (Dimensions page shows weight and frame size) changed the phone layout on purpose; widths, the unit chip offsets and the Dimensions rows re-frozen from the reviewed build. The Signal tab rows keep their old figures: the Signal box is a fixed 112 px (T720), asserted in compactFieldContract.ts."
+    },
+    {
+      "date": "2026-11-16",
+      "task": "T840",
+      "reason": "John (QO946.c115, c117, approved c118; 12:57-13:01): the phone Box tab shows the passive radiator by name, its figures move to the radiator's editor; Key figures Fpr, Mms, Sd, Xmax and Vd (read only) sit between the radiator and User options. The rows keep the widths and unit chip offsets frozen for the same fields before; Vd takes Sd's (cm-based unit chip)."
     }
   ]
 }

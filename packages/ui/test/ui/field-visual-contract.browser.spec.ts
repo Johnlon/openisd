@@ -121,18 +121,20 @@ for (const width of [360, 374]) {
     await openClosedBox(page, 'mobile');
     await page.setViewportSize({width, height: 740});
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-    const qms = page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})}).locator('input');
+    await page.locator('#mob-pr-edit').click();   // the radiator's figures are in its editor (QO946.c115)
+    const editor = page.locator('.prd-panel');
+    const qms = editor.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})}).locator('input');
     await clearWithKeyboard(qms);
     await qms.blur();
     await expect(qms).toHaveValue('');
     for (const label of ['Mms', 'Cms']) {
-      const row = page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: new RegExp(`^${label}$`)})});
+      const row = editor.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: new RegExp(`^${label}$`)})});
       await expect(row.locator('.ui-field-dq-btn')).toHaveCount(0);
       await expect(row.locator('.winisd-deviation-cue')).toHaveCount(1);
       await expect(row.locator('input')).not.toHaveValue('');
     }
-    await expect(page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})}).locator('.ui-field-dq-btn')).toHaveCount(1);
-    const report = await page.locator('.mob-content').evaluate(measureFieldContent);
+    await expect(editor.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})}).locator('.ui-field-dq-btn')).toHaveCount(1);
+    const report = await editor.evaluate(measureFieldContent);
     expect(report.rows).toBeGreaterThan(0);
     expect(report.controls).toBe(report.rows);
     expect(report.issues).toEqual([]);

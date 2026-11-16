@@ -12,6 +12,7 @@ import { selectedOption } from '../logic/domEvents.js';
 import { useRadiatorPicks, useRecentActions } from './telemetryContext.js';
 import type { RadiatorPicks } from '../logic/telemetry/radiatorPick.js';
 import type {ClearableUICell} from '../ui/components/uiFieldBinding.js';
+import {appPassiveRadiatorFiles, createPassiveRadiatorEditor, type PassiveRadiatorEditorView, type PassiveRadiatorFiles} from './passiveRadiatorEditor.js';
 
 /** The engine areas the wizard consults; the app facade's by default, substitutes in a test. */
 export interface OriginalNewProjectEngineAreas {
@@ -64,6 +65,8 @@ export interface OriginalNewProjectDeps {
   reportFault?: (fault: Error) => void;
   /** Told which radiator was picked, for usage statistics; the page session's recorder by default. */
   radiatorPicks?: RadiatorPicks;
+  /** The radiator editor's Export and Import; the app's by default (none when other deps are given). */
+  passiveRadiatorFiles?: PassiveRadiatorFiles;
 }
 
 export interface OriginalNewProjectAPI {
@@ -169,6 +172,10 @@ export interface OriginalNewProjectAPI {
   readonly passiveRadiatorPickError: Ref<string | null>;
   /** Start a radiator that states nothing, for the user to type in. */
   defineNewPassiveRadiator(): void;
+  /** The picker's "+ Define new passive radiator": the passive-radiator editor on a blank radiator; its OK makes it the step's. */
+  startDefinePassiveRadiator(): void;
+  /** The passive-radiator editor the picker's Define opens. */
+  readonly passiveRadiatorEditor: PassiveRadiatorEditorView;
 
   // Step 5: Metadata
   readonly projName: Ref<string>;
@@ -470,6 +477,19 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     }
   }
 
+  const passiveRadiatorEditor = createPassiveRadiatorEditor({
+    myPassiveRadiators: prRepos.saved, resolve: resolveCopy,
+    files: deps === undefined ? appPassiveRadiatorFiles(useApp()) : deps.passiveRadiatorFiles,
+  });
+  function startDefinePassiveRadiator(): void {
+    passiveRadiatorEditor.open(OpenISDPassiveRadiatorStandalone.empty(), 'Define new passive radiator', pr => {
+      latestPick++;
+      passiveRadiatorBrowseOpen.value = false;
+      passiveRadiator.value = ownCopy(pr);
+      passiveRadiatorPickId.value++;
+    });
+  }
+
   function defineNewPassiveRadiator(): void {
     latestPick++;
     passiveRadiatorBrowseOpen.value = false;
@@ -661,6 +681,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     passiveRadiatorPickError,
     passiveRadiatorPickId,
     defineNewPassiveRadiator,
+    startDefinePassiveRadiator,
+    passiveRadiatorEditor,
 
     projName,
     projDescription,

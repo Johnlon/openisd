@@ -10,7 +10,7 @@ const named:Record<string,string>={
  'menu-diagnosticsmodal':'help/diagnostics/overview','menu-splashmodal':'help/about/overview','menu-announcementsmodal':'help/announcements/archive','menu-winisddifferencesmodal':'help/compatibility/differences',
  'driver-info':'driver/project/information','driver-picker':'driver/project/select','empty':'projects/empty-state','menu':'navigation/main-menu',
  'bin':'projects/library/bin','project-actions':'projects/library/actions','sealed-alignment':'enclosure/closed-box/alignment','vented-alignment':'enclosure/vented/alignment',
- 'pr-picker':'enclosure/passive-radiator/select','pr-save':'enclosure/passive-radiator/save-to-library','chart-picker':'results/charts/choose','chart-data':'results/charts/data-table','sheet-port':'results/tuning/port-editor',
+ 'pr-picker':'enclosure/passive-radiator/select','pr-edit':'enclosure/passive-radiator/edit','pr-info':'enclosure/passive-radiator/info','chart-picker':'results/charts/choose','chart-data':'results/charts/data-table','sheet-port':'results/tuning/port-editor',
  'driver-summary-manage':'driver/library/information','driver-summary-pick':'projects/new/driver-information','driver-search-filters':'driver/search/filters','driver-storage-error':'driver/library/unreadable-storage',
  'driver-more':'driver/editor/actions','driver-export':'driver/export/format','driver-identity':'driver/editor/missing-identity','driver-rename':'driver/editor/rename-or-copy','driver-save':'driver/library/save','equations':'driver/editor/provenance','driver-dq':'driver/editor/disagreements',
  'field-dq':'shared/fields/warning-details','options-limits-help':'settings/options/design-limits/help','exports':'projects/export/formats',

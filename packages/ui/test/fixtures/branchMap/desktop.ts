@@ -132,7 +132,6 @@ export const DESKTOP_BRANCH_MAP:BranchMap={
   'conditional-branch-ab104dcef5679c9a':{kind:'partOf',view:'desktop/enclosure/vented/vents-tab'},
   'conditional-branch-c29c7342ebacb49f':{kind:'partOf',view:'desktop/enclosure/passive-radiator/radiator-tab'},
   'native-ui-d999111c952b4e51':{kind:'notAView',reason:'passive radiator button; the surface it opens is its own view'},
-  'native-ui-02e113eb415c3ac4':{kind:'notAView',reason:'passive radiator button; the surface it opens is its own view'},
   'native-ui-068b423d6ca5d160':{kind:'partOf',view:'desktop/enclosure/passive-radiator/radiator-tab'},
   'conditional-branch-66976c6b77141f88':{kind:'partOf',view:'desktop/enclosure/vented/vents-tab'},
   'conditional-branch-bb9a55c2dfd6424c':{kind:'partOf',view:'desktop/enclosure/vented/vents-tab'},
@@ -184,7 +183,6 @@ export const DESKTOP_BRANCH_MAP:BranchMap={
   'surface-root-b2beb989ebcfcd0b':{kind:'partOf',view:'desktop/settings/cloud/account-and-activity'},
   'surface-root-5176f59f27e33f86':{kind:'partOf',view:'desktop/settings/cloud/account-and-activity'},
   'surface-root-35ead24071f23c57':{kind:'partOf',view:'desktop/settings/cloud/account-and-activity'},
-  'conditional-branch-d80b01eaec2b289b':{kind:'view',view:'desktop/enclosure/passive-radiator/save'},
   'native-ui-016587c6a64b74e1':{kind:'view',view:'desktop/projects/import/file'},
   'native-ui-c9decb492b068a30':{kind:'partOf',view:'desktop/results/what-if/closed-box'},
   'conditional-branch-0b6bfacbfdf82fa0':{kind:'partOf',view:'desktop/results/what-if/closed-box'},
@@ -194,4 +192,8 @@ export const DESKTOP_BRANCH_MAP:BranchMap={
   'native-ui-ca77a40b8af34b17':{kind:'partOf',view:'desktop/results/what-if/closed-box'},
   'native-ui-ea829276c9374423':{kind:'partOf',view:'desktop/results/what-if/closed-box'},
   'native-ui-afbfd737c49ddbcc':{kind:'partOf',view:'desktop/results/what-if/closed-box'},
+  'native-ui-5c100c8d8391f98d':{kind:'notAView',reason:'passive radiator Info button; the surface it opens is its own view'}, // OriginalShell.vue PR Info
+  'native-ui-55fcb89b0e647b54':{kind:'notAView',reason:'passive radiator Edit button; the surface it opens is its own view'}, // OriginalShell.vue PR Edit
+  'conditional-branch-4efb887ee4e7ce6e':{kind:'view',view:'desktop/enclosure/passive-radiator/info'}, // OriginalShell.vue PRInfoDialog
+  'conditional-branch-ac2ff33047f3f6eb':{kind:'view',view:'desktop/enclosure/passive-radiator/edit'}, // OriginalShell.vue PREditorDialog
 };

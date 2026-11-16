@@ -6,7 +6,7 @@
  */
 import type {Locator, Page} from '@playwright/test';
 import {expect, openTab, test} from '../fixtures.js';
-import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
+import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 const FIGURE_IDS = ['#np-pr-vas', '#np-pr-qms', '#np-pr-fs', '#np-pr-sd', '#np-pr-mms', '#np-pr-cms', '#np-pr-rms', '#np-pr-xmax'];
 
@@ -36,13 +36,16 @@ const PHONE: Skin = {
   root: page => page.locator('.mob-np-overlay'),
   footer: page => page.locator('.mob-np-footer'),
   open: page => page.getByText('New project').click(),
+  // The phone shows the radiator's figures in its editor (QO946.c115): Edit, read, the caller's assertion, no Cancel needed.
   projectRms: async page => {
     await openTab(page, 'Box');
-    return mobileFieldRow(page, 'Rms').locator('input').first();
+    await page.locator('#mob-pr-edit').click();
+    return page.locator('#pr-editor-rms');
   },
   projectCms: async page => {
     await openTab(page, 'Box');
-    return mobileFieldRow(page, 'Cms').locator('input').first();
+    await page.locator('#mob-pr-edit').click();
+    return page.locator('#pr-editor-cms');
   },
 };
 

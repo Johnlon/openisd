@@ -39,7 +39,7 @@ test.describe('Modal behaviour', () => {
         page.locator('.de-modal'),
         async () => {
           await page.locator('li', { hasText: 'Driver' }).click();
-          await page.locator('button.edit-btn', { hasText: 'Edit' }).click();
+          await page.locator('button.edit-btn[title^="Full editor for this driver"]').click();
           await expect(page.locator('.de-modal')).toBeVisible();
         },
         async () => {

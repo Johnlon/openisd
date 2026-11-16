@@ -46,7 +46,9 @@ async function choosePassiveRadiator(page: Page): Promise<void> {
   await expect(modal).toContainText('Passive Radiator');
   await expect(footerNext(page)).toBeDisabled();
   await modal.locator('#np-pr-select').click();
-  await page.locator('button', { hasText: 'Define new passive radiator' }).click();
+  // Defining one now files it in the library (issue 522); with none chosen the step's boxes are blank, so close the picker.
+  await page.getByRole('button', { name: 'Done' }).click();
+  await page.locator('#np-pr-name').fill('Typed PR');   // typing in the step's boxes is what defines the step's radiator
 }
 
 /** Puts drivers in My Drivers the way a user does: Load File… in the wizard's driver list, one `.owdr` file

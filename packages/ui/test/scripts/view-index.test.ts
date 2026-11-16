@@ -27,8 +27,12 @@ describe('view index',()=>{
       expect(view?.skin,surface.id).toBe(ViewSkin.Desktop);
     }
   });
+  // A manifest view added after the baseline carries its ruling (T840: the passive radiator's Info and Edit, QO946.c117).
   it('has no baseline entries beyond the two manifests',()=>{
-    expect(VIEW_INDEX.filter(view=>view.decision.kind==='baseline').length).toBe(MOBILE_SURFACES.length+DESKTOP_SURFACES.length);
+    const manifestIds=new Set([...MOBILE_SURFACES,...DESKTOP_SURFACES].map(surface=>surface.id));
+    const ruledManifest=VIEW_INDEX.filter(view=>manifestIds.has(view.id)&&view.decision.kind==='ruling').length;
+    expect(VIEW_INDEX.filter(view=>view.decision.kind==='baseline').length).toBe(MOBILE_SURFACES.length+DESKTOP_SURFACES.length-ruledManifest);
+    expect(VIEW_INDEX.filter(view=>view.decision.kind==='baseline').every(view=>manifestIds.has(view.id))).toBe(true);
   });
   it('carries every non-baseline entry with a ruling that names a task',()=>{
     expect(VIEW_INDEX.filter(view=>view.decision.kind==='ruling'&&view.decision.ref==='').map(view=>view.id)).toEqual([]);

@@ -43,11 +43,16 @@ test('with the Saved list empty, Define and Done are on screen', async ({ appPag
 });
 
 test('with many saved radiators the list scrolls and Define and Done stay on screen', async ({ appPage: page }) => {
+  // Each copy is filed through the editor's Copy to My PRs (QO946.c117): a fresh editor each time, so twelve entries.
   for (let i = 1; i <= 12; i++) {
-    await page.getByRole('button', { name: 'Save to library' }).click();
-    const dialog = page.getByRole('dialog', { name: 'Save passive radiator to library' });
-    await dialog.locator('input').fill(`Saved PR ${i}`);
-    await dialog.getByRole('button', { name: 'Save' }).click();
+    await page.locator('#mob-pr-edit').click();
+    const dialog = page.getByRole('dialog', { name: "Edit Project's Passive Radiator" });
+    await dialog.getByRole('tab', { name: 'General' }).click();
+    await dialog.locator('#pr-editor-name').fill(`Saved PR ${i}`);
+    await dialog.getByRole('button', { name: /More/ }).click();
+    await dialog.getByRole('menuitem', { name: 'Copy to My PRs' }).click();
+    await expect(dialog.getByRole('status')).toContainText(`Saved PR ${i}`);
+    await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(dialog).toHaveCount(0);
   }
   await openLibrary(page);

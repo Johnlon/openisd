@@ -90,7 +90,8 @@ test.describe('MobileBoxTab', () => {
 
   test('a field DQ explanation is a popup: the row keeps its box and the next field does not move', async ({ appPage: page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-    const qms = mobileFieldRow(page, 'Qms').first();
+    // Vb: the radiator's own figures moved to its editor (QO946.c115), the box's volume stays on the page.
+    const qms = mobileFieldRow(page, 'Vb').first();
     const next = qms.locator('xpath=following-sibling::*[contains(concat(" ", normalize-space(@class), " "), " mob-ui-field ")][1]');
     const boxOf = (row: typeof qms) => row.evaluate(el => { const r = el.getBoundingClientRect(); return {y: r.y, width: r.width, height: r.height}; });
     const qmsBefore = await boxOf(qms);
@@ -192,9 +193,9 @@ test.describe('MobileBoxTab', () => {
       await page.locator('.mob-tab', { hasText: 'Box' }).click();
       await page.locator('#mob-box-type').selectOption('box-passive-radiator');
       await expect(volumeInput(page)).not.toHaveValue('0.00');
-      // The PR name is an editable box since 1b15a8f9, so it is a value, not page text.
-      await expect(page.locator('#mob-pr-name')).toHaveValue('Dummy PR');
-      await expect(mobileFieldRow(page, 'Sd').locator('input')).not.toHaveValue('0.00');
+      // The phone shows the radiator by name, its Sd among its Key figures (QO946.c115, 12:57).
+      await expect(page.locator('#mob-pr-name-btn')).toHaveText('Dummy PR');
+      await expect(page.locator('#mob-pr-key-sd')).not.toHaveValue('0.00');
     }
 
     // eslint-disable-next-line playwright/expect-expect -- assertions live in the shared expect*Ready() helpers above

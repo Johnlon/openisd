@@ -145,8 +145,11 @@ test('pressing a step button focuses the button, not the field', async ({ page }
 // neighbours. Every stepper lines up whether or not its row has a unit.
 test('a unitless row\'s step buttons line up with a row that has a unit', async ({ page }) => {
   await setFocusedBoxType(page, 'box-passive-radiator');
-  const withUnit = await fieldRow(page, 'Vas').locator('.num-stepper').boundingBox();
-  const unitless = await fieldRow(page, 'Qms').locator('.num-stepper').boundingBox();
+  await page.locator('#mob-pr-edit').click();   // Vas and Qms are in the radiator's editor (QO946.c115)
+  const editor = page.locator('.prd-panel');
+  const row = (label: string) => editor.locator('.ui-field').filter({has: page.locator('.ui-field-label', {hasText: new RegExp(`^${label}$`)})});
+  const withUnit = await row('Vas').locator('.num-stepper').boundingBox();
+  const unitless = await row('Qms').locator('.num-stepper').boundingBox();
   expect(withUnit).not.toBeNull();
   expect(unitless).not.toBeNull();
   expect(Math.abs(unitless!.x + unitless!.width - (withUnit!.x + withUnit!.width))).toBeLessThan(1);

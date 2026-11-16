@@ -103,7 +103,7 @@ test('the tab bar switches between Box, Driver, Signal and Graph', async ({ appP
 
   await page.locator('.mob-tab', { hasText: 'Driver' }).click();
   await expect(page.locator('.mob-tab.active')).toHaveText('Driver');
-  await expect(page.locator('.mob-band-title').first()).toHaveText('Driver');
+  await expect(page.locator('.mob-band-title').first()).toHaveText('User options');   // QO946.c118
 
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
   await expect(page.locator('.mob-tab.active')).toHaveText('Signal');
