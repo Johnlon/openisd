@@ -4,6 +4,7 @@ import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {measureFieldBorders, measureFieldContent} from '../fixtures/fieldVisualContract.js';
 import {BOX_TYPES, PAGE_SCREENS} from '../visual/screens.js';
 import type {Locator, Page} from '@playwright/test';
+import {ChartInputs} from '@openisd/design/fields';
 
 /** Only the presented dialog is interactive; the page behind its backdrop is deliberately covered. */
 async function fieldSurface(page: Page): Promise<Locator> {
@@ -154,7 +155,9 @@ test('PR labels reserve warning space before and after DQ appears', async ({page
     if (!label) throw new Error('Vas label missing');
     return input.getBoundingClientRect().left-label.getBoundingClientRect().left;
   });
-  expect(shortLabelSpan, 'short PR symbols need only their compact label column and one warning slot').toBeLessThanOrEqual(62);
+  // The radiator's Sd, Mms, Cms and Rms carry the blue dot of a box the charts read (QO532, John, 11 Nov 2026, on the blue dot
+  // picture: "do this"); the label column keeps room for it so it never runs into the warning mark.
+  expect(shortLabelSpan, 'short PR symbols need only their compact label column, the dot room and one warning slot').toBeLessThanOrEqual(62 + ChartInputs.DESKTOP_DOT_ROOM_PX);
   const wraps = await root.locator('.ui-field > label').evaluateAll(labels => labels.filter(label => {
     const range=document.createRange();range.selectNodeContents(label);
     return new Set([...range.getClientRects()].map(rect=>Math.round(rect.top))).size>1;

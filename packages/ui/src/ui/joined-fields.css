@@ -162,6 +162,9 @@
 /* A box the charts read has a blue dot after its label's text (QO532): the label keeps room for it, so a label column sized by its
    widest label (the driver editor's max-content track) holds the dot clear of the warning mark. The text does not move. */
 .joined-fields:not(.app-root-mobile) .ui-field.ui-field.ui-field-drives-charts:is([data-field],.joined-field) > label {padding-right:var(--engine-dot-room);}
+/* Phone: the label's own box holds its dot (QO532), so a label is never measured as cut. The phone column already leaves this room
+   (ChartInputs.phoneDotRoomPx), so no column, box or text moves. */
+.joined-fields.app-root-mobile .ui-field.ui-field.ui-field-drives-charts:is([data-field],.joined-field) > label {padding-right:calc(var(--engine-dot-gap) + var(--engine-dot-size));}
 
 /* Text and choice rows reserve the same warning rail as numeric rows. */
 .joined-fields:not(.app-root-mobile) .ui-pick-field:not(.mob-ui-field) {

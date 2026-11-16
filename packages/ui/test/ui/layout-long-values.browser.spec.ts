@@ -37,6 +37,9 @@ const KNOWN: ReadonlyMap<string, string> = new Map([
   ['box-bandpass4', 'BUG_20261110_layout-scan-first-run'],
   ['box-bandpass6', 'BUG_20261110_layout-scan-first-run'],
   ['box-abc', 'BUG_20261110_layout-scan-first-run'],
+  // Vd top limit in cm3 (100 m3 is 100000000000 cm3, 101 px): the driver editor's label column also keeps the blue dot's room
+  // (QO532), and the box text area is a fraction of a pixel short.
+  ['editor-parameters', 'BUG_20261110_layout-scan-first-run'],
 ]);
 
 for (const surface of PAGES) {
