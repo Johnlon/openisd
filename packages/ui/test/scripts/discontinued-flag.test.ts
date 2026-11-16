@@ -1,6 +1,7 @@
 /**
- * QO450 (John: "hide"): a record whose sibling driver.json says `"discontinued": true` is left
- * out of the bundled catalogue, and a flag change changes the bundle fingerprint.
+ * John, 2026-11-16: "we can't take away drivers for no good reasons". A record whose sibling
+ * driver.json says `"discontinued": true` IS in the bundled catalogue, its index row carries
+ * `discontinued: true` ("disc flag is important"), and a flag change changes the bundle fingerprint.
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
@@ -56,8 +57,8 @@ describe('bundle fingerprint covers the discontinued flag', () => {
   });
 });
 
-describe('bundle-drivers.mjs leaves discontinued records out', () => {
-  it('bundles the live record and drops the discontinued one (no index row, no record file)', {timeout: 120_000}, () => {
+describe('bundle-drivers.mjs bundles discontinued records and keeps the flag', () => {
+  it('lists the live and the discontinued record, each with its record file and its flag', {timeout: 120_000}, () => {
     const corpus = mkdtempSync(join(tmpdir(), 'discontinued-bundle-'));
     const work = mkdtempSync(join(tmpdir(), 'discontinued-root-'));
     try {
@@ -71,13 +72,48 @@ describe('bundle-drivers.mjs leaves discontinued records out', () => {
       assert.match(r.stdout, /1 discontinued/);
       const parsed: unknown = JSON.parse(readFileSync(join(work, 'public/drivers-index.json'), 'utf8'));
       assert.ok(Array.isArray(parsed));
-      const paths = parsed.map((row: unknown) => (typeof row === 'object' && row !== null && 'path' in row ? row.path : null));
-      assert.deepEqual(paths, ['live/one']);
+      const flags: Record<string, unknown> = {};
+      for (const row of parsed.map((r2: unknown) => r2)) {
+        assert.ok(typeof row === 'object' && row !== null && 'path' in row && typeof row.path === 'string' && 'discontinued' in row);
+        flags[row.path] = row.discontinued;
+      }
+      assert.deepEqual(flags, {'live/one': false, 'gone/two': true});
       assert.equal(existsSync(join(work, 'public/drivers/live/one.json')), true);
-      assert.equal(existsSync(join(work, 'public/drivers/gone/two.json')), false);
+      assert.equal(existsSync(join(work, 'public/drivers/gone/two.json')), true);
     } finally {
       rmSync(corpus, {recursive: true, force: true});
       rmSync(work, {recursive: true, force: true});
     }
+  });
+});
+
+describe('the tracked catalogue keeps every discontinued record, flagged', () => {
+  const PUBLIC = join(ROOT, 'packages/ui/public');
+  const readRows = (file: string): {path: string; discontinued: unknown}[] => {
+    const parsed: unknown = JSON.parse(readFileSync(join(PUBLIC, file), 'utf8'));
+    assert.ok(Array.isArray(parsed));
+    return parsed.map((row: unknown) => {
+      assert.ok(typeof row === 'object' && row !== null && 'path' in row && typeof row.path === 'string' && 'discontinued' in row, `row without path/discontinued in ${file}`);
+      return {path: row.path, discontinued: row.discontinued};
+    });
+  };
+
+  it('every row states discontinued as a boolean', () => {
+    for (const row of [...readRows('drivers-index.json'), ...readRows('passive-radiators-index.json')]) {
+      assert.equal(typeof row.discontinued, 'boolean', row.path);
+    }
+  });
+
+  it('the 101 drivers T717 removed (70 Visaton, 31 Faital Pro) are listed, each flagged discontinued', () => {
+    const flagged = readRows('drivers-index.json').filter(r => r.discontinued === true);
+    assert.equal(flagged.length, 101);
+    assert.equal(flagged.filter(r => r.path.startsWith('visaton/')).length, 70);
+    assert.equal(flagged.filter(r => r.path.startsWith('faitalpro/')).length, 31);
+    for (const r of flagged) assert.equal(existsSync(join(PUBLIC, 'drivers', `${r.path}.json`)), true, r.path);
+  });
+
+  it('the Visaton PR 250 is listed as a passive radiator and flagged discontinued', () => {
+    const flagged = readRows('passive-radiators-index.json').filter(r => r.discontinued === true);
+    assert.deepEqual(flagged.map(r => r.path), ['visaton/pr-250']);
   });
 });

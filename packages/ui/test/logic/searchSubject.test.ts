@@ -44,7 +44,7 @@ const driver: OpenISDDriverStandalone = (() => {
 })();
 
 const row: BundledDriverIndexRow = {
-  uuid: UUID, path: 'tang-band/w5-1138smf', name: 'Tang Band W5-1138SMF', dq: false,
+  uuid: UUID, path: 'tang-band/w5-1138smf', name: 'Tang Band W5-1138SMF', dq: false, discontinued: false,
   datasheet: null, productPage: null, listingPage: null,
   chips: chipsOf(driver).types, canonical: chipsOf(driver).canonical,
   Fs_hz: 45, Sd_m2: 0.0075, Xmax_m: null, Vd_m3: null, Znom_ohm: 4,

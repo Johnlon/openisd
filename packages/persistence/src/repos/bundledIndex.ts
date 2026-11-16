@@ -26,6 +26,9 @@ export interface BundledIndexRow {
   readonly name: string;
   /** Core fields missing or ≤ 0 — the ⚠ flag, for both kinds. */
   readonly dq: boolean;
+  /** The maker has discontinued the part (the scraper's driver.json `discontinued`). Carried, never
+   *  hidden: a discontinued record is bundled and listed like any other (John, 2026-11-16). */
+  readonly discontinued: boolean;
   readonly datasheet: string | null;
   readonly productPage: string | null;
   readonly listingPage: string | null;

@@ -1,0 +1,30 @@
+id: T843
+release_note: Discontinued drivers and passive radiators are listed again.
+repo: openisd
+owner: leader
+status: done
+goal: Discontinued drivers and passive radiators are in the bundled catalogue again, each with its discontinued flag kept on its index row
+why: "John, 16 Nov 2026: we can't take away drivers for no good reasons (T717 removed 101 discontinued drivers without a recorded ruling)"
+done_test: bash scripts/test.sh packages/ui/test/scripts/discontinued-flag.test.ts
+files:
+  - tasks/T843.yml
+  - packages/persistence/src/repos/bundledIndex.ts
+  - packages/persistence/src/repos/bundledRepo.ts
+  - packages/persistence/test/bundledDriverRepo.test.ts
+  - packages/persistence/test/bundledPassiveRadiatorRepo.test.ts
+  - packages/persistence/test/bundledRepo.test.ts
+  - packages/ui/public/drivers-index.json
+  - packages/ui/public/passive-radiators-index.json
+  - packages/ui/src/logic/bundledIndexRows.ts
+  - packages/ui/test/logic/bundledIndexRows.test.ts
+  - packages/ui/test/logic/driverDisplay.test.ts
+  - packages/ui/test/logic/driverPick.test.ts
+  - packages/ui/test/logic/radiatorPick.test.ts
+  - packages/ui/test/logic/searchSubject.test.ts
+  - packages/ui/test/scripts/bundled-index-artifacts.test.ts
+  - packages/ui/test/scripts/discontinued-flag.test.ts
+  - scripts/bundle-drivers.mjs
+  - scripts/bundleStamp.mjs
+  - scripts/discontinuedFlag.mjs
+  - scripts/driver-snapshot.pin
+  - packages/ui/public/drivers/**

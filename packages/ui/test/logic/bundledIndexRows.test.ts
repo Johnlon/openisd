@@ -105,7 +105,7 @@ describe('bundledDriverIndexRowOf', () => {
     const d = driverOf(
       { Fs_hz: 45, Sd_m2: 0.0075, Xmax_m: 0.0093, Znom_ohm: 4, Qts: 0.5, Vas_m3: 0.006 },
       { manufacturer_datasheet: 'https://example.test/w5.pdf', manufacturer_product_page: 'https://example.test/w5' });
-    const row = bundledDriverIndexRowOf(d, 'tang-band/w5-1138smf/openisd.yml');
+    const row = bundledDriverIndexRowOf(d, 'tang-band/w5-1138smf/openisd.yml', false);
 
     assert.equal(row.uuid, UUID_D);
     assert.equal(row.path, 'tang-band/w5-1138smf/openisd.yml');
@@ -121,15 +121,21 @@ describe('bundledDriverIndexRowOf', () => {
     assert.equal(row.Znom_ohm, 4);
     assert.equal(row.dq, driverHasDqIssues(d));
     assert.equal(row.dq, false);
+    assert.equal(row.discontinued, false);
+  });
+
+  it('carries the discontinued flag it is given, on drivers and radiators', () => {
+    assert.equal(bundledDriverIndexRowOf(driverOf({ Fs_hz: 45 }), 'a/b/openisd.yml', true).discontinued, true);
+    assert.equal(bundledPassiveRadiatorIndexRowOf(radiatorOf({}), 'a/b/openisd.yml', true).discontinued, true);
   });
 
   it('carries the size class worked out from Sd as a search key, and null when Sd is not stated', () => {
-    assert.equal(bundledDriverIndexRowOf(driverOf({ Fs_hz: 45, Sd_m2: 0.0213206, Znom_ohm: 8 }), 'a/b/openisd.yml').sizeFromSd_in, 8);
-    assert.equal(bundledDriverIndexRowOf(driverOf({ Fs_hz: 45, Znom_ohm: 8 }), 'a/b/openisd.yml').sizeFromSd_in, null);
+    assert.equal(bundledDriverIndexRowOf(driverOf({ Fs_hz: 45, Sd_m2: 0.0213206, Znom_ohm: 8 }), 'a/b/openisd.yml', false).sizeFromSd_in, 8);
+    assert.equal(bundledDriverIndexRowOf(driverOf({ Fs_hz: 45, Znom_ohm: 8 }), 'a/b/openisd.yml', false).sizeFromSd_in, null);
   });
 
   it('a figure the record does not state and the solver cannot derive is null, not 0 or undefined', () => {
-    const row = bundledDriverIndexRowOf(driverOf({}), 'a/b/openisd.yml');
+    const row = bundledDriverIndexRowOf(driverOf({}), 'a/b/openisd.yml', false);
     assert.equal(row.Fs_hz, null);
     assert.equal(row.Sd_m2, null);
     assert.equal(row.Xmax_m, null);
@@ -139,9 +145,9 @@ describe('bundledDriverIndexRowOf', () => {
   });
 
   it('is exactly the declared row — no extra keys leak from the domain object', () => {
-    const row = bundledDriverIndexRowOf(driverOf({ Fs_hz: 45 }), 'a/b/openisd.yml');
+    const row = bundledDriverIndexRowOf(driverOf({ Fs_hz: 45 }), 'a/b/openisd.yml', false);
     assert.deepEqual(Object.keys(row).sort(), [
-      'Fs_hz', 'Sd_m2', 'Vd_m3', 'Xmax_m', 'Znom_ohm', 'canonical', 'chips', 'datasheet', 'dq',
+      'Fs_hz', 'Sd_m2', 'Vd_m3', 'Xmax_m', 'Znom_ohm', 'canonical', 'chips', 'datasheet', 'discontinued', 'dq',
       'freq_high_hz', 'freq_low_hz', 'listingPage', 'name', 'path', 'productPage', 'sizeFromSd_in', 'uuid',
     ]);
   });
@@ -152,7 +158,7 @@ describe('bundledPassiveRadiatorIndexRowOf', () => {
     const r = radiatorOf(
       { Fs_hz: 44.2, Sd_m2: 0.00866, Mms_kg: 0.0164, Vas_m3: 0.0084, Qms: 4.02, Xmax_m: 0.0064 },
       { manufacturer_product_page: 'https://example.test/nd140-pr' });
-    const row = bundledPassiveRadiatorIndexRowOf(r, 'dayton-audio/nd140-pr/openisd.yml');
+    const row = bundledPassiveRadiatorIndexRowOf(r, 'dayton-audio/nd140-pr/openisd.yml', false);
 
     assert.equal(row.uuid, UUID_P);
     assert.equal(row.path, 'dayton-audio/nd140-pr/openisd.yml');
@@ -170,9 +176,9 @@ describe('bundledPassiveRadiatorIndexRowOf', () => {
   });
 
   it('is exactly the declared row', () => {
-    const row = bundledPassiveRadiatorIndexRowOf(radiatorOf({}), 'a/b/openisd.yml');
+    const row = bundledPassiveRadiatorIndexRowOf(radiatorOf({}), 'a/b/openisd.yml', false);
     assert.deepEqual(Object.keys(row).sort(), [
-      'Cms_m_per_N', 'Fs_hz', 'Mms_kg', 'Qms', 'Sd_m2', 'Vas_m3', 'Vd_m3', 'Xmax_m', 'datasheet', 'dq',
+      'Cms_m_per_N', 'Fs_hz', 'Mms_kg', 'Qms', 'Sd_m2', 'Vas_m3', 'Vd_m3', 'Xmax_m', 'datasheet', 'discontinued', 'dq',
       'listingPage', 'name', 'path', 'productPage', 'uuid',
     ]);
     assert.equal(row.dq, true);

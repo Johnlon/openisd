@@ -46,12 +46,13 @@ export function baseOf(row: Record<string, unknown>, where: string, f: FieldRead
   const path = f.string(row.path, `${where}.path`);
   const name = f.string(row.name, `${where}.name`);
   const dq = f.boolean(row.dq, `${where}.dq`);
+  const discontinued = f.boolean(row.discontinued, `${where}.discontinued`);
   const datasheet = f.nullableString(row.datasheet, `${where}.datasheet`);
   const productPage = f.nullableString(row.productPage, `${where}.productPage`);
   const listingPage = f.nullableString(row.listingPage, `${where}.listingPage`);
-  if (uuid === null || path === null || name === null || dq === null
+  if (uuid === null || path === null || name === null || dq === null || discontinued === null
       || datasheet === undefined || productPage === undefined || listingPage === undefined) return null;
-  return { uuid, path, name, dq, datasheet, productPage, listingPage };
+  return { uuid, path, name, dq, discontinued, datasheet, productPage, listingPage };
 }
 
 /** A plain object — narrowed by a GUARD, never a cast. */

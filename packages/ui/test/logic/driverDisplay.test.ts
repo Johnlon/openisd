@@ -172,7 +172,7 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
     const radiator = radiatorOf({ brand: 'Dayton Audio', model: 'ND140-PR', Sd_m2: 0.00866, Mms_kg: 0.0164 });
     const indexRow: BundledPassiveRadiatorIndexRow = {
       uuid: '00000000-0000-4000-8000-00000000000a', path: 'dayton-audio/nd140-pr', name: 'Dayton Audio ND140-PR',
-      dq: true, datasheet: null, productPage: null, listingPage: null,
+      dq: true, discontinued: false, datasheet: null, productPage: null, listingPage: null,
       Fs_hz: null, Sd_m2: 0.00866, Xmax_m: null, Vd_m3: null, Mms_kg: 0.0164, Cms_m_per_N: null, Vas_m3: null, Qms: null,
     };
     const fromObject = passiveRadiatorRows([{ id: '00000000-0000-4000-8000-00000000000a', radiator }]);

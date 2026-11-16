@@ -1,8 +1,8 @@
 /**
  * discontinuedFlag.mjs — whether a corpus record's manufacturer has discontinued the part.
  *
- * The one thing the bundler reads from the scraper's `driver.json` (QO450, John: discontinued
- * parts are hidden from the app's lists). Only the top-level boolean `discontinued` is read;
+ * The one thing the bundler reads from the scraper's `driver.json` (QO450; John 2026-11-16: the part stays
+ * listed and the flag is carried on its index row). Only the top-level boolean `discontinued` is read;
  * a missing driver.json, unparseable file, or any other value means "not discontinued".
  */
 import {existsSync, readFileSync} from 'node:fs';
