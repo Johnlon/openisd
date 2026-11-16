@@ -43,7 +43,7 @@ import {asCurrentRecord} from "./schemaVersion.js";
 import {sortKeysDeep} from "./openIsdDeviceJsonIo.js";
 import {slimmedDevice} from "./slimModel.js";
 import {dqMarks} from "./specEntry.js";
-import {selectOrigin, selectWiringOrigin} from "./selectOrigin.js";
+import {MANUAL_CANDIDATES_KEY, chooseFieldValue, selectOrigin, selectWiringOrigin} from "./selectOrigin.js";
 import {sourceRank} from "./sourceRank.js";
 import {Corroboration, ReaderAgreement, corroborate, isRecognisedRejection, isUsable, readerVerdict, type Reading} from "./corroboration.js";
 import {Reader} from "./reader.js";
@@ -839,12 +839,13 @@ export class DriverRecordConverter {
     warnings: DriverError[]
   ): Record<string, unknown> {
     const out: Record<string, unknown> = {};
+    const candidates: unknown = Reflect.get(driverYml, MANUAL_CANDIDATES_KEY);
     for (const [key, value] of Object.entries(driverYml)) {
-      if (key === SCRAPER_ONLY_KEY || key === SCRAPER_PRINTED_KEY) continue;
+      if (key === SCRAPER_ONLY_KEY || key === SCRAPER_PRINTED_KEY || key === MANUAL_CANDIDATES_KEY) continue;
       out[key] =
         key === "specs"
           ? this.#projectSpecs(stripDefinitionField(value), makerOf(driverYml), warnings)
-          : stripDefinitionField(value);
+          : stripDefinitionField(chooseFieldValue(key, value, candidates));
     }
     return stripMetadataOrigin(out);
   }

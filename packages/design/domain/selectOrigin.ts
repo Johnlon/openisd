@@ -35,6 +35,32 @@ export type WiringOriginResult =
 /** The role of a hand-entered override value; it outranks every other reading. */
 const MANUAL_ROLE = 'manual';
 
+/** The key of `driver.json`'s `manual_candidates` map: a person's override for a field that has no
+ *  `readings` map of its own (a bare bool, a derived or bookkeeping envelope, ...). */
+export const MANUAL_CANDIDATES_KEY = 'manual_candidates';
+
+function isPlain(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** The value a top-level field of `driver.json` takes in the app (QO942, issue 523: an override works
+ *  for ANY field; the scraper files it beside the scraped value and the bridge chooses). The manual
+ *  candidate wins when there is one: `readings.manual` of a metadata envelope, else the record's
+ *  `manual_candidates[name]`. With none the field is returned as it came, so a record without a
+ *  candidate projects exactly as before. A chosen field is `{...field, value: <candidate>}` without
+ *  `readings`, which stay in driver.json. */
+export function chooseFieldValue(name: string, field: unknown, candidates: unknown): unknown {
+  if (isPlain(field) && isPlain(field.readings) && MANUAL_ROLE in field.readings) {
+    const {readings: _readings, ...rest} = field;
+    return {...rest, value: field.readings[MANUAL_ROLE]};
+  }
+  if (isPlain(candidates) && name in candidates) {
+    const candidate = candidates[name];
+    return isPlain(field) && 'value' in field ? {...field, value: candidate} : candidate;
+  }
+  return field;
+}
+
 type RoleReading = readonly [string, unknown];
 
 function byRankThenRole([roleA]: RoleReading, [roleB]: RoleReading): number {

@@ -1,0 +1,13 @@
+id: T842
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: A manual candidate for any top-level field of driver.json (readings.manual or manual_candidates) is the value the bridge projects into openisd.json and the .wdr; without a candidate nothing changes
+why: John, 2026-11-16: override must work for any field; bridge chooses (QO942.c83-c87, issue 523)
+done_test: bash scripts/test.sh packages/design/test/winisd/driverRecordConverter.manualCandidate.test.ts
+files:
+  - tasks/T842.yml
+  - packages/design/domain/selectOrigin.ts
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/test/winisd/driverRecordConverter.manualCandidate.test.ts
