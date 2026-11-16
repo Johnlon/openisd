@@ -1,6 +1,6 @@
 
 import type { Engine } from '@openisd/design/engine';
-import type { ChartData } from '@openisd/design/chart';
+import { AllChartData, DPAL, referenceLineColors, type ChartData, type Design } from '@openisd/design/chart';
 import { buildProjectsArchive, parseProjectsArchive, type OpenISDProject } from '@openisd/design';
 import { savedNotice } from '@openisd/design/fields';
 import { createExportNotice } from './exportNotice.js';
@@ -93,6 +93,8 @@ export interface DesignIO {
   exportBackup(): void;
   /** A chart's data table as a CSV file named after the focused project and the chart; a popup says what was saved. */
   downloadChartData(data: ChartData): void;
+  /** Every chart the focused project can draw, as CSV files plus the project file, in one ZIP named after the project; a popup says what was saved. */
+  downloadAllChartData(): void;
   /** A chart's data table onto the clipboard, tab separated; a message says it was copied or why not. */
   copyChartData(data: ChartData): Promise<void>;
   /** Save a stored backup (`StorageHistory.exportFile`) as a file. */
@@ -429,6 +431,26 @@ export function createApplicationIO(deps: {
     exportNotice.exported({kind: 'chartData', chart: data.chartName}, fileName);
   }
 
+  function downloadAllChartData(): void {
+    featureUse.feature('chart_data');
+    const project = requireFocusedProject();
+    const p = deps.appState.syncedP.value;
+    const design: Design = {
+      driver: project.driver.specs.sweepDriver(),
+      box: project.box.boxType.value,
+      P: p,
+      curves: deps.appState.curvesData.value,
+      maxCurves: deps.appState.maxData.value ?? undefined,
+      name: project.name.value || driverName.value,
+      color: DPAL[0],
+      sortIndex: openProjects().indexOf(project),
+    };
+    const all = AllChartData.of(project.name.value, project.charts, deps.engine, p.fmin, p.fmax, design,
+      deps.appState.allIssues.value, referenceLineColors(deps.presentation.ui.chartColors), deps.files.projectToOwprText(project));
+    download(all.zipName, all.zip(), 'application/zip');
+    exportNotice.exported({kind: 'allChartData', charts: all.chartCount}, all.zipName);
+  }
+
   async function copyChartData(data: ChartData): Promise<void> {
     featureUse.feature('chart_data');
     try {
@@ -452,6 +474,6 @@ export function createApplicationIO(deps: {
 
   return {
     reportStorageFull, saveProject, saveProjectRecord, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
-    exportBackup, downloadChartData, copyChartData, saveStoredBackup, importBackup,
+    exportBackup, downloadChartData, downloadAllChartData, copyChartData, saveStoredBackup, importBackup,
   };
 }

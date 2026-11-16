@@ -556,6 +556,22 @@ describe('every import and export says what it did', () => {
     } finally { restoreGlobals(); }
   });
 
+  it('export all chart data downloads one ZIP named after the project, counts as chart data, and says so', () => {
+    const downloads: { name: string; body: string | Uint8Array }[] = [];
+    stubDom(downloads);
+    try {
+      appState.newProject();
+      appState.requireFocusedProject().name.set('My sub');
+      const exported = ioRecording(createFileStorage());
+      exported.io.downloadAllChartData();
+      expect(exported.events).toContainEqual({ kind: 'feature', name: 'chart_data' });
+      expect(downloads.map(d => d.name)).toEqual(['My sub - all chart data.zip']);
+      const body = downloads[0]?.body;
+      if (typeof body === 'string') throw new Error('the ZIP must be bytes');
+      expect(new TextDecoder().decode(body)).toContain('project.json');
+    } finally { restoreGlobals(); }
+  });
+
   it('Save As names the file written, or says the download is unconfirmed', async () => {
     appState.newProject();
     appState.requireFocusedProject().name.set('MyBox');

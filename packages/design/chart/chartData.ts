@@ -46,6 +46,11 @@ export class ChartData {
 
   /** "<project> - <chart>.csv". */
   fileName(projectName: string): string {
-    return `${projectName} - ${this.chartName}.csv`.replace(NOT_IN_FILE_NAME, '_');
+    return ChartData.safeFileName(`${projectName} - ${this.chartName}.csv`);
+  }
+
+  /** A file name with the characters no file system holds replaced by "_". */
+  static safeFileName(name: string): string {
+    return name.replace(NOT_IN_FILE_NAME, '_');
   }
 }

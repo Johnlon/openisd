@@ -1,5 +1,7 @@
 export type {ChartEngineAreas, RangeStats} from './series.js';
 export {ChartData} from './chartData.js';
+export {AllChartData} from './allChartData.js';
+export {ZipArchive, type ZipEntry} from './zipArchive.js';
 export {CHART_COLOR_ROWS, chartColorDefault, type ChartColorKey, type ChartColorRow} from './chartColorRows.js';
 export {buildPlotData, CHART_LABELS, DEFAULT_REFERENCE_LINE_COLORS, DEFAULT_SELECTED_RANGE_COLOR, selectedRangeCss, DPAL, errorsForChart, parseChartId, rangeStatsOf, referenceLineColors, type ReferenceLineColors, seriesFor, TAB_META, TABS} from './series.js';
 export type {Design, PlotData, PlotParams, Rolloff, Series} from './types.js';

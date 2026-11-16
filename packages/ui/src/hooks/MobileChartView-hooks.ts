@@ -30,7 +30,7 @@ function isSetsAutoY(v: Element | ComponentPublicInstance | null): v is Componen
 }
 
 export function useMobileChartView() {
-  const {appState, presentation: presentationState} = useApp();
+  const {appState, presentation: presentationState, designIO} = useApp();
   const {focusedProject, projectChanged, driverName} = appState;
   const project = useFocusedProject();
   const { engine } = useApp();
@@ -88,6 +88,7 @@ export function useMobileChartView() {
 
   return { openCharts, legendItems, sizeVars: Object.fromEntries(ChartPageSizes.CLASSIC.cssVars()), helpFor: ChartPageHelp.forChart, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
     chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen, autoY, setAutoY, collectChart,
+    exportAllChartData: () => designIO.downloadAllChartData(),
     TUNE: SheetMode.TUNE, WHAT_IF: SheetMode.WHAT_IF };
 }
 

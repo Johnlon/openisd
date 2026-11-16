@@ -35,6 +35,8 @@ export interface GraphPanelAPI {
   /** The drawn Y range as axis labels, `min to max`; empty with no plot. */
   readonly yRangeLabel: Readonly<Ref<string>>;
 
+  /** Every chart of the project, whatever is on screen, as one ZIP of CSV files plus the project file. */
+  exportAllChartData(): void;
   dismissWarnings(): void;
   /** Off stores the Y range drawn now as this chart's override, so later data changes never
    *  rescale it; on removes the override. */
@@ -59,7 +61,7 @@ export const GraphPanelKey: InjectionKey<GraphPanelAPI> = Symbol('GraphPanelAPI'
 /** `chartEngine`: the simulation and environment areas the curves read — the app facade's
  *  engine, handed in by the component rather than reached for here. */
 export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAreas): GraphPanelAPI {
-  const {appState, presentation: presentationState} = useApp();
+  const {appState, presentation: presentationState, designIO} = useApp();
   const {allIssues, curvesData, driverName, maxData, openProjects, syncedP} = appState;
   const project = useFocusedProject();
   const overlayDesigns = computed(() => props.overlays ?? []);
@@ -180,6 +182,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     autoY,
     yRangeLabel,
     dismissWarnings,
+    exportAllChartData: () => designIO.downloadAllChartData(),
     setAutoY,
     frequencyAxis,
     clickCursorAt,

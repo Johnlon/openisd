@@ -68,6 +68,15 @@ describe('GraphPanel-hooks', () => {
       expect(api.currentDesign.value.box).toBe('vented');
     });
 
+    it('the (all) button exports every chart through the one IO function', () => {
+      const project = createTestProject();
+      appState.addProject(project);
+      const exportAll = vi.spyOn(logic.designIO, 'downloadAllChartData').mockImplementation(() => undefined);
+      const api = runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()), logic);
+      api.exportAllChartData();
+      expect(exportAll).toHaveBeenCalledTimes(1);
+    });
+
     it('computes tab metadata corresponding to requested chartId', async () => {
       const apiSpl = await renderHook({chartId: 'SPL'});
       expect(apiSpl.meta.value).toEqual(TAB_META['SPL']);

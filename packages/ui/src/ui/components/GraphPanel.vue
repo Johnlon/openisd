@@ -361,7 +361,8 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
          @pointercancel="onPointerCancel"
          @dblclick="onDblClick" />
     <div v-if="!classic" class="gtitle">{{ meta.name }}<button v-if="chartData" type="button" class="gdata"
-            title="Show this chart's data as a table, to copy or download as CSV" @click="dataOpen = true">Data</button>
+            title="Show this chart's data as a table, to copy or download as CSV" @click="dataOpen = true">Data</button><button v-if="chartData" type="button" class="gdata-all"
+            title="Export all chart data" @click="graph.exportAllChartData()">(all)</button>
       <label v-if="!blocked && !hideAutoY" class="gautoy"
              title="Auto Y: ticked, the Y axis rescales to fit the curves after every edit. Unticked, the Y axis stays at the range shown when you unticked it, and edits never rescale it; the range is this chart's Y-axis limit in Options, where Reset to auto-scale ticks this again.">
         <input type="checkbox" :checked="autoY" aria-label="Auto Y" @change="graph.setAutoY(inputChecked($event))">
@@ -418,7 +419,8 @@ canvas { touch-action: none; }
 }
 
 /* "Data" opens the chart's data table: a small button after the title, inside the title's band. */
-.gdata {
+.gdata,
+.gdata-all {
   pointer-events: auto;
   position: relative;
   vertical-align: top; /* keeps the title one 12 px line, inside the title's band */
@@ -433,10 +435,10 @@ canvas { touch-action: none; }
   border-radius: 3px;
   cursor: pointer;
 }
-.gdata:hover { color: var(--fg); }
+.gdata:hover, .gdata-all:hover { color: var(--fg); }
 /* A finger needs a bigger target than the drawn button. */
 @media (pointer: coarse) {
-  .gdata::after { content: ''; position: absolute; inset: -12px -10px; }
+  .gdata::after, .gdata-all::after { content: ''; position: absolute; inset: -12px -10px; }
 }
 
 /* Auto Y switch: sits in the title row after the chart title and Data tag (QO278 option b). */

@@ -1,4 +1,4 @@
-import {describe, expect, it, beforeEach} from 'vitest';
+import {describe, expect, it, beforeEach, vi} from 'vitest';
 import {computed} from 'vue';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
@@ -25,5 +25,14 @@ describe('useMobileChartView', () => {
     const before = hook.traceColour.value;
     cycleTraceColor(project);
     expect(hook.traceColour.value).not.toBe(before);
+  });
+
+  it('the (all) button exports every chart through the one IO function', () => {
+    const project = ProjectBuilder.empty(createEngine());
+    appState.addProject(project);
+    const exportAll = vi.spyOn(logic.designIO, 'downloadAllChartData').mockImplementation(() => undefined);
+    const hook = runHook(computed(() => project), useMobileChartView, logic);
+    hook.exportAllChartData();
+    expect(exportAll).toHaveBeenCalledTimes(1);
   });
 });

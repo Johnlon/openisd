@@ -62,6 +62,11 @@ export class DesignFiles {
     return OpenISDPassiveRadiatorStandalone.fromOwdrText(opened.text);
   }
 
+  /** The project as the app saves it to a `.owpr` file (JSON text, stamped with the storage layout). */
+  projectToOwprText(project: OpenISDProject): string {
+    return this.exportedFiles.stamp(project.toOwprText());
+  }
+
   /** The whole project as WinISD `.wpr` bytes. `value` is null when the project cannot be
    *  expressed in WinISD's format. */
   projectToWprBytes(project: OpenISDProject): Bytes {
