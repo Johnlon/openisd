@@ -48,6 +48,24 @@ export type DriverQuantityName = keyof DriverSolverParams;
 export type DriverIssue = CalculationIssue<DriverQuantityName> | OutOfRangeIssue | WiringIssue;
 export type DriverPrerequisite = CalculationPrerequisite<DriverQuantityName>;
 
+/** The radiator figures WinISD charts a passive radiator from, and its stated Mms, Cms and Rms; null where not stated. */
+export interface RadiatorFigures {
+  readonly Fs_hz: number | null;
+  readonly Vas_m3: number | null;
+  readonly Sd_m2: number | null;
+  readonly Qms: number | null;
+  readonly Mms_kg: number | null;
+  readonly Cms_m_per_N: number | null;
+  readonly Rms_kg_per_s: number | null;
+}
+
+/** The mechanical figures a radiator's circuit runs on; null where neither stated nor worked out. */
+export interface RadiatorMechanics {
+  readonly Mms_kg: number | null;
+  readonly Cms_m_per_N: number | null;
+  readonly Rms_kg_per_s: number | null;
+}
+
 // ---------------------------------------------------------------------------------------------
 // DRIVER CONSISTENCY — moved from consistency.ts (S2-10): `checkConsistency` needs
 // `solveValues`, which became private to this file, so the two live together, same as
@@ -142,6 +160,10 @@ export interface DriverEngine {
    *  Qes = Qms = 2·Qts. Each is replaced only where its own inputs are positive and the result is positive; otherwise the
    *  stated value stands. `air` is the project's. */
   winisdCircuitValues(values: DriverValues, air: Air): DriverValues;
+  /** A passive radiator's Mms, Cms and Rms as WinISD's circuit takes them ("Chart from Fs, Vas, Qms (WinISD's way)" ticked,
+   *  QO539): Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms, by the same routes as the driver's.
+   *  Each stated value stands where its inputs are missing or give no positive value. `air` is the project's. */
+  winisdRadiatorMechanics(radiator: RadiatorFigures, air: Air): RadiatorMechanics;
   /** The figures the What-if panel moves when `figure` is typed as `value`, from the boxes as they show now (QO535). Pure. */
   whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFigures): WhatIfMoves;
   /** Every figure the What-if rule moves or is typed into, once. */
@@ -204,29 +226,42 @@ export class DriverEngineImpl implements DriverEngine {
   }
 
   winisdCircuitValues(values: DriverValues, air: Air): DriverValues {
-    const {Fs_hz, Vas_m3, Sd_m2} = values;
+    const {Fs_hz} = values;
     const fallback = this.qFallback(values);
     const Qes = fallback ?? values.Qes;
     const Qms = fallback ?? values.Qms;
+    const mech = this.winisdMechanics({...values, Qms}, air);
+    const Cms_m_per_N = mech.Cms_m_per_N;
+    const Re_terminal_ohm = values.Re_terminal_ohm;
+    const BL = isPositive(Re_terminal_ohm) && isPositive(Fs_hz) && isPositive(Qes) && isPositive(Cms_m_per_N)
+      ? BL_FROM_QES_CMS_ROUTE.value({Re_ohm: Re_terminal_ohm, Fs_hz, Qes, Cms_m_per_N}) : null;
+    return {
+      ...values, Qes, Qms, Cms_m_per_N, Mms_kg: mech.Mms_kg, Rms_kg_per_s: mech.Rms_kg_per_s,
+      BL_terminal_Tm: isPositive(BL) ? BL : values.BL_terminal_Tm,
+    };
+  }
+
+  winisdRadiatorMechanics(radiator: RadiatorFigures, air: Air): RadiatorMechanics {
+    return this.winisdMechanics(radiator, air);
+  }
+
+  /** WinISD's Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms; each stated value stands where its
+   *  own inputs are missing or the result is not positive. Shared by the driver and the passive radiator. */
+  private winisdMechanics(f: RadiatorFigures, air: Air): RadiatorMechanics {
+    const {Fs_hz, Vas_m3, Sd_m2, Qms} = f;
     const routeValue = (route: DriverRoute, working: DriverWorkingSet): number | null => {
       const v = route.value(working);
       return isPositive(v) ? v : null;
     };
     const Cms = isPositive(air.c()) && isPositive(air.rho()) && isPositive(Vas_m3) && isPositive(Sd_m2)
       ? routeValue(CMS_FROM_VAS_SD_ROUTE, {Vas_m3, Sd_m2, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()}) : null;
-    const Cms_m_per_N = Cms ?? values.Cms_m_per_N;
+    const Cms_m_per_N = Cms ?? f.Cms_m_per_N;
     const Mms = isPositive(Fs_hz) && isPositive(Cms_m_per_N)
       ? routeValue(MMS_FROM_FS_CMS_ROUTE, {Fs_hz, Cms_m_per_N}) : null;
-    const Mms_kg = Mms ?? values.Mms_kg;
+    const Mms_kg = Mms ?? f.Mms_kg;
     const Rms = isPositive(Fs_hz) && isPositive(Qms) && isPositive(Mms_kg)
       ? routeValue(RMS_FROM_FS_MMS_QMS_ROUTE, {Fs_hz, Qms, Mms_kg}) : null;
-    const Re_terminal_ohm = values.Re_terminal_ohm;
-    const BL = isPositive(Re_terminal_ohm) && isPositive(Fs_hz) && isPositive(Qes) && isPositive(Cms_m_per_N)
-      ? BL_FROM_QES_CMS_ROUTE.value({Re_ohm: Re_terminal_ohm, Fs_hz, Qes, Cms_m_per_N}) : null;
-    return {
-      ...values, Qes, Qms, Cms_m_per_N, Mms_kg, Rms_kg_per_s: Rms ?? values.Rms_kg_per_s,
-      BL_terminal_Tm: isPositive(BL) ? BL : values.BL_terminal_Tm,
-    };
+    return {Cms_m_per_N, Mms_kg, Rms_kg_per_s: Rms ?? f.Rms_kg_per_s};
   }
 
   /** WinISD's Qes = Qms = 2·Qts for a driver stating a Qts and neither Qes nor Qms; null otherwise. */

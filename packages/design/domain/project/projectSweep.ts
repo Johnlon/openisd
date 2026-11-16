@@ -174,13 +174,20 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             // per-frequency). Null only when the volume/radiator/tuning-pair is itself unsolved,
             // which prSweepIssuesOf already refuses the sweep over before this is read.
             const Fr = box.passiveRadiator.systemTuning_hz.value;
+            // The boxes as they show (QO534); "Chart from Fs, Vas, Qms (WinISD's way)" ticked, the radiator's Mms, Cms and Rms as
+            // WinISD works them out from its Fs, Vas, Sd and Qms (QO539), as for the driver.
+            const stated = {Mms_kg: r.Mms_kg.value, Cms_m_per_N: r.Cms_m_per_N.value, Rms_kg_per_s: r.Rms_kg_per_s.value};
+            const mech = source.winisdChartFromFsVasQms.value
+                ? source.engine.driver.winisdRadiatorMechanics(
+                    {...stated, Fs_hz: r.Fs_hz.value, Vas_m3: r.Vas_m3.value, Sd_m2: r.Sd_m2.value, Qms: r.Qms.value}, source.air)
+                : stated;
             return {
                 prSd: undefinedIfNull(r.Sd_m2.value),
                 prNum: box.passiveRadiator.count.value,
-                prMmd: undefinedIfNull(r.Mms_kg.value),
+                prMmd: undefinedIfNull(mech.Mms_kg),
                 prMadd: undefinedIfNull(box.passiveRadiator.addedMass_kg.value),
-                prCms: undefinedIfNull(r.Cms_m_per_N.value),
-                prRms: undefinedIfNull(r.Rms_kg_per_s.value),
+                prCms: undefinedIfNull(mech.Cms_m_per_N),
+                prRms: undefinedIfNull(mech.Rms_kg_per_s),
                 Fr: undefinedIfNull(Fr),
             };
         }
