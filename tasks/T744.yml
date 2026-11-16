@@ -169,6 +169,7 @@ files:
   - packages/design/test/fields/sheetField.test.ts
   - packages/design/test/domain/blank-device-id.test.ts
   - packages/ui/test/fixtures/generateSample.ts
+  - packages/ui/test/ui/pr-editor.browser.spec.ts
   - packages/ui/src/ui/components/PREditorDialog.vue
   - packages/design/domain/project/projectResolve.ts
   - packages/design/domain/box/passiveRadiatorBox.ts

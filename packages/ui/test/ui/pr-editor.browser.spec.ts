@@ -11,6 +11,7 @@
 import {expect, openAMobileProject, openAProject, test} from '../fixtures.js';
 import type {Locator, Page} from '@playwright/test';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {clearWithKeyboard} from '../fixtures/numField.js';
 
 declare global {
   interface Window {
@@ -192,17 +193,36 @@ function suite(skin: 'desktop' | 'phone') {
     await editor.getByRole('button', {name: 'Cancel', exact: true}).click();
   });
 
+  // QO534 (John, 11 Nov 2026): "an entered value is never overwritten with a calculated value": Auto calculate fills an unknown, so
+  // the stated Cms is cleared first to make it one.
   test('Auto calculate unknowns: ticked, a typed figure recalculates the others; unticked, it does not', async ({appPage: page}) => {
     const editor = await openEditor(page);
     const mms = editor.locator('#pr-editor-mms');
-    const cmsBefore = await editor.locator('#pr-editor-cms').inputValue();
+    const cms = editor.locator('#pr-editor-cms');
     await editor.getByRole('checkbox', {name: 'Auto calculate unknowns'}).uncheck();
+    await clearWithKeyboard(cms);
+    await cms.press('Tab');
     await editor.locator('#pr-editor-vas').fill('54');
     await editor.locator('#pr-editor-vas').press('Tab');
-    await expect(editor.locator('#pr-editor-cms')).toHaveValue(cmsBefore);
+    await expect(cms).toHaveValue('');
     await editor.getByRole('checkbox', {name: 'Auto calculate unknowns'}).check();
-    await expect(editor.locator('#pr-editor-cms')).not.toHaveValue(cmsBefore);
+    await expect(cms).not.toHaveValue('');
     await expect(mms).not.toHaveValue('');
+    await editor.getByRole('button', {name: 'Cancel', exact: true}).click();
+  });
+
+  // QO534 (John, 11 Nov 2026): "an entered value is never overwritten with a calculated value"; "all get the mark".
+  test('Auto calculate unknowns never replaces a stated Cms: a typed Vas leaves it, and both carry the warning mark', async ({appPage: page}) => {
+    const editor = await openEditor(page);
+    const cms = editor.locator('#pr-editor-cms');
+    const vas = editor.locator('#pr-editor-vas');
+    await expect(editor.getByRole('checkbox', {name: 'Auto calculate unknowns'})).toBeChecked();
+    await expect(cms).toHaveValue('0.46');
+    await vas.fill('54');
+    await vas.press('Tab');
+    await expect(cms).toHaveValue('0.46');
+    await expect(cms).toHaveClass(/dq-flag/);
+    await expect(vas).toHaveClass(/dq-flag/);
     await editor.getByRole('button', {name: 'Cancel', exact: true}).click();
   });
 
