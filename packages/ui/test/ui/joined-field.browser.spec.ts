@@ -57,7 +57,7 @@ test('phone readonly Driver boxes retain the production width and grey surface',
   // John rejected the narrowed experiment; use the earlier production-style Driver reference.
   expect(await values.first().evaluate(element=>getComputedStyle(element).fontFamily)).toBe('Roboto, AppSymbols');
   for (const input of await values.all()) {
-    await expect(input).toHaveCSS('width','172px'); // 170 px in the approved reference; the Driver page's label column now hugs its longest label (T742), which leaves 172 px
+    await expect(input).toHaveCSS('width','178px'); // 178 px: the Driver page's label column reserves the Coil wiring label so the value boxes do not move between drivers (QO943.c7, lead decision under QO923; approvedJoinedGeometry.json)
     await expect(input).toHaveCSS('background-color','rgb(244, 244, 244)');
     await expect(input).toHaveAttribute('readonly');
   }

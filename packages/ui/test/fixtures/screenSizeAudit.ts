@@ -31,6 +31,22 @@ export function auditScreen(mode: AuditMode): string[] {
     return true;
   };
   const controls = Array.from(document.querySelectorAll(CONTROLS)).filter(shown);
+  // A strip marked data-carousel scrolls sideways inside itself by design (John, 16 Nov 2026, QO946.c132: "leave the
+  // buttons in a carousels please"; c133: "we cannot do a release without the carousel"). Only its sideways
+  // overflow is exempt: a control inside it counts as the part painted inside the strip's frame, and the strip's
+  // own frame must fit the window. Vertical cuts, overlaps and cut text still apply.
+  const painted = (el: Element): DOMRect => {
+    const r = el.getBoundingClientRect();
+    const strip = el.closest('[data-carousel]');
+    if (strip === null) return r;
+    const f = strip.getBoundingClientRect();
+    const left = Math.min(Math.max(r.left, f.left), f.right);
+    return new DOMRect(left, r.top, Math.max(0, Math.min(r.right, f.right) - left), r.height);
+  };
+  for (const strip of Array.from(document.querySelectorAll('[data-carousel]')).filter(shown)) {
+    const f = strip.getBoundingClientRect();
+    if (mode.kind === 'must-fit' && (f.left < -1 || f.right > vw + 1)) faults.push(`carousel off screen sideways: ${name(strip)} x ${Math.round(f.left)}..${Math.round(f.right)} of ${vw}`);
+  }
 
   // Page scroll.
   if (mode.kind === 'must-fit') {
@@ -42,7 +58,7 @@ export function auditScreen(mode: AuditMode): string[] {
   const isScroller = (s: CSSStyleDeclaration, axis: 'x' | 'y'): boolean => /auto|scroll/.test(axis === 'x' ? s.overflowX : s.overflowY);
   const isClipper = (s: CSSStyleDeclaration, axis: 'x' | 'y'): boolean => /hidden|clip/.test(axis === 'x' ? s.overflowX : s.overflowY);
   for (const el of controls) {
-    const r = el.getBoundingClientRect();
+    const r = painted(el);
     if (mode.kind === 'must-fit') {
       if (r.left < -1 || r.right > vw + 1) faults.push(`control off screen sideways: ${name(el)} x ${Math.round(r.left)}..${Math.round(r.right)} of ${vw}`);
       if (mode.vertical && (r.top < -1 || r.bottom > vh + 1)) faults.push(`control off screen vertically: ${name(el)} y ${Math.round(r.top)}..${Math.round(r.bottom)} of ${vh}`);
@@ -94,7 +110,7 @@ export function auditScreen(mode: AuditMode): string[] {
       // A unit sits inside its own number box by design.
       const fieldA = a.closest('.ui-field, .mob-ui-field, .field');
       if (fieldA !== null && fieldA === b.closest('.ui-field, .mob-ui-field, .field') && (a.matches('.ui-field-unit') || b.matches('.ui-field-unit'))) continue;
-      const ra = a.getBoundingClientRect(); const rb = b.getBoundingClientRect();
+      const ra = painted(a); const rb = painted(b);
       const w = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left);
       const h = Math.min(ra.bottom, rb.bottom) - Math.max(ra.top, rb.top);
       if (w > 2 && h > 2) faults.push(`controls overlap: ${name(a)} and ${name(b)} by ${Math.round(w)}x${Math.round(h)}`);
