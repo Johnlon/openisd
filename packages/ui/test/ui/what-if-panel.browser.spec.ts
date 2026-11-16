@@ -287,6 +287,19 @@ test.describe('What-if panel', () => {
       await expect(page.locator('.what-if-panel .dq-flag')).toHaveCount(0);
     });
 
+    test('opened on a driver whose stated figures disagree (W5-1138SMF), no What-if box carries a warning mark', async ({ page }) => {
+      await page.goto('/');
+      await openAProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
+      await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+      await page.getByRole('button', { name: /^Select driver$/i }).click();
+      await page.getByText('Tang Band W5-1138SMF', { exact: true }).click();
+      await page.locator('.driver-library .use-btn').click();
+      await expect(page.getByText(/values disagree/).first()).toBeVisible();
+      await page.locator('.edit-btn', { hasText: 'What-if' }).click();
+      await expect(page.locator('.what-if-panel')).toBeVisible();
+      await expect(page.locator('.what-if-panel .dq-flag')).toHaveCount(0);
+    });
+
     // John, 8 Nov 2026: "Try values and watch the charts. The design is not changed. becomes Experiment - Try values & watch the charts. Your project will not be updated."
     test('the hint and the Close buttons say the project will not be updated', async ({ page }) => {
       await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);

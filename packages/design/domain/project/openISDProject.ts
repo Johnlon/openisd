@@ -942,6 +942,8 @@ export class OpenISDProject {
     beginWhatIf(): void {
         if (this.#whatif) return;
         this.#whatif = structuredClone(this.#committed());
+        // The What-if boxes carry no disagreement mark (QO535): the layer's issues are rebuilt as it opens, not at the first edit.
+        this.#resolve();
         this.#notify();
     }
 

@@ -25,6 +25,18 @@ const anyMark = (p: ReturnType<typeof whatIf>): boolean =>
   p.driver.issues().some(issue => issue.kind === 'inconsistent-inputs');
 
 describe('QO535 What-if, driver figures', () => {
+  it('opening the What-if on a driver whose stated figures disagree shows no mark, before anything is typed', () => {
+    const engine = createEngine();
+    const project = new ProjectBuilder(driverFromSpec(engine, {...E150HE_44, Mms_kg: 0.035}), engine).sealed().volume_m3(0.012).build();
+    expect(anyMark(project)).toBe(true);
+    project.beginWhatIf();
+    expect(anyMark(project)).toBe(false);
+    expect(project.driver.specs.Fs_hz.dq.length).toBe(0);
+    expect(project.driver.specs.Mms_kg.dq.length).toBe(0);
+    project.cancelWhatIf();
+    expect(anyMark(project)).toBe(true);
+  });
+
   it('Mms typed (row 5): Fs and the Qs follow, Vas and Cms stay, no box is marked, the charts move', () => {
     const p = whatIf();
     const before = p.sweep(GRID).values!.spl;
