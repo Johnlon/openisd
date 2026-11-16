@@ -35,5 +35,23 @@ done
 run_start "unit-changed"
 rc=0
 node_modules/.bin/vitest run --changed origin/main --passWithNoTests || rc=$?
+# Tests that name a type this change edited, which the import graph above cannot see (type imports are erased; T815).
+named=()
+if reach="$(node scripts/lib/typeReach.mjs origin/main)"; then [ -z "$reach" ] || mapfile -t named <<< "$reach"; else echo "unit: type reach failed" >&2; rc=1; fi
+# The built-bridge test builds the bundle in a child process (vite build), so no import links it to the sources the bundle is
+# made from and `--changed` never selects it: T823 broke it unseen (BUG_20261115_unit-gate-misses-the-built-bridge-test).
+# A change to any non-test source under packages/design can change the bundle, so that test runs with it.
+bundle_test=packages/design/test/winisd/bridge-bundle.test.ts
+for f in "$@"; do
+  case "$f" in
+    packages/design/test/*) ;;
+    packages/design/*.ts|packages/design/*/*.ts|packages/design/*/*/*.ts|packages/design/*/*/*/*.ts)
+      case " ${named[*]:-} " in *" $bundle_test "*) ;; *) named+=("$bundle_test") ;; esac ;;
+  esac
+done
+if [ "${#named[@]}" -gt 0 ]; then
+  echo "unit: ${#named[@]} more test files name a type this change edited"
+  node_modules/.bin/vitest run "${named[@]}" || rc=$?
+fi
 run_end "unit-changed" "$rc"
 exit "$rc"

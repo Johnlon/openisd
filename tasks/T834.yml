@@ -1,0 +1,26 @@
+id: T834
+release_note: internal
+repo: openisd
+owner: visualgate
+status: done
+goal: The stored-data sizes on dialog-options-your-data and dialog-shared-storage-restore-picker (both skins) are deterministic: the random project id of the generated fixture project is fixed, and the masks over those figures are removed
+why: John, 15 Nov 2026: a picture's content is deterministic and a mask is not a way to hide variation that has a cause (QO924); T830 masked the sizes instead
+done_test: bash scripts/test.sh packages/ui/test/scripts/sample-project-deterministic.test.ts packages/design/test/domain/blank-device-id.test.ts
+files:
+  - tasks/T834.yml
+  - packages/ui/test/fixtures/generateSample.ts
+  - packages/design/domain/driver/blankDeviceRecord.ts
+  - packages/ui/test/scripts/sample-project-deterministic.test.ts
+  - packages/design/test/domain/blank-device-id.test.ts
+  - packages/ui/test/visual/screens.ts
+  - docs/design/VISUAL_BASELINES.md
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-settings-options-your-data.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-storage-restore-picker.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-options-your-data.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-storage-restore-picker.png
+visual:
+  - desktop-dialog-settings-options-your-data
+  - desktop-dialog-shared-storage-restore-picker
+  - mobile-dialog-options-your-data
+  - mobile-dialog-shared-storage-restore-picker
+visual_note: The sizes Options, Your data shows (the usage line, each row, a backup's size and the backups total) and the restore picker's backup row are now part of the picture, not hidden; they read the same on every re-draw.

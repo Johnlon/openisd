@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# LEGACY (T810): only the retired land.sh path still runs this. Pull requests do not: the committed hash conflicted between
+# every two UI pull requests, and pr.yml's `visual` job now runs the visual spec on the merged result instead.
 # The land gate for source changes: a task that changes any file under scripts/visual/sources.txt must have
 # re-taken the baselines on exactly the sources it lands with. The hash recorded by update.sh must match
 # the sources in the working tree (after the rebase). No browser runs here.

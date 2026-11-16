@@ -38,6 +38,11 @@
     "origin": "manufacturer_product_page",
     "value": "BD90-6-727"
   },
+  "nominal_size_cm": {
+    "definition": "nominal (marketing) diameter in cm",
+    "origin": "manufacturer_product_page",
+    "value": 12.7
+  },
   "printed": [
     {
       "actual_reading": "BD 90-6-727",

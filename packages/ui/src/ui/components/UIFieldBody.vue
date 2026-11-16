@@ -49,7 +49,7 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
 const scope = useCellScope();
 const generatedId = useId();
 /** The row's column widths as CSS variables, from the design constant. The label column is the page's (it follows the page's longest label). */
-const columnVars = Object.fromEntries([...PhoneRowColumns.STANDARD.cssVars()].filter(([name]) => name !== PhoneRowColumns.LABEL_COLUMN_VAR));
+const columnVars = Object.fromEntries(PhoneRowColumns.STANDARD.cssVarsWithoutLabelColumn());
 const id = computed(() => props.inputId ?? generatedId);
 /** This box is one the charts read (QO532): accented, never resized. */
 const drivesCharts = computed(() => props.chartInputs?.includes(props.field) === true);

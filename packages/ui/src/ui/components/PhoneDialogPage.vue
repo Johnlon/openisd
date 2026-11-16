@@ -8,7 +8,7 @@ import {onBeforeUnmount, onMounted, ref} from 'vue';
 import {PhoneRowColumns, PhoneRowSizes} from '@openisd/design/fields';
 import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../hooks/phoneLabelColumn.js';
 
-const sizeVars=Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars(),...PhoneRowColumns.STANDARD.cssVars()]);
+const sizeVars=Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars(),...PhoneRowColumns.STANDARD.cssVarsWithoutLabelColumn()]);
 
 const root = ref<HTMLElement | null>(null);
 let labelColumn: PhoneLabelColumn | null = null;

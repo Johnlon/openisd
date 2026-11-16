@@ -2,6 +2,7 @@
  *  wrote it, as one JSON text. It is the shape of an in-store backup, of the downloaded backup
  *  file and of a raw export — one shape, so a backup row can be exported or restored as it is. */
 import {basicUtc} from '@openisd/design/fields';
+import {compressToUTF16, decompressFromUTF16} from 'lz-string';
 import {BuildStamp} from './buildStamp.js';
 import type {ListableStorage} from '../storage/keyValueStorage.js';
 import {
@@ -9,8 +10,21 @@ import {
   OPENISD_STORAGE_LOG_KEY,
 } from './storageKeys.js';
 
-/** Bumped only if the envelope's own shape changes — not on every app release. */
+/** Bumped only if the envelope's own shape changes — not on every app release. 1: the data is the
+ *  `data` object. 2: the data is packed (`encoding`, `packed`), and `data` is empty. */
 const ENVELOPE_VERSION = 1;
+const PACKED_ENVELOPE_VERSION = 2;
+
+/** The one encoding of packed data this build writes and reads: `JSON.stringify(data)` through lz-string's
+ *  `compressToUTF16` (15 bits a character, code units 0x20 to 0x801F: never a surrogate, never a control
+ *  character, so any storage and any JSON text holds it). A new encoding is a new declared value here,
+ *  with its own version; a reader meeting a value it does not know refuses the backup and keeps it. */
+export const PACKED_ENCODING = 'lz-utf16-1';
+
+/** The `layout` a packed envelope states, for builds that know no encodings: they read `layout` as a plain
+ *  number, find it above what they read, and restore nothing ("written by a newer OpenISD"), while
+ *  listing, counting, keeping and dropping the backup like any other. The data's own layout is `dataLayout`. */
+export const PACKED_LAYOUT_STATED = 1000;
 
 export interface StoreSnapshot {
   /** The layout of the app that wrote this data. */
@@ -34,7 +48,8 @@ const BACKUP_REASONS: readonly BackupReason[] = [
 /** `reason` is null for a downloaded export, and for a backup taken before reasons were recorded. */
 export type EnvelopeRead =
   | {kind: 'ok'; snapshot: StoreSnapshot; reason: BackupReason | null}
-  | {kind: 'invalid'; reason: string};
+  /** `layout` is the layout the text states, when it does: a backup this build cannot open is kept as a backup of that layout. */
+  | {kind: 'invalid'; reason: string; layout?: number};
 
 /** Whether `key` is store DATA: an `openisd_` key that is not a whole-store backup, the log,
  *  the layout/build stamps, or per-device cloud keys. A backup copies exactly these. */
@@ -104,8 +119,23 @@ export function emptySnapshot(layout: number, nowMs: number): StoreSnapshot {
   return {layout, build: BuildStamp.UNKNOWN, exportedAt: basicUtc(nowMs), data: {}};
 }
 
-/** `reason` is why an in-store backup was taken; null for an export. */
-export function envelopeText(snapshot: StoreSnapshot, pretty: boolean, reason: BackupReason | null): string {
+/** `reason` is why an in-store backup was taken; null for an export. `packed`: the data is compressed
+ *  (an in-store backup); a downloaded file and a raw export are plain, portable text. */
+export function envelopeText(snapshot: StoreSnapshot, pretty: boolean, reason: BackupReason | null, packed = false): string {
+  if (packed) {
+    return JSON.stringify({
+      openisdBackup: true,
+      schemaVersion: PACKED_ENVELOPE_VERSION,
+      layout: PACKED_LAYOUT_STATED,
+      dataLayout: snapshot.layout,
+      build: snapshot.build.text,
+      exportedAt: snapshot.exportedAt,
+      ...(reason === null ? {} : {reason}),
+      encoding: PACKED_ENCODING,
+      data: {},
+      packed: compressToUTF16(JSON.stringify(snapshot.data)),
+    });
+  }
   const envelope = {
     openisdBackup: true,
     schemaVersion: ENVELOPE_VERSION,
@@ -118,24 +148,50 @@ export function envelopeText(snapshot: StoreSnapshot, pretty: boolean, reason: B
   return pretty ? JSON.stringify(envelope, null, 2) : JSON.stringify(envelope);
 }
 
+const NOT_AN_ENVELOPE = 'Not an OpenISD backup file (missing or malformed envelope).';
+
+/** `data` as a record of strings, or null. */
+function stringRecord(value: unknown): Record<string, string> | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
+  const record: Record<string, string> = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (typeof item !== 'string') return null;
+    record[key] = item;
+  }
+  return record;
+}
+
 /** Parse an envelope at the boundary. A file or backup from before layouts has no `layout`: it
- *  is layout 1, and its build is unknown. */
-export function readEnvelope(text: string): EnvelopeRead {
+ *  is layout 1, and its build is unknown. A packed envelope is unpacked here, so every reader sees
+ *  the same snapshot; `headerOnly` leaves a packed one's data empty (a listing needs no data). */
+export function readEnvelope(text: string, options: {readonly headerOnly?: boolean} = {}): EnvelopeRead {
   let parsed: unknown;
   try { parsed = JSON.parse(text); } catch { return {kind: 'invalid', reason: 'Not a valid JSON file.'}; }
   if (typeof parsed !== 'object' || parsed === null || !('openisdBackup' in parsed) || parsed.openisdBackup !== true
     || !('data' in parsed) || typeof parsed.data !== 'object' || parsed.data === null) {
-    return {kind: 'invalid', reason: 'Not an OpenISD backup file (missing or malformed envelope).'};
+    return {kind: 'invalid', reason: NOT_AN_ENVELOPE};
   }
-  const data: Record<string, string> = {};
-  for (const [key, value] of Object.entries(parsed.data)) {
-    if (typeof value !== 'string') {
-      return {kind: 'invalid', reason: 'Not an OpenISD backup file (missing or malformed envelope).'};
-    }
-    data[key] = value;
+  const stated = 'layout' in parsed && typeof parsed.layout === 'number' ? parseLayout(parsed.layout) ?? undefined : undefined;
+  const encoding: unknown = 'encoding' in parsed ? parsed.encoding : undefined;
+  const packed = 'encoding' in parsed;
+  if (packed && encoding !== PACKED_ENCODING) {
+    return {kind: 'invalid', layout: stated, reason: `This backup uses a storage encoding (${String(encoding)}) that this OpenISD does not know. It was written by a newer OpenISD: update the app to read it. The backup is kept as it is.`};
   }
+  let data = stringRecord(parsed.data);
+  if (data === null) return {kind: 'invalid', reason: NOT_AN_ENVELOPE};
   let layout = 1;
-  if ('layout' in parsed) {
+  if (packed) {
+    const dataLayout = 'dataLayout' in parsed && typeof parsed.dataLayout === 'number' ? parseLayout(parsed.dataLayout) : null;
+    if (dataLayout === null) return {kind: 'invalid', layout: stated, reason: 'This backup is damaged: it does not say which layout its data has.'};
+    layout = dataLayout;
+    if (options.headerOnly === true) {
+      data = {};
+    } else {
+      const unpacked = 'packed' in parsed && typeof parsed.packed === 'string' ? unpack(parsed.packed) : null;
+      if (unpacked === null) return {kind: 'invalid', layout: stated, reason: 'This backup is damaged: its compressed data cannot be read. It is not restored.'};
+      data = unpacked;
+    }
+  } else if ('layout' in parsed) {
     const read = parseLayout(typeof parsed.layout === 'number' ? parsed.layout : null);
     if (read === null) return {kind: 'invalid', reason: 'The backup file names a layout this app cannot read.'};
     layout = read;
@@ -144,4 +200,14 @@ export function readEnvelope(text: string): EnvelopeRead {
   const exportedAt = 'exportedAt' in parsed && typeof parsed.exportedAt === 'string' ? parsed.exportedAt : '';
   const reason = 'reason' in parsed ? BACKUP_REASONS.find(r => r === parsed.reason) ?? null : null;
   return {kind: 'ok', snapshot: {layout, build, exportedAt, data}, reason};
+}
+
+/** The data a packed text holds, or null when it does not unpack to a record of strings. */
+function unpack(packed: string): Record<string, string> | null {
+  try {
+    const json = decompressFromUTF16(packed);
+    return json === '' ? null : stringRecord(JSON.parse(json));
+  } catch {
+    return null;
+  }
 }

@@ -209,7 +209,9 @@ describe('space', () => {
   });
 
   it('when it cannot fit even then, says so, writes nothing and refuses the destructive write', () => {
-    const storage = createQuotaStorage(600, {[OPENISD_PROJECTS_KEY]: data});
+    // Text that does not compress (the backup is stored compressed), and more than a copy's room.
+    const data = Array.from({length: 500}, (_, i) => String.fromCharCode(33 + ((i * 7919 + (i * i) % 89) % 90))).join('');
+    const storage = createQuotaStorage(850, {[OPENISD_PROJECTS_KEY]: data});
     const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
     let ran = false;
 
@@ -217,7 +219,7 @@ describe('space', () => {
     assert.equal(taken.kind, 'noRoom');
     // The sizes it saw: a copy bigger than the room left, and the live data the store held.
     if (taken.kind === 'noRoom') {
-      assert.ok(taken.shortfall.copyChars > data.length);
+      assert.ok(taken.shortfall.copyChars > 850 - (OPENISD_PROJECTS_KEY.length + data.length));
       assert.equal(taken.shortfall.storeChars, OPENISD_PROJECTS_KEY.length + data.length);
     }
     const guarded = backup.guard('delete', () => { ran = true; });

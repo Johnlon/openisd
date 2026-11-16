@@ -12,7 +12,7 @@ function recorderOver(index: BundledPassiveRadiatorRepo['index']) {
 }
 
 const ND140_PR: BundledPassiveRadiatorIndexRow = {
-  uuid: 'pr-1', path: 'dayton/nd140-pr', name: 'Dayton Audio ND140-PR', dq: false, datasheet: null, productPage: null, listingPage: null,
+  uuid: 'pr-1', path: 'dayton/nd140-pr', name: 'Dayton Audio ND140-PR', dq: false, discontinued: false, datasheet: null, productPage: null, listingPage: null,
   Fs_hz: null, Sd_m2: null, Xmax_m: null, Vd_m3: null, Mms_kg: null, Cms_m_per_N: null, Vas_m3: null, Qms: null,
 };
 

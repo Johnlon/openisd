@@ -70,7 +70,7 @@ export function bundleFingerprintOnDisk(root, corpus) {
     const st = statSync(f);
     return new BundleInput(relative(corpus, f).replace(/\\/g, '/'), st.mtimeMs, st.size);
   });
-  // The discontinued flag (driver.json, QO450) decides whether a record is bundled at all.
+  // The discontinued flag (driver.json, QO450) is written on the record's index row.
   for (const f of walkFiles(corpus, name => name.toLowerCase() === 'openisd.json')) {
     inputs.push(new BundleInput(`${relative(corpus, dirname(f)).replace(/\\/g, '/')}#discontinued`, 0, isDiscontinued(dirname(f)) ? 1 : 0));
   }

@@ -1,0 +1,70 @@
+name: claude-review-pictures
+
+# Claude looks at the baseline pictures a pull request adds or changes (T818, John 15 Nov 2026: "if you proactively look
+# at the pics then you can spot issues"). Runs only when a picture under the baseline folder is in the change (the
+# `paths` filter: no run, no cost otherwise). scripts/visual/review-pictures-prep.py does the mechanical pass (identical
+# and near-identical pictures, how much a changed picture moved) and draws contact sheets; the skill
+# .claude/skills/review-baseline-pictures says what to look for and how to report. Same rules as claude-review.yml:
+# advisory (a red check on CONCERNS, never in pr-gate), fork-proof, no pull_request_target, nothing but comments written.
+# Design and the switch-off: docs/design/CLAUDE_REVIEW.md.
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    branches: [main]
+    paths:
+      - 'packages/ui/test/visual/visual.browser.spec.ts-snapshots/**'
+
+permissions: {}
+
+concurrency:
+  group: claude-review-pictures-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Kill switch: the repository variable CLAUDE_REVIEW set to `off` stops this and claude-review.yml.
+    if: >-
+      vars.CLAUDE_REVIEW != 'off'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && !github.event.pull_request.draft
+      && github.event.pull_request.user.type != 'Bot'
+      && !endsWith(github.actor, '[bot]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # Reads the code, writes comments on the pull request; cannot push (see claude-review.yml).
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install pillow==10.4.0 numpy==2.1.3
+      - name: the mechanical pass and the contact sheets
+        run: python3 scripts/visual/review-pictures-prep.py HEAD^1 HEAD .review-pictures
+      # Pinned to a commit (v1.0.266, 31 Oct 2026): the step holds a credential, so a moved tag must not change it.
+      - name: Claude looks at the pictures
+        uses: anthropics/claude-code-action@d535f5172dec02b204866b393d6b20b9b2aaf98d
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          # The repository's .claude/settings.json has a PreToolUse hook running a script under /home/john, which does not exist
+          # on a runner: it exits 2 and blocks every Bash and Write call, so no review could post a verdict. The session's
+          # hooks are switched off here, in the runner's own settings; the repository's hook config is untouched.
+          settings: '{"disableAllHooks": true}'
+          prompt: /review-baseline-pictures PR=${{ github.event.pull_request.number }} RUN=${{ github.run_id }} OUT=.review-pictures
+          claude_args: >-
+            --model ${{ vars.CLAUDE_REVIEW_MODEL || 'claude-sonnet-5-5' }}
+            --max-turns 30
+            --settings '{"disableAllHooks": true}'
+            --allowedTools "Read,Grep,Glob,Write,Bash(git rev-parse:*),Bash(gh pr view:*),Bash(gh pr comment:*)"
+      - name: the verdict decides this check's colour
+        if: ${{ !cancelled() }}
+        run: bash scripts/ci/claude-review-verdict.sh "$GITHUB_REPOSITORY" "$PR" pictures "$GITHUB_RUN_ID"
+        env:
+          PR: ${{ github.event.pull_request.number }}

@@ -5,9 +5,27 @@
  * `VCCon` and `numVC`.
  */
 import {WinISDDriver} from '../winisd/index.js';
+import type {WdrCell} from '../winisd/winisdDriver.js';
 import {newUuid} from './newUuid.js';
+import {CURRENT_SCHEMA_VERSION} from './schemaVersion.js';
 import type {DriverError} from '../engine/index.js';
-import type {DriverSpecsSection, OpenISDDeviceJson, SpecEntryJson} from './openisdSchema.js';
+import type {DriverSpecsSection, OpenISDDeviceJson, SpecEntryJson, WiringEntryJson} from './openisdSchema.js';
+import {VoiceCoilWiring} from './voiceCoilWiring.js';
+
+/** WinISD's `VCCon` code for a wiring (`docs/design/WINISD_SCHEMA.md` §3.2): 1 = parallel,
+ *  2 = series. The record stores the name (QO914, #514); the code exists only in the `.wdr`/`.wpr`
+ *  files, and both directions are stated here, next to each other. An unknown wiring is written
+ *  as 1, WinISD's own default (QO900 R1). */
+export function wdrVCConCode(wiring: VoiceCoilWiring | null): '1' | '2' {
+    return wiring === VoiceCoilWiring.Series ? '2' : '1';
+}
+
+/** The wiring a `.wdr` `VCCon` code states, or null when the code is neither 1 nor 2. */
+function wiringOfWdrVCConCode(code: number): VoiceCoilWiring | null {
+    if (code === 1) return VoiceCoilWiring.Parallel;
+    if (code === 2) return VoiceCoilWiring.Series;
+    return null;
+}
 
 /**
  * `.wdr` (read by `WinISDDriver.fromWdrIni`) -> an `OpenISDDeviceJson` record.
@@ -28,37 +46,35 @@ import type {DriverSpecsSection, OpenISDDeviceJson, SpecEntryJson} from './openi
 
  */
 /**
- * /**
- * `VCCon` as a record entry, read on PRESENCE rather than on its ParState mark.
+ * `VCCon` as a record entry: the wiring Re and BL were measured in (QO97, kept by QO900 R1), read
+ * on PRESENCE rather than on its ParState mark — except a C mark.
  *
  * WinISD writes no instruction to slot 46, so it leaves `N` there while the `VCCon=` row still
  * states a wiring — 520 of the 524 corpus files (`drivers/mysamples/PARSTATE-FINDINGS.md`). Reading
  * this row on its mark, as every other row is read, loses every series wiring in the corpus.
+ * OpenISD marks the row C when the wiring is not stated (QO900 R1); a C row is a placeholder,
+ * not a measured wiring, and reads as unknown.
  *
- * `1` and `2` are the whole encoding. Anything else is read as `1`, parallel, with the number the
- * file carried kept as `actual_reading`. A warning is pushed — NOT a `dq_calculated` mark on the
- * record; coercion is a parse event and the record stays clean.
+ * `1` and `2` are the whole encoding. Anything else is omitted with a warning — NOT a
+ * `dq_calculated` mark on the record; coercion is a parse event and the record stays clean.
  */
 function wdrVCConEntry(
-    cell: { value: string },
+    cell: WdrCell,
     warnings: DriverError[],
-): SpecEntryJson | undefined {
+): WiringEntryJson | undefined {
     const raw = cell.value.trim();
-    if (raw.length === 0) return undefined;
+    if (raw.length === 0 || cell.state === 'calculated') return undefined;
     const stated = Number(raw);
-
-    if (stated === 1 || stated === 2) {
-        return {state: 'E', value: stated};
+    const wiring = wiringOfWdrVCConCode(stated);
+    if (wiring !== null) {
+        return {state: 'E', value: wiring};
     }
     // Out of range for the two-position dropdown WinISD's own UI offers (1 parallel, 2 series)
     // — not a value a human could have entered, so it is omitted rather than coerced into an
-    // entered fact. The slot then reads as absence, which the driver's own `resolve()` fills
-    // with `calcVCCon()`'s default as a 'C' entry, the same way an absent key is filled (John,
-    // 2026-09-05: "when reading back a zero or absent then it should recorded as C in openisd
-    // and the default calculated 1 comes thru").
+    // entered fact: the wiring reads as unknown, the same as an absent key.
     warnings.push({
         level: 'warn', field: 'VCCon',
-        message: `VCCon=${stated} is not 1 (parallel) or 2 (series) — omitted, reads as the calculated default`,
+        message: `VCCon=${stated} is not 1 (parallel) or 2 (series) — omitted, the wiring reads as unknown`,
     });
     return undefined;
 }
@@ -86,7 +102,7 @@ function wdrNumVCEntry(
  *  always skipped; N (blank) is skipped unless it carries a non-zero value (3rd-party writers
  *  have broken parstate); VCCon reads strictly on presence. */
 function readSpecEntryInto(
-    entries: Record<string, SpecEntryJson>,
+    entries: Record<string, SpecEntryJson | WiringEntryJson>,
     wdr: WinISDDriver,
     schemaKey: keyof DriverSpecsSection,
     wdrKey: string,
@@ -118,32 +134,6 @@ function readSpecEntryInto(
     }
 }
 
-/** The file's own coil count and wiring (`VCCon` 2 is series, anything else parallel). */
-function wdrWiring(entries: Readonly<Record<string, SpecEntryJson>>): {coils: number; series: boolean} {
-    const numVC = entries['numVC'];
-    const vcCon = entries['VCCon'];
-    return {
-        coils: numVC?.state === 'E' && numVC.value >= 1 ? numVC.value : 1,
-        series: vcCon?.state === 'E' && vcCon.value === 2,
-    };
-}
-
-/** Replace an entry's value (and its parsed reading) by `perCoil(value)`, keeping the printed
- *  literal (the file's own cell text for `wdrKey`) and the E mark exactly as the file had them.
- *  Absent entries stay absent. */
-function perCoilEntryInto(
-    entries: Record<string, SpecEntryJson>,
-    wdr: WinISDDriver,
-    schemaKey: string,
-    wdrKey: string,
-    perCoil: (terminal: number) => number,
-): void {
-    const entry = entries[schemaKey];
-    if (entry?.state !== 'E') return;
-    const value = perCoil(entry.value);
-    entries[schemaKey] = {...entry, value};
-}
-
 export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     { record: OpenISDDeviceJson; warnings: DriverError[] } {
 
@@ -153,7 +143,7 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     const model = named(wdr.headerField('model'));
     const manufacturer = named(wdr.headerField('manufacturer'));
 
-    const specEntries: Record<string, SpecEntryJson> = {};
+    const specEntries: Record<string, SpecEntryJson | WiringEntryJson> = {};
     // THE FIXED 48-ROW STRUCTURE, each row read explicitly into its schema key — no row list, no
     // key map: the calls below ARE the rows, and each names the schema entry it is stored under
     // and the `.wdr` row it is read from.
@@ -205,12 +195,8 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     readSpecEntryInto(specEntries, wdr, 'Vcd_m', 'Vcd', warnings);
     readSpecEntryInto(specEntries, wdr, 'DVol_m3', 'DVol', warnings);
 
-    // `Re` and `BL` in a `.wdr` are TERMINAL values; the record stores them PER COIL
-    // (docs/research/WINISD_PARITY.md section 11b, "Reading a .wdr back"). The wiring is the file's
-    // own `VCCon`, trusted as stated: the same factor is applied back on export, so it cancels.
-    const {coils, series} = wdrWiring(specEntries);
-    perCoilEntryInto(specEntries, wdr, 'Re_ohm', 'Re', Re => series ? Re / coils : Re * coils);
-    perCoilEntryInto(specEntries, wdr, 'BL_Tm', 'BL', BL => series ? BL / coils : BL);
+    // `Re` and `BL` are stored as the file states them: the whole driver's, in the file's own
+    // `VCCon` wiring, which is kept as the measured wiring (QO900 R1).
 
     // Optional: present only when the header line is non-blank, so a `.wdr` that never states
     // one produces no field — not an empty string standing in for "unstated"
@@ -239,6 +225,8 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
         ...(comment ? {comment} : {}),
         ...(added ? {added} : {}),
         specs: {woofer: specEntries},
+        // Re and BL as the file states them: a current-version record (QO900 R1).
+        schemaVersion: CURRENT_SCHEMA_VERSION,
     };
     return {record, warnings};
 }

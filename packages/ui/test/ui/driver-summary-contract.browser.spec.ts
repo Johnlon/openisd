@@ -58,8 +58,11 @@ for (const size of cases) {
 }
 
 for (const screen of SCREENS.filter(screen => screen.name !== 'empty' && screen.name !== 'menu')) {
-  test(`shared summary glyph contract ${screen.skin.name} ${screen.name}`, async ({page}) => {
+  test(`shared summary glyph contract ${screen.skin.name} ${screen.name}`, async ({page, browserLog}) => {
     await screen.open(page);
+    // A fault screen (diagnostic repairs, start-up failure) writes its own console error on purpose; any other one stays and fails the browser-log check.
+    expect(browserLog.consoleErrors.filter(message => !screen.ownConsoleErrors.some(own => own.test(message))), `${screen.name}: console errors other than its own fault`).toEqual([]);
+    browserLog.reset();
     const report = await page.locator('body').evaluate(measureSummaryContent);
     expect(report.controls, 'every mounted summary row is measured').toBe(report.rows);
     expect(report.issues).toEqual([]);

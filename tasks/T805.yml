@@ -1,0 +1,20 @@
+id: T805
+release_note: internal
+repo: openisd
+owner: fixer
+status: done
+goal: Bundle synced to winisd_drivers 0ae6348d8: Dayton Audio product-page wiring statements (QO926), Visaton W 200 and Peerless PMT-40N25AL17-04 weights corrected; RSS265HO-44 golden now states its wiring, RSS315HO-44 added as the golden for the inferred wiring (QO903 R4)
+why: "John, 15 Nov 2026: QO926 a maker's product-page statement counts like the datasheet; QO922 snapshot by script; QO929"
+done_test: bash scripts/test.sh packages/design/test/domain/multi-coil-goldens.test.ts
+ruling: QO926
+files:
+  - tasks/T805.yml
+  - packages/design/test/domain/multi-coil-goldens.test.ts
+  - packages/ui/public/**
+  - packages/design/test/fixtures/driver-snapshot/**
+  - scripts/driver-snapshot.pin
+  - scripts/driver-snapshot.dq-baseline.json
+  - scripts/sync-driver-snapshot.sh
+  - scripts/land/test/sync-driver-snapshot.test.sh
+  - scripts/land/test/sync-driver-snapshot-dq.test.sh
+  - packages/ui/test/visual/SOURCES.sha256

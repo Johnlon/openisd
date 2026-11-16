@@ -32,6 +32,7 @@ outside every repo (John, 17 Oct 2026). `inbox.py` reads and writes it.
 | Document                                                                     | What it covers                                           |
 |------------------------------------------------------------------------------|-----------------------------------------------------------|
 | [docs/design/WINISD_SCHEMA.md](docs/design/WINISD_SCHEMA.md)                 | The `.wdr` and `.wpr` formats, reverse-engineered        |
+| [docs/design/CLAUDE_REVIEW.md](docs/design/CLAUDE_REVIEW.md)                 | Claude reviews every pull request and its baseline pictures; advisory; how to switch it off |
 | [docs/design/WDR_LOGIC.md](docs/design/WDR_LOGIC.md)                         | How `.wdr` files are loaded and saved                    |
 | [docs/design/STATE_MODEL.md](docs/design/STATE_MODEL.md)                     | Dialog drafts, commit and cancel rules                   |
 | [docs/design/REACTIVITY.md](docs/design/REACTIVITY.md)                       | How domain changes reach Vue                             |
@@ -76,6 +77,7 @@ Plans are in [docs/plans/](docs/plans/). Finished or superseded plans are delete
 |------|---------|
 | [PLAN_20261010_HIGH_FIDELITY_EXTRACTION.md](docs/plans/PLAN_20261010_HIGH_FIDELITY_EXTRACTION.md) | High-fidelity driver extraction and a strict transfer file |
 | [PLAN_MULTI_BOX.md](docs/plans/PLAN_MULTI_BOX.md) | A project holds a collection of boxes |
+| [PLAN_20261115_DRIVER_SEARCH.md](docs/plans/PLAN_20261115_DRIVER_SEARCH.md) | Driver library search: size, sort, brand, impedance, enclosure (#516) |
 | [PLAN_20261009_APP_WORK.md](docs/plans/PLAN_20261009_APP_WORK.md) | Outstanding app work |
 | [PLAN_20261009_CONSOLIDATED.md](docs/plans/PLAN_20261009_CONSOLIDATED.md) | Consolidated plan for all agents |
 

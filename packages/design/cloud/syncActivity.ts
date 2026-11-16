@@ -94,6 +94,17 @@ export function withActivity(kept: readonly SyncActivity[], added: readonly Sync
   return [...[...added].reverse(), ...kept].slice(0, SYNC_ACTIVITY_KEPT);
 }
 
+/** The list as the dialog shows it: a later minute above an earlier one (the minute is all the line says), and within a minute the items by name.
+ *  The ledger keeps the order uploads finished in, which is the network's; the same items show in the same order. Entries of one name keep their stored order. */
+export function activityForDisplay(kept: readonly SyncActivity[]): readonly SyncActivity[] {
+  const minute = (a: SyncActivity): number => Math.floor(a.at_ms / 60_000);
+  return kept.map((entry, index) => ({entry, index}))
+    .sort((a, b) => minute(b.entry) - minute(a.entry)
+      || (a.entry.name < b.entry.name ? -1 : a.entry.name > b.entry.name ? 1 : 0)
+      || a.index - b.index)
+    .map(({entry}) => entry);
+}
+
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

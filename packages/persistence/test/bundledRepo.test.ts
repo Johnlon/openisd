@@ -24,7 +24,7 @@ class Device {
 }
 
 const row = (uuid: string, path: string): Row => ({
-  uuid, path, name: path, dq: false, datasheet: null, productPage: null, listingPage: null, Fs_hz: 40,
+  uuid, path, name: path, dq: false, discontinued: false, datasheet: null, productPage: null, listingPage: null, Fs_hz: 40,
 });
 
 const URL = '/catalogue.json';

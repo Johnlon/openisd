@@ -90,7 +90,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
       container: {addEventListener: () => {}},
       visibility: {onVisible: () => {}},
       timer: {every: () => {}},
-      anyUnsaved: () => false,
+      anyUnsaved: () => false, losses: () => [],
       reload: () => {},
       caches: {keys: () => Promise.resolve([]), delete: () => Promise.resolve(true)},
     }),

@@ -1,0 +1,134 @@
+name: visual-retake
+
+# The one place baseline pictures are drawn (T799, John 15 Nov 2026, QO923/QO924). The pictures committed under
+# packages/ui/test/visual must be what the suite's browser job draws, so they are drawn here, in that job's saved
+# test machine (the same image digest as suite.yml), never on a developer machine. A push to a branch
+# `visual-retake/**` runs it on the pushed commit (scripts/visual/retake-ci.sh does the push, waits, and collects
+# the result). Triggering on a push, not workflow_dispatch, lets a change to this file be run from its own branch.
+# Result: artifact `visual-baselines` = the pictures that differ from the committed ones, each stamped with this run's id
+# (a PNG text chunk, scripts/visual/png-stamp.mjs), MANIFEST.sha256 (their hashes) and SOURCES.sha256 (the UI sources' hash).
+# The pull request check refuses a changed baseline that is not one of these (scripts/visual/check-task.sh).
+on:
+  push:
+    branches: ['visual-retake/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: visual-retake-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  OPENISD_TEST_PORT: '4300'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: build the suite's app
+        run: bash -c "$(node --input-type=module -e "import('./playwright.config.js').then(m => process.stdout.write(m.BUILD_TEST_APP))")"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-app
+          path: |
+            build/test-dist-${{ env.OPENISD_TEST_PORT }}
+            build/test-bundle-${{ env.OPENISD_TEST_PORT }}
+            packages/ui/public/build-info.json
+          retention-days: 1
+
+  draw:
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    # The same image as suite.yml's browser job. Keep the digests equal (scripts/visual/test/ci-image-same.test.sh).
+    container:
+      image: ghcr.io/portingle/openisd-ci-runner@sha256:51e24d3e3c17259a560ce8ee15a89d635011c9a3eba0abf920cc0690f79799f7
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --ipc=host
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-app
+          path: .
+      - name: test machine
+        run: grep -m1 'model name' /proc/cpuinfo; nproc
+      - name: draw every screen, check the drawing is stable, stamp what changed
+        env:
+          OPENISD_VISUAL_DRAWER: ci-runner
+        run: bash scripts/visual/ci-draw.sh build/visual-retake
+      - uses: actions/upload-artifact@v4
+        with:
+          name: visual-baselines
+          path: build/visual-retake
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: failures
+          path: test-results/
+
+  # The drawing is run on fresh runners other than the one that drew it, against the pictures as they will be committed
+  # (the commit's own, with the re-taken ones laid over). A screen that draws differently from one runner to the next
+  # fails here, not on main. Zero tolerance, as in the suite.
+  verify:
+    needs: [draw]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ghcr.io/portingle/openisd-ci-runner@sha256:51e24d3e3c17259a560ce8ee15a89d635011c9a3eba0abf920cc0690f79799f7
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --ipc=host
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-app
+          path: .
+      - uses: actions/download-artifact@v4
+        with:
+          name: visual-baselines
+          path: build/visual-retake
+      - name: test machine
+        run: grep -m1 'model name' /proc/cpuinfo; nproc
+      - name: the spec against the pictures as they will be committed
+        run: |
+          cp build/visual-retake/pictures/*.png packages/ui/test/visual/visual.browser.spec.ts-snapshots/ 2>/dev/null || true
+          npx playwright test packages/ui/test/visual/visual.browser.spec.ts --retries=0
+      - uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: verify-failures-${{ matrix.runner }}
+          path: test-results/

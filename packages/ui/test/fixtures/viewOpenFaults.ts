@@ -1,7 +1,7 @@
 import type {Page} from '@playwright/test';
 import {dirtyFocusedDesign} from '../fixtures.js';
 import {tapMobileMenuItem} from './mobileSkin.js';
-import {deliverWaitingBuild} from './updateHost.js';
+import {deliverWaitingBuild, refuseSessionWrites} from './updateHost.js';
 import {WalkSkin} from './viewOpenTypes.js';
 import type {OpenStep} from './viewOpenTypes.js';
 
@@ -29,8 +29,10 @@ const updateStrip: OpenStep = {root: '[data-testid="update-strip"]', open: async
   await page.getByTestId('update-strip').waitFor({state: 'visible'});
 }};
 
-/** The same offer, Reload pressed: the app asks about the unsaved edits first. */
+/** The same offer, Reload pressed after the browser's store stopped taking the session: a reload would lose the
+ *  edits made since, so the app asks and says so. (Unsaved edits the store holds are kept and are not asked about.) */
 const updateReloadAsk: OpenStep = {root: '.confirm-modal', open: async page => {
+  await refuseSessionWrites(page);
   await dirtyFocusedDesign(page);
   await deliverWaitingBuild(page);
   await page.getByTestId('update-reload').click();
@@ -39,7 +41,12 @@ const updateReloadAsk: OpenStep = {root: '.confirm-modal', open: async page => {
 
 /** An uncaught error in the running page: the crash and report screen. */
 const crash: OpenStep = {root: '[data-testid="crash-screen"]', open: async page => {
-  await page.evaluate(() => { globalThis.dispatchEvent(new ErrorEvent('error', {error: new Error('view walk: uncaught error'), message: 'view walk: uncaught error'})); });
+  // The stack is written out: a real one would name the test harness's frames and their line numbers, which change with its version.
+  await page.evaluate(() => {
+    const error = new Error('view walk: uncaught error');
+    error.stack = 'Error: view walk: uncaught error\n    at checkout (app.js:1:1)';
+    globalThis.dispatchEvent(new ErrorEvent('error', {error, message: 'view walk: uncaught error'}));
+  });
   await page.getByTestId('crash-screen').waitFor({state: 'visible'});
 }};
 

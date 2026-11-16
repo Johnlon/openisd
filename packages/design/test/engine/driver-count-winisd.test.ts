@@ -88,13 +88,12 @@ function setUpProject(c: Case): OpenISDProject {
   // WinISD's charts never read the file's Mms, Cms and Rms; OpenISD charts the boxes (QO534), so they take WinISD's figures.
   useWinisdParts(project);
   project.winisdDriverModel.set(true);
-  project.winisdDriverCountModel.set(true);   // WinISD's per-driver impedance: a WinISD bug, off by default
   project.rgAtDriverSide.set(false);
   c.configure(project);
   return project;
 }
 
-describe('two drivers match WinISD with the per-driver impedance bug ticked', () => {
+describe('two drivers match WinISD (one driver\'s impedance, the array\'s SPL, VA and power)', () => {
   for (const c of CASES) {
     describe(`${c.label} (${c.wpr})`, () => {
       const project = setUpProject(c);

@@ -28,7 +28,7 @@
   "provided_by": {
     "value": "golden"
   },
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "sku": {
     "value": "GOLD-2"
   },
@@ -114,10 +114,6 @@
         "precision": 0.9426164338677268,
         "state": "C",
         "value": 85.90068668443399
-      },
-      "VCCon": {
-        "state": "C",
-        "value": 1
       },
       "Vas_m3": {
         "precision": 0.0029505840000026984,

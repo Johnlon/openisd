@@ -1,0 +1,93 @@
+name: claude-review
+
+# An independent code review of every pull request from a branch of this repository, by Claude on GitHub's runners
+# (T818, John 15 Nov 2026: reviews run by the gates themselves, not by whoever remembers to ask; QO923). Reads the
+# change with the skill .claude/skills/review-pull-request, posts its findings as inline comments and ends with one
+# comment holding `Verdict: CLEAR|CONCERNS|SKIPPED`. Design and the switch-off: docs/design/CLAUDE_REVIEW.md.
+#
+# ADVISORY, NOT A GATE. This job is not in pr-gate and not a required check: an AI that can be wrong never blocks a
+# merge. It is made hard to ignore instead: the last step turns a CONCERNS verdict (or no verdict) into a RED check on
+# the pull request, so the lead's `gh pr checks` shows it and each finding must be fixed or answered on the pull request.
+#
+# Never pull_request_target, never workflow_run, never merge_group: those events run with this repository's secrets or on
+# code nobody reviewed, or make the queue wait for a reviewer. `pull_request` from a fork gets no secret from GitHub and
+# the job is skipped for it anyway; the secret is read only by the step that runs the action, in a job that is skipped
+# for forks, bots, drafts and the kill switch.
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    branches: [main]
+
+# Nothing is granted by default; the job asks for what it needs.
+permissions: {}
+
+# One review per pull request at a time; a new push replaces the review of the old one.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Kill switch: set the repository variable CLAUDE_REVIEW to `off` (Settings > Secrets and variables > Actions >
+    # Variables) and every pull request skips this job at once, with no change to the repository.
+    if: >-
+      vars.CLAUDE_REVIEW != 'off'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && !github.event.pull_request.draft
+      && github.event.pull_request.user.type != 'Bot'
+      && !endsWith(github.actor, '[bot]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Least privilege. The workflow token reads the code and writes comments on the pull request, and nothing else: it
+    # cannot push. It is handed to the action as github_token, so the action does not fall back to the Claude GitHub
+    # app's own token (which can write contents and workflows). That is also why there is no id-token permission.
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      # The merge of the branch into main (the default for pull_request): HEAD^1 is main, HEAD^2 the branch.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: does this change have code to review
+        id: needed
+        run: bash scripts/ci/claude-review-needed.sh HEAD^1 HEAD | tee -a "$GITHUB_OUTPUT"
+      # Pinned to a commit (v1.0.266, 31 Oct 2026): the step holds a credential, so a moved tag must not change it.
+      - name: Claude reviews the pull request
+        if: steps.needed.outputs.run == 'true'
+        uses: anthropics/claude-code-action@d535f5172dec02b204866b393d6b20b9b2aaf98d
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          # The repository's .claude/settings.json has a PreToolUse hook running a script under /home/john, which does not exist
+          # on a runner: it exits 2 and blocks every Bash and Write call, so no review could post a verdict. The session's
+          # hooks are switched off here, in the runner's own settings; the repository's hook config is untouched.
+          settings: '{"disableAllHooks": true}'
+          prompt: /review-pull-request PR=${{ github.event.pull_request.number }} RUN=${{ github.run_id }} REPO=${{ github.repository }}
+          claude_args: >-
+            --model ${{ vars.CLAUDE_REVIEW_MODEL || 'claude-sonnet-5-5' }}
+            --max-turns 25
+            --settings '{"disableAllHooks": true}'
+            --allowedTools "Read,Grep,Glob,Write,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git blame:*),Bash(git rev-parse:*),Bash(gh pr view:*),Bash(gh pr comment:*),mcp__github_inline_comment__create_inline_comment"
+      # The run log hides the session ("full output hidden for security"); the transcript is kept three days so a missing verdict
+      # can be explained (which tool call was denied). It holds this public repository's text and the session's tool output only.
+      - name: keep the session transcript for three days
+        if: ${{ !cancelled() && steps.needed.outputs.run == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-review-transcript
+          path: ${{ runner.temp }}/claude-execution-output.json
+          retention-days: 3
+          if-no-files-found: ignore
+      - name: the verdict decides this check's colour
+        if: ${{ !cancelled() && steps.needed.outputs.run == 'true' }}
+        run: bash scripts/ci/claude-review-verdict.sh "$GITHUB_REPOSITORY" "$PR" code "$GITHUB_RUN_ID"
+        env:
+          PR: ${{ github.event.pull_request.number }}
+      - name: nothing here for a code review
+        if: steps.needed.outputs.run != 'true'
+        env:
+          REASON: ${{ steps.needed.outputs.reason }}
+        run: echo "claude-review skipped - $REASON"

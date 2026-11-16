@@ -3,8 +3,8 @@ import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef, watc
 // hook only names their shapes, so neither import is a layering edge (QO80).
 import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, defaultProjectName, startingChambersOf, takesChamberTunings, WizardPlan, WizardStep } from '@openisd/design';
 import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
-import { type BoxType, type EbpSuitability, type EnvironmentEngine, FixedAir, type PrEngine, type SealedEngine, type VentedAlignment, type VentedEngine, type Wiring } from '@openisd/design/engine';
-import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SEALED_QTC, DEFAULT_SEALED_VOLUME_L, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
+import { type BoxType, type EbpSuitability, type EnvironmentEngine, FixedAir, type PrEngine, type SealedEngine, type VentedAlignment, type VentedEngine } from '@openisd/design/engine';
+import {DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SEALED_QTC, DEFAULT_SEALED_VOLUME_L, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {DUAL_CHAMBER} from './boxFields.js';
 import {useApp} from '../logic/app.js';
 import type {AppState} from '../logic/appState.js';
@@ -90,8 +90,6 @@ export interface OriginalNewProjectAPI {
   // Step 2: Driver count & placement
   readonly nDrivers: Ref<number>;
   readonly placement: Ref<'standard' | 'iso'>;
-  readonly wiring: Ref<Wiring>;
-  readonly ARRAY_WIRING_OPTIONS: readonly SelectorOption<Wiring>[];
 
   // Step 3: Box type & starting volume (non-sealed types; a sealed box gets its volume from step 4)
   readonly boxType: Ref<BoxType>;
@@ -215,7 +213,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
   const nDrivers = ref(1);
   const placement = ref<'standard' | 'iso'>('standard');
-  const wiring = ref<Wiring>('parallel');
 
   const boxType = ref<BoxType>('sealed');
   const BOX_OPTIONS = newProjectBoxTypeOptions();
@@ -589,7 +586,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
         made.description.set(projDescription.value.trim());
       }
       made.nDrivers.set(nDrivers.value);
-      made.wiring.set(wiring.value);
       made.box.applyStartingValues();
     });
 
@@ -617,8 +613,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
     nDrivers,
     placement,
-    wiring,
-    ARRAY_WIRING_OPTIONS,
 
     boxType,
     BOX_OPTIONS,

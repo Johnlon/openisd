@@ -10,7 +10,8 @@ cd "$(git rev-parse --show-toplevel)" || exit 2
 task="${1:?usage: run-done-test.sh <task-file>}"
 done_test="$(sed -n 's/^done_test: *//p' "$task" | head -n 1)"
 [ -n "$done_test" ] || { echo "done_test: $task has no done_test" >&2; exit 1; }
-case "$done_test" in
-  *.browser.spec.ts*) echo "done_test: names a browser spec ($done_test); browser specs run in the full suite, name a unit spec" >&2; exit 1 ;;
-esac
+# shellcheck source=/dev/null
+. "$(dirname "${BASH_SOURCE[0]}")/core/task.sh"
+problem="$(task_done_test_problem "$done_test")"
+[ -z "$problem" ] || { echo "done_test: $problem" >&2; exit 1; }
 exec bash -c "$done_test"

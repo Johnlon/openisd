@@ -3,7 +3,7 @@ import {expect, test} from '../fixtures.js';
 import type {Locator} from '@playwright/test';
 import {ALL_FIELDS, NumberField} from '@openisd/design/fields';
 import {referenceUnitPaint, measureUnitPaint} from '../fixtures/referenceUnitPaint.js';
-import {SCREENS} from '../visual/screens.js';
+import {PAGE_SCREENS} from '../visual/screens.js';
 
 async function waitForLabelsWhereExpected(screenName: string, labels: Locator): Promise<void> {
   if (!/^(tab-box|tab-driver|tab-advanced|tab-enclosure|box-|wizard-.*-step4)/.test(screenName)) return;
@@ -13,7 +13,7 @@ async function waitForLabelsWhereExpected(screenName: string, labels: Locator): 
 // Render the complete app surface: project tabs, all six box types, and every new-project step.
 // This catches fields that never acquire the shared component, even when their visible label or
 // toggle metadata is missing.
-const project_screens = SCREENS.filter(s => s.name !== 'empty');
+const project_screens = PAGE_SCREENS.filter(s => s.name !== 'empty');
 
 for (const screen of project_screens) {
   test(`unit labels match the selected reference ${screen.skin.name} ${screen.name}`, async ({page}) => {
@@ -70,7 +70,9 @@ type UnitPaint = Awaited<ReturnType<typeof referenceUnitPaint>>['units'][number]
 /** T607 approved desktop deviations from the frozen reference: the signal-generator Hz cap is 11px (.signal-gen-field,
  *  OriginalShell.vue) and Driver advanced / Advanced air rows use a fixed 60px unit chip (joined-fields.css). */
 function approvedUnitPaint(paint: UnitPaint | undefined, id: string, skin: string, inWideChipGroup: boolean): UnitPaint | undefined {
-  if (paint === undefined || skin === 'mobile') return paint;
+  // T742: a phone wide chip (the frozen reference's 60 px, mm/N and 1000/K) is 50 px (PhoneRowColumns.WIDE_CHIP_PX); every other chip keeps its reference width.
+  if (paint !== undefined && skin === 'mobile') return Number(paint.width) === 60 ? {...paint, width: 50} : paint;
+  if (paint === undefined) return paint;
   const sized = id === SIGNAL_GEN_FIELD ? {...paint, fontSize: '11px', lineHeight: '15.95px'} : paint;
   return inWideChipGroup ? {...sized, width: 60} : sized;
 }
@@ -90,7 +92,7 @@ for (const screen of project_screens) {
     await screen.open(page);
     const selector = fieldRowsSelector(screen.skin.name);
     const reference = await referenceUnitPaint(page,screen.skin.name,screen.name);
-    const misplaced = await page.locator(selector).evaluateAll((rows, expectedUnits) => rows.flatMap(row => {
+    const misplaced = await page.locator(selector).evaluateAll((rows, {units: expectedUnits, mobile}) => rows.flatMap(row => {
       const label = row.querySelector('label')?.textContent?.trim() ?? '(unlabelled)';
       const numeric = row.querySelector('[data-numinput], input[type=number], .ui-field-value input,.ui-field-value select,.ui-field-value > .calculated');
       if (!numeric) return [];
@@ -105,12 +107,14 @@ for (const screen of project_screens) {
       if (hasUnit && control && unit) {
         const ur = unit.getBoundingClientRect();
         const cr = control.getBoundingClientRect();
-        // T607: desktop Driver advanced and Advanced air rows give the unit a fixed 60px chip
-        // (joined-fields.css .driver-advanced-fields / .adv-air-fields); every other row keeps the approved width.
-        const wideChip = row.closest('.driver-advanced-fields, .adv-air-fields') !== null;
+        // A wide chip (the frozen reference's 60 px phone chips, mm/N and 1000/K, or a desktop Driver advanced / Advanced air row) is a fixed width:
+        // 60 px on the desktop (T607, joined-fields.css .driver-advanced-fields / .adv-air-fields) and 50 px on the phone (T742, PhoneRowColumns.WIDE_CHIP_PX:
+        // 60 px left a 7-figure value cut at 374 px).
         const approved=expectedUnits.find(entry=>entry.field===row.getAttribute('data-field')&&entry.symbol===unit.textContent);
+        const wideChip = mobile ? Number(approved?.paint.width) === 60 : row.closest('.driver-advanced-fields, .adv-air-fields') !== null;
+        const wideChipPx = mobile ? 50 : 60;
         if(!approved)problems.push(`${label}: missing approved joined-unit reference`);
-        else if(Math.abs(ur.left-cr.right+(wideChip?50:Number(approved.paint.width)))>(row.closest('.mob-signal')!==null?0.05:0))problems.push(`${label}: unit gap ${ur.left-cr.right}, expected ${-(wideChip?50:Number(approved.paint.width))}`);
+        else if(Math.abs(ur.left-cr.right+(wideChip?wideChipPx:Number(approved.paint.width)))>(row.closest('.mob-signal')!==null?0.05:0))problems.push(`${label}: unit gap ${ur.left-cr.right}, expected ${-(wideChip?wideChipPx:Number(approved.paint.width))}`);
         if (ur.top !== cr.top || ur.height !== cr.height) problems.push(`${label}: unit and value edges do not align`);
         if (!inside(ur, rr)) problems.push(`${label}: unit outside field row by ${Math.max(rr.left - ur.left, ur.right - rr.right, 0)}px`);
       }
@@ -151,7 +155,7 @@ for (const screen of project_screens) {
         }
       }
       return problems;
-    }), reference.units);
+    }), {units: reference.units, mobile: screen.skin.name === 'mobile'});
     expect(misplaced, `unit/control and warning/WinISD cue placement on ${screen.skin.name} ${screen.name}`).toEqual([]);
   });
 }

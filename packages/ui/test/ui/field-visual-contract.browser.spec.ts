@@ -2,7 +2,7 @@ import {clearWithKeyboard} from '../fixtures/numField.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, openAProject, setFocusedBoxType, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {measureFieldBorders, measureFieldContent} from '../fixtures/fieldVisualContract.js';
-import {BOX_TYPES, SCREENS} from '../visual/screens.js';
+import {BOX_TYPES, PAGE_SCREENS} from '../visual/screens.js';
 import type {Locator, Page} from '@playwright/test';
 
 /** Only the presented dialog is interactive; the page behind its backdrop is deliberately covered. */
@@ -31,7 +31,7 @@ for (const skin of ['mobile', 'desktop'] as const) {
   });
 }
 
-for (const screen of SCREENS.filter(screen => screen.name !== 'empty' && screen.name !== 'menu')) {
+for (const screen of PAGE_SCREENS.filter(screen => screen.name !== 'empty' && screen.name !== 'menu')) {
   test(`shared overlap contract ${screen.skin.name} ${screen.name}`, async ({page}) => {
     await screen.open(page);
     const report = await (await fieldSurface(page)).evaluate(measureFieldContent);
@@ -58,7 +58,7 @@ test('Driver desktop: every unit fits its control without touching the steppers'
   expect(report.issues).toEqual([]);
 });
 
-for (const screen of SCREENS.filter(screen => screen.name !== 'empty' && screen.name !== 'menu')) {
+for (const screen of PAGE_SCREENS.filter(screen => screen.name !== 'empty' && screen.name !== 'menu')) {
   test(`shared border contract ${screen.skin.name} ${screen.name}`, async ({page}) => {
     await screen.open(page);
     const report = await (await fieldSurface(page)).evaluate(measureFieldBorders);

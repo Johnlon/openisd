@@ -4,7 +4,11 @@ import {ChartInputs, PhoneRowColumns} from '@openisd/design/fields';
  * Sizes a phone page's (or popup's) label column to its longest label (John, 10 Nov 2026: "there is tons of
  * empty space between the label and the text box"). Every row of the page reads `--mob-col-label`; this sets
  * it on the page root to `PhoneRowColumns.labelColumnPx` of the labels shown, so the box takes the rest.
- * It measures again whenever the DOM under `root` changes, `root` resizes or a font finishes loading.
+ * It is the only writer of that property on `root` (no style binding of the root carries it; see
+ * `PhoneRowColumns.cssVarsWithoutLabelColumn`); with no label to size to it writes the design's default column.
+ * `reserved` are labels a row of the page may show later (a row that appears only for some drivers): the column
+ * is wide enough for them whether or not they are on screen, so the page does not move when the driver changes
+ * (lead, QO923: a layout that moves when you change driver is a defect). It measures again whenever the DOM under `root` changes, `root` resizes or a font finishes loading.
  */
 export interface PhoneLabelColumn {
   /** Stops watching and takes back the width it set (the design's default column applies again). */
@@ -15,7 +19,7 @@ const LABELS = '.ui-field > label, .mob-crow-label';
 /** The box a label sits before: a number box, text box or dropdown. A row with none (a button row) does not size the column (John, 10 Nov 2026: "there is tons of empty space, don't blame the label"). */
 const BOX = 'input:not([type=checkbox]):not([type=radio]):not([type=file]), select';
 
-export function createPhoneLabelColumn(root: HTMLElement): PhoneLabelColumn {
+export function createPhoneLabelColumn(root: HTMLElement, reserved: readonly string[] = []): PhoneLabelColumn {
   const doc = root.ownerDocument;
   const view = doc.defaultView;
   if (view === null) throw new Error('A phone label column needs a live document');
@@ -26,19 +30,26 @@ export function createPhoneLabelColumn(root: HTMLElement): PhoneLabelColumn {
   const measure = (): void => {
     frame = null;
     const widths: number[] = [];
+    let font: CSSStyleDeclaration | null = null;
     for (const label of root.querySelectorAll<HTMLElement>(LABELS)) {
       const text = (label.textContent ?? '').trim();
       if (text === '' || label.getClientRects().length === 0) continue;
       if (label.closest('.ui-field, .mob-crow')?.querySelector(BOX) == null) continue;
       const style = view.getComputedStyle(label);
+      font = style;
       canvas.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`; // the font shorthand reads back empty
       // A box the charts read has its blue dot after the label's text (QO532): the column holds it too.
       const margin = parseFloat(style.marginRight) || 0;
       const dot = label.closest('.ui-field-drives-charts') === null ? 0 : ChartInputs.phoneDotRoomPx(margin);
       widths.push(canvas.measureText(text).width + margin + dot);
     }
-    if (widths.length === 0) return;
-    const px = `${PhoneRowColumns.labelColumnPx(widths)}px`;
+    // The canvas still holds the last label's font: a reserved label is measured in the same font as the shown ones.
+    if (font !== null) {
+      const margin = parseFloat(font.marginRight) || 0;
+      for (const text of reserved) widths.push(canvas.measureText(text).width + margin);
+    }
+    // No label to size to: the design's default column (no element's style binding writes it any more).
+    const px = `${widths.length === 0 ? PhoneRowColumns.STANDARD.labelPx : PhoneRowColumns.labelColumnPx(widths)}px`;
     if (root.style.getPropertyValue(PhoneRowColumns.LABEL_COLUMN_VAR) !== px) root.style.setProperty(PhoneRowColumns.LABEL_COLUMN_VAR, px);
   };
 

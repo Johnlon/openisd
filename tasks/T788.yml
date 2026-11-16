@@ -1,0 +1,22 @@
+id: T788
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Phone Filters tab: the add-filter chips are a one-line carousel again, with a slightly smaller font
+why: "John, 8 Nov 2026: \"not a bug, the strip is a carousel\". T734 replaced the carousel with wrapping chips, against that. John, 11 Nov 2026: \"make the font a little smaller and see if on mobile they fit on a single row\". Ten chips do not fit one row at 12 px or more, so the carousel comes back (one row, scrolls sideways inside the strip only, arrows beside it, never over a chip) at 13 px with the 44 px tap height. The field layout gate treats a data-carousel strip as designed."
+done_test: bash scripts/test.sh packages/ui/test/ui/MobileFiltersTab-carousel.test.ts
+files:
+  - tasks/T788.yml
+  - packages/ui/src/ui/shells/mobile/MobileFiltersTab.vue
+  - packages/ui/test/ui/mobile-filters-tab.browser.spec.ts
+  - packages/ui/test/ui/MobileFiltersTab-carousel.test.ts
+  - packages/ui/test/fixtures/fieldLayoutAudit.ts
+  - .claude/rules/field-layout.md
+  - bugs/BUG_20261105_phone-filters-strip-scrolls-sideways.md
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-filter-card-body.png
+visual:
+  - mobile-tab-filters
+  - mobile-dialog-phone-filter-card-body
+visual_note: "On the phone Filters tab the add-filter chips are one row that scrolls sideways with an arrow beside it, in a slightly smaller font, instead of wrapping onto three rows."

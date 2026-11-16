@@ -292,11 +292,15 @@ a { color:var(--acc) }
   height: var(--mob-input-h); margin-right: calc(var(--mob-tail) + 1px); display: flex; align-items: center; justify-content: center;
   font-size: 13px;
 }
-/* Signal tab (T720): the typing box takes a share (PhoneRowColumns.SIGNAL_INPUT_SHARE) of its column,
+/* Signal tab (T720): the typing box holds PhoneRowColumns.signalInputChars() digits (rule 11), its text gutter and its unit chip,
    left edge unchanged; the unit chip stays on the box's right edge. */
-.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-value .num-input-wrap { width: calc(100% * var(--mob-col-input-share)); justify-self: start; }
-.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-unit { margin-right: calc(100% * (1 - var(--mob-col-input-share))); }
-.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-value .num-stepper { grid-column: 2; grid-row: 1; justify-self: start; margin-left: calc(100% * var(--mob-col-input-share)) !important; }
+.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-value .num-input-wrap { width: var(--mob-signal-w); justify-self: start; }
+/* A registered length, so the row resolves its 1ch (the box's own 15 px digit) once and the chip and the arrows, in other fonts, read pixels. */
+@property --mob-signal-w { syntax: '<length>'; inherits: true; initial-value: 0px; }
+/* 1ch is a digit of the number box's own font: this row sets it to the box's 15 px. */
+.mob-classic.mob-signal .mob-ui-field.ui-field { font-size: 15px; font-family: var(--font-ui); --mob-signal-w: round(up, calc(var(--mob-col-input-chars) * 1ch + var(--mob-col-gutter) + var(--mob-chip)), 1px); }
+.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-unit { margin-right: calc(100% - var(--mob-signal-w)); }
+.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-value .num-stepper { grid-column: 2; grid-row: 1; justify-self: start; margin-left: var(--mob-signal-w) !important; }
 /* Phone chips sit inside the value box and retain their own divider. A mandatory
    value's stronger top/bottom outline must continue through the unit segment. */
 .mob-classic .mob-ui-field.ui-field .ui-field-unit.unit-toggle { height: var(--mob-input-h); }
@@ -341,6 +345,8 @@ a { color:var(--acc) }
 .mob-classic:has(.mob-ui-field .ui-field-dev) .ui-pick-field.mob-ui-field .ui-field-value select { margin-right: calc(var(--mob-col-stepper) + 10px); }
 /* The driver-name button shows a long name whole, on as many lines as it needs (T736). */
 .mob-classic .mob-cname-button { height: auto; min-height: var(--mob-input-h); padding-top: 4px; padding-bottom: 4px; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; line-height: 1.25; }
+/* The row that holds the name button grows with it (BUG_20261115_phone-driver-name-button-clipped-under-header, field-layout rule 2): a fixed-height row centred a 3-line name, so its first line sat under the header and its last over the buttons below. A one-line name keeps the 40 px row. */
+.mob-classic .mob-crow:has(> .mob-cname-button) { height: auto; min-height: var(--mob-row-min); padding-top: 3px; padding-bottom: 3px; }
 .mob-classic .mob-cbtns { display: flex; gap: 8px; box-sizing: border-box; padding: 6px var(--mob-edge); border-bottom: 1px solid #e6e6e6; }
 .mob-classic .mob-cbtns button:not(.mob-btn) { flex: 1; min-width: 0; height: 44px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 13px; font-weight: 500; white-space: nowrap; padding: 0 4px; cursor: pointer; }
 .mob-classic .mob-clinks { display: flex; justify-content: flex-start; gap: 4px; padding: 0 4px; border-bottom: 1px solid #e6e6e6; }

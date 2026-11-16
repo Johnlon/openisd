@@ -535,34 +535,45 @@ describe('OpenISDDriver record', () => {
       expect(entry).toMatchObject({ state: 'C', value: air.c });
     });
 
-    // VCCon follows the same route as c_m_per_s above: the default is a STORED 'C' entry, so a
-    // saved driver states its wiring instead of leaving the reader to guess the app's default.
-    // John, 2026-09-24: "simply no reason for these exceptions to the rule".
+    // VCCon is stored as its name, 'series' or 'parallel', never WinISD's 1/2 code; an unknown
+    // wiring is absent (QO914, #514).
 
     it('an entered VCCon is stored as an entered entry and survives a later resolve', () => {
       const d = OpenISDDriver.empty(createEngine());
       d.specs.VCCon.set(VoiceCoilWiring.Series);
       d.specs.Qes.set(0.4);
-      expect(wooferOf(d.cloneDriver())?.VCCon).toMatchObject({ state: 'E', value: 2 });
+      expect(wooferOf(d.cloneDriver())?.VCCon).toEqual({ state: 'E', value: 'series' });
       expect(d.specs.VCCon.entered).toBe(true);
       expect(d.specs.VCCon.value).toBe(VoiceCoilWiring.Series);
     });
 
-    it('clearing VCCon restamps the calculated default rather than leaving the record silent', () => {
+    it('clearing VCCon leaves the wiring unknown: there is no default (QO900 R1)', () => {
       const d = OpenISDDriver.empty(createEngine());
       d.specs.VCCon.set(VoiceCoilWiring.Series);
       d.specs.VCCon.clear();
-      expect(wooferOf(d.cloneDriver())?.VCCon).toMatchObject({ state: 'C', value: 1 });
-      expect(d.specs.VCCon.calculated).toBe(true);
+      expect(wooferOf(d.cloneDriver())?.VCCon).toBeUndefined();
+      expect(d.specs.VCCon.value).toBeNull();
     });
 
-    it('a record stating VCCon=2 reads back as an entered series wiring, not as the default', () => {
+    it('a record stating VCCon "series" reads back as an entered series wiring, not as the default', () => {
       const d = OpenISDDriver.empty(createEngine());
       d.specs.VCCon.set(VoiceCoilWiring.Series);
       const reopened = d.detach();
       expect(reopened.specs.VCCon.value).toBe(VoiceCoilWiring.Series);
       expect(reopened.specs.VCCon.entered).toBe(true);
-      expect(wooferOf(reopened.cloneDriver())?.VCCon).toMatchObject({ state: 'E', value: 2 });
+      expect(wooferOf(reopened.cloneDriver())?.VCCon).toEqual({ state: 'E', value: 'series' });
+    });
+
+    it.each([
+      ['the retired number 2', {state: 'E', value: 2}],
+      ['a name with a precision', {state: 'E', value: 'series', precision: 0.5}],
+      ['a name outside series/parallel', {state: 'E', value: 'bridged'}],
+    ])('a record whose VCCon is %s is refused (QO914: one shape, a name, no precision)', (_case, vcCon) => {
+      const record = OpenISDDriver.empty(createEngine()).toOpenIsdDeviceJson();
+      const withVCCon = {...record, schemaVersion: 4, specs: {woofer: {...record.specs.woofer, VCCon: vcCon}}};
+      const result = OpenISDDriver.fromConformingRecord(withVCCon, createEngine());
+      expect(Array.isArray(result)).toBe(true);
+      expect(String(result)).toContain('VCCon');
     });
   });
 });

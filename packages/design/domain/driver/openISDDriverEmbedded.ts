@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { DriverIssue } from '../../engine/index.js';
+import type { DriverIssue, Wiring } from '../../engine/index.js';
 import type { SimpleField } from '../cell.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
 import { OpenISDDriver, OpenISDDriverStandalone } from './openISDDriver.js';
@@ -17,8 +17,10 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         private readonly projectContext: ProjectContext,
         durableIssues: () => readonly DriverIssue[],
         protected readonly idForCopy: () => string,
+        myWiring: () => Wiring | undefined,
+        coilWiringReBlOnly: () => boolean,
     ) {
-        super(record, engine, projectContext, durableIssues);
+        super(record, engine, projectContext, durableIssues, myWiring, coilWiringReBlOnly);
     }
 
     /** Takes the lens onto the project's `driver` slot and the project's context (its air, and whether a What-if is open), which this driver and
@@ -33,8 +35,11 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         durableIssues: () => readonly DriverIssue[],
         /** The app's id source: a driver leaving the project becomes an entity and gets an id. */
         newId: () => string,
+        /** The project's "Coil wiring" (undefined: the measured wiring). */
+        myWiring: () => Wiring | undefined,
+        coilWiringReBlOnly: () => boolean,
     ): OpenISDDriverEmbedded {
-        return new OpenISDDriverEmbedded(slot, engine, context, durableIssues, newId);
+        return new OpenISDDriverEmbedded(slot, engine, context, durableIssues, newId, myWiring, coilWiringReBlOnly);
     }
 
     protected wrapCopy(copy: DriverDeviceJson): OpenISDDriverStandalone {

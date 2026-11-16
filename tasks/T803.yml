@@ -1,0 +1,38 @@
+id: T803
+release_note: internal
+repo: openisd
+owner: my-wiring
+status: done
+goal: In the OpenISD app a multi-coil driver shows its measured wiring (stated or inferred) and the user chooses My wiring (series|parallel), a project setting; amplifier-side figures use converted values (issue 512)
+why: John, 14 Nov 2026: QO907 My wiring series|parallel (issue 512)
+done_test: bash scripts/test.sh packages/design/test/domain/my-wiring.test.ts
+ruling: QO907
+files:
+  - tasks/T803.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - docs/FIELD_REFERENCE.md
+  - docs/research/WINISD_PARITY.md
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/driver/openISDDriverEmbedded.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectSweep.ts
+  - packages/design/domain/winIsdProjectConverter.ts
+  - packages/design/fields/field.ts
+  - packages/design/fields/index.ts
+  - packages/design/fields/options.ts
+  - packages/design/fields/phoneText.ts
+  - packages/ui/src/logic/driverDraft.ts
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/logic/driverDraft.test.ts
+  - packages/design/domain/project/projectCoilWiring.ts
+  - packages/design/test/domain/my-wiring.test.ts
+  - packages/design/test/winisd/wpr-my-wiring.test.ts
+  - packages/ui/src/hooks/DriverCoilWiring-hooks.ts
+  - packages/ui/src/ui/components/DriverCoilWiring.vue
+  - packages/ui/test/fixtures/branchMap/shared.ts
+  - packages/ui/test/hooks/DriverCoilWiring-hooks.test.ts
+  - packages/ui/test/ui/my-wiring.browser.spec.ts

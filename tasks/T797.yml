@@ -1,0 +1,11 @@
+id: T797
+release_note: internal
+repo: openisd
+owner: flake-fixer
+status: done
+goal: The phone wizard step 3 Box type select draws each option once on every run (BUG_20261115_mobile-wizard-bandpass4-box-type-drawn-twice)
+why: John, 15 Nov 2026: layout is deterministic (QO924, BUG_20261115_mobile-wizard-bandpass4-box-type-drawn-twice)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T797.yml
+  - bugs/BUG_20261115_mobile-wizard-bandpass4-box-type-drawn-twice.md

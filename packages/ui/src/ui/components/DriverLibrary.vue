@@ -42,11 +42,11 @@ const { openNewDriver } = selection;
 // no controls for them. The custom-GitHub-URL loader they were grouped with has no
 // implementation anywhere in the codebase — dead, not merely hidden.
 const {
-  DRIVER_TYPES, DRIVER_TYPE_HELP_ROWS, DRIVER_SCOPES,
+  DRIVER_TYPES, DRIVER_TYPE_HELP_ROWS, DRIVER_SCOPES, SIZE_CLASSES,
   allDrivers, statusMsg, statusErr,
   filterQ, typeStates,
-  fsMin, fsMax, rangeFrom, rangeTo, rangeKeepUnstated, sdMin, sdMax, selZ, displayLimit,
-  toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, foldedFilterCount, clearAllFilters,
+  fsMin, fsMax, rangeFrom, rangeTo, rangeKeepUnstated, sdMin, sdMax, selZ, selSizes, displayLimit,
+  toggleType, toggleSize, sizeLabelOf, toggleZ, clearParamFilters, activeFilters, filtersOn, foldedFilterCount, clearAllFilters,
   filteredDrivers, displayedDrivers, listTruncated, listedCount,
   filteredMyDrivers, displayNameOf, driverId, editMyDriver, editOverviewDriver, deleteMyDriver,
   favoritesAvailable, favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly,
@@ -98,6 +98,7 @@ onMounted(openedLibrary);
         </template>
         <input v-else class="filter" v-model="filterQ" placeholder="Search drivers…" autofocus>
         <template v-if="!props.phone || filtersOpen">
+        <div class="filters-block">
         <div class="type-row">
           <button v-for="t in DRIVER_TYPES" :key="t.value"
                   class="type-chip"
@@ -107,7 +108,7 @@ onMounted(openedLibrary);
                   :title="t.title"
                   @click="toggleType(t.value)">{{ t.label }}</button>
 
-          <button v-if="Object.keys(typeStates).length || fsMin || fsMax || rangeFrom || rangeTo || !rangeKeepUnstated || sdMin || sdMax || selZ.length"
+          <button v-if="Object.keys(typeStates).length || fsMin || fsMax || rangeFrom || rangeTo || !rangeKeepUnstated || sdMin || sdMax || selZ.length || selSizes.length"
                   class="type-chip type-clear"
                   @click="clearParamFilters">✕ clear</button>
 
@@ -172,6 +173,17 @@ onMounted(openedLibrary);
           </span>
         </div>
 
+        <!-- Size: the class worked out from Sd, for search only. It is not the maker's nominal size,
+             so the row and every label say "from Sd". -->
+        <div class="size-row">
+          <span class="plabel" :class="{ active: selSizes.length }"
+                title="Size class worked out from Sd, for searching only. It is not the maker's nominal size.">Size ≈</span>
+          <button v-for="c in SIZE_CLASSES" :key="c.value" class="zchip" :class="{ active: selSizes.includes(c.value) }"
+                  :title="`Drivers whose Sd gives a size class of about ${c.label} (worked out from Sd, not the maker's nominal size)`"
+                  @click="toggleSize(c.value)">{{ c.value }}</button>
+          <span class="plabel" :class="{ active: selSizes.length }">in (from Sd)</span>
+        </div>
+
         <!-- The slot the All Sources dropdown vacated. Two chips that compose: scope says
              WHICH LIBRARY is a candidate, Favorites says which of those rows to keep, so all
              six pairings are reachable. -->
@@ -194,6 +206,7 @@ onMounted(openedLibrary);
                   @click="toggleFavoritesOnly()">★ Favorites</button>
         </div>
 
+        </div><!-- end filters-block -->
         </template><!-- end the folded filters -->
 
         <PhoneBand v-if="props.phone" :section="props.host === DriverListMode.Manage ? PhoneHelp.DRIVER_LIST_MANAGE : PhoneHelp.DRIVER_LIST_PICK" />
@@ -257,6 +270,7 @@ onMounted(openedLibrary);
                   <span v-if="d.dq" class="dq-flag" title="Data quality issues detected — some core fields may be missing or have suspicious values (e.g. Fs=0). Open to review.">⚠</span>
                 </div>
                 <span class="dl-sub">
+                  <span v-if="sizeLabelOf(d)" class="dsize" title="Size class worked out from Sd, for searching. The maker's nominal size is not shown here.">{{ sizeLabelOf(d) }}</span>
                   <a v-if="d.datasheet" class="dpdf" :href="d.datasheet" target="_blank" rel="noopener"
                      title="Open manufacturer datasheet (PDF)" @click.stop>PDF</a>
                   <a v-if="d.productPage" class="dpdf" :href="d.productPage" target="_blank" rel="noopener"
@@ -273,6 +287,7 @@ onMounted(openedLibrary);
             <b>{{ d.name }}</b>
             <span v-if="d.dq" class="dq-flag" title="Data quality issues detected — some core fields may be missing or have suspicious values (e.g. Fs=0). Open to review.">⚠</span>
             <span class="dmeta">
+              <span v-if="sizeLabelOf(d)" class="dsize" title="Size class worked out from Sd, for searching. The maker's nominal size is not shown here.">{{ sizeLabelOf(d) }}</span>
               <a v-if="d.datasheet" class="dpdf"
                  :href="d.datasheet" target="_blank" rel="noopener"
                  title="Open manufacturer datasheet (PDF)" @click.stop>PDF</a>
@@ -441,7 +456,8 @@ onMounted(openedLibrary);
   background: #fff !important;
   border: 1px solid #ccc !important;
   border-radius: 4px !important;
-  min-height: 180px;
+  /* The list is the part that gives way: it shrinks (and scrolls) before the footer buttons are cut off. */
+  min-height: 96px;
 }
 .driver-library .dlist-section {
   background: #f0f0f0 !important;
@@ -817,6 +833,9 @@ onMounted(openedLibrary);
   gap: 6px;
   flex-shrink: 0;
 }
+.driver-library .dsize { font-size: 10px; color: #555; white-space: nowrap; }
+.filters-block { display: contents; }
+.size-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .driver-library .dpdf {
   font-size: 9px;
   font-weight: 600;
@@ -1086,7 +1105,7 @@ onMounted(openedLibrary);
 }
 
 /* ── Classic phone list (screens 6 and 7): filters folded behind one button, the list gets the screen ── */
-.driver-library.dl-phone { gap: 0; }
+.driver-library.dl-phone { gap: 0; --dl-row-min: 52px; --dl-list-min: calc(2 * var(--dl-row-min)); }
 .driver-library.dl-phone :deep(.mob-band) { flex: none; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; height: 28px; margin-top: 12px; padding: 0 16px; background: #ececec; color: #333; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
 .driver-library.dl-phone > :deep(.mob-band:first-child) { margin-top: 0; }
 .driver-library.dl-phone :deep(.mob-band-help) { width: 22px; height: 22px; padding: 0; border: 1px solid #999; border-radius: 50%; background: #fff; color: #333; font: inherit; font-size: 12px; font-weight: 600; line-height: 1; cursor: pointer; }
@@ -1095,6 +1114,12 @@ onMounted(openedLibrary);
 .driver-library.dl-phone .dl-filters-toggle { flex: none; height: 40px; padding: 0 12px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer; color: #000; }
 .driver-library.dl-phone .dl-filters-toggle.on { background: #e0efff; border-color: #7fb3ff; color: #0b4f9e; font-weight: 600; }
 .driver-library.dl-phone .type-row { flex: none; flex-wrap: wrap; gap: 6px; padding: 6px 16px; }
+/* The filters take what the list leaves and scroll inside themselves: the list keeps `--dl-list-min`, so it always shows a row
+   or its empty state with Clear filters, whatever rows the dialog gains and whatever the phone. */
+.driver-library.dl-phone .filters-block { display: flex; flex-direction: column; flex: 0 1 auto; min-height: 0; overflow-y: auto; }
+.driver-library.dl-phone .size-row { flex: none; gap: 6px; padding: 6px 16px; }
+.driver-library.dl-phone .dsize { font-size: 12px; color: #666; white-space: normal; }
+.driver-library.dl-phone .dl-sub .dsize + .dpdf::before { content: ' · '; }
 .driver-library.dl-phone .type-chip, .driver-library.dl-phone .zchip { height: 30px; padding: 0 10px; border-radius: 15px; font-size: 13px; }
 .driver-library.dl-phone .param-row { display: flex; flex: none; flex-direction: column; align-items: stretch; gap: 0; }
 .driver-library.dl-phone .pgroup { display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; }
@@ -1104,8 +1129,8 @@ onMounted(openedLibrary);
 .driver-library.dl-phone .statusrow { flex: none; min-height: 36px; padding: 0 16px; border-bottom: 1px solid #e6e6e6; }
 .driver-library.dl-phone .status { font-size: 13px; }
 .driver-library.dl-phone .dl-clear { height: 30px; padding: 0 10px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 13px; cursor: pointer; color: #000; }
-.driver-library.dl-phone .dlist { border: none !important; border-radius: 0 !important; min-height: 0; max-height: none; }
-.driver-library.dl-phone .ditem { display: flex; align-items: center; min-height: 52px; padding: 4px 0 4px 16px; border-bottom: 1px solid #eef0f2; cursor: pointer; }
+.driver-library.dl-phone .dlist { border: none !important; border-radius: 0 !important; min-height: var(--dl-list-min); max-height: none; }
+.driver-library.dl-phone .ditem { display: flex; align-items: center; min-height: var(--dl-row-min); padding: 4px 0 4px 16px; border-bottom: 1px solid #eef0f2; cursor: pointer; }
 .driver-library.dl-phone .dl-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .driver-library.dl-phone .dl-head { display: flex; align-items: center; min-width: 0; }
 .driver-library.dl-phone .dl-name { display: block; min-width: 0; font-size: 15px; font-weight: 600; white-space: normal; overflow-wrap: anywhere; }

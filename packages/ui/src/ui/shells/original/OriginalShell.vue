@@ -11,8 +11,8 @@ import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import UIField from '../../components/UIField.vue';
 import PortShapeToggle from '../../components/PortShapeToggle.vue';
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
+import DriverCoilWiring from '../../components/DriverCoilWiring.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
-import UIPickField from '../../components/UIPickField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
@@ -65,7 +65,7 @@ const {
   showEnclosureTab, enclosureNavLabel,
   helpPanel, closeHelp, openSectionHelp, openTabHelp, tabHelpShown, rearChamberHelp, frontChamberHelp, passiveRadiatorHelp, userOptionsHelp,
   placementHelp, advancedOptionsHelp, listeningPlaceHelp, signalSourceHelp, limitsHelp, ventHelp,
-  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, compatOptions, optionApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
+  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, compatOptions, optionApplies, errorSwitches, chartDeviations, prNprDeviationShown,
   boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -465,17 +465,13 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div class="short-pick-fields">
               <DesktopBand :section="placementHelp" style="margin-bottom:4px;" @help="openSectionHelp" />
               <div class="field-row" style="margin-bottom:4px;">
-                <UIFixedField class="field" input-id="og-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="DesktopLabels.NUM_DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" :deviation="driverCountDeviationShown ? WinisdDeviation.DRIVER_COUNT : undefined" />
+                <UIFixedField class="field" input-id="og-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="DesktopLabels.NUM_DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" />
               </div>
               <div class="radio-group field-row" style="margin-bottom:4px;">
                 <label><input type="radio" name="og-placement" value="standard" v-model="placement"> Standard</label>
                 <label><input type="radio" name="og-placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
               </div>
-              <div class="field-row" style="margin-bottom:4px;">
-                <UIPickField class="field" common :label="DesktopLabels.VOICE_COIL_CONNECTION" input-id="og-wiring">
-                  <select id="og-wiring" :value="project.wiring.value" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) project.wiring.set(w); }"><option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
-                </UIPickField>
-              </div>
+              <DriverCoilWiring />
             </div>
             <div>
               <DesktopBand :section="advancedOptionsHelp" @help="openSectionHelp" />
@@ -672,13 +668,13 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                     </ErrorSwitch>
                   </div>
                   <div>
-                    <ErrorSwitch as="label" field-key="winisdDriverCountModel" style="font-size: 12px;" :marked="errorSwitches.driverCount.marked" :applicable="errorSwitches.driverCount.applicable" :reproduces-error="errorSwitches.driverCount.reproducesError" :title="ToggleField.ADV_WINISDDRIVERCOUNTMODEL.description">
-                      <input type="checkbox" :checked="project.winisdDriverCountModel.value" :disabled="!errorSwitches.driverCount.applicable" @change="e => setCompatSwitch(project.winisdDriverCountModel, inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
+                    <ErrorSwitch as="label" field-key="winisdSealedPicker" style="font-size: 12px;" :marked="errorSwitches.sealedPicker.marked" :applicable="errorSwitches.sealedPicker.applicable" :reproduces-error="errorSwitches.sealedPicker.reproducesError" :title="ToggleField.ADV_WINISDSEALEDPICKER.description">
+                      <input type="checkbox" :checked="project.winisdSealedPicker.value" :disabled="!errorSwitches.sealedPicker.applicable" @change="e => setCompatSwitch(project.winisdSealedPicker, inputChecked(e))"> {{ ToggleField.ADV_WINISDSEALEDPICKER.label }}
                     </ErrorSwitch>
                   </div>
                   <div>
-                    <ErrorSwitch as="label" field-key="winisdSealedPicker" style="font-size: 12px;" :marked="errorSwitches.sealedPicker.marked" :applicable="errorSwitches.sealedPicker.applicable" :reproduces-error="errorSwitches.sealedPicker.reproducesError" :title="ToggleField.ADV_WINISDSEALEDPICKER.description">
-                      <input type="checkbox" :checked="project.winisdSealedPicker.value" :disabled="!errorSwitches.sealedPicker.applicable" @change="e => setCompatSwitch(project.winisdSealedPicker, inputChecked(e))"> {{ ToggleField.ADV_WINISDSEALEDPICKER.label }}
+                    <ErrorSwitch as="label" field-key="winisdCoilWiringReBlOnly" style="font-size: 12px;" :marked="errorSwitches.coilWiringReBlOnly.marked" :applicable="errorSwitches.coilWiringReBlOnly.applicable" :reproduces-error="errorSwitches.coilWiringReBlOnly.reproducesError" :title="ToggleField.ADV_WINISDCOILWIRINGREBLONLY.description">
+                      <input type="checkbox" :checked="project.winisdCoilWiringReBlOnly.value" :disabled="!errorSwitches.coilWiringReBlOnly.applicable" @change="e => setCompatSwitch(project.winisdCoilWiringReBlOnly, inputChecked(e))"> {{ ToggleField.ADV_WINISDCOILWIRINGREBLONLY.label }}
                     </ErrorSwitch>
                   </div>
                   <div>
@@ -713,7 +709,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <!-- Save rail — stacked on the right edge so the buttons consume no vertical space. -->
         <div class="save-rail">
           <button v-if="projectOpen && tabHelpShown" type="button" class="tab-help-btn" aria-label="Help: this tab" title="What this tab is for" @click="openTabHelp">?</button>
-          <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try values &amp; watch the charts. Your project will not be updated." @click="startWhatIf">&#9835; What-if</button>
+          <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try values &amp; watch the charts. Your project will not be updated." @click="startWhatIf"><svg class="whatif-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3 13 1.5V10.5" /><path d="M6 3V12" /><ellipse cx="4.2" cy="12.2" rx="2.2" ry="1.6" /><ellipse cx="11.2" cy="10.7" rx="2.2" ry="1.6" /></svg> What-if</button>
           <button v-if="projectOpen" class="edit-btn project-save-btn" title="Save the project to browser storage" @click="saveProject">Save</button>
           <button v-if="projectOpen" class="edit-btn revert-btn" :disabled="!isModified" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="resetProjectToGround(confirmDiscard)">Revert</button>
         </div>
@@ -1333,6 +1329,12 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col { min-width:0; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
   .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:not(.ui-field) { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
   .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .field select { width:100%; min-width:0; }
+  /* The columns share the pane: a column asks for 266 px (the count field and its Round/Slotted toggle on one line), three would be 810 px.
+     Here the toggle drops to a line of its own under the count, so the label and the select keep their room. */
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col { width:auto; flex:1 1 0; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row.port-count-row { flex-wrap:wrap; row-gap:2px; grid-column:1 / -1; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:not(.ui-field):not(.port-count-field) { grid-column:1 / -1; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row.port-count-row > .field.port-count-field:not(.ui-field) { flex:1 1 100%; min-width:0; }
 }
 .vent-col { flex:none; }
 .vent-col-band { margin-bottom:4px; }
@@ -1396,6 +1398,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .radio-group { display:flex; align-items:center; gap:14px; }
 .radio-group label { display:flex; align-items:center; gap:4px; }
 .edit-btn, .link-btn, .action-btn { background:#f0f0f0; border:1px solid #999; border-radius:3px; padding:4px 10px; cursor:pointer; }
+.what-if-btn .whatif-icon { width:12px; height:12px; vertical-align:-2px; fill:currentColor; stroke:currentColor; stroke-width:1.4; }
 .edit-btn:hover, .link-btn:hover, .action-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 /* What-if? — the one coloured button on this rail. */
 .what-if-btn { background:#2f76d6; border-color:#2a68bd; color:#fff; }

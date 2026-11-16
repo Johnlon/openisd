@@ -70,14 +70,40 @@ if git cat-file -e "$BASE:$TASK" 2> /dev/null; then
   git show "$BASE:$TASK" > "$work"
   [ "$(task_contract "$work")" = "$(task_contract "$TASK")" ] || fail done_test "$TASK changed its done_test or locked entries since main"
 fi
-# A file this branch changed that another task locks needs that task's hash updated in the same landing (T235, T249, T261).
+# A done_test must not pick ONE test out of a test file this change touched (T785; T765 passed with a failing test file
+# because its done_test ran a single method). Refused selectors: unittest Class or Class.method after the file's module
+# name, pytest ::, -k, vitest -t, --testNamePattern, --test-name-pattern, --grep/-g. Not seen (accepted): a selector inside a
+# wrapper script or environment variable. A touched test file that adds `.only(` is refused too.
+dt_problem="$(task_done_test_problem "$(task_field "$TASK" done_test)")"
+[ -z "$dt_problem" ] || fail done_test "$TASK: $dt_problem"
+if [ -n "$PR_MODE" ]; then
+  dt="$(task_field "$TASK" done_test)"
+  while read -r f; do
+    case "$f" in *_test.*|*.test.*|*.spec.*|*/test_*.py) ;; *) continue ;; esac
+    stem="$(basename "${f%.*}")"
+    # the whole diff is read before it is searched: `git diff | grep -q` leaves at the first match, git dies of SIGPIPE and
+    # pipefail answers "no .only(" for a long diff (T833). A diff that cannot be read refuses.
+    file_diff="$(git diff "$BASE" "$HEAD_REF" -- "$f")" || { fail done_test "cannot read the diff of $f"; continue; }
+    if grep -Eq '^\+.*\.only\(' <<< "$file_diff"; then
+      fail done_test "$f adds .only(, which runs one test and hides the rest"
+    fi
+    grep -qwF "$stem" <<< "$dt" || continue
+    sel='::| -k[= ]| -k[A-Za-z]|( -k| -t| -g)$| -t[= ]| -g[= ]|testNamePattern|test-name-pattern|--grep'
+    if grep -Eq "$sel" <<< "$dt" || grep -Eq "(^|[ .])${stem}\.[A-Za-z0-9_]+" <<< "$dt"; then
+      fail done_test "$TASK's done_test selects a single test in $f, a test file this change touched; run the whole file (a failing test in it must block the pull request)"
+    fi
+  done < <(git diff --name-only --diff-filter=ACMR "$BASE" "$HEAD_REF")
+fi
+# A file this branch changed that another task locks warns (T786, QO512): refusing here blocked fixes to process tests; the landing task's own locked tests (above) still refuse.
 changed="$(git diff --name-only "$BASE" "$HEAD_REF")"
 for other in tasks/*.yml; do
   [ "$other" = "$TASK" ] && continue
   while read -r path hash; do
     [ -n "$path" ] && [ "$hash" != pending ] && grep -qxF "$path" <<< "$changed" || continue
     actual="$(git show "$HEAD_REF:$path" 2> /dev/null | sha256sum | cut -d' ' -f1)"
-    [ "$actual" = "$hash" ] || fail locked "$path changed (locked by $other); update its sha256 there in this landing"
+    [ "$actual" = "$hash" ] && continue
+    # another task's lock only warns: fingerprints refuse only on the landing task's own locked pass-mark test (T786, QO512)
+    printf 'WARN\tlocked\t%s changed; %s locks it, update its sha256 there when convenient\n' "$path" "$other"
   done < <(task_locked "$other")
 done
 

@@ -1,0 +1,15 @@
+id: T844
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: OpenISD's bundled driver catalogue is rebuilt from winisd_drivers ee6b69029: six BlieSMa records carry name candidate, comment and numVC 1, plus the 4 SEAS Extreme records, the SL26R radiator and 4 distributor radiators
+why: "John 16 Nov: bundle the BlieSMa override records (QO942.c73-c78), SEAS Extreme and distributor radiators (QO946.c93-c95); Gate A +6 'woofer.numVC sources disagree' findings for the six BlieSMa records are covered by workspace questions.yml QO947, a lead decision under QO923 citing John's QO942.c78 (if you have picked its wirings then numVC must be 1); SEAS SL26RXM003 Sd printed as 342 cm3 on the sheet is an open question to John (board card sl26r-sd), rejected as printed"
+done_test: bash scripts/test.sh packages/design/test/domain/multi-coil-goldens.test.ts
+files:
+  - tasks/T844.yml
+  - packages/ui/public/**
+  - packages/design/test/fixtures/driver-snapshot/**
+  - packages/design/test/domain/multi-coil-goldens.test.ts
+  - scripts/driver-snapshot.pin
+  - scripts/driver-snapshot.dq-baseline.json

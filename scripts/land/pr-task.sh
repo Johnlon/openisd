@@ -19,7 +19,9 @@ changed="$(git diff --name-only "$base" "$head")"
 hash_only() {
   local id="$1" file="tasks/$1.yml" path hash old
   git cat-file -e "$base:$file" 2> /dev/null || return 1
-  git diff -U0 "$base" "$head" -- "$file" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---) ' | grep -vqE '^[+-][[:space:]]+sha256: [0-9a-f]+$' && return 1
+  # the diff is read whole before it is searched (a `| grep -vq` consumer leaves early, the producer dies of SIGPIPE under pipefail, T833)
+  task_diff="$(git diff -U0 "$base" "$head" -- "$file")" || return 1
+  grep -E '^[+-]' <<< "$task_diff" | grep -vE '^(\+\+\+|---) ' | grep -vqE '^[+-][[:space:]]+sha256: [0-9a-f]+$' && return 1
   old="$(mktemp)"; git show "$base:$file" > "$old"
   while read -r path hash; do
     [ "$(task_locked "$old" | awk -v p="$path" '$1 == p { print $2 }')" = "$hash" ] && continue

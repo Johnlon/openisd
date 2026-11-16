@@ -382,10 +382,9 @@ describe('useOgNewProject', () => {
     const driver = createTestDriver(engine);
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
 
-    // Step 2: edit nDrivers & wiring
+    // Step 2: edit nDrivers
     wizard.next();
     wizard.nDrivers.value = 2;
-    wizard.wiring.value = 'series';
 
     // Step 3: edit boxType and volume
     wizard.next();
@@ -405,7 +404,6 @@ describe('useOgNewProject', () => {
 
     // Verify all preserved
     expect(wizard.nDrivers.value).toBe(2);
-    expect(wizard.wiring.value).toBe('series');
     expect(wizard.boxType.value).toBe('bandpass4');
     expect(wizard.volume_m3.value).toBe(0.025);
     expect(wizard.frontVolume_m3.value).toBe(0.015);
@@ -419,7 +417,6 @@ describe('useOgNewProject', () => {
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
 
     wizard.nDrivers.value = 2;
-    wizard.wiring.value = 'parallel';
     wizard.boxType.value = 'sealed';
     wizard.setSealedVolume_m3(0.02);
     wizard.projName.value = 'My Sealed Sub';
@@ -431,7 +428,6 @@ describe('useOgNewProject', () => {
       expect(project.name.value).toBe('My Sealed Sub');
       expect(project.description.value).toBe('Test description');
       expect(project.nDrivers.value).toBe(2);
-      expect(project.wiring.value).toBe('parallel');
       expect(project.box.boxType.value).toBe('sealed');
       expect(project.box.sealed.volume_m3.value).toBeCloseTo(0.02, 4);
     }
@@ -1067,7 +1063,10 @@ describe('the radiator step holds all eight figures, stated or calculated (T703)
   // QO534 (John, 11 Nov 2026): "an entered value is never overwritten"; "all get the mark".
   it('a Cms typed over a record stating Vas reaches the project, with Vas left as stated, and both carry the conflict mark', async () => {
     const wizard = await pickedThenBack('accuton/asp190');
-    wizard.passiveRadiatorCells.Cms_m_per_N.set(0.001);
+    // Vas = rho*c^2*Sd^2*Cms = 141853 Pa * 0.0202^2 m^4 * 0.002 m/N = 0.1158 m3 against the stated 0.027 m3: 4.3 times
+    // apart. (0.001 gave 0.0579 m3, 2.1 times apart, but a typed 0.001 carries 0.0005 of precision, which alone
+    // moves Vas by 0.0289 m3, so that pair was within the print's own slack once the air may differ by 2.5% (T804).)
+    wizard.passiveRadiatorCells.Cms_m_per_N.set(0.002);
     expect(wizard.passiveRadiatorCells.Cms_m_per_N.entered).toBe(true);
     expect(wizard.passiveRadiatorCells.Vas_m3.provenance).toBe('E');
     expect(wizard.passiveRadiatorCells.Cms_m_per_N.dq.length).toBeGreaterThan(0);
@@ -1077,7 +1076,7 @@ describe('the radiator step holds all eight figures, stated or calculated (T703)
 
     const spec = wizard.createProject()?.box.passiveRadiator.radiator.spec;
     expect(spec?.Cms_m_per_N.entered).toBe(true);
-    expect(spec?.Cms_m_per_N.value).toBe(0.001);
+    expect(spec?.Cms_m_per_N.value).toBe(0.002);
     expect(spec?.Vas_m3.entered).toBe(true);
     expect(spec?.Vas_m3.value).toBe(0.027);
   });

@@ -19,16 +19,10 @@ import type {NumericDriverSpecFieldName} from '../../domain/driver/driverSpecFie
 const spec = (field: string, name: NumericDriverSpecFieldName): SpecEditTarget => ({pane: 'Driver', field, spec: name});
 const vent = (field: string, kind: VentEditTarget['kind']): VentEditTarget => ({pane: 'Vent', field, boxType: 'vented', kind});
 
-const BUG_NUMVC = 'winisd_research/findings/FINDING_20261019_numvc-is-not-a-simulation-input.md';
-
 /** The checks that deviate, pinned: `it.fails` names the bug file. Key: `<fixture>|<check label>`. */
 const W5: DriverRuns = {
   dir: 'w5', label: 'W5-1138SMF', runPrefix: 'sweep-t429-w5-',
-  known: new Map<string, string>([
-    ...BP4_GROUP_DELAY_NOISE,
-    ...['tfmag', 'spl', 'groupdelay', 'tfphase', 'excursion', 'impedance', 'maxpower', 'impedancephase', 'maxspl', 'Box tab: Fsc', 'Box tab: Qtc', 'Driver editor: stated fields']
-      .map((label): [string, string] => [`sealed-edit-numvc|${label}`, BUG_NUMVC]),
-  ]),
+  known: new Map<string, string>(BP4_GROUP_DELAY_NOISE),
 };
 const describeRun = (run: Run): void => describeDriverRun(W5, run);
 

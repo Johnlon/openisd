@@ -2,7 +2,7 @@ import {APP_UPDATE_TEXT} from '../fields/appUpdateText.js';
 import {formatCountOf, formatDateTime, formatTime} from '../fields/format.js';
 import {type ConflictCopy, type SyncStatus, conflictKeptText, conflictKindWord} from './syncStatus.js';
 import {cloudFaultText} from './cloudTypes.js';
-import {type SyncActivity, syncActivityLine} from './syncActivity.js';
+import {type SyncActivity, activityForDisplay, syncActivityLine} from './syncActivity.js';
 
 export type SyncTone = 'muted' | 'accent' | 'good' | 'warn' | 'bad';
 export type SyncGlyph = 'cloudOff' | 'cloudBusy' | 'cloudDone' | 'cloudSlash' | 'cloudAlert';
@@ -333,7 +333,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       sub: conflictKeptText(c),
     })),
     activityHeading: 'Recent activity',
-    activity: inputs.activity.map(syncActivityLine),
+    activity: activityForDisplay(inputs.activity).map(syncActivityLine),
     disconnectConfirm: DISCONNECT_CONFIRM,
   };
 

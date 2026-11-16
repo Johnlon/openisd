@@ -95,6 +95,9 @@ export interface ProjectRepo {
   /** Persist the current open-project session for refresh recovery, with which of its projects
    *  have their trace hidden on the charts. */
   saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null, traceHidden: ReadonlySet<OpenISDProject>): void;
+  /** Whether the stored session holds what this tab last saved or adopted, so a reload brings every edit
+   *  back. False when the last write did not reach the store (full, disabled). */
+  openSessionIsStored(): boolean;
   /** Restore the open-project session, or null when no refresh session exists. A `string[]`
    *  means the record itself is unusable — bad JSON, or not the shape of a session — so there
    *  is nothing to restore from it. An entry that will not read is reported in the session's
@@ -320,6 +323,13 @@ export function createProjectRepo(
       });
     }
     return result.project;
+  }
+
+  /** The last session write reached the store; a session read from it is held by definition. */
+  let sessionHeld = true;
+
+  function sessionEntriesOf(projects: readonly OpenISDProject[], traceHidden: ReadonlySet<OpenISDProject>): OpenSessionEntry[] {
+    return projects.map((project): OpenSessionEntry => ({ id: project.uuid(), text: project.toStoredText(), modified: '', traceHidden: traceHidden.has(project) }));
   }
 
   /** Whether the stored open session already holds `entries` focused on `focusedId`. */
@@ -668,13 +678,17 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       return Array.isArray(project) ? project : asEntry(project, id);
     },
     saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null, traceHidden: ReadonlySet<OpenISDProject>): void {
-      const entries = projects.map((project): OpenSessionEntry => {
-        return { id: project.uuid(), text: project.toStoredText(), modified: '', traceHidden: traceHidden.has(project) };
-      });
+      const entries = sessionEntriesOf(projects, traceHidden);
       const focusedId = focused === null ? null : focused.uuid();
       // Writing the session already stored would change nothing, and every other tab would rebuild all its projects.
-      if (storesSameSession(entries, focusedId)) return;
-      storage.set(OPEN_SESSION_STORAGE_KEY, JSON.stringify({ entries, focusedId } satisfies OpenSessionPayload));
+      if (storesSameSession(entries, focusedId)) { sessionHeld = true; return; }
+      const text = JSON.stringify({ entries, focusedId } satisfies OpenSessionPayload);
+      storage.set(OPEN_SESSION_STORAGE_KEY, text);
+      // The browser's storage swallows a write it cannot take: read it back.
+      sessionHeld = storage.get(OPEN_SESSION_STORAGE_KEY) === text;
+    },
+    openSessionIsStored(): boolean {
+      return sessionHeld;
     },
     loadOpenProjects(): OpenProjectSession | string[] | null {
       const text = storage.get(OPEN_SESSION_STORAGE_KEY);
@@ -683,6 +697,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       try { parsed = JSON.parse(text); } catch { return ['open project session is not valid JSON']; }
       const payload = openSessionPayload(parsed);
       if (!payload) return ['open project session has an invalid shape'];
+      sessionHeld = true;
       const projects: OpenISDProject[] = [];
       const refused: string[] = [];
       const refusedEntries: RefusedEntry[] = [];

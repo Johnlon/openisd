@@ -1,7 +1,8 @@
 /**
- * bugs/BUG_20261018_dual-coil-wpr-re-halved.md (T401): a dual-coil driver stores Re and BL per coil;
- * the amplifier sees the terminal values. Swept in the same sealed box it must behave exactly as the
- * single-coil driver that has those terminal values: SPL, excursion, impedance and max power.
+ * A dual-coil driver stores Re and BL as published, for the wiring they were measured in
+ * (QO900 R1; supersedes the per-coil basis of T401). Until the user rewires it, the amplifier sees
+ * those figures: swept in the same sealed box it behaves exactly as the single-coil driver with
+ * the same Re and BL, whatever the stated wiring — SPL, excursion, impedance and max power.
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
@@ -33,16 +34,14 @@ function expectSame(dual: ReturnType<typeof curves>, single: ReturnType<typeof c
 }
 
 describe('dual-coil driver swept like its single-coil equivalent', () => {
-  it('parallel: per-coil Re 13.2, BL 9.8 equals single coil Re 6.6, BL 9.8', () => {
+  it.each([[VoiceCoilWiring.Parallel], [VoiceCoilWiring.Series]])('%s: published Re 6.6, BL 9.8 equals single coil Re 6.6, BL 9.8', (wiring) => {
     expectSame(
-      curves({numVC: 2, VCCon: VoiceCoilWiring.Parallel, Re_ohm: 13.2, BL_Tm: 9.8}),
+      curves({numVC: 2, VCCon: wiring, Re_ohm: 6.6, BL_Tm: 9.8}),
       curves({numVC: 1, Re_ohm: 6.6, BL_Tm: 9.8}));
   });
 
-  it('series: per-coil Re 3.3, BL 4.9 equals single coil Re 6.6, BL 9.8', () => {
-    expectSame(
-      curves({numVC: 2, VCCon: VoiceCoilWiring.Series, Re_ohm: 3.3, BL_Tm: 4.9}),
-      curves({numVC: 1, Re_ohm: 6.6, BL_Tm: 9.8}));
+  it('wiring not stated: published Re 6.6, BL 9.8 equals single coil Re 6.6, BL 9.8', () => {
+    expectSame(curves({numVC: 2, Re_ohm: 6.6, BL_Tm: 9.8}), curves({numVC: 1, Re_ohm: 6.6, BL_Tm: 9.8}));
   });
 });
 
@@ -53,7 +52,7 @@ describe('dual-coil driver in the sealed alignment picker', () => {
 
   it.each([true, false])('picks the single-coil volume (winisdPicker %s)', (winisdPicker) => {
     const single = volume({numVC: 1, Re_ohm: 6.6, BL_Tm: 9.8}, winisdPicker);
-    const dual = volume({numVC: 2, VCCon: VoiceCoilWiring.Parallel, Re_ohm: 13.2, BL_Tm: 9.8}, winisdPicker);
+    const dual = volume({numVC: 2, VCCon: VoiceCoilWiring.Parallel, Re_ohm: 6.6, BL_Tm: 9.8}, winisdPicker);
     expect(single).not.toBeNull();
     expect(dual).toBeCloseTo(single!, 12);
   });

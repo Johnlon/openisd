@@ -51,6 +51,16 @@ git switch -q main; git switch -q -c hashfix2; mkdir -p tasks; task T1; sed -i '
 [ "$(bash scripts/land/pr-task.sh main HEAD 2>&1)" = "T1 T9" ] && grep -q $'REFUSE\tlocked' <<< "$(bash scripts/land/check-task-contract.sh T9 main HEAD --pr T1)" \
   && ok "a sha change for a file the change does not edit counts as a task and its contract refuses it" || bad "a sha change for a file the change does not edit counts as a task and its contract refuses it"
 
+# T7786: a file another task locks warns whether or not it is that task's done_test; the landing task's own locks still refuse (T9 test above)
+git switch -q main; git switch -q -c xlock; mkdir -p tasks src
+printf 'id: T77\nowner: t\nstatus: done\ngoal: g\ndone_test: bash src/pass.sh\nlocked:\n  - path: src/pass.sh\n    sha256: 0000\n  - path: src/proc.sh\n    sha256: 0000\nfiles:\n  - src/**\n' > tasks/T77.yml
+echo p > src/pass.sh; echo q > src/proc.sh; git add -A; git commit -qm "(auto) T77: base"; git switch -q main; git merge -q xlock
+git switch -q -c xlock-proc; task T1; echo q2 > src/proc.sh; git add -A; git commit -qm "(auto) T1: edit process test"
+out="$(bash scripts/land/check-task-contract.sh T1 main HEAD)"; rc=$?
+[ "$rc" = 0 ] && grep -q $'WARN\tlocked.*src/proc.sh' <<< "$out" && ok "a changed file another task locks warns and passes" || bad "another task's lock warns and passes (rc=$rc: $out)"
+git switch -q main; git switch -q -c xlock-pass; task T1; echo p2 > src/pass.sh; git add -A; git commit -qm "(auto) T1: edit pass-mark test"
+out="$(bash scripts/land/check-task-contract.sh T1 main HEAD)"; rc=$?; [ "$rc" = 0 ] && grep -q $'WARN\tlocked.*src/pass.sh' <<< "$out" && ok "another task's own pass-mark test warns too" || bad "another task's pass-mark test warns (rc=$rc: $out)"
+
 # T762: a pull request may carry several tasks when every changed file is in at least one allowlist
 multi() { printf 'id: %s\nowner: t\nstatus: open\ngoal: g\nwhy: John asked for this change (John, 10 Nov 2026)\ndone_test: true\nfiles:\n  - %s\n' "$1" "$2" > "tasks/$1.yml"; }
 git switch -q main; git switch -q -c multi; mkdir -p tasks src docs
@@ -74,6 +84,39 @@ bash scripts/land/attribution-range.sh main HEAD > /dev/null && bad "an AI trail
 
 git switch -q main; git switch -q -c none; echo 4 > src/a.ts; git add -A; git commit -qm "(auto) none"
 bash scripts/land/pr-task.sh main HEAD > /dev/null 2>&1 && bad "no task file is refused" || ok "no task file is refused"
+
+# T785: a done_test that selects ONE test inside a test file the change touched is refused (T765 passed that way).
+git switch -q main; git switch -q -c narrow; mkdir -p t; printf 'x\n' > t/foo_test.py
+printf 'id: T7\nowner: t\nstatus: open\ngoal: g\nwhy: John, 10 Nov 2026, scratch test fixture\ndone_test: python3 -m unittest foo_test.Cls.test_one\nfiles:\n  - t/**\n' > tasks/T7.yml
+git add -A; git commit -qm "(auto) T7: x"
+out="$(bash scripts/land/check-task-contract.sh T7 main HEAD --pr)"
+grep -q $'REFUSE\tdone_test\t.*foo_test.py' <<< "$out" && ok "a done_test narrowed to one test of a touched test file is refused" || bad "narrowed done_test refused ($out)"
+git switch -q main; git switch -q -c whole; mkdir -p t; printf 'x\n' > t/foo_test.py
+printf 'id: T8\nowner: t\nstatus: open\ngoal: g\nwhy: John, 10 Nov 2026, scratch test fixture\ndone_test: python3 -m unittest foo_test\nfiles:\n  - t/**\n' > tasks/T8.yml
+git add -A; git commit -qm "(auto) T8: x"
+bash scripts/land/check-task-contract.sh T8 main HEAD --pr > /dev/null && ok "a done_test running the whole test file passes" || bad "whole-file done_test passes"
+
+# T785 review: one refusal per selector kind, a dotted whole-module path and an untouched file pass.
+sel() { git switch -q main; git switch -q -c "s$1"; mkdir -p t; printf 'x\n' > t/foo_test.py
+  printf 'id: T%s\nowner: t\nstatus: open\ngoal: g\nwhy: John, 10 Nov 2026, scratch test fixture\ndone_test: %s\nfiles:\n  - t/**\n' "$1" "$2" > "tasks/T$1.yml"
+  git add -A; git commit -qm "(auto) T$1: x"; bash scripts/land/check-task-contract.sh "T$1" main HEAD --pr; }
+n=20
+for d in "pytest t/foo_test.py::test_a" "pytest t/foo_test.py -k a" "npx vitest run t/foo_test.py -t a" "node t/foo_test.py --test-name-pattern a" "npx playwright test t/foo_test.py --grep a" "python3 -m unittest foo_test.Cls"; do
+  n=$((n+1)); out="$(sel $n "$d")"; grep -q $'REFUSE\tdone_test' <<< "$out" && ok "refused: $d" || bad "refused: $d ($out)"
+done
+n=$((n+1)); sel $n "python3 -m unittest t.foo_test" > /dev/null && ok "a dotted whole-module path passes" || bad "dotted whole-module path passes"
+n=$((n+1)); sel $n "pytest other_test.py -k a" > /dev/null && ok "a selector on an untouched file passes" || bad "untouched file passes"
+
+# T833: an only-call is found however long the rest of the diff is. grep -q left at the first line, git diff then died of
+# SIGPIPE writing the rest, pipefail failed the pipeline and the `if` read "none". The added file is over 64 KiB (a pipe's buffer).
+# The call is spelled from parts: this file is a test file too, and the check refuses any added line that holds it.
+only=".on""ly("
+git switch -q main; git switch -q -c onlybig; task T1
+{ echo "it${only}'x', () => {});"; seq 1 12000 | sed "s/.*/it('case &', () => {});/"; } > src/big.test.ts
+git add -A; git commit -qm "(auto) T1: a big test file with the call"
+[ "$(git diff main HEAD -- src/big.test.ts | wc -c)" -gt 200000 ] || bad "the fixture does not fill the pipe"
+out="$(bash scripts/land/check-task-contract.sh T1 main HEAD --pr)"
+grep -q $'REFUSE\tdone_test\t.*big.test.ts adds' <<< "$out" && ok "an only-call at the top of a very long added file is refused" || bad "an only-call at the top of a very long added file is refused ($(head -c 300 <<< "$out"))"
 
 echo "pr-gates: $([ "$fails" = 0 ] && echo 'all passed' || echo "$fails failed")"
 [ "$fails" = 0 ]

@@ -2,7 +2,7 @@
 # Ship one finished task: its branch goes to GitHub as a pull request that merges itself when the checks pass
 # (T749, QO481 A, John 10 Nov 2026), and its worktree goes at once.
 #
-#   bash scripts/ship.sh T<n> [T<m>...] [--no-local-check]     run from the first task's own worktree
+#   bash scripts/ship.sh T<n> [T<m>...] [--no-local-check] [--fixes]     run from the first task's own worktree
 #
 # Several ids open ONE pull request carrying all of them (John, 10 Nov 2026: "go with A"). The work of every id is in
 # this worktree's branch (the first id's; merge the other branches into it first) and each tasks/<id>.yml is in the
@@ -10,15 +10,21 @@
 # run every carried task's done_test. The other ids' clean worktrees and local branches go too, once their commits
 # are in this branch.
 #
+# --fixes (or `label: fixes` in the task file) labels the pull request `fixes` with the REST call (gh pr edit --add-label fails here).
+# After `gh pr merge --auto` the script asks GitHub whether the pull request is really queued and refuses (exit 1, nothing
+# removed) when it is not; if a later queue ejection drops the request, `bash scripts/land/pr-queue.sh <n>` re-queues it, and
+# `bash scripts/land/pr-fix.sh T<n>` makes a fresh worktree from the pushed branch to fix a red check (T815).
+#
 #   exit 0  pushed, pull request open with auto-merge, worktree and local branch removed (the branch on GitHub keeps the work)
 #   exit 1  a local check is red (nothing pushed), or GitHub refused the push / pull request / auto-merge (nothing removed)
 #   exit 2  cannot ship (no task file, no land.conf, not the task's own branch, fetch failed, main folder)
-#   exit 3  blocked: the rebase conflicts; it is aborted, the task says status: blocked and why, the branch is
+#   exit 3  blocked: merging $SHIP_REMOTE/main into the branch conflicts; the merge is aborted, the task says status: blocked and why, the branch is
 #           pushed, and nothing is removed
 #
-# Steps: 1 commit everything (nothing discarded; the hooks run), 2 status done, 3 fetch and rebase onto $SHIP_REMOTE/main,
+# Steps: 1 commit everything (nothing discarded; the hooks run), 2 status done, 3 fetch and merge $SHIP_REMOTE/main into the branch,
 # 3b the task contract (the PR `task` job's check, run locally; a refusal exits 1, nothing pushed), 4 quick local check (lint on the changed files + typecheck; --no-local-check skips), 5 push branch t<n> (the only
-# ref this script ever pushes; --force-with-lease against the sha it just read, because a rebase rewrites history),
+# ref this script ever pushes; a plain fast-forward push, never forced (QO920, John, 14 Nov 2026), and refused when the
+# remote branch holds a commit this branch does not contain: that is someone else's branch),
 # 6 open or reuse the pull request, gh pr merge --auto --squash, 7 remove the worktree and local branch once the
 # remote branch is the local commit.
 set -uo pipefail
@@ -46,15 +52,17 @@ if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.
 export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 
 LOCAL_CHECK=1
+FIXES=""
 IDS=()
 for arg in "$@"; do
   case "$arg" in
     --no-local-check) LOCAL_CHECK="" ;;
+    --fixes) FIXES=1 ;;
     T[0-9]*) IDS+=("$arg") ;;
-    *) echo "usage: ship.sh T<n> [T<m>...] [--no-local-check]" >&2; exit 2 ;;
+    *) echo "usage: ship.sh T<n> [T<m>...] [--no-local-check] [--fixes]" >&2; exit 2 ;;
   esac
 done
-[ "${#IDS[@]}" -gt 0 ] || { echo "usage: ship.sh T<n> [T<m>...] [--no-local-check]" >&2; exit 2; }
+[ "${#IDS[@]}" -gt 0 ] || { echo "usage: ship.sh T<n> [T<m>...] [--no-local-check] [--fixes]" >&2; exit 2; }
 ID="${IDS[0]}"            # the first id names the branch and the pull request; the others ride along
 OTHERS=("${IDS[@]:1}")
 BRANCH="$(printf '%s' "$ID" | tr 'T' 't')"
@@ -87,15 +95,24 @@ REPO="${SHIP_REPO:?ship: SHIP_REPO is not set in land.conf}"
 SHIP_REMOTE="${SHIP_REMOTE:?ship: SHIP_REMOTE is not set in land.conf}"
 
 # push_branch: the only push. It names the task's own branch and nothing else.
+# Never forced (QO920). If the remote branch already exists and its head is not an ancestor of HEAD, the branch is
+# someone else's (or diverged): refuse, naming the branch and the foreign head, and touch nothing.
 push_branch() {
   local remote_sha
   remote_sha="$(net git ls-remote "$SHIP_REMOTE" "refs/heads/$BRANCH" | cut -f1)" || return 1
-  net git push -q --force-with-lease="refs/heads/$BRANCH:$remote_sha" "$SHIP_REMOTE" "HEAD:refs/heads/$BRANCH"
+  if [ -n "$remote_sha" ]; then
+    net git fetch -q "$SHIP_REMOTE" "refs/heads/$BRANCH" 2> /dev/null
+    if ! git cat-file -e "$remote_sha^{commit}" 2> /dev/null || ! git merge-base --is-ancestor "$remote_sha" HEAD; then
+      echo "ship: REFUSED: $SHIP_REMOTE already has branch $BRANCH at $remote_sha, which this branch does not contain; it is someone else's work (or a task id collision). Nothing pushed; ship never forces" >&2
+      return 1
+    fi
+  fi
+  net git push -q "$SHIP_REMOTE" "HEAD:refs/heads/$BRANCH"
 }
 goal="$(task_field "$TASK" goal)"
 for other in "${OTHERS[@]}"; do goal="$goal / $(task_field "tasks/$other.yml" goal)"; done
 
-# The other ids' branches whose commits are already in this one (checked before the rebase rewrites it): their clean
+# The other ids' branches whose commits are already in this one (checked before the merge): their clean
 # worktrees and local branches go with this one's once the pull request is open (step 7).
 GONE=()
 for other in "${OTHERS[@]}"; do
@@ -122,16 +139,16 @@ for t in "${IDS[@]}"; do
   esac
 done
 
-# 3. fetch, rebase onto $SHIP_REMOTE/main
+# 3. fetch, merge $SHIP_REMOTE/main into the branch (no rebase: history is never rewritten, so the push never needs force)
 net git fetch -q "$SHIP_REMOTE" main || { echo "ship: fetch failed" >&2; exit 2; }
 if ! git merge-base --is-ancestor "$SHIP_REMOTE/main" HEAD; then
-  if ! git rebase -q "$SHIP_REMOTE/main" > "$WORK/rebase.out" 2>&1; then
+  if ! git merge -q --no-edit "$SHIP_REMOTE/main" > "$WORK/merge.out" 2>&1; then
     conflicts="$(git diff --name-only --diff-filter=U | tr '\n' ' ')"
-    git rebase --abort
-    task_mark_blocked "$TASK" "rebase onto $SHIP_REMOTE/main conflicts in: ${conflicts:-unknown files}"
-    git add -- "$TASK" && git commit -q -m "(auto) $ID: blocked, rebase onto $SHIP_REMOTE/main conflicts"
+    git merge --abort
+    task_mark_blocked "$TASK" "merge of $SHIP_REMOTE/main conflicts in: ${conflicts:-unknown files}"
+    git add -- "$TASK" && git commit -q -m "(auto) $ID: blocked, merge of $SHIP_REMOTE/main conflicts"
     push_branch || echo "ship: could not push $BRANCH" >&2
-    echo "ship: BLOCKED $ID: rebase conflicts in ${conflicts:-unknown files}; branch $BRANCH is pushed, nothing removed" >&2
+    echo "ship: BLOCKED $ID: merge conflicts in ${conflicts:-unknown files}; branch $BRANCH is pushed, nothing removed" >&2
     exit 3
   fi
 fi
@@ -146,7 +163,21 @@ for t in "${IDS[@]}"; do
     echo "ship: the task contract refuses $t (the pull request's task check would fail); nothing pushed. Offending files are listed above" >&2
     exit 1
   }
+  printf '%s\n' "$contract" | awk -F'\t' '$1 == "WARN" { print "ship: warning (" $2 "): " $3 }' >&2
 done
+
+# 3c. the visual checks, exactly as the pull request's `task` job runs them (T799): a baseline picture not drawn by CI's
+# test machine, and a baseline change the task does not list, are refused before the
+# push. Nothing is drawn or asked of GitHub here; the pull request check also verifies each stamp's run through the API.
+if [ -f scripts/visual/check-task.sh ]; then
+  vt=(); for t in "${IDS[@]}"; do vt+=("tasks/$t.yml"); done
+  vis="$(bash scripts/visual/check-task.sh "${vt[@]}" "$SHIP_REMOTE/main" HEAD 2>&1)" || {
+    printf '%s\n' "$vis" >&2
+    echo "ship: the visual baseline checks refuse ${IDS[*]} (the pull request's task check would fail); nothing pushed" >&2
+    exit 1
+  }
+  printf '%s\n' "$vis" | grep '^visual: warning' >&2 || true
+fi
 
 # 4. quick local check: lint on the changed files, typecheck
 if [ -n "$LOCAL_CHECK" ]; then
@@ -154,6 +185,15 @@ if [ -n "$LOCAL_CHECK" ]; then
   if [ -n "${LINT_CMD:-}" ] && [ "${#changed[@]}" -gt 0 ]; then
     bash -c "$LINT_CMD \"\$@\"" ship "${changed[@]}" > "$WORK/check.out" 2>&1 \
       || { tail -30 "$WORK/check.out" >&2; echo "ship: lint failed; nothing pushed" >&2; exit 1; }
+  fi
+  # The same architecture and unit runs the pull request's jobs make (T815): they failed after the push on four PRs.
+  if [ -n "${SHIP_ARCH_CMD:-}" ]; then
+    bash -c "$SHIP_ARCH_CMD" > "$WORK/check.out" 2>&1 \
+      || { tail -40 "$WORK/check.out" >&2; echo "ship: the architecture tests failed (pr-gate's architecture job would fail); nothing pushed" >&2; exit 1; }
+  fi
+  if [ -n "${SHIP_UNIT_CMD:-}" ] && [ "${#changed[@]}" -gt 0 ]; then
+    bash -c "$SHIP_UNIT_CMD \"\$@\"" ship "${changed[@]}" > "$WORK/check.out" 2>&1 \
+      || { tail -40 "$WORK/check.out" >&2; echo "ship: the unit tests this change reaches failed (pr-gate's unit job would fail); nothing pushed" >&2; exit 1; }
   fi
   if [ -n "${TYPECHECK_CMD:-}" ]; then
     bash -c "$TYPECHECK_CMD" > "$WORK/check.out" 2>&1 \
@@ -172,8 +212,17 @@ remote_sha="$(net git ls-remote "$SHIP_REMOTE" "refs/heads/$BRANCH" | cut -f1)"
 title="$(pr_title "(auto) $LABEL" "$goal")"
 pr="$(ACTIONS_REPO="$REPO" LAND_GH="$GH" bash "$HERE/land/pr.sh" open "$ID" "$BRANCH" "$title" "$WORK/body.md")" \
   || { echo "ship: no pull request; branch $BRANCH is on GitHub, nothing removed" >&2; exit 1; }
-net "$GH" pr merge "$pr" --repo "$REPO" --auto --squash > "$WORK/merge.out" 2>&1 \
-  || { tail -3 "$WORK/merge.out" >&2; echo "ship: auto-merge not set on pull request #$pr; nothing removed" >&2; exit 1; }
+queued="$(ACTIONS_REPO="$REPO" LAND_GH="$GH" bash "$HERE/land/pr.sh" queue "$pr" 2> "$WORK/queue.err")"; qrc=$?
+HELD=""
+if [ "$qrc" = 4 ]; then HELD=1; cat "$WORK/queue.err" >&2
+elif [ "$qrc" != 0 ]; then
+  cat "$WORK/queue.err" >&2; echo "ship: pull request #$pr is NOT queued (auto-merge not set); nothing removed. Fix: bash scripts/land/pr-queue.sh $pr" >&2; exit 1
+fi
+label="$(task_field "$TASK" label)"; [ -z "$FIXES" ] || label=fixes
+if [ -n "$label" ]; then
+  ACTIONS_REPO="$REPO" LAND_GH="$GH" bash "$HERE/land/pr.sh" label "$pr" "$label" \
+    || { echo "ship: pull request #$pr is open and queued but the label '$label' was not added; nothing removed. Run: gh api -X POST repos/$REPO/issues/$pr/labels -f 'labels[]=$label'" >&2; exit 1; }
+fi
 
 # 7. the worktree and the local branch go; the branch on GitHub holds the work
 main_dir="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"
@@ -185,4 +234,6 @@ for ob in "${GONE[@]}"; do
   if [ -n "$wt" ]; then git worktree remove "$wt" 2> /dev/null || { echo "ship: left $wt (not clean); remove it when its work is safe" >&2; continue; }; fi
   git branch -q -D "$ob" 2> /dev/null || true
 done
-echo "ship: $LABEL shipped: https://github.com/$REPO/pull/$pr (auto-merge on; worktree removed)"
+[ -z "$HELD" ] || { echo "ship: $LABEL PUSHED BUT HELD: pull request #$pr has the label hold and is NOT queued; the holder lifts it (remove the label) and queues it. Do not queue it yourself" >&2; }
+echo "ship: $LABEL shipped: https://github.com/$REPO/pull/$pr (${HELD:+HELD, not queued; }${HELD:-auto-merge on; ${queued}; }worktree removed)"
+echo "ship: if a check fails, make a fresh worktree from the branch with: bash scripts/land/pr-fix.sh $ID  (a queue ejection: bash scripts/land/pr-queue.sh $pr)"

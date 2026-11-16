@@ -1,7 +1,7 @@
 import type {FeatureUse} from './telemetry/featureUse.js';
 import {computed, type ComputedRef, type Ref, ref, shallowRef, watch} from 'vue';
 import type {OpenISDDriverStandalone} from '@openisd/design';
-import {Chip, DriverType} from '@openisd/design/filter';
+import {Chip, DriverType, SizeClass} from '@openisd/design/filter';
 import type {PresentationState} from './presentationState.js';
 import {readDriverFileText} from './driverFileText.js';
 import {DriverFileFormat, sniff} from '../fileFormat.js';
@@ -103,6 +103,8 @@ export const DISPLAY_LIMIT = 200;   // rows shown before "search to filter" kick
 // declared on the Chip enum; which chips a canonical type answers to is carried by
 // the DriverType member (`DriverType.Subwoofer.chips`). Nothing is duplicated here.
 export const DRIVER_TYPES = Chip.ALL;
+// The size chips: classes worked out from Sd, for search only (`SizeClass`).
+export const SIZE_CLASSES = SizeClass.ALL;
 
 // The type-help popup's rows: each driver type and the chips it answers to, from the DriverType enum.
 export const DRIVER_TYPE_HELP_ROWS = DriverType.helpRows();
@@ -113,6 +115,7 @@ export const DRIVER_SCOPES = DriverScope.ALL;
 
 export interface DriverBrowsingState {
   DRIVER_TYPES: typeof DRIVER_TYPES;
+  SIZE_CLASSES: typeof SIZE_CLASSES;
   DRIVER_TYPE_HELP_ROWS: typeof DRIVER_TYPE_HELP_ROWS;
   DRIVER_SCOPES: typeof DRIVER_SCOPES;
   DISPLAY_LIMIT: number;
@@ -128,6 +131,11 @@ export interface DriverBrowsingState {
   rangeKeepUnstated: Ref<boolean>;
   sdMin: Ref<string>; sdMax: Ref<string>;
   selZ: Ref<string[]>;
+  /** The size chips that are on (`SizeClass.value`s): the class is worked out from Sd, for search only. */
+  selSizes: Ref<string[]>;
+  toggleSize(size: string): void;
+  /** How a driver's size class reads in the list, "≈ 8 in (from Sd)", or null when it has none. */
+  sizeLabelOf(row: BundledDriverIndexRow): string | null;
   displayLimit: Ref<number>;
   toggleType(id: string): void;
   toggleZ(z: string): void;
@@ -231,6 +239,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const rangeKeepUnstated = ref(true);   // ticked: drivers that state no range stay in the list
   const sdMin = ref('');   // cm²
   const sdMax = ref('');   // cm²
+  const selSizes = ref<string[]>([]);
   const selZ = ref<string[]>([]);   // '4', '8', '16'
   const displayLimit = ref(DISPLAY_LIMIT);
   const myDrivers = shallowRef<MyDriverRow[]>([]);
@@ -308,10 +317,20 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     displayLimit.value = DISPLAY_LIMIT;
   }
 
+  function toggleSize(size: string): void {
+    const idx = selSizes.value.indexOf(size);
+    if (idx >= 0) selSizes.value.splice(idx, 1); else selSizes.value.push(size);
+    displayLimit.value = DISPLAY_LIMIT;
+  }
+
+  function sizeLabelOf(row: BundledDriverIndexRow): string | null {
+    return SizeClass.derivedLabel(row.sizeFromSd_in);
+  }
+
   function clearParamFilters(): void {
     typeStates.value = {}; fsMin.value = ''; fsMax.value = '';
     rangeFrom.value = ''; rangeTo.value = ''; rangeKeepUnstated.value = true;
-    sdMin.value = ''; sdMax.value = ''; selZ.value = [];
+    sdMin.value = ''; sdMax.value = ''; selZ.value = []; selSizes.value = [];
     displayLimit.value = DISPLAY_LIMIT;
   }
 
@@ -331,6 +350,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       rangeFrom: rangeFrom.value, rangeTo: rangeTo.value, rangeKeepUnstated: rangeKeepUnstated.value,
       sdMin: sdMin.value, sdMax: sdMax.value,
       selZ: selZ.value,
+      sizes: selSizes.value,
       favoritesOnly: favoritesOnly.value,
       favorites: favorites.value,
     };
@@ -619,10 +639,10 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   watch(() => presentationState.editDriverInfo, open => { if (!open && presentationState.browseOpen) reloadMyDrivers(); });
 
   return {
-    DRIVER_TYPES, DRIVER_TYPE_HELP_ROWS, DRIVER_SCOPES, DISPLAY_LIMIT,
+    DRIVER_TYPES, SIZE_CLASSES, DRIVER_TYPE_HELP_ROWS, DRIVER_SCOPES, DISPLAY_LIMIT,
     allDrivers, statusMsg, statusErr, initialized,
     filterQ, typeStates,
-    fsMin, fsMax, rangeFrom, rangeTo, rangeKeepUnstated, sdMin, sdMax, selZ, displayLimit,
+    fsMin, fsMax, rangeFrom, rangeTo, rangeKeepUnstated, sdMin, sdMax, selZ, selSizes, toggleSize, sizeLabelOf, displayLimit,
     toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, foldedFilterCount, clearAllFilters,
     // favourites — `clearParamFilters` deliberately leaves favoritesOnly alone: that button
     // says "clear all type and parameter filters", and Favorites is neither.

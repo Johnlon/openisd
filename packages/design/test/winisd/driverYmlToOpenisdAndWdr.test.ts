@@ -11,6 +11,7 @@ import {createEngine} from '../../engine/Engine.js';
 import {WinISDDriver} from '@openisd/design/winisd';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
 import {checkOpenisdRoundTrip} from '../../../../scripts/roundTripGate.mjs';
+import {withNamedWiringReadings} from '../fixtures/scraperWiringShape.js';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
@@ -43,13 +44,15 @@ const engine = createEngine();
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus');
 
-/** A real `driver.yml`: Dayton CE28N-4, a woofer-section record carrying `scraper_meta`. */
+/** A real `driver.yml`: Dayton CE28N-4, a woofer-section record carrying `scraper_meta`, in the
+ *  scraper's QO914 VCCon shape (`withNamedWiringReadings`). */
 function daytonDriverYml(): string {
-  return readFileSync(join(FIXTURES, 'dayton-ce28n-4.driver.yml'), 'utf8');
+  return withNamedWiringReadings(readFileSync(join(FIXTURES, 'dayton-ce28n-4.driver.yml'), 'utf8'));
 }
 
+/** A vendored driver.json, in the scraper's QO914 VCCon shape. */
 function scraperTupleFixture(name: string): string {
-  return readFileSync(join(FIXTURES, name), 'utf8');
+  return withNamedWiringReadings(readFileSync(join(FIXTURES, name), 'utf8'));
 }
 
 
@@ -76,21 +79,23 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.ok(result.openisd !== null);
     });
 
-    it('projects per-coil and series tuple values into app values and terminal WDR values', () => {
+    // BL as driver.json states it (QO900 R1); Re printed per coil ("2 x 2.4 Ω") is stored for the
+    // measured wiring, series here: 2 · 2.4 = 4.8 Ω, marked E (QO915, QO919).
+    it('projects BL as stated and the per-coil Re for the series wiring into the app record and the WDR', () => {
       const source = scraperTupleFixture('sb-acoustics-sw26dac76-3-dv.driver.json');
       const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
       assert.ok(openisd !== null, `fixture projects; errors: ${JSON.stringify(errors)}`);
       assert.ok(wdr !== null, `fixture writes WDR; errors: ${JSON.stringify(errors)}`);
 
       const app: unknown = parse(openisd);
-      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'value'), 2.4);
-      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'value'), 9.7);
+      assert.ok(Math.abs(Number(at(app, 'specs', 'woofer', 'Re_ohm', 'value')) - 4.8) < 1e-12);
+      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'value'), 19.4);
       assert.equal(at(app, 'specs', 'woofer', 'Re_basis'), undefined);
       assert.equal(at(app, 'specs', 'woofer', 'BL_basis'), undefined);
       assert.equal(at(app, 'specs', 'woofer', 'numVC', 'value'), 2);
-      assert.equal(at(app, 'specs', 'woofer', 'VCCon', 'value'), 2, '2 is series in the app record');
+      assert.deepEqual(at(app, 'specs', 'woofer', 'VCCon'), {state: 'E', value: 'series'}, 'the app record names the wiring (QO914)');
       assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'readings'), undefined,
-        'the raw source reading (the published series total, 19.4) stays in driver.json; the .wdr below carries it');
+        'the raw source readings stay in driver.json');
 
       const winisd = WinISDDriver.fromWdrIni(wdr);
       assert.equal(winisd.cell('Re').value, '4.8');
@@ -103,10 +108,10 @@ describe('driverYmlToOpenisdAndWdr', () => {
       const {openisd, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
       assert.ok(openisd !== null);
       const app: unknown = parse(openisd);
-      // dayton-ce28n-4 prints Re 3.79 Ω, numVC 1, VCCon 1: one coil, so nothing is derived.
+      // dayton-ce28n-4 prints Re 3.79 Ω, numVC 1, VCCon "1" (parallel): one coil, so nothing is derived.
       assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'value'), 3.79);
       assert.equal(at(app, 'specs', 'woofer', 'numVC', 'value'), 1);
-      assert.equal(at(app, 'specs', 'woofer', 'VCCon', 'value'), 1);
+      assert.equal(at(app, 'specs', 'woofer', 'VCCon', 'value'), 'parallel');
       assert.equal(at(app, 'specs', 'woofer', 'Re_basis'), undefined);
       assert.equal(at(app, 'specs', 'woofer', 'BL_basis'), undefined);
       assert.ok(!errors.some(e => e.message.toLowerCase().includes('basis')));
@@ -266,6 +271,42 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.equal(at(re, 'readings', 'manufacturer_datasheet', 'actual_reading'), 'banana');
     });
 
+    // The scraper refuses a reading that parses outside the field's physical band (QO934/QO935):
+    // wavecor/tw030wa21 Fs printed "750 kHz" on the sheet and "750 Hz" on the page.
+    it('a reading refused as out-of-physical-range is a known reason: kept, no unknown-reason warning, the other source wins', () => {
+      const record: unknown = parse(daytonDriverYml());
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
+      const refused = {actual_reading: '750 kHz', read_value: 750000, read_precision: 500, rejected: 'out-of-physical-range'};
+      woofer.Fs_hz = {readings: {
+        manufacturer_datasheet: refused,
+        manufacturer_product_page: {actual_reading: '750 Hz', read_value: 750, read_precision: 0.5},
+      }};
+      const {openisd, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      assert.ok(openisd !== null, `errors: ${JSON.stringify(errors)}`);
+      assert.deepEqual(errors.filter(e => e.message.includes('unrecognised rejection reason')), []);
+      assert.deepEqual(errors.filter(e => e.message.includes('physical limit') && e.field.endsWith('Fs_hz')), []);
+      const fs = at(parse(openisd), 'specs', 'woofer', 'Fs_hz');
+      assert.equal(at(fs, 'state'), 'E');
+      assert.equal(at(fs, 'value'), 750);
+    });
+
+    it('a field whose only reading was refused as out-of-physical-range is not available and the comment says why', () => {
+      const record: unknown = parse(daytonDriverYml());
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
+      woofer.Xlim_m = {readings: {manufacturer_datasheet:
+        {actual_reading: '750 kHz', read_value: 750000, read_precision: 500, rejected: 'out-of-physical-range'}}};
+      const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      assert.ok(openisd !== null && wdr !== null, `errors: ${JSON.stringify(errors)}`);
+      assert.deepEqual(errors.filter(e => e.message.includes('unrecognised rejection reason')), []);
+      const re = at(parse(openisd), 'specs', 'woofer', 'Xlim_m');
+      assert.equal(at(re, 'state'), 'N');
+      assert.equal(at(re, 'readings', 'manufacturer_datasheet', 'rejected'), 'out-of-physical-range');
+      const commentLine = wdr.split(/\r?\n/).find(l => l.startsWith('Comment='));
+      assert.ok(commentLine?.includes('Xlim_m: manufacturer_datasheet 750 kHz — out-of-physical-range'), `got: ${commentLine}`);
+    });
+
     it('an unknown rejection reason loads and raises one named warning', () => {
       const record: unknown = parse(daytonDriverYml());
       const woofer = at(record, 'specs', 'woofer');
@@ -304,21 +345,54 @@ describe('driverYmlToOpenisdAndWdr', () => {
       // parallel one. OpenISD writes the true value instead (John, 2026-08-31: "openisd MUST not
       // have same bug"). Asserting 2 here is what stops someone reconciling this function against
       // the oracle file s-connection-serial-2vc.wdr, which carries the bug.
-      const stated = (vccon: number | null) => {
+      const stated = (vccon: 'series' | 'parallel' | null) => {
         const record: unknown = parse(daytonDriverYml());
         const woofer = at(record, 'specs', 'woofer');
         if (!isRecord(woofer)) throw new Error('expected specs.woofer to be an object');
         if (vccon === null) delete woofer.VCCon;
         else woofer.VCCon = {
-          readings: { manufacturer_datasheet: { read_value: vccon } },
+          readings: { manufacturer_datasheet: { actual_reading: `wired in ${vccon}`, read_value: vccon } },
         };
         const { wdr } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
         return wdr!.split(/\r?\n/).find(l => l.startsWith('VCCon='));
       };
 
-      assert.equal(stated(2), 'VCCon=2', 'a series-wired record writes 2');
-      assert.equal(stated(1), 'VCCon=1', 'a parallel-wired record writes 1');
+      assert.equal(stated('series'), 'VCCon=2', 'a series-wired record writes 2');
+      assert.equal(stated('parallel'), 'VCCon=1', 'a parallel-wired record writes 1');
       assert.equal(stated(null), 'VCCon=1', 'the row is present even when the record states no wiring');
+    });
+
+    // QO914 (#514): the scraper's VCCon reading names the wiring, `read_value: "series"|"parallel"`,
+    // with the quote and no `read_precision`. There is one model version: the retired 1/2 code is
+    // refused, not translated.
+    const withVCCon = (vcCon: unknown): string => {
+      const record: unknown = parse(daytonDriverYml());
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer to be an object');
+      woofer.VCCon = vcCon;
+      return stringifyYaml(record);
+    };
+
+    it('a VCCon reading naming the wiring is stored as the name, entered, and the .wdr gets the code', () => {
+      const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(withVCCon({
+        readings: {manufacturer_datasheet: {actual_reading: 'All specifications measured with voice coils wired in series.', read_value: 'series'}},
+      }));
+      assert.deepEqual(errors.filter(e => e.level === 'error'), []);
+      assert.ok(openisd !== null && wdr !== null);
+      assert.deepEqual(at(parse(openisd), 'specs', 'woofer', 'VCCon'), {state: 'E', value: 'series'});
+      assert.deepEqual(WinISDDriver.fromWdrIni(wdr).cell('VCCon'), {value: '2', state: 'entered'});
+    });
+
+    it('a numeric VCCon read_value (the retired 1/2 code) is refused, naming VCCon', () => {
+      const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(withVCCon({
+        readings: {manufacturer_datasheet: {actual_reading: '2', read_value: 2, read_precision: 0.5}},
+      }));
+      assert.equal(openisd, null);
+      assert.equal(wdr, null);
+      const refusal = errors.find(e => e.level === 'error');
+      assert.ok(refusal !== undefined, 'an error is returned');
+      assert.match(refusal.field, /VCCon/);
+      assert.match(refusal.message, /series.*parallel/);
     });
 
     it('projects an APP-AUTHORED record — every field marked entered, none scraped', () => {

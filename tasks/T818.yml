@@ -1,0 +1,22 @@
+id: T818
+release_note: internal
+repo: openisd
+owner: claude-review
+status: done
+goal: Automatic Claude PR review and baseline picture review in CI
+why: John, 15 Nov 2026: reviews run by the gates themselves; Claude app and secret set up by John (QO923)
+done_test: bash scripts/land/test/claude-review-workflows.test.sh
+files:
+  - tasks/T818.yml
+  - .github/workflows/claude-review.yml
+  - .github/workflows/claude-review-pictures.yml
+  - .claude/skills/review-pull-request/SKILL.md
+  - .claude/skills/review-baseline-pictures/SKILL.md
+  - scripts/ci/claude-review-needed.sh
+  - scripts/ci/claude-review-verdict.sh
+  - scripts/visual/review-pictures-prep.py
+  - scripts/land/test/claude-review-workflows.test.sh
+  - docs/design/CLAUDE_REVIEW.md
+  - bugs/BUG_20261115_claude-hook-names-another-machines-path.md
+  - docs/design/VISUAL_BASELINES.md
+  - DOCUMENTATION.md

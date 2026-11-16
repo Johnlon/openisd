@@ -8,7 +8,6 @@ import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {useFeatureUse} from './telemetryContext.js';
-import {ARRAY_WIRING_OPTIONS} from '@openisd/design/fields';
 import {selectedOption} from '../logic/domEvents.js';
 
 
@@ -45,6 +44,6 @@ export function useMobileDriverTab() {
   return {
     project, brand, model, fullName, keyFigures, consistencyReasons, browseDrivers, editDriver, showDisagreements,
     showDriverInfo: driverBrowsing.showProjectDriverInfo,
-    ARRAY_WIRING_OPTIONS, selectedOption,
+    selectedOption,
   };
 }

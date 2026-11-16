@@ -1,0 +1,11 @@
+id: T812
+release_note: internal
+repo: openisd
+owner: spec-fix
+status: done
+goal: Fix browser specs whose typed Cms conflict vanished under 2.5% Vas allowance
+why: John, 15 Nov 2026: main suite must be green (QO923, QO930)
+done_test: bash scripts/test.sh packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+files:
+  - tasks/T812.yml
+  - packages/ui/test/ui/new-project-radiator-eight-figures.browser.spec.ts

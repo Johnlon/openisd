@@ -83,64 +83,42 @@ describe('OpenISDProject new-project defaults', () => {
     });
   });
 
-  describe("a blank device reports WinISD's own defaults without stating them", () => {
-    // John, 2026-09-08: "use the existing WinIsd default values - but some of these are functions
-    // like calcVcCon() ... which isn't really a calc but plays that role if the VCCon isn't yet
-    // stated". The default reads as CALCULATED, never entered — and since John's 2026-09-24
-    // ruling ("simply no reason for these exceptions to the rule") the record carries it as a
-    // real `'C'` entry, the same as every other derived quantity, instead of being conjured at
-    // read time. See `bugs/archive/BUG_20260924_defaulted-fields-are-neither-marked-nor-recorded.md`.
+  describe('a blank device states no voice-coil wiring or coil count (QO900 R1)', () => {
+    // There is no VCCon or numVC default: a wiring nobody stated is unknown, and a coil count nobody
+    // stated is absent (supersedes the 2026-09-08/09-24 calculated defaults;
+    // bugs/BUG_20261114_vccon-default-feeds-maths.md).
 
-    it('reads the default wiring as calculated, not as something the user entered', () => {
+    it('the wiring is unknown, and the record holds no VCCon', () => {
       const blank = OpenISDDriver.empty(createEngine());
-      const wiring = blank.specs.VCCon;
-      expect(wiring.value).toBe(VoiceCoilWiring.Parallel);
-      expect(wiring.calculated).toBe(true);
+      expect(blank.specs.VCCon.value).toBeNull();
+      expect(blank.specs.VCCon.calculated).toBe(false);
+      expect(wooferOf(blank.cloneDriver())?.VCCon).toBeUndefined();
     });
 
-    it('reads the default coil count the same way', () => {
-      const numVC = OpenISDDriver.empty(createEngine()).specs.numVC;
-      expect(numVC.value).toBe(1);
-      expect(numVC.calculated).toBe(true);
+    it('the coil count is absent, and the record holds no numVC', () => {
+      const blank = OpenISDDriver.empty(createEngine());
+      expect(blank.specs.numVC.value).toBeNull();
+      expect(wooferOf(blank.cloneDriver())?.numVC).toBeUndefined();
     });
 
-    it('a field with no WinISD default stays genuinely unstated', () => {
-      // The defaults are specific facts, not a blanket "fill everything in" — SPEC_ENGINE.md:424
-      // says "Defaults are 0, except numVC=1, VCCon=1", and Fs is not among the exceptions.
+    it('a field with no default stays genuinely unstated', () => {
       expect(OpenISDDriver.empty(createEngine()).specs.Fs_hz.value).toBe(null);
     });
 
-    it('VCCon is entry-backed: the calcVCCon() default is STORED as a calculated entry, not read-time', () => {
-      const blank = OpenISDDriver.empty(createEngine());
-      expect(wooferOf(blank.cloneDriver())?.VCCon).toMatchObject({ state: 'C', value: 1 });
-      expect(blank.specs.VCCon.value).toBe(VoiceCoilWiring.Parallel);
-      expect(blank.specs.VCCon.calculated).toBe(true);
-      expect(blank.specs.VCCon.entered).toBe(false);
-    });
-
-    it('numVC is entry-backed: the calcNumVC() default is STORED as a calculated entry, not read-time', () => {
-      const blank = OpenISDDriver.empty(createEngine());
-      expect(wooferOf(blank.cloneDriver())?.numVC).toMatchObject({ state: 'C', value: 1 });
-      expect(blank.specs.numVC.value).toBe(1);
-      expect(blank.specs.numVC.calculated).toBe(true);
-      expect(blank.specs.numVC.entered).toBe(false);
-    });
-
-    it('an entered numVC is stored as an E entry, and clearing it restores the stored C default', () => {
+    it('an entered numVC is stored as an E entry, and clearing it leaves it absent', () => {
       const d = OpenISDDriver.empty(createEngine());
       d.specs.numVC.set(4);
       expect(wooferOf(d.cloneDriver())?.numVC).toMatchObject({ state: 'E', value: 4 });
       expect(d.specs.numVC.entered).toBe(true);
 
       d.specs.numVC.clear();
-      expect(wooferOf(d.cloneDriver())?.numVC).toMatchObject({ state: 'C', value: 1 });
-      expect(d.specs.numVC.value).toBe(1);
-      expect(d.specs.numVC.calculated).toBe(true);
+      expect(wooferOf(d.cloneDriver())?.numVC).toBeUndefined();
+      expect(d.specs.numVC.value).toBeNull();
     });
 
-    it('solverParams adapts VCCon to the plain series/parallel wiring Engine.sweep()/maxCurves() take, both ways', () => {
+    it('solverParams adapts VCCon to the plain series/parallel wiring Engine.sweep()/maxCurves() take, unknown as null', () => {
       const blank = OpenISDDriver.empty(createEngine());
-      expect(blank.specs.solverParams().wiring.value).toBe('parallel');
+      expect(blank.specs.solverParams().wiring.value).toBeNull();
 
       blank.specs.VCCon.set(VoiceCoilWiring.Series);
       expect(blank.specs.solverParams().wiring.value).toBe('series');
@@ -153,7 +131,7 @@ describe('OpenISDProject new-project defaults', () => {
 
       // `wiring` is a `SolverInput`: read only, no write for a solve to reach.
       expect('setCalculated' in params.wiring).toBe(false);
-      expect(params.wiring.value).toBe('parallel');
+      expect(params.wiring.value).toBeNull();
 
       expect(() => params.Re_terminal_ohm.setCalculated(8, [ignoredIssue('ignored')])).not.toThrow();
       expect(() => params.BL_terminal_Tm.setNotAvailable()).not.toThrow();

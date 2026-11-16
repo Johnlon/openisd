@@ -10,7 +10,8 @@
  * only scripts/sync-driver-snapshot.sh passes it, from committed winisd_drivers/snapshot/datasheets); each `<brand>/<sku>/openisd.json` is the canonical
  * driver record (ARCHITECTURE.md AD-8), written by winisd_tools. Nothing else is read, with one
  * exception (QO450): the sibling driver.json's top-level `discontinued` boolean. A discontinued
- * record is left out of the bundle (no index row, no record file) and the count is printed.
+ * record is bundled like any other and its index row carries `discontinued: true` (John, 2026-11-16:
+ * "we can't take away drivers for no good reasons"; "disc flag is important"); the count is printed.
  *
  * Outputs, all under packages/ui/public/ and all tracked in git (CI has no corpus checkout):
  *
@@ -116,10 +117,7 @@ function main() {
   for (const [index, file] of filesToRead.entries()) {
     const path = recordPathOf(CORPUS, file);
     const group = path.split('/')[0];
-    if (isDiscontinued(dirname(file))) {
-      discontinued.push(path);
-      continue;
-    }
+    const isDisc = isDiscontinued(dirname(file));
     const record = JSON.parse(readFileSync(file, 'utf8'));
     if (record == null) throw new Error(`${path}: empty or unparseable record`);
 
@@ -134,10 +132,11 @@ function main() {
       } else {
         const device = gate.device;
         if (device instanceof OpenISDPassiveRadiatorStandalone) {
-          radiatorRows.push(bundledPassiveRadiatorIndexRowOf(device, path));
+          radiatorRows.push(bundledPassiveRadiatorIndexRowOf(device, path, isDisc));
         } else {
-          driverRows.push(bundledDriverIndexRowOf(device, path));
+          driverRows.push(bundledDriverIndexRowOf(device, path, isDisc));
         }
+        if (isDisc) discontinued.push(path);
         records.push({ path, record: upgradeToCurrent(record).value });
         perGroup.set(group, (perGroup.get(group) ?? 0) + 1);
       }
@@ -165,7 +164,7 @@ function main() {
     for (const p of skipped.slice(0, 5)) console.log(`    - ${p}`);
   }
 
-  console.log(`  ${discontinued.length} discontinued records left out of the bundle (driver.json discontinued: true, QO450)`);
+  console.log(`  ${discontinued.length} discontinued records bundled, flagged discontinued: true in their index row (driver.json, QO450 superseded by John 2026-11-16)`);
 
   const written = applyBundleOutputs({
     publicRoot: PUBLIC,

@@ -58,11 +58,10 @@ const packageRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)
  * accident, and the reason has to be written down.
  */
 const NOT_A_SPEC_ENTRY_BY_DESIGN: Readonly<Record<string, string>> = {
-  // EMPTY, and that is the current truth. `VCCon` was here while it was a
-  // `ScrapedField<VoiceCoilWiring>`; it is now a `SpecEntryJson` like every other member, holding
-  // the encoding the corpus stores (1 parallel, 2 series) and mapped to the enum at the field
-  // boundary. So it reaches `fields()` as a number — which is exactly what the bug it caused
-  // needed it to do.
+  // QO914 (#514): the record stores the wiring's NAME, never WinISD's 1/2 code. It reaches the
+  // calculation through its own wiring field (`OpenIsdDriverSpec.VCCon`, passed as `wiring` in
+  // `resolve()` and `solverParams()`), not through the numeric bag.
+  VCCon: 'WiringEntryJson: "series" | "parallel", read by OpenIsdDriverSpec.VCCon (QO914)',
 };
 
 function specSectionMembers() {

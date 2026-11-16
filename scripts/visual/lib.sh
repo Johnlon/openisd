@@ -41,3 +41,19 @@ visual_sources_changed() {
   local paths; mapfile -t paths < <(visual_source_paths)
   git diff --no-renames --name-only "$1" "$2" -- "${paths[@]}"
 }
+
+# visual_stamp_run: reads a baseline PNG on stdin and prints the run id of its visual-retake stamp, or nothing when it has
+# none. The stamp is the tEXt chunk `openisd-visual-run` NUL `run=<id>` that png-stamp.mjs writes, and the chunk is followed by
+# its 4-byte CRC-32, which can begin with an ASCII digit: the id is exactly the chunk's declared length (the 4 bytes before the
+# chunk type), never a pattern over the bytes after `run=` (T833: run 43746606329 was read as 437466063290). No node needed.
+visual_stamp_run() {
+  local f off len a b c d text; f="$(mktemp)"; cat > "$f"
+  off="$(LC_ALL=C grep -abo -m1 'openisd-visual-run' "$f" || true)"; off="${off%%$'\n'*}"; off="${off%%:*}"
+  if [ -n "$off" ] && [ "$off" -ge 8 ] && [ "$(LC_ALL=C head -c "$off" "$f" | tail -c 4 | od -An -tx1 | tr -d ' ')" = 74455874 ]; then
+    read -r a b c d < <(od -An -tu1 -j "$((off - 8))" -N 4 "$f")
+    len=$(((a << 24) | (b << 16) | (c << 8) | d))
+    text="$(LC_ALL=C head -c "$((off + len))" "$f" | tail -c "$len" | tr '\0' '\n' | sed -n 's/^run=\([0-9][0-9]*\)$/\1/p')"
+    printf '%s' "$text" | head -n 1
+  fi
+  rm -f "$f"
+}

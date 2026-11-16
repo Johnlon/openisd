@@ -134,3 +134,12 @@ task_commit_message() {
   if [ "$(task_first_sentence "$2" | wc -c)" -gt 72 ]; then printf '\n%s\n' "$2"; fi
   if [ -n "$3" ] && [ "$3" != internal ]; then printf '\n%s\n' "$3"; fi
 }
+
+# task_done_test_problem <done_test command>: empty when allowed, else why not (T815). A browser spec takes minutes under
+# load and overran the gate deadline (T036); the browser half runs in the full suite, never as a task's done_test. Three
+# agents had the pull request's done-test job refuse one after the push; ship.sh's contract check now refuses it first.
+task_done_test_problem() {
+  case "$1" in
+    *.browser.spec.ts*) printf 'done_test names a browser spec (%s); browser specs run in the full suite, name a unit spec' "$1" ;;
+  esac
+}

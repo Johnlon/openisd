@@ -20,6 +20,7 @@ const EXPECTED_REPORTED_COIL_VALUES: Record<string, Record<string, Record<string
   'eminence/sigma-pro-18a': {woofer: {Re_ohm: 6.29, BL_Tm: 22.1}},
   'faitalpro/10fe200-4': {woofer: {Re_ohm: 3, BL_Tm: 7}},
   'faitalpro/12pr300-8': {woofer: {Re_ohm: 5.4, BL_Tm: 14.1}},
+  'faitalpro/2fe22-8': {woofer: {Re_ohm: 6.5, BL_Tm: 5.2}},
   'sb-acoustics/sb15bac30-8-coax-aluminum': {woofer: {Re_ohm: 5.7, BL_Tm: 5.3}, tweeter: {Re_ohm: 3.8}},
 };
 const NUMERIC_DRIVER_NAMES = DRIVER_SPEC_FIELD_NAMES.filter(

@@ -27,13 +27,11 @@ export interface ProjectSweepSource {
     readonly driver: OpenISDDriverEmbedded;
     readonly box: Box;
     readonly nDrivers: SimpleField<number>;
-    readonly wiring: SimpleField<'series' | 'parallel'>;
     readonly Rs_ohm: SimpleField<number>;
     readonly circuitModel: SimpleField<'winisd' | 'gyrator' | 'winisdGyrator'>;
     readonly winisdDriverModel: SimpleField<boolean>;
     readonly winisdVaModel: SimpleField<boolean>;
     readonly winisdWrapPhase: SimpleField<boolean>;
-    readonly winisdDriverCountModel: SimpleField<boolean>;
     readonly winisdFlatModel: SimpleField<boolean>;
     readonly winisdChartFromFsVasQms: SimpleField<boolean>;
     readonly winisdAbcIntraPortVelocity: SimpleField<boolean>;
@@ -99,12 +97,10 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         fmax: P.fmax,
         N: P.N ?? undefinedIfNull(source.sweepN.value),
         nDrivers: source.nDrivers.value,
-        wiring: source.wiring.value,
         Rs: source.Rs_ohm.value,
         circuitModel: engineCircuitModel(source.circuitModel.value, source.winisdDriverModel.value),
         winisdVaModel: source.winisdVaModel.value,
         winisdWrapPhase: source.winisdWrapPhase.value,
-        winisdDriverCountModel: source.winisdDriverCountModel.value,
         winisdFlatModel: source.winisdFlatModel.value,
         winisdChartFromFsVasQms: source.winisdChartFromFsVasQms.value,
         winisdAbcIntraPortVelocity: source.winisdAbcIntraPortVelocity.value,
@@ -360,7 +356,7 @@ export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): Sweep
     if (Vb === null) return {kind: 'blocked', issues: boxParamsIssuesOf(source)};
     return {kind: 'ready', job: {
         driver: sweepDriverOf(source, air),
-        Le_H: undefinedIfNull(source.driver.specs.Le_H.value),
+        Le_H: undefinedIfNull(source.driver.specs.terminalMotor().Le_H),
         box,
         air: {c: air.c(), rho: air.rho()},
         sweep: sweepParamsOf(source, P, source.driveVoltage_V, box, Vb),

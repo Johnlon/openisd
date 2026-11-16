@@ -1,5 +1,5 @@
 import {decimal, pct, plainNames, relativeGap} from './issueText.js';
-import type {MaxCurvesResult, SweepResult} from './types.js';
+import type {MaxCurvesResult, SweepResult, Wiring} from './types.js';
 import type {VentedPlausibilityIssue} from './plausibility.js';
 
 /** One route to a derivable quantity: the formula, everything it needs, and whatever of that
@@ -37,6 +37,14 @@ export type CalculationIssue<Q extends string> =
     }
   | {
       readonly kind: 'approximate-charts';
+      readonly target: Q;
+      readonly fields: readonly Q[];
+      readonly text: string;
+    }
+  | {
+      /** Every input was stated, but the relation's answer contradicts what it was computed
+       *  from (a magnet deeper than the driver). The target stays not-available; `text` says why. */
+      readonly kind: 'result-refused';
       readonly target: Q;
       readonly fields: readonly Q[];
       readonly text: string;
@@ -115,7 +123,34 @@ export interface RequiredValueIssue {
   readonly text: string;
 }
 
-export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | OutOfRangeIssue | InvalidValueIssue | NegativeValueIssue | RequiredValueIssue;
+/** A driver with 2 or more voice coils whose datasheet does not say how they were wired when Re
+ *  and BL were measured, and whose wiring cannot be inferred (QO909): a warning. */
+export interface WiringNotStatedIssue {
+  readonly kind: 'wiring-not-stated';
+  readonly field: 'VCCon';
+  readonly numVC: number;
+  readonly text: string;
+}
+
+/** The measured wiring inferred from a printed per-coil nominal impedance (QO903 R4, QO909): a
+ *  note, not a warning. The inferred wiring is calculated, never entered. */
+export interface WiringInferredIssue {
+  readonly kind: 'wiring-inferred';
+  readonly field: 'VCCon';
+  readonly wiring: Wiring;
+  readonly text: string;
+}
+
+/** A title naming several voice coils on a driver that states no coil count (QO909): a warning. */
+export interface MultiCoilWithoutNumVCIssue {
+  readonly kind: 'multi-coil-without-numvc';
+  readonly field: 'numVC';
+  readonly text: string;
+}
+
+export type WiringIssue = WiringNotStatedIssue | WiringInferredIssue | MultiCoilWithoutNumVCIssue;
+
+export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | OutOfRangeIssue | InvalidValueIssue | NegativeValueIssue | RequiredValueIssue | WiringIssue;
 
 // ───────────────────────────── Issues, each carrying its own sentence ───────────────────────────
 //
@@ -160,6 +195,12 @@ export function approximateCharts<Q extends string>(target: Q, fields: readonly 
   return {kind: 'approximate-charts', target, fields, text};
 }
 
+/** A calculated value refused because it contradicts the values it came from. A note on the target
+ *  alone: nothing else is wrong with the stated inputs. */
+export function resultRefused<Q extends string>(target: Q, text: string): CalculationIssue<Q> {
+  return {kind: 'result-refused', target, fields: [target], text};
+}
+
 /** A driver field outside its physically possible band (D14). */
 export function outOfRange(
   field: string, value: number, limit: number, side: 'below' | 'above',
@@ -167,6 +208,30 @@ export function outOfRange(
   return {
     kind: 'out-of-range', field, value, limit, side,
     text: plainNames(`${field} ${decimal(value)} is ${side} the physical limit ${decimal(limit)}.`),
+  };
+}
+
+/** `numVC` coils, and the datasheet does not say how they were wired for Re and BL. */
+export function wiringNotStated(numVC: number): WiringNotStatedIssue {
+  return {
+    kind: 'wiring-not-stated', field: 'VCCon', numVC,
+    text: `Measured wiring not stated: the datasheet gives ${numVC} voice coils but not how they were wired when Re and BL were measured.`,
+  };
+}
+
+/** `wiring` inferred from Re against the printed per-coil nominal impedance. */
+export function wiringInferred(wiring: Wiring, Re_ohm: number, perCoilNominal_ohm: number): WiringInferredIssue {
+  return {
+    kind: 'wiring-inferred', field: 'VCCon', wiring,
+    text: `Wiring inferred: ${wiring} (Re ${decimal(Re_ohm)} Ω on ${decimal(perCoilNominal_ohm)} Ω coils).`,
+  };
+}
+
+/** The title names several voice coils and the driver states no coil count. */
+export function multiCoilWithoutNumVC(): MultiCoilWithoutNumVCIssue {
+  return {
+    kind: 'multi-coil-without-numvc', field: 'numVC',
+    text: 'The title names several voice coils, but the number of voice coils is not stated.',
   };
 }
 
@@ -223,6 +288,7 @@ export function issueFormula<Q extends string>(issue: CalculationIssue<Q>): stri
   switch (issue.kind) {
     case 'inconsistent-inputs': return issue.formula;
     case 'approximate-charts': return issue.text;
+    case 'result-refused': return issue.text;
     case 'missing-dependencies': break;
   }
   return issue.routes.map(r => r.formula).join('; or ');

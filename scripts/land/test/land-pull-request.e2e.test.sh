@@ -18,6 +18,7 @@ fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 ORIGIN="$SCRATCH/w/origin.git"
 CALLS="$SCRATCH/gh.calls"
 
+# T815: a reused pull request is retitled with the REST PATCH (gh pr edit fails on this repo: Projects classic).
 # The gh stand-in: logs its arguments (one call per line, fields joined by |), copies a --body-file, opens #7.
 # GH_OPEN=<n>: pull request #n is already open on the branch (pr list prints it, pr create refuses as GitHub does).
 cat > "$SCRATCH/gh" <<EOF
@@ -31,6 +32,7 @@ case "\$1 \$2" in
                fi
                while [ \$# -gt 0 ]; do [ "\$1" = --body-file ] && cp "\$2" "$SCRATCH/body.md"; shift; done
                echo "https://github.com/o/r/pull/7" ;;
+  "api -X") case "\$*" in *PATCH*) while [ \$# -gt 0 ]; do case "\$1" in -F) cp "\${2#body=@}" "$SCRATCH/body.md" ;; esac; shift; done ;; esac ;;
   "pr edit") while [ \$# -gt 0 ]; do [ "\$1" = --body-file ] && cp "\$2" "$SCRATCH/body.md"; shift; done ;;
   "pr view") echo MERGED ;;
 esac
@@ -102,7 +104,7 @@ setup true 1; GH_OPEN=9 land; r=$?
   && grep -q "land: pull request #9: https://github.com/o/r/pull/9" "$SCRATCH/out" && ! grep -q '^pr|create' "$CALLS" \
   && grep -qx 'pr|list|--repo|o/r|--head|land/T1|--state|open|--json|number|--jq|.\[\].number' "$CALLS" \
   && ok "an open pull request on the branch is reused in the same run, with a logged line" || fail "stale open pull request (r=$r): $(cat "$CALLS" 2>&1; tail -5 "$SCRATCH/out")"
-grep -qx 'pr|edit|9|--repo|o/r|--title|T1: a.txt says hello|--body-file|.*' "$CALLS" && grep -q "Opened by scripts/land.sh" "$SCRATCH/body.md" \
+grep -qx 'api|-X|PATCH|repos/o/r/pulls/9|-f|title=T1: a.txt says hello|-F|body=@.*' "$CALLS" && grep -q "Opened by scripts/land.sh" "$SCRATCH/body.md" \
   && ok "the reused pull request gets this run's title and body" || fail "not retitled: $(cat "$CALLS")"
 setup false 1; GH_OPEN=9 land; r=$?
 [ $r = 1 ] && grep -q '^pr|close|9|--repo|o/r|--comment|Not landed: candidate' "$CALLS" \

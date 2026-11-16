@@ -14,6 +14,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@openisd/design": "*"
+    "@openisd/design": "*",
+    "lz-string": "^1.5.0"
   }
 }

@@ -33,20 +33,17 @@ fi
 holds=0
 
 # The job runs in its own session (setsid), so its pid is its group id. Stop the whole group: TERM,
-# wait for the leader (a 10 s KILL timer backs it), then KILL whatever is left. No polling.
+# wait for the leader (up to 10 s), then KILL whatever is left.
 job_group=""
 stop_job_group() {
   [ -n "$job_group" ] || return 0
   if kill -0 -- "-$job_group" 2> /dev/null; then
     kill -TERM -- "-$job_group" 2> /dev/null
     if [ -n "$child" ]; then
-      # The timer is a bare sleep this shell reaps: killing a `( sleep; kill )` subshell left its sleep
-      # alive in admit.sh's group for up to 10 s.
-      sleep 10 &
-      local timer=$! gone=""
-      wait -n -p gone "$child" "$timer" 2> /dev/null
-      kill "$timer" 2> /dev/null
-      wait "$timer" 2> /dev/null
+      # Wait for the leader for up to 10 s. `wait -n` on the leader and a timer lost the leader when it died
+      # and was reaped before the wait began, and then ran out the whole timer (T819); tail --pid sees a
+      # dead pid at once, whenever it died. -s 0.1 sets how often it looks while the leader lives.
+      timeout 10 tail -s 0.1 --pid="$child" -f /dev/null 2> /dev/null
     fi
     kill -KILL -- "-$job_group" 2> /dev/null
   fi

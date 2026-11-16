@@ -25,7 +25,7 @@ export const NO_OPEN_WHY: Readonly<Record<NoOpenReason, string>> = {
   [NoOpenReason.SavedStateNeeded]: 'Needs saved data first (a backup, a broken saved driver, a new announcement, another tab).',
   [NoOpenReason.RejectedInputNeeded]: 'Shows only after the user enters a value the app rejects; the input script is not written.',
   [NoOpenReason.OutsideApp]: 'A static page outside the app, with its own check.',
-  [NoOpenReason.IndexDisagrees]: 'The index lists a step the skin does not have (the wizard ends one step earlier); the index needs John\'s ruling to change.',
+  [NoOpenReason.IndexDisagrees]: 'The index lists a screen the app cannot show (its condition never holds, or the skin has no such step); removing it from the index needs John\'s ruling.',
   [NoOpenReason.StepNotWritten]: 'A user can reach it; nobody has written the open step yet. The ceiling only goes down.',
 };
 

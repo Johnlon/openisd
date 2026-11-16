@@ -1,0 +1,12 @@
+id: T811
+release_note: internal
+repo: openisd
+owner: ci-baselines
+status: done
+goal: retake-ci.sh takes a re-take that changed no picture (no pictures folder, empty manifest): it writes SOURCES.sha256 and says no picture changed
+why: John, 15 Nov 2026: baselines must match CI (QO923, QO924); lead: the empty-manifest case blocks T806 (run 43682640568)
+done_test: bash scripts/land/test/visual-ci.test.sh
+files:
+  - tasks/T811.yml
+  - scripts/visual/retake-ci.sh
+  - scripts/land/test/visual-ci.test.sh

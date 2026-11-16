@@ -88,9 +88,8 @@ function coilRdc(drv: CircuitQuantities, P: SweepParams): number {
  *  BUG_20260926_winisd-tf-reference). */
 export function hfAsymptotePressure_Pa(drv: CircuitQuantities, P: SweepParams, r_m: number): number {
   const n = P.nDrivers || 1;
-  const series = (P.wiring || 'parallel') === 'series';
-  const Rac = (series ? coilRdc(drv, P) * n : coilRdc(drv, P) / n) + (P.rgAtDriverSide !== false ? 0 : (P.Rs || 0));
-  const BlPush = series ? drv.BL_entered_Tm * n : drv.BL_entered_Tm;
+  const Rac = coilRdc(drv, P) / n + (P.rgAtDriverSide !== false ? 0 : (P.Rs || 0));
+  const BlPush = drv.BL_entered_Tm;
   const pg = P.eg * BlPush / (drv.Sd_m2 * n * Rac);
   const Mas = drv.Mms_kg / (drv.Sd_m2 * drv.Sd_m2) / n;
   const rho = P.air.rho();
@@ -104,7 +103,6 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const w      = 2 * Math.PI * f;
   const wd     = 2 * Math.PI * fDriver;
   const n      = P.nDrivers || 1;
-  const wiring = P.wiring || 'parallel';
   const eg     = P.eg;
   const Sdt    = drv.Sd_m2 * n;
 
@@ -131,21 +129,21 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const Rdc1 = coilRdc(drv, P);
   const arrayTerminals = (Le_H: number): Complex => {
     const z1 = cx(Rdc1, wd * Le_H);
-    return wiring === 'series' ? cScale(z1, n) : cScale(z1, 1/n);
+    return cScale(z1, 1/n);
   };
   const arrayCoil = (Le_H: number): Complex =>
     rgAtDriver ? arrayTerminals(Le_H) : cAdd(arrayTerminals(Le_H), cx(Rg, 0));
   const ZcoilAC = arrayCoil(0);
   const Zcoil   = arrayCoil(Le);
-  const Bl = wiring === 'series' ? drv.BL_terminal_Tm * n : drv.BL_terminal_Tm;
+  const Bl = drv.BL_terminal_Tm;
   // The motor's push uses the ENTERED BL; the damping (ZaE) uses `BL_terminal_Tm`. The two differ
   // only under "Two-BL driver", where WinISD takes its level from the entered BL
   // and its damping from Qes (debugger: entered BL 7.17 → 5.0 moves every SPL point by
   // 20·log10(5/7.17), BUG_20260926_winisd-spl-level-uses-entered-bl).
-  const BlPush = wiring === 'series' ? drv.BL_entered_Tm * n : drv.BL_entered_Tm;
+  const BlPush = drv.BL_entered_Tm;
 
   // Acoustic pressure source and electrical damping.
-  // 'winisd': Le excluded from the acoustic circuit — constant Rae/Uad (Le only for impedance).
+  // 'winisd': Le excluded from the acoustic circuit (constant Rae/Uad) and from the impedance, as WinISD with VCInd off.
   //   Source: docs/winisd_helpfiles/help/aboutequivalentcircuits.html
   // 'gyrator': textbook — the coil Re+Rs+jωLe drives the gyrator, one BL throughout.
   // 'winisdGyrator': WinISD's VCInd=1 model (winisd_research/GHIDRA_FINDINGS.md §"VCInd").

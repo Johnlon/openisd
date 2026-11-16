@@ -1,12 +1,11 @@
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
-import {PhoneRowColumns} from '@openisd/design/fields';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
-// T720: on the phone Signal tab the typing input of each number box is 60% of its old width.
-// Measured at 374x705 before the change: 186 px (input with its unit chip inside). 60% of 186 = 111.6.
-// T742 widened the label column: the Signal column is now 145 px and the share 77%, so the Signal box stays 112 px.
-const BOX_TAB_INPUT_WIDTH_PX = 145;
-const EXPECTED_WIDTH_PX = BOX_TAB_INPUT_WIDTH_PX * PhoneRowColumns.SIGNAL_INPUT_SHARE;
+// T720 (John, 8 Nov 2026): on the phone Signal tab the typing box is narrower than a Box-tab box (186 px at 374x705).
+// Rule 11 (John, 10 Nov 2026): a value is never cut, and the longest Signal value is 100000.00 W. So the box is the narrowest that holds that
+// figure with its text gutter and unit chip (the 112 px T720 measured cannot), and clearly narrower than the 169 px it was after T742.
+const LONGEST_SIGNAL_VALUE = '100000.00';
+const OLD_BOX_TAB_WIDTH_PX = 186;
 
 test.use({viewport: {width: 374, height: 705}});
 
@@ -31,7 +30,16 @@ test('Signal tab number boxes are 60% of their old width, unclipped, one left ed
       width: el.getBoundingClientRect().width, left: el.getBoundingClientRect().left,
       scroll: el.scrollWidth, client: el.clientWidth,
     }));
-    expect(m.width).toBeCloseTo(EXPECTED_WIDTH_PX, 0);
+    const need = await inputs.nth(i).evaluate((el, text) => {
+      const css = getComputedStyle(el);
+      const ctx = document.createElement('canvas').getContext('2d');
+      if (ctx === null) throw new Error('no canvas');
+      ctx.font = css.font;
+      return {text: ctx.measureText(text).width + parseFloat(css.paddingLeft) + parseFloat(css.paddingRight) + parseFloat(css.borderLeftWidth) + parseFloat(css.borderRightWidth), digit: ctx.measureText('0').width};
+    }, LONGEST_SIGNAL_VALUE);
+    expect(m.width, 'holds the longest value, its gutter and chip').toBeGreaterThanOrEqual(need.text - 0.5);
+    expect(m.width, 'and is the narrowest box that does, to a digit').toBeLessThanOrEqual(need.text + need.digit + 0.5);
+    expect(m.width, 'clearly narrower than the old Box-tab box').toBeLessThan(OLD_BOX_TAB_WIDTH_PX * 0.8);
     const chip = await page.locator('.mob-classic .ui-field-unit').nth(i).evaluate(el => el.getBoundingClientRect().right);
     expect(chip, 'unit chip stays on the box right edge').toBeCloseTo(m.left + m.width, 0);
     const arrow = await page.locator('.mob-classic .num-stepper').nth(i).evaluate(el => el.getBoundingClientRect().left);

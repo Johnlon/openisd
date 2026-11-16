@@ -30,7 +30,7 @@
   "provided_by": {
     "value": "OpenIsd"
   },
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "series": {
     "value": "Diamond"
   },
@@ -162,10 +162,6 @@
         "state": "C",
         "value": 93.63210181554336
       },
-      "VCCon": {
-        "state": "C",
-        "value": 1
-      },
       "Vas_m3": {
         "precision": 0.00005,
         "state": "E",
@@ -203,10 +199,6 @@
         "precision": 0.0005801697060764735,
         "state": "C",
         "value": 0.009651512945665264
-      },
-      "numVC": {
-        "state": "C",
-        "value": 1
       },
       "roo_kg_per_m3": {
         "state": "C",

@@ -1,0 +1,15 @@
+id: T820
+release_note: internal
+repo: openisd
+owner: poop
+status: done
+goal: Sync Activity lists items in a deterministic order for the same set of items, and each upload is still reported as it completes
+why: BUG_20261115_sync-activity-order-follows-network-completion: the Cloud sync dialog baselines drew two ways
+done_test: bash scripts/test.sh packages/design/test/cloud/syncDisplay.test.ts
+files:
+  - tasks/T820.yml
+  - packages/design/cloud/syncActivity.ts
+  - packages/design/cloud/syncDisplay.ts
+  - packages/design/test/cloud/syncDisplay.test.ts
+  - packages/persistence/test/cloud/syncEngine.test.ts
+  - bugs/BUG_20261115_sync-activity-order-follows-network-completion.md

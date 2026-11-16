@@ -78,7 +78,8 @@ describe('useStorageHistory', () => {
     const [row] = api.rows.value;
     if (row === undefined) throw new Error('no row');
     api.exportRow(row);
-    expect(saved).toEqual([{fileName: 'openisd-backup-20250102T030405Z.json', text: BACKUP}]);
+    expect(saved.map(file => file.fileName)).toEqual(['openisd-backup-20250102T030405Z.json']);
+    expect(JSON.parse(saved[0]?.text ?? '')).toEqual(JSON.parse(BACKUP)); // the file is plain text, whatever the backup is held as
   });
 
   it('Restore everything asks first; yes restores and reports the keys, no changes nothing', async () => {

@@ -1,4 +1,5 @@
 import {type Ref, readonly, ref} from 'vue';
+import type {ReloadLoss} from '@openisd/design/fields';
 
 /** The message the built worker answers by taking over (see vite.config.js: skipWaiting stays off
  *  in the worker, the page decides when). */
@@ -53,8 +54,13 @@ export interface AppUpdateDeps {
   readonly container: UpdateContainer;
   readonly visibility: VisibilitySource;
   readonly timer: UpdateTimer;
-  /** Some open project has edits that are not saved. */
+  /** Something a reload would interrupt: an open project has edits that are not saved, an open driver
+   *  editor holds values not applied, or a What-if holds values. While true the build is offered, never
+   *  switched to unasked. */
   readonly anyUnsaved: () => boolean;
+  /** What a reload would really lose right now (a subset of the above: unsaved edits the session keeps
+   *  are not lost). */
+  readonly losses: () => readonly ReloadLoss[];
   readonly reload: () => void;
   readonly caches: CacheStore;
   /** A worker controlled this page when it loaded (so the page may run an old build). False on a first
@@ -86,7 +92,11 @@ export class AppUpdate {
   /** Null until the worker is registered (or for good where it cannot be). */
   private registration: UpdateRegistration | null = null;
 
+  /** What reloading now would lose, for the question the screen asks first. */
+  readonly losses: () => readonly ReloadLoss[];
+
   constructor(private readonly deps: AppUpdateDeps) {
+    this.losses = deps.losses;
     this.controlled = deps.controlledAtLoad;
   }
 

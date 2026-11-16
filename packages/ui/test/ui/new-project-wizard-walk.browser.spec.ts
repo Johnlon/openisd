@@ -146,7 +146,7 @@ type BannerLine =
   | {readonly kind: 'box'; readonly boxLabel: string; readonly nDrivers: number};
 
 /** The choices step 2 offered, as the project must show them later. */
-interface Step2Values { readonly nDrivers: string; readonly wiring: string }
+interface Step2Values { readonly nDrivers: string }
 
 /** The lines of the driver figures the banner carries (WinISD parity: Fs, Qts, Vas as the wizard words them). */
 function driverFigureLines(driver: CatalogueRecord): string[] {
@@ -189,7 +189,6 @@ async function desktopExpectDriverTab(page: Page, driver: CatalogueRecord, step2
   await expect.soft(tab.locator('.driver-id-row input').first(), 'Brand').toHaveValue(driver.brand);
   await expect.soft(tab.locator('.driver-model-field input'), 'Model').toHaveValue(driver.model);
   await expect.soft(tab.locator('.field', {hasText: 'Num. of drivers'}).locator('select'), 'Num. of drivers').toHaveValue(step2.nDrivers);
-  await expect.soft(tab.locator('.field', {hasText: 'Voice coil connection'}).locator('select'), 'Voice coil connection').toHaveValue(step2.wiring);
   await expect.soft(tab.locator('input[type=radio][value=standard]'), 'Placement Standard').toBeChecked();
   for (const advanced of [NumberField.DRIVER_VCTEMPRISE_K, NumberField.DRIVER_ADDEDMASS_G, NumberField.ALFAVC_PER_K]) {
     await expect.soft(tab.locator('.driver-advanced-fields .field', {hasText: advanced.label}).locator('input').first(), advanced.label).toHaveValue(/\d/);
@@ -262,7 +261,6 @@ async function phoneExpectDriverTab(page: Page, driver: CatalogueRecord, step2: 
   await openTab(page, 'Driver');
   await expect.soft(page.locator('.mob-cname-button'), 'Brand and model').toHaveText(`${driver.brand} ${driver.model}`);
   await expect.soft(page.locator('#mob-n-drivers'), 'Drivers').toHaveValue(step2.nDrivers);
-  await expect.soft(page.locator('#mob-wiring'), 'Connection').toHaveValue(step2.wiring);
   // The phone's Driver tab states five key figures.
   for (const f of PREVIEW_FIGURES.filter(p => ['Fs', 'Qts', 'Vas', 'Re', 'Xmax'].includes(p.label))) {
     const expected = f.field.format(required(driver, f.key));
@@ -361,16 +359,14 @@ async function walk(page: Page, skin: Skin): Promise<void> {
   await skin.expectBanner(page, driver, {kind: 'figures'});
   await expect(footerButton(page, skin, skin.buttons.next), 'Next on step 2').toBeEnabled();
   const nDrivers = root.locator('#np-ndrivers');
-  const wiring = root.locator('#np-wiring');
   await expect.soft(nDrivers, 'Num. of drivers default').toHaveValue(String(NumberField.DRIVER_NDRIVERS.countOptions()[0]?.value));
-  await expect.soft(wiring, 'Voice coil connection has a value').toHaveValue(/\S/);
   if (skin === DESKTOP) {
     await expect.soft(root.locator('input[type=radio][value=standard]'), 'Placement Standard default').toBeChecked();
     await expect.soft(root.locator('input[type=radio][value=iso]'), 'Iso-Barik is not offered').toBeDisabled();
   } else {
     await expect.soft(root.locator('#np-placement'), 'Placement default').toHaveValue('standard');
   }
-  const step2: Step2Values = {nDrivers: await nDrivers.inputValue(), wiring: await wiring.inputValue()};
+  const step2: Step2Values = {nDrivers: await nDrivers.inputValue()};
 
   // ---- Step 3: the box type and the EBP line -----------------------------------------------------------
   await footerButton(page, skin, skin.buttons.next).click();
@@ -386,7 +382,6 @@ async function walk(page: Page, skin: Skin): Promise<void> {
   await footerButton(page, skin, skin.buttons.back).click();
   await expectArrival(page, skin, WizardStep.COUNT, 'next', true);
   await expect.soft(nDrivers, 'Num. of drivers kept after Back').toHaveValue(step2.nDrivers);
-  await expect.soft(wiring, 'Voice coil connection kept after Back').toHaveValue(step2.wiring);
   await footerButton(page, skin, skin.buttons.next).click();
   await expectArrival(page, skin, WizardStep.BOX_TYPE, 'next', true);
 

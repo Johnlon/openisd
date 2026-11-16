@@ -1,0 +1,16 @@
+id: T789
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: sync-driver-snapshot.sh refuses a snapshot whose DQ warning counts by kind rise above the pinned baseline (Gate A); the baseline only falls unless a ruling id is given
+why: John 14 Nov 2026: QO903 (R6, gate baseline only falls); bug BUG_20261114_sync-ignores-dq-alert; plan docs/plans/PLAN_20261114_DVC_WIRING_AND_DQ.md Phase 2
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/sync-driver-snapshot-dq.test.sh
+files:
+  - tasks/T789.yml
+  - scripts/dqRatchet.mjs
+  - scripts/sync-driver-snapshot.sh
+  - scripts/driver-snapshot.dq-baseline.json
+  - scripts/land/test/sync-driver-snapshot-dq.test.sh
+  - scripts/land/test/sync-driver-snapshot.test.sh
+  - bugs/BUG_20261114_sync-ignores-dq-alert.md

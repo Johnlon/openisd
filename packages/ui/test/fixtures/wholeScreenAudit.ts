@@ -33,7 +33,7 @@ export function measureWholeScreen(root: Element): WholeScreenResult {
   };
 
   // W1: no painted part leaves the window sideways.
-  for (const part of new Set([...controls, ...texts])) {
+  for (const part of new Set([...controls, ...texts, ...root.querySelectorAll('[data-carousel]')])) {
     const box = painted(part);
     if (box.right - box.left <= 0) continue;
     if (box.left < -0.5 || box.right > view.innerWidth + 0.5) issues.push(`W1 ${name(part)} "${label(part)}" leaves the window sideways (${Math.round(box.left)}..${Math.round(box.right)} of ${view.innerWidth})`);
@@ -41,8 +41,11 @@ export function measureWholeScreen(root: Element): WholeScreenResult {
   // W2: the page does not scroll sideways, and no panel inside the view does.
   const page = doc.documentElement;
   if (page.scrollWidth > view.innerWidth + 1) issues.push(`W2 the page scrolls sideways ${page.scrollWidth - view.innerWidth}px`);
+  // A strip marked data-carousel scrolls sideways inside itself by design (John, 16 Nov 2026, QO946.c132: "leave the
+  // buttons in a carousels please"; c133: "we cannot do a release without the carousel"). Only that scroll is exempt; the
+  // strip's own frame is held in the window by W1 below, and every other rule still applies to it.
   for (const panel of everything) {
-    if (/^(auto|scroll)$/.test(view.getComputedStyle(panel).overflowX) && panel.scrollWidth > panel.clientWidth + 1) issues.push(`W2 ${name(panel)} scrolls sideways ${panel.scrollWidth - panel.clientWidth}px`);
+    if (/^(auto|scroll)$/.test(view.getComputedStyle(panel).overflowX) && !panel.hasAttribute('data-carousel') && panel.scrollWidth > panel.clientWidth + 1) issues.push(`W2 ${name(panel)} scrolls sideways ${panel.scrollWidth - panel.clientWidth}px`);
   }
   // W3: text is not cut by its own box.
   for (const text of texts) {

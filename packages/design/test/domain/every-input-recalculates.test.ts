@@ -22,6 +22,7 @@
  * entered, as on this library driver, Fs, Vas, Qes and Qms feed no chart: a change to one of them is marked as a
  * disagreement instead. In the What-if panel a typed Fs, Vas, Qes or Qms moves the parts (QO535), so it moves a chart there.
  */
+import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 import {describe, expect, it} from 'vitest';
 import type {BoxType, Filter} from '../../engine/index.js';
 import {createEngine} from '../../engine/Engine.js';
@@ -138,6 +139,7 @@ function itMovesNothing(box: BoxType, edit: Edit, prepare: (project: OpenISDProj
 /** Driver spec fields that legitimately move no chart, each with its reason. */
 const EXEMPT_DRIVER_FIELDS: ReadonlyMap<NumericDriverSpecFieldName, string> = new Map([
   ['Qts', 'Qts only fills a missing Qes or Qms or shows a conflict; it feeds no other calculation (John, 18 Oct 2026)'],
+  ['numVC', 'not a simulation input: Re and BL are the published figures, whatever the coil count (QO900 R1; WinISD does the same, FINDING_20261019_numvc-is-not-a-simulation-input)'],
   ['Fs_hz', 'with Mms and Cms entered the charts use those boxes; an edited Fs is marked as disagreeing with them (QO534)'],
   ['Vas_m3', 'with Cms and Sd entered the charts use those boxes; an edited Vas is marked as disagreeing with them (QO534)'],
   ['Qes', 'with Bl, Re and Mms entered the charts use those boxes; an edited Qes is marked as disagreeing with them (QO534)'],
@@ -238,7 +240,6 @@ const highpass: Filter = {id: 'hp', type: 'highpass', family: 'sos', order: 2, e
 
 const PROJECT_SETTINGS: Readonly<Record<SettingKey, SettingCase>> = {
   nDrivers: moves(p => p.nDrivers.set(2)),
-  wiring: moves(p => { p.nDrivers.set(2); p.wiring.set('series'); }, 'vented', p => { p.nDrivers.set(2); }),
   vcTempRise_K: moves(p => p.vcTempRise_K.set(60)),
   Rs_ohm: moves(p => p.Rs_ohm.set(1)),
   driverAddedMass_kg: moves(p => p.driverAddedMass_kg.set(0.02)),
@@ -259,8 +260,8 @@ const PROJECT_SETTINGS: Readonly<Record<SettingKey, SettingCase>> = {
   winisdDriverModel: compat,
   winisdVaModel: compat,
   winisdWrapPhase: compat,
-  winisdDriverCountModel: compat,
   winisdSealedPicker: compat,
+  winisdCoilWiringReBlOnly: compat,
   winisdAbcIntraPortVelocity: compat,
   winisdPrNprResonance: compat,
   winisdBesselHighpass: compat,
@@ -308,9 +309,10 @@ const COMPAT_SCENARIOS: ReadonlyMap<CompatSwitch, CompatScenario | string> = new
   [CompatSwitch.PR_NPR_RESONANCE, {box: 'box-passive-radiator', prepare: p => p.box.passiveRadiator.count.set(2)}],
   [CompatSwitch.BESSEL_HIGHPASS, {box: 'sealed', prepare: p => p.filters.set([{...highpass, family: 'bessel'}])}],
   [CompatSwitch.ABC_GROUP_DELAY, {box: 'abc', prepare: () => undefined}],
-  [CompatSwitch.DRIVER_COUNT, {box: 'sealed', prepare: p => p.nDrivers.set(2)}],
   [CompatSwitch.SEALED_PICKER, 'the sealed volume picker on the Box tab; no chart reads it'],
   [CompatSwitch.TL_PORT_END_CORRECTION, {box: 'vented', prepare: p => p.useTransmissionLinePortModel.set(true)}],
+  // A two-coil driver measured in series, set to Parallel, with the voice coil inductance on: Le is what the switch changes.
+  [CompatSwitch.COIL_WIRING_RE_BL_ONLY, {box: 'sealed', prepare: p => { p.driver.specField('numVC').set(2); p.driver.specs.VCCon.set(VoiceCoilWiring.Series); p.coilWiring.choose('parallel'); p.circuitModel.set('gyrator'); }}],
   [CompatSwitch.WRAP_PHASE, {box: 'sealed', prepare: () => undefined}],
   [CompatSwitch.FLAT_MODEL, {box: 'sealed', prepare: p => p.forceFlatResponse.set(true)}],
   [CompatSwitch.ABC_INTRA_PORT_VELOCITY, {box: 'abc', prepare: () => undefined}],

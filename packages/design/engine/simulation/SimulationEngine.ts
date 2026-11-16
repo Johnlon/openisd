@@ -24,7 +24,7 @@ import {createDriverEngine} from '../driver/DriverEngine.js';
 import type {DriverEngine, DriverIssue, DriverPrerequisite, DriverQuantityName} from '../driver/DriverEngine.js';
 import type {PrIssue} from '../pr/PrEngine.js';
 import type {VentIssue} from '../vent/VentEngine.js';
-import {hotRe, isobarikPair, terminalBL_Tm, withAddedMass} from '../solvers/driverQuantities.js';
+import {hotRe, isobarikPair, withAddedMass} from '../solvers/driverQuantities.js';
 import {applyFilters} from '../filters.js';
 import {driveFromVoltage} from '../signal/SignalEngine.js';
 import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepPeaks, SweepResult, WinisdFilterErrors} from '../types.js';
@@ -213,14 +213,6 @@ function winisdCountsDrivers(P: SweepParams): boolean {
   return (P.nDrivers || 1) > 1;
 }
 
-/** The impedance chart's factor over one driver's: 1 with WinISD's per-driver impedance bug
- *  (`winisdDriverCountModel` true or absent); otherwise the array the amplifier drives, N for N
- *  drivers in series, 1/N in parallel (John, 2026-10-05). */
-function arrayImpedanceScale(P: SweepParams, n: number): number {
-  if (P.winisdDriverCountModel !== false) return 1;
-  return P.wiring === 'series' ? n : 1 / n;
-}
-
 /** One of `n` drivers' share of the box: Vb/n and, where they exist, Vf/n, every port area /n and prNum/n. */
 function oneBoxOfN(P: SweepParams, n: number): SweepParams {
   return { ...P, nDrivers: 1, Vb: P.Vb / n, ...(P.Vf !== undefined ? { Vf: P.Vf / n } : {}), ...(P.Sp !== undefined ? { Sp: P.Sp / n } : {}), ...(P.prNum !== undefined ? { prNum: P.prNum / n } : {}),
@@ -251,14 +243,14 @@ function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | u
   };
 }
 
-/** The BL the driver STATES (typed, not calculated), at the terminals. `BL_terminal_Tm` is the BL
+/** The BL the driver STATES (typed, not calculated), as published. `BL_terminal_Tm` is the BL
  *  the circuit's damping runs on, which "Two-BL driver" replaces with the
  *  Qes-derived one; WinISD keeps reading the typed figure for the motor's push and in `CLe`.
  *  Falls back to `BL_terminal_Tm` where no BL is typed: WinISD's own calculated BL is the
  *  Qes-derived one, so there is no second BL to disagree with. */
 function enteredTerminalBL_Tm(q: ReturnType<typeof withAddedMass>, BL_typed_Tm: number | null): number {
   if (BL_typed_Tm === null || !(BL_typed_Tm > 0)) return q.BL_terminal_Tm!;
-  return terminalBL_Tm(BL_typed_Tm, q.numVC, q.wiring);
+  return BL_typed_Tm;
 }
 
 /** The BL a driver's Fs/Qes/Cms/Re imply: BL² = Re/(ωs·Qes·Cms). Absent when Fs or Qes is. */
@@ -471,12 +463,13 @@ export class SimulationEngineImpl implements SimulationEngine {
       // N times its VA (WinISD's VA chart is the array's: 0.968 VA at 1 and 4 drivers, W5 sealed 1 W).
       const one = this.sweep(drv, Le_H, box, oneBoxOfN(P, n));
       if (one.values === null) return one;
+      // The impedance chart is one driver's, as WinISD's (winisd_research FINDING_20261115: the routine
+      // computes Nd·BL²/(Nd·Sd)²/(Za+Zload) + Re + jωLe, so Re is never scaled by Nd). The array's
+      // impedance is ticket Johnlon/openisd#519; it replaced the "Per-driver impedance" switch (QO941).
       const gain = 20 * Math.log10(n);
-      const zScale = arrayImpedanceScale(P, n);
       return { ...one, values: { ...one.values,
         spl: one.values.spl.map((v) => isSilence(v) ? v : v + gain),
-        va: one.values.va.map((v) => v * n),
-        zmag: one.values.zmag.map((z) => z * zScale) } };
+        va: one.values.va.map((v) => v * n) } };
     }
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.

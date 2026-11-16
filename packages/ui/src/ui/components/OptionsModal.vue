@@ -219,7 +219,7 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
         <PhoneBand :section="PhoneDialogHelp.OPTIONS_USER" />
         <div class="mob-crow">
           <label class="mob-crow-label" for="opt-phone-username">Username</label>
-          <input id="opt-phone-username" class="mob-dtext" type="text" v-model="draft.username" placeholder="johnl" autocomplete="off" />
+          <input id="opt-phone-username" class="mob-dtext" type="text" v-model="draft.username" placeholder="Your name" autocomplete="off" />
         </div>
         <PhoneBand :section="PhoneDialogHelp.OPTIONS_ENVIRONMENT" />
         <p class="mob-dhint">The air a project uses for any of these it has not set on its own Advanced tab.</p>
@@ -329,7 +329,7 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
         <template v-if="tab.v === 'General'">
           <div class="opt-row">
             <label>Username</label>
-            <input class="opt-input" type="text" v-model="draft.username" placeholder="johnl" />
+            <input class="opt-input" type="text" v-model="draft.username" placeholder="Your name" />
           </div>
 
           <fieldset class="opt-group">

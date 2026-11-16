@@ -2,6 +2,13 @@ import {describe, expect, it} from 'vitest';
 import {PhoneRowColumns} from '../../fields/index.js';
 
 describe('PhoneRowColumns', () => {
+  it('lists every column but the label column for a root that measures its own', () => {
+    const all = PhoneRowColumns.STANDARD.cssVars();
+    const rest = PhoneRowColumns.STANDARD.cssVarsWithoutLabelColumn();
+    expect(all.has(PhoneRowColumns.LABEL_COLUMN_VAR)).toBe(true);
+    expect(rest.has(PhoneRowColumns.LABEL_COLUMN_VAR)).toBe(false);
+    expect(rest.size).toBe(all.size - 1);
+  });
   it('gives the one mobile column set one control inset and permanent cue-rail dimensions', () => {
     for (const columns of [PhoneRowColumns.STANDARD]) {
       expect(columns.cssVars().get('--mob-col-gutter')).toBe('16px');
@@ -18,7 +25,9 @@ describe('PhoneRowColumns', () => {
     for (const unit of ['Hz', 'L', 'Ω', 'mm']) expect(PhoneRowColumns.chipIsWide(unit)).toBe(false);
   });
 
-  it('gives the phone Signal tab typing box 60% of its column (T720)', () => {
-    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-input-share')).toBe('0.77');
+  it('sizes the phone Signal typing box to the longest value its three fields show (T720, rule 11)', () => {
+    // System input power tops out at 100000.00 W: 9 characters; the volts and the series resistance need 7.
+    expect(PhoneRowColumns.signalInputChars()).toBe(9);
+    expect(PhoneRowColumns.STANDARD.cssVars().get('--mob-col-input-chars')).toBe('9');
   });
 });

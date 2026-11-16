@@ -1,4 +1,4 @@
-import type {Air, CalculationIssue, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, DriverValues, IssueEngine, OutOfRangeIssue, SolverInput, SweepDriver, WhatIfFigure, WhatIfFigures, Wiring} from '../../engine/index.js';
+import type {Air, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, DriverValues, IssueEngine, SolverInput, SweepDriver, WhatIfFigure, WhatIfFigures, Wiring, WiringIssue} from '../../engine/index.js';
 import {NumberField} from '../../fields/field.js';
 import type {ValueFloor} from '../../fields/field.js';
 import type {
@@ -13,20 +13,14 @@ import type {
     Writable
 } from '../cell.js';
 import {absentCell, calculatedCell, DualWriteFieldImpl, enteredCell, entryField} from '../cell.js';
-import type {DriverDeviceJson, SpecEntryJson} from '../openisdSchema.js';
-import {
-    calcNumVC,
-    calculatedWiring,
-    calcVCCon,
-    enteredWiring,
-    VoiceCoilWiring,
-    wiringFromRecord
-} from '../voiceCoilWiring.js';
+import type {DriverDeviceJson, SpecEntryJson, WiringEntryJson} from '../openisdSchema.js';
+import {calculatedWiring, enteredWiring, VoiceCoilWiring} from '../voiceCoilWiring.js';
+import {inferMeasuredWiring, titleNamesSeveralCoils} from './wiringInference.js';
 import type {DriverContext} from './driverContext.js';
 import {withDisagreementNote} from './disagreementNote.js';
 import {computedSlot} from './computedSlot.js';
 import {driverSection} from './driverSection.js';
-import type {DriverSpecFieldName} from './driverSpecFieldName.js';
+import type {DriverSpecFieldName, NumericDriverSpecFieldName} from './driverSpecFieldName.js';
 import {NO_SLOT} from './noSlot.js';
 
 /**
@@ -82,15 +76,15 @@ const FLOORS: Readonly<Record<DriverSpecFieldName, ValueFloor>> = Object.freeze(
     freq_low_hz: 'positive',
     freq_high_hz: 'positive',
     power_peak_W: NumberField.POWER_PEAK_W.floor,
-    weight_kg: 'positive',
+    weight_kg: NumberField.WEIGHT_KG.floor,
     Thick_m: NumberField.THICK_M.floor,
     Depth_m: NumberField.DEPTH_M.floor,
     MagDepth_m: NumberField.MAGDEPTH_M.floor,
     Magnet_m: NumberField.MAGNET_M.floor,
     Basket_m: NumberField.BASKET_M.floor,
     Outer_m: NumberField.OUTER_M.floor,
-    OuterX_m: 'positive',
-    OuterY_m: 'positive',
+    OuterX_m: NumberField.OUTERX_M.floor,
+    OuterY_m: NumberField.OUTERY_M.floor,
     DVol_m3: NumberField.DVOL_M3.floor,
 });
 
@@ -142,6 +136,14 @@ void _assertDriverQuantityNamesComplete;
 /** One numeric spec field, as every field of the spec is published. */
 type SpecNumberField = Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
 
+/** The wiring-dependent figures, null where the record states none. */
+export interface TerminalMotor {
+    readonly Re_ohm: number | null;
+    readonly BL_Tm: number | null;
+    readonly Le_H: number | null;
+    readonly Znom_ohm: number | null;
+}
+
 export class OpenIsdDriverSpec {
     // Thiele/Small.
     readonly Fs_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
@@ -167,12 +169,13 @@ export class OpenIsdDriverSpec {
     readonly Pe_W: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Dd_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly EBP_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
-    /** How many voice coils. Entry-backed like every numeric field beside it: `null` only
-     *  before the first `resolve()`, which stores `calcNumVC()`'s default as a 'C' entry. */
+    /** How many voice coils. `null` when the record does not state it: there is no default
+     *  (QO900 R1). */
     readonly numVC: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
-    /** How the coils are wired. A NAME, not WinISD's 1/2 — see `VoiceCoilWiring`. Entry-backed
-     *  like every numeric field beside it: `null` only before the first `resolve()`, which
-     *  stores `calcVCCon()`'s default as a 'C' entry. */
+    /** The wiring the manufacturer measured Re and BL in. A NAME, not WinISD's 1/2 — see
+     *  `VoiceCoilWiring`. Entered when the datasheet states it; calculated when `resolve()`
+     *  infers it from a printed per-coil nominal (QO903 R4); `null` when unknown — there is no
+     *  default (QO900 R1). Not read by the T/S relations. */
     readonly VCCon: Readable<VoiceCoilWiring | null> & Entered & Calculated & Writable<VoiceCoilWiring> & Clearable & Calculatable<VoiceCoilWiring> & Unsolvable;
     // Ordinarily derived, but WinISD lets a human type any of them, and an entered value is a fact.
     readonly Vd_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
@@ -221,7 +224,13 @@ export class OpenIsdDriverSpec {
 
     readonly #driver: DriverEngine;
     readonly #context: DriverContext;
+    readonly #issueEngine: IssueEngine;
+    /** The record's title, which may print a per-coil nominal impedance. */
+    readonly #title: () => string;
     #issues: readonly DriverIssue[] = [];
+    /** The wiring the user builds with (the project's "Coil wiring"); undefined follows the measured one. */
+    readonly #myWiring: () => Wiring | undefined;
+    readonly #coilWiringReBlOnly: () => boolean;
 
     constructor(
         record: SimpleField<DriverDeviceJson>,
@@ -237,14 +246,21 @@ export class OpenIsdDriverSpec {
          *  durable instance and keeps its own. Same rule, and same reason, as the vent/PR groups
          *  (`entryField`'s `issuesSource`). */
         durableIssues?: () => readonly DriverIssue[],
+        /** The project's "Coil wiring" choice; omitted by a standalone driver, which is not wired. */
+        myWiring: () => Wiring | undefined = () => undefined,
+        coilWiringReBlOnly: () => boolean = () => false,
     ) {
+        this.#myWiring = myWiring;
+        this.#coilWiringReBlOnly = coilWiringReBlOnly;
         this.#driver = driver;
         this.#context = context;
+        this.#issueEngine = issues;
+        this.#title = () => record.value.model.value;
 
         /** One `SpecEntryJson` slot inside this section — deletes the key when set to `undefined`
          *  (T11: absence is 'N', not a stored null). */
         const sectionLens = driverSection(record, section);
-        const sectionSlot = (key: DriverSpecFieldName): SimpleField<SpecEntryJson | undefined> => ({
+        const sectionSlot = (key: NumericDriverSpecFieldName): SimpleField<SpecEntryJson | undefined> => ({
             get value() {
                 return sectionLens.value[key];
             },
@@ -259,6 +275,16 @@ export class OpenIsdDriverSpec {
                 sectionLens.set({...spec, ...moved, [key]: v});
             },
         });
+        /** The `VCCon` slot: a wiring entry, not a numeric one. */
+        const wiringSlot: SimpleField<WiringEntryJson | undefined> = {
+            get value() {
+                return sectionLens.value.VCCon;
+            },
+            set: (v) => {
+                const {VCCon: _removed, ...rest} = sectionLens.value;
+                sectionLens.set(v === undefined ? rest : {...rest, VCCon: v});
+            },
+        };
 
         /** Every numeric spec field, entry-backed (T11/S2-7c): the record itself holds the
          *  derived value once `resolve()` has run — no live recompute at read time, no
@@ -275,30 +301,22 @@ export class OpenIsdDriverSpec {
          *  CURRENT value on every read so it shows up immediately on `.set()`, not only after
          *  the next `resolve()`. */
         const f =
-            (key: DriverSpecFieldName): SpecNumberField =>
+            (key: NumericDriverSpecFieldName): SpecNumberField =>
                 entryField(sectionSlot(key), key, dqFor(key), (v) => floorIssue(key, v, issues));
 
         /** The wiring field — `entryField` in every respect but the value's type, which is a
-         *  NAME rather than one of `DriverSpecsSection`'s numbers, so it cannot go through `f()`
-         *  and states the record's 1/2 encoding through `wiringFromRecord`/`enteredWiring`/
-         *  `calculatedWiring` instead.
+         *  NAME rather than one of `DriverSpecsSection`'s numbers, so it cannot go through `f()`.
          *
-         *  `calcVCCon()` is NOT read here: `resolve()` writes the default into the record as a
-         *  'C' entry and this reads what is stored, like every other quantity (John, 2026-09-24:
-         *  "simply no reason for these exceptions to the rule" — replacing the S2-3 read-time
-         *  fallback, which left a saved driver silent about its wiring). A number the encoding
-         *  does not define reads as absence, the same as a missing key. */
-        const wiringSlot = sectionSlot('VCCon');
+         *  This reads what is stored, like every other quantity: entered, calculated (an
+         *  inferred wiring, written by `resolve()`), or absent — there is no default (QO900 R1). */
         let wiringDq: readonly DqIssue[] = [];
         this.VCCon = new DualWriteFieldImpl<VoiceCoilWiring>(
             () => {
                 const entry = wiringSlot.value;
                 if (entry === undefined || entry.state === 'N') return absentCell<VoiceCoilWiring>('VCCon', wiringDq);
-                const wiring = wiringFromRecord(entry.value);
-                if (wiring === null) return absentCell<VoiceCoilWiring>('VCCon', wiringDq);
                 return entry.state === 'E'
-                    ? enteredCell<VoiceCoilWiring | null>('VCCon', wiring, wiringDq)
-                    : calculatedCell<VoiceCoilWiring | null>('VCCon', wiring, wiringDq);
+                    ? enteredCell<VoiceCoilWiring | null>('VCCon', entry.value, wiringDq)
+                    : calculatedCell<VoiceCoilWiring | null>('VCCon', entry.value, wiringDq);
             },
             {
                 entered: (v: VoiceCoilWiring) => {
@@ -383,15 +401,7 @@ export class OpenIsdDriverSpec {
      *  writes back" framing). Runs the engine over this window's own 44 handles, caches the
      *  issues, and returns them; `air` is the driver's own resolved `{ rho, c }`. */
     resolve(air: Air): readonly DriverIssue[] {
-        // The wiring's WinISD default, written into the record as a 'C' entry before the solve
-        // reads it — the same route `c_m_per_s` takes, so a saved driver states its wiring
-        // rather than leaving every reader to reapply the app's default (John, 2026-09-24).
-        // Idempotent: a record that already states a wiring, entered or calculated, is left alone.
-        if (!this.VCCon.entered && this.VCCon.value === null) this.VCCon.setCalculated(calcVCCon());
-        // The coil count's WinISD default (1), stored the same way and for the same reason: no
-        // relation in `solveDriver` derives a numVC — `terminalRe_ohm`/`terminalBL_Tm` read it and
-        // never write one back — so the default is stamped here or the record stays silent.
-        if (!this.numVC.entered && this.numVC.value === null) this.numVC.setCalculated(calcNumVC());
+        const wiringIssues = this.#resolveWiring();
         const params = {
             Fs_hz: this.Fs_hz, Re_ohm: this.Re_ohm, Znom_ohm: this.Znom_ohm, Le_H: this.Le_H,
             fLe_hz: this.fLe_hz, KLe_H_sqrtHz: this.KLe_H_sqrtHz, Qes: this.Qes, Qms: this.Qms,
@@ -409,9 +419,10 @@ export class OpenIsdDriverSpec {
         } satisfies DriverSolverParams;
         const solved = this.#driver.solve(params, air);
         // The What-if boxes always agree (QO535): no box there carries a disagreement mark.
-        this.#issues = this.#context.inWhatIf()
+        const shown = this.#context.inWhatIf()
             ? solved.filter(issue => issue.kind !== 'inconsistent-inputs')
             : solved.map(issue => issue.kind === 'inconsistent-inputs' ? withDisagreementNote(issue) : issue);
+        this.#issues = [...shown, ...wiringIssues];
         this.#markDq(params, this.#issues);
         return this.#issues;
     }
@@ -433,17 +444,41 @@ export class OpenIsdDriverSpec {
         return out;
     }
 
+    /** No VCCon or numVC default (QO900 R1). For 2 or more coils, a wiring the record does not
+     *  state is inferred from a printed per-coil nominal where it can be, and stored calculated;
+     *  otherwise it is unknown. A record with fewer coils keeps whatever VCCon it holds: nothing
+     *  reads it. Returns the wiring issues (QO909): "not stated" for 2 or more coils with no
+     *  wiring, "inferred" as a note, and a multi-coil title with no coil count. */
+    #resolveWiring(): WiringIssue[] {
+        const numVC = this.numVC.value;
+        if (numVC === null) return titleNamesSeveralCoils(this.#title()) ? [this.#issueEngine.multiCoilWithoutNumVC()] : [];
+        if (numVC < 2 || this.VCCon.entered) return [];
+        const inference = inferMeasuredWiring(this.#title(), this.Re_ohm.value, numVC);
+        if (inference === null || inference.wiring === null) {
+            if (this.VCCon.value !== null) this.VCCon.setNotAvailable();
+            return [this.#issueEngine.wiringNotStated(numVC)];
+        }
+        const wiring = inference.wiring === 'series' ? VoiceCoilWiring.Series : VoiceCoilWiring.Parallel;
+        if (this.VCCon.value !== wiring) this.VCCon.setCalculated(wiring);
+        return [this.#issueEngine.wiringInferred(inference.wiring, inference.Re_ohm, inference.perCoilNominal_ohm)];
+    }
+
     /** Clears `dq` on every quantity, then applies each issue's OWN formula only to the handles
      *  that issue names — 44 independent quantities, where one relation's DQ has nothing to do
      *  with an unrelated field (S2-7d2). `DRIVER_QUANTITY_NAMES` is the handle list stated where
      *  the compiler can check it; `Object.keys(handles)` would answer `string[]`. */
     #markDq(
         handles: Readonly<Record<DriverQuantityName, Pick<Calculatable<unknown>, 'setDq'>>>,
-        issues: readonly (CalculationIssue<DriverQuantityName> | OutOfRangeIssue)[],
+        issues: readonly DriverIssue[],
     ): void {
         const mark = (key: DriverQuantityName, dq: readonly DqIssue[]): void => handles[key].setDq(dq);
         DRIVER_QUANTITY_NAMES.forEach(key => mark(key, []));
         issues.forEach(issue => {
+            // The wiring warnings mark the field they are about; the inferred wiring is a note
+            // and marks nothing.
+            if (issue.kind === 'wiring-not-stated') return mark('wiring', [issue]);
+            if (issue.kind === 'multi-coil-without-numvc') return mark('numVC', [issue]);
+            if (issue.kind === 'wiring-inferred') return;
             if ('field' in issue) {
                 // An `OutOfRangeIssue.field` is plain `string` (D14's mark shape is shared across every
                 // domain), so it is matched against the quantity list rather than narrowed from it.
@@ -467,23 +502,36 @@ export class OpenIsdDriverSpec {
      *  project (a standalone driver's own chart) uses `solverParams()`, which carries the
      *  driver's own stated pair; `solverParamsIn(air)` is the project's. */
     solverParams(): DriverSolverParams {
-        // The boxes as the charts take them: every figure as the box shows it, Bl at the terminals as the wiring makes it.
-        const wiring: Wiring = this.VCCon.value === VoiceCoilWiring.Series ? 'series' : 'parallel';
-        const Re_ohm = this.Re_ohm.value;
-        const BL_Tm = this.BL_Tm.value;
-        const numVC = this.numVC.value ?? undefined;
+        // The boxes as the charts take them: every figure as the box shows it, Re and Bl at the terminals as the wiring makes them.
+        const measured = this.VCCon.value;
+        const wiring: Wiring | null = measured === null ? null : measured === VoiceCoilWiring.Series ? 'series' : 'parallel';
         const wiringInput: SolverInput<Wiring> = { value: wiring, entered: this.VCCon.entered };
 
-        const Re_terminal_ohm = Re_ohm == null ? null : this.#driver.terminalRe_ohm(Re_ohm, numVC, wiring);
-        const BL_terminal_Tm = BL_Tm == null ? null : this.#driver.terminalBL_Tm(BL_Tm, numVC, wiring);
-
+        // The amplifier sees the figures in the wiring the user builds with.
+        const terminal = this.terminalMotor();
         return {
             ...this,
             SPLref_dB: NO_SLOT,
-            Re_terminal_ohm: computedSlot(Re_terminal_ohm),
-            BL_terminal_Tm: computedSlot(BL_terminal_Tm),
+            Re_terminal_ohm: computedSlot(terminal.Re_ohm),
+            BL_terminal_Tm: computedSlot(terminal.BL_Tm),
             wiring: wiringInput,
         };
+    }
+
+    /** Re, BL, Le and Znom as the amplifier sees them: converted from the measured wiring to
+     *  "Coil wiring" when the project chose another one and the driver can be rewired, otherwise
+     *  as published. The stored figures are never changed. */
+    terminalMotor(): TerminalMotor {
+        const published: TerminalMotor = {
+            Re_ohm: this.Re_ohm.value, BL_Tm: this.BL_Tm.value, Le_H: this.Le_H.value, Znom_ohm: this.Znom_ohm.value,
+        };
+        const mine = this.#myWiring();
+        const measured = this.VCCon.value;
+        const Re = published.Re_ohm;
+        if (mine === undefined || measured === null || Re === null) return published;
+        // An absent BL has nothing to convert: it goes through as 1 and comes back absent.
+        const result = this.#driver.convertWiring({...published, Re_ohm: Re, BL_Tm: published.BL_Tm ?? 1}, this.numVC.value, measured, mine, this.#coilWiringReBlOnly());
+        return result.converted ? {...result.motor, BL_Tm: published.BL_Tm === null ? null : result.motor.BL_Tm} : published;
     }
 
     /** `solverParams` with the circuit's air taken from `air` (the project's) instead of the driver's own pair. */
@@ -503,7 +551,7 @@ export class OpenIsdDriverSpec {
     }
 
     #enteredBL(): number | null {
-        return this.BL_Tm.entered ? this.BL_Tm.value : null;
+        return this.BL_Tm.entered ? this.terminalMotor().BL_Tm : null;
     }
 
     /** The issues the last `resolve()` produced — empty before the first one has run. */

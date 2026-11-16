@@ -6,10 +6,11 @@ import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../hooks/phoneLa
 import type {NumSpecField} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {useApp} from '../../logic/app.js';
-import {wiringOptions} from '../../logic/driverDraft.js';
+import {wiringNotStatedLabel, wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/driverCells.js';
+import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
 import {commitMyDriver, useDriverEditorHelp} from '../../hooks/DriverEditorModal-hooks.js';
 import {useFeatureUse} from '../../hooks/telemetryContext.js';
 import type {DqReason} from '@openisd/design';
@@ -28,7 +29,7 @@ import PhoneHelpSheet from '../shells/mobile/PhoneHelpSheet.vue';
 import SaveToLibraryDialog from './SaveToLibraryDialog.vue';
 import type {SaveNameField} from '../../hooks/saveNameField.js';
 import {getProvenanceInfo, PROVENANCE_MAP} from '../../logic/provenance.js';
-import {editableFrom, elementFrom, inputFrom, selectedOption} from '../../logic/domEvents.js';
+import {editableFrom, elementFrom, inputFrom, selectedOption, selectValue} from '../../logic/domEvents.js';
 import {FIELD_EDIT_MODE} from '../../logic/fieldEditMode.js';
 
 function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calculated {
@@ -201,6 +202,7 @@ function setText(field: TextKey | 'comment', e: Event) {
  *  `setNum`'s table is numeric, and routing a wiring through it would put a 1 or a 2 where the
  *  domain expects 'parallel'/'series'. */
 const WIRING_OPTIONS = wiringOptions();
+const WIRING_NOT_STATED = wiringNotStatedLabel();
 /** The Connection control's provenance mark. Read off the same cell every numeric field beside
  *  it is read off, so an unstated wiring shows calculated (the record's own 'C' parallel) and a
  *  chosen one shows entered — it was the one control in the dialog with no mark
@@ -210,10 +212,20 @@ const wiringClass = computed(() => {
   const d = draftDriver.value;
   return cellClassOf(d.specs.VCCon);
 });
+/** Why the wiring is flagged (a multi-coil driver whose wiring is not stated): the field's own data-quality
+ *  sentence, shown as the ⚠ beside Coil wiring. The Driver tab shows no wiring, so this is the user's
+ *  only sign (John, 2026-11-15, QO941). '' when nothing is flagged. */
+const wiringDqReason = computed(() => {
+  void trigger.value;
+  return dqReason(dqOfCell(draftDriver.value.specs.VCCon));
+});
 function setWiring(e: Event) {
-  const wiring = selectedOption(e, WIRING_OPTIONS);
-  if (wiring === null) return;
-  draft.setWiring(wiring);
+  if (selectValue(e) === '') draft.clearWiring();
+  else {
+    const wiring = selectedOption(e, WIRING_OPTIONS);
+    if (wiring === null) return;
+    draft.setWiring(wiring);
+  }
   forceUpdate();
 }
 
@@ -261,6 +273,8 @@ const modalRootEl = ref<HTMLElement | null>(null);
 let phoneLabelColumn: PhoneLabelColumn | null = null;
 watch(modalRootEl, el => { phoneLabelColumn?.stop(); phoneLabelColumn = el !== null && props.skin !== undefined ? createPhoneLabelColumn(el) : null; }, {flush: 'post'});
 onBeforeUnmount(() => phoneLabelColumn?.stop());
+// Closed by OK or Cancel: the draft is no longer work a reload would throw away (T829).
+onBeforeUnmount(() => draft.release());
 const popupStyle = ref<Record<string, string>>({});
 // Phone: height of the docked card. The editor body gets this much bottom padding and scroll
 // padding, so every row can be scrolled clear of the card and the tapped row is kept above it.
@@ -803,7 +817,8 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
                 <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('SPL_dB')]" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :field="NumberField.SPL_DB" :cell="fieldOf('SPL_dB')" />
                 <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('numVC')]" data-field-key="numVC" :style="getFieldStyle('numVC')" :field="NumberField.NUMVC" :cell="fieldOf('numVC')" />
                 <UIPickField class="de-fld de-conn" :class="skin?.field" data-field-key="VCCon" :title="EnumField.VCCON.description" :label="EnumField.VCCON.label" input-id="de-conn-sel">
-                  <select id="de-conn-sel" class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
+                  <select id="de-conn-sel" class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? ''" @change="setWiring"><option value="">{{ WIRING_NOT_STATED }}</option><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
+                  <template #dq><button v-if="wiringDqReason" type="button" class="ui-field-dq-btn" :title="wiringDqReason" aria-label="Why this value is flagged">&#9888;</button></template>
                 </UIPickField>
                 <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('power_peak_W')]" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :field="NumberField.POWER_PEAK_W" :cell="fieldOf('power_peak_W')" />
               </div>
@@ -864,6 +879,9 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('Magnet_m')]" data-field-key="Magnet_m" :label="skin ? PhoneLabels.MAGNET : undefined" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
               <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="skin?.field" data-field-key="Basket_m" :label="skin ? PhoneLabels.BASKET : undefined" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
               <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="skin?.field" data-field-key="Outer_m" :label="skin ? PhoneLabels.OUTER : undefined" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
+              <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="skin?.field" data-field-key="OuterX_m" :label="skin ? PhoneLabels.OUTER_X : undefined" :field="NumberField.OUTERX_M" :cell="fieldOf('OuterX_m')" />
+              <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="skin?.field" data-field-key="OuterY_m" :label="skin ? PhoneLabels.OUTER_Y : undefined" :field="NumberField.OUTERY_M" :cell="fieldOf('OuterY_m')" />
+              <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="skin?.field" data-field-key="weight_kg" :label="skin ? PhoneLabels.WEIGHT : undefined" :field="NumberField.WEIGHT_KG" :cell="fieldOf('weight_kg')" />
               <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="skin?.field" data-field-key="Vcd_m" :label="skin ? PhoneLabels.VCD : undefined" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
               <UIField class="de-fld" :chart-inputs="ChartInputs.DRIVER" :class="[skin?.field, inspectClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : undefined" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
             </div>

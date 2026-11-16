@@ -1,19 +1,24 @@
 #!/usr/bin/env bash
 # Refreshes the pinned OpenISD bundle from the committed winisd_drivers snapshot:
-# the 3 test fixtures, the committed bundle (packages/ui/public) and scripts/driver-snapshot.pin.
-#   bash scripts/sync-driver-snapshot.sh [--corpus-root DIR]      (default DIR = ../winisd_drivers)
+# the 8 test fixtures, the committed bundle (packages/ui/public) and scripts/driver-snapshot.pin.
+#   bash scripts/sync-driver-snapshot.sh [--corpus-root DIR] [--dq-ruling QO<n>]   (default DIR = ../winisd_drivers)
+# Gate A: dq.alert counts by kind may not rise above scripts/driver-snapshot.dq-baseline.json
+# unless --dq-ruling names the ruling; on success the baseline is rewritten to the new counts.
 # SYNC_BUNDLE_CMD overrides the bundle command (tests only); it is run with: --corpus <dir> --force
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CORPUS_ROOT="$ROOT/../winisd_drivers"
 ONLY_RECORDS=()
+DQ_RULING=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --corpus-root) CORPUS_ROOT="${2:?--corpus-root needs a directory}"; shift 2 ;;
     --only-record) ONLY_RECORDS+=("${2:?--only-record needs an exact brand/sku path}"); shift 2 ;;
+    --dq-ruling) DQ_RULING="${2:?--dq-ruling needs QO<n>}"; shift 2 ;;
     *) echo "sync-driver-snapshot: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
+[ -z "$DQ_RULING" ] || [[ "$DQ_RULING" =~ ^QO[0-9]+$ ]] || { echo "sync-driver-snapshot: refused: --dq-ruling must match QO<n>, got: $DQ_RULING" >&2; exit 1; }
 die() { echo "sync-driver-snapshot: refused: $*" >&2; exit 1; }
 
 [ -d "$CORPUS_ROOT" ] || die "$CORPUS_ROOT is not a git checkout (no such directory)"
@@ -33,7 +38,11 @@ git -C "$CORPUS_ROOT" archive "$COMMIT" snapshot/datasheets | tar -x -C "$WORK_R
 DATASHEETS="$WORK_ROOT/snapshot/datasheets"
 [ -d "$DATASHEETS" ] || die "committed snapshot $COMMIT has no snapshot/datasheets tree"
 
-FIXTURES=(accuton/bd90-6-727/driver.json accuton/bd90-6-727/openisd.json dayton-audio/da215-8/openisd.json)
+DQ_BASELINE="$ROOT/scripts/driver-snapshot.dq-baseline.json"
+node "$ROOT/scripts/dqRatchet.mjs" check "$DATASHEETS" "$DQ_BASELINE" $DQ_RULING || die "Gate A: dq.alert counts rose above scripts/driver-snapshot.dq-baseline.json"
+
+FIXTURES=(accuton/bd90-6-727/driver.json accuton/bd90-6-727/openisd.json dayton-audio/da215-8/openisd.json
+  dayton-audio/mx6-22/driver.json dayton-audio/rss265ho-44/driver.json dayton-audio/rss315ho-44/driver.json bliesma/w137a-854-4/driver.json visaton/gf-250-2-x-4-ohm/driver.json sb-acoustics/sb34swpl76-3-dv/driver.json)
 SNAP="$ROOT/packages/design/test/fixtures/driver-snapshot"
 START=$SECONDS; STEPS=3
 progress() { local el=$((SECONDS - START)); echo "sync $1/$STEPS ($((100 * $1 / STEPS))%) ${el}s elapsed, ETA $(( $1 > 0 ? el * (STEPS - $1) / $1 : 0 ))s: $2"; }
@@ -54,6 +63,7 @@ if [ -n "${SYNC_BUNDLE_CMD:-}" ]; then "$SYNC_BUNDLE_CMD" "${BUNDLE_ARGS[@]}"
 else npx tsx scripts/bundle-drivers.mjs "${BUNDLE_ARGS[@]}"; fi
 progress 2 "bundle regenerated"
 
+node scripts/dqRatchet.mjs write "$DATASHEETS" "$DQ_BASELINE" $DQ_RULING
 node scripts/driverSnapshotPin.mjs "$ROOT" "$COMMIT"
 progress 3 "pin written"
 echo "sync-driver-snapshot: pinned winisd_drivers ${COMMIT:0:9} ($(git -C "$ROOT" status --short -- packages/ui/public | wc -l) bundle paths changed)"

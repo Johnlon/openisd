@@ -1,0 +1,61 @@
+id: T799
+release_note: internal
+repo: openisd
+owner: ci-baselines
+status: done
+goal: visual baselines match CI runner; repeatable CI re-take; gate against machine-drawn baselines
+why: John, 15 Nov 2026: main suite must be green; baselines must match CI (QO923, QO924)
+done_test: bash scripts/land/test/visual-ci.test.sh && bash scripts/land/test/visual.e2e.test.sh && bash scripts/land/test/ship.test.sh
+files:
+  - tasks/T799.yml
+  - .github/workflows/visual-retake.yml
+  - .github/workflows/pr.yml
+  - scripts/visual/**
+  - scripts/test.sh
+  - scripts/ship.sh
+  - scripts/land/test/visual-ci.test.sh
+  - scripts/land/test/visual.e2e.test.sh
+  - scripts/land/test/ship.test.sh
+  - docs/design/VISUAL_BASELINES.md
+  - .claude/rules/verify.md
+  - packages/ui/test/visual/**
+
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - mobile-menu
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-filters
+  - mobile-tab-signal
+  - mobile-wizard-abc-step3
+  - mobile-wizard-abc-step4
+  - mobile-wizard-abc-step5
+  - mobile-wizard-bandpass4-step3
+  - mobile-wizard-bandpass4-step4
+  - mobile-wizard-bandpass4-step5
+  - mobile-wizard-bandpass6-step3
+  - mobile-wizard-bandpass6-step4
+  - mobile-wizard-bandpass6-step5
+  - mobile-wizard-box-passive-radiator-step3
+  - mobile-wizard-box-passive-radiator-step4
+  - mobile-wizard-sealed-step1
+  - mobile-wizard-sealed-step2
+  - mobile-wizard-sealed-step3
+  - mobile-wizard-sealed-step4
+  - mobile-wizard-sealed-step5
+  - mobile-wizard-vented-step3
+  - mobile-wizard-vented-step4
+  - mobile-wizard-vented-step5
+visual_note: The 37 baselines T791 drew on a laptop are replaced by what CI draws. Five phone wizard step 3 screens (abc, bandpass4, bandpass6, box-passive-radiator, vented) show the Box type dropdown starting right after its measured label (T795) where the old pictures had it start about 60 px further right; every other screen is the same as before T791 apart from 1-18 level anti-aliasing noise.

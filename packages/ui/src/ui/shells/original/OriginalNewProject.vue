@@ -41,8 +41,6 @@ const {
 
   nDrivers,
   placement,
-  wiring,
-  ARRAY_WIRING_OPTIONS,
 
   boxType,
   BOX_OPTIONS,
@@ -159,13 +157,6 @@ function handleCreate() {
                 <WizardInfoButton question label="About driver placement" @click="openPlacementInfo" />
               </span>
             </div>
-          </div>
-          <div class="field-row">
-            <UIPickField label="Voice coil connection" input-id="np-wiring" common>
-              <select id="np-wiring" :value="wiring" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) wiring = w; }">
-                <option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-              </select>
-            </UIPickField>
           </div>
         </div>
 

@@ -26,7 +26,7 @@ test.describe('Unit toggle', () => {
 
     await label.click();           // L → cu ft
     await expect(label).toHaveText('cu ft');
-    await expect(vol).toHaveValue('0.212');             // 0.006 m³ × 35.3147, 3 dp
+    await expect(vol).toHaveValue('0.2119');            // 0.006 m³ × 35.3147 = 0.21189, shown to 4 significant figures (John, 10 Nov 2026, T742)
 
     // The unit the user chose survives a refresh.
     await page.reload({ waitUntil: 'domcontentloaded' });

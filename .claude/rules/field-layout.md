@@ -17,7 +17,7 @@ architecture gate `packages/ui/test/architecture/no-numinput-outside-uifieldbody
 The rules, word for word from the gallery (`ui-gallery/T690-common-field/RULES.md`):
 
 1. **One component.** Every number box and count dropdown is drawn by the common field.
-2. **Nothing clipped.** No text, box, button or panel edge is cut off. A scrollbar is better than clipping, and neither should happen at these sizes.
+2. **Nothing clipped.** No text, box, button or panel edge is cut off. A scrollbar is better than clipping, and neither should happen at these sizes. Exception: a strip marked `data-carousel` is designed to scroll sideways inside itself (John, 8 Nov 2026: "not a bug, the strip is a carousel"); the page itself still never scrolls sideways, and its arrows never overlap a chip.
 3. **Same left edges.** In a group, every label starts at one x, and every value starts at one x.
 4. **Same width.** In a group, every value has one width and one right edge. Nothing is wider or narrower than its neighbours.
 5. **Same height.** In a group, every dropdown has one height and every number box has one height.

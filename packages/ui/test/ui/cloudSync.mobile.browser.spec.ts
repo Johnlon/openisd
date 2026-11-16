@@ -190,7 +190,9 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
 
     test('reconnect banner and update banner never both show at 320x568 and 390x844', async ({ page }) => {
       for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }]) {
-        await page.setViewportSize(viewport);
+        // The project is opened and edited on the supported phone width (374 x 705); only the banners are judged at the test width. At 320 px
+        // the Box tab's Volume box is 72 px wide and its centre is its unit chip, so a tap there toggles the unit (BUG_20261115_phone-320-volume-box-text-area-16px).
+        await page.setViewportSize({ width: 374, height: 705 });
 
         // Seed reconnect status; a new build waits and edits are unsaved
         await page.addInitScript(() => {
@@ -203,6 +205,7 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
         await page.goto(cloudBaseUrl + '/');
         await openAMobileProject(page);
         await dirtyFocusedDesign(page);
+        await page.setViewportSize(viewport);
         await deliverWaitingBuild(page);
 
         // When update banner is shown, reconnect banner MUST NOT show

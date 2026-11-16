@@ -93,6 +93,12 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'surface-root-7ef5d415fc2fd6a3':{kind:'view',view:'driver-picker'}, // components/DriverBrowser.vue:71
   'surface-root-59f7d487da7c3b15':{kind:'partOf',view:'driver-picker'}, // components/DriverBrowser.vue:72
   'native-ui-c382f453397ca34c':{kind:'notAView',reason:'close button of the driver browser'}, // components/DriverBrowser.vue:75
+  'conditional-branch-0fdf5743a6c58221':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:14
+  'conditional-branch-6c3da573b565bf6c':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:29
+  'conditional-branch-7d5128c15339f56b':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:23
+  'conditional-branch-86a74738b0c40fb4':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:32
+  'conditional-branch-265d98b1829da319':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:35
+  'conditional-branch-ad20275eedeb4b3a':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:34 (the catcher over the greyed control)
   'conditional-branch-b989dd12d68f1ae3':{kind:'notAView',reason:'summary button that opens the driver disagreements list'}, // components/DriverConsistencyList.vue:12
   'surface-root-45df5e0dad260e9f':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:703
   'surface-root-f94135dc62e865bf':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:704
@@ -117,6 +123,7 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-c85a259ff4d30814':{kind:'view',view:'editor-advanced'}, // components/DriverEditorModal.vue:807
   'conditional-branch-82c9e21f9a102e7c':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:809
   'conditional-branch-9221a8bbab297f6a':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:810
+  'conditional-branch-40ec34687539d44d':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:819
   'conditional-branch-82c9e21f9a102e7c-2':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:819
   'conditional-branch-9221a8bbab297f6a-2':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:820
   'conditional-branch-82c9e21f9a102e7c-3':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:836
@@ -165,18 +172,21 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-10781a1833fde6f7':{kind:'partOf',view:'driver-picker'}, // components/DriverLibrary.vue:91
   'conditional-branch-f3fb2c45237ad8f6':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:99
   'conditional-branch-10ee5cf3c1eb998e':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:100
-  'conditional-branch-b40dbfbeee297319':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:110
-  'native-ui-3cb7035016e82ad3':{kind:'notAView',reason:'help button, a trigger for the driver type help'}, // components/DriverLibrary.vue:115
-  'conditional-branch-3417db50cbc18efc':{kind:'view',view:'shared/driver-type-help'}, // components/DriverLibrary.vue:119
-  'surface-root-6dcebfb41f9ab057':{kind:'partOf',view:'shared/driver-type-help'}, // components/DriverLibrary.vue:131
-  'native-ui-a3ca77763a34c58b':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:138
-  'native-ui-f658696ac0dd8f53':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:140
-  'native-ui-c9adbfbacf5a087d':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:146
-  'native-ui-4d5ef6c0bf9234d4':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:148
-  'conditional-branch-22facbfec2d095d4':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:152
-  'native-ui-242802d2b42ff00b':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:153
-  'native-ui-8d655140b1254c08':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:160
-  'native-ui-6954141802eaef94':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:162
+  'conditional-branch-4ff7b7fe6cc82104':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:111
+  'native-ui-39bfe62bd52cc110':{kind:'notAView',reason:'help button, a trigger for the driver type help'}, // components/DriverLibrary.vue:116
+  'conditional-branch-0fae9d255312d719':{kind:'view',view:'shared/driver-type-help'}, // components/DriverLibrary.vue:120
+  'surface-root-33907c3b871c8ce5':{kind:'partOf',view:'shared/driver-type-help'}, // components/DriverLibrary.vue:132
+  'native-ui-d5161ed3087e5447':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:139
+  'native-ui-6b90920428e563c3':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:141
+  'native-ui-2d5d1d43c17ba395':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:147
+  'native-ui-96baad8b2adb88a1':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:149
+  'conditional-branch-887a176ec3db28c6':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:153
+  'native-ui-14ce506f25e58a5d':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:154
+  'native-ui-583b3c9715d8f5ac':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:161
+  'native-ui-89c80c9a2c0914a5':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:163
+  'native-ui-6b648cef6d124e19':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:179
+  'conditional-branch-d183386ed0cd9b3e':{kind:'partOf',view:'driver-picker'}, // components/DriverLibrary.vue:273
+  'conditional-branch-c922985963af8371':{kind:'partOf',view:'driver-picker'}, // components/DriverLibrary.vue:290
   'conditional-branch-9d4b25d60de34c5e':{kind:'partOf',view:'driver-search-filters'}, // components/DriverLibrary.vue:199
   'conditional-branch-23db530ed416aad7':{kind:'notAView',reason:'clear-filters button'}, // components/DriverLibrary.vue:202
   'conditional-branch-b8c2be713f2b1339':{kind:'notAView',reason:'clear-filters button'}, // components/DriverLibrary.vue:205

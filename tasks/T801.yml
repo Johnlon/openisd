@@ -1,0 +1,11 @@
+id: T801
+release_note: internal
+repo: openisd
+owner: main-red-shell
+status: done
+goal: old-machinery-gone shell test red since T783
+why: John, 15 Nov 2026: main suite must be green (QO923); SDLC: main red is fixed first
+done_test: bash scripts/land/test/old-machinery-gone.test.sh
+files:
+  - tasks/T801.yml
+  - scripts/land/test/old-machinery-gone.test.sh
