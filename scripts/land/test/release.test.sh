@@ -145,7 +145,7 @@ done
 printf 'id: F1\nstatus: closed\n' > tasks/fixes/F1.yml
 mkdir -p cloudflare/announcements/src
 { echo 'export const ANNOUNCEMENTS = ['
-  for n in 7.0.950 7.0.951 7.0.952 7.0.1000 7.0.1001 7.0.1100 7.0.1101 7.0.1102 7.0.1103 7.0.2000 7.0.2001 7.0.2002 7.0.2003; do echo "  {id: 'openisd-$n', title: 'x'},"; done
+  for n in 7.0.950 7.0.951 7.0.952 7.0.1000 7.0.1001 7.0.1100 7.0.1101 7.0.1102 7.0.1103 7.0.2000 7.0.2001 7.0.2002 7.0.2003 7.0.2004; do echo "  {id: 'openisd-$n', title: 'x'},"; done
   echo '];'; } > cloudflare/announcements/src/index.js
 git remote add origin "$GH_REMOTE"
 git add -A; git commit -q -m "first change"; git push -q origin main
@@ -417,6 +417,36 @@ add_snap 20260110T0000Z "$FF_SHA" 2026-01-10T00:00:00Z
 echo '[]' > "$GH_STATE/live.json"
 out=$(DEPLOY_STALE=1 bash scripts/release.sh --public 7.0.2003 20260110T0000Z 2>&1); r=$?
 [ $r != 0 ] && grep -q 'live announcements list' <<< "$out" && ok "a live list without the id fails the release" || fail "stale live list: $r $out"
+
+# ---- 6e. by default the ledger row goes out through ship.sh (a pull request), never land.sh (it pushes main) ----------
+# Main moves only by pull request since 10 Nov 2026 (QO481). With RELEASE_LAND unset, release.sh runs the task worktree's
+# own scripts/ship.sh; here that worktree gets ship.sh and land.sh stand-ins that record whether they ran.
+cat > "$S/new-task-ship" <<'NT'
+#!/usr/bin/env bash
+# new-task stand-in that also puts ship.sh and land.sh stand-ins (untracked) into the new worktree.
+out="$(bash "$(dirname "$0")/new-task" "$@")" || exit 1
+d="${out#* }"; mkdir -p "$d/scripts"
+cat > "$d/scripts/ship.sh" <<'SH'
+echo "$(pwd) $* $(git log -1 --format=%s) $(git status --porcelain -- RELEASES.md tasks | wc -l)" >> "$GH_STATE/ship.log"
+cp RELEASES.md "$LEDGER_STORE/RELEASES.md"
+SH
+echo 'echo "$(pwd) $*" >> "$GH_STATE/land-sh.log"; exit 1' > "$d/scripts/land.sh"
+echo "$out" > "$GH_STATE/ship-task.txt"
+echo "$out"
+NT
+add_snap 20260111T0000Z "$FF_SHA" 2026-01-11T00:00:00Z
+out=$(env -u RELEASE_LAND RELEASE_NEW_TASK="bash $S/new-task-ship" bash scripts/release.sh --public 7.0.2004 20260111T0000Z 2>&1); r=$?
+[ $r = 0 ] && ok "a release with the default ledger landing exits 0" || fail "default landing: $r $out"
+ship_id="$(cut -d' ' -f1 "$GH_STATE/ship-task.txt")"; ship_wt="$(cut -d' ' -f2- "$GH_STATE/ship-task.txt")"
+grep -q "^$ship_wt $ship_id (auto) $ship_id: Record OpenISD 7.0.2004 in the release ledger 0\$" "$GH_STATE/ship.log" 2> /dev/null \
+  && ok "by default the ledger row is shipped with ship.sh in its task worktree, on a committed row" || fail "ship.sh call: $(cat "$GH_STATE/ship.log" 2>&1) want $ship_wt $ship_id"
+[ ! -s "$GH_STATE/land-sh.log" ] && ok "by default land.sh (a direct push to main) is never run" || fail "land.sh ran: $(cat "$GH_STATE/land-sh.log")"
+grep -q '^| 7.0.2004 ' "$LEDGER_STORE/RELEASES.md" && ok "the shipped ledger carries the 7.0.2004 row" || fail "ledger after ship: $(cat "$LEDGER_STORE/RELEASES.md")"
+# the task contract ship.sh checks before it pushes (scripts/land/check-task-contract.sh --pr) accepts the generated task
+grep -Fq 'why: "John, 11 Jan 2026: release OpenISD 7.0.2004"' "$ship_wt/tasks/$ship_id.yml" \
+  && ok "the generated task file says why" || fail "task file why: $(cat "$ship_wt/tasks/$ship_id.yml")"
+contract="$(cd "$ship_wt" && GATE_FILES='scripts/land/*' QUESTIONS_FILE=/nonexistent bash "$REPO/scripts/land/check-task-contract.sh" "$ship_id" HEAD~2 HEAD --pr 2>&1)" \
+  && ok "the task contract ship.sh runs accepts the generated ledger task" || fail "task contract: $contract"
 
 # ---- 7. --latest rolls back --------------------------------------------------------------------------
 out=$(bash scripts/release.sh --latest 20260101T0102Z 2>&1); r=$?

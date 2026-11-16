@@ -25,7 +25,8 @@
 # RELEASE_ANNOUNCE_URL override the command and the list URL). A failure there exits non-zero but
 # the release is already out: rerun the command it prints.
 # The RELEASES.md row lands itself: a new task (scripts/new-task.sh, RELEASE_NEW_TASK), the row in
-# that task's worktree, a commit, scripts/land.sh (RELEASE_LAND). The starting folder is never written.
+# that task's worktree, a commit, scripts/ship.sh (RELEASE_LAND), which opens a pull request that merges
+# itself when its checks pass. The starting folder is never written.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
@@ -273,9 +274,11 @@ else
 fi
 rm -rf "$ANNOUNCE_ROOT"; git worktree prune
 
-# RELEASES.md: one row per release, newest first. Written in its own task worktree and landed with
-# land.sh, never in the folder this script started in (main moves only through land.sh).
+# RELEASES.md: one row per release, newest first. Written in its own task worktree and shipped with
+# ship.sh as a pull request, never in the folder this script started in: main moves only by pull request
+# (QO481, John, 10 Nov 2026), so land.sh, which pushes main, is refused there.
 DATE="$(date -u -d "${STAMP:0:8} ${STAMP:9:2}:${STAMP:11:2}" '+%-d %b %Y, %H:%M')"
+DAY="$(date -u -d "${STAMP:0:8}" '+%-d %b %Y')"   # the release's own day, for the ledger task's why
 if [ -n "$NOTES_FILE" ]; then NOTE_TEXT="$(cat "$NOTES_FILE")"; else NOTE_TEXT="$(gh release view "$REL" --json body --jq .body)"; fi
 SUBJECT="$(printf '%s\n' "$NOTE_TEXT" | node scripts/hosting/releaseNotes.mjs headline | tr '|' '/')"
 ROW="| $PUBLIC | $STAMP | $DATE | \`${SHA:0:9}\` | [v/$STAMP](https://snapshots.openisd.app/v/$STAMP/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/$REL) | $SUBJECT |"
@@ -289,11 +292,12 @@ TASK_ID="${NEW_TASK_OUT%% *}"; TASK_DIR="${NEW_TASK_OUT#* }"
     printf '# Releases\n\nNewest first. `scripts/release.sh` adds a row when it promotes a snapshot. Dates are UTC.\n\n| Version | Stamp | Date | Commit | Hosted | GitHub | Notes |\n|---|---|---|---|---|---|---|\n' > RELEASES.md
   fi
   awk -v row="$ROW" '{print} /^\|---/ && !done {print row; done=1}' RELEASES.md > RELEASES.md.new && mv RELEASES.md.new RELEASES.md
-  printf 'id: %s\nrelease_note: internal\nrepo: openisd\nowner: release\nstatus: open\ngoal: %s\ndone_test: grep -Fq "| %s | %s |" RELEASES.md\nfiles:\n  - RELEASES.md\n  - tasks/%s.yml\n' \
-    "$TASK_ID" "$GOAL" "$PUBLIC" "$STAMP" "$TASK_ID" > "tasks/$TASK_ID.yml"
+  # why: the pull request's task check asks every new task file who decided and when (T767)
+  printf 'id: %s\nrelease_note: internal\nrepo: openisd\nowner: release\nstatus: open\ngoal: %s\nwhy: "John, %s: release OpenISD %s"\ndone_test: grep -Fq "| %s | %s |" RELEASES.md\nfiles:\n  - RELEASES.md\n  - tasks/%s.yml\n' \
+    "$TASK_ID" "$GOAL" "$DAY" "$PUBLIC" "$PUBLIC" "$STAMP" "$TASK_ID" > "tasks/$TASK_ID.yml"
   git add RELEASES.md "tasks/$TASK_ID.yml"
   git commit --quiet -m "(auto) $TASK_ID: $GOAL"
-  ${RELEASE_LAND:-bash scripts/land.sh} "$TASK_ID"
+  ${RELEASE_LAND:-bash scripts/ship.sh} "$TASK_ID"
 ) || refuse "landing the ledger row ($TASK_ID in $TASK_DIR) failed; the release is out, finish that landing by hand"
-echo "release: $REL is Latest at $SHA; ledger row landed as $TASK_ID"
+echo "release: $REL is Latest at $SHA; ledger row shipped as $TASK_ID (a pull request that merges itself)"
 [ -z "$ANNOUNCE_FAILED" ] || { echo "release: $REL is out, but $ANNOUNCE_FAILED; rerun: $ANNOUNCE_CMD (from a checkout of $SHA, ANNOUNCE_DIR set to it)" >&2; exit 1; }
