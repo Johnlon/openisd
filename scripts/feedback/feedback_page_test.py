@@ -14,7 +14,7 @@ def load():
 
 
 def run_check(*urls):
-    return subprocess.run(["node", "/home/john/work/winisd/ui-gallery/bin/check-answerable.mjs", *urls], capture_output=True, text=True, cwd="/tmp")
+    return subprocess.run(["node", str(HERE.parents[2] / "ui-gallery/bin/check-answerable.mjs"), *urls], capture_output=True, text=True, cwd="/tmp")
 
 
 def _png(marked):

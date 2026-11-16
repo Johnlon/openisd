@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# bash /home/john/work/winisd/openisd/scripts/budget.sh <pool> <MB> [--cpu <cores>] -- <command> [args...]
-# Machine-wide: any repo calls it by that absolute path from its own cwd (winisd tools, ui-gallery, zoo jobs);
+# bash <openisd checkout>/scripts/budget.sh <pool> <MB> [--cpu <cores>] -- <command> [args...]
+# Machine-wide: any repo calls it by its absolute path from its own cwd (winisd tools, ui-gallery, zoo jobs);
 # it needs nothing from the caller's repo. Pools: small, general (the old "suite" is an alias of general).
 # Starts the command when <MB> of the pool's memory AND <cores> CPU cores (default 1) are free, otherwise waits and
 # says so, with the load average. Memory and CPU are rows of tokens (scripts/budget.conf: TOKEN_MB each; CPU_TOKENS

@@ -4,7 +4,7 @@
 import { chromium } from 'playwright';
 import { readFileSync } from 'node:fs';
 
-const THREAD_JS = readFileSync('/home/john/work/winisd/_agent_files/board-state/thread.js', 'utf8');
+const THREAD_JS = readFileSync(new URL('../../../_agent_files/board-state/thread.js', import.meta.url), 'utf8');
 const page_html = readFileSync(process.argv[2], 'utf8');
 const STAMP = 'source=test; build=b1; commit=abc; viewport=374x705';
 
