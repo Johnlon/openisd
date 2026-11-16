@@ -9,7 +9,7 @@
     "Qts: Qts, Qes, Qms disagree by #%: Qts = Qes·Qms/(Qes+Qms). Every field in the group is marked - correct one of them, or clear one to let it be calculated.": 24,
     "Rme_kg_per_s: electrical damping (Rme), force factor (BL), coil resistance (Re) disagree by #%: Rme = Bl²/Re. Every field in the group is marked - correct one of them, or clear one to let it be calculated.": 255,
     "Rms_kg_per_s: mechanical resistance (Rms), resonance (Fs), moving mass (Mms), Qms disagree by #%: Rms = #π·Fs·Mms/Qms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.": 95,
-    "VCCon: Measured wiring not stated: the datasheet gives # voice coils but not how they were wired when Re and BL were measured.": 10,
+    "VCCon: Measured wiring not stated: the datasheet gives # voice coils but not how they were wired when Re and BL were measured.": 4,
     "Vas_m3: equivalent volume (Vas) # is above the physical limit #.": 1,
     "Vas_m3: equivalent volume (Vas) #e-# is below the physical limit #.": 2,
     "Vas_m3: equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by #%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.": 101,
@@ -143,12 +143,14 @@
     "woofer.Znom_ohm: sources disagree: manufacturer_datasheet=# + # ohms *, manufacturer_product_page=# ohms": 5,
     "woofer.Znom_ohm: sources disagree: manufacturer_datasheet=# Ω, manufacturer_product_page=#": 1,
     "woofer.freq_low_hz: sources disagree: distributor_datasheet=# - # Hz, manufacturer_datasheet=# - # Hz": 1,
+    "woofer.numVC: sources disagree: manual=#, manufacturer_datasheet=# independent voice coils": 6,
     "woofer.weight_kg: sources disagree: manufacturer_datasheet=#,# kg, manufacturer_product_page=# kg": 1
   },
   "rulings": {
     "Fs_hz: resonance (Fs), moving mass (Mms), compliance (Cms) disagree by #%: Fs = #/(#π·√(Mms·Cms)). Every field in the group is marked - correct one of them, or clear one to let it be calculated.": "QO939",
     "VCCon: Measured wiring not stated: the datasheet gives # voice coils but not how they were wired when Re and BL were measured.": "QO909",
     "numVC: The title names several voice coils, but the number of voice coils is not stated.": "QO909",
-    "woofer.Vas_m3: sources disagree: manufacturer_datasheet=#, manufacturer_product_page=# liters": "QO939"
+    "woofer.Vas_m3: sources disagree: manufacturer_datasheet=#, manufacturer_product_page=# liters": "QO939",
+    "woofer.numVC: sources disagree: manual=#, manufacturer_datasheet=# independent voice coils": "QO947"
   }
 }

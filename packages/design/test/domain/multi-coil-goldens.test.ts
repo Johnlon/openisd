@@ -402,9 +402,13 @@ describe('Bliesma W137A-854-4 (3 independent coils, configuration as published, 
     expect(texts.length).toBeGreaterThan(0);
   });
 
-  it('wiring data quality: 3 coils, VCCon "wiring diagram" (no number), no per-coil nominal to infer from: "not stated" warning, nothing inferred', () => {
+  // The record is ONE chosen wiring of a three-coil driver, so it is modelled as a single equivalent coil: its override
+  // file sets numVC 1 (John, workspace questions.yml QO942.c78: "if you have picked its wirings then numVC must be 1"),
+  // so no wiring warning applies; VCCon stays not stated.
+  it('wiring data quality: one chosen wiring of a 3-coil driver, numVC 1 by its override (QO942.c78): no wiring warning, nothing inferred', () => {
     const {driver} = project(W137);
-    expect(wiringKinds(driver)).toEqual(['wiring-not-stated']);
+    expect(driver.specs.numVC.value).toBe(1);
+    expect(wiringKinds(driver)).toEqual([]);
     expect(driver.specs.VCCon.value).toBeNull();
   });
 

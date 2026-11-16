@@ -9,6 +9,11 @@
     "origin": "manufacturer_datasheet",
     "value": "BlieSMa"
   },
+  "comment": {
+    "definition": "a free note about this driver, distinct from the vendor's own description",
+    "origin": "manual",
+    "value": "One driver with 3 independent voice coils; this record is its 4 Ω wiring (BlieSMa datasheet p.3 wiring diagram). Figures are the datasheet's 4 Ω column. The other wirings are W137A-854 (wired 5 Ω) and (wired 8 Ω). Datasheet: \"W137A-854 has 3 independent voice coils. Using wiring diagram below, you can configure it to 8Ω, 5Ω or 4Ω on demand.\""
+  },
   "data_sources": {
     "definition": "the record-wide provenance index — every source role used anywhere in this file resolves to a URL here",
     "value": {
@@ -32,6 +37,10 @@
   "model": {
     "definition": "the vendor's exact designation including the impedance variant — unique within a brand, and the name shown in the driver browser",
     "origin": "manufacturer_datasheet",
+    "readings": {
+      "manual": "W137A-854 (wired 4 Ω)",
+      "manufacturer_datasheet": "W137A-854 4 Ω"
+    },
     "value": "W137A-854 4 Ω"
   },
   "nominal_size_cm": {
@@ -290,6 +299,11 @@
       "numVC": {
         "definition": "number of voice coils; 2 marks a dual-voice-coil driver",
         "readings": {
+          "manual": {
+            "actual_reading": "1",
+            "read_precision": 0.5,
+            "read_value": 1.0
+          },
           "manufacturer_datasheet": {
             "actual_reading": "3 independent voice coils",
             "read_precision": 0.5,
