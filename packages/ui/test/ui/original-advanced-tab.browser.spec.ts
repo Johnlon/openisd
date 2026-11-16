@@ -395,10 +395,10 @@ test.describe('Original Advanced tab', () => {
     test('"Re without Rg" switches the VA chart and the power readout between WinISD\'s Re and the amplifier\'s Re + Rg (BUG_20260927)', async ({ appPage: page }) => {
       const va = page.locator('[data-field-key="winisdVaModel"]');
       await expect(va).toHaveAttribute('title', /Re \+ Rg/);
-      await expect(va).toHaveAttribute('title', /Amplifier apparent load power \(VA\) chart/);
+      await expect(va).toHaveAttribute('title', /the VA chart/);
       await expect(va).toHaveAttribute('title', /P = N·V²\/Re/);
-      await expect(va).toHaveAttribute('title', /'Rg is at driver side' on, Z already includes Rg and WinISD adds it again/);
-      await expect(va).toHaveAttribute('title', /Z seen by the amplifier/);
+      await expect(va).toHaveAttribute('title', /"Rg is at driver side" on, Z already holds Rg and WinISD adds it again/);
+      await expect(va).toHaveAttribute('title', /Re \+ Rg throughout/);
       await expect(va.locator('input')).not.toBeChecked();
       await va.locator('input').check();
       await expect(va.locator('input')).toBeChecked();
@@ -455,7 +455,7 @@ test.describe('Original Advanced tab', () => {
     });
 
     for (const [key, titleText] of [
-      ['winisdFlatModel', /uncapped/],
+      ['winisdFlatModel', /with no limit/],
     ] as const) {
       test(`"${key}" is on by default, and can be switched off and on`, async ({ appPage: page }) => {
         const box = page.locator(`[data-field-key="${key}"]`);

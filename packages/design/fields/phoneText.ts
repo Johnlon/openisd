@@ -329,19 +329,19 @@ export class PhoneHelp {
     {label: ToggleField.ADV_SPLXMAXLIMITED.label, text: 'holds the SPL curve down where the cone would move past Xmax.'},
   ]);
   static readonly ADVANCED_WINISD_STYLE = new PhoneHelpSection('Enable WinISD-style', 'Places where WinISD calculates in its own way. OpenISD copies it by default. Untick a switch for the other form.', [
-    styleLine(WinisdOption.WRAP_PHASE, 'ticked: phase curves wrap at ±180°, as in WinISD. Unticked: they run on smoothly.'),
-    styleLine(WinisdOption.FLAT_MODEL, 'ticked: Force flat response cuts and boosts without limit, as WinISD does. Unticked: boost only, to 20 dB at most.'),
-    styleLine(WinisdOption.ABC_INTRA_PORT_VELOCITY, 'ticked: the ABC intra-port velocity drops a small leak term, as WinISD does. Unticked: the exact velocity.'),
+    styleLine(WinisdOption.WRAP_PHASE, 'WinISD wraps phase at ±180°, which makes smooth curves jump. OpenISD wraps by default, as WinISD does. Untick for smooth.'),
+    styleLine(WinisdOption.FLAT_MODEL, 'WinISD\'s Force flat response cuts and boosts without limit, so the boost can be huge. OpenISD does the same by default. Untick for boost only, 20 dB at most.'),
+    styleLine(WinisdOption.ABC_INTRA_PORT_VELOCITY, 'WinISD drops a small leak term from the ABC intra-port velocity, so it is slightly off (up to 1.35 dB). OpenISD drops it too by default. Untick for the exact velocity.'),
   ]);
   static readonly ADVANCED_WINISD_BUGS = new PhoneHelpSection('Enable WinISD bugs', 'Mistakes in WinISD\'s maths. OpenISD gets them right. A yellow switch brings WinISD\'s result back. A switch greyed out does nothing for this box.', [
-    bugLine(ToggleField.ADV_WINISDDRIVERMODEL, 'WinISD uses two different BL values.', WinisdDeviation.DRIVER_MODEL),
-    bugLine(ToggleField.ADV_WINISDVAMODEL, 'WinISD works out the amplifier load with Re, not Re + Rg.', WinisdDeviation.VA_MODEL),
-    bugLine(ToggleField.ADV_WINISDPRNPRRESONANCE, 'WinISD takes passive radiator losses at the wrong frequency, with more than one radiator.', WinisdDeviation.PR_NPR_RESONANCE),
-    bugLine(ToggleField.ADV_WINISDBESSELHIGHPASS, 'WinISD\'s Bessel high-pass is not the mirror of its low-pass.', WinisdFilterDeviation.BESSEL_HIGHPASS),
-    bugLine(ToggleField.ADV_WINISDABCGROUPDELAY, 'WinISD\'s ABC group delay leaves the driver out.', WinisdDeviation.ABC_GROUP_DELAY),
-    bugLine(ToggleField.ADV_WINISDSEALEDPICKER, 'WinISD\'s sealed picker suggests a volume for your Qtc, but the Box tab then shows a different Qtc.', WinisdDeviation.SEALED_PICKER),
-    bugLine(ToggleField.ADV_WINISDCOILWIRINGREBLONLY, 'when a driver\'s coil wiring changes, WinISD converts Re and BL only and leaves Le and Znom as they were.', WinisdDeviation.COIL_WIRING_RE_BL_ONLY),
-    bugLine(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'with the transmission line model on, WinISD leaves out the port end correction and tunes the box higher.', WinisdDeviation.TL_PORT_END_CORRECTION),
+    bugLine(ToggleField.ADV_WINISDDRIVERMODEL, 'WinISD uses two BLs for one driver, so its charts show a driver that cannot exist. OpenISD uses one. Tick for WinISD\'s.', WinisdDeviation.DRIVER_MODEL),
+    bugLine(ToggleField.ADV_WINISDVAMODEL, 'WinISD leaves Rg out of the amplifier load, so the VA chart is low (23 % at Re 3.4 Ω, Rg 1 Ω). OpenISD counts it. Tick for WinISD\'s.', WinisdDeviation.VA_MODEL),
+    bugLine(ToggleField.ADV_WINISDPRNPRRESONANCE, 'With 2 or more radiators WinISD takes the box losses at a frequency that is Npr times too low. OpenISD uses the true tuning. Tick for WinISD\'s.', WinisdDeviation.PR_NPR_RESONANCE),
+    bugLine(ToggleField.ADV_WINISDBESSELHIGHPASS, 'WinISD\'s Bessel high-pass is not the mirror of its low-pass, so its shape is wrong (up to 6 % at order 4). OpenISD mirrors it. Tick for WinISD\'s.', WinisdFilterDeviation.BESSEL_HIGHPASS),
+    bugLine(ToggleField.ADV_WINISDABCGROUPDELAY, 'WinISD\'s ABC group delay leaves the driver out, so it disagrees with its own phase chart. OpenISD includes it. Tick for WinISD\'s.', WinisdDeviation.ABC_GROUP_DELAY),
+    bugLine(ToggleField.ADV_WINISDSEALEDPICKER, 'WinISD\'s sealed picker gives a volume for your Qtc, but the Box tab then shows a different one (0.800 picked, 0.787 shown). OpenISD\'s picker matches the Box tab. Tick for WinISD\'s.', WinisdDeviation.SEALED_PICKER),
+    bugLine(ToggleField.ADV_WINISDCOILWIRINGREBLONLY, 'WinISD converts only Re and BL when you rewire a multi-coil driver, so Le stays wrong (1.5 mH, should be 0.375 mH). OpenISD converts all. Tick for WinISD\'s.', WinisdDeviation.COIL_WIRING_RE_BL_ONLY),
+    bugLine(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'with the transmission line model on, WinISD leaves out the port end correction and tunes the box higher (40.3 Hz for Fb 38 Hz). OpenISD tunes where the Box tab says. Tick for WinISD\'s.', WinisdDeviation.TL_PORT_END_CORRECTION),
   ]);
   static readonly ADVANCED_SECTIONS: readonly PhoneHelpSection[] = [
     PhoneHelp.ADVANCED_ENVIRONMENT, PhoneHelp.ADVANCED_SIMULATION, PhoneHelp.ADVANCED_WINISD_STYLE, PhoneHelp.ADVANCED_WINISD_BUGS,
