@@ -928,7 +928,8 @@ export class NumberField extends Field {
     value: "Vd_m3",
     label: "Vd",
     display: {kind: 'switchable', group: 'volume', base: 'cm3'},
-    limits: {min: 0, max: 100000},
+    // 10,000 cm3: far beyond any driver, and it fits the phone driver editor's box in every unit (QO946.c187, lead).
+    limits: {min: 0, max: 0.01},
     floor: "positive",
     precision: 0,
     description: "Peak Displacement Volume (Vd)\nAir displaced by the cone at full excursion (Vd = Sd × Xmax).",
