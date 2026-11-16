@@ -168,6 +168,7 @@ files:
   - packages/design/test/fields/sheetField.test.ts
   - packages/design/test/domain/blank-device-id.test.ts
   - packages/ui/test/fixtures/generateSample.ts
+  - packages/ui/src/ui/components/PREditorDialog.vue
   - packages/design/domain/project/projectResolve.ts
   - packages/design/domain/box/passiveRadiatorBox.ts
   - packages/design/test/domain/pr-chart-from-fs-vas-qms.test.ts
@@ -217,7 +218,6 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-equations.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-options-your-data.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-difference-cue.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-pr-save.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-driver-editor-incomplete-warning.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-storage-restore-picker.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png
@@ -276,7 +276,6 @@ visual:
   - mobile-dialog-equations
   - mobile-dialog-options-your-data
   - mobile-dialog-phone-difference-cue
-  - mobile-dialog-pr-save
   - mobile-dialog-shared-driver-editor-incomplete-warning
   - mobile-dialog-shared-storage-restore-picker
   - mobile-tab-advanced
