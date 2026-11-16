@@ -1513,5 +1513,5 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-hdr .de-help-button {width:14px;height:14px;font-size:10px;}
 .de-help-button:hover,.de-help-button:focus-visible {background:#cfe2f8;}
 .de-desktop :deep(.mob-help-overlay) {align-items:center;justify-content:center;}
-.de-desktop :deep(.mob-help-sheet) {width:min(680px,92%);max-height:90%;border-radius:8px;}
+.de-desktop :deep(.mob-help-sheet) {width:min(900px,96%);max-height:96%;border-radius:8px;}
 </style>

@@ -77,4 +77,20 @@ describe('Chart from Fs, Vas, Qms: the passive radiator', () => {
     expect(readouts(stated).every(v => v !== null)).toBe(true);
     expect(near(readouts(stated), readouts(derived))).toBe(true);
   });
+
+  it('ticked, the box losses (leak Ql and absorption Qa, fixed at the radiator resonance) follow the Fr that Fs, Vas and Qms give, not the stated boxes', () => {
+    const engine = createEngine();
+    const leaky = (radiator: Record<string, number>) => {
+      const p = prProject(engine, radiator);
+      p.box.passiveRadiator.losses.Ql.set(2);
+      p.box.passiveRadiator.losses.Qa.set(3);
+      return p;
+    };
+    const stated = leaky({...FOUR, Mms_kg: 0.05, Cms_m_per_N: 0.0006, Rms_kg_per_s: 2});
+    const derived = leaky(FOUR);
+    expect(maxGap(splOf(stated), splOf(derived))).toBeGreaterThan(0.5);
+    stated.winisdChartFromFsVasQms.set(true);
+    derived.winisdChartFromFsVasQms.set(true);
+    expect(maxGap(splOf(stated), splOf(derived))).toBeLessThan(1e-6);
+  });
 });
