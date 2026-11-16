@@ -397,7 +397,8 @@ export class NumberField extends Field {
     value: "box_Vb_l",
     label: "Volume",
     display: {kind: 'switchable', group: 'volume', base: 'L'},
-    limits: {min: 0.0001, max: 100},
+    // 10 m3 = 10,000 L: far beyond any speaker box, and it fits the phone Box tab's box in every unit (QO946.c187, lead).
+    limits: {min: 0.0001, max: 10},
     precision: 2,
     description: "Net Enclosure Volume\nThe air volume inside the box. This air acts as a spring the cone pushes against.",
   });
@@ -405,7 +406,7 @@ export class NumberField extends Field {
     value: "box_Vf_l",
     label: "Volume",
     display: {kind: 'switchable', group: 'volume', base: 'L'},
-    limits: {min: 0.0001, max: 100},
+    limits: {min: 0.0001, max: 10},
     precision: 2,
     description: "Front Chamber Volume\nNet air volume of the front, vented chamber in a bandpass enclosure.",
   });

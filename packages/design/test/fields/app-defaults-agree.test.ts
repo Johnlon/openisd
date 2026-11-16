@@ -41,7 +41,8 @@ describe('app defaults agree', () => {
   });
 
   it('the vented plausibility band never exceeds the Vb the box accepts', () => {
-    expect(DEFAULT_VENTED_DESIGN_LIMITS.maxVb_m3).toBeLessThanOrEqual(NumberField.BOX_VB_L.toSI(NumberField.BOX_VB_L.limits.max));
+    // limits are already SI (m3); toSI() takes a display value, so the old toSI() here converted twice (units bug: limits are SI).
+    expect(DEFAULT_VENTED_DESIGN_LIMITS.maxVb_m3).toBeLessThanOrEqual(NumberField.BOX_VB_L.limits.max);
   });
 
   it('the plot start and end limits come from the one frequency axis range', () => {
