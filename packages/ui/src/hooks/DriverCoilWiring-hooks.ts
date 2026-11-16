@@ -1,30 +1,39 @@
 /**
- * `DriverCoilWiring.vue`'s hook — the Driver tab's "My wiring" choice and the figures under it.
- * for a multi-coil driver (QO907, issue 512). The measured wiring is not shown (John, 2026-11-15, QO941). Reads and writes the focused project's
- * `coilWiring`; the words and the conversion come from `@openisd/design`.
+ * `DriverCoilWiring.vue`'s hook: the project's one wiring control, "Coil wiring" on both skins (John, QO942.c12).
+ * (QO941). It reads and writes the focused project's `VCCon`; the words and the
+ * conversion come from `@openisd/design`. Its default is the driver's measured wiring, which is not shown.
+ *
+ * - A driver with more than one coil whose measured wiring is known: enabled, on both skins.
+ * - A driver that cannot be wired (one coil, or measured wiring not stated): the desktop shows it greyed, as WinISD does, and a click
+ *   says why (John, QO942.c88-c91): the select is disabled and a catcher over it takes the click; the phone omits it
+ *   ("only desktop needs to match WinISD UI").
  */
-import {computed} from 'vue';
+import {computed, ref, watch} from 'vue';
 import type {Wiring} from '@openisd/design/engine';
+import {WinisdDeviation} from '@openisd/design/fields';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {selectedOption} from '../logic/domEvents.js';
 
-export function useDriverCoilWiring() {
+export function useDriverCoilWiring(phone: boolean) {
   const {appState} = useApp();
   const project = useFocusedProject();
   const coil = computed(() => { void appState.projectChanged.value; return project.value.coilWiring; });
 
-  /** Shown only where My wiring can be chosen: a driver with several coils whose measured wiring is
-   *  known. For one coil, or a wiring that is not stated, nothing is drawn: the unstated wiring is a
-   *  data-quality mark in the Driver editor (John, 2026-11-15, QO941). */
-  const shown = computed(() => coil.value.canChoose);
+  const enabled = computed(() => coil.value.canChoose);
+  const shown = computed(() => enabled.value || !phone);
+  const disabled = computed(() => !enabled.value);
   const options = computed(() => coil.value.options);
-  /** The wiring in force, '' where the choice is not available. */
-  const mine = computed<string>(() => coil.value.mine ?? '');
-  const publishedFigures = computed(() => coil.value.publishedFigures);
-  const mineFigures = computed(() => coil.value.mineFigures);
-  /** The published figures are worth a line only where My wiring changes them. */
-  const showPublished = computed(() => publishedFigures.value !== mineFigures.value);
+  /** The wiring in force; a greyed control reads Parallel, as WinISD's does with one coil. */
+  const mine = computed<string>(() => coil.value.mine ?? 'parallel');
+  /** The ≠W cue by the control: WinISD converts Re and BL only; the yellow switch "Coil wiring: Re and BL only" is off (QO942.c62). */
+  const deviationShown = computed(() => { void appState.projectChanged.value; return enabled.value && WinisdDeviation.COIL_WIRING_RE_BL_ONLY.cueShown(project.value.errorSwitches); });
+
+  /** The greyed desktop control was clicked: what it says (one coil, or the measured wiring not stated). */
+  const message = ref<string | null>(null);
+  function explain(): void { message.value = coil.value.greyedMessage; }
+
+  watch(() => coil.value.greyedMessage, () => { message.value = null; });
 
   function choose(wiring: Wiring): void { coil.value.choose(wiring); }
   function onSelect(e: Event): void {
@@ -32,5 +41,5 @@ export function useDriverCoilWiring() {
     if (wiring !== null) choose(wiring);
   }
 
-  return {shown, options, mine, publishedFigures, mineFigures, showPublished, choose, onSelect};
+  return {shown, message, explain, disabled, options, mine, deviationShown, choose, onSelect};
 }

@@ -151,7 +151,7 @@ export interface DriverEngine {
   sourceLoadedQts(qms: number, qes: number, re: number, rg: number, fallbackQts: number): number;
   /** A multi-coil driver's published Re/BL/Le/Znom, measured in `measured`, as they are in
    *  `target`, for `numVC` identical coils; or why not. Never written over the stored figures. */
-  convertWiring(motor: WiredMotor, numVC: number | null, measured: Wiring | null, target: Wiring): WiringConversion;
+  convertWiring(motor: WiredMotor, numVC: number | null, measured: Wiring | null, target: Wiring, reBlOnly?: boolean): WiringConversion;
   /** Re at a voice-coil temperature rise: `Re·(1 + alfaVC·ΔT)`. WinISD drives from it and
    *  states maximum power into it. */
   hotRe(Re_ohm: number, alfaVC_per_K: number, dT_K: number): number;

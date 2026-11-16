@@ -67,7 +67,7 @@ describe('run', () => {
     const storage = createMemoryStorage({[OPENISD_STATE_KEY]: JSON.stringify({id: 'p1', ...JSON.parse(saved)})});
     const compaction = createStoredTextCompaction(storage, backupOn(storage), () => undefined);
     assert.equal(compaction.run().kind, 'rewritten');
-    assert.match(storage.get(OPENISD_STATE_KEY) ?? '', /"schemaVersion":4,/);
+    assert.match(storage.get(OPENISD_STATE_KEY) ?? '', /"schemaVersion":5,/);
     assert.deepEqual(compaction.run(), {kind: 'nothingToDo'});
   });
 
@@ -156,7 +156,7 @@ describe.each([0.4, 0.46, 0.6])('a store of version-3 projects at %s of capacity
     const after = entriesIn(storage.get(OPENISD_PROJECTS_KEY) ?? '');
     assert.deepEqual(after.map(e => e.id), list.map(e => e.id));
     for (const [i, entry] of after.entries()) {
-      assert.match(entry.text, /"schemaVersion":4,/, entry.id);
+      assert.match(entry.text, /"schemaVersion":5,/, entry.id);
       assert.equal(entry.text, compactedStoredText(list[i].text), entry.id);
     }
     const keys = backupKeys(storage);

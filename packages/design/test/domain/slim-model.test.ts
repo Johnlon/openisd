@@ -142,11 +142,11 @@ describe('withSlimModel', () => {
 });
 
 describe('the 2 to 3 upgrade', () => {
-    it('upgrades an unversioned record to the slim model, stamped with the current version 4', () => {
+    it('upgrades an unversioned record to the slim model, stamped with the current version 5', () => {
         const result = upgradeToCurrent(oldRecord());
         assert.ok('value' in result);
         const upgraded = recordOf(result.value);
-        assert.equal(upgraded.schemaVersion, 4);
+        assert.equal(upgraded.schemaVersion, 5);
         assert.deepEqual(woofer(upgraded).Fs_hz, {state: 'E', value: 30, precision: 0.5});
         assert.equal('quality' in upgraded, false);
     });

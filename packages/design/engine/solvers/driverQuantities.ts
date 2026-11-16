@@ -137,19 +137,19 @@ export type WiringConversion = WiringConverted | WiringRefused;
 /**
  * The published figures of a driver with `numVC` identical coils, measured in `measured`, as they
  * are in `target` (QO900 R1). Series → parallel: Re ÷ N², BL ÷ N, Le and Znom ÷ N²; parallel →
- * series the inverse; the same wiring unchanged. Fs, the Q's, Mms, Cms and Vas do not depend on
+ * series the inverse; the same wiring unchanged. (WinISD's routine converts Re and BL only: with `reBlOnly`, the yellow
+ * switch "Coil wiring: Re and BL only", Le and Znom are returned as published, as WinISD does; QO942.c62.) Fs, the Q's, Mms, Cms and Vas do not depend on
  * the wiring, and Qes = 2π·Fs·Mms·Re/BL² comes out the same either way.
  *
- * Refused for fewer than 2 coils, an unknown measured wiring, and 3 coils (published in one
- * configuration, not necessarily identical coils).
+ * Refused for fewer than 2 coils and an unknown measured wiring. Any number of coils above 1 converts, as
+ * WinISD's routine does (numVC above 1; winisd_research FINDING_20261115, QO941).
  */
-export function convertWiring(motor: WiredMotor, numVC: number | null, measured: Wiring | null, target: Wiring): WiringConversion {
+export function convertWiring(motor: WiredMotor, numVC: number | null, measured: Wiring | null, target: Wiring, reBlOnly = false): WiringConversion {
   if (numVC === null || numVC < 2) return {converted: false, reason: 'A driver with fewer than 2 voice coils has no wiring to change.'};
   if (measured === null) return {converted: false, reason: 'The measured wiring is not known, so the figures cannot be converted to another wiring.'};
-  if (numVC === 3) return {converted: false, reason: 'A driver with 3 voice coils is published in one configuration and cannot be rewired here.'};
   if (measured === target) return {converted: true, motor};
   const n = target === 'parallel' ? 1 / numVC : numVC;
-  const scaled = (v: number | null): number | null => v === null ? null : v * n * n;
+  const scaled = (v: number | null): number | null => v === null || reBlOnly ? v : v * n * n;
   return {
     converted: true,
     motor: {Re_ohm: motor.Re_ohm * n * n, BL_Tm: motor.BL_Tm * n, Le_H: scaled(motor.Le_H), Znom_ohm: scaled(motor.Znom_ohm)},

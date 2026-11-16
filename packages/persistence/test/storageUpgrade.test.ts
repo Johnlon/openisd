@@ -177,6 +177,7 @@ describe('case backup-file: an older backup file restores into the current app',
   const file3 = goldenText('backup-file', 'file-layout-3.json');
   const file4 = goldenText('backup-file', 'file-layout-4.json');
   const file5 = goldenText('backup-file', 'file-layout-5.json');
+  const file6 = goldenText('backup-file', 'file-layout-6.json');
   const expected: unknown = JSON.parse(goldenText('backup-file', 'expected.json'));
 
   function restoreInto() {
@@ -185,37 +186,38 @@ describe('case backup-file: an older backup file restores into the current app',
     return {opening, repo};
   }
 
-  for (const [layout, file] of [[1, file1], [2, file2], [3, file3], [4, file4]] as const) {
-    it(`restoring the layout-${layout} file migrates it, and exporting again writes the layout-5 file`, () => {
+  for (const [layout, file] of [[1, file1], [2, file2], [3, file3], [4, file4], [5, file5]] as const) {
+    it(`restoring the layout-${layout} file migrates it, and exporting again writes the layout-6 file`, () => {
       const {opening, repo} = restoreInto();
       assert.equal(repo.importAll(file, {replaceEverything: true}).kind, 'ok');
       assert.deepEqual(JSON.parse(JSON.stringify(summaryOf(opening.storage))), expected);
       // Layouts 3 and 4 wrote a project's embedded driver without its links (see `withoutLinks`): compare without them.
-      assert.equal(String(withoutLinks(repo.exportAll())), String(withoutLinks(file5)));
+      assert.equal(String(withoutLinks(repo.exportAll())), String(withoutLinks(file6)));
     });
   }
 
-  it('the layout-5 file restores to the same store, and exports as itself', () => {
+  it('the layout-6 file restores to the same store, and exports as itself', () => {
     const {opening, repo} = restoreInto();
-    assert.equal(repo.importAll(file5, {replaceEverything: true}).kind, 'ok');
+    assert.equal(repo.importAll(file6, {replaceEverything: true}).kind, 'ok');
     assert.deepEqual(JSON.parse(JSON.stringify(summaryOf(opening.storage))), expected);
-    assert.equal(repo.exportAll(), file5);
+    assert.equal(repo.exportAll(), file6);
   });
 });
 
-describe('exported files: an older file opens, and the current app writes the layout-5 file', () => {
+describe('exported files: an older file opens, and the current app writes the layout-6 file', () => {
   const files = createExportedFiles(APP_RULES);
 
   for (const [name, ext, read] of [
     ['exported-driver-file', 'owdr', aDriverFromFile],
     ['exported-project-file', 'owpr', aProjectFromFile],
   ] as const) {
-    it(`${name}: layouts 1 to 5 read the same, and writing stamps the current layout`, () => {
+    it(`${name}: layouts 1 to 6 read the same, and writing stamps the current layout`, () => {
       const file1 = goldenText(name, `file-layout-1.${ext}`);
       const file2 = goldenText(name, `file-layout-2.${ext}`);
       const file3 = goldenText(name, `file-layout-3.${ext}`);
       const file4 = goldenText(name, `file-layout-4.${ext}`);
       const file5 = goldenText(name, `file-layout-5.${ext}`);
+      const file6 = goldenText(name, `file-layout-6.${ext}`);
       const expected: unknown = JSON.parse(goldenText(name, 'expected.json'));
 
       const fromOne = files.open(file1);
@@ -223,16 +225,19 @@ describe('exported files: an older file opens, and the current app writes the la
       const fromThree = files.open(file3);
       const fromFour = files.open(file4);
       const fromFive = files.open(file5);
-      assert.ok(fromOne.kind === 'ok' && fromTwo.kind === 'ok' && fromThree.kind === 'ok' && fromFour.kind === 'ok' && fromFive.kind === 'ok');
+      const fromSix = files.open(file6);
+      assert.ok(fromOne.kind === 'ok' && fromTwo.kind === 'ok' && fromThree.kind === 'ok' && fromFour.kind === 'ok' && fromFive.kind === 'ok' && fromSix.kind === 'ok');
       assert.equal(fromOne.text, file1, 'a layout-1 file carries no stamp and no step changes it');
       assert.equal(fromTwo.text, file1, 'the stamp comes off, leaving the fields as they were');
       assert.equal(fromThree.text, file1, 'the stamp comes off, leaving the fields as they were');
       assert.ok(typeof expected === 'object' && expected !== null);
-      assert.equal(files.stamp(fromFive.text), file5, 'fixed point');
+      assert.equal(files.stamp(fromSix.text), file6, 'fixed point');
+      assert.equal(read(fromSix.text), read(fromOne.text), 'the data-version-5 file reads the same');
       assert.equal(read(fromFour.text), read(fromOne.text), 'the version-stamped file reads the same');
       assert.equal(read(fromFive.text), read(fromOne.text), 'the slim file reads the same');
       assert.deepEqual(Object.values(expected), [read(fromOne.text)]);
       assert.ok(file5.startsWith('{\n  "layout": 5,'));
+      assert.ok(file6.startsWith('{\n  "layout": 6,'));
       assert.ok(file4.includes('"schemaVersion": 4'), 'the current app writes the schema version');
     });
   }

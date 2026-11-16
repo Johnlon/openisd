@@ -143,7 +143,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const BlPush = drv.BL_entered_Tm;
 
   // Acoustic pressure source and electrical damping.
-  // 'winisd': Le excluded from the acoustic circuit — constant Rae/Uad (Le only for impedance).
+  // 'winisd': Le excluded from the acoustic circuit (constant Rae/Uad) and from the impedance, as WinISD with VCInd off.
   //   Source: docs/winisd_helpfiles/help/aboutequivalentcircuits.html
   // 'gyrator': textbook — the coil Re+Rs+jωLe drives the gyrator, one BL throughout.
   // 'winisdGyrator': WinISD's VCInd=1 model (winisd_research/GHIDRA_FINDINGS.md §"VCInd").

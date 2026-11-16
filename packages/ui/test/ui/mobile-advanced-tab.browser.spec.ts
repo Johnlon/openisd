@@ -137,7 +137,7 @@ test('four grey bands, each with a ?, name the groups', async ({ page }) => {
 
 test('the bug switches carry the warning class under the "Enable WinISD bugs" band', async ({ page }) => {
   const group = page.locator('.error-switch-group');
-  for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdSealedPicker', 'winisdTlPortNoEndCorrection']) {
+  for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdSealedPicker', 'winisdCoilWiringReBlOnly', 'winisdTlPortNoEndCorrection']) {
     const label = group.locator(`label[data-field-key="${key}"]`);
     await expect(label, key).toHaveClass(/error-switch-marked/);
     await expect(label, key).toHaveAttribute('title', /^Ticking brings back a WinISD bug\.\n/);

@@ -30,6 +30,8 @@ export interface ErrorSwitchStates {
     readonly sealedPicker: ErrorSwitchState;
     /** WinISD TL port without end correction: the transmission-line port pipe leaves out the end correction. */
     readonly tlPortEndCorrection: ErrorSwitchState;
+    /** WinISD coil wiring: only Re and BL change with the wiring, Le and Znom stay as published. */
+    readonly coilWiringReBlOnly: ErrorSwitchState;
 }
 
 export interface ErrorSwitchInputs {
@@ -47,6 +49,9 @@ export interface ErrorSwitchInputs {
     readonly winisdAbcGroupDelay: boolean;
     readonly winisdSealedPicker: boolean;
     readonly winisdTlPortNoEndCorrection: boolean;
+    readonly winisdCoilWiringReBlOnly: boolean;
+    /** The driver has 2 or more coils and a stated measured wiring: the project's coil wiring can be chosen. */
+    readonly coilWiringApplies: boolean;
     /** "Use transmission line model for port simulation" is ticked. */
     readonly tlPortModel: boolean;
 }
@@ -64,5 +69,6 @@ export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
         abcGroupDelay: {marked: true, applicable: isAbc, inScope: isAbc, reproducesError: i.winisdAbcGroupDelay},
         sealedPicker: {marked: true, applicable: isSealed, inScope: isSealed, reproducesError: i.winisdSealedPicker},
         tlPortEndCorrection: {marked: true, applicable: i.tlPortModel && hasLinePort, inScope: hasLinePort, reproducesError: i.winisdTlPortNoEndCorrection},
+        coilWiringReBlOnly: {marked: true, applicable: i.coilWiringApplies, inScope: true, reproducesError: i.winisdCoilWiringReBlOnly},
     };
 }

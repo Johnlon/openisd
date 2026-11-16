@@ -553,7 +553,7 @@ describe('projectRepo', () => {
       assert.ok(isRecord(parsed));
       const {id: _lost, ...withoutId} = parsed;
       const text = JSON.stringify(withoutId);
-      expect(text).toContain('"layout":5');
+      expect(text).toContain('"layout":6');
       const opened = repo.readProjectText(text);
       assert.ok(!Array.isArray(opened), Array.isArray(opened) ? opened.join('; ') : '');
       expect(opened.uuid()).not.toBe('');

@@ -130,15 +130,16 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         airProvider: () => Air,
         /** See `OpenIsdDriverSpec`'s own parameter — only an embedded driver supplies one. */
         durableIssues?: () => readonly DriverIssue[],
-        /** The project's "My wiring"; only an embedded driver supplies one. */
+        /** The project's "Coil wiring"; only an embedded driver supplies one. */
         myWiring?: () => Wiring | undefined,
+        coilWiringReBlOnly?: () => boolean,
     ) {
         super(record);
         this.engine = engine;
         this.record = record;
         this.airProvider = airProvider;
         this.durableIssues = durableIssues;
-        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, airProvider, durableIssues, myWiring);
+        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, airProvider, durableIssues, myWiring, coilWiringReBlOnly);
     }
 
     /** T11/S2-7c: resolve this driver's spec — write every derivable quantity back

@@ -1,14 +1,13 @@
 /**
- * "My wiring" (QO907, issue 512): how the user will wire a multi-coil driver's own voice coils,
- * beside the wiring the maker measured Re and BL in. A project setting, `series` or `parallel`,
- * absent until chosen, when it follows the measured wiring. It is not the project's `wiring`,
- * which joins several drivers.
+ * "Coil wiring" (QO907, issue 512): how the user will wire a multi-coil driver's own voice coils, beside the wiring the maker
+ * measured Re and BL in. It is the project's `VCCon`, named as the driver's (the setting that was always called Connection,
+ * WinISD's project VCCon; John, QO942.c54 and c56): `series` or `parallel`, absent until chosen, when it follows the driver's
+ * `VCCon`. Data version 5 renamed the project's saved `wiring` key to `VCCon`, value kept as saved (QO946.c18, c23;
+ * `coilWiringAsVCCon.ts`).
  */
 import type {Engine, Wiring} from '../../engine/index.js';
 import type {SimpleField} from '../cell.js';
 import type {OpenISDDriverEmbeddingJson} from '../openisdSchema.js';
-import {NumberField} from '../../fields/field.js';
-import {formatTrimmed} from '../../fields/format.js';
 import type {OpenISDDriver} from '../driver/openISDDriver.js';
 import type {OpenISDDriverEmbedded} from '../driver/openISDDriverEmbedded.js';
 import type {TerminalMotor} from '../driver/openIsdDriverSpec.js';
@@ -51,7 +50,7 @@ export class ProjectCoilWiring {
         return this.#driver.specs.VCCon.entered ? 'stated' : 'inferred';
     }
 
-    /** Why My wiring cannot be chosen; null when it can. */
+    /** Why Coil wiring cannot be chosen; null when it can. */
     get unavailableReason(): string | null {
         const numVC = this.#driver.specs.numVC.value;
         if (numVC === null) return 'The number of voice coils is not stated, so there is no wiring to choose.';
@@ -64,6 +63,14 @@ export class ProjectCoilWiring {
         return probe.converted ? null : probe.reason;
     }
 
+    /** What a click on the greyed desktop control says (John, QO942.c88, c90); null when the wiring can be chosen. */
+    get greyedMessage(): string | null {
+        if (this.canChoose) return null;
+        return this.measuredBasis === 'not-stated'
+            ? 'The datasheet does not say how the coils were wired when measured, so the wiring cannot be changed. The figures are used as published.'
+            : 'Coil wiring applies only to drivers with 2 or more voice coils.';
+    }
+
     get canChoose(): boolean {
         return this.unavailableReason === null;
     }
@@ -71,7 +78,7 @@ export class ProjectCoilWiring {
     /** The wiring in force: the user's choice, else the measured one; null when it cannot be chosen. */
     get mine(): Wiring | null {
         if (!this.canChoose) return null;
-        return this.#embedding.value.coilWiring ?? this.measured;
+        return this.#embedding.value.VCCon ?? this.measured;
     }
 
     get options(): readonly CoilWiringOption[] {
@@ -84,12 +91,12 @@ export class ProjectCoilWiring {
         return {Re_ohm: s.Re_ohm.value, BL_Tm: s.BL_Tm.value, Le_H: s.Le_H.value, Znom_ohm: s.Znom_ohm.value};
     }
 
-    /** The same figures for My wiring: what the amplifier sees. */
+    /** The same figures for Coil wiring: what the amplifier sees. */
     get atMine(): TerminalMotor {
         return this.#driver.specs.terminalMotor();
     }
 
-    /** A standalone copy of the project's driver stating the figures for My wiring, with My wiring
+    /** A standalone copy of the project's driver stating the figures for Coil wiring, with Coil wiring
      *  as its wiring: what a project file carries. The project's own driver keeps the published
      *  figures. Where nothing is converted (no choice, or one equal to the measured wiring) it is
      *  a plain copy. */
@@ -111,16 +118,6 @@ export class ProjectCoilWiring {
         return copy;
     }
 
-    /** Re and BL as published, in words. */
-    get publishedFigures(): string {
-        return figuresText(this.published);
-    }
-
-    /** Re and BL for My wiring, in words. */
-    get mineFigures(): string {
-        return figuresText(this.atMine);
-    }
-
     choose(wiring: Wiring): void {
         const reason = this.unavailableReason;
         if (reason !== null) throw new Error(reason);
@@ -129,26 +126,12 @@ export class ProjectCoilWiring {
 
     /** Back to following the measured wiring. */
     clear(): void {
-        if (this.#embedding.value.coilWiring === undefined) return;
+        if (this.#embedding.value.VCCon === undefined) return;
         this.#write(undefined);
     }
 
     #write(wiring: Wiring | undefined): void {
-        const {coilWiring: _was, ...rest} = this.#embedding.value;
-        this.#embedding.set(wiring === undefined ? rest : {...rest, coilWiring: wiring});
+        const {VCCon: _was, ...rest} = this.#embedding.value;
+        this.#embedding.set(wiring === undefined ? rest : {...rest, VCCon: wiring});
     }
-}
-
-function figuresText(motor: TerminalMotor): string {
-    const parts: string[] = [];
-    if (motor.Re_ohm !== null) parts.push(`Re ${shown('Re_ohm', motor.Re_ohm)}`);
-    if (motor.BL_Tm !== null) parts.push(`BL ${shown('BL_Tm', motor.BL_Tm)}`);
-    return parts.join(' · ');
-}
-
-/** `valueSI` in the field's display unit to 3 decimals, trailing zeros down to 2 (4.70 Ω, 1.175 Ω). */
-function shown(key: string, valueSI: number): string {
-    const field = NumberField.named(key);
-    if (field === undefined) return String(valueSI);
-    return `${formatTrimmed(field.toDisplay(valueSI), 3)} ${field.unitLabel()}`;
 }

@@ -1,40 +1,47 @@
 <script setup lang="ts">
-// The Driver tab's voice-coil wiring row for a multi-coil driver: "My wiring" (the project's own
-// choice) and under it the figures for it, with the published ones only where they differ. The
-// measured wiring is not shown (John, 2026-11-15, QO941). Display and wiring only: the words and
-// the conversion come from packages/design through useDriverCoilWiring().
+// The project's one wiring control (QO941): "Coil wiring" on both skins (John, QO942.c12).
+// It is the use the project makes of the driver's coils; the maker's measured wiring is the driver's data and
+// is not shown here, nor anywhere outside the Driver editor (John, QO942.c9). The control writes only the project's wiring; no figure is shown or stored (John, QO946.c35).
+// Display and wiring only: the words and the conversion come from packages/design through useDriverCoilWiring().
 import UIPickField from './UIPickField.vue';
+import {EnumField, WinisdDeviation} from '@openisd/design/fields';
+import WinisdDeviationCue from './WinisdDeviationCue.vue';
 import {useDriverCoilWiring} from '../../hooks/DriverCoilWiring-hooks.js';
 
-defineProps<{phone?: boolean}>();
-const {shown, options, mine, publishedFigures, mineFigures, showPublished, onSelect} = useDriverCoilWiring();
+const help = EnumField.PROJECT_VCCON.description;
+const props = defineProps<{phone?: boolean}>();
+const {shown, message, explain, disabled, options, mine, deviationShown, onSelect} = useDriverCoilWiring(props.phone === true);
 </script>
 
 <template>
   <template v-if="shown && phone">
     <div class="mob-crow">
-      <label class="mob-crow-label" for="mob-coil-wiring">My wiring</label>
-      <select id="mob-coil-wiring" class="mob-cselect" :value="mine" @change="onSelect">
+      <label class="mob-crow-label" for="mob-coil-wiring">{{ EnumField.PROJECT_VCCON.label }}</label>
+      <select id="mob-coil-wiring" class="mob-cselect" :value="mine" :title="help" @change="onSelect">
         <option v-for="o in options" :key="o.value" :value="o.value">{{ o.label }}</option>
       </select>
+      <WinisdDeviationCue v-if="deviationShown" :deviation="WinisdDeviation.COIL_WIRING_RE_BL_ONLY" />
     </div>
-    <p class="coil-wiring-note" data-testid="coil-wiring-figures"><template v-if="showPublished">As published: {{ publishedFigures }}<br></template>My wiring: {{ mineFigures }}</p>
   </template>
   <template v-else-if="shown">
-    <div class="coil-wiring-caption">This driver's voice coils</div>
     <div class="field-row" style="margin-bottom:4px;">
-      <UIPickField class="field" common label="My wiring" input-id="og-coil-wiring">
-        <select id="og-coil-wiring" :value="mine" @change="onSelect">
-          <option v-for="o in options" :key="o.value" :value="o.value">{{ o.label }}</option>
-        </select>
+      <UIPickField class="field" common :label="EnumField.PROJECT_VCCON.label" input-id="og-coil-wiring" :title="help">
+        <!-- A disabled select receives no click, so a catcher over it takes the click and says why (rulings, QO942.c88-c90). -->
+        <span class="coil-wiring-wrap">
+          <select id="og-coil-wiring" :value="mine" :disabled="disabled" :title="help" @change="onSelect">
+            <option v-for="o in options" :key="o.value" :value="o.value">{{ o.label }}</option>
+          </select>
+          <span v-if="disabled" class="coil-wiring-catch" data-testid="coil-wiring-catch" :title="help" @click="explain" />
+        </span>
+        <template v-if="deviationShown" #cue><WinisdDeviationCue :deviation="WinisdDeviation.COIL_WIRING_RE_BL_ONLY" /></template>
       </UIPickField>
     </div>
-    <p class="coil-wiring-note" data-testid="coil-wiring-figures"><template v-if="showPublished">As published: {{ publishedFigures }}<br></template>My wiring: {{ mineFigures }}</p>
+    <p v-if="disabled && message" class="coil-wiring-note" role="status" data-testid="coil-wiring-message">{{ message }}</p>
   </template>
 </template>
 
 <style scoped>
-.coil-wiring-caption { margin-top: 6px; font-size: 12px; font-weight: 600; color: #555; }
-.coil-wiring-note { max-width: 320px; margin: 2px 0 4px; font-size: 12px; line-height: 16px; color: #555; overflow-wrap: anywhere; }
-.mob-crow ~ .coil-wiring-note { max-width: none; padding: 4px var(--mob-edge); margin: 0; box-shadow: inset 0 -1px 0 #e6e6e6; font-size: 13px; line-height: 18px; }
+.coil-wiring-wrap { position: relative; display: inline-flex; width: 100%; }
+.coil-wiring-catch { position: absolute; inset: 0; cursor: default; }
+.coil-wiring-note { width: 0; min-width: 100%; margin: 2px 0 4px; font-size: 12px; line-height: 16px; color: #555; overflow-wrap: anywhere; }
 </style>

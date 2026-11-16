@@ -29,7 +29,7 @@ export const VENT_SHAPE_OPTIONS: readonly SelectorOption<VentShape>[] = Object.f
   Object.freeze({ value: 'slotted', label: 'Slotted Duct' }),
 ]);
 
-/** Voice coil wiring connection options. The VALUES are the domain's own wiring members, so a
+/** Coil wiring connection options. The VALUES are the domain's own wiring members, so a
  *  chosen option is written to the driver as-is — the compiler checks each literal against
  *  `VoiceCoilWiring`. */
 export const VC_CONNECTION_OPTIONS: readonly SelectorOption<VoiceCoilWiring>[] = Object.freeze([

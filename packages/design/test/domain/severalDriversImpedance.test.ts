@@ -48,9 +48,9 @@ describe('several drivers', () => {
     expect(four().sweep(at(20000)).values!.va[0] / one).toBeCloseTo(1, 3);
   });
 
-  it('the retired Per-driver impedance switch and array wiring in an old file are read and ignored', () => {
+  it('the retired Per-driver impedance switch in an old file is read and ignored', () => {
     const p = four();
-    const text = p.toOwprText().replace('"driverEmbedding": {', '"driverEmbedding": {\n    "wiring": "series",').replace('"advanced": {', '"advanced": {\n    "winisdDriverCountModel": false,');
+    const text = p.toOwprText().replace('"advanced": {', '"advanced": {\n    "winisdDriverCountModel": false,');
     const back = OpenISDProject.fromOwprText(text, engine);
     if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
     const one = w5().sweep(at(20000)).values!.zmag[0];
@@ -58,7 +58,7 @@ describe('several drivers', () => {
   });
 
   const saved = (wiring: 'series' | 'parallel'): OpenISDProject => {
-    const text = four().toOwprText().replaceAll('"driverEmbedding": {', `"driverEmbedding": {\n    "wiring": "${wiring}",`);
+    const text = four().toOwprText().replaceAll('"driverEmbedding": {', `"driverEmbedding": {\n    "VCCon": "${wiring}",`);
     const back = OpenISDProject.fromOwprText(text, engine);
     if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
     return back;
@@ -67,13 +67,13 @@ describe('several drivers', () => {
   it('the project\'s saved wiring is kept exactly as saved, and changes nothing (QO946.c23: "the project VcCon is preserved as is")', () => {
     for (const wiring of ['series', 'parallel'] as const) {
       const back = saved(wiring);
-      expect(back.toOwprText()).toContain(`"wiring": "${wiring}"`);
+      expect(back.toOwprText()).toContain(`"VCCon": "${wiring}"`);
       const one = w5().sweep(at(20000)).values!.zmag[0];
       expect(back.sweep(at(20000)).values!.zmag[0] / one).toBeCloseTo(1, 6);
     }
   });
 
   it('a new project writes no wiring of its own (absent until the user sets one)', () => {
-    expect(four().toOwprText()).not.toContain('"wiring"');
+    expect(four().toOwprText()).not.toContain('"VCCon"');
   });
 });

@@ -1,5 +1,5 @@
 /**
- * "My wiring" (John, 14 Nov 2026, QO907 / issue 512): a project setting, series or parallel, that
+ * "Coil wiring" (John, 14 Nov 2026, QO907 / issue 512): a project setting, series or parallel, that
  * says how the user will wire a multi-coil driver. It defaults to the wiring the maker measured
  * in. Everything the amplifier side reads — impedance, SPL and excursion against voltage, power,
  * Rg loading — uses the figures converted to that wiring; the Thiele/Small quantities that do not
@@ -13,6 +13,7 @@
  * The conversion is proved against a SINGLE-coil driver stating the converted figures: the two
  * must give the same curves.
  */
+import {z} from 'zod';
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
@@ -47,8 +48,8 @@ function expectSame(a: ReturnType<typeof curves>, b: ReturnType<typeof curves>):
   }
 }
 
-describe('My wiring: the default is the measured wiring', () => {
-  it('reports the measured wiring as stated, and My wiring equal to it', () => {
+describe('Coil wiring: the default is the measured wiring', () => {
+  it('reports the measured wiring as stated, and Coil wiring equal to it', () => {
     const w = projectOf(MX6_22).coilWiring;
     expect(w.measured).toBe('series');
     expect(w.measuredBasis).toBe('stated');
@@ -65,11 +66,12 @@ describe('My wiring: the default is the measured wiring', () => {
 
   it('saves no coil-wiring key until the user chooses one (a project saved before this loads as measured)', () => {
     const project = projectOf(MX6_22);
-    expect(project.toOwprText()).not.toContain('coilWiring');
+    const text = z.object({saved: z.object({driverEmbedding: z.object({}).passthrough()})}).parse(JSON.parse(project.toOwprText()));
+    expect(text.saved.driverEmbedding).not.toHaveProperty('VCCon');
   });
 });
 
-describe('My wiring: parallel for the series-measured MX6-22', () => {
+describe('Coil wiring: parallel for the series-measured MX6-22', () => {
   it('sweeps like a single-coil driver stating Re 1.175 Ω, BL 6.15 T·m, Le 0.375 mH', () => {
     const project = projectOf(MX6_22);
     project.coilWiring.choose('parallel');
@@ -154,7 +156,7 @@ describe('My wiring: parallel for the series-measured MX6-22', () => {
   });
 });
 
-describe('My wiring: parallel-measured driver, series wanted (RSS265HO-44: Re 1.6 Ω, BL 9.39 T·m)', () => {
+describe('Coil wiring: parallel-measured driver, series wanted (RSS265HO-44: Re 1.6 Ω, BL 9.39 T·m)', () => {
   const RSS265 = {...MOTOR, numVC: 2, VCCon: VoiceCoilWiring.Parallel, Re_ohm: 1.6, BL_Tm: 9.39};
 
   it('series is Re × 4 = 6.4 Ω and BL × 2 = 18.78 T·m', () => {
@@ -166,7 +168,7 @@ describe('My wiring: parallel-measured driver, series wanted (RSS265HO-44: Re 1.
   });
 });
 
-describe('My wiring is not offered when it cannot be applied', () => {
+describe('Coil wiring is not offered when it cannot be applied', () => {
   it('measured wiring not stated: disabled, with the reason, and the figures are used as published', () => {
     const project = projectOf({...MOTOR, numVC: 2, Re_ohm: 4.7, BL_Tm: 12.3});
     const w = project.coilWiring;
@@ -179,10 +181,12 @@ describe('My wiring is not offered when it cannot be applied', () => {
     expectSame(curves(project), curves(projectOf({...MOTOR, numVC: 1, Re_ohm: 4.7, BL_Tm: 12.3})));
   });
 
-  it('three coils: disabled, with the reason', () => {
-    const w = projectOf({...MOTOR, numVC: 3, VCCon: VoiceCoilWiring.Series, Re_ohm: 3.4, BL_Tm: 6.7}).coilWiring;
-    expect(w.canChoose).toBe(false);
-    expect(w.unavailableReason).toBe('A driver with 3 voice coils is published in one configuration and cannot be rewired here.');
+  it('three coils with a known wiring: can be chosen, as in WinISD (any numVC above 1; QO941)', () => {
+    const w = projectOf({...MOTOR, numVC: 3, VCCon: VoiceCoilWiring.Series, Re_ohm: 9, BL_Tm: 6}).coilWiring;
+    expect(w.canChoose).toBe(true);
+    w.choose('parallel');
+    expect(w.atMine.Re_ohm).toBeCloseTo(1, 12);
+    expect(w.atMine.BL_Tm).toBeCloseTo(2, 12);
   });
 
   it('one coil: nothing to choose', () => {
@@ -193,19 +197,23 @@ describe('My wiring is not offered when it cannot be applied', () => {
   });
 });
 
-describe('My wiring: the words the Driver tab shows', () => {
-  it('stated series, nothing chosen: both figure lines', () => {
+describe('Coil wiring: the figures behind the control', () => {
+  it('stated series, nothing chosen: published and amplifier-side figures agree', () => {
     const w = projectOf(MX6_22).coilWiring;
     expect(w.measuredBasis).toBe('stated');
-    expect(w.publishedFigures).toBe('Re 4.70 Ω · BL 12.30 Tm');
-    expect(w.mineFigures).toBe('Re 4.70 Ω · BL 12.30 Tm');
+    expect(w.published.Re_ohm).toBeCloseTo(4.7, 9);
+    expect(w.atMine.Re_ohm).toBeCloseTo(4.7, 9);
+    expect(w.atMine.BL_Tm).toBeCloseTo(12.3, 9);
   });
 
-  it('parallel chosen: the second line is the converted figures', () => {
+  it('parallel chosen: the amplifier-side figures are converted, the stored ones are not', () => {
     const p = projectOf(MX6_22);
     p.coilWiring.choose('parallel');
-    expect(p.coilWiring.publishedFigures).toBe('Re 4.70 Ω · BL 12.30 Tm');
-    expect(p.coilWiring.mineFigures).toBe('Re 1.175 Ω · BL 6.15 Tm');
+    // the stored driver is never overwritten; only the amplifier-side figures are converted (QO946.c35)
+    expect(p.coilWiring.published.Re_ohm).toBeCloseTo(4.7, 9);
+    expect(p.driver.specs.Re_ohm.value).toBeCloseTo(4.7, 9);
+    expect(p.coilWiring.atMine.Re_ohm).toBeCloseTo(1.175, 9);
+    expect(p.coilWiring.atMine.BL_Tm).toBeCloseTo(6.15, 9);
   });
 
   it('not stated and one coil', () => {

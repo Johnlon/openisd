@@ -10,12 +10,13 @@ describe('the word Connection', () => {
   it('is no label of the number-of-drivers or placement controls and no help row about wiring the drivers', () => {
     expect('CONNECTION' in PhoneLabels).toBe(false);
     expect('CONNECTION' in PhoneHelpRows).toBe(false);
-    expect(JSON.stringify(DesktopHelp.PLACEMENT)).not.toMatch(/connection|wired|wiring/i);
+    expect(JSON.stringify(DesktopHelp.PLACEMENT)).not.toMatch(/connection/i);
+    expect(JSON.stringify(DesktopHelp.PLACEMENT)).not.toMatch(/drivers are wired|wiring of (the|several) drivers/i);
   });
 
   it('the one field called Coil wiring or Voice coil connection is the driver\'s coil wiring, never the wiring of several drivers', () => {
     expect(DesktopLabels.VOICE_COIL_CONNECTION).toBe('Voice coil connection');
-    expect(EnumField.VCCON.description).toMatch(/voice coils of a multi-coil driver/);
+    expect(EnumField.VCCON.description).toMatch(/voice coils were wired when the maker measured this driver/);
     expect(EnumField.VCCON.description).not.toMatch(/several drivers|Num\. of drivers/);
   });
 });

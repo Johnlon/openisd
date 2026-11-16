@@ -1427,7 +1427,14 @@ export class EnumField extends Field {
     value: "VCCon",
     label: "Coil wiring",
     options: VC_CONNECTION_OPTIONS,
-    description: "Measured Wiring\nHow the voice coils of a multi-coil driver were wired when the maker measured Re and BL: series, parallel, or not stated. Re, BL, Le and Znom are kept as published for this wiring. Your own wiring is set in the project (Driver tab, My wiring).",
+    description: "Coil wiring: as the maker measured it\nHow the voice coils were wired when the maker measured this driver (Series or Parallel). It says what the published Re and BL mean; it changes no figure. Leave it Not stated if the datasheet does not say. The wiring you use in a project is that project's own Coil wiring, on its Driver tab.",
+  });
+  /** The project's coil wiring (QO941), named as the driver's `VCCon` (John, QO942.c56) and labelled the same; its help says which is which (QO942.c58). */
+  static readonly PROJECT_VCCON = new EnumField({
+    value: "project_VCCon",
+    label: "Coil wiring",
+    options: VC_CONNECTION_OPTIONS,
+    description: "Coil wiring: how you wire it in this project\nHow you wire this driver's voice coils in this project. If it differs from how the driver was measured, the calculations use the figures for your wiring (for 2 coils, Series gives Re, Le and nominal impedance ×4 and BL ×2 compared with Parallel; Fs, Q, Vas and Mms do not change). The driver's own figures are never changed. It can be changed only for a driver with 2 or more coils whose measured wiring is stated.",
   });
 
   // ── Filters ───────────────────────────────────────────────────────────────────────────────
@@ -1521,7 +1528,7 @@ export class ToggleField extends Field {
   static readonly ADV_SIMVCINDUCTANCE = new ToggleField({
     value: "adv_SimVcInductance",
     label: "Simulate voice coil inductance",
-    description: "Simulate Voice Coil Inductance\nApplies Le to the acoustic output too, not just the impedance plot.",
+    description: "Simulate voice coil inductance\nTicked: the voice coil inductance Le is in the impedance and in the SPL and transfer function, so both fall away at high frequency.\nUnticked (default): Le is left out of the impedance and of the SPL, as WinISD does.",
   });
   static readonly ADV_FORCEFLATRESPONSE = new ToggleField({
     value: "adv_ForceFlatResponse",
@@ -1579,6 +1586,12 @@ export class ToggleField extends Field {
     label: "TL port without end correction",
     description: "TL port without end correction: with the transmission line model on, WinISD builds the port pipe without the port's end correction, so the box tunes above the Fb on the Box tab.\nTicked: OpenISD works as WinISD does. The pipe is the Fb port length less the end correction. On the W5-1138SMF at Fb 38 Hz, the impedance minimum is 40.3 Hz, against 38.7 Hz unticked.\nUnticked (default): the pipe keeps the end correction and the box tunes where the Box tab says.\nOnly where \"Use transmission line model\" is ticked on a vented, bandpass or ABC box.",
   }, "the Impedance, SPL and Transfer function charts of vented, bandpass and ABC boxes with the transmission line model on. W5-1138SMF, Fb 38 Hz: impedance minimum 40.3 Hz in WinISD against 38.7 Hz with the end correction.");
+
+  static readonly ADV_WINISDCOILWIRINGREBLONLY = new ToggleField({
+    value: "adv_WinisdCoilWiringReBlOnly",
+    label: "Coil wiring: Re and BL only",
+    description: "Coil wiring: Re and BL only: when a driver's coil wiring is changed, WinISD converts Re and BL and leaves the inductance Le and the nominal impedance Znom as they were. We count this as a WinISD bug.\nTicked: OpenISD does the same. Only Re and BL follow the project's Coil wiring. The effect shows only with \"Simulate voice coil inductance\" on; Znom feeds no chart.\nUnticked (default): Re, Le and Znom change by N² (N coils) and BL by N, as the coils really behave. It applies only to a driver with 2 or more coils whose measured wiring is stated.",
+  }, "the Impedance, SPL and Transfer function charts at high frequency, with voice coil inductance on, for a multi-coil driver whose project Coil wiring differs from the driver's. Dayton MX6-22 (Le 1.5 mH measured in series) set to Parallel: Le is 0.375 mH here and 1.5 mH with the switch ticked.");
 
   // ── WinISD Compatibility: options (under "Enable WinISD-style", named by the calculation; ticked is WinISD's way) ──────
   static readonly ADV_WINISDWRAPPHASE = new ToggleField({

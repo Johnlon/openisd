@@ -148,6 +148,8 @@ export class PhoneHelpRows {
   static readonly PR_RESONANCE_WITH_MASS: PhoneHelpRow = {label: 'Resonance with mass', text: 'the frequency at which the passive radiator vibrates most freely, with the added mass.'};
   static readonly VELOCITY_LIMIT: PhoneHelpRow = {label: 'Velocity limit', text: 'the air speed above which the charts mark the vent as likely to be noisy.'};
   static readonly DRIVERS: PhoneHelpRow = {label: 'Drivers', text: 'the number of drivers in the box.'};
+  /** The project's Coil wiring: the same words as `EnumField.PROJECT_VCCON`'s help (the test coil-wiring-help.test.ts keeps them one text). */
+  static readonly COIL_WIRING: PhoneHelpRow = {label: 'Coil wiring', text: 'how you wire this driver\'s voice coils in this project. If it differs from how the driver was measured, the calculations use the figures for your wiring (for 2 coils, Series gives Re, Le and nominal impedance ×4 and BL ×2 compared with Parallel; Fs, Q, Vas and Mms do not change). The driver\'s own figures are never changed. It can be changed only for a driver with 2 or more coils whose measured wiring is stated.'};
   static readonly POWER: PhoneHelpRow = {label: 'Power', text: 'the amplifier power, measured into the driver\'s rated load in ohms.'};
   static readonly VOLTS: PhoneHelpRow = {label: 'Volts', text: 'the amplifier output voltage. Power and Volts set each other.'};
   static readonly RS: PhoneHelpRow = {label: 'Rs', text: 'the resistance of the cable and amplifier between the amplifier and the driver.'};
@@ -216,6 +218,7 @@ export class PhoneHelp {
     {label: 'Select driver', text: 'picks a driver from the library.'},
     {label: 'Edit', text: 'opens the driver\'s parameters.'},
     PhoneHelpRows.DRIVERS,
+    PhoneHelpRows.COIL_WIRING,
   ]);
   static readonly KEY_FIGURES = new PhoneHelpSection('Key figures', 'The driver\'s main parameters, for reference. Tap one to edit the driver.', [
     {label: 'Fs', text: 'the frequency at which the driver vibrates most freely, out of a box. Lower Fs can reach lower bass.'},
@@ -275,7 +278,7 @@ export class PhoneHelp {
   static readonly EDITOR_MISCELLANEOUS = new PhoneHelpSection("Miscellaneous parameters", "These fields describe sensitivity, rated load and wiring. Optional reference figures are not additional core requirements.", [
     {"label": "Efficiency, SPL and USPL", "text": "Efficiency and sensitivity describe how much sound is produced for a stated input. Power-based and voltage-based sensitivities use different reference conditions; they are not interchangeable."},
     {"label": "Znom", "text": "Nominal impedance rating, such as 4 or 8 ohms, for amplifier matching. Re is the measured DC resistance."},
-    {"label": "Voicecoils and Connection", "text": "The number of voice coils, and the wiring the maker measured Re and BL in (series, parallel or not stated). Re and BL stay as published for that wiring. Your own wiring is My wiring, on the project’s Driver tab."},
+    {"label": "Voicecoils and Coil wiring", "text": "The number of voice coils, and how the voice coils were wired when the maker measured this driver (Series or Parallel). It says what the published Re and BL mean; it changes no figure. Leave it Not stated if the datasheet does not say. The wiring you use in a project is that project\u2019s own Coil wiring, on its Driver tab."},
     {"label": "Peak power — optional reference", "text": "Short-term power rating. It is not the continuous Pe rating used for thermal limits."},
   ]);
   static readonly EDITOR_THERMAL = new PhoneHelpSection("Thermal parameters", "Thermal information is separate from the core small-signal inputs.", [
@@ -319,7 +322,7 @@ export class PhoneHelp {
     {label: 'Reset to app levels', text: 'sets the air back to the levels in Options.'},
   ]);
   static readonly ADVANCED_SIMULATION = new PhoneHelpSection('Simulation options', 'How closely the charts follow the real speaker. They change the results, not the design.', [
-    {label: ToggleField.ADV_SIMVCINDUCTANCE.label, text: 'applies the voice coil inductance to the sound output as well as the impedance.'},
+    {label: ToggleField.ADV_SIMVCINDUCTANCE.label, text: 'puts the voice coil inductance Le in the impedance and the SPL. Off, Le is left out of both, as WinISD does.'},
     {label: ToggleField.ADV_FORCEFLATRESPONSE.label, text: 'adds EQ to make the response flat. The excursion and port speed charts then show what that costs.'},
     {label: ToggleField.ADV_TLPORTMODEL.label, text: 'treats the port as a pipe with a length, not a lump of air. The charts then show the pipe\'s own notes.', difference: WinisdDifference.forDeviation(WinisdDeviation.TL_PORT_END_CORRECTION)},
     {label: ToggleField.ADV_RGATDRIVERSIDE.label, text: 'ticked: each driver gets its own series resistance Rg. Unticked: Rg sits once, at the amplifier.'},
@@ -337,6 +340,7 @@ export class PhoneHelp {
     bugLine(ToggleField.ADV_WINISDBESSELHIGHPASS, 'WinISD\'s Bessel high-pass is not the mirror of its low-pass.', WinisdFilterDeviation.BESSEL_HIGHPASS),
     bugLine(ToggleField.ADV_WINISDABCGROUPDELAY, 'WinISD\'s ABC group delay leaves the driver out.', WinisdDeviation.ABC_GROUP_DELAY),
     bugLine(ToggleField.ADV_WINISDSEALEDPICKER, 'WinISD\'s sealed picker suggests a volume for your Qtc, but the Box tab then shows a different Qtc.', WinisdDeviation.SEALED_PICKER),
+    bugLine(ToggleField.ADV_WINISDCOILWIRINGREBLONLY, 'when a driver\'s coil wiring changes, WinISD converts Re and BL only and leaves Le and Znom as they were.', WinisdDeviation.COIL_WIRING_RE_BL_ONLY),
     bugLine(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'with the transmission line model on, WinISD leaves out the port end correction and tunes the box higher.', WinisdDeviation.TL_PORT_END_CORRECTION),
   ]);
   static readonly ADVANCED_SECTIONS: readonly PhoneHelpSection[] = [

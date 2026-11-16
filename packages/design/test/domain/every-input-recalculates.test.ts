@@ -21,6 +21,7 @@
  * as WinISD does. Cms, Mms, Rms are display only; Qts only fills a missing Qes/Qms or shows a
  * conflict; the What-if driver rows are Fs, Vas, Qes, Qms (no Qts).
  */
+import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 import {describe, expect, it} from 'vitest';
 import type {BoxType, Filter} from '../../engine/index.js';
 import {createEngine} from '../../engine/Engine.js';
@@ -246,6 +247,7 @@ const PROJECT_SETTINGS: Readonly<Record<SettingKey, SettingCase>> = {
   winisdVaModel: compat,
   winisdWrapPhase: compat,
   winisdSealedPicker: compat,
+  winisdCoilWiringReBlOnly: compat,
   winisdAbcIntraPortVelocity: compat,
   winisdPrNprResonance: compat,
   winisdBesselHighpass: compat,
@@ -294,6 +296,8 @@ const COMPAT_SCENARIOS: ReadonlyMap<CompatSwitch, CompatScenario | string> = new
   [CompatSwitch.ABC_GROUP_DELAY, {box: 'abc', prepare: () => undefined}],
   [CompatSwitch.SEALED_PICKER, 'the sealed volume picker on the Box tab; no chart reads it'],
   [CompatSwitch.TL_PORT_END_CORRECTION, {box: 'vented', prepare: p => p.useTransmissionLinePortModel.set(true)}],
+  // A two-coil driver measured in series, set to Parallel, with the voice coil inductance on: Le is what the switch changes.
+  [CompatSwitch.COIL_WIRING_RE_BL_ONLY, {box: 'sealed', prepare: p => { p.driver.specField('numVC').set(2); p.driver.specs.VCCon.set(VoiceCoilWiring.Series); p.coilWiring.choose('parallel'); p.circuitModel.set('gyrator'); }}],
   [CompatSwitch.WRAP_PHASE, {box: 'sealed', prepare: () => undefined}],
   [CompatSwitch.FLAT_MODEL, {box: 'sealed', prepare: p => p.forceFlatResponse.set(true)}],
   [CompatSwitch.ABC_INTRA_PORT_VELOCITY, {box: 'abc', prepare: () => undefined}],

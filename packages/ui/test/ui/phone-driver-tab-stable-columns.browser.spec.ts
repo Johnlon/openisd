@@ -12,7 +12,7 @@ import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 const DRIVERS: readonly {name: string; file: string}[] = [
   {name: 'no coil count (CE28M-4)', file: 'dayton-audio/ce28m-4'},
   {name: 'two coils, wiring known (MX6-22)', file: 'dayton-audio/mx6-22'},
-  {name: 'three coils, wiring not stated (W137A-854-4)', file: 'bliesma/w137a-854-4'},
+  {name: 'two coils, wiring not stated (SD215A-88)', file: 'dayton-audio/sd215a-88'},
 ];
 
 async function boxes(page: Page): Promise<{x: number; width: number}[]> {

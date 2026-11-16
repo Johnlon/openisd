@@ -47,8 +47,8 @@ function upgraded(value: unknown): unknown {
 const woofer = (v: unknown): unknown => at(v, 'specs', 'woofer');
 
 describe('schemaVersion 4: multi-coil Re and BL as published', () => {
-  it('the current version is 4', () => {
-    expect(CURRENT_SCHEMA_VERSION).toBe(4);
+  it('the current version is 5 (4 was current until QO941; a version 4 file still upgrades through step 3 to 4)', () => {
+    expect(CURRENT_SCHEMA_VERSION).toBe(5);
   });
 
   it('VCCon entered series (Visaton GF 250, stored per coil 3.1 Ω / 6.5 Tm): 3.1×2 = 6.2 Ω, 6.5×2 = 13 Tm, precision kept', () => {
@@ -141,7 +141,7 @@ describe('schemaVersion 4: multi-coil Re and BL as published', () => {
       expect(at(w, 'BL_Tm', 'value')).toBe(13);
       expect(at(w, 'VCCon')).toEqual({state: 'E', value: 'series'});
     }
-    expect(at(out, 'schemaVersion')).toBe(4);
+    expect(at(out, 'schemaVersion')).toBe(5);
   });
 
   it('a version 2 file goes through 2 → 3 → 4', () => {
@@ -156,7 +156,7 @@ describe('schemaVersion 4: multi-coil Re and BL as published', () => {
     };
     const unversioned = Object.fromEntries(Object.entries(v2).filter(([key]) => key !== 'schemaVersion'));
     const out = upgraded(unversioned);
-    expect(at(out, 'schemaVersion')).toBe(4);
+    expect(at(out, 'schemaVersion')).toBe(5);
     expect(at(woofer(out), 'Re_ohm')).toEqual({state: 'E', value: 6.2, precision: 0.05});
     expect(at(woofer(out), 'BL_Tm')).toEqual({state: 'E', value: 13, precision: 0.5});
     expect(at(woofer(out), 'VCCon')).toEqual({state: 'E', value: 'series'});
@@ -170,8 +170,8 @@ describe('schemaVersion 4: multi-coil Re and BL as published', () => {
     expect(at(woofer(upgraded(v4)), 'VCCon')).toEqual({state: 'E', value: 'series'});
   });
 
-  it('a version 5 file is refused with the update message', () => {
-    const result = upgradeToCurrent({...v3Driver({}), schemaVersion: 5});
+  it('a version 6 file is refused with the update message (5 is current since QO941)', () => {
+    const result = upgradeToCurrent({...v3Driver({}), schemaVersion: 6});
     expect('refusal' in result && result.refusal).toMatch(/update the app/i);
   });
 });

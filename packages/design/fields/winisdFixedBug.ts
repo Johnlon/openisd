@@ -118,6 +118,22 @@ export class WinisdFixedBug {
     size: 'With one coil the numbers do not change, but the wiring you chose is lost.',
   });
 
+  static readonly COIL_WIRING_REWRITES_RE_BL = new WinisdFixedBug({
+    title: 'WinISD overwrites the driver\'s Re and BL when you change the voice coil connection',
+    winisd: 'WinISD\'s "Voice coil connection" box rewrites the Re and BL stored in the driver. Going from Parallel to Series multiplies Re by the number of voice coils squared and BL by the number of voice coils; going back divides. The driver no longer holds the figures the maker published, and the file keeps only the last wiring, not the one the maker measured in.',
+    openisd: 'OpenISD keeps the Re and BL as the maker published them, in the driver, and works out the figures for your wiring when it calculates. Nothing you typed is changed.',
+    seenIn: 'the Voice coil connection box on the Driver tab and in the Driver editor.',
+    size: 'Dayton MX6-22 (2 coils, published Re 4.7 ohm and BL 12.3 Tm): choosing Parallel gives Re 1.175 ohm and BL 6.15 Tm in the calculation. WinISD would store those over the published figures.',
+  });
+
+  static readonly PROJECT_CONNECTION_SHOWS_PARALLEL = new WinisdFixedBug({
+    title: 'WinISD\'s project Voice coil connection always shows Parallel after a load',
+    winisd: 'WinISD never sets the Voice coil connection box on the Driver tab from the loaded file, so a driver saved in Series shows Parallel, and choosing Parallel then divides the stored Re and BL as if they were Series figures. Choosing Series does nothing.',
+    openisd: 'OpenISD shows the driver\'s own wiring until you choose another, and converts from it.',
+    seenIn: 'the Voice coil connection box on the Driver tab, after opening a project.',
+    size: 'A Series driver with Re 14.15 ohm and BL 6 Tm becomes Re 3.54 ohm and BL 3 Tm when you choose Parallel on the box that wrongly shows Parallel already.',
+  });
+
   /** Every fixed bug, by reflection; declared last. */
   static readonly ALL: readonly WinisdFixedBug[] =
     Object.freeze(Object.values(WinisdFixedBug).filter((v): v is WinisdFixedBug => v instanceof WinisdFixedBug));

@@ -17,8 +17,9 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         durableIssues: () => readonly DriverIssue[],
         private readonly newId: () => string,
         myWiring: () => Wiring | undefined,
+        coilWiringReBlOnly: () => boolean,
     ) {
-        super(record, engine, airProvider, durableIssues, myWiring);
+        super(record, engine, airProvider, durableIssues, myWiring, coilWiringReBlOnly);
     }
 
     /** Takes the lens onto the project's `driver` slot and the project's air — the air every
@@ -34,10 +35,11 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
         durableIssues: () => readonly DriverIssue[],
         /** The app's id source: a driver leaving the project becomes an entity and gets an id. */
         newId: () => string,
-        /** The project's "My wiring" (undefined: the measured wiring). */
+        /** The project's "Coil wiring" (undefined: the measured wiring). */
         myWiring: () => Wiring | undefined,
+        coilWiringReBlOnly: () => boolean,
     ): OpenISDDriverEmbedded {
-        return new OpenISDDriverEmbedded(slot, engine, airProvider, durableIssues, newId, myWiring);
+        return new OpenISDDriverEmbedded(slot, engine, airProvider, durableIssues, newId, myWiring, coilWiringReBlOnly);
     }
 
     /** A standalone copy of this driver with a NEW id: the driver in a project has no id of its

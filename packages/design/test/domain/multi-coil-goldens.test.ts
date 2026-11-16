@@ -419,9 +419,12 @@ describe('Bliesma W137A-854-4 (3 independent coils, configuration as published, 
     expect(wdr.cell('VCCon')).toEqual({value: '1', state: 'calculated'});
   });
 
-  it('3 coils cannot be rewired here', () => {
+  // WinISD's routine acts for any numVC above 1 (QO941), so 3 coils convert once the measured wiring is known; this record
+  // states none, so there is nothing to convert from.
+  it('with no measured wiring stated, 3 coils cannot be rewired; with one, they convert as WinISD does', () => {
     const {driver} = project(W137);
-    expect(engine.driver.convertWiring(motorOf(driver), 3, 'series', 'parallel').converted).toBe(false);
+    expect(engine.driver.convertWiring(motorOf(driver), 3, null, 'parallel').converted).toBe(false);
+    expect(engine.driver.convertWiring(motorOf(driver), 3, 'series', 'parallel').converted).toBe(true);
   });
 });
 

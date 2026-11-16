@@ -983,16 +983,18 @@ parallel, `Re` still ×4, file says parallel), set series again (`Re`×16).
 |                         | WinISD                                                   | OpenISD                                                                                                  |
 | ----------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | fields                  | one `Re`, whose meaning changes silently with the wiring | `Re`, `BL`, `Le`, `Znom` as the maker published them, for the measured wiring (`VCCon`: series, parallel or unknown) |
-| on a wiring change      | rewrites the stored value in place                       | nothing stored changes; the project's "My wiring" converts the figures the amplifier side reads        |
+| on a wiring change      | rewrites the stored value in place                       | nothing stored changes; the project's "Coil wiring" converts the figures the amplifier side reads        |
 | provenance              | rewritten value stays marked `E`                         | stored figures keep their marks; converted figures are never stored                                    |
 | where the scaling lives | in the editor                                            | the engine's `convertWiring`, read by the sweep, power, Rg loading and the `.wpr` writer               |
 
-N identical coils, series to parallel: `Re`, `Le`, `Znom` divided by N², `BL` by N. `Qes`, `Fs`, `Mms`, `Cms`,
-`Vas` never change. Three coils cannot be rewired. A `.wdr` of the driver carries the stored figures with the
-measured wiring; a `.wpr` carries the figures converted to My wiring, with My wiring as `VCCon`. The control WinISD
-labels "Voice coil connection" on the Driver tab is the coil wiring of one driver (winisd_research FINDING_20261115).
-WinISD has no wiring of several drivers, and OpenISD applies none since 15 Nov 2026; the earlier statement here that
-the control joins several drivers was wrong.
+N identical coils, series to parallel: `Re`, `Le`, `Znom` divided by N², `BL` by N. WinISD converts `Re` and `BL`
+only (winisd_research FINDING_20261115); a yellow switch for that difference is awaiting John (QO942.c22). `Qes`, `Fs`,
+`Mms`, `Cms`, `Vas` never change. Any number of coils above one converts, as WinISD does. A `.wdr` of the driver carries the
+stored figures with the measured wiring; a `.wpr` carries the figures converted to the project's coil wiring, with that
+wiring as `[Driver] VCCon` (the project's `wiring` field is WinISD's project VCCon, both ways). The control WinISD labels
+"Voice coil connection" on the Driver tab is the coil wiring of one driver (winisd_research FINDING_20261115). WinISD has no
+wiring of several drivers, and OpenISD applies none since 15 Nov 2026; the earlier statement here that the control joins
+several drivers was wrong.
 
 Two reasons this is worth diverging over: OpenISD round-trips and TESTS the `E`/`C`/`N` marks, so
 a false `E` corrupts the parity suite itself; and a destructive edit of a typed value is

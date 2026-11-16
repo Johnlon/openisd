@@ -109,7 +109,8 @@ export class OpenISDProject {
             () => this.#airOver(root),
             () => this.#issues.driver,
             () => this.#appContext.newId(),
-            () => root.value.driverEmbedding.coilWiring,
+            () => root.value.driverEmbedding.VCCon,
+            () => root.value.advanced.winisdCoilWiringReBlOnly === true,
         );
     }
 
@@ -175,7 +176,7 @@ export class OpenISDProject {
         return defaultedField(focus(this.#slot('driverEmbedding'), 'nDrivers'), 1);
     }
 
-    /** "My wiring": how the user wires a multi-coil driver's own coils, beside the wiring it was
+    /** "Coil wiring": how the user wires a multi-coil driver's own coils, beside the wiring it was
      *  measured in. The amplifier-side figures use it; the stored ones stay as published. */
     get coilWiring(): ProjectCoilWiring {
         return new ProjectCoilWiring(this.#slot('driverEmbedding'), this.driver, this.#engine);
@@ -357,6 +358,11 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdTlPortNoEndCorrection;
     }
 
+    /** WinISD Compatibility "Coil wiring: Re and BL only" — see `ProjectAdvanced.winisdCoilWiringReBlOnly`. */
+    get winisdCoilWiringReBlOnly(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdCoilWiringReBlOnly;
+    }
+
     /** The controls that reproduce a known WinISD error: which carry the warning look, whether each
      *  applies to the open box, and whether it is reproducing the error now. */
     get errorSwitches(): ErrorSwitchStates {
@@ -372,6 +378,8 @@ export class OpenISDProject {
             winisdAbcGroupDelay: this.winisdAbcGroupDelay.value,
             winisdSealedPicker: this.winisdSealedPicker.value,
             winisdTlPortNoEndCorrection: this.winisdTlPortNoEndCorrection.value,
+            winisdCoilWiringReBlOnly: this.winisdCoilWiringReBlOnly.value,
+            coilWiringApplies: this.coilWiring.canChoose,
             tlPortModel: this.useTransmissionLinePortModel.value,
         });
     }

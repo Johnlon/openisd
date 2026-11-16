@@ -7,9 +7,9 @@ import {forceMobileSkin} from '../fixtures/mobileSkin.js';
  * QO941 (John, 2026-11-15): the Driver tab shows no measured wiring, so the data-quality mark for a
  * multi-coil driver whose wiring is not stated is the user's only sign. It is the ⚠ on the
  * "Coil wiring" field in the Driver editor, with the data-quality sentence as its tooltip.
- * BlieSMa W137A-854-4 has three coils and states no wiring; Dayton MX6-22 states series.
+ * Dayton SD215A-88 has two coils and states no wiring; Dayton MX6-22 states series.
  */
-const W137A = readFileSync('packages/ui/public/drivers/bliesma/w137a-854-4.json');
+const UNSTATED = readFileSync('packages/ui/public/drivers/dayton-audio/sd215a-88.json');
 const MX6_22 = readFileSync('packages/ui/public/drivers/dayton-audio/mx6-22.json');
 
 async function selectDriver(page: Page, file: Buffer): Promise<void> {
@@ -25,7 +25,7 @@ const PHONE = {open: async (page: Page) => { await forceMobileSkin(page); await 
 for (const [skin, skinName] of [[DESKTOP, 'desktop'], [PHONE, 'phone']] as const) {
   test(`${skinName}: unstated wiring on a multi-coil driver is flagged on the editor's Coil wiring field`, async ({page}) => {
     await skin.open(page);
-    await selectDriver(page, W137A);
+    await selectDriver(page, UNSTATED);
     await skin.edit(page);
     await editorTab(page, 'Parameters');
     const row = page.locator('.de-body [data-field-key="VCCon"]');

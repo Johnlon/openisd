@@ -148,6 +148,15 @@ export class WinisdDeviation {
     charts: [],
   });
 
+  static readonly COIL_WIRING_RE_BL_ONLY = new WinisdDeviation({
+    title: 'WinISD changes only Re and BL with the coil wiring',
+    winisd: 'When a multi-coil driver\'s coil wiring is changed, WinISD converts Re (by N squared) and BL (by N, N the number of voice coils) and leaves the inductance Le and the nominal impedance Znom as they were.',
+    openisd: 'OpenISD converts Le and Znom with the wiring as well: two identical coils in series have N squared times the inductance and the impedance of the same coils in parallel.',
+    size: 'Dayton MX6-22 (Le 1.5 mH, Znom 4 ohm measured in series) set to Parallel: Le 0.375 mH and Znom 1 ohm here, 1.5 mH and 4 ohm in WinISD. Visible only with voice coil inductance on; Znom feeds no chart.',
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDCOILWIRINGREBLONLY, switchOf: s => s.coilWiringReBlOnly},
+    charts: [],
+  });
+
   static readonly SEALED_PICKER = new WinisdDeviation({
     title: 'WinISD\'s sealed picker gives a different volume',
     winisd: 'WinISD picks a different volume here: it leaves out box leakage and uses a fixed Rg of 0.1 Ω and Qa of 100, so its Box tab then shows a Qtc a little off the one you picked.',

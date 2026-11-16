@@ -30,7 +30,7 @@ function driverOfWpr(p: OpenISDProject): WinISDDriver {
   return WinISDDriver.fromWdrIni(value.driverWdrText());
 }
 
-describe('.wpr export and My wiring', () => {
+describe('.wpr export and Coil wiring', () => {
   it('the measured wiring kept: published figures, VCCon series', () => {
     const w = driverOfWpr(project());
     expect(w.cell('Re').value).toBe('4.7');
