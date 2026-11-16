@@ -390,7 +390,7 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
    {kind: "inconsistent-inputs", fields: ["Qes","Fs_hz","Mms_kg","Re_ohm","BL_Tm"], text: "Qes, Fs, Mms, Re and BL disagree: Qes = 2π·Fs·Mms·Re/Bl² gives Qes 0.5387, the box says 0.57. Correct one of them, or clear one to let it be calculated.", expected: 0.5387363085200444, actual: 0.57, relative: 0.020194826671103398},
    {kind: "inconsistent-inputs", fields: ["Rme_kg_per_s","BL_Tm","Re_ohm"], text: "Rme, BL and Re disagree: Rme = Bl²/Re gives Rme 15.12026 Ns/m, the box says 14.29094 Ns/m. Correct one of them, or clear one to let it be calculated.", expected: 15.120264705882352, actual: 14.290939634198201, relative: 0.02007621829255564},
    {kind: "inconsistent-inputs", fields: ["Mpow_N_per_sqrtW","Rme_kg_per_s"], text: "Mpow and Rme disagree: Mpow = √Rme gives Mpow 3.78034 N/√W, the box says 3.88848 N/√W. Correct one of them, or clear one to let it be calculated.", expected: 3.7803359155236724, actual: 3.8884784563994117, relative: 0.010176556236690077},
-   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "Vas, Cms, Sd, rho and c disagree: Vas = ρ·c²·Sd²·Cms gives Vas 4.622 L, the box says 4.85 L. Correct one of them, or clear one to let it be calculated.", expected: 0.004621649972016001, actual: 0.00485, relative: 0.0358742485447423},
+   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "Vas, Cms, Sd, rho and c disagree: Vas = ρ·c²·Sd²·Cms gives Vas 4.622 L, the box says 4.85 L. Correct one of them, or clear one to let it be calculated.", expected: 0.004621649972016001, actual: 0.00485, relative: 0.012051310544659816},
   ],
  },
  {
@@ -399,7 +399,7 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
   record: [{field: "Fs_hz", value: 45, entered: true}, {field: "Re_ohm", value: 3.4, entered: true}, {field: "Le_H", value: 0.00034, entered: true}, {field: "Qes", value: 0.57, entered: true}, {field: "Qms", value: 3.56, entered: true}, {field: "Qts", value: 0.49, entered: true}, {field: "Vas_m3", value: 0.00485, entered: true}, {field: "Sd_m2", value: 0.0094, entered: true}, {field: "BL_Tm", value: 6.970595007334301, entered: false}, {field: "Mms_kg", value: 0.02881, entered: true}, {field: "Cms_m_per_N", value: 0.00036872, entered: true}, {field: "Rms_kg_per_s", value: 2.2881560650261163, entered: true}, {field: "Xmax_m", value: 0.00925, entered: true}, {field: "Pe_W", value: 40, entered: true}],
   issues: [
    {kind: "inconsistent-inputs", fields: ["Fs_hz","Mms_kg","Cms_m_per_N"], text: "Fs, Mms and Cms disagree: Fs = 1/(2π·√(Mms·Cms)) gives Fs 48.83 Hz, the box says 45.00 Hz. Correct one of them, or clear one to let it be calculated.", expected: 48.83151010262127, actual: 45, relative: 0.06813105282620575},
-   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "Vas, Cms, Sd, rho and c disagree: Vas = ρ·c²·Sd²·Cms gives Vas 4.622 L, the box says 4.85 L. Correct one of them, or clear one to let it be calculated.", expected: 0.004621649972016001, actual: 0.00485, relative: 0.0358742485447423},
+   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "Vas, Cms, Sd, rho and c disagree: Vas = ρ·c²·Sd²·Cms gives Vas 4.622 L, the box says 4.85 L. Correct one of them, or clear one to let it be calculated.", expected: 0.004621649972016001, actual: 0.00485, relative: 0.012051310544659816},
   ],
  },
  {
@@ -451,7 +451,7 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
    {kind: "inconsistent-inputs", fields: ["Qes","Fs_hz","Mms_kg","Re_ohm","BL_Tm"], text: "Qes, Fs, Mms, Re and BL disagree: Qes = 2π·Fs·Mms·Re/Bl² gives Qes 0.7074, the box says 0.50. Correct one of them, or clear one to let it be calculated.", expected: 0.707416293912981, actual: 0.5, relative: 0.11346939900511731},
    {kind: "inconsistent-inputs", fields: ["Rme_kg_per_s","BL_Tm","Re_ohm"], text: "Rme, BL and Re disagree: Rme = Bl²/Re gives Rme 9.375 Ns/m, the box says 13.26406 Ns/m. Correct one of them, or clear one to let it be calculated.", expected: 9.375, actual: 13.264055510868394, relative: 0.1259501465336935},
    {kind: "inconsistent-inputs", fields: ["Mpow_N_per_sqrtW","Rme_kg_per_s"], text: "Mpow and Rme disagree: Mpow = √Rme gives Mpow 3.64199 N/√W, the box says 3.06186 N/√W. Correct one of them, or clear one to let it be calculated.", expected: 3.6419851057999115, actual: 3.061862178478973, relative: 0.07025892593639743},
-   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "Vas, Cms, Sd, rho and c disagree: Vas = ρ·c²·Sd²·Cms gives Vas 14.83 L, the box says 10.48 L. Correct one of them, or clear one to let it be calculated.", expected: 0.014830089119999999, actual: 0.010480964774486248, relative: 0.03660295361654328},
+   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "Vas, Cms, Sd, rho and c disagree: Vas = ρ·c²·Sd²·Cms gives Vas 14.83 L, the box says 10.48 L. Correct one of them, or clear one to let it be calculated.", expected: 0.014830089119999999, actual: 0.010480964774486248, relative: 0.011602953616543297},
   ],
  },
  {
@@ -792,7 +792,7 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
    {kind: "inconsistent-inputs", fields: ["Qes","Fs_hz","Mms_kg","Re_ohm","BL_Tm"], text: "Qes, Fs, Mms, Re and BL disagree: Qes = 2π·Fs·Mms·Re/Bl² gives Qes 0.5387, the box says 0.57. Correct one of them, or clear one to let it be calculated.", expected: 0.5387363085200444, actual: 0.57, relative: 0.020194826671103398},
    {kind: "inconsistent-inputs", fields: ["Rme_kg_per_s","BL_Tm","Re_ohm"], text: "Rme, BL and Re disagree: Rme = Bl²/Re gives Rme 15.12026 Ns/m, the box says 14.29094 Ns/m. Correct one of them, or clear one to let it be calculated.", expected: 15.120264705882352, actual: 14.290939634198201, relative: 0.02007621829255564},
    {kind: "inconsistent-inputs", fields: ["Mpow_N_per_sqrtW","Rme_kg_per_s"], text: "Mpow and Rme disagree: Mpow = √Rme gives Mpow 3.78034 N/√W, the box says 3.88848 N/√W. Correct one of them, or clear one to let it be calculated.", expected: 3.7803359155236724, actual: 3.8884784563994117, relative: 0.010176556236690077},
-   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "Vas, Cms, Sd, rho and c disagree: Vas = ρ·c²·Sd²·Cms gives Vas 4.622 L, the box says 4.85 L. Correct one of them, or clear one to let it be calculated.", expected: 0.004621649972016001, actual: 0.00485, relative: 0.0358742485447423},
+   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "Vas, Cms, Sd, rho and c disagree: Vas = ρ·c²·Sd²·Cms gives Vas 4.622 L, the box says 4.85 L. Correct one of them, or clear one to let it be calculated.", expected: 0.004621649972016001, actual: 0.00485, relative: 0.012051310544659816},
   ],
  },
  {
@@ -859,7 +859,7 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
    {kind: "inconsistent-inputs", fields: ["Qes","Fs_hz","Mms_kg","Re_ohm","BL_Tm"], text: "Qes, Fs, Mms, Re and BL disagree: Qes = 2π·Fs·Mms·Re/Bl² gives Qes 0.7074, the box says 0.50. Correct one of them, or clear one to let it be calculated.", expected: 0.707416293912981, actual: 0.5, relative: 0.11346939900511731},
    {kind: "inconsistent-inputs", fields: ["Rme_kg_per_s","BL_Tm","Re_ohm"], text: "Rme, BL and Re disagree: Rme = Bl²/Re gives Rme 9.375 Ns/m, the box says 13.26406 Ns/m. Correct one of them, or clear one to let it be calculated.", expected: 9.375, actual: 13.264055510868394, relative: 0.1259501465336935},
    {kind: "inconsistent-inputs", fields: ["Mpow_N_per_sqrtW","Rme_kg_per_s"], text: "Mpow and Rme disagree: Mpow = √Rme gives Mpow 3.64199 N/√W, the box says 3.06186 N/√W. Correct one of them, or clear one to let it be calculated.", expected: 3.6419851057999115, actual: 3.061862178478973, relative: 0.07025892593639743},
-   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "Vas, Cms, Sd, rho and c disagree: Vas = ρ·c²·Sd²·Cms gives Vas 14.83 L, the box says 50.00 L. Correct one of them, or clear one to let it be calculated.", expected: 0.014830089119999999, actual: 0.05, relative: 0.57643016355},
+   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "Vas, Cms, Sd, rho and c disagree: Vas = ρ·c²·Sd²·Cms gives Vas 14.83 L, the box says 50.00 L. Correct one of them, or clear one to let it be calculated.", expected: 0.014830089119999999, actual: 0.05, relative: 0.56901511899},
   ],
  },
  {
