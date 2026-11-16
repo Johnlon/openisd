@@ -61,6 +61,18 @@ describe('DriverEngine.winisdCircuitValues', () => {
     expect(v.BL_terminal_Tm).toBeCloseTo(Math.sqrt(6 / (2 * Math.PI * 40 * 0.5 * cms)), 9);
   });
 
+  it('keeps a stated value whose T/S inputs are missing: no Vas, so the stated Cms stands, and Mms and Rms follow from it', () => {
+    const v = winisdOf({...STATED, Vas_m3: undefined});
+    expect(v.Cms_m_per_N).toBe(0.009);
+    expect(v.Mms_kg).toBeCloseTo(1 / ((2 * Math.PI * 40) ** 2 * 0.009), 12);
+  });
+
+  it('keeps the stated Mms and Rms when there is no Fs to work them out from', () => {
+    const v = winisdOf({...STATED, Fs_hz: undefined});
+    expect(v.Mms_kg).toBe(0.5);
+    expect(v.Rms_kg_per_s).toBe(9);
+  });
+
   it('with only Qts, takes Qes = Qms = 2·Qts there too', () => {
     const v = winisdOf({...STATED, Qes: undefined, Qms: undefined, Qts: 0.4});
     expect(v.Qes).toBeCloseTo(0.8, 12);

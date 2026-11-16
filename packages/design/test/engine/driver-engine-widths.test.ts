@@ -1,9 +1,17 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
 import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
-import {driverParams} from './testSolver.js';
+import {driverParams, sweepDriver} from './testSolver.js';
 
 const engine = createEngine();
+
+describe('DriverEngine.winisdCircuitValues with figures too extreme to compute from ("Chart from Fs, Vas, Qms" ticked, QO539)', () => {
+  it('keeps the stated Cms when Vas and Sd give a compliance that overflows', () => {
+    // Sd² underflows to 0, so Vas / (rho·c²·Sd²) is Infinity: not a usable compliance.
+    const values = sweepDriver({Vas_m3: 1, Sd_m2: 1e-200, Cms_m_per_N: 0.009}).values;
+    expect(engine.driver.winisdCircuitValues(values, REFERENCE_AIR).Cms_m_per_N).toBe(0.009);
+  });
+});
 
 describe('DriverEngine.solve widths', () => {
   const STATED = {Fs_hz: 40, Qes: 0.5, Qms: 4, Vas_m3: 0.02, Sd_m2: 0.0132, Re_ohm: 6};
