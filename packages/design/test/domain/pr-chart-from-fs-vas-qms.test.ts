@@ -61,4 +61,20 @@ describe('Chart from Fs, Vas, Qms: the passive radiator', () => {
     fromCms.winisdChartFromFsVasQms.set(true);
     expect(maxGap(splOf(stated), splOf(fromCms))).toBeLessThan(1e-6);
   });
+
+  it('the tuning readouts follow the figures the charts use: unticked the boxes, ticked the ones Fs, Vas and Qms give', () => {
+    const engine = createEngine();
+    const stated = prProject(engine, {...FOUR, Mms_kg: 0.05, Cms_m_per_N: 0.0006, Rms_kg_per_s: 2});
+    const derived = prProject(engine, FOUR);
+    const readouts = (p: ReturnType<typeof prProject>) => {
+      const pr = p.box.passiveRadiator;
+      return [pr.naturalTuning_hz.value, pr.systemTuning_hz.value, pr.resonanceWithAddedMass_hz.value, pr.addedMassForTuning_kg(40).value];
+    };
+    const near = (a: readonly (number | null)[], b: readonly (number | null)[]) => a.every((v, i) => v !== null && b[i] !== null && Math.abs(v - b[i]!) < 1e-9);
+    expect(near(readouts(stated), readouts(derived))).toBe(false);
+    stated.winisdChartFromFsVasQms.set(true);
+    derived.winisdChartFromFsVasQms.set(true);
+    expect(readouts(stated).every(v => v !== null)).toBe(true);
+    expect(near(readouts(stated), readouts(derived))).toBe(true);
+  });
 });

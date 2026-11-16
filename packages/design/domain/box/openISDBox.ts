@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
+import type { Air, BoxType, DqIssue, RadiatorMechanics, VentedAlignment } from '../../engine/index.js';
 import { CalculatedFieldImpl, DerivableFieldImpl, DualWriteFieldImpl, absentCell, enteredCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, settlingNullableField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
@@ -146,6 +146,8 @@ export class OpenISDBox implements Box {
     /** The project's own resolved air, injected: the starting radiator's Vas is worked out in it. */
     readonly #air: () => Air;
     readonly #nDrivers: () => number;
+    /** Whether "Chart from Fs, Vas, Qms (WinISD's way)" is ticked on the project (QO539). */
+    readonly #chartFromFsVasQms: () => boolean;
 
     private constructor(
         lens: SimpleField<OpenISDBoxJson>,
@@ -156,7 +158,9 @@ export class OpenISDBox implements Box {
         ventTuningExtra: () => DqIssue | null,
         air: () => Air,
         nDrivers: () => number,
+        chartFromFsVasQms: () => boolean,
     ) {
+        this.#chartFromFsVasQms = chartFromFsVasQms;
         this.#driver = driver;
         this.#engine = engine;
         this.#rs = rs;
@@ -448,6 +452,13 @@ export class OpenISDBox implements Box {
             get radiator() {
                 return getRadiator();
             },
+            chartMechanics: (): RadiatorMechanics => {
+                const spec = getRadiator().spec;
+                const stated = {Mms_kg: spec.Mms_kg.value, Cms_m_per_N: spec.Cms_m_per_N.value, Rms_kg_per_s: spec.Rms_kg_per_s.value};
+                if (!this.#chartFromFsVasQms()) return stated;
+                return this.#engine.driver.winisdRadiatorMechanics(
+                    {...stated, Fs_hz: spec.Fs_hz.value, Vas_m3: spec.Vas_m3.value, Sd_m2: spec.Sd_m2.value, Qms: spec.Qms.value}, air());
+            },
             // OUTPUTS of the solved pair (S2-7d2): plain entry-backed slots the `solvePr` cascade
             // in `OpenISDProject#resolve()` writes as 'C' entries — never entered by a user, never
             // recomputed at read time here.
@@ -456,7 +467,7 @@ export class OpenISDBox implements Box {
             naturalTuning_hz: new CalculatedFieldImpl<number | null>(() => {
                 const Vb = prVolume.value;
                 const r = getRadiator();
-                const mech = {Mms_kg: r.spec.Mms_kg.value, Cms_m_per_N: r.spec.Cms_m_per_N.value};
+                const mech = this.passiveRadiator.chartMechanics();
                 const prSd = r.spec.Sd_m2.value;
                 const prNum = this.passiveRadiator.count.value || 1;
                 const nowAir = air();
@@ -476,9 +487,10 @@ export class OpenISDBox implements Box {
             addedMassForTuning_kg: (fp_hz: number) => new CalculatedFieldImpl<number | null>(() => {
                 const Vb = prVolume.value;
                 const r = getRadiator();
-                const prMmd = r.spec.Mms_kg.value;
+                const mech = this.passiveRadiator.chartMechanics();
+                const prMmd = mech.Mms_kg;
                 const prSd = r.spec.Sd_m2.value;
-                const prCms = r.spec.Cms_m_per_N.value;
+                const prCms = mech.Cms_m_per_N;
                 const prNum = this.passiveRadiator.count.value || 1;
                 const nowAir = air();
                 if (!(Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null && fp_hz > 0)) {
@@ -766,8 +778,9 @@ export class OpenISDBox implements Box {
         ventTuningExtra: () => DqIssue | null,
         air: () => Air,
         nDrivers: () => number,
+        chartFromFsVasQms: () => boolean,
     ): OpenISDBox {
-        return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air, nDrivers);
+        return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air, nDrivers, chartFromFsVasQms);
     }
 
     /** The Vas of the starting radiator's compliance on `sd`, in `air`: the engine's solve works it out (the Vas-from-Cms route). */

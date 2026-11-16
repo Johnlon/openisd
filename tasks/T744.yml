@@ -168,6 +168,8 @@ files:
   - packages/design/test/fields/sheetField.test.ts
   - packages/design/test/domain/blank-device-id.test.ts
   - packages/ui/test/fixtures/generateSample.ts
+  - packages/design/domain/project/projectResolve.ts
+  - packages/design/domain/box/passiveRadiatorBox.ts
   - packages/design/test/domain/pr-chart-from-fs-vas-qms.test.ts
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png

@@ -147,6 +147,7 @@ export class OpenISDProject {
             () => this.#issues.ventTuningExtra,
             () => this.#airOver(root),
             () => root.value.driverEmbedding.nDrivers,
+            () => ProjectAdvanced.wrap(focus(root, 'advanced'), focus(root, 'filters')).winisdChartFromFsVasQms.value,
         );
     }
 
