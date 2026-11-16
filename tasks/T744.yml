@@ -146,20 +146,6 @@ files:
   - packages/ui/src/hooks/phoneLabelColumn.ts
   - packages/ui/test/fixtures/engineDot.ts
   - packages/ui/test/fixtures/fieldLayoutAudit.ts
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
   - packages/design/fields/field.ts
   - packages/design/fields/winisdOption.ts
   - packages/design/domain/project/projectAdvanced.ts
@@ -181,23 +167,114 @@ files:
   - packages/design/test/fields/sheetField.test.ts
   - packages/design/test/domain/blank-device-id.test.ts
   - packages/ui/test/fixtures/generateSample.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-cloud-conflict-notice.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-cloud-hint.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-cloud-reconnect-strip.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-difference-cue.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-disagreement-list.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-electro-mechanical.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-environment.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-figure-of-merit.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-large-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-miscellaneous.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-overview.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-thermal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-thiele-small.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-parameters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-export-format.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-library-save.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-rename.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-passive-radiator-data-quality.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-passive-radiator-save.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-passive-radiator-select.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-equation-inspector.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-settings-options-your-data.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-driver-editor-incomplete-warning.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-storage-restore-picker.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-driver-dq.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-driver-export.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-driver-more.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-driver-rename.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-driver-save.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-editor-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-editor-parameters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-equations.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-options-your-data.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-difference-cue.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-pr-save.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-driver-editor-incomplete-warning.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-storage-restore-picker.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
   - bugs/BUG_20261110_layout-scan-first-run.md
   - packages/ui/test/ui/layout-long-values.browser.spec.ts
   - packages/ui/test/ui/field-visual-contract.browser.spec.ts
 # Desktop and phone graph screens: the charts read the boxes as they show (QO534); phone Driver tab: the blue dot by Re (QO532);
 # both Advanced tabs: the "Chart from Fs, Vas, Qms (WinISD's way)" switch (QO539); every desktop screen: the saved size of a new project (its new switch).
+# Driver editor and radiator dialogs: the blue dots and ≠W cues; other dialogs over a project: its saved size (re-taken by CI after the merge with main, 16 Nov).
 visual:
   - desktop-box-abc
   - desktop-box-bandpass4
   - desktop-box-bandpass6
   - desktop-box-box-passive-radiator
   - desktop-box-sealed
+  - desktop-dialog-cloud-conflict-notice
+  - desktop-dialog-cloud-hint
+  - desktop-dialog-cloud-reconnect-strip
+  - desktop-dialog-difference-cue
+  - desktop-dialog-driver-disagreement-list
+  - desktop-dialog-driver-editor-advanced
+  - desktop-dialog-driver-editor-help-electro-mechanical
+  - desktop-dialog-driver-editor-help-environment
+  - desktop-dialog-driver-editor-help-figure-of-merit
+  - desktop-dialog-driver-editor-help-large-signal
+  - desktop-dialog-driver-editor-help-miscellaneous
+  - desktop-dialog-driver-editor-help-overview
+  - desktop-dialog-driver-editor-help-thermal
+  - desktop-dialog-driver-editor-help-thiele-small
+  - desktop-dialog-driver-editor-parameters
+  - desktop-dialog-driver-export-format
+  - desktop-dialog-driver-library-save
+  - desktop-dialog-driver-rename
+  - desktop-dialog-enclosure-passive-radiator-data-quality
+  - desktop-dialog-enclosure-passive-radiator-save
+  - desktop-dialog-enclosure-passive-radiator-select
+  - desktop-dialog-equation-inspector
+  - desktop-dialog-settings-options-your-data
+  - desktop-dialog-shared-driver-editor-incomplete-warning
+  - desktop-dialog-shared-storage-restore-picker
   - desktop-tab-advanced
   - desktop-tab-box
   - desktop-tab-driver
   - desktop-tab-filters
   - desktop-tab-project
   - desktop-tab-signal
+  - mobile-dialog-driver-dq
+  - mobile-dialog-driver-export
+  - mobile-dialog-driver-more
+  - mobile-dialog-driver-rename
+  - mobile-dialog-driver-save
+  - mobile-dialog-editor-advanced
+  - mobile-dialog-editor-parameters
+  - mobile-dialog-equations
+  - mobile-dialog-options-your-data
+  - mobile-dialog-phone-difference-cue
+  - mobile-dialog-pr-save
+  - mobile-dialog-shared-driver-editor-incomplete-warning
+  - mobile-dialog-shared-storage-restore-picker
   - mobile-tab-advanced
   - mobile-tab-driver
   - mobile-tab-graph
