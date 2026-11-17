@@ -60,3 +60,41 @@ session ran outside tmux and no handover was cleared.
 
 An agent resumed from an old transcript takes no action on its old work. Before any work it tells the coordinating
 session what it means to do and waits for an ok. The keeper's resume prompt says this.
+
+## 6. The update popup is written for users (John, 17 Nov 2026)
+
+> "this is too obvious what it should do already so make it all sound like new features since last prod release";
+> "1 is boring"; "boring remove"; "make this popup stuff users care about"; "they don't give a shit about fonts";
+> "or buttons"; "simplify"; "they don't care about bugs like this ... edge case"; "terrible" (of "With several drivers, the impedance chart
+> matches WinISD"); "you have to be more salesman"; "too repetitive and the datasheet comment is
+> irritating delete it"; "come on get it right and then update the Claude SDLC docs for these messages so I don't have to explain again"
+
+The update popup (`cloudflare/announcements/src/index.js`, one entry per release) is what a user reads after an update.
+Every line answers "what can I do now, or what works better for me", in a designer's words.
+
+- Lead with what the user gets: a result in their design, a job made quicker, a wrong answer put right.
+- No buttons, menus, tabs, pages, dialogs or where a control sits ("the All button beside Data", "on the Driver page").
+  Say what the user can do, not which control does it.
+- No fonts, layouts, help texts, internal checks, task ids, or how it was built.
+- No dull or obvious lines ("passive radiators have Select, Info and Edit").
+- No narrow technical lines that need the reader to know a chart or WinISD's behaviour to see why they matter
+  ("With several drivers, the impedance chart matches WinISD").
+- No edge-case bug fixes (a value stuck after an extreme entry): users never met them. They go in the release notes
+  only. A fix goes in the popup only when many users saw the wrong result in normal use (false warnings on dual-coil
+  drivers).
+- The catalogue line gives the counts ("Now 1,923 drivers and 86 passive radiators from 21 makers"), counted from the live
+  catalogues of production and test, and names the makers that are new since the last production release, not
+  drivers (John: "give a counter of new drivers or manus"; "no name the manus not the drivers"; "the new manus since prod").
+- Sell it: the title is the headline benefit; say where OpenISD beats WinISD when it is true and checked against the
+  build (never claim a feature that is only planned).
+- No line repeats the title or another line; no "now matches its datasheet" lines (users expect that already).
+- Short, plain sentences: one fact per line, about 12 words at most, no colon followed by an explanation. Say the
+  benefit, not the mechanism: "now match their datasheets", not "no more false 'values disagree' warnings".
+- Six lines at most; the title names the two or three things users care about most.
+- The release notes (`release.sh --notes-file`) can be fuller; the popup cannot.
+- The lead drafts the popup and shows John the full text before it is merged; John's words win.
+
+Worked example (7.0.960, after "be more salesman"): title "Dual-coil drivers, done right"; summary "Wire any dual-coil driver
+in series or parallel and get the real answer."; lines "Impedance, inductance and BL all follow the wiring. WinISD gets
+the top end wrong." / "Export every chart in one click." / "Now 1,923 drivers and 86 passive radiators from 21
+makers, with CSS and RS Speakers new." / "Works better on phones."
