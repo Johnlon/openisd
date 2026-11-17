@@ -69,8 +69,16 @@ export function phoneScreens(): readonly SweepScreen[] {
 }
 
 export async function openScreen(page: Page, viewport: SweepViewport, screen: SweepScreen): Promise<void> {
-  if (viewport === 'phone') await page.locator('.mob-tab', {hasText: screen.tab}).click();
-  else await page.locator('.project-nav li', {hasText: screen.tab}).click();
+  if (viewport === 'phone') {
+    // The phone's Advanced screen is a pane opened from the menu, not a tab; the pane covers the tab bar until closed.
+    const pane = page.locator('.mob-dlg');
+    if (await pane.isVisible()) await pane.locator('.mob-dlg-close').click();
+    if (screen.name === 'Advanced') {
+      await page.locator('.mob-hamburger').click();
+      await page.locator('.mob-menu-item', {hasText: 'Advanced'}).click();
+      await pane.waitFor({state: 'visible'});
+    } else await page.locator('.mob-tab', {hasText: screen.tab}).click();
+  } else await page.locator('.project-nav li', {hasText: screen.tab}).click();
 }
 
 /** Every visible `[data-field]` box on the open screen, read in one evaluate. */
@@ -78,7 +86,10 @@ async function readOpenScreen(page: Page, prefix: string): Promise<BoxReadings> 
   return page.evaluate(screenName => {
     const seen = new Map<string, number>();
     const out: Array<{key: string; value: string; calculated: boolean; refused: boolean}> = [];
-    for (const wrap of globalThis.document.querySelectorAll<HTMLElement>('[data-field]')) {
+    // A phone pane (Advanced) covers the tab beneath it: a person sees and reads only the pane.
+    const pane = globalThis.document.querySelector<HTMLElement>('.mob-dlg');
+    const scope: ParentNode = pane !== null && pane.checkVisibility() ? pane : globalThis.document;
+    for (const wrap of scope.querySelectorAll<HTMLElement>('[data-field]')) {
       if (!wrap.checkVisibility()) continue;
       const box = wrap.querySelector<HTMLInputElement | HTMLSelectElement>('input, select');
       if (box === null) continue;
@@ -165,11 +176,17 @@ export async function freshProjectReadings(
     await openScreen(page, viewport, {name: 'Box', tab: /^Box$/});
     await page.locator('#og-box-type, #mob-box-type').selectOption(type);
     await openScreen(page, viewport, screens.find(s => s.name === input.screen) ?? screens[0]!);
-    await fillAndCommit(input.locate(page), text);
+    await enterText(input.locate(page), text);
     return await readAllBoxes(page, viewport, screens);
   } finally {
     await page.context().close();
   }
+}
+
+/** Enters `text` the way a person does: picks it from a count list, or types it into a number box and commits. */
+export async function enterText(box: Locator, text: string): Promise<void> {
+  if (await box.evaluate(el => el.tagName === 'SELECT')) await box.selectOption(text);
+  else await fillAndCommit(box, text);
 }
 
 /** How a box may differ from the expected reading: `exact`, or within the rounding the screen shows. */
