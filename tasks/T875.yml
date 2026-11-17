@@ -1,0 +1,13 @@
+id: T875
+release_note: internal
+repo: openisd
+owner: releasefix
+status: done
+goal: Fix two release.sh defects: approve-prepared compares a non-deterministic merge commit id; the ledger task worktree lacks node_modules deps
+why: "John, 17 Nov 2026: 'release' (OpenISD 7.0.960). Doing it, release.sh --approve-prepared refused on a merge id that changes with the clock, and its RELEASES.md landing failed the typecheck for a missing dependency; both had to be done by hand."
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T875.yml
+  - scripts/release.sh
+  - scripts/land/test/release.test.sh
+  - build/RELEASE_FIX_REPORT.md
