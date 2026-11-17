@@ -1,0 +1,10 @@
+id: T878
+release_note: internal
+repo: openisd
+owner: feedbackbuild
+status: open
+goal: In-app feedback: one-tap face answer from Info menu and an occasional prompt after a save, sent to the openisd-stats feedback event, kept offline
+why: John, 17 Nov 2026: I want a comment feature, ask if do you like it, faces happy etc, comment; needs to popup occasionally; make it super convenient
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T878.yml
