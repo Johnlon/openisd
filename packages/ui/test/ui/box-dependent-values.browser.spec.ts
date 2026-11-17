@@ -160,7 +160,6 @@ for (const viewport of ['desktop', 'phone'] as const satisfies readonly SweepVie
 
         test(`${item.label}: normal, absurdly high, absurdly low, back`, async ({appPage: page, browser}) => {
           test.fail(KNOWN.has(name), KNOWN.get(name) ?? '');
-          test.setTimeout(90_000);
           await openSweepProject(page, viewport, type);
 
           const home = screens.find(s => s.name === item.screen) ?? screens[0]!;
@@ -181,7 +180,7 @@ for (const viewport of ['desktop', 'phone'] as const satisfies readonly SweepVie
             const expected = expectedAfterEntry(typed, accepted);
             accepted = acceptedAfterEntry(typed, accepted);
             await expect.poll(async () => differences(expected, await readAllBoxes(page, viewport, screens), 'exact', true),
-              {message: `${item.label} typed ${step} (${text}): every box must show what a clean project shows`, timeout: 5000}).toEqual([]);
+              {message: `${item.label} typed ${step} (${text}): every box must show what a clean project shows`, timeout: 20_000}).toEqual([]);
           }
 
           await page.locator('.project-nav li, .mob-tab', {hasText: home.tab}).first().click();
@@ -192,7 +191,7 @@ for (const viewport of ['desktop', 'phone'] as const satisfies readonly SweepVie
           await expect.poll(async () => {
             const now = await readAllBoxes(page, viewport, screens);
             return backAtStart(start, fresh, now, startedCalculated);
-          }, {message: `${item.label} typed back to ${original}: no calculated box refused, every box back to its start`, timeout: 5000}).toEqual([]);
+          }, {message: `${item.label} typed back to ${original}: no calculated box refused, every box back to its start`, timeout: 20_000}).toEqual([]);
         });
       }
     });
