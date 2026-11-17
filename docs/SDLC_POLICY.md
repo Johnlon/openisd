@@ -85,8 +85,11 @@ Every line answers "what can I do now, or what works better for me", in a design
 - The catalogue line gives the counts ("Now 1,923 drivers and 86 passive radiators from 21 makers"), counted from the live
   catalogues of production and test, and names the makers that are new since the last production release, not
   drivers (John: "give a counter of new drivers or manus"; "no name the manus not the drivers"; "the new manus since prod").
-- Sell it: the title is the headline benefit; say where OpenISD beats WinISD when it is true and checked against the
+- Sell it: the title is the headline benefit; say what OpenISD now does for the user, true and checked against the
   build (never claim a feature that is only planned).
+- Talk about OpenISD, not WinISD: no line names WinISD or what it gets wrong (John, 17 Nov 2026: "don't talk about
+  WinISD talk about OpenISD - standard rule"). Say the effect a user sees in plain words: "so high frequencies stay
+  right", not "the top end" (John: "just say high freq and what's wrong").
 - No line repeats the title or another line; no "now matches its datasheet" lines (users expect that already).
 - Short, plain sentences: one fact per line, about 12 words at most, no colon followed by an explanation. Say the
   benefit, not the mechanism: "now match their datasheets", not "no more false 'values disagree' warnings".
@@ -95,6 +98,6 @@ Every line answers "what can I do now, or what works better for me", in a design
 - The lead drafts the popup and shows John the full text before it is merged; John's words win.
 
 Worked example (7.0.960, after "be more salesman"): title "Dual-coil drivers, done right"; summary "Wire any dual-coil driver
-in series or parallel and get the real answer."; lines "Impedance, inductance and BL all follow the wiring. WinISD gets
-the top end wrong." / "Export every chart in one click." / "Now 1,923 drivers and 86 passive radiators from 21
-makers, with CSS and RS Speakers new." / "Works better on phones."
+in series or parallel and get the real answer."; lines "Impedance, inductance and BL follow the wiring, so high frequencies stay
+right." / "Export every chart in one click." / "Now 1,362
+woofers and 86 passive radiators from 21 makers, with CSS and RS Speakers new." / "Works better on phones."

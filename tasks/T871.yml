@@ -1,0 +1,12 @@
+id: T871
+release_note: internal
+repo: openisd
+owner: lead
+status: done
+goal: "The 7.0.960 update popup says what WinISD gets wrong at high frequencies in plain words and counts the woofers (John, 17 Nov 2026: 'just say high freq and what's wrong'; 'how many woofers?')"
+why: "John, 17 Nov 2026 on board card release-7-0-960: 'WinISD gets the top end wrong. / ffs' / 'just say high freq and what's wrong' / 'how many woofers?'"
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T871.yml
+  - cloudflare/announcements/src/index.js
+  - docs/SDLC_POLICY.md
