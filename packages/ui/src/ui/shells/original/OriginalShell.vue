@@ -42,6 +42,7 @@ import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {INSTALL_URL} from '../../siteLinks.js';
 import {useAnnouncementCenter} from '../../../hooks/Announcements-hooks.js';
+import {injectFeedbackDialog} from '../../../hooks/FeedbackDialog-hooks.js';
 
 const {
   cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog,
@@ -93,6 +94,7 @@ const {
 const winisdDifferences = injectWinisdDifferencesModal();
 const diagnostics = injectDiagnosticsModal();
 const announcements = useAnnouncementCenter();
+const feedback = injectFeedbackDialog();
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
 const { projectChanged } = useApp().appState;
 provideCellScope({ revision: projectChanged, written: () => {} });
@@ -143,6 +145,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="dropdown-menu" :class="{ open: openDd === 'info-dropdown' }" @click.stop>
             <div class="menu-item" @click="about(); closeDropdown()">{{ aboutLabel }}</div>
             <div class="menu-item" @click="announcements.showList(); closeDropdown()">Announcements</div>
+            <div class="menu-item" data-testid="menu-send-feedback" @click="feedback.show(); closeDropdown()">{{ feedback.texts.menuLabel }}</div>
             <a class="menu-item" :href="INSTALL_URL" target="_blank" rel="noopener" title="How to add OpenISD to your desktop or dock as an app." @click="closeDropdown()">Add to desktop as an app</a>
             <div
               v-if="cloudAvailable"

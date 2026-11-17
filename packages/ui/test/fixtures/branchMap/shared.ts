@@ -345,6 +345,14 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'surface-root-7186c42dd3d5161b':{kind:'partOf',view:'driver-save'}, // components/SaveToLibraryDialog.vue:29
   'conditional-branch-e4ac024f188e8234':{kind:'partOf',view:'menu-splashmodal'}, // components/SplashContent.vue:32
   'conditional-branch-f78a330b3f38f0cc':{kind:'partOf',view:'menu-splashmodal'}, // components/SplashContent.vue:70
+  'surface-root-3a4f91d5ea44ea07':{kind:'view',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:15
+  'surface-root-3f3169dfb76a0fef':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:16
+  'conditional-branch-66d72d9d46e2df8c':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:34
+  'conditional-branch-876965ab9ec8f203':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:35
+  'conditional-branch-10c2489f7f658445':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:39
+  'conditional-branch-5653a07d2c094356':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:43
+  'conditional-branch-296b21159bf6114c':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:44
+  'conditional-branch-750a2f1965043dc5':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:48
   'surface-root-3a49fc4183d494b6':{kind:'view',view:'menu-splashmodal'}, // components/SplashModal.vue:20
   'surface-root-6d74195cbdff9526':{kind:'partOf',view:'menu-splashmodal'}, // components/SplashModal.vue:21
   'native-ui-ec34de8a28e3133f':{kind:'notAView',reason:'close button of the About dialog'}, // components/SplashModal.vue:24

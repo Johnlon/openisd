@@ -172,3 +172,9 @@ export { TuneText } from './tuneText.js';
 export { PhoneDialogHelp, ImportChoiceText, AboutText } from './phoneDialogText.js';
 
 export {FIELD_APPEARANCE_SAMPLES, FIELD_APPEARANCES, FieldEditor, FieldAccess, FieldUnits, FieldCue, appearanceFor, type FieldAppearance} from './fieldAppearance.js';
+
+export {
+  FeedbackFace, FEEDBACK_TEXTS, FEEDBACK_ASK_NEVER, FEEDBACK_DAY_MS, MAX_FEEDBACK_COMMENT,
+  feedbackAskAfter, feedbackAskDue, parseFeedbackAskState,
+  type FeedbackAskEvent, type FeedbackAskState, type FeedbackTexts,
+} from './feedback.js';

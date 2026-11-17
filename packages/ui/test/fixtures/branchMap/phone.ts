@@ -183,6 +183,7 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'surface-root-27b6d607b0b7e803-12':{kind:'partOf',view:'menu'}, // MobileShell.vue:218
   'surface-root-27b6d607b0b7e803-13':{kind:'partOf',view:'menu'}, // MobileShell.vue:219
   'surface-root-27b6d607b0b7e803-14':{kind:'partOf',view:'menu'}, // MobileShell.vue:220
+  'surface-root-27b6d607b0b7e803-15':{kind:'partOf',view:'menu'}, // MobileShell.vue:226 Send feedback
   'surface-root-42c53930f10ad1ce':{kind:'partOf',view:'menu'}, // MobileShell.vue:221
   'conditional-branch-1eb218e520d0e53c':{kind:'view',view:'menu-projects'}, // MobileShell.vue:227
   'surface-root-600e0121a9217f4e':{kind:'view',view:'options-general'}, // MobileShell.vue:260

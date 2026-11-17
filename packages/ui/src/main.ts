@@ -90,6 +90,10 @@ import {FeatureUse} from './logic/telemetry/featureUse.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
 import {radiatorPickRecorder} from './logic/telemetry/radiatorPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
+import {FeedbackOutbox} from './logic/feedback/feedbackOutbox.js';
+import {FetchFeedbackTransport, OfflineFeedbackTransport} from './logic/feedback/feedbackTransport.js';
+import {SaveTappedTelemetry} from './logic/feedback/saveTappedTelemetry.js';
+import {provideFeedbackServices} from './hooks/FeedbackDialog-hooks.js';
 import {provideAnnouncementCenter} from './hooks/Announcements-hooks.js';
 import {announcementEndpointsForHostname, createAnnouncementCenter} from './logic/announcementCenter.js';
 import {newUuid} from '@openisd/design';
@@ -180,7 +184,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     testOptIn: Reflect.get(globalThis, 'openisdTelemetryOn') === true,
   });
   const telemetryStorage = localStore;
-  const telemetry: Telemetry = telemetryTarget === null
+  const usageTelemetry: Telemetry = telemetryTarget === null
     ? new NoTelemetry()
     : new BeaconTelemetry({
         endpoint: telemetryTarget.endpoint,
@@ -192,6 +196,22 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
         sessionId: newUuid(),
         browserId: browserIdOf(telemetryStorage, newUuid),
       });
+  // Feedback is the user's own answer to "Do you like OpenISD?", sent to the same collector with the same
+  // anonymous browser id; it is kept on the device until the collector has it. The tap tells it when the user saved.
+  const saveTap = new SaveTappedTelemetry(usageTelemetry);
+  const telemetry: Telemetry = saveTap;
+  const feedbackOutbox = new FeedbackOutbox({
+    storage: telemetryStorage,
+    transport: telemetryTarget === null
+      ? new OfflineFeedbackTransport()
+      : new FetchFeedbackTransport(telemetryTarget.endpoint, window.fetch.bind(window), () => navigator.onLine),
+    now: () => Date.now(),
+    newId: newUuid,
+    version: appVersionText,
+    sessionId: newUuid(),
+    browserId: browserIdOf(telemetryStorage, newUuid),
+    environment: telemetryTarget === null ? 'test' : telemetryTarget.environment,
+  });
   const installMarker = new InstallMarker(telemetry, telemetryStorage);
   // STORAGE (port): the browser's key-value storage, opened by the load rules in main.ts: stamped with
   // this build's layout, kept in step with the storage log, and with ONE whole-store backup that every
@@ -455,6 +475,16 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     window.fetch.bind(window),
     announcementEndpointsForHostname(window.location.hostname),
   ));
+  const onlineListeners = new Set<() => void>();
+  window.addEventListener('online', () => { for (const listener of [...onlineListeners]) listener(); });
+  void feedbackOutbox.flush();
+  provideFeedbackServices(app, {
+    outbox: feedbackOutbox,
+    storage: telemetryStorage,
+    userSaves: saveTap,
+    onlineAgain: {listen: listener => { onlineListeners.add(listener); return () => { onlineListeners.delete(listener); }; }},
+    screen: () => errorContext.snapshot().screen,
+  });
   provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions, radiatorPicks: radiatorPickRecorder(telemetry, bundledPRs)});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,

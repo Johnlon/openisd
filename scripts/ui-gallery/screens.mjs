@@ -166,6 +166,11 @@ export const SCREENS = [
       else await phoneMenuItem(p, 'Announcements');
       await p.locator('.ann-modal').waitFor(T);
     } },
+  { key: 'feedback', label: 'Send feedback (one tap)', vp: BOTH, covers: ['FeedbackDialog'], act: async (p) => {
+      if (p.viewportSize().width > 800) await infoMenuItem(p, 'Send feedback');
+      else await phoneMenuItem(p, 'Send feedback');
+      await p.locator('.fb-modal').waitFor(T);
+    } },
   // phone
   { key: 'menu', label: 'Menu open', vp: [PHONE], covers: ['MobileShell'], act: openPhoneMenu },
   { key: 'tab-driver', label: 'Driver tab', vp: [PHONE], covers: ['MobileDriverTab', 'MobileKeyStrip', 'PhoneBand', 'PhoneClassicPage'], act: (p) => clickBtn(p, 'Driver') },
