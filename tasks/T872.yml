@@ -1,0 +1,12 @@
+id: T872
+release_note: internal
+repo: openisd
+owner: mainfix-agent
+status: done
+goal: Main green: on the phone an empty mandatory box's whole outline (input and unit) is red, so joined-field 'phone: a missing mandatory parameter retains its whole warning outline' passes
+why: Main suite red after T870 (PR 181, the phone refused-box border fix), suite run 44130143247 on fb32ee7f (17 Nov 2026); John's rule: a red on main is fixed first (SDLC_POLICY), and clipping/visual defects are fixed without asking (John, 5 Nov 2026)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T872.yml
+  - packages/ui/src/ui/components/UnitToggle.vue
+label: fixes
