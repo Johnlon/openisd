@@ -1,7 +1,7 @@
 import {expect, test} from '../fixtures.js';
 import {fillAndCommit} from '../fixtures/numField.js';
 import {
-  type BoxReadings, desktopScreens, differences, expectedAfterEntry, field, freshProjectReadings, openSweepProject, phoneScreens, readAllBoxes, refusedCalculated, sweepValues, acceptedAfterEntry,
+  type BoxReadings, desktopScreens, differences, expectedAfterEntry, field, freshProjectReadings, openSweepProject, phoneScreens, readAllBoxes, refusedCalculated, sweepValues, acceptedAfterEntry, backAtStart,
   type SweepBoxType, type SweepInput, type SweepScreen, type SweepViewport,
 } from '../fixtures/dependentValues.js';
 
@@ -138,7 +138,10 @@ const PHONE_INPUTS: ReadonlyMap<SweepBoxType, readonly SweepInput[]> = new Map([
 const BOX_TYPES: readonly SweepBoxType[] = ['sealed', 'vented', 'bandpass4', 'bandpass6', 'abc', 'box-passive-radiator'];
 
 /** Journeys that fail because of an app bug: the bug file, red until fixed (`test.fail`). Key: "<viewport> <box type> <input label>". */
+const SEALED_QTC = 'bugs/BUG_20261117_sealed-qtc-keeps-old-value-when-fsc-is-tiny.md';
 const KNOWN: ReadonlyMap<string, string> = new Map([
+  ['desktop sealed Fsc', SEALED_QTC],
+  ['phone sealed Fsc', SEALED_QTC],
 ]);
 
 function baseUrl(): string {
@@ -183,12 +186,12 @@ for (const viewport of ['desktop', 'phone'] as const satisfies readonly SweepVie
 
           await page.locator('.project-nav li, .mob-tab', {hasText: home.tab}).first().click();
           await fillAndCommit(item.locate(page), original);
-          // Typing back the shown text is exact to what the box shows (its rounding), so every box is held to its start within
-          // half a percent, and exactly to a clean project with that same text typed.
+          // Typing back the shown text is a rounding of the stored value (a calculated Fp shows 43.82, not 43.8247), so the start
+          // is held to the shown precision, and exactly to a clean project with that same text typed.
           const fresh = await freshProjectReadings(browser, baseUrl(), viewport, type, screens, item, original);
           await expect.poll(async () => {
             const now = await readAllBoxes(page, viewport, screens);
-            return [...refusedCalculated(now), ...differences(start, now, 'rounded', !startedCalculated), ...differences(fresh, now, 'exact', true)];
+            return backAtStart(start, fresh, now, startedCalculated);
           }, {message: `${item.label} typed back to ${original}: no calculated box refused, every box back to its start`, timeout: 5000}).toEqual([]);
         });
       }

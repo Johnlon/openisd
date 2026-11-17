@@ -175,12 +175,14 @@ export async function freshProjectReadings(
 /** How a box may differ from the expected reading: `exact`, or within the rounding the screen shows. */
 export type Match = 'exact' | 'rounded';
 
+/** `b` is the expected text: the rounding allowed is half a unit of its last shown digit, or half a percent. */
 function sameNumber(a: string, b: string, match: Match): boolean {
   if (a === b) return true;
   if (match === 'exact') return false;
   const x = Number(a), y = Number(b);
   if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
-  return Math.abs(x - y) <= 0.005 * Math.max(Math.abs(x), Math.abs(y));
+  const decimals = b.includes('.') ? b.length - b.indexOf('.') - 1 : 0;
+  return Math.abs(x - y) <= Math.max(0.005 * Math.max(Math.abs(x), Math.abs(y)), 0.5 * 10 ** -decimals);
 }
 
 /** Lines naming each box that differs from the expected reading; empty when every box follows. */
@@ -190,7 +192,7 @@ export function differences(expected: BoxReadings, actual: BoxReadings, match: M
   for (const want of expected) {
     const have = got.get(want.key);
     if (have === undefined) { out.push(`${want.key}: missing, expected "${want.value}"`); continue; }
-    if (!sameNumber(want.value, have.value, match)) out.push(`${want.key}: shows "${have.value}", expected "${want.value}"`);
+    if (!sameNumber(have.value, want.value, match)) out.push(`${want.key}: shows "${have.value}", expected "${want.value}"`);
     if (compareCalculatedFlag && want.calculated !== have.calculated) out.push(`${want.key}: ${have.calculated ? 'calculated' : 'entered'}, expected ${want.calculated ? 'calculated' : 'entered'}`);
   }
   for (const have of actual) if (!expected.some(r => r.key === have.key)) out.push(`${have.key}: extra box shows "${have.value}"`);
@@ -232,4 +234,10 @@ export function expectedAfterEntry(typed: BoxReadings, lastAccepted: BoxReadings
 /** The readings of the last accepted entry: the new ones unless the entry was refused. */
 export function acceptedAfterEntry(typed: BoxReadings, lastAccepted: BoxReadings): BoxReadings {
   return typed.some(r => r.refused) ? lastAccepted : typed;
+}
+
+/** What is still wrong once an input has its shown starting text typed back: held to the start within the rounding the
+ *  screen shows, and exactly to a clean project with that same text typed. */
+export function backAtStart(start: BoxReadings, fresh: BoxReadings, now: BoxReadings, startedCalculated: boolean): string[] {
+  return [...refusedCalculated(now), ...differences(start, now, 'rounded', !startedCalculated), ...differences(fresh, now, 'exact', true)];
 }

@@ -11,3 +11,4 @@ files:
   - docs/plans/PLAN_20261117_DEPENDENT_VALUE_SWEEP.md
   - packages/ui/test/ui/box-dependent-values.browser.spec.ts
   - packages/ui/test/fixtures/dependentValues.ts
+  - bugs/BUG_20261117_sealed-qtc-keeps-old-value-when-fsc-is-tiny.md
