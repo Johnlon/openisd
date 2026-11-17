@@ -69,6 +69,7 @@ export type SimulatableBoxType =
 
 import type {SelectorOption} from '../fields/index.js';
 import type {Air} from './air.js';
+import type {DriverWiring} from './array/driverWiring.js';
 
 /** One of WinISD's sealed-box target-Q choices from the New Project wizard: `value` IS the Qtc. */
 export type SealedAlignmentOption = SelectorOption<number>;
@@ -179,7 +180,8 @@ export type EnclosureParams = Partial<Pick<SweepParams, 'Vb' | 'Vf' | 'Sp' | 'pr
 
 export interface SweepParams {
   Vb: number;
-  /** The voltage each driver gets (V); with `nDrivers` N the array takes N times its power. */
+  /** The amplifier's output voltage (V); with one driver, the voltage at it. With `nDrivers` N and no `driverWiring`,
+   *  the voltage each driver gets (the array takes N times its power). */
   eg: number;
   // Frequency grid
   fmin?: number;
@@ -187,6 +189,12 @@ export interface SweepParams {
   N?: number;
   // Multi-driver
   nDrivers?: number;
+  /** How the N drivers are wired to the amplifier (ticket #519). Absent: today's path, every driver gets `eg` and `Rs`
+   *  unscaled and the impedance chart is one driver's. Present: `engine/array/driverWiring.ts` decides what each sees. */
+  driverWiring?: DriverWiring;
+  /** WinISD-style "Impedance of one driver" (ticket #519): the impedance chart shows one driver's, whatever the wiring.
+   *  Read only with `driverWiring`; absent/false = the amplifier's load. */
+  winisdOneDriverImpedance?: boolean;
   Rs?: number;
   circuitModel?: CircuitModel;
   /** WinISD's VA, P·Re·|Hf|²/|Z + Rg| (true/absent), or the amplifier's apparent power,

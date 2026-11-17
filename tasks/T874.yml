@@ -1,0 +1,19 @@
+id: T874
+release_note: internal
+repo: openisd
+owner: portingle-slice1
+status: done
+goal: Engine, inert: engine/array/driverWiring.ts, SweepParams fields, sweep/maxCurves/signal use driverDrive; absent driverWiring keeps today's path so every existing golden is unchanged
+why: Driver wiring plan (#519): decided by John (QO946.c129-c131, c142-c143, c153); build after the current release. The release is now out. Plan: docs/plans/PLAN_20261116_DRIVER_WIRING.md section 11 item 1.
+done_test: bash scripts/test.sh packages/design/test/engine/driver-wiring-goldens.test.ts
+files:
+  - tasks/T874.yml
+  - packages/design/engine/array/driverWiring.ts
+  - packages/design/engine/signal/SignalEngine.ts
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/engine/solverTypes.ts
+  - packages/design/engine/types.ts
+  - packages/design/test/architecture-driver-wiring-has-one-site.test.ts
+  - packages/design/test/engine/driver-wiring-goldens.test.ts
+  - packages/design/test/engine/driver-wiring.test.ts
+  - build/T874_REPORT.md

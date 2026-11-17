@@ -11,6 +11,7 @@
 import {missingDependencies} from '../consistency.js';
 import type {CalculationIssue} from '../consistency.js';
 import type {SignalSolverParams} from '../solverTypes.js';
+import {amplifierVoltage, driverDrive} from '../array/driverWiring.js';
 
 export type SignalQuantityName = keyof SignalSolverParams;
 export type SignalIssue = CalculationIssue<SignalQuantityName>;
@@ -57,13 +58,19 @@ export class SignalEngineImpl implements SignalEngine {
     const nDrivers = p.nDrivers?.value ?? null;
     const n = usable(nDrivers) ? nDrivers : 1;
     if (usable(Re_ohm)) {
+      // With a driver wiring `voltage_V` is the amplifier's voltage: each driver gets `drive.eg_V` through `drive.Rg_ohm`.
+      // Without one, each driver gets `voltage_V` and `Rs_ohm` as they are.
+      const wiring = p.driverWiring;
+      const drive = wiring === undefined ? null : driverDrive(n, wiring, p.voltage_V.value, Rs_ohm, p.rgAtDriverSide !== false);
       if (p.voltage_V.entered) {
-        p.power_W.setCalculated(n * driveFromVoltage(p.voltage_V.value, Re_ohm, Rs_ohm));
+        p.power_W.setCalculated(n * (drive === null ? driveFromVoltage(p.voltage_V.value, Re_ohm, Rs_ohm) : driveFromVoltage(drive.eg_V, Re_ohm, drive.Rg_ohm)));
         return [];
       }
       const power_W = p.power_W.value;
       if (usable(power_W)) {
-        p.voltage_V.setCalculated(this.driveVoltage(power_W / n, Re_ohm, Rs_ohm));
+        const eachRg_ohm = drive === null ? Rs_ohm : drive.Rg_ohm;
+        const eg_V = this.driveVoltage(power_W / n, Re_ohm, eachRg_ohm);
+        p.voltage_V.setCalculated(wiring === undefined ? eg_V : amplifierVoltage(n, wiring, eg_V));
         return [];
       }
     }

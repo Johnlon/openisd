@@ -27,6 +27,8 @@ import type {VentIssue} from '../vent/VentEngine.js';
 import {hotRe, isobarikPair, withAddedMass} from '../solvers/driverQuantities.js';
 import {applyFilters} from '../filters.js';
 import {driveFromVoltage} from '../signal/SignalEngine.js';
+import type {DriverDrive} from '../array/driverWiring.js';
+import {driverDrive} from '../array/driverWiring.js';
 import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepPeaks, SweepResult, WinisdFilterErrors} from '../types.js';
 import type {DriverValues, SweepDriver} from '../solverTypes.js';
 import type {BoxParamsIssue, BoxParamsQuantityName, BoxParamsSolveResult} from '../params.js';
@@ -217,6 +219,19 @@ function winisdCountsDrivers(P: SweepParams): boolean {
 function oneBoxOfN(P: SweepParams, n: number): SweepParams {
   return { ...P, nDrivers: 1, Vb: P.Vb / n, ...(P.Vf !== undefined ? { Vf: P.Vf / n } : {}), ...(P.Sp !== undefined ? { Sp: P.Sp / n } : {}), ...(P.prNum !== undefined ? { prNum: P.prNum / n } : {}),
     ...(P.Spr !== undefined ? { Spr: P.Spr / n } : {}), ...(P.SpIntra !== undefined ? { SpIntra: P.SpIntra / n } : {}) };
+}
+
+/** What each of the N drivers sees when the project states a driver wiring; `null` when it does not (today's path:
+ *  every driver gets `eg` and `Rs` unscaled and the impedance chart is one driver's). */
+function arrayDrive(P: SweepParams, n: number): DriverDrive | null {
+  if (P.driverWiring === undefined) return null;
+  return driverDrive(n, P.driverWiring, P.eg, P.Rs || 0, P.rgAtDriverSide !== false);
+}
+
+/** One driver's share of the array, driven as the wiring says; with no wiring, just its share of the box. */
+function oneDriverOfArray(P: SweepParams, n: number, drive: DriverDrive | null): SweepParams {
+  const share = oneBoxOfN(P, n);
+  return drive === null ? share : {...share, eg: drive.eg_V, Rs: drive.Rg_ohm};
 }
 
 function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | undefined, BL_typed_Tm: number | null): { value: CircuitQuantities | null; issues: DriverIssue[] } {
@@ -457,15 +472,19 @@ export class SimulationEngineImpl implements SimulationEngine {
     if (winisdCountsDrivers(P)) {
       // WinISD: one driver in Vb/N at eg, the voltage each driver gets (P/N each); N of them sum to +20·log10(N) on its SPL and
       // N times its VA (WinISD's VA chart is the array's: 0.968 VA at 1 and 4 drivers, W5 sealed 1 W).
-      const one = this.sweep(drv, Le_H, box, oneBoxOfN(P, n));
+      const drive = arrayDrive(P, n);
+      const one = this.sweep(drv, Le_H, box, oneDriverOfArray(P, n, drive));
       if (one.values === null) return one;
       // The impedance chart is one driver's, as WinISD's (winisd_research FINDING_20261115: the routine
       // computes Nd·BL²/(Nd·Sd)²/(Za+Zload) + Re + jωLe, so Re is never scaled by Nd). The array's
       // impedance is ticket Johnlon/openisd#519; it replaced the "Per-driver impedance" switch (QO941).
+      // With a driver wiring the chart is the amplifier's load, one driver's x loadScale, unless "Impedance of one driver" is ticked.
+      const zScale = drive === null || P.winisdOneDriverImpedance === true ? 1 : drive.loadScale;
       const gain = 20 * Math.log10(n);
       return { ...one, values: { ...one.values,
         spl: one.values.spl.map((v) => isSilence(v) ? v : v + gain),
-        va: one.values.va.map((v) => v * n) } };
+        va: one.values.va.map((v) => v * n),
+        zmag: one.values.zmag.map((v) => v * zScale) } };
     }
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
@@ -698,7 +717,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     const n = P.nDrivers || 1;
     if (winisdCountsDrivers(P)) {
       // WinISD: N times one driver's limits in Vb/N — max power ×N; max SPL +20·log10(N) (⚠ unverified).
-      const one = this.maxCurves(drv, Le_H, box, oneBoxOfN(P, n));
+      const one = this.maxCurves(drv, Le_H, box, oneDriverOfArray(P, n, arrayDrive(P, n)));
       if (one.values === null) return one;
       const gain = 20 * Math.log10(n);
       return { ...one, values: { ...one.values, maxpwr: one.values.maxpwr.map((v) => v * n), maxspl: one.values.maxspl.map((v) => v + gain) } };

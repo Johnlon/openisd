@@ -1,4 +1,5 @@
 import type {DqIssue} from './consistency.js';
+import type {DriverWiring} from './array/driverWiring.js';
 
 export interface SolverField<T = number> {
   /** `null` when the value cannot be derived from current inputs ('N'). */
@@ -106,6 +107,10 @@ export interface SignalSolverParams {
   Rs_ohm?: SolverInput;
   /** Drivers sharing `power_W`; each gets `power_W / nDrivers` at `voltage_V`. Absent: 1. */
   nDrivers?: SolverInput;
+  /** How the drivers are wired to the amplifier (ticket #519); `voltage_V` is then the amplifier's output voltage and
+   *  `rgAtDriverSide` says where `Rs_ohm` sits. Absent: `power_W = nDrivers · voltage_V² / (Re + Rs)`. */
+  driverWiring?: DriverWiring;
+  rgAtDriverSide?: boolean;
 }
 
 /** A `SolverField` handle for every driver T/S quantity. Pass this directly to
