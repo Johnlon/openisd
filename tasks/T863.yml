@@ -1,0 +1,14 @@
+id: T863
+release_note: internal
+repo: openisd
+owner: sweep-agent
+status: done
+goal: Box and vent: every calculated box follows when any input goes normal, absurd high, absurd low and back, desktop and phone (sweep slice 1)
+why: John, 17 Nov 2026 12:34 UTC, Yes on board card topic-1117-084319 to option A of docs/plans/PLAN_20261117_DEPENDENT_VALUE_SWEEP.md ("add more aggressive testing for this style of bug across the app")
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T863.yml
+  - docs/plans/PLAN_20261117_DEPENDENT_VALUE_SWEEP.md
+  - packages/ui/test/ui/box-dependent-values.browser.spec.ts
+  - packages/ui/test/fixtures/dependentValues.ts
+  - bugs/BUG_20261117_sealed-qtc-keeps-old-value-when-fsc-is-tiny.md
