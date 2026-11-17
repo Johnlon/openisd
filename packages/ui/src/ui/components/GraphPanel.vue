@@ -362,7 +362,7 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
          @dblclick="onDblClick" />
     <div v-if="!classic" class="gtitle">{{ meta.name }}<button v-if="chartData" type="button" class="gdata"
             title="Show this chart's data as a table, to copy or download as CSV" @click="dataOpen = true">Data</button><button v-if="chartData" type="button" class="gdata-all"
-            title="Export all chart data" @click="graph.exportAllChartData()">(all)</button>
+            title="Export all chart data" aria-label="Export every chart" @click="graph.exportAllChartData()">All</button>
       <label v-if="!blocked && !hideAutoY" class="gautoy"
              title="Auto Y: ticked, the Y axis rescales to fit the curves after every edit. Unticked, the Y axis stays at the range shown when you unticked it, and edits never rescale it; the range is this chart's Y-axis limit in Options, where Reset to auto-scale ticks this again.">
         <input type="checkbox" :checked="autoY" aria-label="Auto Y" @change="graph.setAutoY(inputChecked($event))">

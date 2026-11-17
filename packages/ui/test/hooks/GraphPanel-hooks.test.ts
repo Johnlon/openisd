@@ -68,7 +68,7 @@ describe('GraphPanel-hooks', () => {
       expect(api.currentDesign.value.box).toBe('vented');
     });
 
-    it('the (all) button exports every chart through the one IO function', () => {
+    it('the All button exports every chart through the one IO function', () => {
       const project = createTestProject();
       appState.addProject(project);
       const exportAll = vi.spyOn(logic.designIO, 'downloadAllChartData').mockImplementation(() => undefined);

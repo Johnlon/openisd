@@ -274,7 +274,7 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-25e889c8e13af122':{kind:'partOf',view:'tab-graph'}, // components/GraphPanel.vue:363
   'conditional-branch-9b749fa968a8436f':{kind:'partOf',view:'tab-graph'}, // components/GraphPanel.vue:363
   'conditional-branch-4a401fc089b35504':{kind:'partOf',view:'tab-graph'}, // components/GraphPanel.vue:365
-  'conditional-branch-cbc8b6076beb75cc':{kind:'partOf',view:'tab-graph'}, // components/GraphPanel.vue:364 (the (all) button, T856)
+  'conditional-branch-350fc27fc9c9d875':{kind:'partOf',view:'tab-graph'}, // components/GraphPanel.vue:364 (the All button, T856)
   'conditional-branch-ae26af162f30b769':{kind:'partOf',view:'chart-data'}, // components/GraphPanel.vue:371
   'conditional-branch-a5f4f45eade96e0b':{kind:'view',view:'shared/graph-warning-pill'}, // components/GraphPanel.vue:372
   'native-ui-5600554eae49bd62':{kind:'notAView',reason:'dismiss button of the graph warning pill'}, // components/GraphPanel.vue:375

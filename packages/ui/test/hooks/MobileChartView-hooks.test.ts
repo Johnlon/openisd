@@ -27,7 +27,7 @@ describe('useMobileChartView', () => {
     expect(hook.traceColour.value).not.toBe(before);
   });
 
-  it('the (all) button exports every chart through the one IO function', () => {
+  it('the All button exports every chart through the one IO function', () => {
     const project = ProjectBuilder.empty(createEngine());
     appState.addProject(project);
     const exportAll = vi.spyOn(logic.designIO, 'downloadAllChartData').mockImplementation(() => undefined);

@@ -28,7 +28,7 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'surface-root-fffdafa3e7668767':{kind:'view',view:'chart-picker'}, // MobileChartView.vue:40
   'conditional-branch-95c87e63dded118b':{kind:'partOf',view:'chart-picker'}, // MobileChartView.vue:41
   'conditional-branch-e050febbb6e1d727':{kind:'notAView',reason:'Data chip, a trigger for the chart data dialog'}, // MobileChartView.vue:53
-  'conditional-branch-ed6e0f09e52c5746':{kind:'notAView',reason:'(all) chip, exports every chart as one ZIP (T856)'}, // MobileChartView.vue:57
+  'conditional-branch-22690dabc3c89a32':{kind:'notAView',reason:'All chip, exports every chart as one ZIP (T856)'}, // MobileChartView.vue:57
   'surface-root-ddbc0e17254ca99a':{kind:'partOf',view:'tab-graph'}, // MobileChartView.vue:60
   'surface-root-f389519938047484':{kind:'view',view:'tune-sealed'}, // MobileChartView.vue:61
   'surface-root-f389519938047484-2':{kind:'view',view:'what-if-sealed'}, // MobileChartView.vue:62

@@ -39,24 +39,24 @@ async function checkDownload(page: Page, file: Download): Promise<void> {
   await expect(popup).toBeHidden();
 }
 
-test('Original skin: (all) next to Data downloads every chart and the project in one ZIP, with a popup', async ({page}) => {
+test('Original skin: All next to Data downloads every chart and the project in one ZIP, with a popup', async ({page}) => {
   await page.goto('/');
   await openAProject(page);
   const panel = page.locator('.chart-cell .gpanel').first();
   const download = page.waitForEvent('download');
-  await panel.getByRole('button', {name: '(all)'}).click();
+  await panel.getByRole('button', {name: 'Export every chart'}).click();
   const file = await download;
   await expect(page.getByRole('alertdialog')).toBeVisible();
   await checkDownload(page, file);
 });
 
-test('Mobile skin: (all) next to Data downloads every chart and the project in one ZIP, with a popup', async ({page}) => {
+test('Mobile skin: All next to Data downloads every chart and the project in one ZIP, with a popup', async ({page}) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
   await page.locator('.mob-tab', {hasText: 'Graph'}).click();
   const download = page.waitForEvent('download');
-  await page.locator('.mob-chart-cell .mob-band').first().getByRole('button', {name: '(all)'}).click();
+  await page.locator('.mob-chart-cell .mob-band').first().getByRole('button', {name: 'Export every chart'}).click();
   const file = await download;
   await expect(page.getByRole('alertdialog')).toBeVisible();
   await checkDownload(page, file);

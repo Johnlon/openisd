@@ -54,7 +54,7 @@ watch(sheetOpen, open => emit('sheetOpen', open), { immediate: true });
           <template #band="{ title, hasData, openData }">
             <PhoneBand :title="title" :section="helpFor(title) ?? undefined">
               <button v-if="hasData" type="button" class="mob-chart-data" title="Show this chart's data as a table, to copy or download as CSV" @click="openData"><span class="mob-chart-data-chip">Data</span></button>
-              <button v-if="hasData" type="button" class="mob-chart-data-all" title="Export all chart data" @click="exportAllChartData"><span class="mob-chart-data-chip">(all)</span></button>
+              <button v-if="hasData" type="button" class="mob-chart-data-all" title="Export all chart data" aria-label="Export every chart" @click="exportAllChartData"><span class="mob-chart-data-chip">All</span></button>
             </PhoneBand>
           </template>
         </GraphPanel>
