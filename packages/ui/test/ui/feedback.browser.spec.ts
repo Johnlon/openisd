@@ -168,7 +168,7 @@ test.describe('phone skin', () => {
     await page.goto('/');
     await openAMobileProject(page);
     await tapMobileMenuItem(page, /^Save$/);
-    await expect(page.getByTestId('feedback-dialog')).toBeVisible({timeout: 6000});
+    await expect(page.getByTestId('feedback-dialog')).toBeVisible();
     await expectDialogFits(page);
   });
 });

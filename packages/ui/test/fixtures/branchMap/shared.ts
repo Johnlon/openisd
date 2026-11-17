@@ -353,6 +353,7 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-5653a07d2c094356':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:43
   'conditional-branch-296b21159bf6114c':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:44
   'conditional-branch-750a2f1965043dc5':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:48
+  'conditional-branch-2a131b7ceb603c38':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:17
   'surface-root-3a49fc4183d494b6':{kind:'view',view:'menu-splashmodal'}, // components/SplashModal.vue:20
   'surface-root-6d74195cbdff9526':{kind:'partOf',view:'menu-splashmodal'}, // components/SplashModal.vue:21
   'native-ui-ec34de8a28e3133f':{kind:'notAView',reason:'close button of the About dialog'}, // components/SplashModal.vue:24
