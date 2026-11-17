@@ -1,0 +1,11 @@
+id: T869
+release_note: internal
+repo: openisd
+owner: sweep-slice4-agent
+status: done
+goal: Filters: every calculated box follows when any filter input goes normal, absurd high, absurd low and back, desktop and phone (sweep slice 4)
+why: John, 17 Nov 2026 12:34 UTC, 'yes' to the dependent-value sweep option A on board card topic-1117-084319; plan docs/plans/PLAN_20261117_DEPENDENT_VALUE_SWEEP.md
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T869.yml
+  - packages/ui/test/ui/filters-dependent-values.browser.spec.ts
