@@ -1,7 +1,7 @@
 import {expect, test} from '../fixtures.js';
 import {fillAndCommit} from '../fixtures/numField.js';
 import {
-  type BoxReadings, desktopScreens, differences, expectedAfterEntry, field, freshProjectReadings, openSweepProject, phoneScreens, readAllBoxes, refusedCalculated, sweepValues, acceptedAfterEntry, backAtStart,
+  type BoxReadings, desktopScreens, differences, expectedAfterEntry, field, freshProjectReadings, openSweepProject, phoneScreens, readAllBoxes, sweepValues, acceptedAfterEntry, backAtStart,
   type SweepBoxType, type SweepInput, type SweepScreen, type SweepViewport,
 } from '../fixtures/dependentValues.js';
 
