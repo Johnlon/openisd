@@ -218,6 +218,7 @@ export async function openSweepProject(page: Page, viewport: SweepViewport, type
  */
 export function expectedAfterEntry(typed: BoxReadings, lastAccepted: BoxReadings): BoxReadings {
   const refusedKeys = typed.filter(r => r.refused).map(r => r.key);
+  if (refusedKeys.length === 0) return typed;
   const kept = lastAccepted.filter(r => !refusedKeys.includes(r.key));
   const shown = typed.filter(r => refusedKeys.includes(r.key)).map(r => ({...r, calculated: lastAccepted.find(a => a.key === r.key)?.calculated ?? r.calculated}));
   return [...kept, ...shown];
