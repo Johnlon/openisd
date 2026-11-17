@@ -20,7 +20,8 @@ test('phone Graph page: every offered chart has a ? that opens its help, with no
     await page.locator('.mob-chart-pick').click();
     await page.locator('.mob-chart-list .mob-chart-name').getByText(label, {exact: true}).click();
     const band = page.locator('.mob-chart-cell .mob-band').first();
-    const title = (await band.locator('.mob-band-title').textContent() ?? '').replace('Data', '').trim();
+    // The band's title is its own text; the Data and All chips sit inside the same span after it.
+    const title = (await band.locator('.mob-band-title').evaluate(e => e.firstChild?.textContent ?? '')).trim();
     const help = ChartPageHelp.forChart(title);
     expect(help, `help text for the chart "${title}"`).not.toBeNull();
     await band.getByRole('button', {name: `Help: ${title}`}).click();

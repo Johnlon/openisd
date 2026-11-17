@@ -1,0 +1,12 @@
+id: T859
+release_note: internal
+repo: openisd
+owner: fixer
+status: done
+goal: Main green again after the chart export button: the phone chart-help journey reads the chart title without the chips beside it, and the runner-script test copies the main-checkout helper its scripts now need
+why: "John, 17 Nov 2026: 'not on test ? why' (the chart export button; main's suite has been red since it merged at 00:05)"
+done_test: bash scripts/test.sh packages/ui/test/scripts/full-gate-stage.test.ts
+files:
+  - tasks/T859.yml
+  - packages/ui/test/ui/mobile-chart-help.browser.spec.ts
+  - packages/ui/test/scripts/full-gate-stage.test.ts
