@@ -12,6 +12,8 @@ export interface FeedbackOutboxDeps {
   readonly storage: KeyValueStorage;
   readonly transport: FeedbackTransport;
   readonly now: () => number;
+  /** Whole seconds since the page opened. */
+  readonly sessionAgeS: () => number;
   readonly newId: () => string;
   readonly version: string;
   readonly sessionId: string;
@@ -34,6 +36,7 @@ interface OutboxEntry {
   readonly screen: string;
   readonly skin: Skin;
   readonly ts: number;
+  readonly ageS: number;
   readonly faceSent: boolean;
   readonly commentSent: boolean;
 }
@@ -55,8 +58,8 @@ function entryOf(raw: unknown): OutboxEntry | null {
   const {id, face, comment, screen, ts, faceSent, commentSent} = raw;
   const skin = skinOf(raw['skin']);
   if (typeof id !== 'string' || typeof face !== 'string' || typeof comment !== 'string' || typeof screen !== 'string'
-    || typeof ts !== 'number' || typeof faceSent !== 'boolean' || typeof commentSent !== 'boolean' || skin === null) return null;
-  return {id, face, comment, screen, skin, ts, faceSent, commentSent};
+    || typeof ts !== 'number' || typeof raw['ageS'] !== 'number' || typeof faceSent !== 'boolean' || typeof commentSent !== 'boolean' || skin === null) return null;
+  return {id, face, comment, screen, skin, ts, ageS: raw['ageS'], faceSent, commentSent};
 }
 
 function needsSending(e: OutboxEntry): boolean {
@@ -80,7 +83,7 @@ export class FeedbackOutbox {
   /** Keep the answer, then try to send it. */
   async answer(face: FeedbackFace, screen: string, skin: Skin): Promise<FeedbackAnswered> {
     const id = this.deps.newId();
-    this.entries = [...this.entries, {id, face: face.value, comment: '', screen, skin, ts: this.deps.now(), faceSent: false, commentSent: false}];
+    this.entries = [...this.entries, {id, face: face.value, comment: '', screen, skin, ts: this.deps.now(), ageS: this.deps.sessionAgeS(), faceSent: false, commentSent: false}];
     this.write();
     await this.flush();
     return {id, delivery: this.deliveryOf(id)};
@@ -137,7 +140,7 @@ export class FeedbackOutbox {
     return {
       name: 'feedback', ts: e.ts, version: this.deps.version, session: this.deps.sessionId,
       browser_id: this.deps.browserId, environment: this.deps.environment,
-      fields: fieldsOf({kind: 'feedback', id: e.id, face: e.face, comment: e.comment, screen: e.screen, skin: e.skin}),
+      fields: fieldsOf({kind: 'feedback', id: e.id, face: e.face, comment: e.comment, screen: e.screen, skin: e.skin, ageS: e.ageS}),
     };
   }
 

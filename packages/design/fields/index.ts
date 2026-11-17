@@ -176,5 +176,5 @@ export {FIELD_APPEARANCE_SAMPLES, FIELD_APPEARANCES, FieldEditor, FieldAccess, F
 export {
   FeedbackFace, FEEDBACK_TEXTS, FEEDBACK_ASK_NEVER, FEEDBACK_DAY_MS, MAX_FEEDBACK_COMMENT,
   feedbackAskAfter, feedbackAskDue, parseFeedbackAskState,
-  type FeedbackAskEvent, type FeedbackAskState, type FeedbackTexts,
+  type FeedbackAskEvent, type FeedbackAskState, type FeedbackTexts, type FeedbackTone,
 } from './feedback.js';

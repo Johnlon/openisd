@@ -3,17 +3,23 @@
  * prompt show, and the rule for when the app may ask. The UI shows these and decides nothing.
  */
 
+export type FeedbackTone = 'bad' | 'mid' | 'good';
+
 /** How the user feels about OpenISD. `value` is the wire string the collector accepts; it is the only
  *  thing that crosses a boundary (storage, the network). Compare members with `===`. */
 export class FeedbackFace {
   private constructor(
     readonly value: string,
     readonly label: string,
+    /** Which of the app's own colours the face is drawn in: `bad` is its red, `mid` its amber, `good` its green. */
+    readonly tone: FeedbackTone,
+    /** The mouth, as an SVG path in a 40 x 40 box: sad, flat, smiling. */
+    readonly mouth: string,
   ) {}
 
-  static readonly NotReally = new FeedbackFace('not_really', 'Not really');
-  static readonly Ok = new FeedbackFace('ok', 'It is OK');
-  static readonly Yes = new FeedbackFace('yes', 'Yes, I like it');
+  static readonly NotReally = new FeedbackFace('not_really', 'Not really', 'bad', 'M12 30 Q20 23 28 30');
+  static readonly Ok = new FeedbackFace('ok', 'It is OK', 'mid', 'M13 28.5 L27 28.5');
+  static readonly Yes = new FeedbackFace('yes', 'Yes, I like it', 'good', 'M12 26.5 Q20 35 28 26.5');
 
   /** Worst to best, the order the faces are drawn. LAST in the class body. */
   static readonly ALL: readonly FeedbackFace[] =

@@ -34,6 +34,12 @@ export interface FeedbackDialogDeps {
   readonly defer: (fn: () => void) => void;
 }
 
+/** The click or tap that asks for a send. A send is made only for a real one (`isTrusted`): the app has no
+ *  programmatic way to send an answer. */
+export interface UserAction {
+  readonly isTrusted: boolean;
+}
+
 export type FeedbackPhase = 'face' | 'comment';
 export type FeedbackSource = 'menu' | 'prompt';
 
@@ -56,9 +62,9 @@ export interface FeedbackDialogApi {
   /** The Info menu's "Send feedback": always opens, whatever the quiet time. */
   show(): void;
   /** One tap sends the answer. */
-  pickFace(face: FeedbackFace): Promise<void>;
+  pickFace(face: FeedbackFace, action: UserAction): Promise<void>;
   /** Send what was typed as a follow-up. Blank: nothing is sent and the dialog just closes. */
-  sendComment(): Promise<void>;
+  sendComment(action: UserAction): Promise<void>;
   /** Not now, Escape, outside tap or Close. */
   dismiss(): void;
   stop(): void;
@@ -137,8 +143,8 @@ export function createFeedbackDialog(deps: FeedbackDialogDeps): FeedbackDialogAp
     statusText: computed(() => statusLine(delivery.value)),
     commentStatusText: computed(() => statusLine(commentDelivery.value)),
     show: () => reset('menu'),
-    async pickFace(face) {
-      if (chosen.value !== null) return;
+    async pickFace(face, action) {
+      if (!action.isTrusted || chosen.value !== null) return;
       chosen.value = face.value;
       phase.value = 'comment';
       remember('answered');
@@ -146,7 +152,8 @@ export function createFeedbackDialog(deps: FeedbackDialogDeps): FeedbackDialogAp
       answerId.value = answered.id;
       delivery.value = answered.delivery;
     },
-    async sendComment() {
+    async sendComment(action) {
+      if (!action.isTrusted) return;
       const id = answerId.value;
       const text = comment.value.trim();
       if (id === null || text === '') { open.value = false; return; }

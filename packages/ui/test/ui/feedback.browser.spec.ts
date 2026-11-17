@@ -35,6 +35,8 @@ async function openFromDesktopInfoMenu(page: Page): Promise<void> {
 async function expectDialogFits(page: Page): Promise<void> {
   const view = page.viewportSize();
   if (view === null) throw new Error('no viewport');
+  // Measure the dialog at rest, not while it slides in.
+  await page.getByTestId('feedback-dialog').evaluate(el => Promise.all(el.getAnimations().map(a => a.finished)));
   const box = await page.getByTestId('feedback-dialog').boundingBox();
   if (box === null) throw new Error('dialog not drawn');
   expect(box.x).toBeGreaterThanOrEqual(-0.5);
@@ -114,15 +116,17 @@ test.describe('desktop skin', () => {
 
   test('after a save the prompt offers itself once, and a Not now keeps it quiet on the next save', async ({page}) => {
     await standInCollector(page);
+    await page.clock.install();
     await page.goto('/');
     await openAProject(page);
     await page.getByRole('button', {name: 'Save', exact: true}).first().click();
-    await expect(page.getByTestId('feedback-dialog')).toBeVisible({timeout: 6000});
+    await page.clock.runFor(2500);
+    await expect(page.getByTestId('feedback-dialog')).toBeVisible();
     await expectDialogFits(page);
     await page.getByTestId('feedback-not-now').click();
     await expect(page.getByTestId('feedback-dialog')).toBeHidden();
     await page.getByRole('button', {name: 'Save', exact: true}).first().click();
-    await page.waitForTimeout(3000);
+    await page.clock.runFor(3000);
     await expect(page.getByTestId('feedback-dialog')).toBeHidden();
   });
 });

@@ -2,10 +2,13 @@
 import {describe, expect, it} from 'vitest';
 import {createMemoryStorage} from '@openisd/persistence';
 import {FEEDBACK_DAY_MS, FeedbackFace} from '@openisd/design/fields';
-import {createFeedbackDialog, FEEDBACK_ASK_KEY, type FeedbackDialogDeps} from '../../src/hooks/FeedbackDialog-hooks.js';
+import {createFeedbackDialog, FEEDBACK_ASK_KEY, type FeedbackDialogDeps, type UserAction} from '../../src/hooks/FeedbackDialog-hooks.js';
 import {FeedbackOutbox, type FeedbackTransport} from '../../src/logic/feedback/feedbackOutbox.js';
 import {SaveTappedTelemetry} from '../../src/logic/feedback/saveTappedTelemetry.js';
 import {NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
+
+const PERSON: UserAction = {isTrusted: true};
+const SCRIPT: UserAction = {isTrusted: false};
 
 class Net implements FeedbackTransport {
   isOnline = true;
@@ -33,7 +36,7 @@ function setup(busy: () => boolean = () => false) {
   const deferred: (() => void)[] = [];
   let ids = 0;
   const outbox = new FeedbackOutbox({
-    storage, transport: net, now: () => clock.now, newId: () => `id${++ids}`,
+    storage, transport: net, now: () => clock.now, sessionAgeS: () => 30, newId: () => `id${++ids}`,
     version: 'v', sessionId: 's', browserId: 'b', environment: 'test',
   });
   const deps: FeedbackDialogDeps = {
@@ -58,7 +61,7 @@ describe('opening from the Info menu', () => {
   it('one tap on a face sends the answer at once and says thanks, sent; the comment box then offers itself', async () => {
     const {dialog, net} = setup();
     dialog.show();
-    await dialog.pickFace(FeedbackFace.Yes);
+    await dialog.pickFace(FeedbackFace.Yes, PERSON);
     expect(net.bodies).toHaveLength(1);
     expect(net.bodies[0]).toContain('"face":"yes"');
     expect(dialog.phase.value).toBe('comment');
@@ -71,7 +74,7 @@ describe('opening from the Info menu', () => {
     const {dialog, net, online} = setup();
     net.isOnline = false;
     dialog.show();
-    await dialog.pickFace(FeedbackFace.Ok);
+    await dialog.pickFace(FeedbackFace.Ok, PERSON);
     expect(dialog.statusText.value).toBe('Saved, will send when online');
     expect(net.bodies).toHaveLength(0);
     net.isOnline = true;
@@ -84,9 +87,9 @@ describe('opening from the Info menu', () => {
   it('a comment typed afterwards is a follow-up to the same answer; ignoring the box is fine', async () => {
     const {dialog, net} = setup();
     dialog.show();
-    await dialog.pickFace(FeedbackFace.Ok);
+    await dialog.pickFace(FeedbackFace.Ok, PERSON);
     dialog.comment.value = 'add a dark theme';
-    await dialog.sendComment();
+    await dialog.sendComment(PERSON);
     expect(net.bodies).toHaveLength(2);
     expect(net.bodies[1]).toContain('"comment":"add a dark theme"');
     expect(net.bodies[1]).toContain('"id":"id1"');
@@ -97,9 +100,9 @@ describe('opening from the Info menu', () => {
   it('a blank comment sends nothing and still shows a result', async () => {
     const {dialog, net} = setup();
     dialog.show();
-    await dialog.pickFace(FeedbackFace.Yes);
+    await dialog.pickFace(FeedbackFace.Yes, PERSON);
     dialog.comment.value = '  ';
-    await dialog.sendComment();
+    await dialog.sendComment(PERSON);
     expect(net.bodies).toHaveLength(1);
     expect(dialog.open.value).toBe(false);
   });
@@ -111,12 +114,26 @@ describe('opening from the Info menu', () => {
     expect(dialog.open.value).toBe(false);
     expect(net.bodies).toHaveLength(0);
     dialog.show();
-    await dialog.pickFace(FeedbackFace.Yes);
+    await dialog.pickFace(FeedbackFace.Yes, PERSON);
     dialog.dismiss();
     dialog.show();
     expect(dialog.phase.value).toBe('face');
     expect(dialog.chosen.value).toBeNull();
     expect(dialog.comment.value).toBe('');
+  });
+});
+
+describe('only a person sends', () => {
+  it('ignores an answer or a comment that script code (an untrusted event) asks for', async () => {
+    const {dialog, net} = setup();
+    dialog.show();
+    await dialog.pickFace(FeedbackFace.Yes, SCRIPT);
+    expect(net.bodies).toHaveLength(0);
+    expect(dialog.phase.value).toBe('face');
+    await dialog.pickFace(FeedbackFace.Yes, PERSON);
+    dialog.comment.value = 'spam';
+    await dialog.sendComment(SCRIPT);
+    expect(net.bodies).toHaveLength(1);
   });
 });
 
@@ -170,7 +187,7 @@ describe('the occasional prompt after a save', () => {
     const {dialog, saves, runDeferred, clock} = setup();
     const save = () => { saves.record({kind: 'project_save', format: 'stored', box: 'vented'}); runDeferred(); };
     save();
-    await dialog.pickFace(FeedbackFace.Yes);
+    await dialog.pickFace(FeedbackFace.Yes, PERSON);
     dialog.dismiss();
     clock.now += 89 * FEEDBACK_DAY_MS;
     save();

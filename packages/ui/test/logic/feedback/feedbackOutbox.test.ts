@@ -31,7 +31,7 @@ function setup() {
   const storage = createMemoryStorage();
   let n = 0;
   const make = () => new FeedbackOutbox({
-    storage, transport, now: () => 1_800_000_000_000, newId: () => `id-${++n}`,
+    storage, transport, now: () => 1_800_000_000_000, sessionAgeS: () => 42, newId: () => `id-${++n}`,
     version: '7.1.0', sessionId: 'sess', browserId: 'brow', environment: 'test',
   });
   return {transport, storage, outbox: make(), make};
@@ -44,7 +44,7 @@ describe('FeedbackOutbox', () => {
     expect(r.delivery).toBe('sent');
     expect(transport.events()).toEqual([{
       name: 'feedback', ts: 1_800_000_000_000, version: '7.1.0', session: 'sess', browser_id: 'brow', environment: 'test',
-      fields: {id: r.id, face: 'yes', screen: 'original/Vented', skin: 'original'},
+      fields: {id: r.id, face: 'yes', screen: 'original/Vented', skin: 'original', age_s: 42},
     }]);
     expect(outbox.pendingCount()).toBe(0);
   });
@@ -88,7 +88,7 @@ describe('FeedbackOutbox', () => {
     expect(await outbox.comment(r.id, 'love the charts')).toBe('sent');
     const events = transport.events();
     expect(events).toHaveLength(2);
-    expect(events[1]?.fields).toEqual({id: r.id, face: 'yes', screen: 's', skin: 'original', comment: 'love the charts'});
+    expect(events[1]?.fields).toEqual({id: r.id, face: 'yes', screen: 's', skin: 'original', age_s: 42, comment: 'love the charts'});
   });
 
   it('sends the comment with the answer, in one event, when the answer is still queued', async () => {
@@ -113,8 +113,8 @@ describe('FeedbackOutbox', () => {
   });
 
   it('builds the wire fields of a feedback event', () => {
-    expect(fieldsOf({kind: 'feedback', id: 'a', face: 'ok', comment: '', screen: 's', skin: 'mobile'})).toEqual({id: 'a', face: 'ok', screen: 's', skin: 'mobile'});
-    expect(fieldsOf({kind: 'feedback', id: 'a', face: 'ok', comment: 'hi', screen: 's', skin: 'mobile'})).toEqual({id: 'a', face: 'ok', screen: 's', skin: 'mobile', comment: 'hi'});
+    expect(fieldsOf({kind: 'feedback', id: 'a', face: 'ok', comment: '', screen: 's', skin: 'mobile', ageS: 12})).toEqual({id: 'a', face: 'ok', screen: 's', skin: 'mobile', age_s: 12});
+    expect(fieldsOf({kind: 'feedback', id: 'a', face: 'ok', comment: 'hi', screen: 's', skin: 'mobile', ageS: 12})).toEqual({id: 'a', face: 'ok', screen: 's', skin: 'mobile', age_s: 12, comment: 'hi'});
   });
 
   it('ignores damaged stored text', async () => {
@@ -138,7 +138,7 @@ describe('FeedbackOutbox during a slow send', () => {
         return true;
       },
     };
-    const outbox = new FeedbackOutbox({storage, transport, now: () => 1_800_000_000_000, newId: () => 'a', version: 'v', sessionId: 's', browserId: 'b', environment: 'test'});
+    const outbox = new FeedbackOutbox({storage, transport, now: () => 1_800_000_000_000, sessionAgeS: () => 42, newId: () => 'a', version: 'v', sessionId: 's', browserId: 'b', environment: 'test'});
     const answering = outbox.answer(FeedbackFace.Yes, 'scr', 'original');
     const commenting = outbox.comment('a', 'late words');
     release();

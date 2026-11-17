@@ -13,6 +13,10 @@ describe('FeedbackFace', () => {
       ['not_really', 'Not really'], ['ok', 'It is OK'], ['yes', 'Yes, I like it'],
     ]);
   });
+  it('draws each face in the app\'s own red, amber and green, with its own mouth', () => {
+    expect(FeedbackFace.ALL.map(f => f.tone)).toEqual(['bad', 'mid', 'good']);
+    expect(new Set(FeedbackFace.ALL.map(f => f.mouth)).size).toBe(3);
+  });
   it('parses a wire value to its member and anything else to null', () => {
     expect(FeedbackFace.parse('ok')).toBe(FeedbackFace.Ok);
     expect(FeedbackFace.parse('great')).toBeNull();
