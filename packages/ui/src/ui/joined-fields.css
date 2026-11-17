@@ -67,7 +67,7 @@
 .joined-fields:not(.app-root-mobile) .ui-field:is([data-field],.joined-field):has(input.de-input-mandatory:not(.de-input-empty,.inp-bad,.dq-flag)) {--joined-border-color:#767676;--joined-border-style:inset;}
 .joined-fields .ui-field:is([data-field],.joined-field):has(input.dq-flag) {--joined-border-color:var(--bad);}
 .joined-fields .ui-field:is([data-field],.joined-field):has(input.dq-symptom) {--joined-border-color:color-mix(in srgb,var(--bad) 65%,orange);}
-.joined-fields .ui-field:is([data-field],.joined-field):has(input:is(.de-input-empty,.inp-bad)) {--joined-border-color:var(--bad);}
+.joined-fields .ui-field.ui-field:is([data-field],.joined-field):has(input:is(.de-input-empty,.inp-bad)) {--joined-border-color:var(--bad);}
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field) input:is(.de-input-empty,.inp-bad) {border-color:var(--joined-border-color) !important;}
 /* Reserve one cue track for the whole phone page, keeping all value and spinner edges aligned. */
 .joined-fields.app-root-mobile .mob-classic:has(.ui-field-dev) .ui-field:is([data-field],.joined-field) {--joined-model:24px;padding-right:2px;}
