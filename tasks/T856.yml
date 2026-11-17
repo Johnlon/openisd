@@ -1,5 +1,5 @@
 id: T856
-release_note: user
+release_note: Next to every chart's Data button, an All button exports every chart of the project as one ZIP of CSV files plus the project file.
 repo: openisd
 owner: cover
 status: done

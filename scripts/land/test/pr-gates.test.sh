@@ -51,6 +51,42 @@ git switch -q main; git switch -q -c hashfix2; mkdir -p tasks; task T1; sed -i '
 [ "$(bash scripts/land/pr-task.sh main HEAD 2>&1)" = "T1 T9" ] && grep -q $'REFUSE\tlocked' <<< "$(bash scripts/land/check-task-contract.sh T9 main HEAD --pr T1)" \
   && ok "a sha change for a file the change does not edit counts as a task and its contract refuses it" || bad "a sha change for a file the change does not edit counts as a task and its contract refuses it"
 
+# T860 (John, 17 Nov 2026, "Yes" on the board card "The release is blocked by one missing sentence. May I fix it?"): a task file that
+# exists on the base and whose ONLY changed line is `release_note:` is not counted; any other change, or a new task file, still is
+git switch -q main; git switch -q -c relnote-base; mkdir -p tasks
+printf 'id: T881
+release_note: user
+owner: t
+status: done
+goal: g
+done_test: true
+files:
+  - src/**
+' > tasks/T881.yml
+git add -A; git commit -qm "(auto) T881: base"; git switch -q main; git merge -q relnote-base
+git switch -q -c relnote-a; mkdir -p tasks; task T1; echo b3 > src/a.ts; sed -i 's/^release_note: .*/release_note: A real sentence for users./' tasks/T881.yml; git add -A; git commit -qm "(auto) T1: fix T881 note"
+[ "$(bash scripts/land/pr-task.sh main HEAD 2>&1)" = T1 ] && ok "an existing task file whose only change is its release_note line is not counted" || bad "release_note-only change is not counted ($(bash scripts/land/pr-task.sh main HEAD 2>&1))"
+git switch -q main; git switch -q -c relnote-b; mkdir -p tasks; task T1; echo b4 > src/a.ts; sed -i -e 's/^release_note: .*/release_note: A real sentence for users./' -e 's/^goal: g/goal: changed/' tasks/T881.yml; git add -A; git commit -qm "(auto) T1: more T881"
+[ "$(bash scripts/land/pr-task.sh main HEAD 2>&1)" = "T1 T881" ] && ok "a release_note change plus another changed line is a carried task" || bad "release_note plus other line is carried ($(bash scripts/land/pr-task.sh main HEAD 2>&1))"
+git switch -q main; git switch -q -c relnote-c; mkdir -p tasks; task T1; echo b5 > src/a.ts; printf 'id: T882
+release_note: A real sentence for users.
+owner: t
+status: done
+goal: g
+done_test: true
+files:
+  - src/**
+' > tasks/T882.yml; git add -A; git commit -qm "(auto) T1: new T882"
+[ "$(bash scripts/land/pr-task.sh main HEAD 2>&1)" = "T1 T882" ] && ok "a new task file with a release_note is still counted" || bad "a new task file is counted ($(bash scripts/land/pr-task.sh main HEAD 2>&1))"
+
+# T860: a release_note change buried in thousands of other changed lines is a carried task (a `| grep -vq` consumer leaving early
+# let git diff die of SIGPIPE under pipefail, so the old check could call a long diff release_note-only)
+git switch -q main; git switch -q -c relnote-big; mkdir -p tasks; task T1; echo b7 > src/a.ts
+sed -i 's/^release_note: .*/release_note: A real sentence for users./' tasks/T881.yml; for i in $(seq 1 6000); do echo "note_$i: padding line $i of a long task file" >> tasks/T881.yml; done
+git add -A; git commit -qm "(auto) T1: long T881"
+big_ok=0; for i in $(seq 1 30); do [ "$(bash scripts/land/pr-task.sh main HEAD 2>&1)" = "T1 T881" ] && big_ok=$((big_ok + 1)); done
+[ "$big_ok" = 30 ] && ok "a release_note change among 6000 other changed lines is a carried task, 30 runs of 30" || bad "long diff carried ($big_ok of 30 runs)"
+
 # T7786: a file another task locks warns whether or not it is that task's done_test; the landing task's own locks still refuse (T9 test above)
 git switch -q main; git switch -q -c xlock; mkdir -p tasks src
 printf 'id: T77\nowner: t\nstatus: done\ngoal: g\ndone_test: bash src/pass.sh\nlocked:\n  - path: src/pass.sh\n    sha256: 0000\n  - path: src/proc.sh\n    sha256: 0000\nfiles:\n  - src/**\n' > tasks/T77.yml

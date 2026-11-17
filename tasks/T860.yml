@@ -1,0 +1,13 @@
+id: T860
+release_note: internal
+repo: openisd
+owner: fixer
+status: done
+goal: pr-task.sh does not count an existing task file whose only change is its release_note line, so a pull request can correct one release note
+why: John, 17 Nov 2026 02:27 UTC, board card 'The release is blocked by one missing sentence. May I fix it?' (To put the sentence in, I must relax one checking script so it allows that one-line correction. Relaxing a check needs your Yes.): John answered 'Yes' (questions.yml QO946.c224)
+done_test: bash scripts/land/test/pr-gates.test.sh
+files:
+  - tasks/T860.yml
+  - scripts/land/pr-task.sh
+  - scripts/land/test/pr-gates.test.sh
+  - tasks/T856.yml
