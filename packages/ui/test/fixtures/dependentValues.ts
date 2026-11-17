@@ -141,7 +141,7 @@ export function sweepValues(input: SweepInput, original: string): SweepValues {
   return {normal: trimmed(normal), tiny: trimmed(tiny), top: trimmed(topDisplay), high: trimmed(high), low};
 }
 
-async function newReferencePage(browser: Browser, baseURL: string, viewport: SweepViewport): Promise<Page> {
+export async function newReferencePage(browser: Browser, baseURL: string, viewport: SweepViewport): Promise<Page> {
   const context = await browser.newContext({baseURL, viewport: viewport === 'phone' ? PHONE : {width: 1280, height: 720}});
   await standInForSnapshotsSite(context);
   const page = await context.newPage();
@@ -153,7 +153,7 @@ async function newReferencePage(browser: Browser, baseURL: string, viewport: Swe
   return page;
 }
 
-async function importSample(page: Page, viewport: SweepViewport): Promise<void> {
+export async function importSample(page: Page, viewport: SweepViewport): Promise<void> {
   ensureSampleProject();
   const root = viewport === 'phone' ? '.mobile-root' : '.original-root';
   await page.locator(`${root} input[type=file]`).setInputFiles({name: 'sample-project.owpr', mimeType: 'application/json', buffer: readFileSync(SAMPLE_PROJECT_OWPR)});
