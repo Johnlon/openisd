@@ -10,7 +10,7 @@ import {
  * aggressive testing for this style of bug across the app"). The bug it guards against: the vented box's Vent length
  * stopped following Fb once Fb had been lowered far enough to push the calculated length past its limit.
  *
- * One journey per input, per box type, per viewport: the input is typed to a normal value, an absurdly high one (10x
+ * One journey per input, per box type, per viewport: the input is typed to a normal value, a tiny one and the top one the field accepts (these push calculated boxes past their own limits, as John's Fb did), an absurdly high one (10x
  * the field's own limit), an absurdly low one (0, or negative where the field's floor allows none), then back to what it
  * was. After each step every box on the screens is read; each must show what a clean project shows when that same entry
  * is typed into it. After the last step no calculated box may still be in the refused-entry state and every box must
@@ -171,7 +171,7 @@ for (const viewport of ['desktop', 'phone'] as const satisfies readonly SweepVie
           // A refused entry leaves the last accepted value in force; the clean project it is compared with has only that
           // value typed (never the whole history, which would repeat a latch instead of catching it).
           let accepted: BoxReadings = start;
-          for (const [step, text] of [['normal', values.normal], ['high', values.high], ['low', values.low]] as const) {
+          for (const [step, text] of [['normal', values.normal], ['tiny', values.tiny], ['top', values.top], ['high', values.high], ['low', values.low]] as const) {
             await page.locator('.project-nav li, .mob-tab', {hasText: home.tab}).first().click();
             await fillAndCommit(item.locate(page), text);
             const typed = await freshProjectReadings(browser, baseUrl(), viewport, type, screens, item, text);

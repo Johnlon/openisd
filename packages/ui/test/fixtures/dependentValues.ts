@@ -106,6 +106,10 @@ export async function readAllBoxes(page: Page, viewport: SweepViewport, screens:
 /** Normal, absurdly high and absurdly low entries for a field, typed in its display unit. */
 export interface SweepValues {
   readonly normal: string;
+  /** A tiny entry the field accepts: what makes a calculated value (a port length) run past its own limit. */
+  readonly tiny: string;
+  /** The highest entry the field accepts. */
+  readonly top: string;
   readonly high: string;
   readonly low: string;
 }
@@ -122,7 +126,8 @@ export function sweepValues(input: SweepInput, original: string): SweepValues {
   const normal = grown > topDisplay || grown === originalNumber ? originalNumber * 0.8 : grown;
   const high = f.toDisplay(f.limits.max * 10);
   const low = f.floor === 'positive' ? '0' : f.floor === 'non-negative' || f.limits.min >= 0 ? '-1' : trimmed(f.toDisplay(f.limits.min * 10));
-  return {normal: trimmed(normal), high: trimmed(high), low};
+  const tiny = Math.max(originalNumber / 1000, f.toDisplay(f.limits.min));
+  return {normal: trimmed(normal), tiny: trimmed(tiny), top: trimmed(topDisplay), high: trimmed(high), low};
 }
 
 async function newReferencePage(browser: Browser, baseURL: string, viewport: SweepViewport): Promise<Page> {
