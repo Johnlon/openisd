@@ -138,10 +138,7 @@ const PHONE_INPUTS: ReadonlyMap<SweepBoxType, readonly SweepInput[]> = new Map([
 const BOX_TYPES: readonly SweepBoxType[] = ['sealed', 'vented', 'bandpass4', 'bandpass6', 'abc', 'box-passive-radiator'];
 
 /** Journeys that fail because of an app bug: the bug file, red until fixed (`test.fail`). Key: "<viewport> <box type> <input label>". */
-const SEALED_QTC = 'bugs/BUG_20261117_sealed-qtc-keeps-old-value-when-fsc-is-tiny.md';
-const KNOWN: ReadonlyMap<string, string> = new Map([
-  ['desktop sealed Fsc', SEALED_QTC],
-  ['phone sealed Fsc', SEALED_QTC],
+const KNOWN: ReadonlyMap<string, string> = new Map<string, string>([
 ]);
 
 function baseUrl(): string {

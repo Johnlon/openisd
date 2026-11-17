@@ -182,6 +182,10 @@ export class SealedEngineImpl implements SealedEngine {
       } else {
         params.Qtc.setNotAvailable();
       }
+    } else if (!params.Qtc.entered) {
+      // No volume to read Qtc from (a tiny Fsc typed, so no box reaches it): drop the Qtc an earlier solve
+      // left, so it is blank as in a project where only that Fsc was typed.
+      params.Qtc.setNotAvailable();
     }
 
     const solved: SealedAlignmentWorkingSet = {
