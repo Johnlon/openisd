@@ -384,6 +384,21 @@ describe('useNumInput value, unit and focus flow', () => {
     app.unmount();
   });
 
+  // John, 17 Nov 2026: "once FB goes to low and we get dq and port len is ridiculous then raising FB the Len does
+  // not respond until I clear it". A calculated value that lands above the box's max is not a typed entry; the box
+  // must follow the model again when it comes back in range.
+  it('follows the model back from a value above the box max, nobody having typed it', async () => {
+    const {api, app, props} = setup({modelValue: 5, max: 10});
+    props.modelValue = 50;
+    await nextTick();
+    expect(api.display.value).toBe('50.00');
+    props.modelValue = 7;
+    await nextTick();
+    expect(api.display.value).toBe('7.00');
+    expect(api.refusal.value).toBe('');
+    app.unmount();
+  });
+
   it('keeps an unparsable draft when the unit changes while focused', async () => {
     const {api, app, presentationState, input} = setup({modelValue: 0.0048, field: NumberField.BOX_VB_L});
     focusIn(api);

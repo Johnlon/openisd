@@ -73,15 +73,19 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
   const emptied = ref(false);
   const entryValue = ref<number | null | undefined>(props.modelValue);
   const display = ref(fmt(props.modelValue));
+  /** The text in the box was typed (or stepped) by the person, as opposed to put there from the model. Only typed text can be
+   *  refused: a calculated value above the box's max (a port length at a very low Fb) is the domain's ⚠, and the box must
+   *  follow the model off it when the value comes back (John, 17 Nov 2026: "raising FB the Len does not respond until I clear it"). */
+  const typedDraft = ref(false);
 
   watch([() => props.modelValue, () => props.halfWidth], ([v]) => {
-    if (!groupFocused.value && refusal.value === '') display.value = fmt(v);
+    if (!groupFocused.value && refusal.value === '') showStored(v);
   });
   watch(activeToken, (newToken, oldToken) => {
     if (!groupFocused.value || refusal.value === '') {
       // Accepted input is already stored at full SI precision. Never convert the
       // rounded display back into a value when cycling units.
-      display.value = fmt(props.modelValue);
+      showStored(props.modelValue);
     } else if (props.field && display.value && oldToken) {
       // Rescale active draft string when token changes while focused (C24)
       const oldRes = props.field.parseEntry(display.value, oldToken);
@@ -100,6 +104,12 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
       input.setSelectionRange(display.value.length, display.value.length);
     }
   });
+
+  /** Put the model's value in the box: what is shown is then stored text, not a typed entry. */
+  function showStored(v: number | null | undefined): void {
+    typedDraft.value = false;
+    display.value = fmt(v);
+  }
 
   function onFocus(event: FocusEvent) {
     if (!editedThisFocus) valueBeforeEdit = currentUndoPoint();
@@ -133,7 +143,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     emptied.value = false;
     entryValue.value = props.modelValue;
     // Switch to unformatted string so toPrecision doesn't fight the user's keystrokes
-    display.value = fmt(props.modelValue);
+    showStored(props.modelValue);
   }
 
   /** Desktop: horizontal text selection, vertical spinning. Touch: horizontal spinning, vertical scrolling. */
@@ -384,6 +394,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     undoTo = currentUndoPoint();
     badEntry.value = false;
     emptied.value = false;
+    typedDraft.value = false;
     display.value = fmt(target.value, target.halfWidth);
     el.value = display.value;
     emit('update:modelValue', target.value, target.halfWidth ?? undefined);
@@ -393,7 +404,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
   function revertToStored(el: HTMLInputElement | null) {
     badEntry.value = false;
     emptied.value = false;
-    display.value = fmt(props.modelValue);
+    showStored(props.modelValue);
     if (el) el.value = display.value;
   }
 
@@ -545,6 +556,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     if (spun === null) return;
     const si = fromDisp(spun.value);
     display.value = spun.text;
+    typedDraft.value = true;
     lastCaret = {kind: 'digit', at: spun.mark};
     if (el !== null) {
       el.value = spun.text;
@@ -734,6 +746,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     const t = inputFrom(e);
     if (t === null) return;
     display.value = t.value;
+    typedDraft.value = true;
     editedThisFocus = true;
     nativeTextSelection = false;
     lastStep = null;
@@ -761,7 +774,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     if (e instanceof FocusEvent && ownGroup(e.relatedTarget)) {
       // Clearing a coupled cell can immediately settle to a calculated value.
       // Its restored value must be visible when focus moves to its unit/buttons.
-      if (display.value === '' && refusal.value === '') display.value = fmt(props.modelValue);
+      if (display.value === '' && refusal.value === '') showStored(props.modelValue);
       return;
     }
     leaveGroup();
@@ -782,7 +795,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     }
     badEntry.value = false;
     emptied.value = false;
-    display.value = fmt(props.modelValue);
+    showStored(props.modelValue);
     const t = inputEl.value;
     if (t === null) return;
     if (t.value !== display.value) t.value = display.value;
@@ -798,6 +811,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     if (badEntry.value) return entryRefusal(bounds.value, { kind: 'not-a-number' });
     // Refused only when the person emptied the box. A box that never had a value is just unset, so a value that arrives later still shows.
     if (emptied.value && props.blankRefused) return entryRefusal(bounds.value, { kind: 'not-a-number' });
+    if (!typedDraft.value) return '';
     if (display.value === '' || !isFinite(numberOf(display.value))) return '';
     if (display.value === fmt(props.modelValue)) return '';
     return entryRefusal(bounds.value, { kind: 'number', si: fromDisp(numberOf(display.value)) });
