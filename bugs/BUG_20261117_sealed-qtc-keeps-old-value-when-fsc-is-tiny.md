@@ -1,6 +1,6 @@
 # Sealed box: Qtc keeps its old value when Fsc is typed tiny after a normal Fsc
 
-**Status:** OPEN (found by the box dependent-value sweep, task T863, 17 Nov 2026)
+**Status:** FIXED by T864, 17 Nov 2026 (the sealed solve now blanks Qtc when no volume is reachable from the typed Fsc). Found by the box dependent-value sweep, task T863.
 **Found by:** `packages/ui/test/ui/box-dependent-values.browser.spec.ts`, cases "desktop sealed Fsc" and "phone sealed Fsc" (marked `test.fail`, red until fixed).
 
 On a sealed box, type Fsc 82.53 (Vb shows 2.279, Qtc shows 0.8623, both calculated), then type Fsc 0.06602. Vb goes blank, but Qtc keeps showing 0.8623 as a calculated value. A clean project with only Fsc 0.06602 typed shows Qtc blank. So Qtc did not follow Fsc.
