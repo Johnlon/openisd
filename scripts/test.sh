@@ -24,6 +24,25 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# ── Baseline pictures are drawn by CI's test machine only (T799) ─────────────────────────────
+# A picture drawn here is not what the suite's browser job draws; T791 committed 37 of them and main went red.
+# --update-snapshots / -u is refused on every machine that cannot draw like CI, whatever spec it names.
+if ! bash "$SCRIPT_DIR/visual/can-draw.sh"; then
+  for arg in "$@"; do
+    case "$arg" in
+      -u|--update-snapshots|--update-snapshots=*) update_flag=1 ;;
+    esac
+  done
+  if [ -n "${update_flag:-}" ] || [ -n "${npm_config_update_snapshots:-}" ]; then
+    cat >&2 <<EOF
+ERROR: this machine cannot draw baseline pictures: they must be what CI's test machine draws (docs/design/VISUAL_BASELINES.md).
+Commit your work, then run:  bash scripts/visual/update.sh
+It has CI draw every screen on your commit and brings the pictures back, stamped; nothing is drawn here.
+EOF
+    exit 1
+  fi
+fi
+
 # ── npm eats leading flags, so "no arguments" can be a LIE ───────────────────────────────────
 # `npm test --workers=1` never reaches this script as an argument: npm claims every leading
 # `--flag` as its own config and turns it into `npm_config_workers=1` in the environment. The

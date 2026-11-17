@@ -256,6 +256,24 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       expect(progress.filter(p => p.startsWith('pushed'))).toHaveLength(10);
     });
 
+    it('an upload is reported as soon as it finishes, not when the whole run ends', async () => {
+      localProjects.docs = newProjects(2);
+      const create = cloud.create.bind(cloud);
+      let call = 0;
+      let reportedWhileSecondPending = -1;
+      cloud.create = async (id, body, meta) => {
+        const mine = call++;
+        if (mine === 1) {
+          // the second upload waits until the first has been reported
+          await new Promise(resolve => setTimeout(resolve, 20));
+          reportedWhileSecondPending = moves.length;
+        }
+        return create(id, body, meta);
+      };
+      await createEngine().run();
+      expect(reportedWhileSecondPending).toBe(1);
+    });
+
     it('a failed upload stops new ones; those already sent still count', async () => {
       localProjects.docs = newProjects(10);
       const seen = trackCreates(1);

@@ -1,43 +1,34 @@
 # SDLC policy — rules every agent follows
 
 John's standing orders. Each rule names its date and his words. Background and history: [`SDLC.md`](SDLC.md);
-the normal landing path: [`DEV_PROCESS.md`](DEV_PROCESS.md).
+the normal path to main: [`DEV_PROCESS.md`](DEV_PROCESS.md).
 
-## 1. Main broken: fix main, directly (John, 31 Oct 2026)
+## 1. Main broken: fix first, fix only (John, 31 Oct 2026; queue QO481, 10 Nov 2026)
 
-> "If main is broken, you fix main. You don't create new branches that just cause further delay. The emergency is
-> main must be fixed." — "If you don't work on main when it's an emergency, you end up with conflicts and other
-> matters, which means that you have to do yet more builds and more merges. Just get it onto main."
+Pull requests run only the fast gates, so a browser break can reach main; the full suite runs there after each merge and a red
+opens a `main-red` issue (QO501, John 10 Nov 2026, "pick A"). When main is red (that issue, the
+deploy fails, a release is blocked, John says so), the fix is a pull request labelled `fixes`, first in the queue.
 
-Main is broken when the suite on main's head is red, an `F` fix is open, the deploy fails, a release is blocked on
-a fix, or John says so.
-
-- Commit the fix and push it straight to main (`git push origin HEAD:main`). No new branch, no PR, no `land.sh`
-  candidate run first.
-- If main moved under you, **merge** it (`git merge origin/main`), never rebase: one conflict round, not one per
-  commit.
 - Do **only** the fix. No visual baseline re-takes, no coverage baselines, no bookkeeping, tidying or other
   housekeeping until main works ("you wasted even more time taking visual baselines when we're broken ... This must
   be something that you have to stop doing"). A generated file in conflict takes main's side; it is regenerated
   after the emergency.
-- Prove the fix with its own failing specs first (§2), then push.
-- After the push, check main's exact head with the full suite without blocking main:
-  `git push -f origin <sha>:refs/heads/land/<task>` runs `suite.yml` on that sha. Red → fix on main again (§2).
-- Outside an emergency, main moves only through `scripts/land.sh` (`.claude/rules/processes.md` rule 6).
+- Prove the fix with its own failing specs first (§2), then `bash scripts/ship.sh T<n>`.
+- Main moves only through the merge queue (`.claude/rules/processes.md` rule 6).
 
 ## 2. Failing tests: one spec, then a cluster, then the suite (John, 7 and 31 Oct 2026)
 
 > "no you run just that one test to make sure it works before running other tests" — "don't run full suite until
 > all individuals work then try running a small cluster 2 or 3 around it, then the suite, be smart and efficient"
 
-A full suite costs ~9 min on GitHub and ~30 min per landing retry. Climb the ladder, never skip a rung:
+A full suite costs ~9 min on GitHub (it runs on main after each merge, not on pull requests). Climb the ladder, never skip a rung:
 
 1. Each failing spec alone: `bash scripts/test.sh <spec>`. Fails alone → real defect: fix it, red first.
 2. A cluster of 2–3 neighbouring specs (same area, shared state) together. A pass alone but a fail here →
    interaction bug: fix it.
-3. Only then the full suite (`land.sh`, or the `land/<task>` push in §1).
+3. Only then the full suite (on main after the merge, `suite.yml`).
 
-Never re-run a landing or the suite on a red before rungs 1 and 2 pass locally. A spec that passes alone and on
+Never re-push a pull request or re-run the suite on a red before rungs 1 and 2 pass locally. A spec that passes alone and on
 the cluster but fails again in a full run is a flaky test: it gets a bug file and a task, never a silent rerun.
 
 ## 3. Release first (John, 31 Oct 2026)
@@ -69,3 +60,44 @@ session ran outside tmux and no handover was cleared.
 
 An agent resumed from an old transcript takes no action on its old work. Before any work it tells the coordinating
 session what it means to do and waits for an ok. The keeper's resume prompt says this.
+
+## 6. The update popup is written for users (John, 17 Nov 2026)
+
+> "this is too obvious what it should do already so make it all sound like new features since last prod release";
+> "1 is boring"; "boring remove"; "make this popup stuff users care about"; "they don't give a shit about fonts";
+> "or buttons"; "simplify"; "they don't care about bugs like this ... edge case"; "terrible" (of "With several drivers, the impedance chart
+> matches WinISD"); "you have to be more salesman"; "too repetitive and the datasheet comment is
+> irritating delete it"; "come on get it right and then update the Claude SDLC docs for these messages so I don't have to explain again"
+
+The update popup (`cloudflare/announcements/src/index.js`, one entry per release) is what a user reads after an update.
+Every line answers "what can I do now, or what works better for me", in a designer's words.
+
+- Lead with what the user gets: a result in their design, a job made quicker, a wrong answer put right.
+- No buttons, menus, tabs, pages, dialogs or where a control sits ("the All button beside Data", "on the Driver page").
+  Say what the user can do, not which control does it.
+- No fonts, layouts, help texts, internal checks, task ids, or how it was built.
+- No dull or obvious lines ("passive radiators have Select, Info and Edit").
+- No narrow technical lines that need the reader to know a chart or WinISD's behaviour to see why they matter
+  ("With several drivers, the impedance chart matches WinISD").
+- No edge-case bug fixes (a value stuck after an extreme entry): users never met them. They go in the release notes
+  only. A fix goes in the popup only when many users saw the wrong result in normal use (false warnings on dual-coil
+  drivers).
+- The catalogue line gives the counts ("Now 1,923 drivers and 86 passive radiators from 21 makers"), counted from the live
+  catalogues of production and test, and names the makers that are new since the last production release, not
+  drivers (John: "give a counter of new drivers or manus"; "no name the manus not the drivers"; "the new manus since prod").
+- Sell it: the title is the headline benefit; say what OpenISD now does for the user, true and checked against the
+  build (never claim a feature that is only planned).
+- Talk about OpenISD, not WinISD: no line names WinISD or what it gets wrong (John, 17 Nov 2026: "don't talk about
+  WinISD talk about OpenISD - standard rule"). Say the effect a user sees in plain words: "so high frequencies stay
+  right", not "the top end" (John: "just say high freq and what's wrong").
+- No line repeats the title or another line; no "now matches its datasheet" lines (users expect that already).
+- Short, plain sentences: one fact per line, about 12 words at most, no colon followed by an explanation. Say the
+  benefit, not the mechanism: "now match their datasheets", not "no more false 'values disagree' warnings".
+- Six lines at most; the title names the two or three things users care about most.
+- The release notes (`release.sh --notes-file`) can be fuller; the popup cannot.
+- The lead drafts the popup and shows John the full text before it is merged; John's words win.
+
+Worked example (7.0.960, after "be more salesman"): title "Dual-coil drivers, done right"; summary "Wire any dual-coil driver
+in series or parallel and get the real answer."; lines "Impedance, inductance and BL follow the wiring, so high frequencies stay
+right." / "Export every chart in one click." / "Now 1,362
+woofers and 86 passive radiators from 21 makers, with CSS and RS Speakers new." / "Works better on phones."

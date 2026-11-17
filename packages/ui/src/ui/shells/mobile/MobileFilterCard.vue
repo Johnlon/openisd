@@ -57,7 +57,7 @@ const shortName = (): string => PHONE_FILTER_CHIPS.find(c => c.type === f.type)?
 </template>
 
 <style scoped>
-.mob-fcard { margin: 8px 12px 0; border: 1px solid #b9c7dd; border-radius: 6px; background: #fff; overflow: hidden; }
+.mob-fcard { margin: 8px 8px 0; border: 1px solid #b9c7dd; border-radius: 6px; background: #fff; overflow: hidden; }
 .mob-fcard-head { display: flex; align-items: center; min-height: 48px; background: #e8effa; }
 .mob-fcard-shut .mob-fcard-head { background: #f3f6fb; }
 .mob-fcard-tick { flex: none; width: 40px; align-self: stretch; display: grid; place-items: center; cursor: pointer; }

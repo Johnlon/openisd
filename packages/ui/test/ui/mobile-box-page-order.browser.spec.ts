@@ -9,6 +9,8 @@ import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {PHONE_SIZES} from '../fixtures/phoneSizes.js';
 import type {Page} from '@playwright/test';
 
+/** The sample project's 2× rule line: its driver's Vd is 86.95 cm³, so radiators need 2 × 86.95 = 173.9 cm³; its radiator gives that alone. */
+const TWO_TIMES_RULE = "2× rule: radiators need ≥ 174 cm³ — 1 of these is enough";
 type BoxOption = 'sealed' | 'vented' | 'box-passive-radiator' | 'bandpass4' | 'bandpass6' | 'abc';
 
 const LOSSES = 'Box losses (Qa, Ql, Qp)…';
@@ -19,7 +21,9 @@ const EXPECTED: readonly {readonly option: BoxOption; readonly sections: readonl
   {option: 'sealed', sections: [['Box', 'Box type'], ['Rear chamber', 'Vb', 'Fsc', 'Qtc', ALIGN, LOSSES]]},
   {option: 'vented', sections: [['Box', 'Box type'], ['Rear chamber', 'Vb', ALIGN, LOSSES], ['Vents', 'Fb', ...VENT_ROWS], ['Chart', 'Velocity limit']]},
   {option: 'box-passive-radiator', sections: [['Box', 'Box type'], ['Rear chamber', 'Vb', 'Fh', LOSSES],
-    ['Passive radiator', 'Fp', 'Vas', 'Qms', 'Fpr', 'Sd', 'Mms', 'Cms', 'Rms', 'Xmax'],
+    // QO946.c115, c117, 12:57-13:01: the radiator by name (its figures in the editor), Key figures and the 2× rule line.
+    ['Passive radiator', 'Fp'],
+    ['Key figures', 'Fpr', 'Mms', 'Sd', 'Xmax', 'Vd', TWO_TIMES_RULE],
     ['User options', 'Num. of PRs', 'Added mass', 'Fpr with mass']]},
   {option: 'bandpass4', sections: [['Box', 'Box type'], ['Rear chamber', 'Vb', 'Fsc', LOSSES], ['Front chamber', 'Vf', LOSSES],
     ['Front vent', 'Ffc', ...VENT_ROWS], ['Chart', 'Velocity limit']]},

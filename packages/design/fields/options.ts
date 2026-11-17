@@ -1,4 +1,4 @@
-import type {BoxType, FilterType, PassFamily, VentedAlignment, Wiring} from '../engine/index.js';
+import type {BoxType, FilterType, PassFamily, VentedAlignment} from '../engine/index.js';
 import type {VoiceCoilWiring} from '../domain/voiceCoilWiring.js';
 import type {VentShape} from '../domain/vent.js';
 
@@ -11,10 +11,15 @@ export interface SelectorOption<T = string | number> {
   readonly label: string;
 }
 
+/** End correction of a port with two free ends (x vent diameter): a new vented box's. */
+export const END_CORRECTION_TWO_FREE_ENDS_M = 0.613;
+/** End correction of a port with one flanged end: a new bandpass6 or ABC vent's (WinISD's wizard). */
+export const END_CORRECTION_ONE_FLANGED_END_M = 0.732;
+
 /** Port end-correction presets (WinISD parity). */
 export const END_CORRECTION_OPTIONS: readonly (SelectorOption<number> & {readonly compactLabel:string})[] = Object.freeze([
-  Object.freeze({ value: 0.613, label: 'Two free ends', compactLabel:'Free' }),
-  Object.freeze({ value: 0.732, label: 'One flanged end', compactLabel:'1 flange' }),
+  Object.freeze({ value: END_CORRECTION_TWO_FREE_ENDS_M, label: 'Two free ends', compactLabel:'Free' }),
+  Object.freeze({ value: END_CORRECTION_ONE_FLANGED_END_M, label: 'One flanged end', compactLabel:'1 flange' }),
   Object.freeze({ value: 0.849, label: 'Two flanged ends', compactLabel:'2 flanges' }),
 ]);
 
@@ -24,13 +29,7 @@ export const VENT_SHAPE_OPTIONS: readonly SelectorOption<VentShape>[] = Object.f
   Object.freeze({ value: 'slotted', label: 'Slotted Duct' }),
 ]);
 
-/** Short captions for the compact desktop port rows; stored values stay identical. */
-const COMPACT_VENT_SHAPE_LABELS: Record<VentShape,string> = {round:'Round',slotted:'Slot'};
-export const COMPACT_VENT_SHAPE_OPTIONS: readonly SelectorOption<VentShape>[] = Object.freeze(
-  VENT_SHAPE_OPTIONS.map(({value}) => Object.freeze({value,label:COMPACT_VENT_SHAPE_LABELS[value]})),
-);
-
-/** Voice coil wiring connection options. The VALUES are the domain's own wiring members, so a
+/** Coil wiring connection options. The VALUES are the domain's own wiring members, so a
  *  chosen option is written to the driver as-is — the compiler checks each literal against
  *  `VoiceCoilWiring`. */
 export const VC_CONNECTION_OPTIONS: readonly SelectorOption<VoiceCoilWiring>[] = Object.freeze([
@@ -38,11 +37,8 @@ export const VC_CONNECTION_OPTIONS: readonly SelectorOption<VoiceCoilWiring>[] =
   Object.freeze({ value: 'series', label: 'Series' }),
 ]);
 
-/** How a multi-driver array is wired to the amplifier. */
-export const ARRAY_WIRING_OPTIONS: readonly SelectorOption<Wiring>[] = Object.freeze([
-  Object.freeze({ value: 'parallel', label: 'Parallel' }),
-  Object.freeze({ value: 'series', label: 'Series' }),
-]);
+/** The driver editor's choice for a measured wiring the maker did not state. */
+export const MEASURED_WIRING_NOT_STATED_LABEL = 'Not stated';
 
 /** WinISD's nine sealed-box target-Q (Qtc) choices from the New Project wizard, exact labels.
  *  THE list — `SealedEngine.alignmentOptions()` hands this same object out, never a copy. */

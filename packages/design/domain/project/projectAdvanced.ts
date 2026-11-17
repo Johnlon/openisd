@@ -133,6 +133,16 @@ export class ProjectAdvanced {
         };
     }
 
+    /** WinISD Compatibility "Coil wiring: Re and BL only": WinISD's coil-wiring routine writes Re and BL and leaves Le and Znom as they
+     *  were. Off: Le and Znom convert with the wiring as well, which is the maths. Off where a project does not say. */
+    get winisdCoilWiringReBlOnly(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdCoilWiringReBlOnly');
+        return {
+            get value() { return lens.value ?? CompatSwitch.COIL_WIRING_RE_BL_ONLY.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
     /** WinISD Compatibility "TL port without end correction": with the transmission-line port model on,
      *  the port pipe is WinISD's, its length less the end correction, so the box tunes above Fb.
      *  Off: the end correction stays and the box tunes at Fb. Off where a project does not say. */
@@ -150,17 +160,6 @@ export class ProjectAdvanced {
         const lens = focus(this.#advanced, 'winisdWrapPhase');
         return {
             get value() { return lens.value ?? CompatSwitch.WRAP_PHASE.winisdValue; },
-            set: (on: boolean) => lens.set(on),
-        };
-    }
-
-    /** WinISD Compatibility "Per-driver impedance": the impedance chart shows
-     *  one driver's impedance, as WinISD does (BUG_20260928_driver-count-not-winisd). Off: the
-     *  array the amplifier drives, per `wiring`. Off where a project does not say (John, 2026-10-05). */
-    get winisdDriverCountModel(): SimpleField<boolean> {
-        const lens = focus(this.#advanced, 'winisdDriverCountModel');
-        return {
-            get value() { return lens.value ?? CompatSwitch.DRIVER_COUNT.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }

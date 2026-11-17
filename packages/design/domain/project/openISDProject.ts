@@ -27,6 +27,7 @@ import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf,
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
 import { withNullEmbeddedDriverId } from './nullDriverId.js';
 import type { ProjectIssues } from './projectIssues.js';
+import { ProjectCoilWiring } from './projectCoilWiring.js';
 import { ProjectMeta } from './projectMeta.js';
 import { ProjectListeners } from './projectListeners.js';
 import { resolveProject, usableRe } from './projectResolve.js';
@@ -108,6 +109,8 @@ export class OpenISDProject {
             () => this.#airOver(root),
             () => this.#issues.driver,
             () => this.#appContext.newId(),
+            () => root.value.driverEmbedding.VCCon,
+            () => root.value.advanced.winisdCoilWiringReBlOnly === true,
         );
     }
 
@@ -151,6 +154,7 @@ export class OpenISDProject {
      *  changes. */
     setDriver(source: OpenISDDriver): void {
         this.driver.update(source.copyAsNew(() => this.#appContext.newId()));
+        this.coilWiring.clear();
     }
 
     /** Adopt a driver that came from outside this project — a library pick, or a `.wdr`/`.owdr`
@@ -162,6 +166,7 @@ export class OpenISDProject {
             throw new Error('loadDriver(): source must be a standalone OpenISDDriver, not an embedded project driver');
         }
         this.driver.update(source.copyAsNew(() => this.#appContext.newId()));
+        this.coilWiring.clear();
     }
 
     /** How many units of the embedded driver this project's array uses, and how they're wired
@@ -171,8 +176,10 @@ export class OpenISDProject {
         return defaultedField(focus(this.#slot('driverEmbedding'), 'nDrivers'), 1);
     }
 
-    get wiring(): SimpleField<'series' | 'parallel'> {
-        return focus(this.#slot('driverEmbedding'), 'wiring');
+    /** "Coil wiring": how the user wires a multi-coil driver's own coils, beside the wiring it was
+     *  measured in. The amplifier-side figures use it; the stored ones stay as published. */
+    get coilWiring(): ProjectCoilWiring {
+        return new ProjectCoilWiring(this.#slot('driverEmbedding'), this.driver, this.#engine);
     }
 
     /** Thermal power compression: coil temperature rise under drive, Kelvin. */
@@ -316,11 +323,6 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdWrapPhase;
     }
 
-    /** WinISD Compatibility "Per-driver impedance" — see `ProjectAdvanced.winisdDriverCountModel`. */
-    get winisdDriverCountModel(): SimpleField<boolean> {
-        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverCountModel;
-    }
-
     /** WinISD Compatibility "Sealed picker volume" — see `ProjectAdvanced.winisdSealedPicker`. */
     get winisdSealedPicker(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdSealedPicker;
@@ -356,6 +358,11 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdTlPortNoEndCorrection;
     }
 
+    /** WinISD Compatibility "Coil wiring: Re and BL only" — see `ProjectAdvanced.winisdCoilWiringReBlOnly`. */
+    get winisdCoilWiringReBlOnly(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdCoilWiringReBlOnly;
+    }
+
     /** The controls that reproduce a known WinISD error: which carry the warning look, whether each
      *  applies to the open box, and whether it is reproducing the error now. */
     get errorSwitches(): ErrorSwitchStates {
@@ -365,13 +372,14 @@ export class OpenISDProject {
             winisdVaModel: this.winisdVaModel.value,
             winisdPrNprResonance: this.winisdPrNprResonance.value,
             winisdBesselHighpass: this.winisdBesselHighpass.value,
-            winisdDriverCountModel: this.winisdDriverCountModel.value,
             nDrivers: this.nDrivers.value,
             nPassiveRadiators: this.box.passiveRadiator.count.value,
             hasBesselHighpass: this.filters.value.some(f => f.type === 'highpass' && f.family === 'bessel' && f.enabled),
             winisdAbcGroupDelay: this.winisdAbcGroupDelay.value,
             winisdSealedPicker: this.winisdSealedPicker.value,
             winisdTlPortNoEndCorrection: this.winisdTlPortNoEndCorrection.value,
+            winisdCoilWiringReBlOnly: this.winisdCoilWiringReBlOnly.value,
+            coilWiringApplies: this.coilWiring.canChoose,
             tlPortModel: this.useTransmissionLinePortModel.value,
         });
     }
@@ -803,13 +811,11 @@ export class OpenISDProject {
             driver: this.driver,
             box: this.box,
             nDrivers: this.nDrivers,
-            wiring: this.wiring,
             Rs_ohm: this.Rs_ohm,
             circuitModel: this.circuitModel,
             winisdDriverModel: this.winisdDriverModel,
             winisdVaModel: this.winisdVaModel,
             winisdWrapPhase: this.winisdWrapPhase,
-            winisdDriverCountModel: this.winisdDriverCountModel,
             winisdFlatModel: this.winisdFlatModel,
             winisdAbcIntraPortVelocity: this.winisdAbcIntraPortVelocity,
             winisdPrNprResonance: this.winisdPrNprResonance,
@@ -948,6 +954,14 @@ export class OpenISDProject {
     /** Whether this project currently has a transient what-if layer. */
     isWhatIfActive(): boolean {
         return this.#whatif !== null;
+    }
+
+    /** Whether the What-if layer holds values that differ from the design. A What-if is never saved
+     *  with the session, so these values are gone when the page reloads. False when none is open, and
+     *  when one is open but untouched. */
+    hasWhatIfChanges(): boolean {
+        const whatIf = this.#whatif;
+        return whatIf !== null && JSON.stringify(whatIf) !== JSON.stringify(this.#committed());
     }
 
     /** Keep the What-if layer: its values become ordinary unsaved edits of the design and the

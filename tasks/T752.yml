@@ -1,0 +1,25 @@
+id: T752
+release_note: internal
+repo: openisd
+owner: leader
+status: done
+goal: CI browser jobs need no apt download per run: run them in the pinned Playwright container image
+done_test: bash scripts/test.sh packages/ui/test/scripts/release-workflows.test.ts
+files:
+  - tasks/T752.yml
+  - .github/ci-image/Dockerfile
+  - .github/ci-image/expected-fonts.txt
+  - .github/workflows/ci-image.yml
+  - .github/workflows/suite.yml
+  - packages/ui/test/scripts/release-workflows.test.ts
+notes: |
+  Prepared, NOT published. Image: .github/ci-image/Dockerfile + expected-fonts.txt, built by ci-image.yml (workflow_dispatch only).
+  OPEN: suite.yml holds the placeholder REPLACE_WITH_CI_IMAGE_DIGEST. The guard test in
+  packages/ui/test/scripts/release-workflows.test.ts ("suite.yml names a real image digest") FAILS until the digest from
+  the ci-image.yml run is put in. Expected until then.
+
+image: ghcr.io/portingle/openisd-ci-runner:0a2914668adcfcb3 @ sha256:51e24d3e3c17259a560ce8ee15a89d635011c9a3eba0abf920cc0690f79799f7
+  (built by ci-image.yml inside portingle/openisd, private, linked to the repo; Actions pull it with GITHUB_TOKEN, no settings click).
+  Proven: suite run 42807290599 on portingle land/t752-proof, browser job started the container and passed setup (no apt step).
+  Old laptop-pushed packages ghcr.io/johnlon/openisd-ci and portingle openisd-ci(-img) are unused.
+gates_approved: QO525

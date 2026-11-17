@@ -18,17 +18,18 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
-import type {SpecEntryJson} from '../../domain/openisdSchema.js';
+import type {SpecEntryJson, WiringEntryJson} from '../../domain/openisdSchema.js';
 import {driverSpecsOf} from '../../domain/openisdSchema.js';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
 
-/** Every entry this file imports is entered — narrows the `SpecEntryJson` union so a test can
- *  read `.value` without repeating the guard at each call site. */
-function manualValue(entry: Extract<SpecEntryJson, { state: 'E' }>): number | undefined {
+/** Every entry this file imports is entered — narrows the `WiringEntryJson` union so a test can
+ *  read `.value` without repeating the guard at each call site. The record holds the wiring's
+ *  name; the file's 1/2 code stays in the file (QO914). */
+function manualValue(entry: Extract<WiringEntryJson, { state: 'E' }>): string {
   return entry.value;
 }
 
-function asEntered(entry: SpecEntryJson | undefined): Extract<SpecEntryJson, { state: 'E' }> {
+function asEntered(entry: WiringEntryJson | undefined): Extract<WiringEntryJson, { state: 'E' }> {
   if (entry?.state !== 'E') throw new Error('expected an entered entry');
   return entry;
 }
@@ -47,16 +48,16 @@ describe('.wdr VCCon import', () => {
   it('VCCon=2 marked N still imports as series — the mark is not the value', () => {
     const entry = vcconOf(wdrStating('2', 'N'));
     assert.notEqual(entry, undefined);
-    assert.equal(manualValue(asEntered(entry)), 2);
+    assert.equal(manualValue(asEntered(entry)), 'series');
   });
 
   it('VCCon=1 marked N imports as parallel', () => {
     const entry = vcconOf(wdrStating('1', 'N'));
-    assert.equal(manualValue(asEntered(entry)), 1);
+    assert.equal(manualValue(asEntered(entry)), 'parallel');
   });
 
   it('VCCon=2 marked E imports as series', () => {
-    assert.equal(manualValue(asEntered(vcconOf(wdrStating('2', 'E')))), 2);
+    assert.equal(manualValue(asEntered(vcconOf(wdrStating('2', 'E')))), 'series');
   });
 
   it('VCCon=3 is out of range for the dropdown — omitted, warning emitted, reads as the calculated default', () => {
@@ -117,22 +118,26 @@ describe('.wdr numVC import', () => {
   }
   const numVCOf = (d: WinISDDriver) => driverSpecsOf(winISDDriverToOpenISDDeviceJson(d).record)?.woofer.numVC;
   const numVCWarningsOf = (d: WinISDDriver) => winISDDriverToOpenISDDeviceJson(d).warnings;
+  const enteredCount = (entry: SpecEntryJson | undefined): number => {
+    if (entry?.state !== 'E') throw new Error('expected an entered entry');
+    return entry.value;
+  };
 
   it('numVC=2 imports untouched', () => {
     const entry = numVCOf(wdrStatingNumVC('2'));
-    assert.equal(manualValue(asEntered(entry)), 2);
+    assert.equal(enteredCount(entry), 2);
   });
 
   it('numVC=4 imports untouched — four coils is a real driver', () => {
     const entry = numVCOf(wdrStatingNumVC('4'));
-    assert.equal(manualValue(asEntered(entry)), 4);
+    assert.equal(enteredCount(entry), 4);
   });
 
   it('numVC=123 is coerced to 1 — warning emitted, no dq mark on the record', () => {
     const wdr = wdrStatingNumVC('123');
     const entry = numVCOf(wdr);
     const warnings = numVCWarningsOf(wdr);
-    assert.equal(manualValue(asEntered(entry)), 1);
+    assert.equal(enteredCount(entry), 1);
     assert.equal(warnings.length, 1);
     assert.equal(warnings[0]!.level, 'warn');
     assert.equal(warnings[0]!.field, 'numVC');
@@ -143,7 +148,7 @@ describe('.wdr numVC import', () => {
     const wdr = wdrStatingNumVC('0');
     const entry = numVCOf(wdr);
     const warnings = numVCWarningsOf(wdr);
-    assert.equal(manualValue(asEntered(entry)), 1);
+    assert.equal(enteredCount(entry), 1);
     assert.equal(warnings.length, 1);
     assert.equal(warnings[0]!.field, 'numVC');
   });

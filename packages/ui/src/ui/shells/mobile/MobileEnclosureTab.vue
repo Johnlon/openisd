@@ -1,14 +1,15 @@
 <script setup lang="ts">
 // The vent and passive-radiator sections of the Box page (after the chambers): one vent section per
-// vent the box draws, the passive radiator, and the Chart section holding the velocity limit.
+// vent the box draws, the passive radiator (by name: its figures are in the passive-radiator editor, QO946.c115), and the Chart section holding the velocity limit.
 // Thin: all state and domain reads/writes live in useMobileEnclosureTab()
 // (src/hooks/MobileEnclosureTab-hooks.ts). PRBrowser is the app's existing overlay, reused unchanged.
-import {NumberField, PhoneBoxText, PhoneHelp, PhoneLabels, TextField, WinisdDeviation} from '@openisd/design/fields';
-import {inputValue, selectedOption} from '../../../logic/domEvents.js';
+import {NumberField, PhoneBoxText, PhoneHelp, PhoneLabels, WinisdDeviation} from '@openisd/design/fields';
+import {selectedOption} from '../../../logic/domEvents.js';
 import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import PRBrowser from '../../components/PRBrowser.vue';
-import SaveToLibraryDialog from '../../components/SaveToLibraryDialog.vue';
+import PREditorDialog from '../../components/PREditorDialog.vue';
+import PRInfoDialog from '../../components/PRInfoDialog.vue';
 import PhoneBand from './PhoneBand.vue';
 import {useMobileEnclosureTab} from '../../../hooks/MobileEnclosureTab-hooks.js';
 
@@ -16,8 +17,7 @@ const {
   project, selectedBox,
   ventSections, tuningNoteShown,
   prResonanceMassDq, prFsMass_hz,
-  prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
-  prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
+  prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, prEditor, startEditPR, defineNewPREntry, prInfoOpen, prInfo, openPRInfo, prKeyFigures, prTwoTimesRule,
   VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS,
   FB_TARGET_TIP, VENT_GEOMETRY_TIP,
 } = useMobileEnclosureTab();
@@ -57,29 +57,30 @@ const {
   <template v-if="selectedBox === 'box-passive-radiator'">
     <section class="mob-csection">
     <PhoneBand :section="PhoneHelp.PASSIVE_RADIATOR" />
-    <UIField class="mob-ui-field" :title="PhoneBoxText.FP_TIP" :field="NumberField.PR_FP_HZ" :label="PhoneLabels.PR_FP" :cell="project.box.passiveRadiator.tuning_goal_hz" :deviation="WinisdDeviation.PR_BOX_TUNING" stepper />
     <div class="mob-crow">
-      <input id="mob-pr-name" class="mob-cname" type="text" :aria-label="TextField.PR_NAME.label" :title="TextField.PR_NAME.description" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))">
+      <button id="mob-pr-name-btn" type="button" class="mob-cname mob-cname-button" title="Choose a passive radiator" @click="prBrowseOpen = true">{{ project.box.passiveRadiator.radiator.model.value || PhoneBoxText.PR_UNNAMED }}</button>
     </div>
     <div class="mob-cbtns">
       <button type="button" class="mob-btn mob-btn-primary" @click="prBrowseOpen = true">Select PR</button>
-      <button type="button" class="mob-btn mob-btn-secondary" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">Save to library</button>
+      <button type="button" class="mob-btn mob-btn-secondary mob-pr-info" id="mob-pr-info" title="View information about this project’s passive radiator" @click="openPRInfo">Info</button>
+      <button id="mob-pr-edit" type="button" class="mob-btn mob-btn-secondary" :title="PhoneBoxText.PR_EDIT_TIP" @click="startEditPR">Edit</button>
     </div>
-    <SaveToLibraryDialog v-if="prSaveOpen" title="Save passive radiator to library"
-      note="The name the copy has in your library. The project's passive radiator keeps its own name."
-      :fields="prSaveFields" :can-save="prSaveCanSave" save-label="Save" phone @save="confirmPRSave" @cancel="cancelPRSave" />
-    <PRBrowser v-if="prBrowseOpen" phone @close="prBrowseOpen = false"
+    <PRBrowser v-if="prBrowseOpen" phone :editor="prEditor" @close="prBrowseOpen = false"
       @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
+    <PRInfoDialog v-if="prInfoOpen && prInfo" phone :info="prInfo" @close="prInfoOpen = false" />
+    <PREditorDialog v-if="!prBrowseOpen && prEditor.cells.value" phone :editor="prEditor" :cells="prEditor.cells.value" />
+    <UIField class="mob-ui-field" :title="PhoneBoxText.FP_TIP" :field="NumberField.PR_FP_HZ" :label="PhoneLabels.PR_FP" :cell="project.box.passiveRadiator.tuning_goal_hz" :deviation="WinisdDeviation.PR_BOX_TUNING" stepper />
+    </section>
 
-    <UIField class="mob-ui-field" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.PR_SD_CM2" :cell="project.box.passiveRadiator.radiator.spec.Sd_m2" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.MMS_KG" :cell="project.box.passiveRadiator.radiator.spec.Mms_kg" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.CMS_M_PER_N" :cell="project.box.passiveRadiator.radiator.spec.Cms_m_per_N" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.RMS_KG_PER_S" :cell="project.box.passiveRadiator.radiator.spec.Rms_kg_per_s" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" stepper />
-
+    <section class="mob-csection">
+    <PhoneBand :section="PhoneHelp.PR_KEY_FIGURES" />
+    <!-- Tapping a key figure opens the editor, as on the Driver tab. -->
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" input-id="mob-pr-key-fs" @click="startEditPR" @keydown.enter="startEditPR" :field="NumberField.PR_FS_HZ" :value="prKeyFigures.Fs_hz" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" input-id="mob-pr-key-mms" @click="startEditPR" @keydown.enter="startEditPR" :field="NumberField.MMS_KG" :value="prKeyFigures.Mms_kg" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" input-id="mob-pr-key-sd" @click="startEditPR" @keydown.enter="startEditPR" :field="NumberField.PR_SD_CM2" :value="prKeyFigures.Sd_m2" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" input-id="mob-pr-key-xmax" @click="startEditPR" @keydown.enter="startEditPR" :field="NumberField.PR_XMAX_MM" :value="prKeyFigures.Xmax_m" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" input-id="mob-pr-key-vd" @click="startEditPR" @keydown.enter="startEditPR" :field="NumberField.VD_M3" :value="prKeyFigures.Vd_m3" readonly plain />
+    <p v-if="prTwoTimesRule" id="mob-pr-two-times" class="mob-cnote">{{ prTwoTimesRule }}</p>
     </section>
 
     <section class="mob-csection">
@@ -95,3 +96,7 @@ const {
     <UIFixedField class="mob-ui-field" input-id="mob-vent-velocity-limit" label="Velocity limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :defaulted="false" :value="project.portVelocityLimit_m_per_s.value" @update:value="v => project.portVelocityLimit_m_per_s.set(v)" />
   </section>
 </template>
+
+<style scoped>
+.mob-pr-info { flex: 0 0 var(--mob-button-h); padding: 0; }
+</style>

@@ -156,6 +156,14 @@ before=$(git -C "$SCRATCH/origin.git" rev-parse main)
 [ $r = 0 ] && [ "$(git -C "$SCRATCH/origin.git" rev-parse main)" = "$before" ] && [ ! -d "$M-t145" ] && ! has_branch t145 && grep -q "abandoned T145 by fable" "$TIDY_LOG" \
   && ok "a task that never reached main is abandoned from its branch's task file, main untouched" || fail "branch-only abandon (r=$r): $(tail -3 "$SCRATCH/ab.out")"
 
+# 4c. abandon.sh --rejected: a task John turned down is logged "rejected", not "abandoned"
+setup
+wt 146; printf 'id: T146\nowner: maryu\nstatus: open\ngoal: g\ndone_test: true\nfiles:\n  - tasks/T146.yml\n' > "$M-t146/tasks/T146.yml"
+git -C "$M-t146" add -A; git -C "$M-t146" commit -qm "T146: task file"
+( cd "$M" && bash scripts/abandon.sh T146 --by John --rejected "not required" ) > "$SCRATCH/ab.out" 2>&1; r=$?
+[ $r = 0 ] && grep -q "tidy-branches: rejected T146 by John" "$TIDY_LOG" && ! grep -q "abandoned T146" "$TIDY_LOG" && grep -q "T146 is rejected" "$SCRATCH/ab.out" && ! has_branch t146 \
+  && ok "--rejected logs and says rejected" || fail "rejected (r=$r): $(tail -3 "$SCRATCH/ab.out")"
+
 # 5. abandon.sh refuses a task that is done, or not on main, and asks for --by
 setup
 printf 'id: T150\nowner: m\nstatus: done\ngoal: g\ndone_test: true\nfiles: []\n' > "$M/tasks/T150.yml"; gm add -A; gm commit -qm t; gm push -q origin main

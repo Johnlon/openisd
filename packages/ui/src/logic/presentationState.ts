@@ -19,6 +19,7 @@ import {reactive} from 'vue';
 import type {YRange} from '../types.js';
 import type {ChartId} from '@openisd/design/engine';
 import type {OpenISDProject} from '@openisd/design';
+import {NumberField} from '@openisd/design/fields';
 
 /** The palette `assignTraceColor`/`cycleTraceColor` draw from — one project's own
  *  legend/line colour, distinct from `ChartColors`' background/axis overrides below. */
@@ -134,7 +135,7 @@ export function createPresentationState(): PresentationState {
     mobilePane: null,
     mobileDestination: 'box',
     yRanges: {},
-    sweepRange: {min: 10, max: 20000},
+    sweepRange: {min: NumberField.PLOT_RANGE_DEFAULT_HZ.min, max: NumberField.PLOT_RANGE_DEFAULT_HZ.max},
     narrowViewport: false,
     ui: {
       unitTokens: {},

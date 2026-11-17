@@ -1,0 +1,34 @@
+id: T740
+release_note: internal
+repo: openisd
+owner: leader
+status: done
+landed: 0644b948661d24c6191862db466bd966417fd933
+goal: Inline expansion sections become popups (John's popup ruling), except the desktop driver editor
+why: John, 8 Nov 2026 - inline expansions mangle the view; "Use a popup every where instead of this"; "all /!\ to use a popup so that view corruption and mangling (pushing out of way) cannot occur". T729 did the field notes. Asked whether done (8 Nov, ~14:30): not done for the other expansions.
+exception: John, 8 Nov 2026 - "the driver editor expansion on desktop works ok ATM - it gets an exception", then "I meant the expansion of the fields mismatch at the bottom of the screen only !!". Only the desktop Driver Editor's field-mismatch (disagree) list at the bottom stays inline.
+plan:
+  - Become popups: Options "more limits" (both skins); Driver library filters; phone OpenISD-and-WinISD differences cards; phone filter card fold.
+  - Driver Editor source details ("more", de-more) become a popup on both skins.
+  - Phone Driver Editor field-mismatch list: ask John (the exception named desktop only).
+  - Before and after pictures of each, redlined, with an impact line, to John before landing (QO465 rule).
+  - Waits for T739 (view index) so the index records each change.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T740.yml
+audit: ui-gallery/expansions-audit-20261108 (maryu, 8 Nov 2026) - ten expansions found in packages/ui/src. Left out as not inline expansions - Driver Editor "More" (a menu), Driver library type help (a centred popup), field warning notes (popups since T729), phone chart picker (a dropdown).
+view_list_gaps:
+  - Desktop list lacks the open state of Options "More info" (vented design limits).
+  - Desktop list lacks the Driver Editor values-disagree list.
+  - Desktop list lacks What-if folded, left panel hidden and bottom section hidden.
+  - Phone list lacks an opened OpenISD and WinISD differences card.
+rulings:
+  - Desktop bottom section splitter - stays (John, QO467.c1). Its button is cut when the section is hidden - fixed separately (maryu).
+  - Desktop left panel splitter - stays (John, QO467.c3).
+  - Desktop What-if panel fold - stays, a main panel (John, QO467.c5).
+  - Phone filter card fold - stays, a main panel (John, QO467.c13).
+  - Phone differences card - stays (John, QO467.c17).
+  - Phone driver library Filters - stays (John, QO467.c19).
+  - Phone Driver Editor values-disagree bar - stays (John, QO467.c23).
+  - Desktop Driver Editor values-disagree list - stays (John, QO467.c26).
+  - Options "More info" on vented design limits, both skins - goes: remove the hint line, More info and popup; the (?) help must say what the limits are for (John, QO467.c33, c35). Wording proposed on QO467.c39, approved on c40 (OpenISD only; WinISD has no such check). Done by maryu in its own task.

@@ -69,27 +69,27 @@ def main():
     else:
         test_logs_dirs = [
             root / "build" / "test-logs",
-            Path("/home/john/work/winisd/openisd/build/test-logs")
+            root.parent / "openisd" / "build" / "test-logs"
         ]
         watchdog_logs = [
             root / "build" / "test-logs" / "watchdog.log",
-            Path("/home/john/work/winisd/openisd/build/test-logs/watchdog.log")
+            root.parent / "openisd" / "build" / "test-logs" / "watchdog.log"
         ]
         housekeeping_logs = [
             root / "build" / "test-logs" / "housekeeping.log",
             root / "housekeeping.log",
-            Path("/home/john/work/winisd/openisd/build/test-logs/housekeeping.log")
+            root.parent / "openisd" / "build" / "test-logs" / "housekeeping.log"
         ]
         post_land_logs = [
-            Path("/home/john/work/winisd/.postland/post-land.log"),
+            root.parent / ".postland" / "post-land.log",
             root / "build" / "test-logs" / "post-land.log"
         ]
         delegation_logs = [
-            Path("/home/john/work/winisd/zoo/DELEGATION_LOG.md"),
+            root.parent / "zoo" / "DELEGATION_LOG.md",
             root / "zoo" / "DELEGATION_LOG.md"
         ]
         zoo_log_dirs = [
-            Path("/home/john/work/winisd/zoo/logs"),
+            root.parent / "zoo" / "logs",
             root / "zoo" / "logs"
         ]
         tasks_dir = root / "tasks"

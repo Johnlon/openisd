@@ -4,6 +4,7 @@
  * "what does the Box tab's Volume field do", asked by both shells.
  */
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import {useFeatureUse} from './telemetryContext.js';
 import {useApp} from '../logic/app.js';
 import {FH_TARGET_TIP} from './ventReadouts.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
@@ -18,17 +19,17 @@ export function useMobileBoxTab() {
   const isSimulatable = boxTypeIsSimulatable;
 
   const { selectedBox, pending, isDual, boxLabel } =
-    createSelectedBox({ focusedProject, projectChanged, isSimulatable });
+    createSelectedBox({ focusedProject, projectChanged, isSimulatable, featureUse: useFeatureUse() });
   const { boxResonance, prNaturalFh } = createSealedReadouts({ project, selectedBox, projectChanged });
   const { boxVolumeCell, sealedFscCell, sealedQtcCell } = createBoxVolume({ project, selectedBox, projectChanged });
   const { frontVolumeCell } = createChamberFields({ project, selectedBox, projectChanged });
   // Box losses popup: one row set per chamber, the same hook the desktop shell uses.
-  const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
+  const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject, featureUse: useFeatureUse() });
 
   // Same skin-neutral class the desktop shell uses (SealedAlignment-hooks.ts) — one editor, not
   // a mobile copy. It takes only the two engine areas it needs (sealed, driver), never the
   // aggregate.
-  const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver);
+  const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver, useFeatureUse());
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
   const sealedAlignmentDeviationShown = sealedAlignmentEditor.deviationShown;
   const sealedAlignmentOptions = sealedAlignmentEditor.options;
@@ -40,7 +41,7 @@ export function useMobileBoxTab() {
 
   // Same class the desktop shell will drive too (engine, 2026-09-29: "go, and add the desktop
   // button too since it is the same class") — one implementation, both shells' pickers.
-  const ventedAlignmentEditor = new VentedAlignmentEditor(project, projectChanged, engine.driver);
+  const ventedAlignmentEditor = new VentedAlignmentEditor(project, projectChanged, engine.driver, useFeatureUse());
   const ventedAlignmentOpen = ventedAlignmentEditor.open;
   const ventedAlignmentOptions = ventedAlignmentEditor.options;
   const ventedAlignmentSelected = ventedAlignmentEditor.selectedAlignment;

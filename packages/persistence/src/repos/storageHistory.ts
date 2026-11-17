@@ -8,7 +8,7 @@ import type {BackupInfo, BackupResult, PreRepairCopy, PreRepairKind, RefusedCopy
 import type {ProjectRepo} from './projectRepo.js';
 import type {BackupReason} from './storageSnapshot.js';
 import {OPENISD_PROJECTS_KEY} from './storageKeys.js';
-import {readEnvelope} from './storageSnapshot.js';
+import {envelopeText, readEnvelope} from './storageSnapshot.js';
 
 export interface HistoryRow {
   /** The storage key, the handle every action takes. */
@@ -135,7 +135,7 @@ export function createStorageHistory(
   function rowOf(info: BackupInfo): HistoryRow {
     const read = readEnvelope(backup.read(info.key) ?? '');
     if (read.kind === 'invalid') {
-      return {key: info.key, build: 'vunknown', layout: 0, projectCount: 0, size: info.size, takenAt: '', reason: null, readable: false, restorable: false};
+      return {key: info.key, build: 'vunknown', layout: read.layout ?? 0, projectCount: 0, size: info.size, takenAt: '', reason: null, readable: false, restorable: false};
     }
     const {snapshot} = read;
     return {
@@ -160,8 +160,8 @@ export function createStorageHistory(
       const text = backup.read(key);
       if (text === null) return null;
       const read = readEnvelope(text);
-      const stamp = read.kind === 'ok' ? read.snapshot.exportedAt : key.slice(key.lastIndexOf('_') + 1);
-      return {fileName: `openisd-backup-${stamp}.json`, text};
+      if (read.kind === 'ok') return {fileName: `openisd-backup-${read.snapshot.exportedAt}.json`, text: envelopeText(read.snapshot, true, read.reason)};
+      return {fileName: `openisd-backup-${key.slice(key.lastIndexOf('_') + 1)}.json`, text};
     },
     restore(key) {
       const text = backup.read(key);

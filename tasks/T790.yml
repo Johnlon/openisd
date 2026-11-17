@@ -1,0 +1,23 @@
+id: T790
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: The driver editor's Dimensions view shows weight and the rectangular frame size (OuterX, OuterY) on desktop and phone, so every stored driver size has a reader (#515)
+why: John 14 Nov 2026: board QO917 (every persisted field is read), QO918 (driver sizes must be shown on the Dimensions screen); issue https://github.com/Johnlon/openisd/issues/515
+done_test: bash scripts/test.sh packages/design/test/fields/driver-size-fields.test.ts
+ruling: QO918
+files:
+  - tasks/T790.yml
+  - packages/design/fields/field.ts
+  - packages/design/fields/phoneText.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/design/test/fields/driver-size-fields.test.ts
+  - packages/design/test/domain/driver-spec-floor-coverage.test.ts
+  - packages/ui/test/architecture/driver-editor-template.test.ts
+  - packages/ui/test/ui/driver-editor-weight-frame-size.browser.spec.ts
+  - packages/ui/test/fixtures/test-bundle-paths.json
+  - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
+  - packages/ui/test/ui/new-project-pick-fills-journey.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

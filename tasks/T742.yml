@@ -1,0 +1,286 @@
+id: T742
+release_note: Labels look the same on every device. The app now carries its own font, so a label no longer wraps on one computer and fits on another.
+repo: openisd
+owner: leader
+status: done
+ruling: QO466
+goal: The app bundles its own fonts and every skin uses its own, never a device default - desktop Selawik (Segoe UI widths, OFL), phone Roboto, mono JetBrains Mono (John, QO466); precached for offline; the shared joined-field label rule no longer breaks a word at any letter
+plan:
+  - Bundle Inter (SIL OFL) from a known-good package (@fontsource/inter or @fontsource-variable/inter), latin subset, woff2 only; the weights the app uses.
+  - "@font-face self-hosted, font-display: block or swap chosen so first paint has no reflow of labels; body font stack keeps Inter first."
+  - The font files are in the service-worker precache; offline e2e still passes (scripts/hosting/test/offline-catalogue.e2e.mjs).
+  - "joined-fields.css: label white-space/overflow-wrap no longer 'anywhere'; a label that does not fit is a layout bug found by the field-layout gate, not hidden by a mid-word break. Drop T727's !important override in DriverEditorModal.vue if it becomes redundant."
+  - "Guard test: a browser spec asserts document.fonts.check('13px Inter') is true and the label font resolves to the bundled Inter (not a system fallback), so tests measure what users see."
+  - Visual baselines change (font change); regenerate them in this task and list them.
+  - Before (test.openisd.app) and after (this branch preview, lap:4742) pictures at phone 374x705 and desktop 1366x768 for Box tab, Driver Editor Parameters and Advanced, Options; mark-diff boxed, agy-checked, Look at / Recommend / Checked, impact line; on a page passing check-answerable.mjs, to John BEFORE landing.
+visual_note: Every label uses the font the app now carries, so text looks the same on every computer. On desktop each label sits close to its box instead of far away or cut.
+done_test: bash scripts/test.sh packages/ui/test/ui/font-glyph-coverage.test.ts packages/ui/test/ui/font-sources.test.ts packages/ui/test/ui/font-precache.test.ts
+files:
+  - packages/ui/test/fixtures/branchMap/shared.ts
+  - packages/ui/test/ui/desktop-options-colour-rows.browser.spec.ts
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - bugs/BUG_20261108_desktop-whatif-wide-gap-between-labels-and-boxes.md
+  - packages/design/fields/desktopSizes.ts
+  - packages/design/test/fields/desktopSizes.test.ts
+  - packages/ui/src/hooks/labelColumns.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/shells/original/OriginalFilters.vue
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/test/fixtures/fieldLayoutAudit.ts
+  - packages/ui/test/ui/field-layout-rules.browser.spec.ts
+  - tasks/T742.yml
+  - packages/design/fields/appFonts.ts
+  - packages/ui/src/fonts.css
+  - packages/ui/src/assets/fonts/selawik-400.woff2
+  - packages/ui/src/assets/fonts/selawik-600.woff2
+  - packages/ui/src/assets/fonts/selawik-700.woff2
+  - packages/ui/src/assets/fonts/selawik-OFL.txt
+  - package-lock.json
+  - packages/design/chart/layout.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/chart/chart-layout.test.ts
+  - packages/ui/about/AboutPage.vue
+  - packages/ui/about/main.ts
+  - packages/ui/index.html
+  - packages/ui/package.json
+  - packages/ui/src/main.ts
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/canvas.ts
+  - packages/ui/src/ui/components/CompatGroupHelpLink.vue
+  - packages/ui/src/ui/components/DiagnosticsModal.vue
+  - packages/ui/src/ui/components/DriverDimensionsDiagram.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/components/EquationInspectorModal.vue
+  - packages/ui/src/ui/components/FieldCatalogue.vue
+  - packages/ui/src/ui/components/PhoneDialogPage.vue
+  - packages/ui/src/ui/components/WinisdDeviationCue.vue
+  - packages/ui/src/ui/field-catalogue.css
+  - packages/ui/src/ui/joined-fields.css
+  - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/app-font-bundled.browser.spec.ts
+  - packages/ui/test/ui/font-sources.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - fonttools-4.68.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+  - packages/design/fields/appFonts.ts
+  - packages/ui/src/assets/
+  - packages/ui/src/fonts.css
+  - packages/ui/test/ui/font-precache.test.ts
+  - vite.config.js
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-empty.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step1.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step2.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-empty.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step1.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step2.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step5.png
+  - packages/ui/test/ui/font-glyph-coverage.test.ts
+  - packages/ui/public/about/refresh/index.html
+  - packages/ui/public/about/refresh/selawik-400.woff2
+  - packages/ui/public/about/refresh/selawik-700.woff2
+  - packages/ui/public/logo-wide.svg
+  - packages/ui/src/ui/components/PRBrowser.vue
+  - packages/ui/src/assets/fonts/roboto-700.woff2
+  - packages/ui/src/assets/fonts/noto-sans-greek-subset.woff2
+  - packages/ui/src/assets/fonts/noto-sans-latin-ext-subset.woff2
+  - packages/ui/src/assets/fonts/noto-sans-latin-subset.woff2
+  - packages/ui/src/assets/fonts/noto-sans-math-latin-subset.woff2
+  - packages/ui/src/assets/fonts/noto-sans-symbols-2-symbols-subset.woff2
+  - packages/ui/src/assets/fonts/noto-sans-symbols-symbols-subset.woff2
+  - packages/ui/src/assets/fonts/roboto-math-subset.woff2
+  - .claude/rules/field-layout.md
+  - .claude/rules/typescript.md
+  - CLAUDE.md
+  - bugs/BUG_20261105_desktop-abc-port-columns-edges-and-widths.md
+  - bugs/BUG_20261110_announcements-default-to-test-server.md
+  - bugs/BUG_20261110_layout-gate-misses-screens.md
+  - bugs/BUG_20261110_layout-scan-first-run.md
+  - bugs/BUG_20261110_phone-driver-editor-connection-pick-wider-than-boxes.md
+  - docs/SDLC_POLICY.md
+  - docs/research/DEFAULT_PARAMETERS_REVIEW.md
+  - packages/design/fields/desktopHelp.ts
+  - packages/design/fields/field.ts
+  - packages/design/fields/format.ts
+  - packages/design/fields/options.ts
+  - packages/design/fields/phoneRowSizes.ts
+  - packages/design/test/architecture-no-default-parameters.test.ts
+  - packages/design/test/fields/field-four-significant.test.ts
+  - packages/design/test/fields/phoneRowColumns.test.ts
+  - packages/design/test/fields/phoneRowSizes.test.ts
+  - packages/design/test/fields/phoneText.test.ts
+  - packages/design/test/fields/pressure-precision.test.ts
+  - packages/ui/src/hooks/NumInput-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/phoneLabelColumn.ts
+  - packages/ui/src/hooks/phoneLabelColumnDirective.ts
+  - packages/ui/src/logic/announcementCenter.ts
+  - packages/ui/src/ui/components/DriverConsistencyList.vue
+  - packages/ui/src/ui/components/NumReadout.vue
+  - packages/ui/src/ui/components/PortShapeToggle.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/UIFixedField.vue
+  - packages/ui/src/ui/components/UISettlingField.vue
+  - packages/ui/src/ui/components/driverEditorSkin.ts
+  - packages/ui/src/ui/components/uiFieldBinding.ts
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileFilterCard.vue
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/src/ui/shells/mobile/PhoneClassicPage.vue
+  - packages/ui/src/ui/shells/mobile/filters/PassFields.vue
+  - packages/ui/test/fixtures/announcementEndpoints.ts
+  - packages/ui/test/fixtures/approvedJoinedPaint.json
+  - packages/ui/test/fixtures/desktopSurfaceNavigation.ts
+  - packages/ui/test/fixtures/fieldVisualContract.ts
+  - packages/ui/test/fixtures/portShape.ts
+  - packages/ui/test/logic/announcementCenter.test.ts
+  - packages/ui/test/scripts/view-list-covers-source.test.ts
+  - packages/ui/test/ui/chart-font-load.browser.spec.ts
+  - packages/ui/test/ui/desktop-help.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-layout.browser.spec.ts
+  - packages/ui/test/ui/field-typography.browser.spec.ts
+  - packages/ui/test/ui/joined-field.browser.spec.ts
+  - packages/ui/test/ui/layout-long-values.browser.spec.ts
+  - packages/ui/test/ui/layout-scan-desktop.browser.spec.ts
+  - packages/ui/test/ui/layout-scan.browser.spec.ts
+  - packages/ui/test/ui/mobile-alignment-popup.browser.spec.ts
+  - packages/ui/test/ui/mobile-field-appearance.browser.spec.ts
+  - packages/ui/test/ui/mobile-signal-box-width.browser.spec.ts
+  - packages/ui/test/ui/number-control-gallery.browser.spec.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/original-bandpass-vents.browser.spec.ts
+  - packages/ui/test/ui/original-bottom-panel-height.browser.spec.ts
+  - packages/ui/test/ui/original-field-regions.browser.spec.ts
+  - packages/ui/test/ui/original-vented-tab.browser.spec.ts
+  - packages/ui/test/ui/phone-app-dialogs.browser.spec.ts
+  - packages/ui/test/ui/phone-classic-rows.browser.spec.ts
+  - packages/ui/test/ui/phone-field-labels-one-line.browser.spec.ts
+  - packages/ui/test/ui/phone-long-values-fit.browser.spec.ts
+  - packages/ui/test/ui/port-shape-toggle.browser.spec.ts
+  - packages/ui/test/ui/unit-label-underline.browser.spec.ts
+  - packages/ui/test/visual/screens.ts
+  - tasks/T750.yml
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-empty
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - desktop-wizard-abc-step3
+  - desktop-wizard-abc-step4
+  - desktop-wizard-abc-step5
+  - desktop-wizard-bandpass4-step3
+  - desktop-wizard-bandpass4-step4
+  - desktop-wizard-bandpass4-step5
+  - desktop-wizard-bandpass6-step3
+  - desktop-wizard-bandpass6-step4
+  - desktop-wizard-bandpass6-step5
+  - desktop-wizard-box-passive-radiator-step3
+  - desktop-wizard-box-passive-radiator-step4
+  - desktop-wizard-sealed-step1
+  - desktop-wizard-sealed-step2
+  - desktop-wizard-sealed-step3
+  - desktop-wizard-sealed-step4
+  - desktop-wizard-sealed-step5
+  - desktop-wizard-vented-step3
+  - desktop-wizard-vented-step4
+  - desktop-wizard-vented-step5
+  - mobile-empty
+  - mobile-menu
+  - mobile-tab-advanced
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-filters
+  - mobile-tab-graph
+  - mobile-tab-signal
+  - mobile-wizard-abc-step3
+  - mobile-wizard-abc-step4
+  - mobile-wizard-abc-step5
+  - mobile-wizard-bandpass4-step3
+  - mobile-wizard-bandpass4-step4
+  - mobile-wizard-bandpass4-step5
+  - mobile-wizard-bandpass6-step3
+  - mobile-wizard-bandpass6-step4
+  - mobile-wizard-bandpass6-step5
+  - mobile-wizard-box-passive-radiator-step3
+  - mobile-wizard-box-passive-radiator-step4
+  - mobile-wizard-sealed-step1
+  - mobile-wizard-sealed-step2
+  - mobile-wizard-sealed-step3
+  - mobile-wizard-sealed-step4
+  - mobile-wizard-sealed-step5
+  - mobile-wizard-vented-step3
+  - mobile-wizard-vented-step4
+  - mobile-wizard-vented-step5
+
+# QO478 rulings
+# QO478.c1 (John, 9 Nov): row 6 font-only tests -> update the tests to the bundled fonts.
+# QO478.c3 (John, 9 Nov): What-if Input power one line -> update the test (drop test.fail).
+# QO478.c5 (John, 9 Nov): wizard dropdown off the radio -> fix the app.
+# QO478.c10 (John, 9 Nov): phone Temperature label -> fix the app: narrow the number box text area so the label slot fits Temperature.
+# QO478.c12 (John, 9 Nov): Driver tab hint line 21 px with warning -> fix the app, keep 18 px.
+# QO478.c15 (John, 9 Nov): ABC cut off was caused by the wider label gap -> fix: panel no wider than main; Flange field right edge in line; Flange box taller (squashed).
+# Merge of origin/t742 (9 Nov): visual snapshot PNGs and SOURCES.sha256 were taken from the local side; the baselines MUST be re-taken (not regenerated in the merge).

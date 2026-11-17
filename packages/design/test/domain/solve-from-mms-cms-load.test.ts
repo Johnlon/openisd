@@ -1,5 +1,5 @@
 /**
- * bugs/BUG_20261005_winisd-driver-without-fs-vas-crashes-on-load.md: WinISD dies loading a driver
+ * winisd_research/findings/FINDING_20261005_driver-without-fs-vas-crashes-on-load.md: WinISD dies loading a driver
  * with Fs and Vas at 0. OpenISD loads the golden and every derived driver value is finite and positive.
  */
 import {readFileSync} from 'node:fs';

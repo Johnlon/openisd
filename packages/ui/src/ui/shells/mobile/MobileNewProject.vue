@@ -41,8 +41,6 @@ const {
 
   nDrivers,
   placement,
-  wiring,
-  ARRAY_WIRING_OPTIONS,
 
   boxType,
   BOX_OPTIONS,
@@ -82,7 +80,8 @@ const {
   passiveRadiatorBrowseOpen,
   loadSavedPassiveRadiator,
   loadBundledPassiveRadiator,
-  defineNewPassiveRadiator,
+  startDefinePassiveRadiator,
+  passiveRadiatorEditor,
 
   projName,
   projDescription,
@@ -126,6 +125,8 @@ const helpSections = computed(() => {
   return PhoneWizardHelp.PROJECT_INFO;
 });
 
+// A wizard opens on the whole catalogue: the search and filters of an earlier opening are cleared.
+driverBrowsing.clearAllFilters();
 driverBrowsing.embedLibrary(driver => selectDriver(driver));
 onBeforeUnmount(() => driverBrowsing.closeLibrary());
 
@@ -183,12 +184,6 @@ function handleCreate() {
           <div class="mob-np-pic mob-np-pic-note">
             <PlacementDiagram :placement="placement" />
             <div v-if="placement === 'iso'" class="mob-np-pic-caption">{{ PhoneWizardText.ISOBARIK_NOT_MODELLED }}</div>
-          </div>
-          <div class="mob-crow">
-            <label class="mob-crow-label" for="np-wiring">{{ PhoneLabels.CONNECTION }}</label>
-            <select id="np-wiring" class="mob-cselect" :value="wiring" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) wiring = w; }">
-              <option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-            </select>
           </div>
         </template>
 
@@ -250,7 +245,7 @@ function handleCreate() {
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_RADIATOR }}</span></div>
           <NewProjectPassiveRadiatorStep :key="passiveRadiatorPickId" classic field-class="mob-ui-field" :radiator="passiveRadiatorView" :cells="passiveRadiatorCells" :browsing="passiveRadiatorBrowseOpen"
               @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
-            @rename="setPassiveRadiatorName" @load-saved="loadSavedPassiveRadiator" @load-bundled="loadBundledPassiveRadiator" @define="defineNewPassiveRadiator" />
+            @rename="setPassiveRadiatorName" @load-saved="loadSavedPassiveRadiator" @load-bundled="loadBundledPassiveRadiator" :editor="passiveRadiatorEditor" @define="startDefinePassiveRadiator" />
           <div v-if="passiveRadiatorPickError" class="mob-chint mob-chint-warn np-pr-error" role="alert" aria-live="polite">{{ passiveRadiatorPickError }}</div>
           <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
         </template>
@@ -297,7 +292,7 @@ function handleCreate() {
   position: fixed; inset: 0; z-index: 100;
   background: var(--m-bg, #EEF1F0);
   display: flex; flex-direction: column;
-  font: 15px/1.4 "Inter", system-ui, sans-serif;
+  font: 15px/1.4 var(--font-ui);
 }
 .mob-np-head {
   flex: none; height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between;

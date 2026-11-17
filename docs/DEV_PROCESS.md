@@ -9,7 +9,7 @@ loops until a command passes; it never decides.
 
 | Who         | Does                                                          | Does not                         |
 |-------------|---------------------------------------------------------------|----------------------------------|
-| worker      | claims a task, edits only its listed files, lands it          | edit `scripts/`, hooks, other tasks |
+| worker      | claims a task, edits only its listed files, ships it          | edit `scripts/`, hooks, other tasks |
 | coordinator | writes task files, re-splits blocked ones, records rulings    | implement, approve code          |
 | John        | task order, domain rulings, db swap, deploys, any gate bypass | —                                |
 
@@ -19,13 +19,13 @@ loops until a command passes; it never decides.
 
 | Key         | Meaning                                                                  |
 |-------------|--------------------------------------------------------------------------|
-| `id`, `owner`, `status` | `status`: open, claimed, blocked, landed                     |
+| `id`, `owner`, `status` | `status`: open, claimed, blocked, done                     |
 | `goal`      | one sentence                                                             |
-| `done_test` | a command that must exit 0; `land.sh` refuses a branch that edits its own |
-| `locked`    | files the `done_test` depends on, each with a sha256; any change refuses the landing |
+| `done_test` | a command that must exit 0; `pr-gate` refuses a branch that edits its own |
+| `locked`    | files the `done_test` depends on, each with a sha256; any change fails `pr-gate` |
 | `files`     | glob allowlist (`:(glob)` semantics: `**` crosses directories, `*` does not) |
-| `label`     | optional; `fixes` lets a landing pass an open fixes task                 |
-| `gates_approved` | optional; `QO<n>`: board item John has answered, lets a landing change a `GATE_FILES` file |
+| `label`     | optional; `fixes` puts the pull request first in the queue (red main only)    |
+| `gates_approved` | optional; `QO<n>`: board item John has answered, lets a pull request change a `GATE_FILES` file |
 
 Open tasks may overlap; claimed tasks may not (checked at claim).
 
@@ -33,24 +33,31 @@ Open tasks may overlap; claimed tasks may not (checked at claim).
 
 | Step | Command                                         | Result                                          |
 |------|-------------------------------------------------|-------------------------------------------------|
-| 0    | `bash scripts/new-task.sh <owner> "<goal>"`     | prints `T<nnn> <worktree>`: the id is claimed, never typed |
+| 0    | `bash scripts/new-task.sh <owner> "<goal>" "<why>"` | prints `T<nnn> <worktree>`: the id is claimed, never typed |
 | 1    | `bash scripts/land/task-gates/claim.sh T<nnn>`  | status claimed; `.task` written                 |
 | 2    | edit only the listed files                      | pre-commit refuses anything else                |
 | 3    | run `done_test` until it exits 0                | —                                               |
-| 4    | `bash scripts/land.sh T<nnn>`                   | exit 0 landed, 1 refused, 3 blocked, 4 landed but the main folder is held |
+| 4    | `bash scripts/ship.sh T<nnn>`                   | exit 0 shipped (PR open, auto-merge on, worktree deleted), 1 refused, 3 blocked by a merge conflict |
+
+The `why:` line says why the change is made: at least 20 characters, not the goal, naming who decided and when
+("John, 10 Nov 2026") or a `QO<n>`, `F<n>` or `BUG` id; it may cite a bug file. Every pull request carries a task
+file (there is no bug-file alternative), `pr-gate` refuses a task file the PR adds or really changes without a good
+`why:` (a hash-only or status-only edit of an old file is exempt), and refuses any deletion or rename of a
+`tasks/T*.yml` (John, QO528, 10 Nov 2026: task files in the repo are the record of why). This covers pull requests;
+a direct push to main is refused by the repository rulesets, not by this check.
 
 Chain what follows step 0 with `&&` (`bash scripts/new-task.sh … && cd <worktree> && …`), or check its exit
 code. A refused `new-task.sh` or `_agent_files/bin/new-worktree.sh` makes no worktree, and a folder of that
 name that already exists is another session's: commands run there land in its task (17 Oct 2026). A task's
-id is its own: `land.sh` refuses a branch whose `tasks/<id>.yml` would replace another owner's on main.
+id is its own: `pr-gate` fails a branch whose `tasks/<id>.yml` would replace another owner's on main.
 
-The main folder (`openisd`, the main checkout) and the lap:4000 preview copy are kept at the last commit whose
-GitHub run passed by `scripts/land/sync-main-folder.sh`, run by `land.sh` after every landing and by the
-watchdog every tick (T328, John 17 Oct 2026). Nobody works or writes there: `land.sh`, `claim.sh`,
-`integrate.sh`, `sync-driver-snapshot.sh` and `inbox.py` refuse to. Stray edits found there are committed as a
-WIP commit and the folder is rebased; edits already on main drop out. When it cannot update (a conflict, or
-commits not on main), `land.sh` exits 4 and the landing agent fixes it at once: in the main folder, rebase onto
-the commit named, resolve, and land what is wanted from a worktree.
+The main folder (`openisd`, the main checkout) and the lap:4000 preview copy follow main
+(`scripts/land/sync-main-folder.sh`, run by the watchdog every tick), up to the last commit whose full suite
+passed: the last green first-attempt `suite.yml` run on a push to main in the repo named in `ship.conf`, kept in
+`~/.local/state/openisd/sync-main-folder.green` (T780), or post-land's record when that is further along. While
+main is red the folder stays at the last green. Nobody works or writes there:
+`claim.sh`, `integrate.sh`, `sync-driver-snapshot.sh` and `inbox.py` refuse to. Stray edits found there are
+committed as a WIP commit and the folder is rebased; edits already on main drop out.
 
 ### Preview isolation
 
@@ -60,11 +67,14 @@ isolated from the last-green main preview and makes the task owning a preview un
 arbitrary port, and do not run the main-checkout preview script from a task worktree; start the dev server
 from the task worktree on its reserved task port.
 
-Every landing is a GitHub pull request (T331, John 17 Oct 2026: "of course it should be pr"): `land.sh` opens one
-from `land/<task>` to main when it pushes the candidate (`scripts/land/pr.sh`; on when `land.conf` sets
-`PULL_REQUESTS=1`). Its checks are the candidate run. On green, `land.sh` still moves main by a fast-forward push
-of that commit, so main's sha is the one the run passed, and GitHub shows the pull request merged; a refused
-landing closes it with the reason.
+Every finished task is a GitHub pull request into main, merged by the merge queue (QO481, John 10 Nov 2026).
+`ship.sh` pushes `t<nnn>`, opens the pull request titled "(auto) T<n>: <goal>" with the release note as body,
+turns on auto-merge (squash) and deletes the worktree at once; the branch on GitHub holds the work. The one
+required check, `pr-gate`, runs on the pull request and again in the queue on the merged result, so main only
+ever gets green commits. A red pull request stops only itself: its owner reads the failing job, makes a fresh
+worktree from the branch with `bash scripts/land/pr-fix.sh T<n>`, fixes and ships again. Nothing else waits. The worktree
+goes at once on purpose (a kept one goes stale and holds a branch another session may need); the one command recreates it.
+What `ship.sh` checks before the push, and what only the agent can, is in `.claude/rules/shipping.md` (T815).
 
 Landed and abandoned work is removed by `scripts/land/tidy-branches.sh`, run by the watchdog every tick (T334,
 John 17 Oct 2026): a worktree goes when it is clean, nothing runs inside it and its commits are on origin/main;
@@ -74,79 +84,92 @@ folders holding only generated folders go. A decision to drop a task is `bash sc
 uncommitted work, and the branch, local and on origin, even with later commits; the decision is the authority.
 Nothing is archived: the record is one line in `build/test-logs/tidy-branches.log` (who, why, tip, task goal).
 
+### Design note: a gate script may ask a reviewer (not built; John, 15 Nov 2026)
+
+"Your gate scripts themselves can send things to agents": a gate may call an AI CLI (`codex exec`, `agy -p`, `claude -p`) to do a
+review nobody remembers to ask for. First candidate: baseline pictures. Hook point: `ship.sh` step 3c, after
+`scripts/visual/check-task.sh`, for each picture the diff changes. It would hand the reviewer the picture and the task's
+`visual_note` (what the screen is meant to be) through `$SHIP_PICTURE_REVIEW_CMD` (default: the real CLI; the tests set a stand-in,
+as `SYNC_BUNDLE_CMD` does for the sync), expecting one line `OK` or `FINDING <severity>: <text>`. Exit codes: 0 no serious
+finding; 1 serious finding unacknowledged (ship exits 1, nothing pushed); 3 the CLI is missing, not logged in or answers
+something else (also refuses: never a silent pass). Acknowledgement: the task file gets `review: <picture> <short hash>: <how it was resolved>`
+per finding, so a changed picture is asked again. It runs only in `ship.sh` on the laptop, never in `pr.yml` (the CLIs are not
+logged in on GitHub's runners); `pr-gate` would only check that every changed picture has its `review:` line. Not built in T815: the
+CI-side review is also left as design: it would be a job in its own workflow (never `pull_request` from forks, which get no
+secrets; `push` to collaborator branches such as `visual-retake/**`), running `openai/codex-action@v1` with `sandbox: read-only` and
+the same entry point and one-line findings format as the local run. With no credential configured it writes a visible warning to
+the job summary and neither passes silently nor fails the gate. John provides the secret (`OPENAI_API_KEY`, or a workspace
+`CODEX_ACCESS_TOKEN` on a Business or Enterprise plan; its use on a public repo is his call); no agent creates, reads or stores a
+credential. The review itself would be written once as a skill in this repo's `.claude/skills/` (what to look for in a baseline picture, the
+duplicate scan, the findings format; adapt the workspace draft `.claude/skills/review-pictures/SKILL.md`, written for a lead), run
+locally as `claude -p "/skill …"`, in CI through `anthropics/claude-code-action@v1` (same-repo branches only, write-access users
+only; John sets `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` himself with `/install-github-app`), and as a plain prompt for Codex
+or agy. The by-hand method is still being settled (PR #76's picture review), and the tests need that method's output format first.
+
 Cannot proceed: set `status: blocked` with one plain sentence, and stop.
 
-## `scripts/land.sh <id>` — the only path to main
+## `scripts/ship.sh <id>...` — the only path to main
 
-A task lands as one commit, subject "<id>: <goal>", body the release note; land.sh writes status done and landed.
+A task merges as one squash commit, subject "(auto) <id>: <goal>", body the release note.
 
-One landing at a time (flock `LAND_LOCK`). In order:
+A pull request may carry several tasks (John, 10 Nov 2026: "go with A"): `ship.sh T739 T747`, run from T739's
+worktree, opens ONE pull request titled "(auto) T739, T747: <goal> / <goal>". The work of every id is already in
+that branch (merge the other task's branch into it first) and each `tasks/<id>.yml` is in the tree, else exit 2,
+nothing pushed. The checks accept it when every changed file is in at least one carried task's `files` allowlist
+(`scripts/land/pr-task.sh` prints the carried ids; a file in none is refused and named); the task contract runs
+once per task with the others named, `gates_approved` and `ruling` may sit on any one carried task, the visual list
+is the pooled lists of all of them, and the `done-test` job runs every carried task's `done_test`. A task file whose
+only change is the sha256 of a locked file this change edits is still not a carried task (T757). After the push the
+other ids' worktrees go if they are clean and their branches if their commits are in the shipped branch.
 
-1. Commit everything in the worktree.
-2. Rebase onto origin/main. A conflict aborts the rebase, marks the task blocked, exits 3. The one exception
-   is a conflict only on generated visual files (baseline pictures, `SOURCES.sha256`): land.sh takes main's
-   side, re-takes the baselines on the rebased sources (`VISUAL_RETAKE_CMD`), commits them, and the visual
-   gates check the result (T313).
-3. Locked files unchanged; `done_test` and `locked` entries as on origin/main.
-4. No open `tasks/fixes/*.yml`, unless this task has `label: fixes`.
-5. Gates, each with its own deadline (`GATE_DEADLINE_S`; lint and typecheck have none, `LINT_DEADLINE_S`/`TYPECHECK_DEADLINE_S`=0): lint on the changed files, typecheck,
-   the unit tests the change reaches, every architecture unit test (`scripts/land/unit-architecture.sh`,
-   whatever changed: they read the source tree, so the import graph never picks them), `done_test`,
-   model-ruling gate (driver model files `openisdSchema.ts`, `openIsdDriverSpec.ts`, `driverSpecFieldName.ts`
-   change only when the task file has `ruling: QO<n>`, QO392), attribution guard on each new commit message. A gate past its deadline is refused
-   and killed.
-6. Candidate: the rebased commit is pushed to `land/<task>`, which starts the full suite on GitHub Actions
-   (`.github/workflows/suite.yml`, about 4 min). `CANDIDATE_CMD` (`scripts/land/post-land/actions.sh`)
-   waits for that run. Red, or no run: refused (gate `candidate`, with the failing specs and the run link),
-   main untouched. The branch is removed whatever the result. The landing lock is held throughout, so
-   no other landing moves main in between.
-7. Push to main (only after a green candidate), then start the post-land run, detached.
+`ship.sh`, in order:
 
-Config: `land.conf` at the repo root. Lock paths (`LAND_LOCK`, `POST_LAND_LOCK`) and all other
-runtime directories (`OPENISD_HEAVY_GATE_DIR`, `OPENISD_RESERVATION_DIR`,
-admit slots, matt restore) are derived from a single runtime root
+1. Commit everything in the worktree; set status done.
+2. Merge origin/main into the branch (no rebase, no force). A conflict aborts the merge, marks the task blocked, exits 3; nothing is removed.
+3. The task contract, as the pull request's `task` job runs it (`scripts/land/check-task-contract.sh --pr`: locked
+   hashes, `files` allowlist, status, gate files), then, optionally, lint and typecheck on the changed files. A
+   file outside the allowlist exits 1 naming it, before anything is pushed.
+   Then the architecture tests (`SHIP_ARCH_CMD`, `unit-architecture.sh`: every architecture test and `branch-map.test.ts`) and the
+   unit tests the change reaches (`SHIP_UNIT_CMD`, `unit-changed.sh`), the same scripts as `pr-gate`'s jobs; red exits 1, nothing pushed.
+   A `done_test` naming a browser spec is refused here too.
+4. Push `t<nnn>` (never forced; refused if the remote branch holds a commit this branch lacks), open or reuse the pull request, `gh pr merge --auto --squash`, then ask
+   GitHub whether the pull request is queued (auto-merge request or merge-queue entry): not queued exits 1, nothing removed.
+   `--fixes`, or `label: fixes` in the task, adds the label with the REST call (`gh pr edit --add-label` fails on this repo).
+   A pull request labelled `hold` is pushed but not queued (`ship.sh` says HELD) and `pr-gate`'s `hold` job is red until the label is removed (T815).
+   A queue ejection drops the request: `bash scripts/land/pr-queue.sh <n>` re-queues and confirms.
+5. Delete the worktree.
+
+`pr-gate` (`.github/workflows/pr.yml`), on the pull request and in the merge queue:
+
+- task contract: locked files unchanged; `done_test` and `locked` as on origin/main; `files` allowlist; task id
+  and owner; status valid; model-ruling gate (driver model files `openisdSchema.ts`, `openIsdDriverSpec.ts`,
+  `driverSpecFieldName.ts` change only when the task file has `ruling: QO<n>`, QO392); `gates_approved` for a
+  `GATE_FILES` change; attribution guard on every commit message;
+- lint on the changed files, typecheck, the unit tests the change reaches, every architecture unit test
+  (`scripts/land/unit-architecture.sh`, whatever changed: they read the source tree), `done_test`, the visual
+    (retired T810: the `visual` job runs the spec on the merged result);
+- that is all: 6 jobs, about 5 minutes. The full suite does not run on a pull request (John, QO501, 10 Nov 2026,
+  "pick A": GitHub's free plan runs 20 jobs at once for the whole account, so 22-job pull requests queued one
+  after another).
+
+The full suite (`.github/workflows/suite.yml`: unit tests in two halves, typecheck, shell tests, the browser specs
+in 10 shards) runs once on main after each merge, in the copy (`portingle/openisd`: the push trigger and every job
+carry the copy's name, so the mirror's push to Johnlon main starts no suite). No rerun: a flaky spec is a red. A red opens a GitHub issue
+labelled `main-red` naming the commit and the run (job `report`). The fix is a pull request labelled `fixes`,
+first in the queue (`docs/SDLC_POLICY.md` §1), whose body says "Fixes #<issue>".
+
+`GATE_FILES` (`land.conf`): `pr-gate` fails when the diff touches one of these globs (coverage scripts, vitest, eslint, tsconfig, suite.yml) unless the task has `gates_approved: QO<n>` and board item QO<n> (`QUESTIONS_FILE`) has a thread entry `by: John`.
+
+Runtime directories (`OPENISD_HEAVY_GATE_DIR`, `OPENISD_RESERVATION_DIR`, admit slots) are derived from
 `$OPENISD_RUNTIME_DIR` (default `$XDG_RUNTIME_DIR/openisd` or `/run/user/<uid>/openisd`), set in
-`scripts/paths.sh` and sourced by every script. The old `/tmp/openisd-*` paths are no longer used;
-they must never both be live at once.
-`POST_LAND_DEADLINE_S` (default 5400): a post-land run past it has its process group killed and is recorded red ("TIMED OUT").
-`HEALTH_RED_MAX_MIN` (default 120): land.sh prints a health line and refuses `red-main` when main is red and the last green is older than this, unless the task has `label: fixes`.
-`GATE_FILES` (land.conf): land.sh refuses `gates` when the diff touches one of these globs (coverage scripts, vitest, eslint, tsconfig, suite.yml) unless the task has `gates_approved: QO<n>` and board item QO<n> (`QUESTIONS_FILE`) has a thread entry `by: John`.
+`scripts/paths.sh` and sourced by every script. The old `/tmp/openisd-*` paths are no longer used.
+
+`land.sh` remains only to print "use scripts/ship.sh".
 
 ## Integrating a branch
 
-A branch that did not go through `land.sh` (agy, opencode) reaches main only by
-`bash scripts/integrate.sh <task-id> <branch>`. Under the landing lock it squash-merges the branch
-into a fresh worktree of origin/main, refuses if a test file the branch added or changed is deleted or
-red (`branch-tests`), runs lint, typecheck and the unit half, runs the stored-data corpus and the
-schemagen proof when the merge touches the schema, `projectRepo`, a loader or `driver_type`, then
-pushes the candidate to `land/<id>-integrated` and waits for the green GitHub Actions run on it (the
-same `candidate` gate as `land.sh`, `scripts/land/core/candidate.sh`; refused if red or unset, whatever
-the label), and only then pushes main and starts post-land. Exit 0 integrated, 1 refused (names the gate), 2 cannot start, 3
-conflict: the paths are in `tasks/<id>.yml` under `blocked:`, the worktree stays for a hand
-resolution (never `--ours`/`--theirs`).
-
-## Post-land run
-
-`scripts/land/post-land/run.sh <sha>`, one at a time (flock `POST_LAND_LOCK`):
-
-- checks the sha out as a clean copy outside every clone and runs `FULL_SUITE_CMD` there once; no
-  rerun, so a flaky spec is a red;
-- the full suite runs on GitHub Actions (John, 17 Oct 2026): each landing's candidate push to `land/<task>`
-  starts `.github/workflows/suite.yml` (unit tests in two halves, typecheck, the browser specs in 10 shards,
-  about 4 min), and main gets that same commit, so a push to main starts no second run (T322).
-  `FULL_SUITE_CMD` is `scripts/land/post-land/actions.sh`, which finds the run for the sha
-  (`ACTIONS_REPO`, up to `ACTIONS_FIND_S`), waits for it if it is still going, and passes on its result. A
-  commit that changes only task files (`tasks/`, `questions.yml`, such as an F opened or closed) takes the
-  result of its nearest ancestor that changes anything else. No run found, or GitHub unreadable, is a red,
-  never a green. `scripts/land/post-land/suite.sh` is the laptop run,
-  kept for going back (one line in `land.conf`);
-- green: records the sha as the last green and prints `post-land: green at <sha>`. It closes every open
-  F whose red commits are all in that sha's history (an infra F, with no sha, is left alone) and pushes
-  the close to main. A main snapshot deploys test and snapshots only; production requires the explicit
-  `publish_production=true` release dispatch with an expected build ID;
-- red: pushes `tasks/fixes/F<n>.yml` (`status: open`, the sha, the failing specs from the run's failed
-  jobs, the failing screens' before/after page, the run link, and every commit since the last green)
-  to main. `land.sh` then refuses every landing except one labelled `fixes`.
+A branch that did not go through `ship.sh` (agy, opencode) is shipped by someone running `ship.sh` from a
+worktree of that branch. There is no other way onto main.
 
 ## Hooks
 

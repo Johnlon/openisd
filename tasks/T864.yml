@@ -1,0 +1,14 @@
+id: T864
+release_note: On a sealed box, typing an Fsc so low that no box can reach it now blanks Qtc, instead of leaving the Qtc from the earlier Fsc.
+repo: openisd
+owner: qtc-fix-agent
+status: done
+goal: Sealed box: Qtc follows Fsc when Fsc is typed tiny after a normal Fsc (bugs/BUG_20261117_sealed-qtc-keeps-old-value-when-fsc-is-tiny.md)
+why: "BUG_20261117_sealed-qtc-keeps-old-value-when-fsc-is-tiny, found by the test sweep John asked for (John, 17 Nov 2026, board card topic-1117-084319)"
+done_test: bash scripts/test.sh packages/design/test/domain/project-sealed-fsc-tiny-clears-qtc.test.ts
+files:
+  - tasks/T864.yml
+  - packages/design/engine/sealed/SealedEngine.ts
+  - packages/design/test/domain/project-sealed-fsc-tiny-clears-qtc.test.ts
+  - packages/ui/test/ui/box-dependent-values.browser.spec.ts
+  - bugs/BUG_20261117_sealed-qtc-keeps-old-value-when-fsc-is-tiny.md

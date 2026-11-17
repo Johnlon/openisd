@@ -1,0 +1,13 @@
+id: T761
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Suite runs on push to main in the portingle copy; its red report opens the issue there
+done_test: bash scripts/land/test/suite-on-main.test.sh && bash scripts/land/test/suite-upload-verdict.test.sh && bash scripts/land/test/release-deploy-dispatch.test.sh
+gates_approved: QO501
+files:
+  - .github/workflows/suite.yml
+  - scripts/land/test/suite-on-main.test.sh
+  - docs/DEV_PROCESS.md
+  - tasks/T761.yml

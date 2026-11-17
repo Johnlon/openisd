@@ -139,7 +139,7 @@ test.describe('No-project shell', () => {
       await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
       const frequency = opt.locator('tr', { hasText: 'Frequency range' });
       await expect(frequency.locator('input').nth(0)).toHaveValue('10.0');
-      await expect(frequency.locator('input').nth(1)).toHaveValue('20000.0');
+      await expect(frequency.locator('input').nth(1)).toHaveValue('1000.0');
     });
 
     test('choosing a driver with no project opens the New Project wizard with that driver', async ({ page }) => {

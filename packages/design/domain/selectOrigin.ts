@@ -21,17 +21,47 @@
  *   selectOrigin returns `{kind: 'none'}`.
  */
 import {isUsable, type Reading} from './corroboration.js';
-import type {UsableReadingJson} from './openisdSchema.js';
+import type {UsableReadingJson, UsableWiringReadingJson, WiringReadingJson} from './openisdSchema.js';
 import {sourceRank} from './sourceRank.js';
 
 export type OriginResult =
   | { readonly kind: 'winner'; readonly role: string; readonly reading: UsableReadingJson }
   | { readonly kind: 'none' };
 
+export type WiringOriginResult =
+  | { readonly kind: 'winner'; readonly role: string; readonly reading: UsableWiringReadingJson }
+  | { readonly kind: 'none' };
+
 /** The role of a hand-entered override value; it outranks every other reading. */
 const MANUAL_ROLE = 'manual';
 
-type RoleReading = readonly [string, Reading];
+/** The key of `driver.json`'s `manual_candidates` map: a person's override for a field that has no
+ *  `readings` map of its own (a bare bool, a derived or bookkeeping envelope, ...). */
+export const MANUAL_CANDIDATES_KEY = 'manual_candidates';
+
+function isPlain(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** The value a top-level field of `driver.json` takes in the app (QO942, issue 523: an override works
+ *  for ANY field; the scraper files it beside the scraped value and the bridge chooses). The manual
+ *  candidate wins when there is one: `readings.manual` of a metadata envelope, else the record's
+ *  `manual_candidates[name]`. With none the field is returned as it came, so a record without a
+ *  candidate projects exactly as before. A chosen field is `{...field, value: <candidate>}` without
+ *  `readings`, which stay in driver.json. */
+export function chooseFieldValue(name: string, field: unknown, candidates: unknown): unknown {
+  if (isPlain(field) && isPlain(field.readings) && MANUAL_ROLE in field.readings) {
+    const {readings: _readings, ...rest} = field;
+    return {...rest, value: field.readings[MANUAL_ROLE]};
+  }
+  if (isPlain(candidates) && name in candidates) {
+    const candidate = candidates[name];
+    return isPlain(field) && 'value' in field ? {...field, value: candidate} : candidate;
+  }
+  return field;
+}
+
+type RoleReading = readonly [string, unknown];
 
 function byRankThenRole([roleA]: RoleReading, [roleB]: RoleReading): number {
   const byRank = sourceRank(roleA) - sourceRank(roleB);
@@ -54,21 +84,35 @@ export function selectOrigin(
     isUsable(r) && isPlausible(field, r.read_value) ? [[role, r]] : []
   );
 
-  if (survivors.length === 0) {
-    return { kind: 'none' };
-  }
+  const winner = winnerAmong(survivors);
+  return winner === null ? { kind: 'none' } : { kind: 'winner', role: winner[0], reading: winner[1] };
+}
+
+/** VCCon's winning role (QO914): a reading naming the wiring survives, a rejected one does not;
+ *  then the same override, majority and rank tiers as `selectOrigin`. */
+export function selectWiringOrigin(readings: Readonly<Record<string, WiringReadingJson>>): WiringOriginResult {
+  const survivors = Object.entries(readings).sort(byRankThenRole).flatMap(
+    ([role, r]): (readonly [string, UsableWiringReadingJson])[] => 'rejected' in r ? [] : [[role, r]]);
+  const winner = winnerAmong(survivors);
+  return winner === null ? { kind: 'none' } : { kind: 'winner', role: winner[0], reading: winner[1] };
+}
+
+/** Tiers 0, 2 and 3 over `survivors`, already in rank order; null when there are none. */
+function winnerAmong<R extends { readonly read_value: number | string }>(
+  survivors: readonly (readonly [string, R])[],
+): readonly [string, R] | null {
+  if (survivors.length === 0) return null;
 
   // A manual reading is an override: it beats every other survivor (D9 tier 0).
   const override = survivors.find(([role]) => role === MANUAL_ROLE);
-  if (override !== undefined) return { kind: 'winner', role: override[0], reading: override[1] };
+  if (override !== undefined) return override;
 
   // Only one value can hold a strict majority; the first survivor (best rank) carrying it wins.
   const majorityThreshold = survivors.length / 2;
-  for (const [role, reading] of survivors) {
-    const count = survivors.filter(([, r]) => r.read_value === reading.read_value).length;
-    if (count > majorityThreshold) return { kind: 'winner', role, reading };
+  for (const survivor of survivors) {
+    const count = survivors.filter(([, r]) => r.read_value === survivor[1].read_value).length;
+    if (count > majorityThreshold) return survivor;
   }
 
-  const [role, reading] = survivors[0];
-  return { kind: 'winner', role, reading };
+  return survivors[0];
 }

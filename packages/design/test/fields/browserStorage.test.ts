@@ -7,6 +7,7 @@ import {
   savedNotice,
   siteStorageLine,
   startupNotice,
+  UPGRADE_REFUSED_NOTICE,
   acknowledgementInPlaceOfBannerMark,
   storagePopup,
   storagePopupAfterSave,
@@ -175,5 +176,15 @@ describe('the storage popup after a save', () => {
     expect(storagePopupAfterSave(above, {...above, ...rest})).toEqual({kind: 'none'});
     expect(storagePopupAfterSave(below, {...below, ...rest})).toEqual({kind: 'none'});
     expect(storagePopupAfterSave(above, {...below, ...rest})).toEqual({kind: 'none'});
+  });
+});
+
+describe('the notice when the start-up update of saved projects is refused for want of room', () => {
+  it('says nothing was changed, that the projects are as saved and still open, and what to do', () => {
+    expect(UPGRADE_REFUSED_NOTICE.title).toBe('Saved projects not updated');
+    expect(UPGRADE_REFUSED_NOTICE.message).toBe(
+      'OpenISD could not update your saved projects for this version, because there is no room in this browser to back them up first. '
+      + 'Nothing was changed: your projects are exactly as you saved them and still open as usual. '
+      + 'To finish the update, export your projects or delete ones you no longer need, then restart OpenISD.');
   });
 });

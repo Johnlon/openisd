@@ -37,7 +37,7 @@ export function mobileSurfaceFlow(surfaces:readonly MobileSurface[]):MobileFlowS
  ids(MobileFlowChapter.Driver,'driver-library','Manage the driver library',['menu-manage-drivers','driver-summary-manage']);
  for(const box of MOBILE_BOX_VARIANTS)ids(MobileFlowChapter.Box,'enclosure-'+box,boxNames[box],['box-'+box,'losses-'+box+'-Rear','losses-'+box+'-Front']);
  ids(MobileFlowChapter.Box,'alignments','Choose an alignment',['sealed-alignment','vented-alignment']);
- ids(MobileFlowChapter.Box,'radiator-actions','Choose and save a passive radiator',['pr-picker','pr-save']);
+ ids(MobileFlowChapter.Box,'radiator-actions','Choose, inspect and edit a passive radiator',['pr-picker','pr-info','pr-edit']);
  ids(MobileFlowChapter.Signal,'signal-input','Amplifier signal',['tab-signal']);
  ids(MobileFlowChapter.Signal,'filters','Filter list',['tab-filters']);
  group(MobileFlowChapter.Signal,'filter-types','Filter cards',surface=>surface.route===MobileRoute.Filter);

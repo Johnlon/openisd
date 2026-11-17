@@ -229,6 +229,37 @@ describe('useNumInput', () => {
     app.unmount();
   });
 
+  it('has its own one-step undo: Ctrl-Z after a committed edit restores and commits the old value, again swaps back', () => {
+    const {api, app, props, input, emissions} = setup({modelValue: 12});
+    const undo = () => api.onBeforeInput(beforeInputEvt('beforeinput', {inputType: 'historyUndo'}));
+    focusIn(api);
+    input.value = '15';
+    api.onInput(eventTargeted('input', input));
+    props.modelValue = 15;
+    api.onBlur(focusEvent('blur'));
+    focusIn(api);
+    undo();
+    expect(emissions.at(-1)).toEqual({event: 'update:modelValue', args: [12, undefined]});
+    expect(input.value).toBe('12.00');
+    props.modelValue = 12;
+    undo();
+    expect(emissions.at(-1)).toEqual({event: 'update:modelValue', args: [15, undefined]});
+    expect(input.value).toBe('15.00');
+    app.unmount();
+  });
+
+  it('Ctrl-Z while typing reverts the text to the stored value and emits nothing', () => {
+    const {api, app, input, emissions} = setup({modelValue: 12});
+    focusIn(api);
+    input.value = '1.';
+    api.onInput(eventTargeted('input', input));
+    const before = emissions.length;
+    api.onBeforeInput(beforeInputEvt('beforeinput', {inputType: 'historyUndo'}));
+    expect(input.value).toBe('12.00');
+    expect(emissions.length).toBe(before);
+    app.unmount();
+  });
+
   it('keeps an emptied mandatory box refused, and accepts a genuinely optional empty value', async () => {
     const mandatory = setup({modelValue: 10, mandatory: true, blankRefused: true});
     mandatory.api.onFocus(focusEvent('focus'));
@@ -350,6 +381,21 @@ describe('useNumInput value, unit and focus flow', () => {
     presentationState.ui.unitTokens = {...NumberField.BOX_VB_L.withNextUnit(presentationState.ui.unitTokens ?? {})};
     await nextTick();
     expect(api.display.value).not.toBe(draft);
+    app.unmount();
+  });
+
+  // John, 17 Nov 2026: "once FB goes to low and we get dq and port len is ridiculous then raising FB the Len does
+  // not respond until I clear it". A calculated value that lands above the box's max is not a typed entry; the box
+  // must follow the model again when it comes back in range.
+  it('follows the model back from a value above the box max, nobody having typed it', async () => {
+    const {api, app, props} = setup({modelValue: 5, max: 10});
+    props.modelValue = 50;
+    await nextTick();
+    expect(api.display.value).toBe('50.00');
+    props.modelValue = 7;
+    await nextTick();
+    expect(api.display.value).toBe('7.00');
+    expect(api.refusal.value).toBe('');
     app.unmount();
   });
 

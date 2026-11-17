@@ -46,7 +46,7 @@ test.describe('MobileAlignmentPopup', () => {
     // sheet's Volume + Tuning freq are read-only readouts driven by the alignment <select>, unlike
     // sealed's directly-editable field.
     await page.locator('.mob-align-sheet .mob-select').selectOption('bb4');
-    await expect(page.locator('.mob-align-sheet').getByText('Tuning freq (Fb)')).toBeVisible();
+    await expect(page.locator('.mob-align-sheet').getByText('Tuning (Fb)')).toBeVisible();
     await expect(page.locator('.mob-align-readout')).toContainText('EBP');
 
     await page.locator('.mob-align-footer .mob-btn-primary', { hasText: 'Accept' }).click();

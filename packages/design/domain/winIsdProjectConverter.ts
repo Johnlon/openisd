@@ -270,7 +270,7 @@ export class WinIsdProjectConverter {
     const errors: DriverError[] = [];
 
     const driverErrors: DriverError[] = [];
-    const wdrDriver = openIsdDriverToWinIsdDriver(project.driver, driverErrors);
+    const wdrDriver = openIsdDriverToWinIsdDriver(project.coilWiring.driverAtMine(), driverErrors);
     errors.push(...driverErrors);
 
     const box = project.box;

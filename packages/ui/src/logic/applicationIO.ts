@@ -1,6 +1,6 @@
 
 import type { Engine } from '@openisd/design/engine';
-import type { ChartData } from '@openisd/design/chart';
+import { AllChartData, DPAL, referenceLineColors, type ChartData, type Design } from '@openisd/design/chart';
 import { buildProjectsArchive, parseProjectsArchive, type OpenISDProject } from '@openisd/design';
 import { savedNotice } from '@openisd/design/fields';
 import { createExportNotice } from './exportNotice.js';
@@ -93,6 +93,8 @@ export interface DesignIO {
   exportBackup(): void;
   /** A chart's data table as a CSV file named after the focused project and the chart; a popup says what was saved. */
   downloadChartData(data: ChartData): void;
+  /** Every chart the focused project can draw, as CSV files plus the project file, in one ZIP named after the project; a popup says what was saved. */
+  downloadAllChartData(): void;
   /** A chart's data table onto the clipboard, tab separated; a message says it was copied or why not. */
   copyChartData(data: ChartData): Promise<void>;
   /** Save a stored backup (`StorageHistory.exportFile`) as a file. */
@@ -270,6 +272,7 @@ export function createApplicationIO(deps: {
     adoptFileName(result.name, suggested);
     const fileName = result.name ?? suggested;
     if (!result.written) {
+      recordSave('owpr', requireFocusedProject());
       flash(isModified.value ? `Project downloaded as ${fileName}. It stays marked unsaved.` : `Project downloaded as ${fileName}`);
       return;
     }
@@ -339,6 +342,8 @@ export function createApplicationIO(deps: {
           // A driver file with a project open SWAPS the driver in place; with none open it is
           // recognised as a DRIVER (not a project) and starts the New Project wizard with it
           // pre-loaded — the user then chooses the box type and volume (BUG_20260912).
+          // A user's own file: its name and id stay on the device.
+          telemetry.record({ kind: 'driver_pick', source: 'import', id: '', name: '' });
           const open = focusedProject();
           if (open) {
             open.loadDriver(driver);
@@ -413,18 +418,41 @@ export function createApplicationIO(deps: {
   }
 
   function exportBackup(): void {
+    featureUse.feature('backup');
     const fileName = `openisd-backup-${new Date().toISOString().slice(0, 10)}.json`;
     download(fileName, deps.backup.exportAll(), 'application/json');
     flash(`Backup downloaded as ${fileName}`);
   }
 
   function downloadChartData(data: ChartData): void {
+    featureUse.feature('chart_data');
     const fileName = data.fileName(requireFocusedProject().name.value);
     download(fileName, data.csv(), 'text/csv');
     exportNotice.exported({kind: 'chartData', chart: data.chartName}, fileName);
   }
 
+  function downloadAllChartData(): void {
+    featureUse.feature('chart_data');
+    const project = requireFocusedProject();
+    const p = deps.appState.syncedP.value;
+    const design: Design = {
+      driver: project.driver.specs.sweepDriver(),
+      box: project.box.boxType.value,
+      P: p,
+      curves: deps.appState.curvesData.value,
+      maxCurves: deps.appState.maxData.value ?? undefined,
+      name: project.name.value || driverName.value,
+      color: DPAL[0],
+      sortIndex: openProjects().indexOf(project),
+    };
+    const all = AllChartData.of(project.name.value, project.charts, deps.engine, p.fmin, p.fmax, design,
+      deps.appState.allIssues.value, referenceLineColors(deps.presentation.ui.chartColors), deps.files.projectToOwprText(project));
+    download(all.zipName, all.zip(), 'application/zip');
+    exportNotice.exported({kind: 'allChartData', charts: all.chartCount}, all.zipName);
+  }
+
   async function copyChartData(data: ChartData): Promise<void> {
+    featureUse.feature('chart_data');
     try {
       await navigator.clipboard.writeText(data.text());
       flash(`Copied the ${data.chartName} chart data`);
@@ -439,11 +467,13 @@ export function createApplicationIO(deps: {
   }
 
   function importBackup(json: string, options: RestoreOptions): RestoreResult {
-    return deps.backup.importAll(json, options);
+    const result = deps.backup.importAll(json, options);
+    if (result.kind === 'ok') featureUse.feature('restore');
+    return result;
   }
 
   return {
     reportStorageFull, saveProject, saveProjectRecord, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
-    exportBackup, downloadChartData, copyChartData, saveStoredBackup, importBackup,
+    exportBackup, downloadChartData, downloadAllChartData, copyChartData, saveStoredBackup, importBackup,
   };
 }

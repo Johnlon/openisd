@@ -218,8 +218,11 @@ GATE_DEADLINE_S="${TYPECHECK_DEADLINE_S:-$GATE_DEADLINE_S}" gate typecheck /dev/
 GATE_DEADLINE_S="${UNIT_DEADLINE_S:-$GATE_DEADLINE_S}" gate unit /dev/null "$UNIT_CMD" "${changed[@]}"
 
 # 6. the stored-data corpus, when the merge can break what users already hold
-if git diff --name-only origin/main HEAD | grep -Eq '(openisdSchema|projectRepo)\.ts$|^packages/[^/]+/src/.*[Ll]oader[^/]*\.ts$' \
-   || git diff -U0 origin/main HEAD | grep -q 'driver_type'; then
+# Each diff is read whole before it is searched: `git diff | grep -q` leaves at the first match, git dies of SIGPIPE and
+# pipefail answers "not touched" for a long diff, skipping this gate (T833). set -e ends the script if git cannot list.
+changed_names="$(git diff --name-only origin/main HEAD)"; changed_lines="$(git diff -U0 origin/main HEAD)"
+if grep -Eq '(openisdSchema|projectRepo)\.ts$|^packages/[^/]+/src/.*[Ll]oader[^/]*\.ts$' <<< "$changed_names" \
+   || grep -q 'driver_type' <<< "$changed_lines"; then
   echo "integrate: schema, loader or driver_type touched; running the stored-data corpus"
   GATE_DEADLINE_S="${UNIT_DEADLINE_S:-$GATE_DEADLINE_S}" gate corpus /dev/null "${INTEGRATE_CORPUS_CMD:-bash scripts/test.sh packages/persistence/test/corpus/storedCorpus.test.ts packages/persistence/test/corpus/bundledDrivers.shard0.test.ts packages/persistence/test/corpus/bundledDrivers.shard1.test.ts packages/persistence/test/corpus/bundledDrivers.shard2.test.ts packages/persistence/test/corpus/bundledDrivers.shard3.test.ts}"
   GATE_DEADLINE_S="${UNIT_DEADLINE_S:-$GATE_DEADLINE_S}" gate schemagen /dev/null "${INTEGRATE_PROOF_CMD:-npm run schemagen:prove}"

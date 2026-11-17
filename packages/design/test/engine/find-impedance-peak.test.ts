@@ -46,8 +46,8 @@ describe('findImpedancePeak', () => {
         Rms_kg_per_s: 1.5,
         BL_Tm: 10.0,
         Pe_W: 100,
-        Re_terminal_ohm: engine.driver.terminalRe_ohm(6.0, 1, undefined),
-        BL_terminal_Tm: engine.driver.terminalBL_Tm(10.0, 1, undefined),
+        Re_terminal_ohm: 6.0,
+        BL_terminal_Tm: 10.0,
       };
       const P: SweepParams = {
         Vb: 0.010,
@@ -56,7 +56,6 @@ describe('findImpedancePeak', () => {
         Qp: 100,
         eg: 2.83,
         Rs: 0,
-        wiring: 'parallel' as const,
         nDrivers: 1,
         fmin: 10,
         fmax: 200,
@@ -90,12 +89,12 @@ describe('findImpedancePeak', () => {
         Rms_kg_per_s: 1.5,
         BL_Tm: 10.0,
         Pe_W: 100,
-        Re_terminal_ohm: engine.driver.terminalRe_ohm(6.0, 1, undefined),
-        BL_terminal_Tm: engine.driver.terminalBL_Tm(10.0, 1, undefined),
+        Re_terminal_ohm: 6.0,
+        BL_terminal_Tm: 10.0,
       };
       const result = engine.simulation.sweep(sweepDriver(drv), LE_H, 'sealed', {
         Vb: 0.010, Ql: 10, Qa: 100, Qp: 100, eg: 2.83, Rs: 0,
-        wiring: 'parallel' as const, nDrivers: 1, fmin: 10, fmax: 200, N: 200, air: REFERENCE_AIR,
+        nDrivers: 1, fmin: 10, fmax: 200, N: 200, air: REFERENCE_AIR,
       }).values!;
       // Every real impedance sample sits above 0 Ω — a Re past the actual peak means the sweep
       // "never rises above Re", so there is no resonance bump for this function to characterise.
@@ -123,12 +122,12 @@ describe('findImpedancePeak', () => {
         Rms_kg_per_s: 1.5,
         BL_Tm: 10.0,
         Pe_W: 100,
-        Re_terminal_ohm: engine.driver.terminalRe_ohm(6.0, 1, undefined),
-        BL_terminal_Tm: engine.driver.terminalBL_Tm(10.0, 1, undefined),
+        Re_terminal_ohm: 6.0,
+        BL_terminal_Tm: 10.0,
       };
       const result = engine.simulation.sweep(sweepDriver(drv), LE_H, 'sealed', {
         Vb: 0.010, Ql: 10, Qa: 100, Qp: 100, eg: 2.83, Rs: 0,
-        wiring: 'parallel' as const, nDrivers: 1, fmin: 10, fmax: 200, N: 200, air: REFERENCE_AIR,
+        nDrivers: 1, fmin: 10, fmax: 200, N: 200, air: REFERENCE_AIR,
       }).values!;
       // Force the peak to be the curve's first sample by making it artificially the largest.
       const rigged = { ...result, zmag: [...result.zmag] };

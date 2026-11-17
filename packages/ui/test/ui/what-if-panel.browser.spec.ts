@@ -140,15 +140,16 @@ test.describe('What-if panel', () => {
       await expect(fsInput).toHaveValue('42');
     });
 
-    test('an open What-if panel stays open across a reload', async ({ page }) => {
+    // T829: a What-if's values are never stored, so a reload does not reopen the panel showing old values as if
+    // nothing was lost. (It used to; this test pinned that.)
+    test('an open What-if panel is not reopened by a reload: its values were not kept', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await page.locator('.save-rail .what-if-btn').click();
-
-      await page.waitForFunction(() => (localStorage.getItem('openisd_view') || '').includes('originalWhatIfOpen'),
-        undefined); // the open-panel flag is persisted
+      await expect(page.locator('.what-if-panel')).toBeVisible();
       await page.reload({ waitUntil: 'domcontentloaded' });
 
-      await expect(page.locator('.what-if-panel')).toBeVisible();          // What-if reopened
+      await page.locator('.project-row').first().waitFor({ state: 'visible' });
+      await expect(page.locator('.what-if-panel')).toHaveCount(0);
     });
 
     test('the What-if panel stays open when the box type changes underneath it', async ({ page }) => {
@@ -252,6 +253,14 @@ test.describe('What-if panel', () => {
       await expect(bl).toHaveClass(/value-e/);
     });
 
+    // John, 8 Nov 2026: "Try values and watch the charts. The design is not changed. becomes Experiment - Try values & watch the charts. Your project will not be updated."
+    test('the hint and the Close buttons say the project will not be updated', async ({ page }) => {
+      await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);
+      await expect(page.locator('.what-if-panel .what-if-hint')).toHaveText('Experiment - Try values & watch the charts. Your project will not be updated.');
+      for (const close of await page.locator('.what-if-panel').getByRole('button', { name: /Close/ }).all()) await expect(close).toHaveAttribute('title', 'Close. Your project will not be updated.');
+      await expect(page.locator('.what-if-btn')).toHaveAttribute('title', 'Try values & watch the charts. Your project will not be updated.');
+    });
+
     test('numeric fields are narrow and uniform, not stretched to fill the column', async ({ page }) => {
       await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);
       const named = await page.locator('.what-if-panel .what-if-fld:not(.what-if-ro) input').evaluateAll(
@@ -261,7 +270,7 @@ test.describe('What-if panel', () => {
       // One width for the whole panel — a field that sizes to its container instead of its content
       // would vary with the column it landed in.
       expect(new Set(widths).size, JSON.stringify(named)).toBe(1);
-      expect(widths[0], 'joined box includes its 34px unit rail').toBe(124);
+      expect(widths[0], 'joined box includes its 29px unit rail, 25% narrower than 124px (John, 8 Nov 2026)').toBe(93);
       const railWidths = await page.locator('.what-if-panel .what-if-fld:not(.what-if-ro) input').evaluateAll(els => els.filter(el => el.closest('.what-if-fld')?.querySelector('.ui-field-unit')?.textContent?.trim()).map(el => { const css = getComputedStyle(el); return el.getBoundingClientRect().width - parseFloat(css.paddingRight); }));
       for (const width of railWidths) expect(width, 'numeric rail stays narrow').toBeLessThanOrEqual(90);
       // ...and genuinely narrower than the cell holding it, i.e. leftover whitespace exists.

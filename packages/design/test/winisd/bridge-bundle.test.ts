@@ -354,9 +354,9 @@ describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)
     }
   });
 
-  it('returns a warn entry ALONGSIDE a good wdr for an entered-zero field', () => {
-    // The projection pushes a 'warn' (not 'error') when a reading of 0 is dropped as
-    // impossible — a successful conversion that still carries a warning,
+  it('returns a warn entry ALONGSIDE a good wdr for a reading outside the physical range', () => {
+    // The projection pushes a 'warn' (not 'error') when a reading outside the field's physical
+    // band is dropped as impossible — a successful conversion that still carries a warning,
     // which is exactly the case the JSON envelope (over a bare-string return) exists to keep
     // visible to the Python caller.
     const yamlText = `
@@ -376,7 +376,7 @@ specs:
     Re_ohm:
       definition: DC voice coil resistance
       readings:
-        manufacturer_datasheet: {actual_reading: '0 Ohm', read_value: 0, read_precision: 0.05}
+        manufacturer_datasheet: {actual_reading: '0.01 Ohm', read_value: 0.01, read_precision: 0.005}
 `;
     const ctx = createMiniRacerLikeContext();
     vm.runInContext(bundleSource, ctx);
@@ -384,7 +384,7 @@ specs:
     const raw = runString('globalThis.driverYmlToOpenisdAndWdr(YAML_TEXT)', ctx);
     const parsed = parseBridgeResult(raw);
     assert.equal(typeof parsed.wdr, 'string');
-    // T018: a reading of 0 is impossible, so Re_ohm gets no value and the projection warns on it.
+    // T018: a reading of 0.01 ohm is below Re's physical limit (0.1), so Re_ohm gets no value and the projection warns on it.
     assert.equal(parsed.errors.some(e => e.level === 'warn' && e.field === 'Re_ohm'), true,
       `expected a 'warn' on field Re_ohm, got: ${JSON.stringify(parsed.errors)}`);
   });

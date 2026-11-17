@@ -98,3 +98,14 @@ for (const size of [{width: 1280, height: 800}, {width: 1024, height: 700}]) {
     expect(m.bottom).toBeLessThanOrEqual(size.height);
   });
 }
+
+test('desktop 1366x768: every reset arrow fits inside its button', async ({page}) => {
+  await page.setViewportSize({width: 1366, height: 768});
+  await page.goto('/');
+  await openAProject(page);
+  await openPlotWindowOptions(page);
+  const buttons = page.locator('.opt-clear-btn');
+  expect(await buttons.count()).toBeGreaterThan(0);
+  const overflow = await buttons.evaluateAll(els => els.filter(e => e.scrollWidth > e.clientWidth).length);
+  expect(overflow).toBe(0);
+});

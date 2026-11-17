@@ -1,0 +1,119 @@
+# View coverage plan (T768)
+
+Goal (John, 10 Nov 2026: "I need full coverage, add it, then maintain it"): every (view, skin) pair in
+`packages/ui/test/fixtures/viewIndex.ts` is opened and measured by `view-layout-walk.browser.spec.ts`.
+Start: 371 pairs, 240 opened, 131 with a reason (ceiling 131, held by
+`packages/ui/test/logic/view-walk-coverage.test.ts`). Target: 0 reasons, except views that no user action in
+Chromium can put on a page (below), and those stay as a named reason with the proof.
+
+Rules for every step: the spec acts as a user does (screen, controls, a file a user would import). A scripted
+stand-in for an outside system (cloud endpoint, announcement endpoint, service worker, browser storage quota)
+is allowed. No reading or writing app state objects. Each batch: write the steps, lower `REASON_CEILING`,
+`bash scripts/ship.sh`. A real fault the walk finds gets a `bugs/` file and a `KNOWN` entry in the walk spec.
+
+## Maintenance (how a new view cannot slip in)
+
+- A new template branch that is not mapped to an index view fails `branch-map.test.ts`.
+- A new index view with no open step gets the default reason `step-not-written`, which raises the count above
+  the ceiling and fails `view-walk-coverage.test.ts`.
+- The ceiling must equal the count exactly (added in T768): a step written without lowering the ceiling also
+  fails, so the ratchet cannot drift.
+
+## Challenge to each "cannot be opened" claim
+
+| Reason | Verdict | Why |
+|---|---|---|
+| outside-app (5: about, install, refresh, both skins) | Openable | A user types the URL. `page.goto('/about/')` and measure `body`. Batch 1. |
+| browser-owned: native-keyboard | Partly | The keyboard itself is the OS. What the app does when it is up is the layout the user sees: shrink the viewport height as Android does, focus a field, measure. The OS keyboard stays out of scope. |
+| browser-owned: native-files | Partly | Assert Playwright's `filechooser` event fires from the button (that is "opened"). The OS dialog cannot be drawn in the page. |
+| browser-owned: native-select, native-colour, trace-colour-picker | Not openable | The popup is drawn by the browser outside the page; headless Chromium does not render it and no DOM or screenshot of it exists. Keep the reason; the closed control is already walked. |
+| browser-owned: native-title (hover tooltip) | Not openable | Browser-drawn tooltip, not in the DOM. Keep the reason. The `title` text itself is checked by the field-title tests. |
+| index-disagrees (wizard step 5 of passive radiator) | Done | The row was removed (T771): the PR wizard has four steps. |
+
+## Batches (smallest first)
+
+| # | Pairs | Reason cleared | How each is opened |
+|---|---|---|---|
+| 1 | 5 | outside-app (DONE T769, ceiling 126) | `goto` the static URL, measure `body`. Phone `refresh`: `/about/refresh/`. |
+| 2 | 8 | saved-state-needed (DONE T771, ceiling 117; also removed the PR wizard step-5 row) | See "Saved state" below. |
+| 3 | 10 | cloud-account-needed (DONE T772, ceiling 107) | See "Cloud". |
+| 4 | 15 of 17 (DONE T773, ceiling 92) | rejected-input-needed | See "Rejected input". |
+| 5 | 14 of 18 (DONE T775, ceiling 78) | fault-needed | See "Faults". |
+| 6 | 66 | step-not-written | Click paths, 6a phone dialogs and sheets, 6b desktop, 6c shared (one step per pair, both skins), See "Click paths". |
+| 7 | 2 of the 6 | browser-owned | keyboard-up and file-chooser as above. |
+
+### Saved state (8)
+
+| View | Opened by |
+|---|---|
+| announcements-current (phone, desktop) | Stand-in announcement endpoint (`page.route`, `no-store`) returning a version newer than seen; launch; the modal opens as a user would see it. |
+| diagnostic-repairs (both) | Import a project file a user could have (one with a repairable fault), Options > Diagnostics > run repair. |
+| shared/driver-library-broken-entry (both) | Import a driver file of a record version this build cannot read through Manage Drivers; the flagged row shows. |
+| shared/storage-restore-picker (both) | Save twice so a backup row exists, Options > Your data > Restore on the row. |
+
+### Cloud (10)
+
+Stand-in: `page.route` for the cloud endpoint and sign-in redirect; the app is configured as a user configures it
+(Menu > Cloud sync > sign in). Views: cloud, cloud-confirm, reconnect-strip, conflict-notice, hint (phone, 5) and
+account-and-activity, reconnect-strip, conflict-notice, hint, cloud-confirm (desktop, 5). Conflict: stand-in returns a
+newer copy of an open project. Reconnect: stand-in answers 401 after sign-in. Hint: stand-in offers a project not on the device.
+First task of the batch: find how the test build turns cloud on (`architecture-every-build-has-cloud-sync`).
+
+### Rejected input (17)
+
+Type the value in the real field, then measure the message. Vented tuning/volume warnings (wizard, both skins, 4):
+enter a tuning below the reachable one in New project > details. Tuning-unreachable (Box tab, 2) same on the tab.
+Response-model-pending (2): pick the box type the engine does not model. Passive-radiator pick error (2): pick an unusable radiator.
+Options error (shared, 2): type a refused limit. Driver delete challenge (shared, 2): press delete on a saved driver before export.
+Driver identity (2): save a driver with no brand. field-dq (phone): tap a field warning.
+
+### Faults (18)
+
+| View | Opened by (no state objects touched) |
+|---|---|
+| update strip / update (3) | Service-worker stand-in: serve a new build id to the update check. |
+| cross-tab notice (2) | A second page in the same context edits the open project, as a user with two tabs. |
+| startup-failure (2) | `page.route` aborts the app's lazy chunk: network failure is the outside system. |
+| crash (2) | `page.route` serves a lazy chunk that throws when used; the app captures a real runtime error. |
+| storage-usage (2) | Stand-in for the browser quota (`navigator.storage.estimate` answers near full) before load. |
+| store-gate, storage-warning, driver-library-storage-note (shared, 6), driver-storage-error | Storage blocked at context level (IndexedDB denied) before load: the browser, not the app, is stubbed. |
+
+If a fault cannot be produced without touching app state, it stays `fault-needed` and the plan says which and why.
+
+### Click paths (66)
+
+The index `reach` text is the script. Groups:
+
+- Phone dialogs from menus (27): empty, bin, project-actions, sealed-alignment, vented-alignment, pr-picker, pr-save, chart-data, sheet-port,
+  driver-summary-manage, driver-summary-pick, driver-search-filters, driver-export, driver-rename, driver-save, equations, driver-dq,
+  options-limits-help, exports, wizard-placement, wizard-ebp, wizard-help, section-help, confirmation, about-version, project-import, driver-import.
+  Import menus are opened up to the file chooser (the OS picker is out of scope).
+- Phone notes and strips (5): difference-cue, filter-card-body, wizard-isobarik-note, save-note, flash-strip.
+- Desktop (16): difference-cue, close-unsaved, sealed-alignment, vented-alignment, chart-unavailable-notice, tab-help-panel, signal/generator,
+  equation-inspector, confirmation, driver-rename, driver-disagreement-list, driver-search-filters, options-limits-help, wizard-help,
+  wizard-placement-info, wizard-ebp-info.
+- Shared, both skins (9 views, 18 pairs): field-catalogue (`?field-catalogue`), flash-message, chart-readout (hover/drag a chart),
+  graph-warning-pill, graph-blocked-message, graph-context-menu (right-click), winisd-difference-entry, driver-editor-incomplete-warning, driver-type-help.
+
+### Batch 4 finding
+
+`response-model-pending-notice` (phone and desktop, 2 pairs) cannot be opened: `simulatableBoxType` accepts every box type, so the notice's condition is never true. Both keep the reason `rejected-input-needed` until the notice is removed from the index or a box type the engine does not model exists.
+
+### Batch 5 finding
+
+Four of the 18 fault views cannot be opened because the app has no such screen or state:
+
+- `cross-tab` and `desktop/cross-tab-notice` (2 pairs): no template shows a "project changed in another tab" notice; `sessionSync.ts` adopts the other tab's write silently.
+- `shared/driver-library-storage-note` (2 pairs): the note shows when the saved-drivers read is `unavailable`, but the browser storage wrapper (`keyValueStorage.ts`) catches every storage error and returns "no value", so a real browser never produces `unavailable`.
+
+Both stay `fault-needed` until the index or the app changes (a ruling, not a test).
+
+### Batch 6 progress
+
+- 6a (T776, ceiling 68): project-actions, bin, empty, sealed-alignment, vented-alignment, pr-picker, pr-save, chart-data, sheet-port, exports (phone). Fault found: `BUG_20261110_phone-pr-picker-names-cut.md`.
+- 6b (T777, ceiling 59): driver-summary-manage, driver-summary-pick, driver-search-filters, driver-export, driver-save, driver-import, equations, driver-dq, driver-rename (phone). No fault.
+- 6c (T778, ceiling 46): wizard-placement, wizard-ebp, wizard-isobarik-note, wizard-help, section-help, confirmation, about-version, project-import, options-limits-help, difference-cue, filter-card-body, save-note, flash-strip (phone). project-import needs the browser stand-in 'no file-picker API' (Chromium's own picker is the OS). No fault.
+- 6d (T781, ceiling 32): desktop difference-cue, close-unsaved, sealed-alignment, vented-alignment, tab-help-panel, signal generator, equation-inspector, confirmation, driver-rename, driver-disagreement-list, driver-search-filters, options-limits-help, wizard-placement-info, wizard-ebp-info. Fault found: `BUG_20261110_desktop-alignment-popup-select-misaligned.md`.
+- 6e (T782, ceiling 14): shared, both skins: field-catalogue, flash-message, chart-readout, graph-warning-pill, graph-blocked-message, graph-context-menu, winisd-difference-entry, driver-editor-incomplete-warning, driver-type-help. Fault found: `BUG_20261110_field-catalogue-page-breaks-field-rules.md`.
+- 7 (T787, ceiling 12): phone native-files (Open a file fires the browser's file chooser, the menu is measured) and native-keyboard (window 300 px shorter, a number field tapped). Still browser-owned: native-select, native-colour, native-title (phone), trace-colour-picker (desktop).
+- Views that no user action can reach, now the reason `index-disagrees` (4 views, 8 pairs): `cross-tab-notice`, `driver-library-storage-note`, `response-model-pending-notice` (batch 4 and 5 findings), `desktop/results/chart-unavailable-notice` (the "This chart isn't available" branch of OriginalShell.vue sits inside the pending branch, so it can never show), `desktop/wizard-help` (the desktop wizard has no Help button; only the phone has one). Removing them from the index is a ruling.

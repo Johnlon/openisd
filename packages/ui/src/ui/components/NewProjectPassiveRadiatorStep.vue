@@ -7,6 +7,7 @@ import UIPickField from './UIPickField.vue';
 import PRBrowser from './PRBrowser.vue';
 import {inputValue} from '../../logic/domEvents.js';
 import type {PassiveRadiatorStepCells, PassiveRadiatorStepView} from '../../hooks/OriginalNewProject-hooks.js';
+import type {PassiveRadiatorEditorView} from '../../hooks/passiveRadiatorEditor.js';
 
 interface Props {
   radiator: PassiveRadiatorStepView | null;
@@ -17,24 +18,26 @@ interface Props {
   fieldClass?: string;
   /** The classic phone page (PHONE_CLASSIC_BUILD_SPEC screen 25): a full-width Select PR button, the name in a plain row. */
   classic?: boolean;
+  /** The passive-radiator editor the picker's "+ Define new passive radiator" opens. */
+  editor: PassiveRadiatorEditorView;
 }
 
 defineProps<Props>();
 const emit = defineEmits<{
   loadSaved: [string];
   loadBundled: [string];
-  define: [];
   browse: [];
   closeBrowse: [];
   rename: [string];
+  define: [];
 }>();
 </script>
 
 <template>
   <div class="np-pr-step">
     <button id="np-pr-select" class="np-pr-browse" :class="{'np-pr-browse-classic': classic}" title="Choose a saved or bundled passive radiator, or define a new one." @click="emit('browse')">{{ classic ? PhoneWizardText.SELECT_PR : 'Select passive radiator ▸' }}</button>
-    <PRBrowser v-if="browsing" @close="emit('closeBrowse')"
-      @load="id => emit('loadSaved', id)" @load-bundled="id => emit('loadBundled', id)" @define="emit('define')" />
+    <PRBrowser v-if="browsing" :editor="editor" @close="emit('closeBrowse')" @define="emit('define')"
+      @load="id => emit('loadSaved', id)" @load-bundled="id => emit('loadBundled', id)" />
     <p class="np-pr-hint">{{ PhoneWizardText.SELECT_OR_DEFINE_PR }}</p>
 
     <div v-if="classic" class="mob-crow">

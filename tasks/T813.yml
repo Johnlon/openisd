@@ -1,0 +1,15 @@
+id: T813
+release_note: internal
+repo: openisd
+owner: sync
+status: done
+goal: OpenISD's bundled driver catalogue and the data-quality baseline reflect the app's current checks: the 229 false warnings removed by PR #82 (T804) are gone from the bundle and from scripts/driver-snapshot.dq-baseline.json
+why: John, 14 Nov 2026: make the DQ warnings go away by fixing causes (issue 513; QO930)
+done_test: bash scripts/test.sh packages/design/test/domain/multi-coil-goldens.test.ts
+ruling: QO930
+files:
+  - tasks/T813.yml
+  - packages/ui/public/**
+  - packages/design/test/fixtures/driver-snapshot/**
+  - scripts/driver-snapshot.pin
+  - scripts/driver-snapshot.dq-baseline.json

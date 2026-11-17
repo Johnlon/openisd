@@ -137,14 +137,15 @@ test.describe('Original Passive Radiator tab', () => {
       expect(stored.qms).toBeCloseTo(12.25, 2);
     });
 
-    // John, 2026-10-05: every PR field is editable on the page, so the page has no Edit button.
-    test('the PR page has no Edit button and edits every passive radiator field in place', async ({ appPage: page }) => {
+    // John, 2026-10-05: every PR field is editable on the page. John, 16 Nov 2026 (QO946.c117): the page also has the driver's
+    // Select / Info / Edit.
+    test('the PR page edits every passive radiator field in place, and has Select, Info and Edit as the Driver page', async ({ appPage: page }) => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
       const pane = page.locator('.two-col').filter({ has: page.locator('#og-pr-fs') });
 
       const header = page.locator('.driver-id-row').filter({ has: page.locator('#og-pr-name') });
-      await expect(header.locator('button')).toHaveText(['Select passive radiator', 'Save to library']);
+      await expect(header.locator('button')).toHaveText(['Select passive radiator', 'Info', '✎ Edit']);
 
       await page.locator('#og-pr-name').fill('Bench PR 12');
       await fillAndCommit(page.locator('#og-pr-vas'), '7.5');
@@ -234,19 +235,22 @@ test.describe('Original Passive Radiator tab', () => {
       expect(await readFh()).not.toBeCloseTo(fhBefore, 2);
     });
 
-    // John, 2026-10-05: "Save PR to library needs to ask for a name confirmation dialog." The
-    // name typed there names the library copy only; the project's radiator keeps its own name.
-    test('Save to library asks for a name, prefilled, and saves a copy under the typed name', async ({ appPage: page }) => {
+    // John, 2026-10-05: a library copy is named on its own; the project's radiator keeps its name. John, 16 Nov 2026
+    // (QO946.c117, c118): Save to library is the editor's Copy to My PRs, as the driver editor's Copy to My Drivers.
+    test('Copy to My PRs in the editor saves a copy under the editor\'s name; the project keeps its own until OK', async ({ appPage: page }) => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
 
       await page.locator('#og-pr-name').fill('Bench PR');
-      await page.locator('button.edit-btn', { hasText: 'Save to library' }).click();
-      const dialog = page.getByRole('dialog', { name: 'Save passive radiator to library' });
-      const name = dialog.locator('input');
+      await page.locator('#og-pr-edit').click();
+      const dialog = page.getByRole('dialog', { name: "Edit Project's Passive Radiator" });
+      await dialog.getByRole('tab', { name: 'General' }).click();
+      const name = dialog.locator('#pr-editor-name');
       await expect(name).toHaveValue('Bench PR');
       await name.fill('Library Bench PR');
-      await dialog.getByRole('button', { name: 'Save' }).click();
+      await dialog.getByRole('button', { name: 'Copy to My PRs' }).click();
+      await expect(dialog.getByRole('status')).toContainText('Library Bench PR');
+      await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
       await expect(dialog).toHaveCount(0);
 
       await expect(page.locator('#og-pr-name')).toHaveValue('Bench PR');

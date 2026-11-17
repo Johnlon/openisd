@@ -1,0 +1,11 @@
+id: T751
+release_note: internal
+repo: openisd
+owner: leader
+status: done
+goal: abandon.sh records a task John turned down as rejected (John said yes on QO484)
+done_test: bash scripts/land/test/tidy-branches.e2e.test.sh
+files:
+  - tasks/T751.yml
+  - scripts/abandon.sh
+  - scripts/land/test/tidy-branches.e2e.test.sh

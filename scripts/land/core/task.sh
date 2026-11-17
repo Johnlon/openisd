@@ -42,14 +42,35 @@ task_files() {
   ' "$1"
 }
 
-# task_missing_fields <file>: the required keys the file lacks, space separated; empty when well formed.
+# task_missing_fields <file> [--why]: the required keys the file lacks, space separated; empty when well formed.
+# With --why (pull request mode, a task file the PR adds or really changes) `why` is required too.
 task_missing_fields() {
-  local key missing=""
-  for key in id owner status goal done_test; do
+  local key missing="" keys="id owner status goal done_test"
+  [ "${2:-}" = --why ] && keys="$keys why"
+  for key in $keys; do
     [ -n "$(task_field "$1" "$key")" ] || missing="$missing $key"
   done
   [ -n "$(task_files "$1")" ] || missing="$missing files"
   echo "${missing# }"
+}
+
+# task_why_problem <file>: empty when the `why:` line is a real reason, else what is wrong (T767, QO528).
+# At least 20 characters, not the goal, and it names who decided and when ("John, 10 Nov 2026") or an id (QO<n>, BUG, F<n>).
+task_why_problem() {
+  local why goal
+  why="$(task_field "$1" why)"; goal="$(task_field "$1" goal)"
+  [ "${#why}" -ge 20 ] || { echo "why is under 20 characters"; return; }
+  [ "$why" != "$goal" ] || { echo "why repeats the goal"; return; }
+  printf '%s' "$why" | grep -Eq '[A-Z][a-z]+, [0-9]{1,2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* 20[0-9]{2}|(^|[^A-Za-z0-9])(QO[0-9]+|F[0-9]+|BUG[-_A-Za-z0-9]*)' \
+    || echo "why names no person with a date (John, 10 Nov 2026) and no QO, F or BUG id"
+}
+
+# task_old_edit_exempt <base> <head> <file>: true when <file> exists on <base> and its diff is only sha256 lines or the
+# status/blocked_reason lines (a locked-hash update, or abandon.sh closing a task): such an edit needs no `why:` (T767).
+task_old_edit_exempt() {
+  git cat-file -e "$1:$3" 2> /dev/null || return 1
+  ! git diff -U0 "$1" "$2" -- "$3" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---) ' \
+    | grep -vE '^[+-]([[:space:]]+sha256: [0-9a-f]+|status: .*|blocked_reason: .*)$' | grep -q .
 }
 
 # task_self_check <tasks-dir>: check every locked sha256 in <tasks-dir>/*.yml against its file.
@@ -112,4 +133,13 @@ task_commit_message() {
   printf '%s\n' "$(task_commit_subject "$1" "$2")"
   if [ "$(task_first_sentence "$2" | wc -c)" -gt 72 ]; then printf '\n%s\n' "$2"; fi
   if [ -n "$3" ] && [ "$3" != internal ]; then printf '\n%s\n' "$3"; fi
+}
+
+# task_done_test_problem <done_test command>: empty when allowed, else why not (T815). A browser spec takes minutes under
+# load and overran the gate deadline (T036); the browser half runs in the full suite, never as a task's done_test. Three
+# agents had the pull request's done-test job refuse one after the push; ship.sh's contract check now refuses it first.
+task_done_test_problem() {
+  case "$1" in
+    *.browser.spec.ts*) printf 'done_test names a browser spec (%s); browser specs run in the full suite, name a unit spec' "$1" ;;
+  esac
 }

@@ -9,6 +9,7 @@
 //   build/failing-tests.txt   human-readable listing
 //   build/failing-tests.json  [{ file, tests: [{ leaf, full, status }] }] for the rerun runner
 import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {isUnexpectedEvent} from './lib/testOutcome.mjs';
 
 const path = process.argv[2] ?? 'build/ui-telemetry/events.jsonl';
 const lines = readFileSync(path, 'utf8').split('\n').filter((l) => l.trim());
@@ -31,10 +32,11 @@ for (const line of lines) {
   if (!file || !title || !status) continue;
   const s = String(status).toLowerCase();
   if (!['passed', 'failed', 'flaky', 'timedout', 'timeout', 'interrupted', 'skipped'].includes(s)) continue;
-  results.set(keyOf(String(file), String(title)), { file: String(file), title: String(title), status: s });
+  results.set(keyOf(String(file), String(title)), { file: String(file), title: String(title), status: s, unexpected: isUnexpectedEvent({ status: s, expected: ev.expected }) });
 }
 
-const bad = [...results.values()].filter((r) => r.status !== 'passed' && r.status !== 'skipped');
+// Counted by outcome, not status: a test.fail test that fails as expected is not a failure (T815).
+const bad = [...results.values()].filter((r) => r.unexpected);
 
 // Group by file; tests sorted by their order of appearance in the log.
 const byFile = new Map();

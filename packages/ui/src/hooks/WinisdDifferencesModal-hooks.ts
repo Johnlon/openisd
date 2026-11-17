@@ -3,11 +3,14 @@ import {computed, inject, provide, shallowRef} from 'vue';
 import type {CompatSwitchGroup, WinisdDeviation} from '@openisd/design/fields';
 import {WinisdDifference, WinisdDifferenceSection} from '@openisd/design/fields';
 import {useApp} from '../logic/app.js';
+import type {FeatureUse} from '../logic/telemetry/featureUse.js';
+import {useFeatureUse} from './telemetryContext.js';
 
 /** The app setting this hook reads — `appState`'s, or a substitute in a test. */
 export interface WinisdDifferencesModalDeps {
   /** Options → General "Show WinISD difference markers (≠W)". Reactive. */
   differenceCuesShown(): boolean;
+  readonly featureUse: FeatureUse;
 }
 
 /** Where the page opens: a section, an entry, or (null) the top. */
@@ -44,6 +47,7 @@ export function useWinisdDifferencesModal(
   const target = shallowRef<WinisdDifferencesTarget | null>(null);
 
   function openAt(t: WinisdDifferencesTarget | null): void {
+    deps.featureUse.feature('winisd_differences');
     target.value = t;
     open.value = true;
   }
@@ -64,7 +68,8 @@ export function useWinisdDifferencesModal(
 /** Build the app's one help page and hand it to every descendant. Called by `App.vue`; the menus,
  *  the group headings, the ≠W cues and the page itself read that one instance. */
 export function provideWinisdDifferencesModal(): WinisdDifferencesModalAPI {
-  const api = useWinisdDifferencesModal(useApp().appState);
+  const {appState} = useApp();
+  const api = useWinisdDifferencesModal({differenceCuesShown: () => appState.differenceCuesShown(), featureUse: useFeatureUse()});
   provide(WinisdDifferencesModalKey, api);
   return api;
 }

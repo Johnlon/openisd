@@ -21,10 +21,11 @@ function driverRowOf(row: Record<string, unknown>, where: string, f: FieldReader
   const Znom_ohm = f.nullableNumber(row.Znom_ohm, `${where}.Znom_ohm`);
   const freq_low_hz = f.nullableNumber(row.freq_low_hz, `${where}.freq_low_hz`);
   const freq_high_hz = f.nullableNumber(row.freq_high_hz, `${where}.freq_high_hz`);
+  const sizeFromSd_in = f.nullableNumber(row.sizeFromSd_in, `${where}.sizeFromSd_in`);
   if (base === null || chips === null || canonical === null || Fs_hz === undefined || Sd_m2 === undefined
       || Xmax_m === undefined || Vd_m3 === undefined || Znom_ohm === undefined
-      || freq_low_hz === undefined || freq_high_hz === undefined) return null;
-  return { ...base, chips, canonical, Fs_hz, Sd_m2, Xmax_m, Vd_m3, Znom_ohm, freq_low_hz, freq_high_hz };
+      || freq_low_hz === undefined || freq_high_hz === undefined || sizeFromSd_in === undefined) return null;
+  return { ...base, chips, canonical, Fs_hz, Sd_m2, Xmax_m, Vd_m3, Znom_ohm, freq_low_hz, freq_high_hz, sizeFromSd_in };
 }
 
 /** `drivers-index.json` as loaded: the rows, or every problem naming row and field. */

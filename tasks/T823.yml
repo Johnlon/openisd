@@ -1,0 +1,13 @@
+id: T823
+release_note: internal
+repo: openisd
+owner: claude-sub
+status: done
+goal: An exact printed zero in a physically positive driver field raises no physical-limit data-quality line, because the field is not provided (QO935)
+why: John (QO935), 15 Nov 2026: the Accuton zero is the same as not provided; BUG_20261115_printed-zero-raises-physical-limit-warning
+done_test: bash scripts/test.sh packages/design/test/winisd/driver-dq-range-calc.test.ts
+files:
+  - tasks/T823.yml
+  - bugs/BUG_20261115_printed-zero-raises-physical-limit-warning.md
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/test/winisd/driver-dq-range-calc.test.ts

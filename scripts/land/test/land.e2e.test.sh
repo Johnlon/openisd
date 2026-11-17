@@ -26,6 +26,7 @@ printf '[user]\n\tname = t\n\temail = t@t\n[core]\n\tautocrlf = false\n[init]\n\
 export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+. "$REPO/scripts/land/test/stamp-chunk.sh"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/land-e2e.XXXXXX")"
 export OPENISD_RUNTIME_DIR="$SCRATCH/rt" OPENISD_STATE_DIR="$SCRATCH/state"; mkdir -p "$OPENISD_RUNTIME_DIR"  # never the machine's own runtime state
 PGID_FILE="$SCRATCH/pgids"
@@ -233,7 +234,7 @@ export VISUAL_PAGES_DIR="$SCRATCH/pages" VISUAL_PAGES_URL="http://example.test/p
 SNAP=packages/ui/test/visual/visual.browser.spec.ts-snapshots
 setup; mkdir -p "$SCRATCH/w/w1/$SNAP"; printf one > "$SCRATCH/w/w1/$SNAP/mobile-a.png"
 git -C "$SCRATCH/w/w1" add -A; git -C "$SCRATCH/w/w1" commit -qm "baseline"; git -C "$SCRATCH/w/w1" push -q origin main
-task w1 T1 "*"; printf two > "$SCRATCH/w/w1/$SNAP/mobile-a.png"; git -C "$SCRATCH/w/w1" commit -qam "change a screen"
+task w1 T1 "*"; { printf 'two'; stamp_chunk 7; } > "$SCRATCH/w/w1/$SNAP/mobile-a.png"; git -C "$SCRATCH/w/w1" commit -qam "change a screen"
 before=$(origin_head); land w1 T1; r=$?
 if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "visual" "$SCRATCH/out.w1" && grep -q "mobile-a" "$SCRATCH/out.w1"; then
     ok "a changed baseline the task does not list is refused, naming the screen"; else fail "unlisted baseline (r=$r): $(cat "$SCRATCH/out.w1")"; fi

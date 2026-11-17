@@ -17,7 +17,9 @@ set -uo pipefail
 copy="${1:?copy}"; target="${2:?target sha}"
 g() { git -C "$copy" "$@"; }
 common="$(cd "$copy" && cd "$(git rev-parse --git-common-dir)" && pwd)" || exit 1
-main="$(dirname "$common")"
+# shellcheck source=../lib/main-checkout.sh
+. "$(dirname "${BASH_SOURCE[0]}")/../lib/main-checkout.sh"
+main="$(main_checkout "$copy")" || exit 1
 WS="${WORKSPACE_REPO:-$(dirname "$main")}"
 LOG="${HOUSEKEEPING_LOG:-$main/build/test-logs/housekeeping.log}"
 PATCHES="${DROP_PATCH_DIR:-$main/build/test-logs/dropped-commits}"

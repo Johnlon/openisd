@@ -3,6 +3,7 @@ import {WINISD_NEWLINE_SENTINEL} from '../../winisd/winisdBytes.js';
 import {winisdSafeText} from '../../winisd/winisdSafeText.js';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {withNamedWiringReadings} from '../fixtures/scraperWiringShape.js';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {parse, stringify as stringifyYaml} from 'yaml';
@@ -20,7 +21,7 @@ const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures',
 
 /** A real `driver.yml`: Dayton CE28N-4, a woofer-section record carrying `scraper_meta`. */
 function daytonDriverYml(): string {
-  return readFileSync(join(FIXTURES, 'dayton-ce28n-4.driver.yml'), 'utf8');
+  return withNamedWiringReadings(readFileSync(join(FIXTURES, 'dayton-ce28n-4.driver.yml'), 'utf8'));
 }
 
 describe('winisdSafeText', () => {

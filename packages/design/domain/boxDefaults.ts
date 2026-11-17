@@ -7,7 +7,11 @@ import type {
     ChamberJson, OpenISDBoxJson,
     RadiatorDeviceJson, SealedLossesJson, VentedLossesJson, VentJson,
 } from './openisdSchema.js';
-import {DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL} from '../fields/defaults.js';
+import {
+    DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_QICL, DEFAULT_NEW_PROJECT_QICLFR, DEFAULT_NEW_PROJECT_QP,
+    DEFAULT_NEW_PROJECT_VENTED_QL,
+} from '../fields/defaults.js';
+import {END_CORRECTION_ONE_FLANGED_END_M, END_CORRECTION_TWO_FREE_ENDS_M} from '../fields/options.js';
 
 // Shared const objects, the starting values a brand-new box is built from. Values are WinISD's
 // own defaults for a freshly-created box (packages/design/winisd/winisdProject.ts TEMPLATE:
@@ -19,22 +23,22 @@ import {DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL} from '../fields/d
 // copy, never the shared one.
 /** The Box losses dialog's values in WinISD for a new box: Ql 10, Qa 100, Qp 100, Qicl 100 — what
  *  Reset puts back (bugs/BUG_20261005_no-common-ui-field-component.md). */
-export const WINISD_BOX_LOSSES = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA, Qp: 100, Qicl: 100});
+export const WINISD_BOX_LOSSES = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA, Qp: DEFAULT_NEW_PROJECT_QP, Qicl: DEFAULT_NEW_PROJECT_QICL});
 
 const NO_SEALED_LOSSES: SealedLossesJson = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA});
 const NO_VENTED_LOSSES: VentedLossesJson =
-    Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA, Qp: 100});
+    Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA, Qp: DEFAULT_NEW_PROJECT_QP});
 const NO_VENT: VentJson = Object.freeze({
     shape: 'round',
     width_m: null,
     // Absent, not null (S7-a): a `SpecEntryJson` slot's "not-available" is the key missing.
     // WinISD's default port end correction: TWO FREE ENDS (0.613). The earlier 0.6 matched none
     // of the UI's END_CORRECTION_OPTIONS, so the select rendered blank (BUG_20260912 #10).
-    endCorrection_m: 0.613,
+    endCorrection_m: END_CORRECTION_TWO_FREE_ENDS_M,
 });
 /** The vents of a 6th-order bandpass or ABC: WinISD's wizard gives them "One flanged end" (0.732),
  *  not the vented box's two free ends (capture bp6_abc_wizard_defaults). */
-const NO_TWO_CHAMBER_VENT: VentJson = Object.freeze({...NO_VENT, endCorrection_m: 0.732});
+const NO_TWO_CHAMBER_VENT: VentJson = Object.freeze({...NO_VENT, endCorrection_m: END_CORRECTION_ONE_FLANGED_END_M});
 const NO_SEALED_CHAMBER =
     Object.freeze({volume_m3: 0, losses: NO_SEALED_LOSSES});
 const NO_VENTED_CHAMBER: ChamberJson =
@@ -48,13 +52,13 @@ export function emptyBoxJson(radiator: RadiatorDeviceJson): OpenISDBoxJson {
         boxType: 'sealed',
         sealed: {volume_m3: 0, losses: NO_SEALED_LOSSES},
         vented: {chamber: NO_VENTED_CHAMBER, vent: NO_VENT},
-        bandpass4: {rear: NO_SEALED_CHAMBER, front: NO_VENTED_CHAMBER, frontVent: NO_VENT, Qiclfr: 100},
+        bandpass4: {rear: NO_SEALED_CHAMBER, front: NO_VENTED_CHAMBER, frontVent: NO_VENT, Qiclfr: DEFAULT_NEW_PROJECT_QICLFR},
         bandpass6: {
             rear: NO_VENTED_CHAMBER,
             front: NO_VENTED_CHAMBER,
             rearVent: NO_TWO_CHAMBER_VENT,
             frontVent: NO_TWO_CHAMBER_VENT,
-            Qiclfr: 100,
+            Qiclfr: DEFAULT_NEW_PROJECT_QICLFR,
         },
         abc: {
             rear: NO_VENTED_CHAMBER,
@@ -62,7 +66,7 @@ export function emptyBoxJson(radiator: RadiatorDeviceJson): OpenISDBoxJson {
             rearVent: NO_TWO_CHAMBER_VENT,
             frontVent: NO_TWO_CHAMBER_VENT,
             intraVent: NO_TWO_CHAMBER_VENT,
-            Qiclfr: 100,
+            Qiclfr: DEFAULT_NEW_PROJECT_QICLFR,
         },
         passiveRadiator: {
             volume_m3: 0,

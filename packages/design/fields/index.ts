@@ -1,9 +1,8 @@
 export {
   type SelectorOption,
-  END_CORRECTION_OPTIONS,
-  VENT_SHAPE_OPTIONS, COMPACT_VENT_SHAPE_OPTIONS,
-  VC_CONNECTION_OPTIONS,
-  ARRAY_WIRING_OPTIONS,
+  END_CORRECTION_OPTIONS, END_CORRECTION_ONE_FLANGED_END_M, END_CORRECTION_TWO_FREE_ENDS_M,
+  VENT_SHAPE_OPTIONS,
+  VC_CONNECTION_OPTIONS, MEASURED_WIRING_NOT_STATED_LABEL,
   SEALED_ALIGNMENT_OPTIONS,
   VENTED_ALIGNMENT_OPTIONS,
   DEFAULT_VENTED_ALIGNMENT,
@@ -12,7 +11,11 @@ export {
   PASS_FAMILY_OPTIONS,
 } from './options.js';
 
-export { DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM } from './defaults.js';
+export {
+  DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_QICL, DEFAULT_NEW_PROJECT_QICLFR, DEFAULT_NEW_PROJECT_QP,
+  DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SEALED_QTC, DEFAULT_SEALED_VOLUME_L, DEFAULT_SOURCE_RESISTANCE_OHM,
+  DEFAULT_SWEEP_POINTS,
+} from './defaults.js';
 
 export {
   type UnitGroup,
@@ -121,6 +124,7 @@ export {
   browserNameOf,
   persistenceLine,
   persistenceWarning,
+  UPGRADE_REFUSED_NOTICE,
   savedNotice,
   startupNotice,
   siteStorageLine,
@@ -138,7 +142,7 @@ export {
   type PersistOutcome,
   type StorageEstimate,
 } from './browserStorage.js';
-export { dateStampFrom, formatByteSize, formatCount, formatCountOf, formatDate, formatDateStamp, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
+export { dateStampFrom, formatByteSize, formatCount, formatCountOf, formatDate, formatDateStamp, formatDateTime, formatDay, formatFixed, formatFixedOrDash, isoDay, parseBasicUtc, PHONE_MAX_SIGNIFICANT } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
 export { caretSpin, digitAtCaret, spinStep, tenthsCaret, steppingCaret, caretRepeatDelayMs, CARET_HOLD_START_MS, type CaretSpin, type SteppedPlace, type StepAt } from './caretSpin.js';
@@ -155,13 +159,14 @@ export { ChartPageHelp } from './chartPageText.js';
 export { CHART_HELP } from './chartHelpText.js';
 export { PhoneRowColumns, PhoneRowSizes } from './phoneRowSizes.js';
 export { PhoneHeaderSizes } from './phoneHeaderSizes.js';
+export { AppFont, SkinFonts } from './appFonts.js';
 export { type PhoneHelpRow, PhoneHelpRows, type PhoneFilterChip, PHONE_FILTER_CHIPS, PhoneHelpSection, KeyStripText, PhoneLabels, PhoneBoxText, PhoneHelp, PhoneDriverListText, PhonePrBrowserText, PhoneEditorText } from './phoneText.js';
 export { DesktopHelp, DesktopLabels } from './desktopHelp.js';
 export { type EbpBadge, type WizardInfoCard, PhoneWizardText, PhoneWizardHelp } from './phoneWizardText.js';
 export { DesktopSizes, PickWidth } from './desktopSizes.js';
 export { SheetMode, type SheetEdits } from './sheetMode.js';
 export { NO_PROJECT_OPEN } from './noProject.js';
-export { APP_UPDATE_TEXT, UNSAVED_RELOAD_CONFIRM } from './appUpdateText.js';
+export { APP_UPDATE_TEXT, reloadLossConfirm, type ReloadLoss } from './appUpdateText.js';
 
 export { TuneText } from './tuneText.js';
 export { PhoneDialogHelp, ImportChoiceText, AboutText } from './phoneDialogText.js';

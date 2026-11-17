@@ -26,12 +26,12 @@ export interface ErrorSwitchStates {
     readonly besselHighpass: ErrorSwitchState;
     /** WinISD ABC group delay: the driver part held at the chart frequency while the box is stepped. */
     readonly abcGroupDelay: ErrorSwitchState;
-    /** WinISD per-driver impedance: the impedance chart shows one driver's, not the array's. */
-    readonly driverCount: ErrorSwitchState;
     /** WinISD sealed picker volume: the picker's volume does not give the picked Qtc on the Box tab. */
     readonly sealedPicker: ErrorSwitchState;
     /** WinISD TL port without end correction: the transmission-line port pipe leaves out the end correction. */
     readonly tlPortEndCorrection: ErrorSwitchState;
+    /** WinISD coil wiring: only Re and BL change with the wiring, Le and Znom stay as published. */
+    readonly coilWiringReBlOnly: ErrorSwitchState;
 }
 
 export interface ErrorSwitchInputs {
@@ -40,7 +40,6 @@ export interface ErrorSwitchInputs {
     readonly winisdVaModel: boolean;
     readonly winisdPrNprResonance: boolean;
     readonly winisdBesselHighpass: boolean;
-    readonly winisdDriverCountModel: boolean;
     /** The number of drivers in the box. */
     readonly nDrivers: number;
     /** The number of passive radiators (Npr). */
@@ -50,6 +49,9 @@ export interface ErrorSwitchInputs {
     readonly winisdAbcGroupDelay: boolean;
     readonly winisdSealedPicker: boolean;
     readonly winisdTlPortNoEndCorrection: boolean;
+    readonly winisdCoilWiringReBlOnly: boolean;
+    /** The driver has 2 or more coils and a stated measured wiring: the project's coil wiring can be chosen. */
+    readonly coilWiringApplies: boolean;
     /** "Use transmission line model for port simulation" is ticked. */
     readonly tlPortModel: boolean;
 }
@@ -65,8 +67,8 @@ export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
         besselHighpass: {marked: true, applicable: i.hasBesselHighpass, inScope: true, reproducesError: i.winisdBesselHighpass},
         prNprResonance: {marked: true, applicable: isPr && i.nPassiveRadiators > 1, inScope: isPr, reproducesError: i.winisdPrNprResonance},
         abcGroupDelay: {marked: true, applicable: isAbc, inScope: isAbc, reproducesError: i.winisdAbcGroupDelay},
-        driverCount: {marked: true, applicable: i.nDrivers > 1, inScope: true, reproducesError: i.winisdDriverCountModel},
         sealedPicker: {marked: true, applicable: isSealed, inScope: isSealed, reproducesError: i.winisdSealedPicker},
         tlPortEndCorrection: {marked: true, applicable: i.tlPortModel && hasLinePort, inScope: hasLinePort, reproducesError: i.winisdTlPortNoEndCorrection},
+        coilWiringReBlOnly: {marked: true, applicable: i.coilWiringApplies, inScope: true, reproducesError: i.winisdCoilWiringReBlOnly},
     };
 }

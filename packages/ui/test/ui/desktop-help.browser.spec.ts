@@ -1,4 +1,5 @@
 import {expect, openAProject, test} from '../fixtures.js';
+import {DesktopLabels} from '@openisd/design/fields';
 import type {Locator, Page} from '@playwright/test';
 
 /**
@@ -11,8 +12,8 @@ import type {Locator, Page} from '@playwright/test';
 
 const SIZES = [{width: 1024, height: 768}, {width: 1280, height: 720}];
 const BOX_TYPES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'];
-/** Help lines whose label is deliberately not a caption on the tab (none yet). */
-const CAPTION_EXCEPTIONS: ReadonlySet<string> = new Set([]);
+/** Help lines whose label is deliberately not a caption on the tab: the port shape button shows the word Round or Slotted, so its help line is captioned Shape (QO429.c4). */
+const CAPTION_EXCEPTIONS: ReadonlySet<string> = new Set([DesktopLabels.VENT_SHAPE]);
 const tabLink = (page: Page, name: string): Locator => page.locator('.project-nav li', {hasText: new RegExp(`^${name}$`)});
 
 /**

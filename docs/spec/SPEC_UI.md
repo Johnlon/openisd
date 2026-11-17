@@ -191,3 +191,42 @@ Evidence for a parity claim belongs in
 - Hiding a tunable control inside an edit section forces a needless modal interaction and hides
   the primary feedback loop.
 - Keeping intrinsic specs collapsible reduces panel height once a component is configured.
+
+### UI-5: Screen sizes (sizes proposed, QO471)
+
+**Rule:** Two groups of window sizes. The sizes are CSS pixels of the window, not the screen.
+Sizes are a proposal until John answers QO471.
+
+- **Must fit.** Everything is on screen: no page scrollbar, nothing cut, no control off screen.
+  - Desktop skin: 1920x1080, 1536x864 (dpr 1.25), 1440x900 (dpr 2), 1366x768, 2560x1440.
+    Browser bars take about 110 px of height, so test 1920x970, 1536x754, 1440x790, 1366x657, 2560x1330.
+  - Phone skin, upright, 360 to 430 wide: 360x800, 390x844, 414x896, 430x932. No sideways scroll,
+    nothing cut. Vertical page scroll is normal.
+- **May scroll, must not be mangled.** Scrollbars are allowed. Nothing overlaps, no text or control
+  is cut, every control can be reached by scrolling, no panel collapses to a strip.
+  - Desktop: 1280x720, 800x600, text zoom 200% (1280x720 at 200% is a 640x360 window).
+  - Phone: 320 wide, landscape.
+- **Practice.** Also drag the width from narrow to wide. Breakpoints come from where the content
+  breaks, not from device names.
+
+**Rationale:**
+
+- The stats record the screen (`screen.width`, `screen.height`: `launch.ts` `env.screenW`), not the
+  window. The window is smaller by the browser bars.
+- A small size that scrolls is fine. A small size that overlaps or cuts is a defect.
+
+**References:**
+
+- OpenISD's own users (OpenISD stats, 8 Nov 2026). Top desktop: 1920x1080, 2560x1440, 1440x900,
+  3440x1440, 1280x720, 1536x864. Top phones: 414x896, 427x952, 393x852, 390x844.
+- [StatCounter, desktop screen resolution, worldwide, Oct 2026](https://gs.statcounter.com/screen-resolution-stats/desktop/worldwide):
+  1920x1080 27.8%, 1536x864 9.1%, 800x600 8.9%, 1366x768 7.5%, 1280x720 4.4%, 2560x1440 3.8%.
+- [web.dev, responsive design basics](https://web.dev/articles/responsive-web-design-basics): breakpoints from content, not devices.
+- [MDN, responsive design](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Responsive_Design).
+- [Material 3, layout breakpoints](https://m3.material.io/foundations/layout/breakpoints).
+- [Microsoft, screen sizes and breakpoints](https://learn.microsoft.com/en-us/windows/apps/design/layout/screen-sizes-and-breakpoints-for-responsive-design): design for the window, not the screen.
+- [WCAG 2.2 SC 1.4.10 Reflow](https://www.w3.org/WAI/WCAG21/Understanding/reflow.html): 320 CSS px, no two-way scroll.
+
+**Enforcement:** [`packages/ui/test/ui/screen-sizes.browser.spec.ts`](../../packages/ui/test/ui/screen-sizes.browser.spec.ts),
+sizes in [`packages/ui/test/fixtures/screenSizes.ts`](../../packages/ui/test/fixtures/screenSizes.ts).
+

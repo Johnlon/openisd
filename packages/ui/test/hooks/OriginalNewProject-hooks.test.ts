@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type {RadiatorPicks} from '../../src/logic/telemetry/radiatorPick.js';
 import {DEFAULT_ENV_DEFAULTS, type Engine, createEngine, type VentedDesignLimits} from '@openisd/design/engine';
 import { OpenISDDriver, ProjectBuilder, WizardStep } from '@openisd/design';
 import { DEFAULT_NEW_PROJECT_QA, DEFAULT_SOURCE_RESISTANCE_OHM } from '@openisd/design/fields';
@@ -381,10 +382,9 @@ describe('useOgNewProject', () => {
     const driver = createTestDriver(engine);
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
 
-    // Step 2: edit nDrivers & wiring
+    // Step 2: edit nDrivers
     wizard.next();
     wizard.nDrivers.value = 2;
-    wizard.wiring.value = 'series';
 
     // Step 3: edit boxType and volume
     wizard.next();
@@ -404,7 +404,6 @@ describe('useOgNewProject', () => {
 
     // Verify all preserved
     expect(wizard.nDrivers.value).toBe(2);
-    expect(wizard.wiring.value).toBe('series');
     expect(wizard.boxType.value).toBe('bandpass4');
     expect(wizard.volume_m3.value).toBe(0.025);
     expect(wizard.frontVolume_m3.value).toBe(0.015);
@@ -418,7 +417,6 @@ describe('useOgNewProject', () => {
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
 
     wizard.nDrivers.value = 2;
-    wizard.wiring.value = 'parallel';
     wizard.boxType.value = 'sealed';
     wizard.setSealedVolume_m3(0.02);
     wizard.projName.value = 'My Sealed Sub';
@@ -430,7 +428,6 @@ describe('useOgNewProject', () => {
       expect(project.name.value).toBe('My Sealed Sub');
       expect(project.description.value).toBe('Test description');
       expect(project.nDrivers.value).toBe(2);
-      expect(project.wiring.value).toBe('parallel');
       expect(project.box.boxType.value).toBe('sealed');
       expect(project.box.sealed.volume_m3.value).toBeCloseTo(0.02, 4);
     }
@@ -711,6 +708,27 @@ describe('useOgNewProject — passive-radiator step', () => {
     expect(radiator?.spec.Fs_hz.value).toBeCloseTo(20, 9);
   });
 
+  // John, 10 Nov 2026: "also record the pr picked either on Wiz or in main".
+  it('a radiator picked in the wizard is counted: bundled by its id, saved as mine', async () => {
+    const repos = testPassiveRadiators({ index: () => Promise.resolve([]), load: () => Promise.resolve(testRadiator('Bundled PR')) });
+    const saved = repos.saved.upsert(testRadiator('Saved PR'));
+    if (saved === null) throw new Error('memory storage refused the save');
+    const radiatorPicks: RadiatorPicks = {bundled: vi.fn(), saved: vi.fn()};
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: repos, areas: engine, initialDriver: createTestDriver(engine), radiatorPicks });
+    wizard.next();
+    wizard.next();
+    wizard.boxType.value = 'box-passive-radiator';
+    wizard.next();
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    expect(radiatorPicks.bundled).toHaveBeenCalledWith('bundled-1');
+    wizard.back();
+    wizard.next();
+    wizard.loadSavedPassiveRadiator(saved.uuid);
+    expect(radiatorPicks.saved).toHaveBeenCalledTimes(1);
+  });
+
   it('a bundled radiator is loaded through the catalogue', async () => {
     const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() => Promise.resolve(testRadiator('Bundled PR')));
     const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
@@ -913,6 +931,27 @@ describe('useOgNewProject — passive-radiator step', () => {
     expect(wizard.passiveRadiatorPickId.value).toBe(2);
   });
 
+  // QO946.c115/c117 (John, 16 Nov 2026): Define opens the passive-radiator editor; its OK makes the new radiator the wizard's.
+  it('Define opens the passive-radiator editor on a blank radiator; OK makes it the step\'s radiator and closes the picker; Cancel keeps nothing', () => {
+    const wizard = atBoxTypeStep(testPassiveRadiators());
+    wizard.next();
+    wizard.passiveRadiatorBrowseOpen.value = true;
+
+    wizard.startDefinePassiveRadiator();
+    expect(wizard.passiveRadiatorEditor.name.value).toBe('');
+    wizard.passiveRadiatorEditor.cancel();
+    expect(wizard.passiveRadiatorView.value).toBeNull();
+
+    wizard.startDefinePassiveRadiator();
+    wizard.passiveRadiatorEditor.setName('Wizard PR');
+    wizard.passiveRadiatorEditor.cells.value?.Xmax_m.set(0.009);
+    wizard.passiveRadiatorEditor.ok();
+
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Wizard PR');
+    expect(wizard.passiveRadiatorView.value?.Xmax_m).toBeCloseTo(0.009, 9);
+    expect(wizard.passiveRadiatorBrowseOpen.value).toBe(false);
+  });
+
   it('a radiator defined at step 4 carries the five parameters typed into it', () => {
     const wizard = atBoxTypeStep(testPassiveRadiators());
     wizard.next();
@@ -1044,7 +1083,10 @@ describe('the radiator step holds all eight figures, stated or calculated (T703)
 
   it('a Cms typed over a record stating Vas reaches the project, with Vas, and both carry the conflict mark', async () => {
     const wizard = await pickedThenBack('accuton/asp190');
-    wizard.passiveRadiatorCells.Cms_m_per_N.set(0.001);
+    // Vas = rho*c^2*Sd^2*Cms = 141853 Pa * 0.0202^2 m^4 * 0.002 m/N = 0.1158 m3 against the stated 0.027 m3: 4.3 times
+    // apart. (0.001 gave 0.0579 m3, 2.1 times apart, but a typed 0.001 carries 0.0005 of precision, which alone
+    // moves Vas by 0.0289 m3, so that pair was within the print's own slack once the air may differ by 2.5% (T804).)
+    wizard.passiveRadiatorCells.Cms_m_per_N.set(0.002);
     expect(wizard.passiveRadiatorCells.Cms_m_per_N.entered).toBe(true);
     expect(wizard.passiveRadiatorCells.Cms_m_per_N.dq.length).toBeGreaterThan(0);
     expect(wizard.passiveRadiatorCells.Vas_m3.dq.length).toBeGreaterThan(0);
@@ -1053,7 +1095,7 @@ describe('the radiator step holds all eight figures, stated or calculated (T703)
 
     const spec = wizard.createProject()?.box.passiveRadiator.radiator.spec;
     expect(spec?.Cms_m_per_N.entered).toBe(true);
-    expect(spec?.Cms_m_per_N.value).toBe(0.001);
+    expect(spec?.Cms_m_per_N.value).toBe(0.002);
     expect(spec?.Vas_m3.value).toBe(0.027);
   });
 

@@ -1,0 +1,16 @@
+id: T870
+release_note: internal
+repo: openisd
+owner: phone-refused-border-agent
+status: done
+goal: On the phone a refused number entry is drawn with a red border like on desktop, not the plain grey border of an accepted box
+why: "Found by the dependent-value test sweep John asked for (John, 17 Nov 2026, card topic-1117-084319): the phone skin overrode the red border of a refused box, so a refusal showed only a small warning sign; John's rule: nothing happens silently"
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T870.yml
+  - packages/ui/src/ui/joined-fields.css
+  - packages/ui/test/ui/mobile-refused-border.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-field-dq.png
+visual_note: 'On the phone a refused number box now has a red border like on desktop (was grey); nothing else moves.'
+visual:
+  - mobile-dialog-field-dq

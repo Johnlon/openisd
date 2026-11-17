@@ -20,7 +20,7 @@ function onFamily(e: Event): void {
 <template>
   <div class="mob-crow">
     <label class="mob-crow-label" :for="`mob-fsub-${f.id}`">{{ PhoneLabels.SUBTYPE }}</label>
-    <select :id="`mob-fsub-${f.id}`" class="mob-cselect mob-cselect-wide" :value="f.family" @change="onFamily">
+    <select :id="`mob-fsub-${f.id}`" class="mob-cselect mob-cselect-aligned" :value="f.family" @change="onFamily">
       <option v-for="o in PASS_FAMILY_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
     </select>
     <WinisdDeviationCue v-if="api.deviationShown(WinisdFilterDeviation.BESSEL_HIGHPASS, f)" :deviation="WinisdFilterDeviation.BESSEL_HIGHPASS" />

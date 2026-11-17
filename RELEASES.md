@@ -4,6 +4,7 @@ Newest first. `scripts/release.sh` adds a row when it promotes a snapshot. Dates
 
 | Version | Stamp | Date | Commit | Hosted | GitHub | Notes |
 |---|---|---|---|---|---|---|
+| 7.0.959 | 20261108T0032Z | 8 Nov 2026, 00:32 | `0553fb725` | [v/20261108T0032Z](https://snapshots.openisd.app/v/20261108T0032Z/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/v20261108T0032Z) | Passive radiator pages show all eight figures, from the datasheet or calculated; the desktop New Project radiator step keeps them one width. |
 | 7.0.958 | 20261107T0050Z | 7 Nov 2026, 00:50 | `2273d2d2b` | [v/20261107T0050Z](https://snapshots.openisd.app/v/20261107T0050Z/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/v20261107T0050Z) | Driver catalogue rebuilt: fuller, corrected readings for almost every bundled driver. |
 | 7.0.957 | 20261031T1739Z | 31 Oct 2026, 17:39 | `e366a72dc` | [v/20261031T1739Z](https://snapshots.openisd.app/v/20261031T1739Z/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/v20261031T1739Z) | Field renditions, passive-radiator pick rule and Xmax from Xmech, wizard radiator pick fills its values, Advanced tab fits at 1280, projects kept intact across open/save/sync, phone menu fixes. |
 | 7.0.956 | 20261025T2233Z | 25 Oct 2026, 22:33 | `3fa2b17dc` | [v/20261025T2233Z](https://snapshots.openisd.app/v/20261025T2233Z/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/v20261025T2233Z) | The private usage report now includes bundled driver identity on project opens and saves. |

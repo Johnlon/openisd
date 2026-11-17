@@ -85,13 +85,12 @@ function setUpProject(c: Case): OpenISDProject {
   const {value: project, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(readFileSync(join(FIXTURES, `${c.wpr}.wpr`), 'utf8'));
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   project.winisdDriverModel.set(true);
-  project.winisdDriverCountModel.set(true);   // WinISD's per-driver impedance: a WinISD bug, off by default
   project.rgAtDriverSide.set(false);
   c.configure(project);
   return project;
 }
 
-describe('two drivers match WinISD with the per-driver impedance bug ticked', () => {
+describe('two drivers match WinISD (one driver\'s impedance, the array\'s SPL, VA and power)', () => {
   for (const c of CASES) {
     describe(`${c.label} (${c.wpr})`, () => {
       const project = setUpProject(c);

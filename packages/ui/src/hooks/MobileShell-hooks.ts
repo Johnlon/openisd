@@ -93,6 +93,8 @@ export interface MobileShellApi {
   optionsOpen: import('vue').Ref<boolean>;
   openOptions: () => void;
   about: () => void;
+  /** The Info menu's About item text, with the version once known. */
+  aboutLabel: import('vue').ComputedRef<string>;
   pane: import('vue').Ref<MobilePane | null>;
   closePane: () => void;
   goToProject: () => void;
@@ -103,6 +105,10 @@ export interface MobileShellApi {
   viewportTopPx: import('vue').Ref<number>;
   /** A box in a Graph sheet has focus with the keyboard up: the page gives the rows the height. */
   sheetTyping: import('vue').ComputedRef<boolean>;
+  /** Set by the Graph page: its Tune or What-if sheet is open. */
+  graphSheetOpen: import('vue').Ref<boolean>;
+  /** A Graph sheet is open: the banner strip (messages, new version, cloud sync) waits until it closes (QO427 B, John 9 Nov 2026). */
+  bannersHeld: import('vue').ComputedRef<boolean>;
   /** The space below the form that keeps a box in place when ▲▼ closes the keyboard (`StepperPin`). */
   pinSpacePx: import('vue').Ref<number>;
   /** Bound to `.mob-content`'s `scroll`: the scroll edges, and the pin. */
@@ -187,7 +193,7 @@ export function useMobileShell(): MobileShellApi {
   const { setSkinOverride } = presentationState;
   const { designIO, projectRepo, projectBin, appUpdate, appVersion, confirmPort, logging } = useApp();
   const { saveProject, saveAllProjects } = designIO;
-  const { show: about } = injectSplashModal();
+  const { show: about, aboutLabel } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
   const projectTitle = computed(() => { void projectChanged.value; return focusedProject()?.title() ?? ''; });
   const destination = ref<MobileDestination>('box');
@@ -244,7 +250,7 @@ export function useMobileShell(): MobileShellApi {
   }, { immediate: true });
   const cloudSyncForProjects = useCloudSync();
   const binView = createProjectBinView({
-    appState, projectRepo, projectBin, confirm: confirmPort.port,
+    appState, projectRepo, projectBin, confirm: confirmPort.port, featureUse,
     unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
     cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });
@@ -373,7 +379,7 @@ export function useMobileShell(): MobileShellApi {
   const anyUnsaved = computed(() => openProjects().some(p => projectHasUnsavedChanges(p)));
 
 
-  const updateUi = createAppUpdateUi(appUpdate, () => anyUnsaved.value, confirmPort.port);
+  const updateUi = createAppUpdateUi(appUpdate, confirmPort.port);
   const updateBannerVisible = updateUi.offered;
   const reloadForUpdate = updateUi.reload;
   const dismissUpdateBanner = updateUi.dismiss;
@@ -426,7 +432,7 @@ export function useMobileShell(): MobileShellApi {
   // The Info menu's manual skin switch — the auto-by-viewport half lives in `App.vue`'s
   // `activeSkin` (`presentationState.narrowViewport`), which this override beats. Symmetric with
   // `OriginalShell-hooks.ts`'s `switchToMobile`.
-  function switchToDesktop(): void { setSkinOverride('original'); closeMenu(); }
+  function switchToDesktop(): void { featureUse.feature('skin_switch'); setSkinOverride('original'); closeMenu(); }
   // Back to choosing the skin from the window width, as at first start.
   function useAutomaticSkin(): void { setSkinOverride(null); closeMenu(); }
   const skinIsAutomatic = computed(() => presentationState.ui.skinOverride === undefined);
@@ -451,7 +457,13 @@ export function useMobileShell(): MobileShellApi {
   const keyboardUp = ref(false);
   const sheetBoxFocused = ref(false);
   const sheetTyping = computed(() => keyboardUp.value && sheetBoxFocused.value);
-  function inSheetBox(t: EventTarget | null): boolean { return t instanceof HTMLInputElement && t.closest('.mob-sheet') !== null; }
+  const graphSheetOpen = ref(false);
+  const bannersHeld = computed(() => destination.value === 'graph' && graphSheetOpen.value);
+  // A box's ▲▼ stepper counts as the box: tapping it must not bring the hidden Auto Y / Close bar back
+  // under the finger, which would take the tap (QO427 b).
+  function inSheetBox(t: EventTarget | null): boolean {
+    return (t instanceof HTMLInputElement || (t instanceof HTMLElement && t.classList.contains('num-stepper-btn'))) && t.closest('.mob-sheet') !== null;
+  }
   function onFocusIn(e: FocusEvent): void { sheetBoxFocused.value = inSheetBox(e.target); }
   function onFocusOut(e: FocusEvent): void { sheetBoxFocused.value = inSheetBox(e.relatedTarget); }
   function updateViewportHeight(): void {
@@ -622,9 +634,9 @@ export function useMobileShell(): MobileShellApi {
   return {
     projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
     menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
-    saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
+    saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, aboutLabel, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label, flashMessage: logging.message,
-    goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, sheetTyping, pinSpacePx, onContentScroll,
+    goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, sheetTyping, graphSheetOpen, bannersHeld, pinSpacePx, onContentScroll,
     projectsPaneOpen, openProjectsPane, closeProjectsPane,
     projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel: projectRepo.storeLabel, chooseProject,
     openProjectRows, selectOpenProject, closeOpenProject,

@@ -33,6 +33,27 @@ function splOf(project: ReturnType<typeof savedSealedProject>): readonly number[
 }
 
 describe('OpenISDProject What-if layer', () => {
+  // A What-if is never saved with the session, so a reload ends it: the app asks only when
+  // values were tried, not when the panel was merely opened (T829).
+  it('hasWhatIfChanges is false with no What-if, and with one opened and left alone', () => {
+    const project = savedSealedProject();
+    expect(project.hasWhatIfChanges()).toBe(false);
+    project.beginWhatIf();
+    expect(project.hasWhatIfChanges()).toBe(false);
+  });
+
+  it('hasWhatIfChanges is true once a What-if value differs from the design, false again when it is reset or ended', () => {
+    const project = savedSealedProject();
+    project.beginWhatIf();
+    project.box.sealed.volume_m3.set(0.06);
+    expect(project.hasWhatIfChanges()).toBe(true);
+    project.resetWhatIf();
+    expect(project.hasWhatIfChanges()).toBe(false);
+    project.box.sealed.volume_m3.set(0.06);
+    project.cancelWhatIf();
+    expect(project.hasWhatIfChanges()).toBe(false);
+  });
+
   it('a What-if write changes the swept curve but not the project, its unsaved flag or its session', () => {
     const project = savedSealedProject();
     const curve = splOf(project);

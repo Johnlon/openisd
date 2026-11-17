@@ -15,7 +15,7 @@ import {computed, type ComputedRef, ref, type Ref} from 'vue';
 import type {AirValues, ChartId, EnvDefaults, EnvironmentEngine, VentedDesignLimits} from '@openisd/design/engine';
 import {NumberField} from '@openisd/design/fields';
 import {CHART_COLOR_ROWS, chartColorDefault, type ChartColorKey, type ChartColorRow} from '@openisd/design/chart';
-import {FACTORY_ENV_DEFAULTS, FACTORY_VENTED_LIMITS} from '../logic/appState.js';
+import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
 import {useApp} from '../logic/app.js';
 
 /** The settings seam this dialog edits through — `appState`'s by default, a substitute in a test. */
@@ -205,32 +205,32 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
 
   const limitsAreFactory = computed(() => {
     const b = editedBand.value;
-    return b.minVb_m3 === FACTORY_VENTED_LIMITS.minVb_m3
-      && b.maxVb_m3 === FACTORY_VENTED_LIMITS.maxVb_m3
-      && b.minFb_hz === FACTORY_VENTED_LIMITS.minFb_hz
-      && b.maxFb_hz === FACTORY_VENTED_LIMITS.maxFb_hz;
+    return b.minVb_m3 === DEFAULT_VENTED_DESIGN_LIMITS.minVb_m3
+      && b.maxVb_m3 === DEFAULT_VENTED_DESIGN_LIMITS.maxVb_m3
+      && b.minFb_hz === DEFAULT_VENTED_DESIGN_LIMITS.minFb_hz
+      && b.maxFb_hz === DEFAULT_VENTED_DESIGN_LIMITS.maxFb_hz;
   });
 
   const envIsFactory = computed(() => {
     const e = editedEnv.value;
-    return e.tempK === FACTORY_ENV_DEFAULTS.tempK
-      && e.humidityPct === FACTORY_ENV_DEFAULTS.humidityPct
-      && e.pressurePa === FACTORY_ENV_DEFAULTS.pressurePa;
+    return e.tempK === DEFAULT_ENV_DEFAULTS.tempK
+      && e.humidityPct === DEFAULT_ENV_DEFAULTS.humidityPct
+      && e.pressurePa === DEFAULT_ENV_DEFAULTS.pressurePa;
   });
 
   const defaultAir = computed<AirValues>(() => settings.environment.solve(editedEnv.value).values);
 
   function resetLimits(): void {
-    minVolume_m3.value = FACTORY_VENTED_LIMITS.minVb_m3;
-    maxVolume_m3.value = FACTORY_VENTED_LIMITS.maxVb_m3;
-    minTuning_hz.value = FACTORY_VENTED_LIMITS.minFb_hz;
-    maxTuning_hz.value = FACTORY_VENTED_LIMITS.maxFb_hz;
+    minVolume_m3.value = DEFAULT_VENTED_DESIGN_LIMITS.minVb_m3;
+    maxVolume_m3.value = DEFAULT_VENTED_DESIGN_LIMITS.maxVb_m3;
+    minTuning_hz.value = DEFAULT_VENTED_DESIGN_LIMITS.minFb_hz;
+    maxTuning_hz.value = DEFAULT_VENTED_DESIGN_LIMITS.maxFb_hz;
   }
 
   function resetEnv(): void {
-    tempK.value = FACTORY_ENV_DEFAULTS.tempK;
-    humidityPct.value = FACTORY_ENV_DEFAULTS.humidityPct;
-    pressurePa.value = FACTORY_ENV_DEFAULTS.pressurePa;
+    tempK.value = DEFAULT_ENV_DEFAULTS.tempK;
+    humidityPct.value = DEFAULT_ENV_DEFAULTS.humidityPct;
+    pressurePa.value = DEFAULT_ENV_DEFAULTS.pressurePa;
   }
 
   function resetDifferenceCues(): void {

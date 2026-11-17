@@ -16,7 +16,7 @@ test.describe('Alignment popup', () => {
     await expect(page.locator('.alignment-modal select option')).toHaveCount(9);
     const selectorWidth = await page.locator('.alignment-modal select').evaluate(element => element.getBoundingClientRect().width);
     expect(selectorWidth).toBeGreaterThan(300);
-    await expect(page.locator('.alignment-modal input[data-numinput], .alignment-modal input[type="number"]')).toHaveValue(/^\d+\.\d{2}$/);
+    await expect(page.locator('.alignment-modal input[data-numinput], .alignment-modal input[type="number"]')).toHaveValue('4.803'); // 4 significant figures (John, 10 Nov 2026, T742); the sealed default volume is deterministic
     await expect(page.locator('.alignment-readout')).toContainText(/Either sealed or vented|Suitability unavailable/);
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(page.locator('.alignment-modal')).toBeHidden();

@@ -6,6 +6,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {readFileSync} from 'node:fs';
+import {withNamedWiringReadings} from '../fixtures/scraperWiringShape.js';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
@@ -16,7 +17,7 @@ const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 
 /** The Visaton record's `driver.json` with one woofer reading replaced. JSON is YAML, so the
  *  text goes to the projection as it is. */
 function gf200With(field: string, actualReading: string, value: number, precision: number): string {
-  const record: unknown = JSON.parse(readFileSync(FIXTURE, 'utf8'));
+  const record: unknown = JSON.parse(withNamedWiringReadings(readFileSync(FIXTURE, 'utf8')));
   if (typeof record !== 'object' || record === null || !('specs' in record)) throw new Error('fixture shape');
   const specs = record.specs;
   if (typeof specs !== 'object' || specs === null || !('woofer' in specs)) throw new Error('fixture shape');
@@ -39,6 +40,26 @@ describe('driver range check through the driver.yml projection', () => {
     expect(result.errors).toContainEqual({
       level: 'warn', field: 'SPL_dB', message: 'SPL_dB 1 is below the physical limit 50.',
     });
+  });
+});
+
+describe('an exact printed zero is not provided (QO935)', () => {
+  // Accuton C51-6-286 prints Mms "0 g": a placeholder, the same as no figure. The field is not
+  // available (the scraper keeps the zero as printed) and raises no physical-limit line.
+  it.each([
+    ['Mms_kg', '0 g'], ['Cms_m_per_N', '0 mm/N'], ['Rms_kg_per_s', '0 kg/s'], ['Le_H', '0 mH'], ['Xmax_m', '0 mm'],
+  ])('%s printed as zero raises no physical-limit warning', (field, printed) => {
+    const result = new DriverRecordConverter(createEngine())
+      .driverYmlToOpenisdAndWdr(gf200With(field, printed, 0, 0.0005));
+
+    expect(result.errors.filter(e => e.message.includes('physical limit'))).toEqual([]);
+  });
+
+  it('a negative figure in a positive field is still reported', () => {
+    const result = new DriverRecordConverter(createEngine())
+      .driverYmlToOpenisdAndWdr(gf200With('Mms_kg', '-1 g', -0.001, 0.0005));
+
+    expect(result.errors.some(e => e.message.includes('physical limit'))).toBe(true);
   });
 });
 

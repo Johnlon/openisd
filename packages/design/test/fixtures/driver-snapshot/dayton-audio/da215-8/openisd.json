@@ -49,7 +49,7 @@
   "provided_by": {
     "value": "OpenIsd"
   },
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "series": {
     "value": "Specialty Drivers Series"
   },
@@ -168,10 +168,6 @@
         "state": "C",
         "value": 89.41063958342345
       },
-      "VCCon": {
-        "state": "C",
-        "value": 1
-      },
       "Vas_m3": {
         "precision": 0.00005,
         "state": "E",
@@ -220,10 +216,6 @@
         "precision": 0.00006503680847298396,
         "state": "C",
         "value": 0.003922590547092252
-      },
-      "numVC": {
-        "state": "C",
-        "value": 1
       },
       "power_peak_W": {
         "precision": 0.5,

@@ -1,0 +1,20 @@
+id: T794
+release_note: internal
+repo: openisd
+owner: fixer
+status: done
+goal: Multi-coil Znom printed per coil (2 + 2 ohms, 2 x 3 Ω) is stored as the measured wiring's value, like Re (QO915); snapshot multi-coil records brought to the VCCon-name model and re-projected; bundle synced
+why: "John, 15 Nov 2026: fix all the associated bugs of #512, and rewrite the snapshot to the new model by script (BUG_20261115_multi-coil-znom-stored-per-coil, QO915)"
+done_test: bash scripts/quiet-test.sh npm run typecheck
+ruling: QO915
+files:
+  - tasks/T794.yml
+  - bugs/BUG_20261115_multi-coil-znom-stored-per-coil.md
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/test/domain/multi-coil-goldens.test.ts
+  - packages/ui/public/**
+  - packages/design/test/fixtures/driver-snapshot/**
+  - scripts/driver-snapshot.pin
+  - scripts/driver-snapshot.dq-baseline.json
+  - packages/ui/test/visual/SOURCES.sha256
+  - bugs/BUG_20261115_mobile-wizard-box-type-select-width-varies.md

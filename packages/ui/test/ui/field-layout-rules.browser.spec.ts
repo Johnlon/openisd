@@ -1,7 +1,8 @@
-import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, openAProject, setFocusedBoxType, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, editorTab, expect, openAMobileProject, openAProject, setFocusedBoxType, test} from '../fixtures.js';
 import type {BoxTypeName} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
-import {measureFieldLayoutRules} from '../fixtures/fieldLayoutAudit.js';
+import {measureFieldLayoutRules, measureLabelGaps} from '../fixtures/fieldLayoutAudit.js';
+import {DesktopSizes, PhoneRowColumns} from '@openisd/design/fields';
 import type {Locator, Page} from '@playwright/test';
 
 /**
@@ -19,16 +20,9 @@ const BOXES: readonly {box: BoxTypeName; phone: string}[] = [
 ];
 
 /** A fault found by this gate and not yet fixed: the screen, the rules it breaks, and the bug file that records it. */
-type Rule = 'R2' | 'R3' | 'R4' | 'R5' | 'R6' | 'R7';
+type Rule = 'R2' | 'R3' | 'R4' | 'R5' | 'R6' | 'R7' | 'R10' | 'R11';
 interface KnownFault {readonly screen: string; readonly rules: readonly Rule[]; readonly bug: string}
-const ALL_BOXES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const;
-const KNOWN: readonly KnownFault[] = [
-  ...ALL_BOXES.map(box => ({screen: `desktop ${box} Advanced`, rules: ['R4'] as const, bug: 'BUG_20261105_desktop-advanced-air-value-widths'})),
-  ...(['sealed', 'vented', 'box-passive-radiator', 'bandpass6', 'abc'] as const).map(box => ({screen: `phone ${box} Box`, rules: ['R4'] as const, bug: 'BUG_20261105_phone-box-tab-box-type-width'})),
-  ...ALL_BOXES.map(box => ({screen: `phone ${box} Filters`, rules: ['R2', 'R7'] as const, bug: 'BUG_20261105_phone-filters-strip-scrolls-sideways'})),
-  {screen: 'desktop abc ABC', rules: ['R3', 'R4'], bug: 'BUG_20261105_desktop-abc-port-columns-edges-and-widths'},
-  {screen: 'desktop What-if panel', rules: ['R2'], bug: 'BUG_20261105_desktop-whatif-panel-scrolls-and-wizard-count-width'},
-];
+const KNOWN: readonly KnownFault[] = [];
 
 type Skin = 'desktop' | 'phone';
 interface Screen {readonly id: string; readonly skin: Skin; readonly root: string; readonly open: (page: Page) => Promise<void>}
@@ -48,8 +42,12 @@ async function startPhone(page: Page, boxValue: string): Promise<void> {
   await page.locator('#mob-box-type').selectOption(boxValue);
 }
 
+/** The box-to-buttons gap rule (R10) is John's phone ruling (10 Nov 2026); desktop spinners are the slim 18 px ones and ask for none. */
+const DESKTOP_STEPPER_GAP_PX = 0;
+
 async function measure(page: Page, root: string): Promise<string[]> {
-  return page.locator(root).first().evaluate(measureFieldLayoutRules);
+  const phone = (page.viewportSize()?.width ?? 0) <= 600;
+  return page.locator(root).first().evaluate(measureFieldLayoutRules, phone ? PhoneRowColumns.MIN_STEPPER_GAP_PX : DESKTOP_STEPPER_GAP_PX);
 }
 
 const names = (items: Locator) => items.allInnerTexts().then(list => list.map(text => text.trim()).filter(text => text !== ''));
@@ -71,6 +69,20 @@ const EXTRA: readonly Screen[] = [
     await page.locator('.overlay.open .modal-footer').getByText('Next', {exact: true}).click();
     await page.locator('.np-step').getByText('Step 2').waitFor();
   }},
+  {id: 'desktop Driver library with a size chosen', skin: 'desktop', root: '.wb-modal', open: async page => {
+    await startDesktop(page, 'vented');
+    await page.locator('[title*="librar" i]').first().click();
+    await page.locator('.size-row .zchip', {hasText: /^5$/}).click();
+    await page.locator('.filters-on').waitFor();
+  }},
+  {id: 'phone Driver library filters open with a size chosen', skin: 'phone', root: '.wb-modal', open: async page => {
+    await startPhone(page, 'vented');
+    await page.locator('.mob-tab', {hasText: 'Driver'}).click();
+    await page.getByText('Select driver').click();
+    await page.locator('.dl-filters-toggle').click();
+    await page.locator('.size-row .zchip', {hasText: /^5$/}).click();
+    await page.locator('.dl-filters-toggle', {hasText: '(1)'}).waitFor();
+  }},
   {id: 'phone New project wizard step 2', skin: 'phone', root: '.mob-np-body', open: async page => {
     await page.setViewportSize({width: 374, height: 705});
     await forceMobileSkin(page);
@@ -79,7 +91,7 @@ const EXTRA: readonly Screen[] = [
     await page.locator('.driver-library input.filter').fill('W5-1138SMF');
     await page.locator('.mob-np-body').getByText('Tang Band W5-1138SMF').first().click();
     await page.locator('.mob-np-footer').getByText('Next ▸', {exact: true}).click();
-    await page.locator('#np-wiring').waitFor();
+    await page.locator('#np-ndrivers').waitFor();
   }},
   {id: 'desktop New project wizard radiator step', skin: 'desktop', root: '.overlay.open .modal-body', open: async page => {
     await page.setViewportSize({width: 1280, height: 720});
@@ -107,6 +119,19 @@ const EXTRA: readonly Screen[] = [
     await page.locator('#np-box-type').selectOption('box-passive-radiator');
     await next.click();
     await page.locator('#np-pr-select').waitFor();
+  }},
+  ...(['General', 'Parameters', 'Advanced', 'Dimensions'] as const).map((tab): Screen => ({id: `phone Driver editor ${tab}`, skin: 'phone', root: '.de-modal', open: async page => {
+    await startPhone(page, 'vented');
+    await page.locator('.mob-tab', {hasText: 'Driver'}).click();
+    await page.getByText('Edit', {exact: true}).click();
+    await editorTab(page, tab);
+    await page.setViewportSize({width: 374, height: 2600}); // tall: every row is painted at once, so the rules measure all of them
+  }})),
+  {id: 'phone Advanced page', skin: 'phone', root: '.mob-dlg', open: async page => {
+    await startPhone(page, 'vented');
+    await page.locator('.mob-hamburger').click();
+    await page.locator('.mob-menu-item', {hasText: 'Advanced'}).click();
+    await page.setViewportSize({width: 374, height: 2600});
   }},
   // The phone port editor (What-if sheet, tap Port area) is not walked: John ruled it stays as it is (QO426.c53).
 ];
@@ -216,10 +241,10 @@ test('desktop Passive Radiator tab: every User options label is on one line and 
   expect(new Set(steps).size).toBe(1);
 });
 
-/** John, QO426.c87, c96, QO428.c2: the Num. of drivers and Voice coil connection dropdowns on the desktop Driver tab
+/** John, QO426.c87, c96, QO428.c2: the Num. of drivers dropdown (the wiring-of-drivers list went with QO941) on the desktop Driver tab
  *  and the wizard's step 2 have no number boxes under them, so they are as wide as "Parallel" and its arrow (90 px,
- *  the old hand-built width), both the same, and nothing in either list is cut off. The Num. of PRs dropdown has
- *  number boxes under it and stays at the number-box width. */
+ *  the old hand-built width), both the same, and nothing in either list is cut off. The Num. of PRs dropdown on the
+ *  Passive Radiator tab is the same 90 px (QO428); the number boxes beside it keep their width. */
 const SHORT_DROPDOWN_PX = 90;
 
 /** Width and edges of a dropdown, and whether its longest option text fits when that option is chosen. */
@@ -239,33 +264,118 @@ async function dropdown(page: Page, id: string) {
   });
 }
 
-const COUNT_SCREENS: readonly {name: string; count: string; wiring: string; open: (page: Page) => Promise<void>}[] = [
-  {name: 'desktop Driver tab', count: 'og-ndrivers', wiring: 'og-wiring', open: async page => {
+const COUNT_SCREENS: readonly {name: string; count: string; open: (page: Page) => Promise<void>}[] = [
+  {name: 'desktop Driver tab', count: 'og-ndrivers', open: async page => {
     await startDesktop(page, 'sealed');
     await page.locator('.project-nav li', {hasText: 'Driver'}).click();
   }},
-  {name: 'wizard step 2', count: 'np-ndrivers', wiring: 'np-wiring', open: EXTRA[1]!.open},
+  {name: 'wizard step 2', count: 'np-ndrivers', open: EXTRA[1]!.open},
 ];
 
 for (const screen of COUNT_SCREENS) {
-  test(`${screen.name}: Num. of drivers and Voice coil connection are ${SHORT_DROPDOWN_PX} px, same edges, nothing cut off`, async ({page}) => {
+  test(`${screen.name}: Num. of drivers is ${SHORT_DROPDOWN_PX} px, same edges, nothing cut off`, async ({page}) => {
     await screen.open(page);
     const count = await dropdown(page, screen.count);
-    const wiring = await dropdown(page, screen.wiring);
     expect(count.width).toBeCloseTo(SHORT_DROPDOWN_PX, 0);
-    expect(wiring.width).toBeCloseTo(SHORT_DROPDOWN_PX, 0);
-    expect(wiring.left).toBeCloseTo(count.left, 1);
-    expect(wiring.right).toBeCloseTo(count.right, 1);
-    expect(wiring.fits, `"${wiring.longest}" ${wiring.textPx}px in ${wiring.width}px`).toBe(true);
     expect(count.fits, `"${count.longest}" ${count.textPx}px in ${count.width}px`).toBe(true);
-    expect(wiring.clipped || count.clipped).toBe(false);
+    expect(count.clipped).toBe(false);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
 }
 
-test('desktop Passive Radiator tab: Num. of PRs keeps the number-box width, not the short width', async ({page}) => {
+test(`desktop Passive Radiator tab: Num. of PRs is ${SHORT_DROPDOWN_PX} px, nothing cut off`, async ({page}) => {
   await startDesktop(page, 'box-passive-radiator');
   await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
-  // It measured 150 px here (not 124) before and after this change: only the Driver tab and wizard dropdowns changed.
-  expect((await dropdown(page, 'og-pr-count')).width).toBeCloseTo(150, 0);
+  const count = await dropdown(page, 'og-pr-count');
+  expect(count.width).toBeCloseTo(SHORT_DROPDOWN_PX, 0);
+  expect(count.fits, `"${count.longest}" ${count.textPx}px in ${count.width}px`).toBe(true);
+  expect(count.clipped).toBe(false);
 });
+
+/** The widest blank allowed between the longest label of a What-if column and that column's boxes:
+ *  the desktop's 22px warning slot after every label, and a few px. */
+const WHAT_IF_LABEL_GAP_MAX_PX = 22 + 8;
+/** The What-if number box, 25% narrower than the 124px it had (John, 8 Nov 2026: "reduce the field widths by 25%"). */
+const WHAT_IF_BOX_PX = 93;
+
+for (const box of ['vented', 'bandpass6', 'abc'] as const) {
+  // John, 8 Nov 2026, QO449.c11/c16: "there is too much space between labels and cells"; "the what if on the desktop".
+  test(`desktop What-if, ${box}: each column's boxes share one edge, next to its longest label`, async ({page}) => {
+    await startDesktop(page, box);
+    await page.locator('.edit-btn', {hasText: 'What-if'}).first().click();
+    const panel = page.locator('.what-if-panel');
+    await panel.waitFor();
+    const fields = await panel.locator('.ui-field').evaluateAll(all => all.flatMap(field => {
+      const label = field.querySelector('label');
+      const control = field.querySelector('input,select');
+      if (label === null || control === null) return [];
+      const text = field.ownerDocument.createRange();
+      text.selectNodeContents(label);
+      const textRight = text.getBoundingClientRect().right;
+      return [{label: (label.textContent ?? '').trim(), labelX: Math.round(label.getBoundingClientRect().x), textRight: Math.round(textRight), boxX: Math.round(control.getBoundingClientRect().x)}];
+    }));
+    const columns = [...new Set(fields.map(f => f.labelX))];
+    expect(columns, JSON.stringify(fields)).toHaveLength(2);
+    for (const x of columns) {
+      const column = fields.filter(f => f.labelX === x);
+      expect(new Set(column.map(f => f.boxX)).size, JSON.stringify(column)).toBe(1);
+      const gap = Math.min(...column.map(f => f.boxX)) - Math.max(...column.map(f => f.textRight));
+      expect(gap, JSON.stringify(column)).toBeLessThanOrEqual(WHAT_IF_LABEL_GAP_MAX_PX);
+    }
+    const boxWidths = await panel.locator('.ui-field .num-input-wrap').evaluateAll(all => all.map(w => Math.round(w.getBoundingClientRect().width)));
+    expect(boxWidths.length).toBeGreaterThan(0);
+    expect(new Set(boxWidths), JSON.stringify(boxWidths)).toEqual(new Set([WHAT_IF_BOX_PX]));
+  });
+}
+
+/** The desktop sizes John uses (QO466): the laptop at 1440 x 900 and 1536 x 864, and the common 1366 x 768. */
+const DESKTOP_SIZES: readonly {width: number; height: number}[] = [{width: 1366, height: 768}, {width: 1536, height: 864}, {width: 1440, height: 900}];
+/** The widest blank allowed between a group's longest label and its box: the warning slot after every label,
+ *  the 2 px column gap, and 2 px for rounding the text width up to whole pixels. */
+const LABEL_GAP_MAX_PX = DesktopSizes.LABEL_SLOT_PX + 4;
+
+/** Every tab of the screen at each desktop size, label gaps measured; faults are labelled with size and tab. */
+async function labelGapsOnTabs(page: Page): Promise<string[]> {
+  const faults: string[] = [];
+  const tabs = page.locator('.project-nav li');
+  for (const size of DESKTOP_SIZES) {
+    await page.setViewportSize(size);
+    for (const tab of await names(tabs)) {
+      await tabs.filter({hasText: new RegExp(`^${tab}$`)}).click();
+      const at = `${size.width}x${size.height} ${tab}`;
+      faults.push(...(await page.locator('.content-panel').first().evaluate(measureLabelGaps, LABEL_GAP_MAX_PX)).map(issue => `${at}: ${issue}`));
+      faults.push(...(await measure(page, '.content-panel')).filter(issue => issue.startsWith('R2')).map(issue => `${at}: ${issue}`));
+    }
+  }
+  return faults;
+}
+
+for (const {box} of BOXES) {
+  // John, QO466.c12: "regression as the input fields are too far from the labels, this is problematic in many places please fix here".
+  test(`desktop ${box}: on every tab each group's boxes sit next to its longest label, no label wraps, nothing cut`, async ({page}) => {
+    await startDesktop(page, box);
+    expect(await labelGapsOnTabs(page)).toEqual([]);
+  });
+}
+
+for (const screen of EXTRA.filter(s => s.skin === 'desktop' && s.id.includes('wizard'))) {
+  test(`${screen.id}: each group's boxes sit next to its longest label at every desktop size`, async ({page}) => {
+    await screen.open(page);
+    const faults: string[] = [];
+    for (const size of DESKTOP_SIZES) {
+      await page.setViewportSize(size);
+      faults.push(...(await page.locator(screen.root).first().evaluate(measureLabelGaps, LABEL_GAP_MAX_PX)).map(issue => `${size.width}x${size.height}: ${issue}`));
+    }
+    expect(faults).toEqual([]);
+  });
+}
+
+// John, 10 Nov 2026: "there is tons of empty space between the label and the text box": on the phone each group's
+// label column is as wide as its longest label needs, and the box takes the rest.
+const PHONE_LABEL_GAP_SCREENS = EXTRA.filter(s => s.skin === 'phone' && /Driver editor Parameters|Advanced page/.test(s.id));
+for (const screen of PHONE_LABEL_GAP_SCREENS) {
+  test(`${screen.id}: the longest label is within ${PhoneRowColumns.MAX_LABEL_GAP_PX} px of its box`, async ({page}) => {
+    await screen.open(page);
+    expect(await page.locator(screen.root).first().evaluate(measureLabelGaps, PhoneRowColumns.MAX_LABEL_GAP_PX)).toEqual([]);
+  });
+}

@@ -42,13 +42,22 @@ for (const skin of ['desktop', 'mobile'] as const) {
       await expect(help.locator('.wd-entry.current h4, .mob-dcard.current .mob-dcard-title')).toHaveText(FH_TITLE);
     });
 
-    test('Mms and Cms on the Passive Radiator tab are typeable and have the cue', async ({appPage: page}) => {
+    /** Where Mms and Cms are typed: the desktop Passive Radiator tab; on the phone, the radiator's editor (QO946.c115). */
+    const openFigures = async (page: Page): Promise<Locator> => {
       await openTab(page, 'Passive Radiator');
+      if (skin === 'desktop') return page.locator('.original-root');
+      await page.locator('#mob-pr-edit').click();
+      return page.locator('.prd-panel');
+    };
+    const rowIn = (scope: Locator, label: RegExp): Locator => scope.locator('.ui-field').filter({has: scope.page().locator('label', {hasText: label})});
+
+    test('Mms and Cms on the Passive Radiator tab are typeable and have the cue', async ({appPage: page}) => {
+      const scope = await openFigures(page);
       for (const label of [/^Mms$/, /^Cms$/]) {
-        await expect(rowOf(page, label).locator('input').first()).toBeEditable();
-        await expect(cueOf(page, label)).toHaveAttribute('title', `Differs from WinISD: ${FIGURES_TITLE}`);
+        await expect(rowIn(scope, label).locator('input').first()).toBeEditable();
+        await expect(rowIn(scope, label).locator('button.winisd-deviation-cue')).toHaveAttribute('title', `Differs from WinISD: ${FIGURES_TITLE}`);
       }
-      await cueOf(page, /^Cms$/).click();
+      await rowIn(scope, /^Cms$/).locator('button.winisd-deviation-cue').click();
       const help = page.getByRole('dialog', {name: 'OpenISD and WinISD differences'});
       await expect(help.locator('.wd-entry.current h4, .mob-dcard.current .mob-dcard-title')).toHaveText(FIGURES_TITLE);
     });

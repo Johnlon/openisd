@@ -4,7 +4,11 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {parse as parseSfc} from '@vue/compiler-sfc';
 import {parse as parseDom,NodeTypes,type RootNode,type TemplateChildNode} from '@vue/compiler-dom';
-export interface SourceSurface {id:string;path:string;line:number;title:string;condition:string;kind:string;mobile:string;href?:string}
+export const SourceSkin={Phone:'phone',Desktop:'desktop',Shared:'shared'} as const;
+export type SourceSkin=typeof SourceSkin[keyof typeof SourceSkin];
+function skinOf(path:string):SourceSkin{return path.includes('/shells/mobile/')?SourceSkin.Phone:path.includes('/shells/original/')?SourceSkin.Desktop:SourceSkin.Shared;}
+/** id is a stable key: kind + hash of path, condition, title, kind, href and the nearest named ancestors; never a line number. */
+export interface SourceSurface {id:string;skin:SourceSkin;path:string;line:number;title:string;condition:string;kind:string;mobile:string;href?:string}
 export interface MobileSourceInventory {surfaces:SourceSurface[];documents:SourceSurface[];links:SourceSurface[];sourceHash:string;files:number}
 function filesUnder(path:string):string[]{
   if(!existsSync(path))return [];
@@ -13,12 +17,17 @@ function filesUnder(path:string):string[]{
 export function discoverMobileSources(root:string):MobileSourceInventory {
   const surfaces:SourceSurface[]=[],documents:SourceSurface[]=[],links:SourceSurface[]=[];
   const hash=createHash('sha256'),occurrences=new Map<string,number>();
-  const sourceFiles=[...filesUnder(join(root,'packages/ui/src')).filter(path=>/\.(vue|ts|css)$/.test(path)&&!path.includes('/shells/original/')),
+  const sourceFiles=[...filesUnder(join(root,'packages/ui/src')).filter(path=>/\.(vue|ts|css)$/.test(path)),
     ...['packages/ui/index.html','packages/ui/about/index.html','packages/ui/install/index.html','packages/ui/public/about/refresh/index.html'].map(path=>join(root,path)).filter(existsSync)];
-  function record(collection:SourceSurface[],row:Omit<SourceSurface,'id'>):void{
-    const signature=JSON.stringify([row.path,row.title,row.condition,row.kind,row.href]);
-    const key=createHash('sha256').update(signature).digest('hex').slice(0,16),count=occurrences.get(key)??0;
-    occurrences.set(key,count+1);collection.push({id:row.kind+'-'+key+'-'+count,...row});
+  function record(collection:SourceSurface[],row:Omit<SourceSurface,'id'|'skin'>,context:string[]=[]):void{
+    const signature=JSON.stringify([row.path,row.title,row.condition,row.kind,row.href,context]);
+    const key=row.kind+'-'+createHash('sha256').update(signature).digest('hex').slice(0,16),count=occurrences.get(key)??0;
+    occurrences.set(key,count+1);
+    // Only a record identical in file, condition, title, kind and ancestry falls back to an ordinal.
+    collection.push({id:count===0?key:key+'-'+(count+1),skin:skinOf(row.path),...row});
+  }
+  function nameOf(attrs:Record<string,string>):string{
+    return attrs.id?'#'+attrs.id:attrs['aria-label']?'['+attrs['aria-label']+']':attrs.class?'.'+attrs.class.replace(/\s+/g,'.'):'';
   }
   for(const file of sourceFiles){
     const path=relative(root,file).replaceAll('\\','/'),source=readFileSync(file,'utf8');hash.update(path+'\0'+source+'\0');
@@ -35,7 +44,7 @@ export function discoverMobileSources(root:string):MobileSourceInventory {
       if(!parsed.descriptor.template)continue;
       tree=parseDom(parsed.descriptor.template.content);offset=parsed.descriptor.template.loc.start.line-1;
     }else tree=parseDom(source);
-    function walk(node:RootNode|TemplateChildNode):void{
+    function walk(node:RootNode|TemplateChildNode,ancestors:string[]):void{
       if(node.type===NodeTypes.ELEMENT){
         const attrs:Record<string,string>={};let condition='',href='';
         for(const prop of node.props){
@@ -50,12 +59,13 @@ export function discoverMobileSources(root:string):MobileSourceInventory {
         const role=attrs.role??'',classes=attrs.class??'';
         const namedSurface=/(?:popup|popover|flyout|modal|scrim|sheet|menu|backdrop|overlay|tooltip)/i.test(classes+' '+node.tag)||['dialog','alertdialog','menu','listbox','tooltip'].includes(role);
         const native=attrs.title!==undefined||(['input','select'].includes(node.tag)&&['file','color'].includes(attrs.type??''));
-        if(condition||namedSurface||native)record(surfaces,{path,line:offset+node.loc.start.line,title,condition:condition.replace(/^(?:if|else-if|show):/,'').trim(),kind:native&&!condition&&!namedSurface?'native-ui':namedSurface?'surface-root':'conditional-branch',mobile});
-        if(href)record(links,{path,line:offset+node.loc.start.line,title:node.loc.source.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,120)||title,condition,kind:href.startsWith('expression:')?'dynamic-link':'link',mobile,href});
-        for(const child of node.children)walk(child);
-      }else if(node.type===NodeTypes.ROOT)for(const child of node.children)walk(child);
+        if(condition||namedSurface||native)record(surfaces,{path,line:offset+node.loc.start.line,title,condition:condition.replace(/^(?:if|else-if|show):/,'').trim(),kind:native&&!condition&&!namedSurface?'native-ui':namedSurface?'surface-root':'conditional-branch',mobile},ancestors);
+        if(href)record(links,{path,line:offset+node.loc.start.line,title:node.loc.source.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,120)||title,condition,kind:href.startsWith('expression:')?'dynamic-link':'link',mobile,href},ancestors);
+        const own=nameOf(attrs),below=own?[...ancestors,own].slice(-3):ancestors;
+        for(const child of node.children)walk(child,below);
+      }else if(node.type===NodeTypes.ROOT)for(const child of node.children)walk(child,ancestors);
     }
-    walk(tree);
+    walk(tree,[]);
     if(path.endsWith('.html'))record(surfaces,{path,line:1,title:basename(file)==='index.html'?path.replace('/index.html',''):basename(file),condition:'standalone document',kind:'standalone-page',mobile:'mobile/browser'});
   }
   // Git is already required by the checkout; rg is optional on CI runners. Preserve the

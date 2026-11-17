@@ -2,7 +2,7 @@
   "layout": 5,
   "id": "4ee75083-2592-4a07-9fa6-4f0a69b633e7",
   "label": "Charlie",
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "saved": {
     "driverEmbedding": {
       "device": {
@@ -113,10 +113,6 @@
               "precision": 2.4105186269238743
             },
             "numVC": {
-              "state": "C",
-              "value": 1
-            },
-            "VCCon": {
               "state": "C",
               "value": 1
             },

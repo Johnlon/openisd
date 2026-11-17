@@ -7,9 +7,10 @@
  */
 import {cAdd, cDiv, cMul, cScale, cTanh, cx} from '../complex.js';
 import type {Complex, SweepParams} from '../types.js';
+import {DEFAULT_NEW_PROJECT_QP} from '../../fields/defaults.js';
 
 export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): number {
-  return w * Map / (P.Qp || 100);
+  return w * Map / (P.Qp || DEFAULT_NEW_PROJECT_QP);
 }
 
 /**
@@ -46,7 +47,7 @@ export function portImpedance(w: number, P: SweepParams): Complex {
   const Z0   = rho * c / Sp;
   const a    = Math.sqrt(Sp / Math.PI);              // equivalent piston radius
   const Zrad = cx(Z0 * 0.25 * (k * a) * (k * a), 0); // resistive radiation load at the mouth
-  const th   = cTanh(cx(k * Leff / (P.Qp || 100), k * Leff));
+  const th   = cTanh(cx(k * Leff / (P.Qp || DEFAULT_NEW_PROJECT_QP), k * Leff));
   const num  = cAdd(Zrad, cScale(th, Z0));
   const den  = cAdd(cx(Z0, 0), cMul(Zrad, th));
   return cScale(cDiv(num, den), Z0);

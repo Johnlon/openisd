@@ -5,21 +5,32 @@
 # of tasks/<id>.yml (git `:(glob)` semantics: ** crosses directories, * does not), or be that task
 # file itself. Otherwise exit 1, naming each path. With no .task the commit is outside the task
 # process (John's own, say) and is not gated here.
+#
+# bash scripts/land/task-gates/check-commit.sh <base> <head> <task-id>: the same check on the files that differ
+# between two commits (the pull request check, T749), with no .task needed.
+# bash scripts/land/task-gates/check-commit.sh <base> <head> <task-id> [<task-id>...]: a pull request carrying several
+# tasks (T762); a path passes when it is in at least one of those tasks' allowlists.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(git rev-parse --show-toplevel)" || exit 2
 cd "$ROOT" || exit 2
-[ -f .task ] || exit 0
+# DIFF: what is being checked, the staged files or the files that differ between two commits.
+if [ "$#" -ge 3 ]; then DIFF=(git diff "$1" "$2"); IDS=("${@:3}")
+else
+  [ -f .task ] || exit 0
+  DIFF=(git diff --cached); IDS=("$(cat .task)")
+fi
 # shellcheck source=../core/task.sh
 . "$HERE/../core/task.sh"
 
-ID="$(cat .task)"
-TASK="tasks/$ID.yml"
-[ -f "$TASK" ] || { echo "check-commit: .task names $ID but $TASK does not exist" >&2; exit 1; }
-
-specs=(":(literal)$TASK")
-while IFS= read -r glob; do specs+=(":(glob)$glob"); done < <(task_files "$TASK")
+specs=()
+for ID in "${IDS[@]}"; do
+  TASK="tasks/$ID.yml"
+  [ -f "$TASK" ] || { echo "check-commit: .task names $ID but $TASK does not exist" >&2; exit 1; }
+  specs+=(":(literal)$TASK")
+  while IFS= read -r glob; do specs+=(":(glob)$glob"); done < <(task_files "$TASK")
+done
 
 # land.sh's own stamp: a later landing writes `landed: <sha>` (and status done) into an earlier
 # task's file (T064 step 2b, T099). Those lines in another task file are land.sh's, not the
@@ -27,16 +38,16 @@ while IFS= read -r glob; do specs+=(":(glob)$glob"); done < <(task_files "$TASK"
 landed_stamp_only() {
   case "$1" in tasks/*.yml) ;; *) return 1 ;; esac
   local lines
-  lines="$(git diff --cached -U0 -- "$1" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---) ')"
+  lines="$("${DIFF[@]}" -U0 -- "$1" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---) ')"
   [ -n "$lines" ] && printf '%s\n' "$lines" | grep -qE '^\+landed: ' \
     && ! printf '%s\n' "$lines" | grep -qvE '^(\+landed: [0-9a-f]{7,40}|-status: *(open|claimed) *|\+status: done)$'
 }
 
-outside="$(comm -23 <(git diff --cached --name-only | sort) <(git diff --cached --name-only -- "${specs[@]}" | sort) \
+outside="$(comm -23 <("${DIFF[@]}" --name-only | sort) <("${DIFF[@]}" --name-only -- "${specs[@]}" | sort) \
   | while IFS= read -r path; do landed_stamp_only "$path" || echo "$path"; done)"
 if [ -n "$outside" ]; then
-  echo "check-commit: task $ID may not touch:" >&2
+  echo "check-commit: task ${IDS[*]} may not touch:" >&2
   echo "$outside" | sed 's/^/  /' >&2
-  echo "Allowed: $(task_files "$TASK" | tr '\n' ' ')" >&2
+  echo "Allowed: $(for ID in "${IDS[@]}"; do task_files "tasks/$ID.yml"; done | tr '\n' ' ')" >&2
   exit 1
 fi

@@ -2,6 +2,7 @@
 // analyze-telemetry.mjs — turn build/ui-telemetry/{events,memory}.jsonl into a report.
 // Usage: node analyze-telemetry.mjs [events.jsonl] [memory.jsonl]
 import {readFileSync} from 'node:fs';
+import {isUnexpectedEvent} from './lib/testOutcome.mjs';
 
 const EV = process.argv[2] ?? 'build/ui-telemetry/events.jsonl';
 const MEM = process.argv[3] ?? 'build/ui-telemetry/memory.jsonl';
@@ -16,16 +17,19 @@ const ends = events.filter((e) => e.event === 'test-end');
 const runEnd = events.find((e) => e.event === 'run-end');
 const runBegin = events.find((e) => e.event === 'run-begin');
 
-const passed = ends.filter((e) => e.status === 'passed');
+const passed = ends.filter((e) => e.status === 'passed' && !isUnexpectedEvent(e));
 const timed = ends.filter((e) => e.status === 'timedOut');
-const failed = ends.filter((e) => e.status === 'failed');
+// Failures are counted by outcome: a test.fail test that fails as expected has status failed but is not a failure (T815).
+// (a test.fail test that unexpectedly PASSES is a failure too)
+const failed = ends.filter((e) => e.status !== 'timedOut' && e.status !== 'skipped' && isUnexpectedEvent(e));
+const expectedFails = ends.filter((e) => e.status === 'failed' && !isUnexpectedEvent(e));
 
 const out = [];
 const line = (s) => out.push(s);
 const sep = () => line('='.repeat(72));
 
 sep();
-line(`RUN  ${ends.length}/${runBegin?.total ?? '?'} tests  |  ${passed.length} passed  ${failed.length} failed  ${timed.length} timedOut  |  duration ${(runEnd?.durationMs ?? 0) / 60000 | 0}min`);
+line(`RUN  ${ends.length}/${runBegin?.total ?? '?'} tests  |  ${passed.length} passed  ${failed.length} failed  ${expectedFails.length} failed as expected  ${timed.length} timedOut  |  duration ${(runEnd?.durationMs ?? 0) / 60000 | 0}min`);
 sep();
 
 line('\n## Failure clusters (file -> count, by status)');

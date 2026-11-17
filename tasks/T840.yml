@@ -1,0 +1,67 @@
+id: T840
+release_note: 'The passive radiator now has Select, Info and Edit, as the driver: Info shows its figures and says it is a passive radiator; Edit opens one editor on both skins (name and figures, Auto calculate unknowns, Inspect Provenance, OK, Cancel, Reset, Export, Import, Copy to My PRs), and Define new passive radiator opens the same editor. The phone Box tab shows the radiator by name with its Key figures (Fpr, Mms, Sd, Xmax, Vd) and a 2× rule line; the desktop page keeps its figures. The phone Driver tab section is headed User options.'
+repo: openisd
+owner: prdefine-agent
+status: done
+goal: The passive radiator's Select / Info / Edit as the driver's on both skins (plan docs/plans/PLAN_20261116_PASSIVE_RADIATOR_EDITOR.md), the phone Key figures with Vd and the 2x rule line, the phone Driver tab band User options
+why: 'John, 16 Nov 2026 (QO946.c37, issue 522): the Define passive radiator button must work, like the driver editor. John, 16 Nov 2026 11:05 UTC (QO946.c115): "I want an editor for the pr, it must have the fields the current editor has, it must have a save to my prs option as well as ok and cancel, the numbers must disappear from the mobile box page but remain on the desktop as per now as that is more WinISD like, I still want the select pr popup and in the select popup to have a button to the new pr popup"; 11:42 (QO946.c117) "we need the same select info edit setup and workflow as the driver"; 12:46 (c118) mock approved, phone band User options; 12:47 (c119) Info Type: Passive Radiator; 12:51 (c120) plan first; 12:57-13:01 Key figures, Vd, the 2x rule as a count; 14:03 General tab keeps the fields the record carries'
+done_test: bash scripts/test.sh packages/ui/test/hooks/passiveRadiatorActions.test.ts
+files:
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/fixtures/approvedJoinedGeometry.json
+  - packages/ui/test/scripts/mobile-surface-manifest.test.ts
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/logic/fileImportExport.ts
+  - packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts
+  - packages/design/test/fields/phoneText.test.ts
+  - docs/plans/img/PLAN_20261116_PASSIVE_RADIATOR_EDITOR/**
+  - docs/plans/PLAN_20261116_PASSIVE_RADIATOR_EDITOR.md
+  - DOCUMENTATION.md
+  - tasks/T840.yml
+  - bugs/BUG_20261115_define-passive-radiator-button-does-nothing.md
+  - packages/ui/src/hooks/MobileEnclosureTab-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/PRBrowser-hooks.ts
+  - packages/ui/src/hooks/passiveRadiatorActions.ts
+  - packages/ui/src/ui/components/NewProjectPassiveRadiatorStep.vue
+  - packages/ui/src/ui/components/PRBrowser.vue
+  - packages/ui/src/ui/components/PRDefineDialog.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/hooks/PRBrowser-hooks.test.ts
+  - packages/ui/test/hooks/passiveRadiatorActions.test.ts
+  - packages/ui/test/ui/new-project-wizard-radiator-pick.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - packages/ui/test/ui/pr-define.browser.spec.ts
+  - packages/ui/test/ui/pr-editor.browser.spec.ts
+  - packages/ui/src/hooks/passiveRadiatorEditor.ts
+  - packages/ui/test/hooks/passiveRadiatorEditor.test.ts
+  - packages/ui/src/ui/components/PREditorDialog.vue
+  - packages/ui/src/ui/components/PRInfoDialog.vue
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/design/fields/phoneText.ts
+  - scripts/ui-gallery/screens.mjs
+  - packages/ui/test/fixtures/branchMap/*.ts
+  - packages/ui/test/fixtures/*.ts
+  - packages/ui/test/scripts/view-index.test.ts
+  - packages/ui/test/ui/*.browser.spec.ts
+  - packages/design/engine/pr/PrEngine.ts
+  - packages/design/test/engine/pr-displacement.test.ts
+  - packages/design/fields/desktopHelp.ts
+  - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+  - scripts/*.ts
+  - scripts/ui-gallery/screens.mjs
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/*.png
+visual_note: 'The passive radiator gets Select, Info and Edit like the driver, with one editor on both skins; the old Save to library dialog is gone (Copy to My PRs in the editor replaces it).'
+visual:
+  - desktop-dialog-enclosure-passive-radiator-data-quality
+  - desktop-dialog-enclosure-passive-radiator-edit
+  - desktop-dialog-enclosure-passive-radiator-info
+  - mobile-dialog-losses-box-passive-radiator-rear
+  - mobile-dialog-pr-edit
+  - mobile-dialog-pr-info
+  - mobile-dialog-pr-picker
+  - mobile-dialog-pr-save
+  - mobile-tab-driver

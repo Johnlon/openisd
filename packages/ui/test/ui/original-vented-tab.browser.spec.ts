@@ -62,9 +62,10 @@ test.describe('Original Vented tab', () => {
 
     test('the vent shape offers slotted, and slotted inputs are reachable', async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
-      const shape = page.locator('.field', { hasText: 'Shape' }).locator('select');
-      await expect(shape.locator('option[value="slotted"]')).toHaveCount(1);
-      await shape.selectOption('slotted');
+      const shape = page.locator('.tab-section.active button.port-shape-toggle');
+      await expect(shape).toHaveText('Round');
+      await shape.click();
+      await expect(shape).toHaveText('Slotted');
       const width = page.locator('.field', { hasText: 'Slot width' }).locator('input');
       const height = page.locator('.field', { hasText: 'Slot height' }).locator('input');
       await expect(width).toBeVisible();
@@ -85,7 +86,7 @@ test.describe('Original Vented tab', () => {
       await expect(diameter).toHaveValue(/^5(\.0+)?$/);
       await expect(diameter).toHaveClass(/value-c/);
       await expect(area).toHaveValue(areaBefore);
-      await page.locator('.field', { hasText: 'Shape' }).locator('select').selectOption('slotted');
+      await page.locator('.tab-section.active button.port-shape-toggle').click();
       const width = page.locator('.ui-field', { hasText: 'Slot width' }).locator('input');
       await fillAndBlur(width, '7');
       await expect(width).toHaveValue(/7/);

@@ -40,11 +40,10 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
         return driver.specs;
     }
 
-    // `numVC`, `VCCon`, `c_m_per_s` and `roo_kg_per_m3` are excluded here — all four have a
-    // documented calculated default when unset (`numVC`/`VCCon`: `docs/spec/SPEC_ENGINE.md:424`,
-    // "numVC=1, VCCon=1"; `c_m_per_s`/`roo_kg_per_m3`: the live air model at reference conditions,
-    // `engine/air.ts`'s `airFor`), so "not-available when unset" does not hold for them. Each gets
-    // its own test below instead.
+    // `VCCon`, `c_m_per_s` and `roo_kg_per_m3` are excluded here: VCCon is a wiring name, not a
+    // number, and `c_m_per_s`/`roo_kg_per_m3` have a calculated default when unset (the live air
+    // model at reference conditions, `engine/air.ts`'s `airFor`). Each gets its own test below.
+    // numVC has no default (QO900 R1) and is in the list.
     const NUMERIC_FIELD_NAMES = [
         'Fs_hz', 'Re_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Znom_ohm', 'Qts', 'Qes', 'Qms',
         'Vas_m3', 'Sd_m2', 'BL_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s', 'Xmax_m', 'Xlim_m',
@@ -52,7 +51,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
         'SPLmaxLF_dB', 'USPL_dB', 'alfaVC_per_K', 'Rt_K_per_W', 'Ct_J_per_K', 'gamma_m_per_s2_A',
         'Rme_kg_per_s', 'Mpow_N_per_sqrtW', 'Mcost_kg_per_s', 'Gloss',
         'Vcd_m', 'Hg_m', 'Hc_m', 'Thick_m', 'Depth_m', 'MagDepth_m', 'Magnet_m', 'Basket_m',
-        'Outer_m', 'DVol_m3',
+        'Outer_m', 'DVol_m3', 'numVC',
     ] as const;
 
     for (const [i, name] of NUMERIC_FIELD_NAMES.entries()) {
@@ -74,34 +73,19 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
         });
     }
 
-    it('numVC: get=calculated default 1, set=allowed, get=new value, clear=allowed, get=calculated default 1', () => {
+    it('VCCon: get=not-available, set=allowed, get=new value, clear=allowed, get=not-available (no default, QO900 R1)', () => {
         const section = freshSection();
 
-        assertReads(section.numVC, 1, 'calculated',
-            "numVC must start at WinISD's own documented default (1) on a fresh section, not absent");
-
-        section.numVC.set(2);
-        assertReads(section.numVC, 2, 'entered',
-            'numVC must read back exactly what was just set');
-
-        section.numVC.clear();
-        assertReads(section.numVC, 1, 'calculated',
-            'numVC must revert to the calculated default 1 after clear() — clear() must not throw');
-    });
-
-    it('VCCon: get=calculated default parallel, set=allowed, get=new value, clear=allowed, get=calculated default parallel', () => {
-        const section = freshSection();
-
-        assertReads(section.VCCon, 'parallel', 'calculated',
-            "VCCon must start at WinISD's own documented default (parallel) on a fresh section, not absent");
+        assertReads(section.VCCon, null, 'not-available',
+            'VCCon must start not-available on a fresh section: there is no default wiring');
 
         section.VCCon.set('series');
         assertReads(section.VCCon, 'series', 'entered',
             'VCCon must read back exactly what was just set');
 
         section.VCCon.clear();
-        assertReads(section.VCCon, 'parallel', 'calculated',
-            'VCCon must revert to the calculated default parallel after clear() — clear() must not throw');
+        assertReads(section.VCCon, null, 'not-available',
+            'VCCon must revert to not-available after clear() — clear() must not throw');
     });
 
     it('c_m_per_s: get=calculated air-model default, set=allowed, get=the air again, clear=allowed, get=calculated default again', () => {

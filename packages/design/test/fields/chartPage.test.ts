@@ -11,6 +11,10 @@ describe('ChartPageSizes', () => {
     expect(vars.get('--gp-sheet-max')).toBe('250px');
     expect(vars.get('--gp-sheet-band')).toBe('24px');
     expect(ChartPageSizes.CLASSIC.stripHeightPx(), 'the one 44 px phone button, 6 px above and below, a rule').toBe(57);
+    expect(ChartPageSizes.CLASSIC.sheetFootHeightPx(), 'the Auto Y / Close bar: a 44 px button, 4 px above and below, a rule').toBe(53);
+    expect(vars.get('--gp-sheet-foot-h')).toBe('53px');
+    expect(vars.get('--gp-sheet-foot-pad-y')).toBe('4px');
+    expect(vars.get('--gp-typing-chart-min'), 'typing: the chart keeps 80 px and gains the hidden bar (QO427 b)').toBe('133px');
   });
 });
 

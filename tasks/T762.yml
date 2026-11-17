@@ -1,0 +1,20 @@
+id: T762
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: A pull request may carry several tasks; ship.sh and the PR gates accept N task ids
+done_test: bash scripts/land/test/pr-gates.test.sh && bash scripts/land/test/ship.test.sh && bash scripts/land/test/visual.e2e.test.sh
+files:
+  - scripts/land/pr-task.sh
+  - scripts/land/check-task-contract.sh
+  - scripts/land/task-gates/check-commit.sh
+  - scripts/visual/check-task.sh
+  - scripts/ship.sh
+  - scripts/ci/pr-setup.sh
+  - .github/workflows/pr.yml
+  - scripts/land/test/pr-gates.test.sh
+  - scripts/land/test/ship.test.sh
+  - scripts/land/test/visual.e2e.test.sh
+  - docs/DEV_PROCESS.md
+  - tasks/T762.yml

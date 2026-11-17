@@ -4,6 +4,7 @@ import {ProjectBuilder} from '@openisd/design';
 import {createProjectBinView} from '../../src/hooks/projectBinView.js';
 import {useOriginalProjectList, type OriginalProjectListEmit, type OriginalProjectListProps} from '../../src/hooks/OriginalProjectList-hooks.js';
 import {testAppLogic} from './testAppLogic.js';
+import {recordingTelemetryUi} from '../fixtures/recordingTelemetryUi.js';
 
 type HostNode = {children: HostNode[]; parent: HostNode | null};
 
@@ -58,6 +59,7 @@ function setupList() {
   const view = createProjectBinView({
     appState: logic.appState,
     projectRepo: logic.projectRepo,
+    featureUse: recordingTelemetryUi().telemetryUi.featureUse,
     projectBin: logic.projectBin,
     confirm: logic.confirmPort.port,
     cloudMarks: () => ({cloudOn: false, running: false, notOnDrive: new Set(), conflictCopies: new Set()}),

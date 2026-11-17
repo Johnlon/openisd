@@ -148,12 +148,12 @@ export class WinisdDeviation {
     charts: [],
   });
 
-  static readonly DRIVER_COUNT = new WinisdDeviation({
-    title: 'WinISD shows one driver\'s impedance',
-    winisd: 'With more than one driver, WinISD\'s impedance chart shows the impedance of one driver, not of all the drivers the amplifier drives. Its SPL, VA and maximum power charts do show all the drivers.',
-    openisd: 'OpenISD shows the impedance of all the drivers, wired in series or parallel as the project says.',
-    size: 'W5-1138SMF, sealed, 4 drivers: WinISD peaks at 18.6 Ω, the same as one driver. Wired in parallel, the amplifier sees 4.65 Ω.',
-    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDDRIVERCOUNTMODEL, switchOf: s => s.driverCount},
+  static readonly COIL_WIRING_RE_BL_ONLY = new WinisdDeviation({
+    title: 'WinISD changes only Re and BL with the coil wiring',
+    winisd: 'When a multi-coil driver\'s coil wiring is changed, WinISD converts Re (by N squared) and BL (by N, N the number of voice coils) and leaves the inductance Le and the nominal impedance Znom as they were.',
+    openisd: 'OpenISD converts Le and Znom with the wiring as well: two identical coils in series have N squared times the inductance and the impedance of the same coils in parallel.',
+    size: 'Dayton MX6-22 (Le 1.5 mH, Znom 4 ohm measured in series) set to Parallel: Le 0.375 mH and Znom 1 ohm here, 1.5 mH and 4 ohm in WinISD. Visible only with voice coil inductance on; Znom feeds no chart.',
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDCOILWIRINGREBLONLY, switchOf: s => s.coilWiringReBlOnly},
     charts: [],
   });
 

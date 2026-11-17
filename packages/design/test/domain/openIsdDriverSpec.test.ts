@@ -20,13 +20,13 @@ function blankRecord(): DriverDeviceJson {
 }
 
 describe('OpenIsdDriverSpec — reads of a record no resolve has touched', () => {
-  it('a wiring number the encoding does not define reads as absent', () => {
+  it('a calculated wiring reads as calculated, by name', () => {
     const record = blankRecord();
-    record.specs.woofer.VCCon = {state: 'E', value: 5};
+    record.specs.woofer.VCCon = {state: 'C', value: 'parallel'};
     const spec = specOver(record);
-    expect(spec.VCCon.value).toBeNull();
+    expect(spec.VCCon.value).toBe('parallel');
     expect(spec.VCCon.entered).toBe(false);
-    expect(spec.VCCon.calculated).toBe(false);
+    expect(spec.VCCon.calculated).toBe(true);
   });
 
   it('an unstated coil count is taken as one coil in the terminal Re', () => {

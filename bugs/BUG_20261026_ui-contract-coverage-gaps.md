@@ -1,6 +1,6 @@
 # UI standards are not enforced for every control and state
 
-**Status:** OPEN — specific live defects reproduced and repaired in T607; broader inventory/state coverage remains incomplete.
+**Status:** CLOSED, not a bug: a list of missing tests, not a defect a user sees. Closed by John on QO456, 8 Nov 2026.
 **Reported by:** John, 26 Oct 2026.
 **Audit source:** checkout HEAD `1180b4598ac12d8785cc54745fa2bab40c2adae4`;
 this does not identify either live site's served build or the unlanded T606 worktree.

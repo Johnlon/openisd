@@ -2,7 +2,7 @@ import {clearWithKeyboard} from '../fixtures/numField.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, openAProject, setFocusedBoxType, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {measureFieldBorders, measureFieldContent} from '../fixtures/fieldVisualContract.js';
-import {BOX_TYPES, SCREENS} from '../visual/screens.js';
+import {BOX_TYPES, PAGE_SCREENS} from '../visual/screens.js';
 import type {Locator, Page} from '@playwright/test';
 
 /** Only the presented dialog is interactive; the page behind its backdrop is deliberately covered. */
@@ -31,7 +31,7 @@ for (const skin of ['mobile', 'desktop'] as const) {
   });
 }
 
-for (const screen of SCREENS.filter(screen => screen.name !== 'empty' && screen.name !== 'menu')) {
+for (const screen of PAGE_SCREENS.filter(screen => screen.name !== 'empty' && screen.name !== 'menu')) {
   test(`shared overlap contract ${screen.skin.name} ${screen.name}`, async ({page}) => {
     await screen.open(page);
     const report = await (await fieldSurface(page)).evaluate(measureFieldContent);
@@ -58,7 +58,7 @@ test('Driver desktop: every unit fits its control without touching the steppers'
   expect(report.issues).toEqual([]);
 });
 
-for (const screen of SCREENS.filter(screen => screen.name !== 'empty' && screen.name !== 'menu')) {
+for (const screen of PAGE_SCREENS.filter(screen => screen.name !== 'empty' && screen.name !== 'menu')) {
   test(`shared border contract ${screen.skin.name} ${screen.name}`, async ({page}) => {
     await screen.open(page);
     const report = await (await fieldSurface(page)).evaluate(measureFieldBorders);
@@ -121,18 +121,20 @@ for (const width of [360, 374]) {
     await openClosedBox(page, 'mobile');
     await page.setViewportSize({width, height: 740});
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-    const qms = page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})}).locator('input');
+    await page.locator('#mob-pr-edit').click();   // the radiator's figures are in its editor (QO946.c115)
+    const editor = page.locator('.prd-panel');
+    const qms = editor.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})}).locator('input');
     await clearWithKeyboard(qms);
     await qms.blur();
     await expect(qms).toHaveValue('');
     for (const label of ['Mms', 'Cms']) {
-      const row = page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: new RegExp(`^${label}$`)})});
+      const row = editor.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: new RegExp(`^${label}$`)})});
       await expect(row.locator('.ui-field-dq-btn')).toHaveCount(0);
       await expect(row.locator('.winisd-deviation-cue')).toHaveCount(1);
       await expect(row.locator('input')).not.toHaveValue('');
     }
-    await expect(page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})}).locator('.ui-field-dq-btn')).toHaveCount(1);
-    const report = await page.locator('.mob-content').evaluate(measureFieldContent);
+    await expect(editor.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})}).locator('.ui-field-dq-btn')).toHaveCount(1);
+    const report = await editor.evaluate(measureFieldContent);
     expect(report.rows).toBeGreaterThan(0);
     expect(report.controls).toBe(report.rows);
     expect(report.issues).toEqual([]);

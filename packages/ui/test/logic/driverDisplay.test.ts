@@ -16,6 +16,7 @@ import {
     displayNameOf,
   passiveRadiatorRows,
   previewSpecsOf,
+  previewTextOf,
   PreviewSpecKind,
 } from '../../src/logic/driverDisplay.js';
 import type {BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
@@ -89,6 +90,19 @@ describe('chipsOf — classification chips for one driver', () => {
   });
 });
 
+describe('previewTextOf — Date added in one form', () => {
+  it('shows a dash-less stamp as the dashed day', () => {
+    const driver = driverOf({brand: 'Tang Band', model: 'W5-1138SMF'});
+    driver.added.set('20261116');
+    assert.equal(previewTextOf(driver).added, '2026-11-16');
+  });
+  it('shows a dashed day as it is', () => {
+    const driver = driverOf({brand: 'Tang Band', model: 'W5-1138SMF'});
+    driver.added.set('2026-09-12');
+    assert.equal(previewTextOf(driver).added, '2026-09-12');
+  });
+});
+
 describe('previewSpecsOf — reported readings with no usable simulation value', () => {
   it('shows stated Re and BL as separate spec values', () => {
     const record = driverOf({brand: 'Tang Band', model: 'W5-1138SMF'}).cloneDriver();
@@ -99,8 +113,8 @@ describe('previewSpecsOf — reported readings with no usable simulation value',
 
     const specs = previewSpecsOf(driver);
     assert.deepEqual(specs.filter(spec => spec.label === 'Re' || spec.label === 'BL'), [
-      {kind: PreviewSpecKind.Number, label: 'Re', value: '3.400', unit: 'Ω'},
-      {kind: PreviewSpecKind.Number, label: 'BL', value: '7.17000', unit: 'Tm'},
+      {kind: PreviewSpecKind.Number, label: 'Re', value: '3.40', unit: 'Ω'},
+      {kind: PreviewSpecKind.Number, label: 'BL', value: '7.17', unit: 'Tm'},
     ]);
   });
 
@@ -172,7 +186,7 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
     const radiator = radiatorOf({ brand: 'Dayton Audio', model: 'ND140-PR', Sd_m2: 0.00866, Mms_kg: 0.0164 });
     const indexRow: BundledPassiveRadiatorIndexRow = {
       uuid: '00000000-0000-4000-8000-00000000000a', path: 'dayton-audio/nd140-pr', name: 'Dayton Audio ND140-PR',
-      dq: true, datasheet: null, productPage: null, listingPage: null,
+      dq: true, discontinued: false, datasheet: null, productPage: null, listingPage: null,
       Fs_hz: null, Sd_m2: 0.00866, Xmax_m: null, Vd_m3: null, Mms_kg: 0.0164, Cms_m_per_N: null, Vas_m3: null, Qms: null,
     };
     const fromObject = passiveRadiatorRows([{ id: '00000000-0000-4000-8000-00000000000a', radiator }]);
@@ -189,7 +203,7 @@ describe('passiveRadiatorRows — the PR browser row view model', () => {
 
     assert.equal(rows[0].sd, '250.00cm²');
     assert.equal(rows[0].mms, '60.00g');
-    assert.equal(rows[0].cms, '1.1000mm/N');
+    assert.equal(rows[0].cms, '1.10mm/N');
   });
 
   it('shows an em dash for a number the radiator does not state', () => {

@@ -17,7 +17,7 @@ describe('NumberField.rounded', () => {
   });
 
   it('the plot range fields carry the Options limits', () => {
-    expect(NumberField.PLOT_FMIN_HZ.limits).toEqual({min: 1, max: 20000});
+    expect(NumberField.PLOT_FMIN_HZ.limits).toEqual({min: 1, max: 40000});
     expect(NumberField.PLOT_FMAX_HZ.limits).toEqual({min: 1, max: 40000});
   });
 });

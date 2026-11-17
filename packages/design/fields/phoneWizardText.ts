@@ -119,10 +119,9 @@ export class PhoneWizardHelp {
     row('Filters', 'limits the list to subwoofers, woofers, 4 Ω, 8 Ω or favourites.'),
     row('Driver list', 'tap a driver to choose it. Each line shows its main figures; DQ is a score for how complete its data is.'),
   ])];
-  static readonly COUNT: readonly PhoneHelpSection[] = [new PhoneHelpSection('Driver Array', 'The number of drivers, how they are mounted and how they are wired.', [
+  static readonly COUNT: readonly PhoneHelpSection[] = [new PhoneHelpSection('Driver Array', 'The number of drivers and how they are mounted.', [
     row('Drivers', 'the number of drivers in the box.'),
     row('Placement', 'Standard: each driver is mounted in the front panel. Iso-Barik: two drivers coupled face to face, which halves the box size needed (not modelled yet).'),
-    row('Connection', 'parallel or series wiring of the drivers. It sets the load in ohms the amplifier drives.'),
   ])];
   static readonly BOX_TYPE: readonly PhoneHelpSection[] = [new PhoneHelpSection('Enclosure', 'The enclosure type.', [
     row('Box type', 'the enclosure type: sealed (listed as Closed), vented, passive radiator, 4th or 6th order bandpass, or ABC.'),

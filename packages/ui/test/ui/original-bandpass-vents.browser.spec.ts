@@ -80,7 +80,7 @@ for (const {type, ports} of PORT_CASES) {
     const panel = await page.locator('section.tab-section.active').boundingBox();
     expect(panel).not.toBeNull();
     for (const port of ports) {
-      const ids = [`#og-vent-count-${port}`, `#og-vent-shape-${port}`, `#og-vent-diameter-${port}`, `#og-vent-length-${port}`];
+      const ids = [`#og-vent-count-${port}`, `#og-vent-diameter-${port}`, `#og-vent-length-${port}`];
       const labelled = ['End Correction', 'Cross area', '1st port resonance'];
       const col = page.locator('.vent-col', {has: page.locator(`#og-vent-count-${port}`)});
       const boxes = [];

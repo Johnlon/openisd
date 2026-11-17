@@ -1,3 +1,4 @@
+import type {FeatureUse} from '../logic/telemetry/featureUse.js';
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
 import type {OpenISDProject, SealedBoxLosses} from '@openisd/design';
 import {WinisdDeviation} from '@openisd/design/fields';
@@ -42,6 +43,7 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
     changed: Ref<number>,
     sealed: SealedEngine,
     driver: DriverEngine,
+    private readonly featureUse: FeatureUse,
   ) {
     this.#driverValues = computed(() => {
       void changed.value;
@@ -84,6 +86,7 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
   }
 
   openEditor(): void {
+    this.featureUse.feature('alignment');
     this.volume_m3.value = this.project.value.box.sealed.volume_m3.value;
     this.open.value = true;
   }

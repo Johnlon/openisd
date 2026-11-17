@@ -274,11 +274,18 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
  },
  {
   name: "terminal values series coils",
-  values: [{field: "Re_ohm", value: 3}, {field: "Znom_ohm", value: 8}, {field: "BL_Tm", value: 6}, {field: "Rme_kg_per_s", value: 24}, {field: "Mpow_N_per_sqrtW", value: 4.898979485566357}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 6}, {field: "BL_terminal_Tm", value: 12}],
+  // T788 (John, QO913): figures are as published, no per-coil conversion. Re 3, BL 6, numVC 2.
+  //   Znom 4: the published Re 3 -> nominal 4 (the nominal-impedance step, no wiring factor).
+  //   Rme 12 = BL^2 / Re = 36 / 3.   Mpow 3.4641016151377544 = BL / sqrt(Re) = 6 / sqrt(3) = sqrt(12).
+  //   Re_terminal 3, BL_terminal 6: the terminal figures are the published ones (no user wiring).
+  values: [{field: "Re_ohm", value: 3}, {field: "Znom_ohm", value: 4}, {field: "BL_Tm", value: 6}, {field: "Rme_kg_per_s", value: 12}, {field: "Mpow_N_per_sqrtW", value: 3.4641016151377544}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 3}, {field: "BL_terminal_Tm", value: 6}],
  },
  {
   name: "terminal values parallel coils",
-  values: [{field: "Re_ohm", value: 3}, {field: "Znom_ohm", value: 2}, {field: "BL_Tm", value: 6}, {field: "Rme_kg_per_s", value: 24}, {field: "Mpow_N_per_sqrtW", value: 4.898979485566357}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 1.5}, {field: "BL_terminal_Tm", value: 6}],
+  // T788 (John, QO913): same inputs as the series case (Re 3, BL 6, numVC 2), so the same results.
+  //   Znom 4 (as above). Rme 12 = BL^2 / Re = 36 / 3.   Mpow 3.4641016151377544 = 6 / sqrt(3) = sqrt(12).
+  //   Re_terminal 3, BL_terminal 6: published, no user wiring.
+  values: [{field: "Re_ohm", value: 3}, {field: "Znom_ohm", value: 4}, {field: "BL_Tm", value: 6}, {field: "Rme_kg_per_s", value: 12}, {field: "Mpow_N_per_sqrtW", value: 3.4641016151377544}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 3}, {field: "BL_terminal_Tm", value: 6}],
  },
  {
   name: "a stated value is never overwritten",
@@ -382,7 +389,7 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
    {kind: "inconsistent-inputs", fields: ["Qes","Fs_hz","Mms_kg","Re_ohm","BL_Tm"], text: "Qes, resonance (Fs), moving mass (Mms), coil resistance (Re), force factor (BL) disagree by 5.5%: Qes = 2π·Fs·Mms·Re/Bl². Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.5387363085200444, actual: 0.57, relative: 0.020194826671103398},
    {kind: "inconsistent-inputs", fields: ["Rme_kg_per_s","BL_Tm","Re_ohm"], text: "electrical damping (Rme), force factor (BL), coil resistance (Re) disagree by 5.5%: Rme = Bl²/Re. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 15.120264705882352, actual: 14.290939634198201, relative: 0.02007621829255564},
    {kind: "inconsistent-inputs", fields: ["Mpow_N_per_sqrtW","Rme_kg_per_s"], text: "Mpow, electrical damping (Rme) disagree by 2.8%: Mpow = √Rme. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 3.7803359155236724, actual: 3.8884784563994117, relative: 0.010176556236690077},
-   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by 4.7%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.004621649972016001, actual: 0.00485, relative: 0.0358742485447423},
+   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by 4.7%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.004621649972016001, actual: 0.00485, relative: 0.012051310544659816},
   ],
  },
  {
@@ -391,7 +398,7 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
   record: [{field: "Fs_hz", value: 45, entered: true}, {field: "Re_ohm", value: 3.4, entered: true}, {field: "Le_H", value: 0.00034, entered: true}, {field: "Qes", value: 0.57, entered: true}, {field: "Qms", value: 3.56, entered: true}, {field: "Qts", value: 0.49, entered: true}, {field: "Vas_m3", value: 0.00485, entered: true}, {field: "Sd_m2", value: 0.0094, entered: true}, {field: "BL_Tm", value: 6.970595007334301, entered: false}, {field: "Mms_kg", value: 0.02881, entered: true}, {field: "Cms_m_per_N", value: 0.00036872, entered: true}, {field: "Rms_kg_per_s", value: 2.2881560650261163, entered: true}, {field: "Xmax_m", value: 0.00925, entered: true}, {field: "Pe_W", value: 40, entered: true}],
   issues: [
    {kind: "inconsistent-inputs", fields: ["Fs_hz","Mms_kg","Cms_m_per_N"], text: "resonance (Fs), moving mass (Mms), compliance (Cms) disagree by 7.8%: Fs = 1/(2π·√(Mms·Cms)). Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 48.83151010262127, actual: 45, relative: 0.06813105282620575},
-   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by 4.7%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.004621649972016001, actual: 0.00485, relative: 0.0358742485447423},
+   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by 4.7%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.004621649972016001, actual: 0.00485, relative: 0.012051310544659816},
   ],
  },
  {
@@ -443,7 +450,7 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
    {kind: "inconsistent-inputs", fields: ["Qes","Fs_hz","Mms_kg","Re_ohm","BL_Tm"], text: "Qes, resonance (Fs), moving mass (Mms), coil resistance (Re), force factor (BL) disagree by 29.3%: Qes = 2π·Fs·Mms·Re/Bl². Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.707416293912981, actual: 0.5, relative: 0.11346939900511731},
    {kind: "inconsistent-inputs", fields: ["Rme_kg_per_s","BL_Tm","Re_ohm"], text: "electrical damping (Rme), force factor (BL), coil resistance (Re) disagree by 29.3%: Rme = Bl²/Re. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 9.375, actual: 13.264055510868394, relative: 0.1259501465336935},
    {kind: "inconsistent-inputs", fields: ["Mpow_N_per_sqrtW","Rme_kg_per_s"], text: "Mpow, electrical damping (Rme) disagree by 15.9%: Mpow = √Rme. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 3.6419851057999115, actual: 3.061862178478973, relative: 0.07025892593639743},
-   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by 29.3%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.014830089119999999, actual: 0.010480964774486248, relative: 0.03660295361654328},
+   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by 29.3%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.014830089119999999, actual: 0.010480964774486248, relative: 0.011602953616543297},
   ],
  },
  {
@@ -784,7 +791,7 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
    {kind: "inconsistent-inputs", fields: ["Qes","Fs_hz","Mms_kg","Re_ohm","BL_Tm"], text: "Qes, resonance (Fs), moving mass (Mms), coil resistance (Re), force factor (BL) disagree by 5.5%: Qes = 2π·Fs·Mms·Re/Bl². Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.5387363085200444, actual: 0.57, relative: 0.020194826671103398},
    {kind: "inconsistent-inputs", fields: ["Rme_kg_per_s","BL_Tm","Re_ohm"], text: "electrical damping (Rme), force factor (BL), coil resistance (Re) disagree by 5.5%: Rme = Bl²/Re. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 15.120264705882352, actual: 14.290939634198201, relative: 0.02007621829255564},
    {kind: "inconsistent-inputs", fields: ["Mpow_N_per_sqrtW","Rme_kg_per_s"], text: "Mpow, electrical damping (Rme) disagree by 2.8%: Mpow = √Rme. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 3.7803359155236724, actual: 3.8884784563994117, relative: 0.010176556236690077},
-   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by 4.7%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.004621649972016001, actual: 0.00485, relative: 0.0358742485447423},
+   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by 4.7%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.004621649972016001, actual: 0.00485, relative: 0.012051310544659816},
   ],
  },
  {
@@ -851,7 +858,7 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
    {kind: "inconsistent-inputs", fields: ["Qes","Fs_hz","Mms_kg","Re_ohm","BL_Tm"], text: "Qes, resonance (Fs), moving mass (Mms), coil resistance (Re), force factor (BL) disagree by 29.3%: Qes = 2π·Fs·Mms·Re/Bl². Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.707416293912981, actual: 0.5, relative: 0.11346939900511731},
    {kind: "inconsistent-inputs", fields: ["Rme_kg_per_s","BL_Tm","Re_ohm"], text: "electrical damping (Rme), force factor (BL), coil resistance (Re) disagree by 29.3%: Rme = Bl²/Re. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 9.375, actual: 13.264055510868394, relative: 0.1259501465336935},
    {kind: "inconsistent-inputs", fields: ["Mpow_N_per_sqrtW","Rme_kg_per_s"], text: "Mpow, electrical damping (Rme) disagree by 15.9%: Mpow = √Rme. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 3.6419851057999115, actual: 3.061862178478973, relative: 0.07025892593639743},
-   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by 70.3%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.014830089119999999, actual: 0.05, relative: 0.57643016355},
+   {kind: "inconsistent-inputs", fields: ["Vas_m3","Cms_m_per_N","Sd_m2","roo_kg_per_m3","c_m_per_s"], text: "equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by 70.3%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.", expected: 0.014830089119999999, actual: 0.05, relative: 0.56901511899},
   ],
  },
  {

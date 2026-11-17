@@ -11,6 +11,7 @@ import {type Engine} from '@openisd/design/engine';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from '../../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
+import {CURRENT_SCHEMA_VERSION} from '../../domain/schemaVersion.js';
 const scraped = <T,>(value: T) => ({ value });
 
 /** A conforming driver record. Structural plumbing only — every meaningful value is passed in
@@ -21,16 +22,16 @@ const scraped = <T,>(value: T) => ({ value });
  *  write the numbers 1 and 2 for the wiring and still compile, which kept eight tests green while
  *  the series path was unreachable.
  *
- *  `VCCon` is the record's WIRING ENCODING — 1 parallel, 2 series — which is what the corpus
- *  stores and what the domain maps to the enum at the field boundary. Writing the enum's NAME
- *  here would build a record no scraper produces, and the fixture would stop being evidence. */
+ *  `VCCon` is stored as the wiring's name, as the record and the scraper's reading hold it
+ *  (QO914, #514). */
 export function driverFromSpec(engine: Engine, spec: Record<string, number | VoiceCoilWiring>): OpenISDDriver {
-  const woofer: Record<string, { state: 'E'; value: number; origin: string; readings: Record<string, { read_value: number }> }> = {};
+  const woofer: Record<string, { state: 'E'; value: number | VoiceCoilWiring; origin: string; readings: Record<string, { read_value: number | VoiceCoilWiring }> }> = {};
   for (const [k, v] of Object.entries(spec)) {
-    const read_value = typeof v === 'number' ? v : (v === VoiceCoilWiring.Series ? 2 : 1);
-    woofer[k] = { state: 'E', value: read_value, origin: 'scraped', readings: { scraped: { read_value } } };
+    woofer[k] = { state: 'E', value: v, origin: 'scraped', readings: { scraped: { read_value: v } } };
   }
   const result = OpenISDDriver.fromConformingRecord({
+    // The spec is stated as published: a current-version record (QO900 R1).
+    schemaVersion: CURRENT_SCHEMA_VERSION,
     brand: scraped('Dayton'), model: scraped('RS225'), manufacturer: scraped('Dayton'),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
     // The scrape provenance every openisd.yml record carries (`model_openisd.py:55-73`). A

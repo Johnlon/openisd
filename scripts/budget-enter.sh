@@ -3,7 +3,8 @@
 # Looks up the job's measured cost (scripts/budget-cost.sh) and re-runs the calling script inside
 # scripts/budget.sh, which starts it when the memory and cores fit and otherwise waits, announced.
 # BUDGET_HELD marks the re-run, so a script that calls another heavy script is admitted once.
-if [ -z "${BUDGET_HELD:-}" ]; then
+# OPENISD_CI_RUNNER: a GitHub runner has no memory pools or heavy.slice (the pull request check, T749).
+if [ -z "${BUDGET_HELD:-}" ] && [ -z "${OPENISD_CI_RUNNER:-}" ]; then
   read -r _budget_pool _budget_mb _budget_cpu < <(bash scripts/budget-cost.sh "$BUDGET_SELF" "$@")
   if [ "$_budget_pool" != none ]; then
     bash scripts/lib/ts-log.sh run_start "budget-enter-$_budget_pool" 2>/dev/null || true

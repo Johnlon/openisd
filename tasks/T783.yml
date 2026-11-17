@@ -1,0 +1,13 @@
+id: T783
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: The rule-docs wording test warns about missing or retired words and never fails
+why: John 10 Nov 2026 (QO511, rules review rule 1): the docs-wording test failed 7 of 16 runs and held main red 8 hours; it becomes a warning
+done_test: bash scripts/land/test/rules-docs-warns.test.sh && bash scripts/land/test/rules-docs.test.sh
+files:
+  - scripts/land/test/rules-docs.test.sh
+  - scripts/land/test/rules-docs-warns.test.sh
+  - tasks/T004.yml
+  - tasks/T783.yml

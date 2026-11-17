@@ -9,6 +9,10 @@ import PhoneButton from './PhoneButton.vue';
 import { useMobileSheet } from '../../../hooks/MobileSheet-hooks.js';
 import { SheetMode } from '@openisd/design/fields';
 import { inputChecked } from '../../../logic/domEvents.js';
+import { createPhoneLabelColumnDirective } from '../../../hooks/phoneLabelColumnDirective.js';
+const vPhoneLabelColumn = createPhoneLabelColumnDirective();
+import { provide } from 'vue';
+import { ENTER_CLOSES_KEYBOARD } from '../../../logic/enterClosesKeyboard.js';
 
 const props = defineProps<{ open: boolean; mode: SheetMode; hidden: boolean; autoY: boolean }>();
 const emit = defineEmits<{ 'update:open': [open: boolean]; 'update:autoY': [on: boolean] }>();
@@ -16,12 +20,13 @@ const emit = defineEmits<{ 'update:open': [open: boolean]; 'update:autoY': [on: 
 const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, portValuePress, closePortEditor, sheetEl, rowsEl, sheetStyle, setValue, openSheet, close, reset,
   onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp } =
   useMobileSheet({ open: () => props.open, setOpen: v => emit('update:open', v), mode: props.mode });
+provide(ENTER_CLOSES_KEYBOARD, true);
 </script>
 
 <template>
   <PhoneButton v-if="!isOpen && !hidden" class="mob-sheet-tab" :style="sizeStyle" :aria-label="'Open ' + mode.label"
                @pointerdown="onTabDown" @pointerup="onTabUp" @click="openSheet">{{ mode.label }} ▲</PhoneButton>
-  <section v-else-if="isOpen" ref="sheetEl" class="mob-sheet mob-classic" :style="[sizeStyle, sheetStyle]" :aria-label="mode.label">
+  <section v-else-if="isOpen" ref="sheetEl" v-phone-label-column class="mob-sheet mob-classic" :style="[sizeStyle, sheetStyle]" :aria-label="mode.label">
     <div class="mob-sheet-handle" role="separator" aria-label="Drag to resize"
          @pointerdown="onHandleDown" @pointermove="onHandleMove" @pointerup="onHandleUp" @pointercancel="onHandleUp">
       <PhoneBand :section="help" />
@@ -46,7 +51,7 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
       </label>
       <div class="mob-sheet-actions">
         <PhoneButton v-if="mode.edits === 'whatIfLayer'" class="mob-sheet-btn" title="Back to the design's values" @click="reset">Reset</PhoneButton>
-        <PhoneButton primary class="mob-sheet-btn mob-sheet-close" :title="mode.edits === 'whatIfLayer' ? 'Close. The design is not changed.' : 'Close'" @click="close">Close</PhoneButton>
+        <PhoneButton primary class="mob-sheet-btn mob-sheet-close" :title="mode.edits === 'whatIfLayer' ? 'Close. Your project will not be updated.' : 'Close'" @click="close">Close</PhoneButton>
       </div>
     </div>
   </section>
@@ -108,7 +113,7 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
   flex: none;
   display: flex;
   align-items: center;
-  padding: 4px 16px;
+  padding: var(--gp-sheet-foot-pad-y) 16px;
   border-top: 1px solid var(--line);
   background: var(--panel);
 }

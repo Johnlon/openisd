@@ -32,7 +32,7 @@ export async function measureFieldContent(root: Element): Promise<FieldVisualRep
   const desktopUnits = new Map<string, number>();
   for (const row of rows) {
     const field = row.querySelector('label')?.textContent?.trim() || row.id || '(unlabelled field)';
-    const value = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value textarea, .ui-field-value .mob-readonly, .ui-field-value .calculated, :scope > input, :scope > select, :scope > textarea');
+    const value = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value textarea, .ui-field-value .mob-readonly, .ui-field-value .calculated, :scope > input, :scope > select, :scope > textarea, :scope[role="group"] input[type="radio"]');
     if (value === null || !visible(value)) {
       issues.push({field, problem: 'field has no visible recognised value control'});
       continue;
@@ -66,12 +66,12 @@ export async function measureFieldContent(root: Element): Promise<FieldVisualRep
     let text: DOMRect;
     if (value instanceof HTMLInputElement || value instanceof HTMLSelectElement || value instanceof HTMLTextAreaElement) {
       const css = getComputedStyle(value);
-      // Independent production reference: phone Driver readouts were measured as Inter,
+      // Independent production reference: phone Driver readouts were measured as Roboto (the bundled phone font),
       // 15px, normal 400, 22.5px line height. Check EVERY readonly numeric input, not
       // whichever happens to be first; geometry alone accepts the wrong typeface.
       if (value instanceof HTMLInputElement && value.readOnly && value.closest('.app-root-mobile') !== null) {
         const expected: Record<string, string> = {
-          'font-family': 'Inter, system-ui, sans-serif', 'font-size': '15px',
+          'font-family': 'Roboto, AppSymbols', 'font-size': '15px',
           'font-weight': '400', 'font-style': 'normal', 'line-height': '22.5px',
           'letter-spacing': 'normal',
         };
@@ -84,14 +84,14 @@ export async function measureFieldContent(root: Element): Promise<FieldVisualRep
         // Require a loaded regular face covering digits as well as FontFaceSet.check;
         // check() by itself returns true even when the named family was never declared.
         const digitsLoaded = [...document.fonts].some(face =>
-          face.family.replace(/["']/g, '') === 'Inter' && face.weight === '400'
+          face.family.replace(/["']/g, '') === 'Roboto' && face.weight === '400'
           && face.style === 'normal' && face.status === 'loaded'
           && face.unicodeRange.split(',').some(range => {
             const match = /^U\+([0-9A-F]+)(?:-([0-9A-F]+))?$/i.exec(range.trim());
             return match !== null && parseInt(match[1],16) <= 0x30 && parseInt(match[2] ?? match[1],16) >= 0x39;
           }));
-        if (!digitsLoaded || !document.fonts.check('400 15px Inter','0123456789')) {
-          issues.push({field, problem: 'readout font unavailable: loaded regular Inter digits required; fallback is not accepted'});
+        if (!digitsLoaded || !document.fonts.check('400 15px Roboto','0123456789')) {
+          issues.push({field, problem: 'readout font unavailable: loaded regular Roboto digits required; fallback is not accepted'});
         }
       }
       const box = value.getBoundingClientRect();
@@ -283,12 +283,14 @@ export function measureFieldBorders(root: Element): FieldVisualReport {
   let controls = 0;
   for (const row of rows) {
     const field = row.querySelector('label')?.textContent?.trim() || row.id || '(unlabelled field)';
-    const value = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value textarea, .ui-field-value .mob-readonly, .ui-field-value .calculated, :scope > input, :scope > select, :scope > textarea');
+    const value = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value textarea, .ui-field-value .mob-readonly, .ui-field-value .calculated, :scope > input, :scope > select, :scope > textarea, :scope[role="group"] input[type="radio"]');
     if (value === null || !visible(value)) {
       issues.push({field, problem: 'field has no visible recognised value control'});
       continue;
     }
     controls++;
+    // A radio group is a control, but its circles draw no box border to measure.
+    if (value.matches('input[type="radio"]')) continue;
     value.scrollIntoView({block: 'nearest', inline: 'nearest'});
     const box = value.getBoundingClientRect(), css = getComputedStyle(value);
     if (value.classList.contains('de-input-mandatory') && !value.matches('.de-input-empty, .inp-bad, .dq-flag') && row.closest('.de-desktop')

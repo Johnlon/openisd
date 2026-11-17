@@ -101,10 +101,6 @@ describe('every dropdown is an EnumField carrying SelectorOption[]', () => {
     assert.deepEqual(optionsOf(EnumField.VCCON).map(o => o.value), [VoiceCoilWiring.Parallel, VoiceCoilWiring.Series]);
   });
 
-  it('driver_ArrayWiring lists parallel and series', () => {
-    assert.deepEqual(optionsOf(EnumField.DRIVER_ARRAYWIRING).map(o => o.value), ['parallel', 'series']);
-  });
-
   it('box_Type lists every enclosure type the Box tab offers, simulatable or not', () => {
     assert.deepEqual(optionsOf(EnumField.BOX_TYPE).map(o => o.value),
       ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc']);

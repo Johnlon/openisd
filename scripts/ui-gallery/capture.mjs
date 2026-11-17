@@ -7,11 +7,12 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { SCREENS, reset } from './screens.mjs';
 import { measure } from './measure.mjs';
+import { galleryRoot } from './galleryRoot.mjs';
 
 const DEFAULT_BEFORE = 'https://snapshots.openisd.app/v/20261015T1542Z/';
 // The newest snapshot: a real deployed build, so cloud sync shows as users see it.
 const DEFAULT_AFTER = 'https://test.openisd.app/';
-const DEFAULT_ROOT = '/home/john/work/winisd/ui-gallery';
+const DEFAULT_ROOT = galleryRoot();
 
 const VIEWPORTS = {
   d: { name: 'desktop', label: 'Desktop 1440x900', displayWidth: 560, ctx: { viewport: { width: 1440, height: 900 } } },
@@ -22,8 +23,8 @@ function parseArgs(argv) {
   const o = { before: DEFAULT_BEFORE, after: DEFAULT_AFTER, root: DEFAULT_ROOT };
   for (let i = 0; i < argv.length; i += 2) {
     const k = argv[i];
-    if (!['--before', '--after', '--root', '--rebuild'].includes(k) || argv[i + 1] === undefined) {
-      console.error('usage: capture.mjs [--rebuild <run dir>] [--before <url|dir of an earlier run after/|none>] [--after <url>] [--root <dir>]');
+    if (!['--before', '--after', '--root', '--rebuild', '--only'].includes(k) || argv[i + 1] === undefined) {
+      console.error('usage: capture.mjs [--rebuild <run dir>] [--before <url|dir of an earlier run after/|none>] [--after <url>] [--root <dir>] [--only <screen keys, comma separated>]');
       process.exit(2);
     }
     o[k.slice(2)] = argv[i + 1];
@@ -44,7 +45,7 @@ async function captureSide(browser, side, dir, flush) {
     page.setDefaultTimeout(4000);
     await page.goto(url, { waitUntil: 'load' });
     await page.waitForTimeout(2500);
-    for (const s of SCREENS.filter((x) => x.vp.includes(vk))) {
+    for (const s of SCREENS.filter((x) => x.vp.includes(vk) && (!opts.only || opts.only.split(',').includes(x.key)))) {
       const id = `${vp.name}-${s.key}`;
       try {
         await s.act(page);

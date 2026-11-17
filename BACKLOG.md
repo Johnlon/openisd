@@ -79,7 +79,8 @@ list is the smaller engineering and UI work items around what already ships.
 
 | Item | Files |
 |---|---|
-| An agent-friendly OpenISD that runs at the command line (John, 12 Oct 2026): a local tool, installed from npm packages of the app's own code, that takes inputs, gives help, gives results and generates charts. Probably exposed to agents through a skill or an MCP server. Needs design and thought first: which inputs and commands, one engine shared with the app (no second copy of the maths), chart output format, how an agent discovers what it can do. | new package, `packages/design` engine |
+| An AI in a phone chat app drives OpenISD (John, 12 Oct 2026; changed 7 Nov 2026). The AI inside the Android ChatGPT or Gemini app (and Google AI Mode if it can) runs OpenISD commands itself: it takes the user's inputs, runs the trials and shows the results and charts in the chat. The user never copies results between apps. Users are worldwide. Not a local command-line install, and not MCP (Google's custom MCP apps are US only). The commands use the app's own engine (no second copy of the maths). Before any design, check what a chat app can really do with one small live test at a time, for example whether it can build a web address and read the answer. | new package, `packages/design` engine |
+| An AI agent inside OpenISD (John, 8 Nov 2026). The user types a request in plain words in the app. A server that holds John's AI API keys sends it to the model. The model answers, and it can change the open project through tool calls (set inputs, add or change a design). Every change it makes shows on screen. | new server, `packages/design` engine |
 
 ## Cross-repo
 

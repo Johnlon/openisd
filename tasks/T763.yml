@@ -1,0 +1,18 @@
+id: T763
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: One view list the layout check walks: every view in the view index is opened and measured
+why: 6 of John's 22 missed UI criticisms were on views the layout gate never opens (driver editor, wizard, Options help, phone Projects, keyboard up, unsaved strip). The gate walks its own hand-written list and never reads the view index; 14+ desktop views were indexed as phone-only. Spec docs/process/CONTROL_CHANGES.md, "Three UI controls", item 1.
+done_test: bash scripts/test.sh packages/ui/test/logic/view-walk-coverage.test.ts
+files:
+  - tasks/T763.yml
+  - packages/ui/test/fixtures/viewIndex.ts
+  - packages/ui/test/fixtures/viewOpen.ts
+  - packages/ui/test/fixtures/viewOpenTypes.ts
+  - packages/ui/test/fixtures/viewOpenSteps.ts
+  - packages/ui/test/fixtures/wholeScreenAudit.ts
+  - packages/ui/test/ui/view-layout-walk.browser.spec.ts
+  - packages/ui/test/logic/view-walk-coverage.test.ts
+  - bugs/BUG_20261110_*.md

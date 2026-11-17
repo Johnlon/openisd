@@ -1,8 +1,10 @@
 /**
  * Rules 2 to 7 of .claude/rules/field-layout.md, measured on what is painted in `root`. Runs inside
  * the page. A fault is one line naming the rule, the group and the controls. No field CSS assumed.
+ * A strip marked `data-carousel` is designed to scroll sideways inside itself (John, 8 Nov 2026: "not a bug,
+ * the strip is a carousel"): what lies beyond its frame is reached by scrolling it, so it is not cut (rule 2).
  */
-export function measureFieldLayoutRules(root: Element): string[] {
+export function measureFieldLayoutRules(root: Element, minStepperGapPx: number): string[] {
   const issues: string[] = [];
   const doc = root.ownerDocument;
   const view = doc.defaultView;
@@ -15,12 +17,16 @@ export function measureFieldLayoutRules(root: Element): string[] {
   for (const part of parts) {
     const box = part.getBoundingClientRect();
     const text = (part.textContent ?? '').trim().slice(0, 16);
+    if (part.closest('[data-carousel]') !== null) continue;
     if (box.left < -0.5 || box.right > view.innerWidth + 0.5) issues.push(`R2 ${name(part)} "${text}" leaves the window sideways (${Math.round(box.left)}..${Math.round(box.right)})`);
+    let scrollsDown = false; // a part inside a vertical scroller is reached by scrolling, not cut by a frame around the scroller
     for (let ancestor = part.parentElement; ancestor !== null && ancestor !== doc.body; ancestor = ancestor.parentElement) {
       const style = view.getComputedStyle(ancestor);
       if (style.position === 'fixed') break;
+      const wasScrolling = scrollsDown;
+      if (/^(auto|scroll)$/.test(style.overflowY)) scrollsDown = true;
       const clipsSideways = /^(hidden|clip|auto|scroll)$/.test(style.overflowX);
-      const clipsUpDown = /^(hidden|clip)$/.test(style.overflowY);
+      const clipsUpDown = /^(hidden|clip)$/.test(style.overflowY) && !wasScrolling;
       if (!clipsSideways && !clipsUpDown) continue;
       const frame = ancestor.getBoundingClientRect();
       const sideways = clipsSideways && (box.left < frame.left - 0.5 || box.right > frame.right + 0.5);
@@ -28,19 +34,28 @@ export function measureFieldLayoutRules(root: Element): string[] {
       const painted = (() => { const top = doc.elementFromPoint(Math.min(Math.max(box.left + box.width / 2, 0), view.innerWidth - 1), Math.min(Math.max(box.top + box.height / 2, 0), view.innerHeight - 1)); return top !== null && (top === part || part.contains(top) || top.contains(part)) && box.bottom <= view.innerHeight && box.top >= 0; })();
       if ((sideways || upDown) && !painted) { issues.push(`R2 ${name(part)} "${text}" is cut by ${ancestor.tagName.toLowerCase()}.${String(ancestor.className).slice(0, 24)}`); break; }
     }
+    if ((part.tagName === 'INPUT' || part.classList.contains('ui-field-unit')) && part.scrollWidth > part.clientWidth + 1) issues.push(`R2 ${name(part)} "${part instanceof HTMLInputElement ? part.value : text}" text is cut ${part.scrollWidth - part.clientWidth}px`);
     if (part.tagName === 'LABEL' && part.scrollWidth > part.clientWidth + 1 && view.getComputedStyle(part).overflow !== 'visible') issues.push(`R2 label "${text}" is cut`);
   }
   for (const scroller of [root, ...root.querySelectorAll('*')]) {
     if (!shown(scroller)) continue;
     const style = view.getComputedStyle(scroller);
-    if (/^(auto|scroll)$/.test(style.overflowX) && scroller.scrollWidth > scroller.clientWidth + 1) issues.push(`R2 ${scroller.tagName.toLowerCase()}.${String(scroller.className).slice(0, 24)} scrolls sideways ${scroller.scrollWidth - scroller.clientWidth}px`);
+    if (/^(auto|scroll)$/.test(style.overflowX) && !scroller.hasAttribute('data-carousel') && scroller.scrollWidth > scroller.clientWidth + 1) issues.push(`R2 ${scroller.tagName.toLowerCase()}.${String(scroller.className).slice(0, 24)} scrolls sideways ${scroller.scrollWidth - scroller.clientWidth}px`);
     if (/^(auto|scroll)$/.test(style.overflowY) && scroller.scrollHeight > scroller.clientHeight + 1 && scroller.matches('.tab-section,.content-panel,.what-if-panel,.modal-body')) issues.push(`R2 ${scroller.tagName.toLowerCase()}.${String(scroller.className).slice(0, 24)} scrolls up and down ${scroller.scrollHeight - scroller.clientHeight}px`);
+  }
+
+  // Rule 10: a visible gap between a number box (its unit chip is inside it) and its up/down buttons.
+  for (const field of root.querySelectorAll<HTMLInputElement>('.ui-field input[data-numinput]')) {
+    const button = field.closest('.ui-field')?.querySelector('.num-stepper-btn');
+    if (button === null || button === undefined || !shown(field) || !shown(button)) continue;
+    const gap = button.getBoundingClientRect().left - field.getBoundingClientRect().right;
+    if (gap < minStepperGapPx - 0.5) issues.push(`R10 ${field.closest('.ui-field')?.querySelector('label')?.textContent?.trim().slice(0, 16)} box to buttons gap is ${Math.round(gap)}px, needs ${minStepperGapPx}px`);
   }
 
   // Groups: a group is the controls of one column that share a label edge.
   // The rules cover number boxes, counts and dropdowns; the radiator's free-text name is none of these.
   const columnSelector = '.vent-col,.pr-controls > div,.driver-columns > div,.box-fields-col,.what-if-panel,[role=dialog],.mob-np-body,.modal-body,.mob-content,.mob-sheet-body';
-  const fields = [...root.querySelectorAll<HTMLElement>('.ui-field input:not([type=checkbox]):not([type=file]):not(.np-pr-name),select')].filter(shown).map(control => {
+  const fields = [...root.querySelectorAll<HTMLElement>('.ui-field input:not([type=checkbox]):not([type=radio]):not([type=file]):not(.np-pr-name),select')].filter(shown).map(control => {
     const row = control.closest('.ui-field,.field,.mob-crow,.vpf-row,.what-if-fld,.ui-pick-field');
     const label = row?.querySelector('label');
     const box = control.getBoundingClientRect();
@@ -59,15 +74,18 @@ export function measureFieldLayoutRules(root: Element): string[] {
   const needsMore = (select: HTMLSelectElement, width: number) => {
     const context = doc.createElement('canvas').getContext('2d');
     if (context === null) return false;
-    context.font = view.getComputedStyle(select).font;
-    return context.measureText(select.selectedOptions[0]?.text ?? '').width + 28 > width;
+    const style = view.getComputedStyle(select);
+    context.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`; // the font shorthand reads back empty
+    return context.measureText(select.selectedOptions[0]?.text ?? '').width + 42 > width; // text, the 16 px gutter, the arrow and the border
   };
   for (const [key, group] of groups) {
     if (group.length < 2) continue;
     const list = (pick: (f: (typeof group)[number]) => string) => group.map(f => `${f.label}:${pick(f)}`).join(', ');
     if (new Set(group.map(f => f.x)).size > 1) issues.push(`R3 ${key} value left edges differ: ${list(f => String(f.x))}`);
     const narrow = Math.min(...group.map(f => f.width));
-    const sameEdge = group.filter(f => !(f.control instanceof HTMLSelectElement && f.width > narrow && needsMore(f.control, narrow)));
+    const widest = Math.max(...group.map(f => f.width));
+    // A pick list may be wider than the narrowest box when its text needs it, or narrower than the widest when its text still fits (the 90 px short dropdowns, QO428).
+    const sameEdge = group.filter(f => !(f.control instanceof HTMLSelectElement && ((f.width > narrow && needsMore(f.control, narrow)) || (f.width < widest && !needsMore(f.control, f.width)))));
     if (new Set(sameEdge.map(f => f.right)).size > 1 || new Set(sameEdge.map(f => f.width)).size > 1) issues.push(`R4 ${key} value widths differ: ${list(f => `${f.width}/${f.right}`)}`);
     for (const tag of ['INPUT', 'SELECT']) {
       const same = group.filter(f => f.tag === tag);
@@ -83,13 +101,63 @@ export function measureFieldLayoutRules(root: Element): string[] {
   }
   // Rule 7: no two painted parts overlap, other than the parts joined inside one field.
   const owner = (el: Element) => el.closest('.ui-field') ?? el.closest('.num-input-wrap');
+  // The painted part of a box: cut to the frame of every scrolling or clipping ancestor (a sheet's rows below its fold are not painted, so they overlap nothing).
+  const painted = (part: Element) => {
+    const box = part.getBoundingClientRect();
+    let top = box.top, bottom = box.bottom, left = box.left, right = box.right;
+    for (let ancestor = part.parentElement; ancestor !== null && ancestor !== doc.body; ancestor = ancestor.parentElement) {
+      const style = view.getComputedStyle(ancestor);
+      if (!/^(auto|scroll|hidden|clip)$/.test(style.overflowY)) continue;
+      const frame = ancestor.getBoundingClientRect();
+      top = Math.max(top, frame.top); bottom = Math.min(bottom, frame.bottom);
+      if (/^(auto|scroll|hidden|clip)$/.test(style.overflowX)) { left = Math.max(left, frame.left); right = Math.min(right, frame.right); }
+    }
+    return {left, right, top, bottom};
+  };
   for (let i = 0; i < parts.length; i++) for (let j = i + 1; j < parts.length; j++) {
     const a = parts[i], b = parts[j];
     if (a === undefined || b === undefined || a.contains(b) || b.contains(a)) continue;
     if (owner(a) !== null && owner(a) === owner(b)) continue;
-    const p = a.getBoundingClientRect(), q = b.getBoundingClientRect();
+    const p = painted(a), q = painted(b);
     const across = Math.min(p.right, q.right) - Math.max(p.left, q.left), down = Math.min(p.bottom, q.bottom) - Math.max(p.top, q.top);
     if (across > 2 && down > 2) issues.push(`R7 ${name(a)} "${(a.textContent ?? '').trim().slice(0, 12)}" overlaps ${name(b)} "${(b.textContent ?? '').trim().slice(0, 12)}" by ${Math.round(across)}x${Math.round(down)}`);
+  }
+  return issues;
+}
+
+/**
+ * The label gap (John, QO466.c12: "the input fields are too far from the labels"; QO449.c16: "fix the gaps on all
+ * fields"): in each group of fields (one column, one label edge), the blank between the end of the longest label's
+ * text and its box is at most `maxGapPx`, and no label wraps onto a second line. A fault is one line naming the group.
+ */
+export function measureLabelGaps(root: Element, maxGapPx: number): string[] {
+  const issues: string[] = [];
+  const doc = root.ownerDocument;
+  const shown = (el: Element) => el.checkVisibility({visibilityProperty: true, opacityProperty: true}) && el.getBoundingClientRect().width > 0;
+  const columnSelector = '.vent-col,.pr-controls > div,.driver-columns > div,.box-fields-col,.what-if-panel,[role=dialog],.modal-body,.two-col > div,.tab-section';
+  const rows = [...root.querySelectorAll<HTMLElement>('.ui-field,.field,.mob-crow')].filter(shown).flatMap(row => {
+    const label = row.querySelector<HTMLElement>(':scope > label');
+    const control = row.querySelector<HTMLElement>('input:not([type=checkbox]):not([type=radio]):not([type=file]),select');
+    if (label === null || control === null || !shown(label) || !shown(control) || (label.textContent ?? '').trim() === '') return [];
+    const text = doc.createRange();
+    text.selectNodeContents(label);
+    const lines = new Set([...text.getClientRects()].filter(r => r.width > 0).map(r => Math.round(r.top))).size;
+    const column = row.closest(columnSelector);
+    return [{
+      label: (label.textContent ?? '').trim().slice(0, 24), labelX: Math.round(label.getBoundingClientRect().x), textRight: text.getBoundingClientRect().right,
+      boxX: control.getBoundingClientRect().x, lines, column: column === null ? 'root' : `${column.className}`.slice(0, 20),
+    }];
+  });
+  const groups = new Map<string, typeof rows>();
+  for (const r of rows) groups.set(`${r.column}@${r.labelX}`, [...(groups.get(`${r.column}@${r.labelX}`) ?? []), r]);
+  for (const [key, group] of groups) {
+    for (const r of group) if (r.lines > 1) issues.push(`G ${key} label "${r.label}" wraps onto ${r.lines} lines`);
+    // A label stacked above its box (box starts left of the text's end) has no gap beside it.
+    const beside = group.filter(r => r.boxX >= r.textRight - 0.5);
+    if (beside.length === 0) continue;
+    const longest = beside.reduce((a, b) => (b.textRight > a.textRight ? b : a));
+    const gap = Math.min(...beside.map(r => r.boxX)) - longest.textRight;
+    if (gap > maxGapPx + 0.5) issues.push(`G ${key} "${longest.label}" ends ${Math.round(gap)}px before its box (at most ${maxGapPx})`);
   }
   return issues;
 }

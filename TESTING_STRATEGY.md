@@ -161,9 +161,9 @@ tests are named after the module or domain object (`ventGroup.test.ts`, `project
 | When       | Runs                                                                                          |
 |------------|-----------------------------------------------------------------------------------------------|
 | Pre-commit | Lint and typecheck on the staged files (fast gates only; docs/DEV_PROCESS.md).                |
-| Landing    | `scripts/land.sh`: lint on the changed files, typecheck, the task's `done_test`.               |
-| Post-land  | Every Vitest test, then every browser spec, once on the pushed commit, in a clean copy.        |
-| `npm test` | Every Vitest test, then every browser spec (`OPENISD_FULL_GATE=1`; the post-land run uses it). |
+| Pull request | `pr-gate` (via `scripts/ship.sh`): lint on the changed files, typecheck, the task's `done_test`, the full suite. |
+| Merge queue | `pr-gate` again on the merged result: every Vitest test, then every browser spec, once.        |
+| `npm test` | Every Vitest test, then every browser spec (`OPENISD_FULL_GATE=1`; `pr-gate` uses it). |
 
 There is no rerun: a flaky spec is a red. Heavy jobs take the machine's one slot (`scripts/admit.sh`);
 targeted runs (`bash scripts/test.sh <spec>`) never queue.

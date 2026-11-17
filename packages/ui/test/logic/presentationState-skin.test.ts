@@ -94,5 +94,5 @@ it('generates an unused colour when every palette colour is already occupied', (
 
 
 it('starts charts at 10 Hz to 1 kHz', () => {
-  assert.deepEqual(presentationState.sweepRange, {min:10,max:20000});
+  assert.deepEqual(presentationState.sweepRange, {min:10,max:1000});
 });

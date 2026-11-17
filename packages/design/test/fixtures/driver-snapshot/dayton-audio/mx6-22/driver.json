@@ -1,0 +1,612 @@
+{
+  "added": {
+    "definition": "when this record was added, ISO yyyy-mm-dd",
+    "origin": "openisd",
+    "value": "2026-09-24"
+  },
+  "brand": {
+    "definition": "the selling brand; equals the manufacturer except for house brands",
+    "origin": "manufacturer_product_page",
+    "value": "Dayton Audio"
+  },
+  "curves": {
+    "frequency_response": {
+      "definition": "the published SPL/impedance chart; the document is the origin's indexed URL (no separate source_url copy); numeric digitisation pending",
+      "origin": "manufacturer_product_page",
+      "value": {
+        "data_format": "frd",
+        "local_path": "response_data/response.frd",
+        "type": "FILE"
+      }
+    },
+    "impedance": {
+      "definition": "the published impedance magnitude curve; the document is the origin's indexed URL (no separate source_url copy); numeric digitisation pending",
+      "origin": "manufacturer_product_page",
+      "value": {
+        "data_format": "zma",
+        "local_path": "response_data/response.zma",
+        "type": "FILE"
+      }
+    }
+  },
+  "data_sources": {
+    "definition": "the record-wide provenance index — every source role used anywhere in this file resolves to a URL here",
+    "value": {
+      "manufacturer_datasheet": "https://daytonaudio.com/images/resources/295-744--dayton-audio-MX6-22-spec-sheet.pdf",
+      "manufacturer_product_page": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil"
+    }
+  },
+  "description": {
+    "definition": "the manufacturer's own product blurb, page chrome stripped",
+    "origin": "manufacturer_product_page",
+    "value": "The Dayton Audio MX6-22 subwoofer packs impressive performance into a compact 6-1/2\" frame, allowing surprisingly deep and powerful bass from places where larger subs simply won’t fit. Its long-throw design, vented architecture, and distortion-taming aluminum shorting sleeve keep the low end tight, clean, and powerful whether you drop it into a home build or a car audio project. Its modern, seamless look fits any setup, and the robust build stands strong during demanding low-frequency bursts. Thanks to its dual 2-ohm voice coils, the MX6-22 can be compatible with most amplifiers and brings full, satisfying bass to a wide range of installations. Quick Overview Product Highlights Long-throw motor and low resonance frequency deliver powerful low-frequency output from compact enclosures Full-coverage concave dust cap reinforces the paper cone and creates a clean modern appearance Aluminum shorting sleeve stabilizes inductance for lower distortion across the operating range Vented frame, vented pole piece, and gap vents improve airflow to reduce heat buildup and compression Surround profile covers the frame for a seamless look and increased adhesive bonding area Precision-tooled steel frame provides the structural clearance needed for high travel limits Dual 2-ohm voice coils allow flexible wiring options for optimal amplifier loading"
+  },
+  "discontinued": false,
+  "driver_type": {
+    "definition": "what kind of driver this is (closed vocabulary); decides which specs section applies",
+    "origin": "manufacturer_product_page",
+    "value": [
+      "woofer",
+      "subwoofer"
+    ]
+  },
+  "manufacturer": {
+    "definition": "the company that makes the driver; a second-order descriptive field, shown only when it differs from the brand",
+    "origin": "manufacturer_product_page",
+    "value": "Dayton Audio"
+  },
+  "model": {
+    "definition": "the vendor's exact designation including the impedance variant — unique within a brand, and the name shown in the driver browser",
+    "origin": "manufacturer_product_page",
+    "value": "MX6-22 6-1/2\" Max-X High Excursion DVC Subwoofer Driver 2 Ohms Per Coil"
+  },
+  "nominal_size_cm": {
+    "definition": "nominal (marketing) diameter in cm",
+    "origin": "manufacturer_product_page",
+    "value": 16.51
+  },
+  "printed": [
+    {
+      "actual_reading": "MX6-22 6-1/2\" Max-X High Excursion DVC Subwoofer Driver 2 Ohms Per Coil",
+      "label": "Product title",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: h1",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "8",
+      "label": "# Mounting Holes",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: # Mounting Holes",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Steel",
+      "label": "Basket/Frame Material",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Basket/Frame Material",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "166 mm",
+      "label": "Bolt Circle Diameter",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Bolt Circle Diameter",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Black",
+      "label": "Color",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Color",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Paper",
+      "label": "Cone / Diaphragm Material",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Cone / Diaphragm Material",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "20-1,000 Hz",
+      "label": "Frequency Response",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Frequency Response",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Ferrite",
+      "label": "Magnet Material",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Magnet Material",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "MX6-22",
+      "label": "Model Number",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Model Number",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "5.5 mm",
+      "label": "Mounting Hole Diameter",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Mounting Hole Diameter",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "6-1/2\"",
+      "label": "Nominal Diameter",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Nominal Diameter",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "101 mm",
+      "label": "Overall Depth",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Overall Depth",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "182 mm",
+      "label": "Overall Outside Diameter",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Overall Outside Diameter",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "7 lbs.",
+      "label": "Product Shipping Weight (lbs.)",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Product Shipping Weight (lbs.)",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Max-X Series",
+      "label": "Speaker Series",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Speaker Series",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Subwoofer",
+      "label": "Speaker Type",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Speaker Type",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Rubber",
+      "label": "Surround Material",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Surround Material",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "848791011511",
+      "label": "UPC",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: UPC",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Each",
+      "label": "Unit of Measure",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Unit of Measure",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Aluminum",
+      "label": "Voice Coil Former",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Voice Coil Former",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Copper",
+      "label": "Voice Coil Wire Material",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Voice Coil Wire Material",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "151.6 cm³",
+      "label": "Volume of Displacement (Vd)",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Volume of Displacement (Vd)",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "5 Years",
+      "label": "Warranty - Labor",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Warranty - Labor",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "5 Years",
+      "label": "Warranty - Parts",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: specifications table: Warranty - Parts",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Long-throw motor and low resonance frequency deliver powerful low-frequency output from compact enclosures",
+      "label": "Feature",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: feature 1",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Full-coverage concave dust cap reinforces the paper cone and creates a clean modern appearance",
+      "label": "Feature",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: feature 2",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Aluminum shorting sleeve stabilizes inductance for lower distortion across the operating range",
+      "label": "Feature",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: feature 3",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Vented frame, vented pole piece, and gap vents improve airflow to reduce heat buildup and compression",
+      "label": "Feature",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: feature 4",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Surround profile covers the frame for a seamless look and increased adhesive bonding area",
+      "label": "Feature",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: feature 5",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Precision-tooled steel frame provides the structural clearance needed for high travel limits",
+      "label": "Feature",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: feature 6",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Dual 2-ohm voice coils allow flexible wiring options for optimal amplifier loading",
+      "label": "Feature",
+      "locator": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil: feature 7",
+      "origin": "manufacturer_product_page"
+    }
+  ],
+  "product_image": {
+    "definition": "the manufacturer's product photo for this driver",
+    "origin": "manufacturer_product_page",
+    "value": "https://daytonaudio.com/images/product/large/2153.jpg"
+  },
+  "provided_by": {
+    "definition": "who supplied this record — the OpenISD project for a pipeline-emitted record",
+    "origin": "openisd",
+    "value": "OpenIsd"
+  },
+  "quality": {},
+  "scraper_meta": {
+    "scraper": {
+      "definition": "the vendor scraper/extraction method that produced this record",
+      "value": "da_multi_method_extractor"
+    }
+  },
+  "series": {
+    "definition": "the vendor's product line this driver belongs to",
+    "origin": "manufacturer_product_page",
+    "value": "Max-X Series"
+  },
+  "sku": {
+    "definition": "the canonical identity code — the vendor designation slugified, impedance variant included; names the record directory (guard-enforced equal) and is unique within the manufacturer",
+    "grounds": [
+      {
+        "definition": "the printed designation the code was derived from",
+        "origin": "manufacturer_product_page",
+        "reading": "MX6-22 6-1/2\" Max-X High Excursion DVC Subwoofer Driver 2 Ohms Per Coil"
+      },
+      {
+        "definition": "the source URL that corroborated the derivation",
+        "origin": "manufacturer_product_page",
+        "reading": "https://daytonaudio.com/product/2153/mx6-22-6-1-2-max-x-high-excursion-dvc-subwoofer-driver-2-ohms-per-coil"
+      }
+    ],
+    "value": "mx6-22"
+  },
+  "specs": {
+    "woofer": {
+      "BL_Tm": {
+        "definition": "motor force factor (T·m)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "12.3 Tm",
+            "read_precision": 0.05,
+            "read_value": 12.3
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "12.3 Tm",
+            "read_precision": 0.05,
+            "read_value": 12.3
+          }
+        }
+      },
+      "Basket_m": {
+        "definition": "basket diameter — the baffle cutout, stored in m",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "141.5 mm",
+            "read_precision": 5e-05,
+            "read_value": 0.1415
+          }
+        }
+      },
+      "Cms_m_per_N": {
+        "definition": "suspension compliance (m/N)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.44 mm/N",
+            "read_precision": 5e-06,
+            "read_value": 0.00044
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "0.44 mm/N",
+            "read_precision": 5e-06,
+            "read_value": 0.00044
+          }
+        }
+      },
+      "Fs_hz": {
+        "definition": "free-air resonance frequency (Hz)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "30 Hz",
+            "read_precision": 0.5,
+            "read_value": 30.0
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "30 Hz",
+            "read_precision": 0.5,
+            "read_value": 30.0
+          }
+        }
+      },
+      "Le_H": {
+        "definition": "voice-coil inductance (H)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "1.5 mH",
+            "read_precision": 5e-05,
+            "read_value": 0.0015
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "1.5 mH",
+            "read_precision": 5e-05,
+            "read_value": 0.0015
+          }
+        }
+      },
+      "Mms_kg": {
+        "definition": "moving mass including air load — stored in kg, not g",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "63.8g",
+            "read_precision": 5e-05,
+            "read_value": 0.0638
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "63.8g",
+            "read_precision": 5e-05,
+            "read_value": 0.0638
+          }
+        }
+      },
+      "Pe_W": {
+        "definition": "rated thermal power handling (W, IEC 268-5)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "70 watts",
+            "read_precision": 0.5,
+            "read_value": 70.0
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "70 watts",
+            "read_precision": 0.5,
+            "read_value": 70.0
+          }
+        }
+      },
+      "Qes": {
+        "definition": "electrical Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.37",
+            "read_precision": 0.005,
+            "read_value": 0.37
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "0.37",
+            "read_precision": 0.005,
+            "read_value": 0.37
+          }
+        }
+      },
+      "Qms": {
+        "definition": "mechanical Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "2.99",
+            "read_precision": 0.005,
+            "read_value": 2.99
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "2.99",
+            "read_precision": 0.005,
+            "read_value": 2.99
+          }
+        }
+      },
+      "Qts": {
+        "definition": "total Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.33",
+            "read_precision": 0.005,
+            "read_value": 0.33
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "0.33",
+            "read_precision": 0.005,
+            "read_value": 0.33
+          }
+        }
+      },
+      "Re_ohm": {
+        "definition": "DC voice coil resistance (Ω)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "4.7 ohms",
+            "read_precision": 0.05,
+            "read_value": 4.7
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "4.7 ohms",
+            "read_precision": 0.05,
+            "read_value": 4.7
+          }
+        }
+      },
+      "SPL_dB": {
+        "definition": "sensitivity (dB)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "83 dB@2.83V/1m",
+            "note": "2.83V/1m",
+            "read_precision": 0.5,
+            "read_value": 83.0
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "83 dB @ 2.83V/1m",
+            "note": "2.83V/1m",
+            "read_precision": 0.5,
+            "read_value": 83.0
+          }
+        }
+      },
+      "Sd_m2": {
+        "definition": "effective piston area — stored in m², not cm²",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "126.3 cm²",
+            "read_precision": 5e-06,
+            "read_value": 0.01263
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "126.3 cm²",
+            "read_precision": 5e-06,
+            "read_value": 0.01263
+          }
+        }
+      },
+      "VCCon": {
+        "definition": "voice-coil wiring the published T/S was measured in, by name: series or parallel",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "All specifications measured with voice coils wired in series.",
+            "read_value": "series"
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "Note: All specifications measured with the voice coils wired in series for a 4-ohm load.",
+            "read_value": "series"
+          }
+        }
+      },
+      "Vas_m3": {
+        "definition": "equivalent compliance volume — stored in m³, not litres",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "10 liters",
+            "read_precision": 0.0005,
+            "read_value": 0.01
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "10 liters",
+            "read_precision": 0.0005,
+            "read_value": 0.01
+          }
+        }
+      },
+      "Vcd_m": {
+        "definition": "voice coil diameter — stored in m, not mm",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "38 mm",
+            "read_precision": 0.0005,
+            "read_value": 0.038
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "38 mm",
+            "read_precision": 0.0005,
+            "read_value": 0.038
+          }
+        }
+      },
+      "Xmax_m": {
+        "definition": "one-way linear excursion limit — stored in m, not mm",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "12 mm **",
+            "read_precision": 0.0005,
+            "read_value": 0.012
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "12 mm",
+            "read_precision": 0.0005,
+            "read_value": 0.012
+          }
+        }
+      },
+      "Znom_ohm": {
+        "definition": "nominal impedance (Ω)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "2 + 2 ohms *",
+            "read_precision": 0.5,
+            "read_value": 2.0
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "2 + 2 ohms",
+            "read_precision": 0.5,
+            "read_value": 2.0
+          }
+        }
+      },
+      "freq_high_hz": {
+        "definition": "usable/recommended frequency range, high end (Hz)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "1,000 Hz",
+            "read_precision": 0.5,
+            "read_value": 1000.0
+          }
+        }
+      },
+      "freq_low_hz": {
+        "definition": "usable/recommended frequency range, low end (Hz)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "25",
+            "read_precision": 0.5,
+            "read_value": 25.0
+          }
+        }
+      },
+      "numVC": {
+        "definition": "number of voice coils; 2 marks a dual-voice-coil driver",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "MX6-22 6-1/2\" Max-X High Excursion DVC Subwoofer Driver 2 Ohms Per Coil",
+            "read_precision": 0.5,
+            "read_value": 2.0
+          }
+        }
+      },
+      "power_peak_W": {
+        "definition": "short-term/peak power handling (W)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "140 watts",
+            "read_precision": 0.5,
+            "read_value": 140.0
+          }
+        }
+      }
+    }
+  },
+  "surround_material": {
+    "definition": "surround material (controlled vocabulary; unknown values DQ-flagged)",
+    "origin": "manufacturer_product_page",
+    "value": "Rubber"
+  },
+  "uuid": {
+    "definition": "stable record identity, minted by the pipeline at first emit and never re-derived",
+    "value": "4aa4d882-588b-4efa-8b61-cc2d82924c7d"
+  }
+}

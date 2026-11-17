@@ -1,0 +1,13 @@
+id: T853
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: ui-gallery passive radiator screens follow T840's Select / Info / Edit page
+why: "John, 16 Nov 2026: 'get my release finished and all the other matter'. Release prepare shoots the ui-gallery screens; since T840 five passive radiator screens fail (strict Save locator, timeouts)."
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T853.yml
+  - scripts/ui-gallery/README.md
+  - scripts/ui-gallery/capture.mjs
+  - scripts/ui-gallery/screens.mjs

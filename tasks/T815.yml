@@ -1,0 +1,42 @@
+id: T815
+release_note: internal
+repo: openisd
+owner: ship-guards
+status: done
+goal: Ship guards: recurring PR mistakes of 14-15 Nov are refused or caught before the PR opens
+why: John, 15 Nov 2026: decided ways of working are written down and enforced (QO923)
+done_test: bash scripts/land/test/ship-guards.test.sh && bash scripts/test.sh packages/ui/test/scripts/test-outcome.test.ts packages/ui/test/scripts/type-reach.test.ts
+files:
+  - tasks/T815.yml
+  - scripts/ship.sh
+  - scripts/land/pr.sh
+  - scripts/land/pr-queue.sh
+  - scripts/land/pr-fix.sh
+  - scripts/land/check-task-contract.sh
+  - scripts/land/run-done-test.sh
+  - scripts/land/core/task.sh
+  - scripts/land/unit-changed.sh
+  - scripts/land/unit-architecture.sh
+  - scripts/lib/typeReach.mjs
+  - scripts/lib/testOutcome.mjs
+  - scripts/extract-failing-tests.mjs
+  - scripts/analyze-telemetry.mjs
+  - scripts/rerun-failing-tests.mjs
+  - scripts/land/test/ship.test.sh
+  - scripts/land/test/ship-guards.test.sh
+  - packages/ui/test/scripts/test-outcome.test.ts
+  - packages/ui/test/scripts/type-reach.test.ts
+  - ship.conf
+  - docs/DEV_PROCESS.md
+  - docs/SDLC_POLICY.md
+  - .claude/rules/shipping.md
+  - .claude/rules/verify.md
+  - bugs/BUG_20261115_suite-summary-reads-result-status-not-outcome.md
+  - packages/ui/test/scripts/fixtures/pw-report-sample.json
+  - scripts/lib/testOutcome.d.mts
+  - scripts/ci/check-hold.sh
+  - scripts/land/test/hold.test.sh
+  - .github/workflows/pr.yml
+  - scripts/land/test/land-pull-request.e2e.test.sh
+  - packages/ui/test/scripts/fixtures/pw-run-report.json
+  - packages/ui/test/scripts/fixtures/pw-run-events.jsonl

@@ -16,7 +16,8 @@ cp -r "$REPO/scripts/visual" "$REPO/scripts/feedback" scripts/
 export VISUAL_PAGES_DIR="$SCRATCH/pages" VISUAL_PAGES_URL="http://example.test/pages"
 SNAP=packages/ui/test/visual/visual.browser.spec.ts-snapshots
 mkdir -p "$SNAP"
-png() { printf '\211PNG\r\n\032\n%s' "$1" > "$2"; }   # not a real picture; the scripts only move bytes
+. "$REPO/scripts/land/test/stamp-chunk.sh"
+png() { printf '\211PNG\r\n\032\n%s' "$1" > "$2"; stamp_chunk 7 >> "$2"; }   # not a real picture; the scripts only move bytes; stamped as a visual-retake run draws it (T799)
 png one "$SNAP/mobile-a.png"; png one "$SNAP/desktop-b.png"
 git add -A && git commit -qm base && base=$(git rev-parse HEAD)
 
@@ -27,6 +28,12 @@ git add -A && git commit -qm change && head=$(git rev-parse HEAD)
 
 task mobile-a mobile-c desktop-b
 bash scripts/visual/check-task.sh tasks/T1.yml "$base" "$head" > out.txt 2>&1 && ok "a task that lists every changed screen passes" || fail "listed change refused: $(cat out.txt)"
+
+# T762: a pull request carrying two tasks pools their visual lists
+task mobile-a mobile-c; printf 'id: T2\nvisual:\n  - desktop-b\n' > tasks/T2.yml
+bash scripts/visual/check-task.sh tasks/T1.yml tasks/T2.yml "$base" "$head" > out.txt 2>&1 && ok "two tasks together list every changed screen" || fail "pooled lists refused: $(cat out.txt)"
+bash scripts/visual/check-task.sh tasks/T1.yml "$base" "$head" > out.txt 2>&1 && fail "one task alone passed with a screen only the other lists" || ok "one task alone does not cover the other's screen"
+rm tasks/T2.yml
 
 task mobile-a mobile-c
 bash scripts/visual/check-task.sh tasks/T1.yml "$base" "$head" > out.txt 2>&1 \
@@ -43,7 +50,7 @@ bash scripts/visual/check-task.sh tasks/T1.yml "$head" "$head" > out.txt 2>&1 &&
 bash scripts/visual/publish-changes.sh T1 "$base" "$head" > out.txt 2>&1
 page="$VISUAL_PAGES_DIR/T1-$(git rev-parse --short=10 "$head")"
 grep -q "visual changes: http://example.test/pages/T1-.*/index.html" out.txt && [ -s "$page/index.html" ] && ok "a landed change publishes its page and prints the link" || fail "no page: $(cat out.txt)"
-[ "$(cat "$page/mobile-a.before.png" | tail -c3)" = one ] && [ "$(tail -c3 "$page/mobile-a.after.png")" = two ] && ok "the page holds the picture before and after" || fail "wrong pictures on the page"
+[ "$(head -c11 "$page/mobile-a.before.png" | tail -c3)" = one ] && [ "$(head -c11 "$page/mobile-a.after.png" | tail -c3)" = two ] && ok "the page holds the picture before and after" || fail "wrong pictures on the page"
 grep -q "mobile-c" "$page/index.md" && [ ! -e "$page/mobile-c.before.png" ] && [ -e "$page/mobile-c.after.png" ] && ok "a new screen shows no before" || fail "new screen wrong"
 [ -e "$page/desktop-b.before.png" ] && [ ! -e "$page/desktop-b.after.png" ] && ok "a removed screen shows no after" || fail "removed screen wrong"
 bash scripts/visual/publish-changes.sh T1 "$head" "$head" > out.txt 2>&1; [ ! -s out.txt ] && ok "no change publishes nothing" || fail "published for no change"

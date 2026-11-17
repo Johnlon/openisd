@@ -6,10 +6,12 @@
   <meta name="theme-color" content="#11151c">
   <title>Update OpenISD</title>
   <style>
-    :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #11151c; color: #e6edf3; }
+    @font-face { font-family: Selawik; font-weight: 400; font-style: normal; font-display: swap; src: url('selawik-400.woff2') format('woff2'); }
+    @font-face { font-family: Selawik; font-weight: 700; font-style: normal; font-display: swap; src: url('selawik-700.woff2') format('woff2'); }
+    :root { color-scheme: dark; font: 16px/1.5 Selawik; background: #11151c; color: #e6edf3; }
     body { min-height: 100svh; margin: 0; display: grid; place-items: center; padding: 24px; box-sizing: border-box; }
     main { width: min(32rem, 100%); text-align: center; }
-    h1 { margin: 0 0 .5rem; font-size: 1.5rem; }
+    h1 { margin: 0 0 .5rem; font-weight: 700; font-size: 1.5rem; }
     p { color: #aab7c4; }
     a { display: inline-block; margin-top: 1rem; padding: .75rem 1.25rem; border-radius: .5rem; background: #1976d2; color: white; text-decoration: none; }
     #status { min-height: 1.5em; }

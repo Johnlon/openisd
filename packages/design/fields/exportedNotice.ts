@@ -5,7 +5,8 @@ export type ExportedFile =
   | {readonly kind: 'brokenDriver'}
   | {readonly kind: 'everything'}
   | {readonly kind: 'storageLog'}
-  | {readonly kind: 'chartData'; readonly chart: string};
+  | {readonly kind: 'chartData'; readonly chart: string}
+  | {readonly kind: 'allChartData'; readonly charts: number};
 
 export interface ExportedNotice {
   readonly title: string;
@@ -31,5 +32,7 @@ export function exportedNotice(what: ExportedFile, fileName: string): ExportedNo
       return {title: 'Storage log exported', message: `Exported the storage log to ${fileName}.`, okLabel: OK};
     case 'chartData':
       return {title: 'Chart data downloaded', message: `Saved the ${what.chart} chart data to ${fileName}.`, okLabel: OK};
+    case 'allChartData':
+      return {title: 'All chart data exported', message: `Exported ${what.charts} ${what.charts === 1 ? 'chart' : 'charts'} to "${fileName}".`, okLabel: OK};
   }
 }

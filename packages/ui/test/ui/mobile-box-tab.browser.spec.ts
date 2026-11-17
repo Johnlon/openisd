@@ -70,8 +70,8 @@ test.describe('MobileBoxTab', () => {
   });
 
   // T211 (John, 16 Oct 2026, clear-to-blank ruling): an emptied vented volume settles to the volume
-  // the current alignment gives (10.69 L for the sample's driver; the project itself was saved at
-  // 10.70 L), never blank and never 0.
+  // the current alignment gives (10.70 L for the sample's driver: the app's one default alignment,
+  // C4, T726), never blank and never 0.
   test('emptying the box volume settles it to the alignment volume', async ({ appPage: page }) => {
     const input = mobileFieldRow(page, 'Vb').first().locator('input');
     await input.fill('40');
@@ -79,7 +79,7 @@ test.describe('MobileBoxTab', () => {
     await expect(input).toHaveValue(/^40/);
     await clearWithKeyboard(input);
     await input.blur();
-    await expect(input).toHaveValue('10.69');
+    await expect(input).toHaveValue('10.70');
   });
 
   test('shows the box-type select, the enclosure diagram, and a volume field', async ({ appPage: page }) => {
@@ -88,18 +88,21 @@ test.describe('MobileBoxTab', () => {
     await expect(page.locator('.ui-field-label', { hasText: 'Vb' }).first()).toBeVisible();
   });
 
-  test('a field DQ explanation expands its row instead of covering the next field', async ({ appPage: page }) => {
+  test('a field DQ explanation is a popup: the row keeps its box and the next field does not move', async ({ appPage: page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-    const qms = mobileFieldRow(page, 'Qms').first();
+    // Vb: the radiator's own figures moved to its editor (QO946.c115), the box's volume stays on the page.
+    const qms = mobileFieldRow(page, 'Vb').first();
     const next = qms.locator('xpath=following-sibling::*[contains(concat(" ", normalize-space(@class), " "), " mob-ui-field ")][1]');
+    const boxOf = (row: typeof qms) => row.evaluate(el => { const r = el.getBoundingClientRect(); return {y: r.y, width: r.width, height: r.height}; });
+    const qmsBefore = await boxOf(qms);
+    const nextBefore = await boxOf(next);
     await qms.locator('input').fill('-1');
     await qms.locator('input').blur();
-    const note = qms.locator('.ui-field-note');
-    await expect(note).toBeVisible();
+    await qms.locator('.ui-field-dq-btn').click();
+    await expect(qms.locator('.ui-field-note')).toBeVisible();
 
-    const noteBox = await note.evaluate(el => { const r = el.getBoundingClientRect(); return {y: r.y, height: r.height}; });
-    const nextBox = await next.evaluate(el => { const r = el.getBoundingClientRect(); return {y: r.y, height: r.height}; });
-    expect(noteBox.y + noteBox.height > nextBox.y + 1).toBe(false);
+    expect(await boxOf(qms)).toEqual(qmsBefore);
+    expect(await boxOf(next)).toEqual(nextBefore);
   });
 
   test('editing the volume writes the value through to the field', async ({ appPage: page }) => {
@@ -190,9 +193,9 @@ test.describe('MobileBoxTab', () => {
       await page.locator('.mob-tab', { hasText: 'Box' }).click();
       await page.locator('#mob-box-type').selectOption('box-passive-radiator');
       await expect(volumeInput(page)).not.toHaveValue('0.00');
-      // The PR name is an editable box since 1b15a8f9, so it is a value, not page text.
-      await expect(page.locator('#mob-pr-name')).toHaveValue('Dummy PR');
-      await expect(mobileFieldRow(page, 'Sd').locator('input')).not.toHaveValue('0.00');
+      // The phone shows the radiator by name, its Sd among its Key figures (QO946.c115, 12:57).
+      await expect(page.locator('#mob-pr-name-btn')).toHaveText('Dummy PR');
+      await expect(page.locator('#mob-pr-key-sd')).not.toHaveValue('0.00');
     }
 
     // eslint-disable-next-line playwright/expect-expect -- assertions live in the shared expect*Ready() helpers above

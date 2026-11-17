@@ -4,6 +4,7 @@ import {useApp} from '../../logic/app.js';
 import {STEPPER_PIN} from '../../logic/stepperPin.js';
 import {DRAG_CLOCK, REAL_DRAG_CLOCK} from '../../logic/dragClock.js';
 import {FIELD_EDIT_MODE} from '../../logic/fieldEditMode.js';
+import {ENTER_CLOSES_KEYBOARD} from '../../logic/enterClosesKeyboard.js';
 import {useNumInput, type NumInputProps} from '../../hooks/NumInput-hooks.js';
 
 defineOptions({inheritAttrs: false});
@@ -30,13 +31,19 @@ const {inputEl, unitEl, increaseEl, decreaseEl, isReadonly, keyboard, display, c
   dragClock: inject(DRAG_CLOCK, REAL_DRAG_CLOCK),
   attrs: useAttrs(),
 });
+/** In a phone Graph sheet the keyboard's Done key closes the keyboard (logic/enterClosesKeyboard.ts). */
+const enterCloses = inject(ENTER_CLOSES_KEYBOARD, false);
+function closeKeyboardOnEnter(e: KeyboardEvent): void {
+  if (enterCloses && e.key === 'Enter' && e.target instanceof HTMLInputElement) { e.preventDefault(); e.target.blur(); }
+}
+
 </script>
 
 <template>
   <span class="num-input-wrap">
-    <input ref="inputEl" v-bind="$attrs" :readonly="isReadonly" data-numinput type="text" :inputmode="keyboard" autocomplete="off" :value="display"
+    <input ref="inputEl" v-bind="$attrs" :readonly="isReadonly" data-numinput type="text" :inputmode="keyboard" :enterkeyhint="enterCloses ? 'done' : undefined" autocomplete="off" :value="display"
       :class="classes" :title="refusal !== '' ? refusal : helpText"
-      @focus="onFocus" @pointerdown="onBoxPointer" @pointerup="onBoxPointerUp" @dblclick="onBoxDoubleClick" @keydown="onKeydown" @keyup="onKeyup" @beforeinput="onBeforeInput" @paste="onPaste" @wheel="onWheel" @input="onInput" @blur="onBlur">
+      @focus="onFocus" @pointerdown="onBoxPointer" @pointerup="onBoxPointerUp" @dblclick="onBoxDoubleClick" @keydown="onKeydown($event); closeKeyboardOnEnter($event)" @keyup="onKeyup" @beforeinput="onBeforeInput" @paste="onPaste" @wheel="onWheel" @input="onInput" @blur="onBlur">
     <span v-if="underlineIndex !== null" class="num-mark-overlay" aria-hidden="true"><span class="num-mark-pre">{{ display.slice(0, underlineIndex) }}</span><span class="num-mark-underline">{{ display.slice(underlineIndex, underlineIndex + 1) }}</span><span class="num-mark-post">{{ display.slice(underlineIndex + 1) }}</span></span>
   </span>
   <span v-if="$slots.unit" ref="unitEl" class="num-unit" @focusin="onStepperFocus" @focusout="onStepperBlur" @keydown="onGroupKeydown"><slot name="unit" /></span>

@@ -26,7 +26,7 @@ test.describe('Unit toggle', () => {
 
     await label.click();           // L → cu ft
     await expect(label).toHaveText('cu ft');
-    await expect(vol).toHaveValue('0.212');             // 0.006 m³ × 35.3147, 3 dp
+    await expect(vol).toHaveValue('0.2119');            // 0.006 m³ × 35.3147 = 0.21189, shown to 4 significant figures (John, 10 Nov 2026, T742)
 
     // The unit the user chose survives a refresh.
     await page.reload({ waitUntil: 'domcontentloaded' });
@@ -99,7 +99,7 @@ test.describe('Unit toggle', () => {
     await expect(sv).toHaveValue(svBefore);          // unchanged ⇒ the model stayed in kelvin
   });
 
-  test('Voice coil temp rise, resistance TC, and added mass all convert, each keeping its own resolution', async ({ page }) => {
+  test('Voice coil temp rise, resistance TC, and added mass all convert, each keeping two-decimal display', async ({ page }) => {
     await page.locator('.project-nav li', { hasText: 'Driver' }).click();
 
     // Voice coil temp rise: K → °F is a DIFFERENCE conversion (×1.8, no offset — distinct from
@@ -120,7 +120,7 @@ test.describe('Unit toggle', () => {
     const tc = tcField.locator('input');
     const tcUnit = tcField.locator('.ui-field-unit');
     await expect(tcUnit).toHaveText('1000/K');
-    await expect(tc).toHaveValue('3.9000');
+    await expect(tc).toHaveValue('3.90');
     await tcUnit.click();                         // 1000/K → %/K
     await expect(tcUnit).toHaveText('%/K');
     expect(parseFloat(await tc.inputValue())).toBeCloseTo(0.39, 3);
@@ -137,7 +137,7 @@ test.describe('Unit toggle', () => {
     await madd.blur();
     await maddUnit.click();                       // g → kg
     await expect(maddUnit).toHaveText('kg');
-    await expect(madd).toHaveValue('0.10000000');
+    await expect(madd).toHaveValue('0.10');
     expect(parseFloat(await madd.inputValue())).toBeCloseTo(0.1, 3);
   });
 });

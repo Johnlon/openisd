@@ -4,6 +4,23 @@ export function formatFixed(v: number, decimals: number): string {
   return v.toFixed(decimals);
 }
 
+/**
+ * `v` to `decimals` places with trailing zeros dropped down to two decimals (or `decimals` when
+ * fewer): 14.7 at 5 is "14.70", 7.1734 is "7.1734", 0.57 at 3 is "0.57" (John, QO454, 8 Nov 2026).
+ */
+export function formatTrimmed(v: number, decimals: number): string {
+  return formatTrimmedTo(v, decimals, Math.min(decimals, 2));
+}
+
+/** `v` to `decimals` places with trailing zeros dropped down to `keep` decimals (never more than `decimals`). */
+export function formatTrimmedTo(v: number, decimals: number, keep: number): string {
+  const out = v.toFixed(decimals);
+  let end = out.length;
+  for (let d = decimals; d > keep && out.charAt(end - 1) === '0'; d--) end--;
+  if (out.charAt(end - 1) === '.') end--; // every decimal went: no dangling point
+  return out.slice(0, end);
+}
+
 /** `v` to `decimals` places; a dash when `v` is missing or not finite. */
 export function formatFixedOrDash(v: number | null, decimals: number): string {
   return v != null && isFinite(v) ? v.toFixed(decimals) : '—';
@@ -68,6 +85,15 @@ export function dateStampFrom(text: string, previous: string): string {
   return d ? `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}` : previous;
 }
 
+/** "2026-11-16" for a Date added held as WinISD's stamp "20261116" or already as an ISO day; any other
+ *  text is returned as stored. Catalogue records hold the dashed form, new records the stamp, and
+ *  every Date added box shows the dashed one. */
+export function isoDay(stored: string): string {
+  const m = STAMP.exec(stored) ?? ISO_DAY.exec(stored);
+  const d = m ? realDay(Number(m[1]), Number(m[2]), Number(m[3])) : null;
+  return d ? `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}` : stored;
+}
+
 const BASIC_UTC = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/;
 
 /** The instant an ISO 8601 basic UTC stamp names — "20260101T0102Z", "20260101T010203Z", a leading
@@ -110,3 +136,6 @@ export function formatSignificant(v: number): string {
   const scale = 10 ** places;
   return (Math.round(v * scale) / scale).toFixed(places);
 }
+
+/** Most significant digits a phone number box shows; the stored value keeps its full precision (360 px boxes clip longer text). */
+export const PHONE_MAX_SIGNIFICANT = 6;

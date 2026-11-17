@@ -1,0 +1,27 @@
+id: T852
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Passive radiator Date added shows in one format everywhere (issue 157)
+why: "BUG_20261116_pr-date-added-two-formats (issue 157): Define new writes 20261116, Edit shows 2026-09-12."
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T852.yml
+  - bugs/BUG_20261116_pr-date-added-two-formats.md
+  - packages/design/fields/format.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/format-date.test.ts
+  - packages/ui/src/hooks/passiveRadiatorEditor.ts
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/test/hooks/passiveRadiatorEditor.test.ts
+  - packages/ui/src/logic/driverDisplay.ts
+  - packages/ui/src/hooks/passiveRadiatorActions.ts
+  - packages/ui/test/logic/driverDisplay.test.ts
+  - packages/ui/test/hooks/passiveRadiatorActions.test.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-passive-radiator-info.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-pr-info.png
+visual:
+  - desktop-dialog-enclosure-passive-radiator-info
+  - mobile-dialog-pr-info
+visual_note: "Radiator Info shows Date added dashed (2026-11-16 style); the only pixels that change are that date text (desktop box 705,432-739,441; phone 141,268-177,277)."

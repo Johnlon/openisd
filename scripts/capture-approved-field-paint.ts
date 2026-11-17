@@ -1,6 +1,6 @@
 import {chromium} from '@playwright/test';
 import {writeFileSync,mkdirSync} from 'node:fs';
-import {SCREENS} from '../packages/ui/test/visual/screens.js';
+import {PAGE_SCREENS} from '../packages/ui/test/visual/screens.js';
 import {measureUnitPaint} from '../packages/ui/test/fixtures/referenceUnitPaint.js';
 const url='http://127.0.0.1:4607';
 const out='build/ui-contract/approved-607-paint.json';mkdirSync('build/ui-contract',{recursive:true});
@@ -22,7 +22,7 @@ try{
   if(entry)catalogue[id]=entry;
  }
  await context.close();
- let index=0;const selected=SCREENS.filter(screen=>screen.name!=='empty');
+ let index=0;const selected=PAGE_SCREENS.filter(screen=>screen.name!=='empty');
  await Promise.all([0,1].map(async()=>{while(index<selected.length){const screen=selected[index++],context=await browser.newContext({baseURL:url}),page=await context.newPage();page.setDefaultTimeout(15000);const errors:string[]=[];page.on('pageerror',error=>errors.push(error.message));try{await page.addLocatorHandler(page.getByRole('alertdialog',{name:'Your projects may not be kept'}),async notice=>notice.getByRole('button',{name:'Close',exact:true}).click());await page.goto('/');await page.waitForFunction(()=>!!navigator.serviceWorker?.controller,undefined,{timeout:20000});await page.locator('#loading-overlay').waitFor({state:'hidden'});await screen.open(page);await page.evaluate(()=>document.fonts.ready.then(()=>{}));const rows=[];for(const unit of await page.locator('.unit-label:visible').all()){const owner=await unit.evaluate(element=>({field:element.closest('[data-field]')?.getAttribute('data-field'),symbol:element.textContent,toggle:element.classList.contains('unit-toggle')}));rows.push({...owner,paint:await unit.evaluate(measureUnitPaint)});}if(errors.length)throw new Error(errors.join('; '));screens[screen.skin.name+'/'+screen.name]=rows;console.log('REFERENCE '+screen.skin.name+'/'+screen.name+' '+rows.length);}finally{await context.close();}}}));
  writeFileSync(out,JSON.stringify({provenance:{url,build,capturedAt:new Date().toISOString(),selection:'John accepted the mobile607appearance for test deployment. Desktop paint is observed candidate evidence awaiting desktop review. This freezes paint, not approval of additional use cases.'},catalogue,screens},null,2));console.log(JSON.stringify({out,catalogue:Object.keys(catalogue).length,screens:Object.keys(screens).length}));
 }finally{await browser.close();}

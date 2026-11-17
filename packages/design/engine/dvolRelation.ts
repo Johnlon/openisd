@@ -20,6 +20,13 @@
  *
  * The four expressions are algebraically equivalent inverses of one relation (WINISD_SCHEMA:
  * "checked against each other algebraically and agree exactly — the inverses are not fits").
+ *
+ * WinISD applies the formulas to any positive inputs and writes whatever comes out; OpenISD
+ * does not (BUG_20261115_calculated-dimension-contradicts-its-own-geometry): a result that
+ * contradicts the geometry it came from is refused. The model fixes the bounds:
+ *   - the cone height `Depth - MagDepth` is positive, so `0 < MagDepth < Depth`.
+ * No bound on `Magnet` beyond its radicand being positive: the relation itself says nothing more of it.
+ * A refused direction leaves its field not-available, and `geometryRefusal` says why.
  */
 
 export interface DvolInputs {
@@ -35,52 +42,102 @@ function crossSection(Dd: number, Vcd: number): number {
   return Dd * Dd + Dd * Vcd + Vcd * Vcd;
 }
 
-/**
- * `DVol` from the other four. Guarded on every input being strictly positive and `Depth >
- * MagDepth` (the cone's height must be positive) — WINISD_SCHEMA's binary trace guards the target
- * being unset and every other participant being strictly greater than zero; a non-positive cone
- * height is the one case that formula alone cannot rule out but is physically impossible (the
- * magnet would be deeper than the whole driver). Returns `null` rather than a nonsensical value.
- */
+/** The relation's four directions, each unbounded: the algebra alone, `null` only where it has no
+ *  answer (a zero denominator, a negative radicand). */
+function rawDvol(i: {Dd: number; Vcd: number; Depth: number; MagDepth: number; Magnet: number}): number {
+  const S = crossSection(i.Dd, i.Vcd);
+  return (Math.PI / 4) * (S * (i.Depth - i.MagDepth) / 3 + i.Magnet * i.Magnet * i.MagDepth);
+}
+function rawDepth(i: {Dd: number; Vcd: number; DVol: number; MagDepth: number; Magnet: number}): number {
+  const S = crossSection(i.Dd, i.Vcd);
+  return (Math.PI * i.MagDepth * (S - 3 * i.Magnet * i.Magnet) + 12 * i.DVol) / (Math.PI * S);
+}
+function rawMagDepth(i: {Dd: number; Vcd: number; DVol: number; Depth: number; Magnet: number}): number | null {
+  const S = crossSection(i.Dd, i.Vcd);
+  const denom = S - 3 * i.Magnet * i.Magnet;
+  return denom > 0 ? (Math.PI * S * i.Depth - 12 * i.DVol) / (Math.PI * denom) : null;
+}
+function rawMagnet(i: {Dd: number; Vcd: number; DVol: number; Depth: number; MagDepth: number}): number | null {
+  const S = crossSection(i.Dd, i.Vcd);
+  const radicand = (12 * i.DVol - Math.PI * S * (i.Depth - i.MagDepth)) / (3 * Math.PI * i.MagDepth);
+  return radicand > 0 ? Math.sqrt(radicand) : null;
+}
+
+const positive = (...xs: number[]): boolean => xs.every(x => x > 0);
+
+/** `DVol` from the other four. Guarded on every input being strictly positive and `Depth >
+ *  MagDepth` (the cone's height must be positive): a magnet deeper than the whole driver is
+ *  physically impossible. Returns `null` rather than a nonsensical value. */
 export function dvolFromDims(i: Pick<DvolInputs, 'Dd' | 'Vcd' | 'Depth' | 'MagDepth' | 'Magnet'>): number | null {
-  const { Dd, Vcd, Depth, MagDepth, Magnet } = i;
-  if (!(Dd > 0 && Vcd > 0 && Depth > 0 && MagDepth > 0 && Magnet > 0)) return null;
-  if (!(Depth > MagDepth)) return null;
-  const S = crossSection(Dd, Vcd);
-  return (Math.PI / 4) * (S * (Depth - MagDepth) / 3 + Magnet * Magnet * MagDepth);
+  if (!positive(i.Dd, i.Vcd, i.Depth, i.MagDepth, i.Magnet) || !(i.Depth > i.MagDepth)) return null;
+  return rawDvol(i);
 }
 
-/** `Depth` from `DVol` and the other three. Same positivity guard; `S` is always > 0 for
- *  positive `Dd`/`Vcd`, so no division-by-zero guard is needed on this direction. */
-export function depthFromDims(i: { Dd: number; Vcd: number; DVol: number; MagDepth: number; Magnet: number }): number | null {
-  const { Dd, Vcd, DVol, MagDepth, Magnet } = i;
-  if (!(Dd > 0 && Vcd > 0 && DVol > 0 && MagDepth > 0 && Magnet > 0)) return null;
-  const S = crossSection(Dd, Vcd);
-  return (Math.PI * MagDepth * (S - 3 * Magnet * Magnet) + 12 * DVol) / (Math.PI * S);
+/** `Depth` from `DVol` and the other three. Refused when the result does not clear the magnet
+ *  (`Depth <= MagDepth`: no cone left). */
+export function depthFromDims(i: {Dd: number; Vcd: number; DVol: number; MagDepth: number; Magnet: number}): number | null {
+  if (!positive(i.Dd, i.Vcd, i.DVol, i.MagDepth, i.Magnet)) return null;
+  const depth = rawDepth(i);
+  return depth > i.MagDepth ? depth : null;
 }
 
-/** `MagDepth` from `DVol` and the other three. Guarded additionally on the denominator
- *  `S − 3·Magnet²` being strictly positive — WinISD's own trace guards this block identically
- *  (`RE_GHIDRA_FINDINGS.md`: "the target must be zero and all five other participants strictly
- *  greater than zero"); a non-positive denominator has no physical driver behind it. */
-export function magDepthFromDims(i: { Dd: number; Vcd: number; DVol: number; Depth: number; Magnet: number }): number | null {
-  const { Dd, Vcd, DVol, Depth, Magnet } = i;
-  if (!(Dd > 0 && Vcd > 0 && DVol > 0 && Depth > 0 && Magnet > 0)) return null;
-  const S = crossSection(Dd, Vcd);
-  const denom = S - 3 * Magnet * Magnet;
-  if (!(denom > 0)) return null;
-  return (Math.PI * S * Depth - 12 * DVol) / (Math.PI * denom);
+/** `MagDepth` from `DVol` and the other three. Refused when the denominator `S - 3*Magnet^2` is not
+ *  strictly positive, and when the result is not strictly between 0 and `Depth`. The denominator
+ *  is the difference of two nearly equal areas for a driver whose magnet is as wide as its cone, so
+ *  the same inputs can give a result of metres. */
+export function magDepthFromDims(i: {Dd: number; Vcd: number; DVol: number; Depth: number; Magnet: number}): number | null {
+  if (!positive(i.Dd, i.Vcd, i.DVol, i.Depth, i.Magnet)) return null;
+  const magDepth = rawMagDepth(i);
+  return magDepth !== null && magDepth > 0 && magDepth < i.Depth ? magDepth : null;
 }
 
-/** `Magnet` from `DVol` and the other three. The inverse takes a square root — WINISD_SCHEMA notes
- *  WinISD's own trace does too ("the `Magnet` inverse also takes `fsqrt`, so a physically
- *  impossible input set yields a NaN rather than a refusal"); this implementation refuses
- *  instead, returning `null` whenever the radicand is not positive. */
-export function magnetFromDims(i: { Dd: number; Vcd: number; DVol: number; Depth: number; MagDepth: number }): number | null {
-  const { Dd, Vcd, DVol, Depth, MagDepth } = i;
-  if (!(Dd > 0 && Vcd > 0 && DVol > 0 && Depth > 0 && MagDepth > 0)) return null;
-  const S = crossSection(Dd, Vcd);
-  const radicand = (12 * DVol - Math.PI * S * (Depth - MagDepth)) / (3 * Math.PI * MagDepth);
-  if (!(radicand > 0)) return null;
-  return Math.sqrt(radicand);
+/** `Magnet` from `DVol` and the other three. Refused when the radicand is not positive. */
+export function magnetFromDims(i: {Dd: number; Vcd: number; DVol: number; Depth: number; MagDepth: number}): number | null {
+  if (!positive(i.Dd, i.Vcd, i.DVol, i.Depth, i.MagDepth)) return null;
+  const magnet = rawMagnet(i);
+  return magnet;
+}
+
+export type GeometryTarget = 'DVol' | 'Depth' | 'MagDepth' | 'Magnet';
+
+/** Millimetres as a short sentence figure: whole above 100 mm, three figures below. */
+function mm(metres: number): string {
+  const v = metres * 1000;
+  return `${Math.abs(v) >= 100 ? Math.round(v) : Number(v.toPrecision(3))} mm`;
+}
+
+/**
+ * Why `target` was not calculated, when every participant is stated and positive yet the relation's
+ * answer contradicts the geometry (see the bounds above); `null` when it was calculated, or a
+ * participant is missing. The sentence a user reads on the field.
+ */
+export function geometryRefusal(target: GeometryTarget, v: Partial<Record<'Dd' | 'Vcd' | 'DVol' | 'Depth' | 'MagDepth' | 'Magnet', number>>): string | null {
+  const {Dd, Vcd, DVol, Depth, MagDepth, Magnet} = v;
+  const tail = `Check the other dimensions, or enter ${target} yourself.`;
+  if (Dd === undefined || Vcd === undefined || !positive(Dd, Vcd)) return null;
+  switch (target) {
+    case 'DVol':
+      if (Depth === undefined || MagDepth === undefined || Magnet === undefined || !positive(Depth, MagDepth, Magnet)) return null;
+      return Depth > MagDepth ? null
+        : `DVol was not calculated: MagDepth (${mm(MagDepth)}) is not less than Depth (${mm(Depth)}), so there is no cone left. ${tail}`;
+    case 'Depth': {
+      if (DVol === undefined || MagDepth === undefined || Magnet === undefined || !positive(DVol, MagDepth, Magnet)) return null;
+      const r = rawDepth({Dd, Vcd, DVol, MagDepth, Magnet});
+      return r > MagDepth ? null
+        : `Depth was not calculated: the other dimensions give ${mm(r)}, which is not deeper than the magnet (MagDepth ${mm(MagDepth)}). ${tail}`;
+    }
+    case 'MagDepth': {
+      if (DVol === undefined || Depth === undefined || Magnet === undefined || !positive(DVol, Depth, Magnet)) return null;
+      const r = rawMagDepth({Dd, Vcd, DVol, Depth, Magnet});
+      if (r === null) return `MagDepth was not calculated: Magnet (${mm(Magnet)}) is as wide as the cone allows, so the dimensions cannot fix it. ${tail}`;
+      if (r > 0 && r < Depth) return null;
+      return `MagDepth was not calculated: the other dimensions give ${mm(r)}, which is ${r <= 0 ? 'not a depth' : `deeper than the driver itself (Depth ${mm(Depth)})`}. ${tail}`;
+    }
+    case 'Magnet': {
+      if (DVol === undefined || Depth === undefined || MagDepth === undefined || !positive(DVol, Depth, MagDepth)) return null;
+      const r = rawMagnet({Dd, Vcd, DVol, Depth, MagDepth});
+      if (r === null) return `Magnet was not calculated: DVol is too small for a cone ${mm(Depth - MagDepth)} tall, so no magnet diameter fits. ${tail}`;
+      return null;
+    }
+  }
 }

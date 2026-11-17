@@ -13,7 +13,7 @@ async function openParameters(page: Page) {
   await page.goto('/');
   await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+  await page.locator('.edit-btn[title^="Full editor for this driver"]').click();
   await page.locator('.de-body').waitFor({ state: 'visible' });
   await page.getByRole('button', { name: 'Parameters', exact: true }).click();
 }

@@ -1,4 +1,5 @@
 import type {BoxType} from '../engine/index.js';
+import type {VentShape} from '../domain/vent.js';
 import {NumberField} from './field.js';
 import {PHONE_FILTER_CHIPS, PhoneHelp, type PhoneHelpRow, PhoneHelpRows, PhoneHelpSection, type PhoneFilterChip} from './phoneText.js';
 
@@ -10,10 +11,24 @@ export class DesktopLabels {
   static readonly VOICE_COIL_CONNECTION = 'Voice coil connection';
   static readonly ANGLE = 'Angle';
   static readonly VENT_SHAPE = 'Shape';
-  static readonly VENT_COUNT = 'Number';
+  static readonly VENT_COUNT = 'Number of ports';
   static readonly VENT_END_CORRECTION = 'End Correction';
   static readonly SELECT_PASSIVE_RADIATOR = 'Select passive radiator';
-  static readonly SAVE_PASSIVE_RADIATOR = 'Save to library';
+  /** The Passive Radiator page's Edit, drawn as the Driver page's (✎ Edit). */
+  static readonly EDIT_PASSIVE_RADIATOR = '✎ Edit';
+
+  /** The word on the port shape button for a shape. */
+  static ventShapeWord(shape: VentShape): string {
+    switch (shape) {
+      case 'round': return 'Round';
+      case 'slotted': return 'Slotted';
+    }
+  }
+
+  /** The port shape button's accessible name and tooltip: the shape now, and the shape a press switches to. */
+  static ventShapeToggleName(shape: VentShape, next: VentShape): string {
+    return `Port shape: ${DesktopLabels.ventShapeWord(shape)}. Press to switch to ${DesktopLabels.ventShapeWord(next)}`;
+  }
 
   /** The Filters tab's quick-add button for a filter type. */
   static addFilter(chip: PhoneFilterChip): string {
@@ -53,9 +68,9 @@ const FILTER_ROWS: readonly PhoneHelpRow[] = PHONE_FILTER_CHIPS.map(chip => {
  * line for is written here.
  */
 export class DesktopHelp {
-  static readonly PLACEMENT = new PhoneHelpSection('Placement', 'How many drivers the box holds and how they are wired.', [
+  static readonly PLACEMENT = new PhoneHelpSection('Placement', 'How many drivers the box holds and how you wire a multi-coil driver in this project.', [
     captioned(PhoneHelpRows.DRIVERS, DesktopLabels.NUM_DRIVERS),
-    captioned(PhoneHelpRows.CONNECTION, DesktopLabels.VOICE_COIL_CONNECTION),
+    PhoneHelpRows.COIL_WIRING,
   ]);
 
   static readonly ADVANCED_OPTIONS = new PhoneHelpSection('Advanced options', 'Extra driver settings: how hot the voice coil runs and mass added to the cone.', [
@@ -88,7 +103,8 @@ export class DesktopHelp {
 
   static readonly PASSIVE_RADIATOR = new PhoneHelpSection(PhoneHelp.PASSIVE_RADIATOR.title, PhoneHelp.PASSIVE_RADIATOR.intro, [
     captioned(PhoneHelpRows.SELECT_PR, DesktopLabels.SELECT_PASSIVE_RADIATOR),
-    captioned(PhoneHelpRows.SAVE_PR, DesktopLabels.SAVE_PASSIVE_RADIATOR),
+    PhoneHelpRows.PR_INFO,
+    captioned(PhoneHelpRows.PR_EDIT, DesktopLabels.EDIT_PASSIVE_RADIATOR),
     captioned(PhoneHelpRows.PR_FS, NumberField.PR_FS_HZ.label),
     captioned(PhoneHelpRows.PR_QMS, NumberField.PR_QMS.label),
     captioned(PhoneHelpRows.PR_VAS, NumberField.PR_VAS_L.label),

@@ -10,6 +10,15 @@ export class DesktopSizes {
   static readonly STEPPER_W_PX = 18;
   /** The label column of a field row, where the row does not choose its own. */
   static readonly LABEL_COL_PX = 150;
+  /** The slot after every desktop field label, where its ⚠ shows: the only blank between the longest label of a
+   *  group and the group's boxes, the same on every screen (John, QO466.c12, QO449.c16). */
+  static readonly LABEL_SLOT_PX = 22;
+  /** The widest blank allowed between a group's longest label and its box: the warning slot and 10 px (John, 10 Nov 2026: "there is tons of empty space, don't blame the label"). */
+  static readonly MAX_LABEL_GAP_PX = DesktopSizes.LABEL_SLOT_PX + 10;
+  /** The CSS variable a field row reads for its label column: set per group to `labelColumnPx`. */
+  static readonly LABEL_COLUMN_VAR = '--label-w';
+  /** The CSS variable for the label column of a row whose group has not been measured yet: `LABEL_COL_PX`. */
+  static readonly DEFAULT_LABEL_COLUMN_VAR = '--ctl-label-w';
   /** The smallest width of a footer button (Back, Next, Cancel, OK, Close). */
   static readonly FOOTER_BTN_W_PX = 84;
   /** The height of a footer button. */
@@ -20,10 +29,18 @@ export class DesktopSizes {
     return new Map([
       ['--ctl-h', `${DesktopSizes.CONTROL_H_PX}px`],
       ['--ctl-stepper-w', `${DesktopSizes.STEPPER_W_PX}px`],
-      ['--ctl-label-w', `${DesktopSizes.LABEL_COL_PX}px`],
+      [DesktopSizes.DEFAULT_LABEL_COLUMN_VAR, `${DesktopSizes.LABEL_COL_PX}px`],
+      ['--ctl-label-slot', `${DesktopSizes.LABEL_SLOT_PX}px`],
       ['--ctl-btn-w', `${DesktopSizes.FOOTER_BTN_W_PX}px`],
       ['--ctl-btn-h', `${DesktopSizes.FOOTER_BTN_H_PX}px`],
     ]);
+  }
+
+  /** The label column of a group of field rows: its longest label's text, rounded up to whole pixels, and the
+   *  slot after it, when the group's rows can show a warning. Every row in the group takes this one width, so
+   *  their boxes share one left edge. */
+  static labelColumnPx(textWidthsPx: readonly number[], hasWarningSlot: boolean): number {
+    return Math.ceil(Math.max(0, ...textWidthsPx)) + (hasWarningSlot ? DesktopSizes.LABEL_SLOT_PX : 0);
   }
 
   private constructor() {}

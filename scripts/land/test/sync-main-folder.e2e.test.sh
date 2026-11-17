@@ -24,6 +24,18 @@ chmod +x "$SCRATCH/systemctl"
 # The last green is kept on disk under the state dir, never under the runtime dir (/run is cleared at boot, T497).
 export SYNC_LOG="$SCRATCH/sync.log" SYNC_NPM="$SCRATCH/npm"; mkdir -p "$OPENISD_STATE_DIR"
 printf '#!/usr/bin/env bash\necho "npm $* in $PWD" >> "%s/npm.calls"\n' "$SCRATCH" > "$SCRATCH/npm"; chmod +x "$SCRATCH/npm"
+# T780: stub gh. Prints $SCRATCH/gh.json (the runs GitHub would list) through the caller's --jq filter and records
+# its arguments; fails when $SCRATCH/gh.fails is there. No test ever reaches GitHub.
+export SYNC_GH="$SCRATCH/gh"
+cat > "$SCRATCH/gh" <<STUB
+#!/usr/bin/env bash
+echo "\$*" >> "$SCRATCH/gh.calls"
+[ -e "$SCRATCH/gh.fails" ] && exit 1
+filter=.; while [ \$# -gt 0 ]; do [ "\$1" = --jq ] && filter="\$2"; shift; done
+[ -e "$SCRATCH/gh.json" ] || exit 0
+jq -r "\$filter" "$SCRATCH/gh.json"
+STUB
+chmod +x "$SCRATCH/gh"
 fails=0
 # T661: synced copies are read-only; make them writable before any delete
 trap 'chmod -R u+w "$SCRATCH" 2> /dev/null; rm -rf "$SCRATCH" "$GITCFG"' EXIT
@@ -35,7 +47,7 @@ GREEN="$OPENISD_STATE_DIR/post-land.green"
 # setup: origin with one commit; the main folder (a clone, as the real one); the preview, a detached worktree
 # of it listed in openisd.syncedCopy; a dev clone that lands commits.
 setup() {
-  chmod -R u+w "$SCRATCH/w" 2> /dev/null; rm -rf "$SCRATCH/w" "$SCRATCH/npm.calls" "$SCRATCH/systemctl.calls" "$SCRATCH/unit.exists" "$SCRATCH/restart.fails" "$SYNC_LOG"; mkdir -p "$SCRATCH/w"; cd "$SCRATCH/w" || exit 2
+  chmod -R u+w "$SCRATCH/w" 2> /dev/null; rm -rf "$SCRATCH/w" "$SCRATCH/npm.calls" "$SCRATCH/gh.json" "$SCRATCH/gh.calls" "$SCRATCH/gh.fails" "$OPENISD_STATE_DIR/sync-main-folder.green" "$GREEN" "$SCRATCH/systemctl.calls" "$SCRATCH/unit.exists" "$SCRATCH/restart.fails" "$SYNC_LOG"; mkdir -p "$SCRATCH/w"; cd "$SCRATCH/w" || exit 2
   git init -q --bare -b main origin.git
   git clone -q origin.git dev 2> /dev/null
   printf 'a\n' > dev/a.txt; printf 'q1\n' > dev/questions.yml; printf 'lock1\n' > dev/package-lock.json
@@ -250,6 +262,76 @@ w1=0; { echo x >> main/a.txt; } 2> /dev/null && w1=1
 if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ "$(head_of preview)" = "$(head_of dev)" ] && [ $w1 = 0 ] && [ -z "$(git -C main status --porcelain --untracked-files=no)" ]; then
   ok "a locked copy still moves to the next passed commit and is locked again"
 else fail "relock (r=$r tracked=$w1): $(tail -3 "$SCRATCH/out")"; fi
+
+# 16. T780 (10 Nov 2026: the folder sat 19 h behind, post-land read the suite where it is skipped): the last green
+#     is also read from the repo where the suite runs (SHIP_REPO in origin/main's ship.conf): a successful first
+#     attempt of suite.yml on a push to main. The sync keeps it in its own record (sync-main-folder.green);
+#     post-land's record is never written.
+# commit <content>: a commit on origin/main that post-land never passed; prints its sha
+commit() { printf '%s\n' "$1" >> "$SCRATCH/w/dev/a.txt"; git -C "$SCRATCH/w/dev" commit -qam "c $1"; git -C "$SCRATCH/w/dev" push -q origin main; git -C "$SCRATCH/w/dev" rev-parse HEAD; }
+# shipconf: origin/main names the repo whose suite runs count
+shipconf() { printf 'SHIP_REMOTE=x\nSHIP_REPO=copy/openisd\n' > "$SCRATCH/w/dev/ship.conf"; git -C "$SCRATCH/w/dev" add ship.conf; git -C "$SCRATCH/w/dev" commit -qm shipconf; git -C "$SCRATCH/w/dev" push -q origin main; git -C "$SCRATCH/w/dev" rev-parse HEAD > "$GREEN"; }
+# runs <sha> <attempt> ...: what gh lists, newest first
+runs() { local j="" ; while [ $# -gt 0 ]; do j="$j${j:+,}{\"headSha\":\"$1\",\"attempt\":$2}"; shift 2; done; printf '[%s]\n' "$j" > "$SCRATCH/gh.json"; }
+OWN="$OPENISD_STATE_DIR/sync-main-folder.green"
+sync16() { bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; }
+
+setup; shipconf; rec=$(cat "$GREEN"); touch -d '3 hours ago' "$GREEN"; stamp=$(stat -c %Y "$GREEN")
+g1=$(commit g1); g2=$(commit g2); tip=$(commit tip); runs "$g2" 1 "$g1" 1
+sync16; r=$?
+if [ $r = 0 ] && [ "$(head_of main)" = "$g2" ] && [ "$(head_of preview)" = "$g2" ] && [ "$(cat "$OWN" 2> /dev/null)" = "$g2" ] \
+   && [ "$(cat "$GREEN")" = "$rec" ] && [ "$(stat -c %Y "$GREEN")" = "$stamp" ] \
+   && grep -q -- "--repo copy/openisd" "$SCRATCH/gh.calls" && grep -q -- "--event push" "$SCRATCH/gh.calls" && grep -q -- "--branch main" "$SCRATCH/gh.calls" \
+   && grep -q -- "--status success" "$SCRATCH/gh.calls" && grep -q -- "--workflow suite.yml" "$SCRATCH/gh.calls"; then
+  ok "T780: the copies move to the newest green push run of the suite on the ship repo, never the red tip; post-land's record is untouched"
+else fail "T780 green from GitHub (r=$r main=$(head_of main) g2=$g2 own=$(cat "$OWN" 2> /dev/null)): $(tail -3 "$SCRATCH/out"; cat "$SCRATCH/gh.calls" 2> /dev/null)"; fi
+# the runs listed out of order: the furthest-along commit wins
+setup; shipconf; g1=$(commit g1); g2=$(commit g2); runs "$g1" 1 "$g2" 1; sync16
+if [ "$(head_of main)" = "$g2" ]; then ok "T780: runs listed in any order: the furthest-along green commit is taken"
+else fail "T780 order (main=$(head_of main))"; fi
+# a re-run that passed is not a pass (a flaky spec is a red)
+setup; shipconf; rec=$(cat "$GREEN"); g1=$(commit g1); runs "$g1" 2; sync16; r=$?
+if [ $r = 0 ] && [ "$(head_of main)" = "$rec" ] && [ ! -e "$OWN" ]; then ok "T780: a success on a second attempt is ignored"
+else fail "T780 attempt 2 (r=$r main=$(head_of main))"; fi
+# a green run on a commit origin/main does not hold (the mirror lags, or a foreign sha) is ignored
+setup; shipconf; rec=$(cat "$GREEN"); printf 'x\n' >> dev/a.txt; git -C dev commit -qam unpushed; un=$(head_of dev)
+runs "$un" 1 0000000000000000000000000000000000000000 1; sync16; r=$?
+if [ $r = 0 ] && [ "$(head_of main)" = "$rec" ] && [ ! -e "$OWN" ]; then ok "T780: a green run on a commit not on origin/main is ignored"
+else fail "T780 not on main (r=$r main=$(head_of main))"; fi
+# never backward: GitHub lists only an older green than the one the folder is at
+setup; shipconf; g1=$(commit g1); g2=$(commit g2); runs "$g2" 1; sync16; runs "$g1" 1; sync16; r=$?
+if [ $r = 0 ] && [ "$(head_of main)" = "$g2" ] && [ "$(cat "$OWN")" = "$g2" ] && [ -z "$(git -C main branch --list 'stray/*')" ]; then
+  ok "T780: an older green from GitHub never moves the folder or the record backward"
+else fail "T780 backward (r=$r main=$(head_of main) g2=$g2)"; fi
+# gh fails, prints rubbish, or prints nothing: the recorded greens are used as before; the sync's own record is kept
+setup; shipconf; g1=$(commit g1); runs "$g1" 1; sync16; g2=$(commit g2)
+touch "$SCRATCH/gh.fails"; sync16; r1=$?; h1=$(head_of main); rm -f "$SCRATCH/gh.fails"
+printf 'not json <html>\n' > "$SCRATCH/gh.json"; sync16; r2=$?; h2=$(head_of main)
+: > "$SCRATCH/gh.json"; sync16; r3=$?; h3=$(head_of main)
+if [ "$r1$r2$r3" = 000 ] && [ "$h1$h2$h3" = "$g1$g1$g1" ] && [ "$(cat "$OWN")" = "$g1" ] && grep -q "cannot read copy/openisd" "$SYNC_LOG"; then
+  ok "T780: GitHub unreadable (failure, rubbish, nothing): the folder stays at the recorded green; logged"
+else fail "T780 gh unreadable (r=$r1$r2$r3 g1=$g1 h=$h1 $h2 $h3): $(tail -3 "$SCRATCH/out")"; fi
+# post-land's record ahead of the sync's own: the later of the two is used
+setup; shipconf; g1=$(commit g1); runs "$g1" 1; sync16; land a.txt later; s=$(head_of dev); : > "$SCRATCH/gh.json"; sync16; r=$?
+if [ $r = 0 ] && [ "$(head_of main)" = "$s" ]; then ok "T780: post-land's record ahead of the sync's own: the later one is used"
+else fail "T780 later record (r=$r main=$(head_of main) s=$s)"; fi
+# no ship.conf on origin/main: GitHub is not asked
+setup; land a.txt b; s=$(head_of dev); runs "$s" 1; sync16; r=$?
+if [ $r = 0 ] && [ "$(head_of main)" = "$s" ] && [ ! -e "$SCRATCH/gh.calls" ] && [ ! -e "$OWN" ]; then ok "T780: no ship.conf on origin/main: GitHub is not asked, post-land's record is used"
+else fail "T780 no ship.conf (r=$r calls=$(cat "$SCRATCH/gh.calls" 2> /dev/null))"; fi
+# --passed (land.sh) names the commit: GitHub is not asked
+setup; shipconf; g1=$(commit g1); g2=$(commit g2); runs "$g2" 1
+bash "$SYNC" --passed "$g1" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 0 ] && [ "$(head_of main)" = "$g1" ] && [ ! -e "$SCRATCH/gh.calls" ]; then ok "T780: --passed names the commit; GitHub is not asked"
+else fail "T780 --passed (r=$r main=$(head_of main))"; fi
+# two runs at once (processes.md rule 7): one syncs, the other leaves; one record, the folder at the green
+setup; shipconf; g1=$(commit g1); runs "$g1" 1
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/outa" 2>&1 & pa=$!
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/outb" 2>&1 & pb=$!
+wait "$pa"; ra=$?; wait "$pb"; rb=$?; sync16
+if [ "$ra$rb" = 00 ] && [ "$(head_of main)" = "$g1" ] && [ "$(cat "$OWN")" = "$g1" ] && [ -z "$(dirty main)" ] && [ -z "$(ls "$OPENISD_STATE_DIR" | grep -v -x -e post-land.green -e sync-main-folder.green)" ]; then
+  ok "T780: two syncs at once: both exit 0, the folder is at the green, one record, no leftover file"
+else fail "T780 concurrent (r=$ra$rb main=$(head_of main) state=$(ls "$OPENISD_STATE_DIR" | tr '\n' ' ')): $(tail -n 2 "$SCRATCH/outa"; tail -n 2 "$SCRATCH/outb")"; fi
 
 [ $fails = 0 ] && { echo "sync-main-folder.e2e: all passed"; exit 0; }
 echo "sync-main-folder.e2e: $fails failed"; exit 1

@@ -48,12 +48,12 @@ Three kinds of WinISD difference, handled differently:
   can be reproduced: OpenISD does the correct thing by default and provides a yellow bug switch
   that makes WinISD's calculation come back. Only a straight WinISD bug is yellow (John,
   2026-10-04): the driver model (two BLs), the VA model, the PR Npr resonance, the Bessel
-  high-pass, the ABC group delay, the per-driver impedance. The switch is off by default, with no exception, editable only where it applies, and
+  high-pass, the ABC group delay. The switch is off by default, with no exception, editable only where it applies, and
   looks different from ordinary switches even when off. While it is off, a ≠W Difference cue by
   the affected control (or chart) says what WinISD does. The bug switches sit in one group
   headed "Enable WinISD bugs", and each is a visible, listed WinISD issue: the switches are how OpenISD
   tells users what is wrong in WinISD, and they build trust. Record each as a
-  WinISD bug (a `bugs/BUG_*_winisd-*.md` file, a row in the "fixed by default" section of
+  WinISD finding (a `winisd_research/findings/FINDING_*.md` file in the winisd_research repo, a row in the "fixed by default" section of
   `docs/research/ACCURACY_IMPROVEMENTS.md`, and `docs/research/WINISD_PARITY.md`).
 - **A trigger, linkage or update bug** (an edit that does not recalculate where a load or another
   event does; a crash, hang or data loss) is NEVER copied and gets no switch: there is nothing to
@@ -174,7 +174,7 @@ site data, uninstall OpenISD, or lose saved projects to update. Every release th
 service-worker behavior MUST verify an upgrade from a previously installed worker in a persistent
 mobile browser profile. Keep automatic worker activation and controller takeover enabled; update checks
 must bypass HTTP caches. Reload only when there are no unsaved edits; otherwise offer the update and
-keep the current app usable. Keep /about/refresh/ as the recovery link for older workers, because old
+keep the current app usable. Unsaved edits survive a reload (every edit is written to the stored open-project session as it is made and comes back still unsaved), so the Reload and Force refresh question is asked only for what a reload really loses (the store refused the session, a read-only backup, driver editor values not applied, What-if values) and says which (T829, John 2026-11-15). Keep /about/refresh/ as the recovery link for older workers, because old
 workers bypass /about/ but may serve their cached app shell for a new top-level path. Never tell users
 to clear all site data: that can delete their projects.
 
@@ -224,12 +224,12 @@ work is an actual dependency, and consume their committed output on the integrat
 
 ## SDLC policy — always
 
-[`docs/SDLC_POLICY.md`](docs/SDLC_POLICY.md): John's standing orders. Main broken → fix it directly on main, only
-the fix, no branches or housekeeping; failing tests → one spec, then a cluster of 2–3, then the suite; release
+[`docs/SDLC_POLICY.md`](docs/SDLC_POLICY.md): John's standing orders. Finished tasks reach main only as a pull request through the merge queue
+(`bash scripts/ship.sh T<n>`; QO481); main broken → the fix is a PR labelled `fixes`, first in the queue; failing tests → one spec, then a cluster of 2–3, then the suite; release
 fixes before new work; agent sessions run in tmux under the keeper; a restarted agent coordinates before working.
 
 Driver model files (`openisdSchema.ts`, `openIsdDriverSpec.ts`, `driverSpecFieldName.ts`) change only with John's ruling,
-named as `ruling: QO<n>` in the task file; `land.sh` refuses otherwise (QO392, 3 Nov 2026).
+named as `ruling: QO<n>` in the task file; the PR check refuses otherwise (QO392, 3 Nov 2026).
 
 ## Loaded on demand
 

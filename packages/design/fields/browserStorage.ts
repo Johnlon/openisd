@@ -30,6 +30,15 @@ export function storageUseLine(use: StoredUse): string {
   return `${formatCountOf(use.projectCount, 'project')}, ${formatByteSize(use.localBytes)} of ${limit} used`;
 }
 
+/** What the user is told when the start-up update of saved projects is not done because the backup that
+ *  must come first does not fit. Nothing was changed. */
+export const UPGRADE_REFUSED_NOTICE = {
+  title: 'Saved projects not updated',
+  message: 'OpenISD could not update your saved projects for this version, because there is no room in this browser to back them up first. '
+    + 'Nothing was changed: your projects are exactly as you saved them and still open as usual. '
+    + 'To finish the update, export your projects or delete ones you no longer need, then restart OpenISD.',
+} as const;
+
 /** The Diagnostics line: "Persistent storage: granted"; "asking" before the browser answers. */
 export function persistenceLine(outcome: PersistOutcome | null): string {
   return `Persistent storage: ${outcome ?? 'asking'}`;

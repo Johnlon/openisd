@@ -9,8 +9,8 @@ describe('Rme and Mcost display at the registry precision', () => {
     expect(NumberField.RME_KG_PER_S.format(0.12345, undefined, 'kg/s')).toBe('0.12345');
   });
 
-  it('Mcost formats with 5 decimals', () => {
+  it('Mcost formats with at least 2 decimals, no trailing zeros', () => {
     expect(NumberField.MCOST_KG_PER_S.precision).toBe(5);
-    expect(NumberField.MCOST_KG_PER_S.format(0.5, undefined, 'kg/s')).toBe('0.50000');
+    expect(NumberField.MCOST_KG_PER_S.format(0.5, undefined, 'kg/s')).toBe('0.50');
   });
 });

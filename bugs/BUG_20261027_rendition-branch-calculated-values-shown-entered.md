@@ -1,5 +1,7 @@
 # Calculated values are painted as entered on the rendition branch
 
+**Status:** CLOSED, fixed: checked on main 8 Nov 2026, Fsc/Qtc blue, Signal Generator box not clipped. Closed by John on QO456, 8 Nov 2026.
+
 Status: fixed; (was open; detected in the first same-project production comparison, before claiming the branch ready.)
 
 Production v20261025T2233Z paints closed-box Fsc71.95 and Qtc0.707 blue. The local rendition branch at c120b6b11 plus the current working changes paints both green. The underlying inputs correctly carry value-c. The new generic green input rule failed to include the production provenance class in its calculated-value override. The catalogue used fixed bindings, so all44 numeric base forms still passed their paint test.

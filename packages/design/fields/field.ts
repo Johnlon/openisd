@@ -43,7 +43,7 @@ import {
   toSI as toSIDim, UNIT_GROUPS, unitFor,
 } from './dimensions.js';
 import {knownDecimals} from './precision.js';
-import {formatFixed} from './format.js';
+import {formatFixed, formatTrimmedTo} from './format.js';
 import type {FieldLimits} from './filterLimits.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
@@ -52,7 +52,7 @@ import {
 import type {SelectorOption} from './options.js';
 import type {SpinRule} from './spinnerStep.js';
 import {
-  ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, FILTER_TYPE_OPTIONS,
+  BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, FILTER_TYPE_OPTIONS,
   SEALED_ALIGNMENT_OPTIONS, VC_CONNECTION_OPTIONS, VENT_SHAPE_OPTIONS,
 } from './options.js';
 
@@ -138,6 +138,8 @@ interface NumberFieldSpec extends FieldSpec {
 
 /** A field holding a quantity: it has a band, a precision, and a display unit. */
 export class NumberField extends Field {
+  /** The fewest significant figures a number box shows (John, 10 Nov 2026, board option B). */
+  static readonly MIN_SIGNIFICANT = 4;
   readonly kind = 'number';
   readonly editor: NumberEditor;
   /** How the field is shown: one fixed symbol, or a `UnitGroup` the user may rotate through. */
@@ -200,8 +202,9 @@ export class NumberField extends Field {
     return toSIDim(this.unitFor(token), valueDisp);
   }
 
-  /** Format valueSI or Quantity into display string for this field using unit conversion & precision rules. */
-  format(valueSIOrQuantity: number | Quantity, halfWidthSI?: number | null, token?: string): string {
+  /** Format valueSI or Quantity into display string for this field using unit conversion & precision rules.
+   *  `maxSignificant` (the phone's narrow boxes) trims decimals beyond that many significant digits (never below two, or the field's own precision when that is smaller). */
+  format(valueSIOrQuantity: number | Quantity, halfWidthSI?: number | null, token?: string, maxSignificant?: number): string {
     let val: number;
     let hw: number | null | undefined;
     if (typeof valueSIOrQuantity === 'object' && valueSIOrQuantity !== null) {
@@ -224,10 +227,17 @@ export class NumberField extends Field {
       const kd = knownDecimals(hwDisp, valDisp);
       decimals = Math.max(minDp, kd);
     }
+    if (maxSignificant !== undefined) {
+      const leading = valDisp === 0 || !isFinite(valDisp) ? 1 : Math.floor(Math.log10(Math.abs(valDisp))) + 1;
+      decimals = Math.min(decimals, Math.max(Math.min(minDp, 2), maxSignificant - leading));
+    }
 
+    // At least MIN_SIGNIFICANT figures, so a small value is never shown as 0.37 for 0.3687 (John, 10 Nov 2026, board option B).
+    const keep = Math.min(Math.max(0, Math.min(20, decimals)), 2); // zeros the field's own precision shows
+    if (valDisp !== 0) decimals = Math.max(decimals, NumberField.MIN_SIGNIFICANT - (Math.floor(Math.log10(Math.abs(valDisp))) + 1));
     decimals = Math.max(0, Math.min(20, decimals));
     const sanitizedVal = valDisp === 0 ? 0 : valDisp;
-    return sanitizedVal.toFixed(decimals);
+    return formatTrimmedTo(sanitizedVal, decimals, Math.min(keep, decimals));
   }
 
   /** Parse raw typed string input into a Quantity or Text discriminant for this field. */
@@ -301,19 +311,25 @@ export class NumberField extends Field {
   }
 
   // ── Plot window ───────────────────────────────────────────────────────────────────────────
+  /** The frequency axis' ends: 1 Hz to 40 kHz. The start and end boxes accept inside it and a chart
+   *  drag is held to it, so the three can never disagree about how far the axis goes. */
+  static readonly PLOT_FREQ_AXIS_HZ: Readonly<{min: number; max: number}> = Object.freeze({min: 1, max: 40000});
   static readonly PLOT_FMIN_HZ = new NumberField({
     value: "plot_fmin_hz",
     label: "Frequency range start",
     display: {kind: 'fixed', symbol: 'Hz'},
-    limits: {min: 1, max: 20000},
+    limits: NumberField.PLOT_FREQ_AXIS_HZ,
     precision: 1,
     description: "Plot Start Frequency\nThe lowest frequency every chart draws and the sweep computes.",
   });
+  /** The chart frequency range a new install and every reset show: 10 Hz to 1000 Hz (John, 8 Nov 2026: the
+   *  top end was 20000; loudspeaker design needs the bottom three decades). The one place this pair lives. */
+  static readonly PLOT_RANGE_DEFAULT_HZ: Readonly<{min: number; max: number}> = Object.freeze({min: 10, max: 1000});
   static readonly PLOT_FMAX_HZ = new NumberField({
     value: "plot_fmax_hz",
     label: "Frequency range end",
     display: {kind: 'fixed', symbol: 'Hz'},
-    limits: {min: 1, max: 40000},
+    limits: NumberField.PLOT_FREQ_AXIS_HZ,
     precision: 1,
     description: "Plot End Frequency\nThe highest frequency every chart draws and the sweep computes.",
   });
@@ -381,7 +397,8 @@ export class NumberField extends Field {
     value: "box_Vb_l",
     label: "Volume",
     display: {kind: 'switchable', group: 'volume', base: 'L'},
-    limits: {min: 0.0001, max: 100},
+    // 10 m3 = 10,000 L: far beyond any speaker box, and it fits the phone Box tab's box in every unit (QO946.c187, lead).
+    limits: {min: 0.0001, max: 10},
     precision: 2,
     description: "Net Enclosure Volume\nThe air volume inside the box. This air acts as a spring the cone pushes against.",
   });
@@ -389,7 +406,7 @@ export class NumberField extends Field {
     value: "box_Vf_l",
     label: "Volume",
     display: {kind: 'switchable', group: 'volume', base: 'L'},
-    limits: {min: 0.0001, max: 100},
+    limits: {min: 0.0001, max: 10},
     precision: 2,
     description: "Front Chamber Volume\nNet air volume of the front, vented chamber in a bandpass enclosure.",
   });
@@ -597,7 +614,8 @@ export class NumberField extends Field {
     value: "signal_Distance_m",
     label: "Distance",
     display: {kind: 'fixed', symbol: 'm'},
-    limits: {min: 0, max: 100},
+    limits: {min: 0.1, max: 100},
+    floor: "positive",
     precision: 3,
     description: "Listening Distance\nOn-axis distance from the loudspeaker to the listener, used for SPL calculations.",
   });
@@ -677,7 +695,7 @@ export class NumberField extends Field {
     label: "Air pressure",
     display: {kind: 'switchable', group: 'pressure', base: 'Pa'},
     limits: {min: 1000, max: 200000},
-    precision: 2,
+    precision: 0,
     description: "Air Pressure\nAtmospheric pressure — affects air density and acoustic impedance.",
   });
   static readonly ADV_SOUNDVELOCITY_M_PER_S = new NumberField({
@@ -1127,6 +1145,33 @@ export class NumberField extends Field {
     precision: 2,
     description: "Outer Mounting Diameter\nOverall diameter of the front mounting flange.",
   });
+  static readonly OUTERX_M = new NumberField({
+    value: "OuterX_m",
+    label: "Frame Size X (OuterX)",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
+    limits: {min: 0, max: 5},
+    floor: "positive",
+    precision: 2,
+    description: "Rectangular Frame Size, X\nOne side of the frame, for a driver with a rectangular (not round) frame. WinISD has no such field.",
+  });
+  static readonly OUTERY_M = new NumberField({
+    value: "OuterY_m",
+    label: "Frame Size Y (OuterY)",
+    display: {kind: 'switchable', group: 'length', base: 'mm'},
+    limits: {min: 0, max: 5},
+    floor: "positive",
+    precision: 2,
+    description: "Rectangular Frame Size, Y\nThe other side of the frame, for a driver with a rectangular (not round) frame. WinISD has no such field.",
+  });
+  static readonly WEIGHT_KG = new NumberField({
+    value: "weight_kg",
+    label: "Driver Weight (Weight)",
+    display: {kind: 'switchable', group: 'mass', base: 'kg'},
+    limits: {min: 0, max: 500},
+    floor: "positive",
+    precision: 3,
+    description: "Driver Weight\nHow much the whole driver weighs, as the maker states it. It is for planning the baffle and mounting. WinISD has no such field.",
+  });
   static readonly VCD_M = new NumberField({
     value: "Vcd_m",
     label: "Voice Coil Dia (Vcd)",
@@ -1381,15 +1426,16 @@ export class EnumField extends Field {
   // ── Driver ────────────────────────────────────────────────────────────────────────────────
   static readonly VCCON = new EnumField({
     value: "VCCon",
-    label: "Connection",
+    label: "Coil wiring",
     options: VC_CONNECTION_OPTIONS,
-    description: "Voice Coil Wiring\nSeries or parallel — sets the driver's total terminal Re and BL for a multi-coil driver.",
+    description: "Coil wiring: as the maker measured it\nHow the voice coils were wired when the maker measured this driver (Series or Parallel). It says what the published Re and BL mean; it changes no figure. Leave it Not stated if the datasheet does not say. The wiring you use in a project is that project's own Coil wiring, on its Driver tab.",
   });
-  static readonly DRIVER_ARRAYWIRING = new EnumField({
-    value: "driver_ArrayWiring",
-    label: "Voice coil connection",
-    options: ARRAY_WIRING_OPTIONS,
-    description: "Driver Array Wiring\nParallel or series — sets the total load impedance seen by the amplifier.",
+  /** The project's coil wiring (QO941), named as the driver's `VCCon` (John, QO942.c56) and labelled the same; its help says which is which (QO942.c58). */
+  static readonly PROJECT_VCCON = new EnumField({
+    value: "project_VCCon",
+    label: "Coil wiring",
+    options: VC_CONNECTION_OPTIONS,
+    description: "Coil wiring: how you wire it in this project\nHow you wire this driver's voice coils in this project. If it differs from how the driver was measured, the calculations use the figures for your wiring (for 2 coils, Series gives Re, Le and nominal impedance ×4 and BL ×2 compared with Parallel; Fs, Q, Vas and Mms do not change). The driver's own figures are never changed. It can be changed only for a driver with 2 or more coils whose measured wiring is stated.",
   });
 
   // ── Filters ───────────────────────────────────────────────────────────────────────────────
@@ -1483,7 +1529,7 @@ export class ToggleField extends Field {
   static readonly ADV_SIMVCINDUCTANCE = new ToggleField({
     value: "adv_SimVcInductance",
     label: "Simulate voice coil inductance",
-    description: "Simulate Voice Coil Inductance\nApplies Le to the acoustic output too, not just the impedance plot.",
+    description: "Simulate voice coil inductance\nTicked: the voice coil inductance Le is in the impedance and in the SPL and transfer function, so both fall away at high frequency.\nUnticked (default): Le is left out of the impedance and of the SPL, as WinISD does.",
   });
   static readonly ADV_FORCEFLATRESPONSE = new ToggleField({
     value: "adv_ForceFlatResponse",
@@ -1509,60 +1555,60 @@ export class ToggleField extends Field {
   static readonly ADV_WINISDDRIVERMODEL = new ToggleField({
     value: "adv_WinisdDriverModel",
     label: "Two-BL driver",
-    description: "Two-BL driver: WinISD uses two BLs. The BL that Re, Fs, Qes and Vas imply sets the damping, and the entered BL sets the loudness. We count this as a WinISD bug.\nTicked: OpenISD does the same. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off.\nUnticked (default): OpenISD uses one BL, the one that Re, Fs, Qes and Vas imply, for the loudness and the damping. An entered BL that disagrees with them is marked and does not change the charts.",
+    description: "Two-BL driver: WinISD uses two different BL values for one driver. The BL that Re, Fs, Qes and Vas imply sets the damping, and the BL you typed in sets the loudness. But a driver has only one BL, so when the two disagree the loudness and the damping describe different drivers. So with an entered BL that is off, WinISD's charts show a driver that cannot exist (W5-1138SMF, entered BL 7.17, implied 7.384: the SPL chart is 0.26 dB out in the passband and the impedance peak about 1.2 Ω, 8 %, high). OpenISD uses one BL, the implied one, for both; an entered BL that disagrees is marked and changes no chart. Tick this to use both BLs as WinISD does: the entered BL then sets the loudness and, with voice coil inductance on, the inductance roll-off. Nothing changes if the entered BL already agrees.",
   }, "every chart, only when the entered BL disagrees with the one that Re, Fs, Qes and Vas imply. W5-1138SMF (entered BL 7.17, implied 7.384): the SPL chart differs by 0.26 dB in the passband, the Impedance chart peak is about 1.2 Ω (8 %) high, and the Transfer function magnitude chart differs by 0.51 dB.");
   static readonly ADV_WINISDVAMODEL = new ToggleField({
     value: "adv_WinisdVaModel",
     label: "Re without Rg",
-    description: "Re without Rg: WinISD uses Re where the amplifier sees Re + Rg. With Rg at 0 Ω, both give the same result.\nTicked: OpenISD works as WinISD does. VA = P·Re/|Z + Rg|, which is low by Re/(Re + Rg). With 'Rg is at driver side' on, Z already includes Rg and WinISD adds it again. Power from voltage is P = N·V²/Re, but the SPL chart drives that power into Re + Rg.\nUnticked (default): OpenISD uses Re + Rg throughout. VA = P·(Re + Rg)/|Z seen by the amplifier|, with Rg counted once, and P = N·V²/(Re + Rg).\nP: input power. V: voltage at each driver. N: number of drivers. Z: the impedance chart. Rg: the series resistance.",
+    description: "Re without Rg: WinISD works out the amplifier's load power (the VA chart) and the power from a voltage with the driver's Re alone, but the amplifier really drives Re plus Rg, the series resistance of the cable and amplifier output. So WinISD's VA is low by Re/(Re + Rg), about 23 % at Re 3.4 Ω and Rg 1 Ω, and a typed-in voltage gives a power that does not match the SPL chart (4.0 W against 3.91 W at 1.85 V each × 4 drivers, Re 3.4 Ω, Rg 0.1 Ω). OpenISD counts Re + Rg throughout, Rg once. Tick this to get WinISD's figures: VA = P·Re/|Z + Rg| and P = N·V²/Re (with \"Rg is at driver side\" on, Z already holds Rg and WinISD adds it again). With Rg at 0 Ω both agree.\nP: input power. V: voltage at each driver. N: number of drivers. Z: the impedance chart. Rg: the series resistance.",
   }, "the Amplifier apparent load power (VA) chart, about 23 % low at Re 3.4 Ω, Rg 1 Ω. The Signal tab's System input power readout, 4.0 W against 3.91 W at 1.85 V each × 4 drivers, Re 3.4 Ω, Rg 0.1 Ω. With the voltage typed in, the SPL chart is about 0.1 dB louder in that case.");
   static readonly ADV_WINISDPRNPRRESONANCE = new ToggleField({
     value: "adv_WinisdPrNprResonance",
     label: "PR Npr resonance",
-    description: "PR Npr resonance: WinISD works out the passive radiator box's losses at a frequency Npr times too low.\nTicked: OpenISD takes the box's leak and absorption at WinISD's frequency, 1/√(Npr·Map·(Cab ∥ Npr·Cap)). WinISD multiplies the radiator mass by Npr where the tuning divides by it.\nUnticked (default): OpenISD takes the same losses at the true tuning, 1/√((Map/Npr)·(Cab ∥ Npr·Cap)).",
+    description: "PR Npr resonance: with more than one passive radiator (Npr), WinISD works out the box's leak and absorption losses at a frequency Npr times too low, because it multiplies the radiator mass by Npr where the tuning divides by it. But the losses belong at the box's real tuning. So the Impedance chart is off by up to 1 Ω and the Transfer function chart by up to 2 dB (Npr 2, W5 in 10 L, radiator Fs 30 Hz, Vas 4.8 L: WinISD takes 21 Hz, the tuning is 42 Hz). OpenISD takes the losses at the true tuning, 1/√((Map/Npr)·(Cab ∥ Npr·Cap)). Tick this to take them at WinISD's frequency, 1/√(Npr·Map·(Cab ∥ Npr·Cap)). With one radiator (Npr = 1) nothing changes.",
   }, "passive radiator boxes with more than one radiator (Npr > 1), with WinISD's lossy model. No change at Npr = 1. Npr 2, W5 in 10 L, radiator Fs 30 Hz and Vas 4.8 L (WinISD 21 Hz, tuning 42 Hz): the Impedance chart differs by up to 1 Ω, the Transfer function magnitude chart by up to 2 dB.");
   static readonly ADV_WINISDSEALEDPICKER = new ToggleField({
     value: "adv_WinisdSealedPicker",
     label: "Sealed picker volume",
-    description: "Sealed picker volume: WinISD's sealed alignment picker gives a box volume whose Qtc on the Box tab is not the Qtc you picked.\nTicked: OpenISD works as WinISD does. The picker leaves out the box's leakage losses (Ql) and the project's own Rg and Qa. It adds a fixed Rg of 0.1 Ω to Qes and a fixed Qa of 100: Qt = 1/(1/Qts′ + 1/100), with Qts′ using Qes·(Re + 0.1)/Re. Vb = Vas/((Qtc/Qt)² − 1).\nUnticked (default): OpenISD gives the volume at which the Box tab shows the picked Qtc. It counts the project's Rg and every box loss.\nQtc: the picked total Q. Qts′: the driver's Qts with Rg in it. Vas: the driver's equivalent air volume.",
+    description: "Sealed picker volume: WinISD's sealed alignment picker suggests a box volume for the Qtc (total Q) you pick, but it works that out with a fixed Rg of 0.1 Ω and a fixed Qa of 100 and leaves out your own box leakage losses (Ql), Rg and Qa, which its charts do use. So WinISD is inconsistent with itself: its Box tab then shows a different Qtc from the one you picked (W5-1138SMF, Qts 0.49, Vas 4.85 L, Ql 10: picking 0.800 gives 3.13 L, and the Box tab shows 0.787). OpenISD gives the volume at which the Box tab shows the Qtc you picked (2.96 L, and the Box tab shows 0.800), counting the project's Rg and every box loss. Tick this to get WinISD's volume: Qt = 1/(1/Qts′ + 1/100), with Qts′ using Qes·(Re + 0.1)/Re, and Vb = Vas/((Qtc/Qt)² − 1).\nQtc: the picked total Q. Qts′: the driver's Qts with Rg in it. Vas: the driver's equivalent air volume.",
   }, "the sealed alignment picker in the New Project wizard and on the Box tab. W5-1138SMF (Qts 0.49, Vas 4.85 L), Ql 10: Qtc 0.800 picked gives 3.13 L, and the Box tab shows 0.787. OpenISD gives 2.96 L, and the Box tab shows 0.800.");
   static readonly ADV_WINISDBESSELHIGHPASS = new ToggleField({
     value: "adv_WinisdBesselHighpass",
     label: "Bessel high-pass",
-    description: "Bessel high-pass: WinISD's Bessel high-pass is not the mirror image of its low-pass.\nTicked: OpenISD works as WinISD does. The high-pass keeps the low-pass's denominator and swaps the numerator to (k·s)^n.\nUnticked (default): the high-pass is the mirror image of the low-pass (s → 1/s).",
+    description: "Bessel high-pass: WinISD builds its Bessel high-pass by keeping the low-pass's denominator and swapping the numerator to (k·s)^n, but a Bessel high-pass should be the mirror image of the low-pass (s → 1/s). So WinISD's filter has the wrong shape: its response is up to 6 % out at order 4, fc 25 Hz, and so is every chart the filter feeds (SPL, Cone excursion, port velocities). OpenISD uses the true mirror image. Tick this to get WinISD's. Only Bessel high-pass filters of order 2 or more change; Butterworth, Linkwitz-Riley, SOS, every low-pass and a first-order Bessel do not.",
   }, "Bessel high-pass filters of order 2 or more in the EQ/Filter chain: the three EQ/Filter charts and every chart the filter feeds (SPL, Cone excursion, port velocities). The complex response differs by up to 6 % at order 4, fc 25 Hz. Butterworth, Linkwitz-Riley, SOS, every low-pass and a first-order Bessel do not change.");
   static readonly ADV_WINISDABCGROUPDELAY = new ToggleField({
     value: "adv_WinisdAbcGroupDelay",
     label: "ABC group delay",
-    description: "ABC group delay: WinISD's ABC group delay leaves the driver out.\nTicked: OpenISD works as WinISD does. It steps the box to f ± 1e-10 Hz but keeps the driver at the chart frequency f, so the driver's own phase slope is missing. The result disagrees with WinISD's own phase chart.\nUnticked (default): the group delay is −dφ/dω of the plotted phase.",
+    description: "ABC group delay: WinISD works out an ABC box's group delay (how late each frequency arrives) by stepping the box to f ± 1e-10 Hz but keeping the driver at the chart frequency f, so the driver's own phase slope is missing. But WinISD's own phase chart for the same box does include the driver, so the two disagree (W5-1138SMF ABC: −41.0 ms against −33.9 ms at 1 Hz, −3.3 ms against +3.6 ms at 10.75 Hz). OpenISD takes the group delay as −dφ/dω of the plotted phase, so it matches the phase chart. Tick this to get WinISD's. Only the Group Delay chart of an ABC box changes.",
   }, "the Group Delay chart of an ABC box only. W5-1138SMF ABC: −41.0 ms against −33.9 ms at 1 Hz, −3.3 ms against +3.6 ms at 10.75 Hz.");
   static readonly ADV_WINISDTLPORTNOENDCORRECTION = new ToggleField({
     value: "adv_WinisdTlPortNoEndCorrection",
     label: "TL port without end correction",
-    description: "TL port without end correction: with the transmission line model on, WinISD builds the port pipe without the port's end correction, so the box tunes above the Fb on the Box tab.\nTicked: OpenISD works as WinISD does. The pipe is the Fb port length less the end correction. On the W5-1138SMF at Fb 38 Hz, the impedance minimum is 40.3 Hz, against 38.7 Hz unticked.\nUnticked (default): the pipe keeps the end correction and the box tunes where the Box tab says.\nOnly where \"Use transmission line model\" is ticked on a vented, bandpass or ABC box.",
+    description: "TL port without end correction: with \"Use transmission line model\" on, WinISD builds the port pipe from the Fb port length less the port's end correction (the extra air that moves at the mouths), but the Fb you set on the Box tab already counts that end correction. So the pipe comes out too light and the box tunes higher than the Fb the Box tab shows (W5-1138SMF, Fb 38 Hz: impedance minimum 40.3 Hz in WinISD against 38.7 Hz in OpenISD). OpenISD keeps the end correction, so the box tunes where the Box tab says. Tick this to get WinISD's tuning. Only vented, bandpass and ABC boxes with the transmission line model on change; the Impedance, SPL and Transfer function charts follow.",
   }, "the Impedance, SPL and Transfer function charts of vented, bandpass and ABC boxes with the transmission line model on. W5-1138SMF, Fb 38 Hz: impedance minimum 40.3 Hz in WinISD against 38.7 Hz with the end correction.");
 
-  static readonly ADV_WINISDDRIVERCOUNTMODEL = new ToggleField({
-    value: "adv_WinisdDriverCountModel",
-    label: "Per-driver impedance",
-    description: "Per-driver impedance: with more than one driver, WinISD's impedance chart shows one driver's impedance.\nTicked: the impedance chart shows one driver's impedance, as WinISD does.\nUnticked (default): the impedance chart shows all the drivers the amplifier drives, wired as the project says: one driver's impedance divided by N in parallel, times N in series.",
-  }, "the Impedance chart, for designs with more than one driver. W5-1138SMF sealed, 4 drivers in parallel: WinISD peaks at 18.6 Ω, all 4 drivers at 4.65 Ω. SPL, Cone excursion, Amplifier apparent load power (VA) and Maximum Power match WinISD either way.");
+  static readonly ADV_WINISDCOILWIRINGREBLONLY = new ToggleField({
+    value: "adv_WinisdCoilWiringReBlOnly",
+    label: "Coil wiring: Re and BL only",
+    description: "Coil wiring: Re and BL only: when you change how a multi-coil driver's voice coils are wired, WinISD converts Re and BL but leaves the inductance Le and the nominal impedance Znom as they were. But rewiring changes all three together: with N coils, Re, Le and Znom change by N² and BL by N (for 2 coils, Series gives Re, Le and Znom ×4 and BL ×2 compared with Parallel). So WinISD's high frequencies are wrong after a rewire (Dayton MX6-22, Le 1.5 mH measured in series, set to Parallel: Le should be 0.375 mH and WinISD keeps 1.5 mH). OpenISD converts all of them. Tick this to convert only Re and BL as WinISD does. It shows only with \"Simulate voice coil inductance\" on, in the Impedance, SPL and Transfer function charts at high frequency; Znom feeds no chart. It applies only to a driver with 2 or more coils whose measured wiring is stated.",
+  }, "the Impedance, SPL and Transfer function charts at high frequency, with voice coil inductance on, for a multi-coil driver whose project Coil wiring differs from the driver's. Dayton MX6-22 (Le 1.5 mH measured in series) set to Parallel: Le is 0.375 mH here and 1.5 mH with the switch ticked.");
 
   // ── WinISD Compatibility: options (under "Enable WinISD-style", named by the calculation; ticked is WinISD's way) ──────
   static readonly ADV_WINISDWRAPPHASE = new ToggleField({
     value: "adv_WinisdWrapPhase",
     label: "Phase wrapping",
-    description: "Phase wrapping: changes every phase chart.\nTicked (default, as WinISD): phase curves wrap at ±180°.\nUnticked: phase curves run on without wrapping.",
+    description: "Phase wrapping: WinISD draws every phase curve wrapped into ±180°, but a wrapped curve jumps by 360° each time it passes the edge, so one smooth fall looks like a series of breaks. OpenISD wraps by default too, so its phase charts match WinISD's. Untick this to let the curves run on smoothly past ±180°. It changes every phase chart and nothing else.",
   });
   static readonly ADV_WINISDFLATMODEL = new ToggleField({
     value: "adv_WinisdFlatModel",
     label: "Uncapped flat response",
-    description: "Uncapped flat response: changes 'Force flat response' only.\nTicked (default, as WinISD): OpenISD sets every frequency to the transfer function's 0 dB, cutting as well as boosting, uncapped. The excursion chart shows what that costs.\nUnticked: boost only, up to the passband level, capped at 20 dB.",
+    description: "Uncapped flat response: when \"Force flat response\" adds EQ to level the curve, WinISD pulls every frequency to the transfer function's 0 dB, cutting as well as boosting, with no limit, but a very large boost asks for far more cone travel than the driver has (the Cone excursion chart shows the cost). OpenISD does the same by default, so it matches WinISD. Untick this to boost only, up to the passband level and never more than 20 dB. It changes \"Force flat response\" only.",
   });
   static readonly ADV_WINISDABCINTRAPORTVELOCITY = new ToggleField({
     value: "adv_WinisdAbcIntraPortVelocity",
     label: "Simplified ABC intra-port velocity",
-    description: "Simplified ABC intra-port velocity: changes the ABC box's Intra port velocity chart only.\nTicked (default, as WinISD): the velocity leaves out the leak term Zf·jωMai/Ricl.\nUnticked: OpenISD uses the exact port-mass current. The two differ by up to 1.35 dB and 4.6° near 110 Hz, and by under 0.1 dB elsewhere (W5-1138SMF).",
+    description: "Simplified ABC intra-port velocity: WinISD works out the air speed in an ABC box's inner port without a small leak term, Zf·jωMai/Ricl, but that term is part of the real current through the port mass. So its chart is slightly off: by up to 1.35 dB and 4.6° near 110 Hz, and under 0.1 dB elsewhere (W5-1138SMF). OpenISD drops the same term by default, so it matches WinISD. Untick this to use the exact port-mass current. It changes the ABC box's Intra port velocity chart only.",
   }, null, 'intra-port');
 
   static readonly ALL: readonly ToggleField[] =

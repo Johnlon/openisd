@@ -125,9 +125,9 @@ test.describe('NumInput', () => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     const vol = page.locator('.tab-section.active .field', { hasText: 'Volume' }).locator('input').first();
     await vol.click();
-    await fillAndBlur(vol, '6.123456'); // more decimals than the field's 2 dp
-    await expect(vol).toHaveValue('6.12'); // DISPLAY is formatted to 2 dp
-    // Rotating the unit to cm³ shows what the model holds: 6123, never the 2-dp "6.12" L (6120).
+    await fillAndBlur(vol, '6.123456'); // more figures than a number box shows
+    await expect(vol).toHaveValue('6.123'); // DISPLAY is formatted to 4 significant figures (John, 10 Nov 2026, board option B, T742), not the model's 6.123456
+    // Rotating the unit to cm³ shows what the model holds: 6123, never the shown "6.123" L rounded again.
     expect(await volumeInCm3(page)).toBe('6123');
   });
 

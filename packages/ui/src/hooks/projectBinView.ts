@@ -20,6 +20,7 @@ import {
   type ProjectListScope,
 } from '@openisd/design/fields';
 import {binRows, binTotalSize, type BinRow} from './binRows.js';
+import type {FeatureUse} from '../logic/telemetry/featureUse.js';
 
 /** What a Projects row stands for: a stored project, open or not. */
 export type ProjectHandle =
@@ -75,6 +76,7 @@ export interface ProjectBinViewDeps {
   readonly cloudMarks: () => ProjectCloudMarks;
   readonly projectBin: ProjectBin;
   readonly confirm: ConfirmPort;
+  readonly featureUse: FeatureUse;
   readonly unitTokens: () => Readonly<Record<string, string>>;
   /** Tells the user an action could not be done. */
   readonly alert: (text: string) => void;
@@ -169,6 +171,7 @@ export function createProjectBinView(deps: ProjectBinViewDeps): ProjectBinView {
     },
     restoreFromBin(row) {
       if (projectBin.restore(row.id) === 'refused') deps.alert(`Could not restore "${row.name}": ${NO_ROOM}`);
+      else deps.featureUse.feature('bin_restore');
       refresh();
     },
     async deleteForever(row) {

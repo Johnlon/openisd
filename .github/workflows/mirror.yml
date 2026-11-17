@@ -1,0 +1,48 @@
+name: mirror
+
+# Runs only on the pull-request copy (portingle/openisd): after each merge-queue merge, main is fast-forwarded onto
+# Johnlon/openisd main with a deploy key (T760, John 10 Nov 2026: option D). Never forced; if Johnlon main has moved
+# on its own the job fails and opens an issue on the copy.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: write
+
+# One push at a time, in order; a later push waits and never cancels an earlier one.
+concurrency:
+  group: mirror
+  cancel-in-progress: false
+
+jobs:
+  copy:
+    if: ${{ github.repository == 'portingle/openisd' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: fast-forward Johnlon/openisd main to this commit
+        env:
+          DEPLOY_KEY: ${{ secrets.JOHNLON_DEPLOY_KEY }}
+          SHA: ${{ github.sha }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/johnlon_key && chmod 600 ~/.ssh/johnlon_key
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/johnlon_key -o IdentitiesOnly=yes"
+          git remote add johnlon git@github.com:Johnlon/openisd.git
+          git fetch --quiet johnlon main
+          if git merge-base --is-ancestor "$SHA" johnlon/main; then echo "Johnlon main already holds $SHA"; exit 0; fi
+          # no --force: a push that is not a fast-forward is refused, and the job fails
+          git push johnlon "$SHA:refs/heads/main"
+      - name: open an issue when the copy could not be pushed
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "Johnlon main was not fast-forwarded to ${GITHUB_SHA::9}" \
+            --body "The mirror job could not push ${GITHUB_SHA} to Johnlon/openisd main (not a fast-forward, or the deploy key was refused). Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}. Nothing was forced."

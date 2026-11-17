@@ -1,4 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
+import type {ReloadLoss} from '@openisd/design/fields';
 import {
   AppUpdate, HOURLY_MS,
   type CacheStore, type InstallingWorker, type UpdateContainer, type UpdateRegistration, type WaitingWorker,
@@ -55,12 +56,13 @@ function build(unsaved = false, cacheNames: string[] = [], controlledAtLoad = tr
   let visible: () => void = () => undefined;
   let tick: {ms: number; run: () => void} = {ms: 0, run: () => undefined};
   const reload = vi.fn();
-  const flags = {unsaved};
+  const flags: {unsaved: boolean; losses: readonly ReloadLoss[]} = {unsaved, losses: []};
   const update = new AppUpdate({
     container, caches, reload, controlledAtLoad,
     visibility: {onVisible: l => { visible = l; }},
     timer: {every: (ms, run) => { tick = {ms, run}; }},
     anyUnsaved: () => flags.unsaved,
+    losses: () => flags.losses,
   });
   return {update, registration, container, caches, reload, flags, becomeVisible: () => visible(), tick: () => tick};
 }
@@ -68,6 +70,13 @@ function build(unsaved = false, cacheNames: string[] = [], controlledAtLoad = tr
 const settle = () => new Promise<void>(resolve => setTimeout(resolve, 0));
 
 describe('AppUpdate', () => {
+  it('says what a reload would lose by asking the app, never by the unsaved flag (T829)', () => {
+    const t = build(true);
+    expect(t.update.losses()).toEqual([]);
+    t.flags.losses = ['editorDraft'];
+    expect(t.update.losses()).toEqual(['editorDraft']);
+  });
+
   it('does not reload on the first takeover of a page that loaded without a worker', async () => {
     const t = build(false, [], false);
     await t.update.attach(t.registration);

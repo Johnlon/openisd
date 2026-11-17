@@ -46,7 +46,9 @@ async function choosePassiveRadiator(page: Page): Promise<void> {
   await expect(modal).toContainText('Passive Radiator');
   await expect(footerNext(page)).toBeDisabled();
   await modal.locator('#np-pr-select').click();
-  await page.locator('button', { hasText: 'Define new passive radiator' }).click();
+  // Defining one now files it in the library (issue 522); with none chosen the step's boxes are blank, so close the picker.
+  await page.getByRole('button', { name: 'Done' }).click();
+  await page.locator('#np-pr-name').fill('Typed PR');   // typing in the step's boxes is what defines the step's radiator
 }
 
 /** Puts drivers in My Drivers the way a user does: Load File… in the wizard's driver list, one `.owdr` file
@@ -187,6 +189,19 @@ test.describe('New Project wizard', () => {
       await expect(advancedTemperature()).toHaveValue('300.00');
     });
 
+    test('the wizard opens with an empty search and no filters, whatever was typed last time', async ({ appPage: page }) => {
+      await openWizard(page);
+      const modal = page.locator('.overlay.open');
+      await modal.locator('input.filter').fill('zzz-no-such-driver');
+      await expect(modal.locator('.dlist .ditem')).toHaveCount(0);
+      await footer(page).getByRole('button', { name: 'Cancel' }).click();
+      await expect(page.locator('.overlay.open')).toHaveCount(0);
+      await openWizard(page);
+      await expect(modal.locator('input.filter')).toHaveValue('');
+      await expect(modal.getByRole('button', { name: 'Clear filters' })).toHaveCount(0);
+      await expect(modal.locator('.dlist .ditem').first()).toBeVisible();
+    });
+
     test('Cancel closes the wizard without creating a project', async ({ appPage: page }) => {
       const rows = page.locator('.projects-list .project-row');
       const before = await rows.count();
@@ -301,10 +316,10 @@ test.describe('New Project wizard', () => {
       // Navigate to Driver tab
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
 
-      // Voice coil resistance TC should default to copper (3.9000 in 1000/K)
+      // Voice coil resistance TC should default to copper (3.90 in 1000/K)
       const tcField = page.locator('.field', { hasText: 'AlfaVC' });
       const tc = tcField.locator('input');
-      await expect(tc).toHaveValue('3.9000');
+      await expect(tc).toHaveValue('3.90');
     });
 
     test('a new sealed project drives the sealed alignment towards Qt 0.707 and derives its volume', async ({ appPage: page }) => {

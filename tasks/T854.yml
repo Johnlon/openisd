@@ -1,0 +1,22 @@
+id: T854
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Task scripts find the main checkout in a submodule layout too
+why: "Lead decision (Fixer, 16 Nov 2026): a fresh clone of the monorepo checks openisd out as a submodule (.git is a file, gitdir under the parent's .git/modules), and new-task.sh then refused: it took dirname(git-common-dir) as the main checkout"
+done_test: bash scripts/land/test/main-checkout.e2e.test.sh
+files:
+  - tasks/T854.yml
+  - scripts/lib/main-checkout.sh
+  - scripts/land/test/main-checkout.e2e.test.sh
+  - scripts/land/test/new-task.test.sh
+  - scripts/new-task.sh
+  - scripts/abandon.sh
+  - scripts/ship.sh
+  - scripts/admit/record.sh
+  - scripts/land/pr-fix.sh
+  - scripts/land/drop-superseded-handover.sh
+  - scripts/land/sync-main-folder.sh
+  - scripts/land/tidy-branches.sh
+  - scripts/land/post-land/run.sh

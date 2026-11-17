@@ -50,7 +50,6 @@ export class PhoneLabels {
   static readonly PR_ADDED_MASS = 'Added mass';
   static readonly PR_FPR_MASS = 'Fpr with mass';
   static readonly DRIVERS = 'Drivers';
-  static readonly CONNECTION = 'Connection';
   static readonly POWER = 'Power';
   static readonly VOLTS = 'Volts';
   static readonly RS = 'Rs';
@@ -74,7 +73,10 @@ export class PhoneLabels {
   static readonly MAG_DEPTH = 'MagDpt';
   static readonly MAGNET = 'Magnet';
   static readonly BASKET = 'Basket';
-  static readonly OUTER = 'Outer';
+  static readonly OUTER = 'Outer dia';
+  static readonly OUTER_X = 'OuterX';
+  static readonly OUTER_Y = 'OuterY';
+  static readonly WEIGHT = 'Weight';
   static readonly VCD = 'Vcd';
   static readonly DVOL = 'DVol';
 }
@@ -85,6 +87,15 @@ export class PhoneBoxText {
   static readonly BOX_LOSSES_LINK = 'Box losses (Qa, Ql, Qp)…';
   static readonly FP_TIP = 'Fp: the box tuning you enter for the passive radiator box. The Fh row shows the natural tuning of the box and radiator with no added mass.';
   static readonly INTRA_VENT_NOTE = 'Connects chambers; not open to outside';
+  /** The passive radiator's name row (QO946.c115): its figures are in the editor it opens. */
+  static readonly PR_EDIT_TIP = 'Edit this passive radiator: its name and figures, OK, Cancel or Save to My PRs.';
+  static readonly PR_UNNAMED = 'Unnamed passive radiator';
+  /** The line under the radiator's Key figures (John, 16 Nov 2026 13:00): the "2×" rule of thumb as a count of this
+   *  radiator. `required_m3` is twice the drivers' displacement; `count` the engine's smallest count reaching it. */
+  static twoTimesRule(required_m3: number, count: number): string {
+    const need = `2× rule: radiators need ≥ ${Math.round(required_m3 * 1e6)} cm³`;
+    return count <= 1 ? `${need} — 1 of these is enough` : `${need} — needs ${count} of these`;
+  }
 }
 
 /** One quick-add chip of the phone Filters tab, in WinISD's Filter Editor order, then the two OpenISD-only shelves. */
@@ -135,7 +146,11 @@ export class PhoneHelpRows {
   static readonly FB_VENT: PhoneHelpRow = {label: 'Fb (frequency, box)', text: 'the frequency at which the vent reinforces the bass most: the box and vent resonate together, so the vent gives the most output and the cone moves the least. Lower tuning reaches lower bass.'};
   static readonly FB_FRONT_VENT: PhoneHelpRow = {label: 'Fb (frequency, box)', text: 'the frequency at which the vent reinforces the bass most. Lower tuning reaches lower bass.'};
   static readonly SELECT_PR: PhoneHelpRow = {label: 'Select PR', text: 'picks a passive radiator from the library.'};
-  static readonly SAVE_PR: PhoneHelpRow = {label: 'Save to library', text: 'saves this passive radiator to the library.'};
+  static readonly PR_INFO: PhoneHelpRow = {label: 'Info', text: 'shows the passive radiator\'s figures and where they come from.'};
+  static readonly PR_EDIT: PhoneHelpRow = {label: 'Edit', text: 'opens the passive radiator\'s editor: its name and figures, Export, Import and Copy to My PRs.'};
+  static readonly PR_MMS: PhoneHelpRow = {label: 'Mms', text: 'the moving mass of the cone. Added mass is often judged against it.'};
+  static readonly PR_SD: PhoneHelpRow = {label: 'Sd', text: 'the cone\'s area.'};
+  static readonly PR_VD: PhoneHelpRow = {label: 'Vd', text: 'the volume of air the cone moves at Xmax (Sd × Xmax), to set beside the driver\'s.'};
   static readonly PR_FS: PhoneHelpRow = {label: 'Fs', text: 'the frequency at which the passive radiator vibrates most freely, out of a box.'};
   static readonly PR_QMS: PhoneHelpRow = {label: 'Qms', text: 'how sharply the passive radiator resonates, from its suspension.'};
   static readonly PR_VAS: PhoneHelpRow = {label: 'Vas', text: 'the volume of air that is as easy to compress as the passive radiator\'s suspension is to stretch.'};
@@ -146,7 +161,8 @@ export class PhoneHelpRows {
   static readonly PR_RESONANCE_WITH_MASS: PhoneHelpRow = {label: 'Resonance with mass', text: 'the frequency at which the passive radiator vibrates most freely, with the added mass.'};
   static readonly VELOCITY_LIMIT: PhoneHelpRow = {label: 'Velocity limit', text: 'the air speed above which the charts mark the vent as likely to be noisy.'};
   static readonly DRIVERS: PhoneHelpRow = {label: 'Drivers', text: 'the number of drivers in the box.'};
-  static readonly CONNECTION: PhoneHelpRow = {label: 'Connection', text: 'parallel or series wiring of the drivers. It sets the load in ohms the amplifier drives.'};
+  /** The project's Coil wiring: the same words as `EnumField.PROJECT_VCCON`'s help (the test coil-wiring-help.test.ts keeps them one text). */
+  static readonly COIL_WIRING: PhoneHelpRow = {label: 'Coil wiring', text: 'how you wire this driver\'s voice coils in this project. If it differs from how the driver was measured, the calculations use the figures for your wiring (for 2 coils, Series gives Re, Le and nominal impedance ×4 and BL ×2 compared with Parallel; Fs, Q, Vas and Mms do not change). The driver\'s own figures are never changed. It can be changed only for a driver with 2 or more coils whose measured wiring is stated.'};
   static readonly POWER: PhoneHelpRow = {label: 'Power', text: 'the amplifier power, measured into the driver\'s rated load in ohms.'};
   static readonly VOLTS: PhoneHelpRow = {label: 'Volts', text: 'the amplifier output voltage. Power and Volts set each other.'};
   static readonly RS: PhoneHelpRow = {label: 'Rs', text: 'the resistance of the cable and amplifier between the amplifier and the driver.'};
@@ -196,11 +212,16 @@ export class PhoneHelp {
   static readonly INTRA_VENT = new PhoneHelpSection('Intra vent', 'The vent between the two chambers. It does not open to the outside.', VENT_ROWS);
   static readonly PASSIVE_RADIATOR = new PhoneHelpSection('Passive radiator', 'A cone with no magnet or coil, moved by the air in the box. It tunes the box in place of a vent.', [
     PhoneHelpRows.SELECT_PR,
-    PhoneHelpRows.SAVE_PR,
+    PhoneHelpRows.PR_INFO,
+    PhoneHelpRows.PR_EDIT,
+  ]);
+  /** The radiator's Key figures on the phone Box tab, as the Driver tab's (John, 16 Nov 2026 12:57, 12:58). */
+  static readonly PR_KEY_FIGURES = new PhoneHelpSection('Key figures', 'The passive radiator\'s main figures, for reference. Tap one to edit the radiator.', [
     PhoneHelpRows.PR_FS,
-    PhoneHelpRows.PR_QMS,
-    PhoneHelpRows.PR_VAS,
+    PhoneHelpRows.PR_MMS,
+    PhoneHelpRows.PR_SD,
     PhoneHelpRows.PR_XMAX,
+    PhoneHelpRows.PR_VD,
   ]);
   static readonly USER_OPTIONS = new PhoneHelpSection('User options', 'The number of passive radiators and any mass added to them.', [
     PhoneHelpRows.PR_COUNT,
@@ -211,11 +232,12 @@ export class PhoneHelp {
   static readonly CHART = new PhoneHelpSection('Chart', 'Settings for the charts. They do not change the design.', [
     PhoneHelpRows.VELOCITY_LIMIT,
   ]);
-  static readonly DRIVER = new PhoneHelpSection('Driver', 'The driver used in this design and how the drivers are wired.', [
+  /** Headed "User options", as the passive radiator's (John, 16 Nov 2026 12:47: "make both User options"). */
+  static readonly DRIVER = new PhoneHelpSection('User options', 'The driver used in this design and how many of them the box holds.', [
     {label: 'Select driver', text: 'picks a driver from the library.'},
     {label: 'Edit', text: 'opens the driver\'s parameters.'},
     PhoneHelpRows.DRIVERS,
-    PhoneHelpRows.CONNECTION,
+    PhoneHelpRows.COIL_WIRING,
   ]);
   static readonly KEY_FIGURES = new PhoneHelpSection('Key figures', 'The driver\'s main parameters, for reference. Tap one to edit the driver.', [
     {label: 'Fs', text: 'the frequency at which the driver vibrates most freely, out of a box. Lower Fs can reach lower bass.'},
@@ -275,7 +297,7 @@ export class PhoneHelp {
   static readonly EDITOR_MISCELLANEOUS = new PhoneHelpSection("Miscellaneous parameters", "These fields describe sensitivity, rated load and wiring. Optional reference figures are not additional core requirements.", [
     {"label": "Efficiency, SPL and USPL", "text": "Efficiency and sensitivity describe how much sound is produced for a stated input. Power-based and voltage-based sensitivities use different reference conditions; they are not interchangeable."},
     {"label": "Znom", "text": "Nominal impedance rating, such as 4 or 8 ohms, for amplifier matching. Re is the measured DC resistance."},
-    {"label": "Voicecoils and Connection", "text": "The number of voice coils and how they are connected. These determine the driver’s terminal electrical properties; enter the configuration you intend to model."},
+    {"label": "Voicecoils and Coil wiring", "text": "The number of voice coils, and how the voice coils were wired when the maker measured this driver (Series or Parallel). It says what the published Re and BL mean; it changes no figure. Leave it Not stated if the datasheet does not say. The wiring you use in a project is that project\u2019s own Coil wiring, on its Driver tab."},
     {"label": "Peak power — optional reference", "text": "Short-term power rating. It is not the continuous Pe rating used for thermal limits."},
   ]);
   static readonly EDITOR_THERMAL = new PhoneHelpSection("Thermal parameters", "Thermal information is separate from the core small-signal inputs.", [
@@ -297,6 +319,8 @@ export class PhoneHelp {
   static readonly EDITOR_DIMENSIONS = new PhoneHelpSection("Dimensions", "Physical fit and reference information. These dimensions are not the core inputs that determine the bass response.", [
     {"label": "Frame, basket and mounting dimensions", "text": "Use these to check the cut-out, fixing clearance and outside size against the manufacturer’s drawing."},
     {"label": "Depth and magnet dimensions", "text": "Check space behind the baffle and clearance around the magnet, including any ventilation space required by the manufacturer."},
+    {"label": "Rectangular frame size", "text": "OuterX and OuterY are the two sides of a rectangular frame, for drivers whose frame is not round. WinISD has no such fields."},
+    {"label": "Weight", "text": "How much the whole driver weighs, as the maker states it. WinISD has no such field."},
     {"label": "Voice-coil diameter", "text": "Physical coil size; it is not the effective radiating cone diameter used to determine Sd."},
     {"label": "Driver volume", "text": "The volume occupied by the driver. Useful when planning net enclosure volume; keep physical displacement separate from the acoustic Vas parameter."},
   ]);
@@ -317,26 +341,26 @@ export class PhoneHelp {
     {label: 'Reset to app levels', text: 'sets the air back to the levels in Options.'},
   ]);
   static readonly ADVANCED_SIMULATION = new PhoneHelpSection('Simulation options', 'How closely the charts follow the real speaker. They change the results, not the design.', [
-    {label: ToggleField.ADV_SIMVCINDUCTANCE.label, text: 'applies the voice coil inductance to the sound output as well as the impedance.'},
+    {label: ToggleField.ADV_SIMVCINDUCTANCE.label, text: 'puts the voice coil inductance Le in the impedance and the SPL. Off, Le is left out of both, as WinISD does.'},
     {label: ToggleField.ADV_FORCEFLATRESPONSE.label, text: 'adds EQ to make the response flat. The excursion and port speed charts then show what that costs.'},
     {label: ToggleField.ADV_TLPORTMODEL.label, text: 'treats the port as a pipe with a length, not a lump of air. The charts then show the pipe\'s own notes.', difference: WinisdDifference.forDeviation(WinisdDeviation.TL_PORT_END_CORRECTION)},
     {label: ToggleField.ADV_RGATDRIVERSIDE.label, text: 'ticked: each driver gets its own series resistance Rg. Unticked: Rg sits once, at the amplifier.'},
     {label: ToggleField.ADV_SPLXMAXLIMITED.label, text: 'holds the SPL curve down where the cone would move past Xmax.'},
   ]);
   static readonly ADVANCED_WINISD_STYLE = new PhoneHelpSection('Enable WinISD-style', 'Places where WinISD calculates in its own way. OpenISD copies it by default. Untick a switch for the other form.', [
-    styleLine(WinisdOption.WRAP_PHASE, 'ticked: phase curves wrap at ±180°, as in WinISD. Unticked: they run on smoothly.'),
-    styleLine(WinisdOption.FLAT_MODEL, 'ticked: Force flat response cuts and boosts without limit, as WinISD does. Unticked: boost only, to 20 dB at most.'),
-    styleLine(WinisdOption.ABC_INTRA_PORT_VELOCITY, 'ticked: the ABC intra-port velocity drops a small leak term, as WinISD does. Unticked: the exact velocity.'),
+    styleLine(WinisdOption.WRAP_PHASE, 'WinISD wraps phase at ±180°, which makes smooth curves jump. OpenISD wraps by default, as WinISD does. Untick for smooth.'),
+    styleLine(WinisdOption.FLAT_MODEL, 'WinISD\'s Force flat response cuts and boosts without limit, so the boost can be huge. OpenISD does the same by default. Untick for boost only, 20 dB at most.'),
+    styleLine(WinisdOption.ABC_INTRA_PORT_VELOCITY, 'WinISD drops a small leak term from the ABC intra-port velocity, so it is slightly off (up to 1.35 dB). OpenISD drops it too by default. Untick for the exact velocity.'),
   ]);
   static readonly ADVANCED_WINISD_BUGS = new PhoneHelpSection('Enable WinISD bugs', 'Mistakes in WinISD\'s maths. OpenISD gets them right. A yellow switch brings WinISD\'s result back. A switch greyed out does nothing for this box.', [
-    bugLine(ToggleField.ADV_WINISDDRIVERMODEL, 'WinISD uses two different BL values.', WinisdDeviation.DRIVER_MODEL),
-    bugLine(ToggleField.ADV_WINISDVAMODEL, 'WinISD works out the amplifier load with Re, not Re + Rg.', WinisdDeviation.VA_MODEL),
-    bugLine(ToggleField.ADV_WINISDPRNPRRESONANCE, 'WinISD takes passive radiator losses at the wrong frequency, with more than one radiator.', WinisdDeviation.PR_NPR_RESONANCE),
-    bugLine(ToggleField.ADV_WINISDBESSELHIGHPASS, 'WinISD\'s Bessel high-pass is not the mirror of its low-pass.', WinisdFilterDeviation.BESSEL_HIGHPASS),
-    bugLine(ToggleField.ADV_WINISDABCGROUPDELAY, 'WinISD\'s ABC group delay leaves the driver out.', WinisdDeviation.ABC_GROUP_DELAY),
-    bugLine(ToggleField.ADV_WINISDDRIVERCOUNTMODEL, 'with more than one driver, WinISD\'s impedance chart shows one driver.', WinisdDeviation.DRIVER_COUNT),
-    bugLine(ToggleField.ADV_WINISDSEALEDPICKER, 'WinISD\'s sealed picker gives a volume whose Qtc is not the one you picked.', WinisdDeviation.SEALED_PICKER),
-    bugLine(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'with the transmission line model on, WinISD leaves out the port end correction and tunes the box higher.', WinisdDeviation.TL_PORT_END_CORRECTION),
+    bugLine(ToggleField.ADV_WINISDDRIVERMODEL, 'WinISD uses two BLs for one driver, so its charts show a driver that cannot exist. OpenISD uses one. Tick for WinISD\'s.', WinisdDeviation.DRIVER_MODEL),
+    bugLine(ToggleField.ADV_WINISDVAMODEL, 'WinISD leaves Rg out of the amplifier load, so the VA chart is low (23 % at Re 3.4 Ω, Rg 1 Ω). OpenISD counts it. Tick for WinISD\'s.', WinisdDeviation.VA_MODEL),
+    bugLine(ToggleField.ADV_WINISDPRNPRRESONANCE, 'With 2 or more radiators WinISD takes the box losses at a frequency that is Npr times too low. OpenISD uses the true tuning. Tick for WinISD\'s.', WinisdDeviation.PR_NPR_RESONANCE),
+    bugLine(ToggleField.ADV_WINISDBESSELHIGHPASS, 'WinISD\'s Bessel high-pass is not the mirror of its low-pass, so its shape is wrong (up to 6 % at order 4). OpenISD mirrors it. Tick for WinISD\'s.', WinisdFilterDeviation.BESSEL_HIGHPASS),
+    bugLine(ToggleField.ADV_WINISDABCGROUPDELAY, 'WinISD\'s ABC group delay leaves the driver out, so it disagrees with its own phase chart. OpenISD includes it. Tick for WinISD\'s.', WinisdDeviation.ABC_GROUP_DELAY),
+    bugLine(ToggleField.ADV_WINISDSEALEDPICKER, 'WinISD\'s sealed picker gives a volume for your Qtc, but the Box tab then shows a different one (0.800 picked, 0.787 shown). OpenISD\'s picker matches the Box tab. Tick for WinISD\'s.', WinisdDeviation.SEALED_PICKER),
+    bugLine(ToggleField.ADV_WINISDCOILWIRINGREBLONLY, 'WinISD converts only Re and BL when you rewire a multi-coil driver, so Le stays wrong (1.5 mH, should be 0.375 mH). OpenISD converts all. Tick for WinISD\'s.', WinisdDeviation.COIL_WIRING_RE_BL_ONLY),
+    bugLine(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'with the transmission line model on, WinISD leaves out the port end correction and tunes the box higher (40.3 Hz for Fb 38 Hz). OpenISD tunes where the Box tab says. Tick for WinISD\'s.', WinisdDeviation.TL_PORT_END_CORRECTION),
   ]);
   static readonly ADVANCED_SECTIONS: readonly PhoneHelpSection[] = [
     PhoneHelp.ADVANCED_ENVIRONMENT, PhoneHelp.ADVANCED_SIMULATION, PhoneHelp.ADVANCED_WINISD_STYLE, PhoneHelp.ADVANCED_WINISD_BUGS,

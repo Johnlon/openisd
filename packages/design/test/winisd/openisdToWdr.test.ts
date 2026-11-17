@@ -181,8 +181,8 @@ describe('openisd.json → winisd.wdr — format conformance (oracle: drivers/my
     assert.equal(oracle[23], 'E', 'the oracle claims E');
     assert.equal(got.numVC, '1');
 
-    // Slot 46 `VCCon` is always E (John, 2026-10-05) where WinISD writes N; see `wdrVCCon`.
-    assert.equal(got.ParState[46], 'E', 'VCCon, always E');
+    // Slot 46 `VCCon` is C when the record states no wiring (QO900 R1), where WinISD writes N; see `wdrVCCon`.
+    assert.equal(got.ParState[46], 'C', 'VCCon, C when the wiring is unknown');
     assert.equal(oracle[46], 'N', 'WinISD leaves slot 46 N');
 
     // Every other slot matches WinISD byte for byte.
@@ -225,9 +225,10 @@ describe('openisd.json → winisd.wdr — format conformance (oracle: drivers/my
     //   slot 44 `Vcd`  E, was N — this record STATES the voice coil diameter (38 mm). The old
     //                  fixture held it under the pre-B10 key `voice_coil_dia_mm`, which nothing
     //                  read, so the value was silently absent from the file.
-    //   slot 46 `VCCon` E — always E (John, 2026-10-05): the reader takes the value as entered,
-    //                  so an N here would turn into E on the next save.
-    assert.equal(f.ParState, 'EEEEEENNEENEEEECEECENCCENNCCCNNNCCCCNCNNNNNNENECC');
+    //   slot 46 `VCCon` C — this record (numVC 2) does not state its wiring, so the wiring is
+    //                  unknown and written 1 marked C (QO900 R1; was E under the 5 Oct 2026
+    //                  "always E" ruling). The reader reads a C row as unknown, so it round-trips.
+    assert.equal(f.ParState, 'EEEEEENNEENEEEECEECENCCENNCCCNNNCCCCNCNNNNNNENCCC');
   });
 });
 

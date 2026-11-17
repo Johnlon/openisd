@@ -54,6 +54,8 @@ describe('scripts/test-browser.sh', () => {
     mkdirSync(bin);
     copyFileSync(join(ROOT, 'scripts', 'admit', 'record.sh'), join(dir, 'scripts', 'admit', 'record.sh'));
     copyFileSync(join(ROOT, 'scripts', 'lib', 'ts-log.sh'), join(dir, 'scripts', 'lib', 'ts-log.sh'));
+    // admit/record.sh sources lib/main-checkout.sh since the submodule-layout fix (16 Nov 2026).
+    copyFileSync(join(ROOT, 'scripts', 'lib', 'main-checkout.sh'), join(dir, 'scripts', 'lib', 'main-checkout.sh'));
     for (const name of ['test-browser.sh', 'test-concurrency.sh', 'browser-runs.sh', 'paths.sh']) {
       copyFileSync(join(ROOT, 'scripts', name), join(dir, 'scripts', name));
     }

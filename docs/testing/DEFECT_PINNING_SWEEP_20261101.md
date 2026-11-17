@@ -10,10 +10,10 @@ Result: 0 tests pin a defect as correct. 1 stale FIXME removed. 0 skips found.
 
 | Where | Verdict | Line |
 |---|---|---|
-| packages/design/test/domain/driver-edit-parity-e150he-44.test.ts:187, :197 | ok | right expectation under it.fails; BUG_20261019_winisd-numvc-is-not-a-simulation-input |
-| packages/design/test/domain/pr-edit-parity-nd140-pr.test.ts:46 | ok | BUG_20261003_winisd-pr-sd-edit-ignored, BUG_20261019_winisd-pr-vas-edit-rounded-to-4-decimals |
-| packages/design/test/domain/pr-edit-parity-sb15sfcr-00.test.ts:42 | ok | BUG_20261003_winisd-pr-sd-edit-ignored |
-| packages/design/test/fixtures/winisdEditRuns.ts:143 | ok | BUG_20261019_winisd-numvc..., BUG_20261019_winisd-bp4-group-delay-is-rounding-noise-from-200-hz |
+| packages/design/test/domain/driver-edit-parity-e150he-44.test.ts:187, :197 | ok | right expectation under it.fails; FINDING_20261019_numvc-is-not-a-simulation-input |
+| packages/design/test/domain/pr-edit-parity-nd140-pr.test.ts:46 | ok | FINDING_20261003_pr-sd-edit-ignored, FINDING_20261019_pr-vas-edit-rounded-to-4-decimals |
+| packages/design/test/domain/pr-edit-parity-sb15sfcr-00.test.ts:42 | ok | FINDING_20261003_pr-sd-edit-ignored |
+| packages/design/test/fixtures/winisdEditRuns.ts:143 | ok | BUG_20261019_winisd-numvc..., FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz |
 | driver-edit-parity-w5.test.ts:24, pr-edit-parity-*:18/:17, winisdEditRuns.ts:106, vented-plausibility-cells.test.ts:76, sampleProject.test.ts:6 | ok | comments or prose, not calls |
 
 ## Skips and soft asserts

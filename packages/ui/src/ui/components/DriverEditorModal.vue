@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
+import {DateField, isoDay, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import {computed, nextTick, onBeforeUnmount, provide, ref, watch} from 'vue';
+import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../hooks/phoneLabelColumn.js';
 import type {NumSpecField} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {useApp} from '../../logic/app.js';
-import {wiringOptions} from '../../logic/driverDraft.js';
+import {wiringNotStatedLabel, wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/driverCells.js';
+import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
 import {commitMyDriver, useDriverEditorHelp} from '../../hooks/DriverEditorModal-hooks.js';
+import {useFeatureUse} from '../../hooks/telemetryContext.js';
 import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '@openisd/design';
 import UIField from './UIField.vue';
@@ -26,7 +29,7 @@ import PhoneHelpSheet from '../shells/mobile/PhoneHelpSheet.vue';
 import SaveToLibraryDialog from './SaveToLibraryDialog.vue';
 import type {SaveNameField} from '../../hooks/saveNameField.js';
 import {getProvenanceInfo, PROVENANCE_MAP} from '../../logic/provenance.js';
-import {editableFrom, elementFrom, inputFrom, selectedOption} from '../../logic/domEvents.js';
+import {editableFrom, elementFrom, inputFrom, selectedOption, selectValue} from '../../logic/domEvents.js';
 import {FIELD_EDIT_MODE} from '../../logic/fieldEditMode.js';
 
 function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calculated {
@@ -34,6 +37,7 @@ function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calcul
 }
 
 const { presentation: presentationState, selection, myDrivers, logging, driverFileStorage, designFiles, driverDrafts, confirmPort } = useApp();
+const featureUse = useFeatureUse();
 
 // Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
 // 4 tabs — General / Parameters / Advanced / Dimension
@@ -84,7 +88,7 @@ const draftDriver = computed(() => { void trigger.value; return draft.driver; })
  *  place vs save as copy) via `renameQuestionOpen`; by the time this runs, that is decided. */
 function commitToMyDrivers(driver: typeof draft.driver, replacesOpened: boolean): void {
   if (subject.kind !== 'myDriver') throw new Error('commitToMyDrivers called on a project subject');
-  if (!commitMyDriver(myDrivers, driver, replacesOpened ? subject.openedAs : '')) {
+  if (!commitMyDriver(myDrivers, featureUse, driver, replacesOpened ? subject.openedAs : '')) {
     alert('Saved drivers are read-only until the storage problem is resolved');
   }
 }
@@ -142,7 +146,7 @@ const driverRaw = computed(() => {
     manufacturer: d.manufacturer.value,
     providedBy: d.providedBy.value,
     comment: d.comment.value,
-    added: d.added.value,
+    added: isoDay(d.added.value ?? ''),
     sku: d.sku.value,
     VCCon: d.specs.VCCon.value,
   };
@@ -198,6 +202,7 @@ function setText(field: TextKey | 'comment', e: Event) {
  *  `setNum`'s table is numeric, and routing a wiring through it would put a 1 or a 2 where the
  *  domain expects 'parallel'/'series'. */
 const WIRING_OPTIONS = wiringOptions();
+const WIRING_NOT_STATED = wiringNotStatedLabel();
 /** The Connection control's provenance mark. Read off the same cell every numeric field beside
  *  it is read off, so an unstated wiring shows calculated (the record's own 'C' parallel) and a
  *  chosen one shows entered — it was the one control in the dialog with no mark
@@ -207,10 +212,20 @@ const wiringClass = computed(() => {
   const d = draftDriver.value;
   return cellClassOf(d.specs.VCCon);
 });
+/** Why the wiring is flagged (a multi-coil driver whose wiring is not stated): the field's own data-quality
+ *  sentence, shown as the ⚠ beside Coil wiring. The Driver tab shows no wiring, so this is the user's
+ *  only sign (John, 2026-11-15, QO941). '' when nothing is flagged. */
+const wiringDqReason = computed(() => {
+  void trigger.value;
+  return dqReason(dqOfCell(draftDriver.value.specs.VCCon));
+});
 function setWiring(e: Event) {
-  const wiring = selectedOption(e, WIRING_OPTIONS);
-  if (wiring === null) return;
-  draft.setWiring(wiring);
+  if (selectValue(e) === '') draft.clearWiring();
+  else {
+    const wiring = selectedOption(e, WIRING_OPTIONS);
+    if (wiring === null) return;
+    draft.setWiring(wiring);
+  }
   forceUpdate();
 }
 
@@ -254,6 +269,12 @@ provide(FIELD_EDIT_MODE, {
 // beside its right edge when there is room, its left edge otherwise — so it can never cover the
 // dialog it is inspecting, at any viewport size.
 const modalRootEl = ref<HTMLElement | null>(null);
+// On the phone the label column follows the longest label shown (the desktop skin sizes its own).
+let phoneLabelColumn: PhoneLabelColumn | null = null;
+watch(modalRootEl, el => { phoneLabelColumn?.stop(); phoneLabelColumn = el !== null && props.skin !== undefined ? createPhoneLabelColumn(el) : null; }, {flush: 'post'});
+onBeforeUnmount(() => phoneLabelColumn?.stop());
+// Closed by OK or Cancel: the draft is no longer work a reload would throw away (T829).
+onBeforeUnmount(() => draft.release());
 const popupStyle = ref<Record<string, string>>({});
 // Phone: height of the docked card. The editor body gets this much bottom padding and scroll
 // padding, so every row can be scrolled clear of the card and the tapped row is kept above it.
@@ -717,7 +738,7 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
         <div class="body de-body" :class="{ 'labels-left': tab !== 'General' }"
              :style="dockedCardHeight > 0 ? { paddingBottom: `${dockedCardHeight}px`, scrollPaddingBottom: `${dockedCardHeight}px` } : {}" @click="handleBodyClickOrFocus" @focusin="handleBodyClickOrFocus">
           <!-- ============================= General ============================= -->
-          <div v-if="tab === 'General'" class="de-general" :style="skin?.generalColumnVars">
+          <div v-if="tab === 'General'" class="de-general">
             <div v-for="(row, i) in GENERAL_TEXT_ROWS" :key="i" class="de-row2">
               <template v-for="t in row" :key="t.key">
                 <UIPickField v-if="skin" class="de-fld" :class="skin.field" :data-field-key="t.key" :title="t.def.description" :label="t.def.label" :input-id="`de-text-${t.key}`">
@@ -796,7 +817,8 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('SPL_dB')]" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :field="NumberField.SPL_DB" :cell="fieldOf('SPL_dB')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('numVC')]" data-field-key="numVC" :style="getFieldStyle('numVC')" :field="NumberField.NUMVC" :cell="fieldOf('numVC')" />
                 <UIPickField class="de-fld de-conn" :class="skin?.field" data-field-key="VCCon" :title="EnumField.VCCON.description" :label="EnumField.VCCON.label" input-id="de-conn-sel">
-                  <select id="de-conn-sel" class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
+                  <select id="de-conn-sel" class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? ''" @change="setWiring"><option value="">{{ WIRING_NOT_STATED }}</option><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
+                  <template #dq><button v-if="wiringDqReason" type="button" class="ui-field-dq-btn" :title="wiringDqReason" aria-label="Why this value is flagged">&#9888;</button></template>
                 </UIPickField>
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('power_peak_W')]" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :field="NumberField.POWER_PEAK_W" :cell="fieldOf('power_peak_W')" />
               </div>
@@ -857,6 +879,9 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <UIField class="de-fld" :class="[skin?.field, inspectClass('Magnet_m')]" data-field-key="Magnet_m" :label="skin ? PhoneLabels.MAGNET : undefined" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Basket_m" :label="skin ? PhoneLabels.BASKET : undefined" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Outer_m" :label="skin ? PhoneLabels.OUTER : undefined" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="OuterX_m" :label="skin ? PhoneLabels.OUTER_X : undefined" :field="NumberField.OUTERX_M" :cell="fieldOf('OuterX_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="OuterY_m" :label="skin ? PhoneLabels.OUTER_Y : undefined" :field="NumberField.OUTERY_M" :cell="fieldOf('OuterY_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="weight_kg" :label="skin ? PhoneLabels.WEIGHT : undefined" :field="NumberField.WEIGHT_KG" :cell="fieldOf('weight_kg')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Vcd_m" :label="skin ? PhoneLabels.VCD : undefined" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
               <UIField class="de-fld" :class="[skin?.field, inspectClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : undefined" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
             </div>
@@ -1266,9 +1291,9 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
   grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important;
 }
 .de-desktop .de-conn { grid-column: 1 / span 4 !important; }
-/* "Parallel"/"Series" plus the native select arrow do not fit the shared 90px input track —
-   it read as "Paralle" with the last letter clipped. Widened just for this one field. */
-.de-desktop .de-conn-sel { width: 96px !important; }
+/* "Parallel"/"Series" plus the native select arrow need the whole value track, the width of the number boxes above (field-layout rule 4) —
+   at 90px it read as "Paralle" with the last letter clipped. */
+.de-desktop .de-conn-sel { width: 100% !important; }
 .de-desktop .de-fld label {
   display: block !important;
   /* Sized by the shared subgrid track, never by a fixed pixel width: the track is as wide as
@@ -1280,6 +1305,9 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
      provenance highlight (painted on `.de-fld`, wrapping all four parts) read as one component
      per field. bugs/archive/BUG_20260817_driver_editor_labels_overflow_a_fixed_62px_column.md */
   width: auto !important;
+  max-width: none !important;
+  /* A label never wraps here (the shared joined-field rule lets it wrap between words, never inside one). */
+  white-space: nowrap !important;
   text-align: left !important;
   flex: 0 0 auto !important;
 }
@@ -1456,7 +1484,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 
 /* ── Phone: the ƒ mark in the left gutter of a row the inspector can explain ── */
 .de-phone .de-fld.de-fx { position: relative; }
-.de-phone .de-fld.de-fx::before { content: var(--de-fx); position: absolute; left: 4px; top: 50%; transform: translateY(-50%); color: #888; font-style: italic; font-family: Georgia, serif; font-size: 14px; line-height: 1; pointer-events: none; }
+.de-phone .de-fld.de-fx::before { content: var(--de-fx); position: absolute; left: 4px; top: 50%; transform: translateY(-50%); color: #888; font-style: italic; font-family: var(--font-ui); font-size: 14px; line-height: 1; pointer-events: none; }
 </style>
 
 <style scoped>
@@ -1478,7 +1506,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 </style>
 
 <style scoped>
-.de-help-button {width:22px;height:22px;padding:0;border:1px solid #3a6fb0;border-radius:50%;background:#e6f0fb;color:#23548f;font:600 12px/1 sans-serif;cursor:pointer;flex:none;}
+.de-help-button {width:22px;height:22px;padding:0;border:1px solid #3a6fb0;border-radius:50%;background:#e6f0fb;color:#23548f;font:600 12px/1 var(--font-ui);cursor:pointer;flex:none;}
 .de-hdr {display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;padding-right:4px;}
 .de-modal > h2 > .de-help-button {margin-left:auto;}
 .de-modal > h2 > .x {margin-left:0;}

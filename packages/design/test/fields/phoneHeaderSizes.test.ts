@@ -7,11 +7,11 @@ describe('PhoneHeaderSizes', () => {
     expect(PhoneHeaderSizes.CLASSIC.cssVars().get('--mob-header-control')).toBe('44px');
   });
 
-  it('the project name is 14 px on a 17 px line, at most two lines (accepted mock, screen 27)', () => {
+  it('the project name is 12 px on a 14 px line, up to three lines so a long name shows whole (T735)', () => {
     const vars = PhoneHeaderSizes.CLASSIC.cssVars();
-    expect(vars.get('--mob-header-title-px')).toBe('14px');
-    expect(vars.get('--mob-header-title-lh')).toBe('17px');
-    expect(vars.get('--mob-header-title-lines')).toBe('2');
+    expect(vars.get('--mob-header-title-px')).toBe('12px');
+    expect(vars.get('--mob-header-title-lh')).toBe('14px');
+    expect(vars.get('--mob-header-title-lines')).toBe('3');
   });
 
   it('the bar is the control plus 6 px above and below plus the 1 px rule: 57 px', () => {

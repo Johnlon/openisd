@@ -275,7 +275,7 @@ export default defineConfig(({ command, mode }) => ({
         // network and the installed app works offline (John, QO380, 2026-11-01). A republished
         // catalogue changes the hash, so a release re-fetches that one file. registerType
         // 'autoUpdate' reloads open pages onto a new build.
-        globPatterns: ['**/*.{js,css,html,svg,ico}', 'catalogue.json'],
+        globPatterns: ['**/*.{js,css,html,svg,ico,woff2}', 'catalogue.json'],
         // The catalogue is the largest file (~21 MB); the limit is stated so growth still precaches
         // rather than silently dropping out.
         maximumFileSizeToCacheInBytes: 48 * 1024 * 1024,

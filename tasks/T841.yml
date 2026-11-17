@@ -1,0 +1,12 @@
+id: T841
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Sealed picker help states the inconsistency with a 'but'
+why: John, 2026-11-16: sealed picker help states the inconsistency with a 'but' (QO946.c79-c80)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - packages/design/fields/field.ts
+  - packages/design/fields/phoneText.ts
+  - tasks/T841.yml

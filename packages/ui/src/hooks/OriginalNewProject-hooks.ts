@@ -3,14 +3,16 @@ import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef, watc
 // hook only names their shapes, so neither import is a layering edge (QO80).
 import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, defaultProjectName, startingChambersOf, takesChamberTunings, WizardPlan, WizardStep } from '@openisd/design';
 import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
-import { type BoxType, type EbpSuitability, type EnvironmentEngine, FixedAir, type PrEngine, type SealedEngine, type VentedAlignment, type VentedEngine, type Wiring } from '@openisd/design/engine';
-import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
+import { type BoxType, type EbpSuitability, type EnvironmentEngine, FixedAir, type PrEngine, type SealedEngine, type VentedAlignment, type VentedEngine } from '@openisd/design/engine';
+import {DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SEALED_QTC, DEFAULT_SEALED_VOLUME_L, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {DUAL_CHAMBER} from './boxFields.js';
 import {useApp} from '../logic/app.js';
 import type {AppState} from '../logic/appState.js';
 import { selectedOption } from '../logic/domEvents.js';
-import { useRecentActions } from './telemetryContext.js';
+import { useRadiatorPicks, useRecentActions } from './telemetryContext.js';
+import type { RadiatorPicks } from '../logic/telemetry/radiatorPick.js';
 import type {ClearableUICell} from '../ui/components/uiFieldBinding.js';
+import {appPassiveRadiatorFiles, createPassiveRadiatorEditor, type PassiveRadiatorEditorView, type PassiveRadiatorFiles} from './passiveRadiatorEditor.js';
 
 /** The engine areas the wizard consults; the app facade's by default, substitutes in a test. */
 export interface OriginalNewProjectEngineAreas {
@@ -61,6 +63,10 @@ export interface OriginalNewProjectDeps {
   appState?: AppState;
   /** Where a failed radiator pick is recorded; the app state's by default. */
   reportFault?: (fault: Error) => void;
+  /** Told which radiator was picked, for usage statistics; the page session's recorder by default. */
+  radiatorPicks?: RadiatorPicks;
+  /** The radiator editor's Export and Import; the app's by default (none when other deps are given). */
+  passiveRadiatorFiles?: PassiveRadiatorFiles;
 }
 
 export interface OriginalNewProjectAPI {
@@ -87,8 +93,6 @@ export interface OriginalNewProjectAPI {
   // Step 2: Driver count & placement
   readonly nDrivers: Ref<number>;
   readonly placement: Ref<'standard' | 'iso'>;
-  readonly wiring: Ref<Wiring>;
-  readonly ARRAY_WIRING_OPTIONS: readonly SelectorOption<Wiring>[];
 
   // Step 3: Box type & starting volume (non-sealed types; a sealed box gets its volume from step 4)
   readonly boxType: Ref<BoxType>;
@@ -168,6 +172,10 @@ export interface OriginalNewProjectAPI {
   readonly passiveRadiatorPickError: Ref<string | null>;
   /** Start a radiator that states nothing, for the user to type in. */
   defineNewPassiveRadiator(): void;
+  /** The picker's "+ Define new passive radiator": the passive-radiator editor on a blank radiator; its OK makes it the step's. */
+  startDefinePassiveRadiator(): void;
+  /** The passive-radiator editor the picker's Define opens. */
+  readonly passiveRadiatorEditor: PassiveRadiatorEditorView;
 
   // Step 5: Metadata
   readonly projName: Ref<string>;
@@ -205,13 +213,13 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     ?? { saved: useApp().myPassiveRadiators, bundled: useApp().bundledPassiveRadiators };
   const initialDriver = deps?.initialDriver ?? newProjectDriver.value ?? null;
   const recentActions = useRecentActions();
+  const radiatorPicks = deps?.radiatorPicks ?? useRadiatorPicks();
 
   const step = shallowRef<WizardStep>(WizardStep.DRIVER);
   const selectedDriver = shallowRef<OpenISDDriver | null>(initialDriver);
 
   const nDrivers = ref(1);
   const placement = ref<'standard' | 'iso'>('standard');
-  const wiring = ref<Wiring>('parallel');
 
   const boxType = ref<BoxType>('sealed');
   const BOX_OPTIONS = newProjectBoxTypeOptions();
@@ -231,8 +239,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     rearTuning_hz.value = start.rearTuning_hz ?? rearTuning_hz.value;
     frontTuning_hz.value = start.frontTuning_hz;
   }, { flush: 'sync' });
-  const targetQtc = ref(0.707);
-  const sealedVolume_m3 = ref(NumberField.BOX_VB_L.toSI(7));
+  const targetQtc = ref(DEFAULT_SEALED_QTC);
+  const sealedVolume_m3 = ref(NumberField.BOX_VB_L.toSI(DEFAULT_SEALED_VOLUME_L));
   const selectedVentedAlignment = ref<VentedAlignment>(DEFAULT_VENTED_ALIGNMENT);
 
   // The name is "<driver model> <box type>" until the person types one (John, 2026-10-21); after
@@ -413,7 +421,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     latestPick++;
     passiveRadiatorBrowseOpen.value = false;
     const entry = prRepos.saved.list().find(e => e.uuid === uuid);
-    if (entry) adoptPick(entry.passiveRadiator);
+    if (entry) { adoptPick(entry.passiveRadiator); radiatorPicks.saved(); }
   }
 
   const passiveRadiatorPickError = ref<string | null>(null);
@@ -459,7 +467,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     passiveRadiatorPickError.value = null;
     try {
       const loaded = await prRepos.bundled.load(uuid);
-      if (pick === latestPick) adoptPick(loaded);
+      if (pick === latestPick) { adoptPick(loaded); radiatorPicks.bundled(uuid); }
     } catch (thrown) {
       if (pick !== latestPick) return;
       const fault = thrown instanceof Error ? thrown : new Error(String(thrown));
@@ -467,6 +475,19 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
       passiveRadiatorPickError.value = `Could not load passive radiator ${named}: ${fault.message}`;
       reportFault(fault);
     }
+  }
+
+  const passiveRadiatorEditor = createPassiveRadiatorEditor({
+    myPassiveRadiators: prRepos.saved, resolve: resolveCopy,
+    files: deps === undefined ? appPassiveRadiatorFiles(useApp()) : deps.passiveRadiatorFiles,
+  });
+  function startDefinePassiveRadiator(): void {
+    passiveRadiatorEditor.open(OpenISDPassiveRadiatorStandalone.empty(), 'Define new passive radiator', pr => {
+      latestPick++;
+      passiveRadiatorBrowseOpen.value = false;
+      passiveRadiator.value = ownCopy(pr);
+      passiveRadiatorPickId.value++;
+    });
   }
 
   function defineNewPassiveRadiator(): void {
@@ -585,7 +606,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
         made.description.set(projDescription.value.trim());
       }
       made.nDrivers.set(nDrivers.value);
-      made.wiring.set(wiring.value);
       made.box.applyStartingValues();
     });
 
@@ -613,8 +633,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
     nDrivers,
     placement,
-    wiring,
-    ARRAY_WIRING_OPTIONS,
 
     boxType,
     BOX_OPTIONS,
@@ -663,6 +681,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     passiveRadiatorPickError,
     passiveRadiatorPickId,
     defineNewPassiveRadiator,
+    startDefinePassiveRadiator,
+    passiveRadiatorEditor,
 
     projName,
     projDescription,

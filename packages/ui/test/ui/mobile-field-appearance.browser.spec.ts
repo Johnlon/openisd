@@ -51,7 +51,7 @@ for(const popup of popups){
     const controls=page.locator(popup.root).locator('input[data-numinput]');
     expect(await controls.count()).toBeGreaterThan(0);
     for(const control of await controls.all()){
-      await expect(control).toHaveCSS('font-family','Arial, sans-serif');
+      await expect(control).toHaveCSS('font-family','Roboto, AppSymbols');
       await expect(control).toHaveCSS('font-size','15px');
       await expect(control).toHaveCSS('height','34px');
       await expect(control).toHaveCSS('padding-left','16px');

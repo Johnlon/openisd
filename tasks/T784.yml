@@ -1,0 +1,13 @@
+id: T784
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Record three clipping bugs found by the 10 Nov gallery check
+done_test: bash scripts/quiet-test.sh npm run typecheck
+why: John, 10 Nov 2026 (bug rule): record each defect as a bug file the turn it is found
+files:
+  - bugs/BUG_20261110_desktop-skin-whatif-modal-off-bottom-at-phone-width.md
+  - bugs/BUG_20261110_desktop-skin-vented-tab-labels-clipped-by-save-revert-at-phone-width.md
+  - bugs/BUG_20261110_phone-advanced-phase-wrapping-clipped-behind-footer.md
+  - tasks/T784.yml

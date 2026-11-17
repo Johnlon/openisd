@@ -1,4 +1,5 @@
 import {readFileSync} from 'node:fs';
+import {withNamedWiringReadings} from '../fixtures/scraperWiringShape.js';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, expect, it, vi} from 'vitest';
@@ -32,7 +33,7 @@ function child(v: unknown, key: string): Json {
 }
 
 function record(): Json {
-  const parsed: unknown = JSON.parse(readFileSync(FIXTURE, 'utf8'));
+  const parsed: unknown = JSON.parse(withNamedWiringReadings(readFileSync(FIXTURE, 'utf8')));
   if (!isJson(parsed)) throw new Error('fixture is not an object');
   return parsed;
 }
@@ -46,6 +47,11 @@ function cx120Record(): Json {
 const read = (value: number, extra: Json = {}): Json => ({actual_reading: String(value), read_value: value, ...extra});
 const entry = (value: number, role = 'manufacturer_datasheet', extraReading: Json = {}): Json => ({
   readings: {[role]: {...read(value), ...extraReading}},
+});
+
+/** A VCCon entry in the scraper's QO914 shape: the wiring named, with the quote. */
+const wiringEntry = (wiring: 'series' | 'parallel'): Json => ({
+  readings: {manufacturer_datasheet: {actual_reading: `wired in ${wiring}`, read_value: wiring}},
 });
 
 /** The record with its woofer section replaced by `fields`. */
@@ -103,72 +109,77 @@ describe('DriverRecordConverter — voice-coil derivation and edge cases', () =>
       .toMatchObject({state: 'E', value});
   });
 
-  it('projects SB sw26dac76-3-dv flat driver.json form with per-coil derivation and no basis keys', () => {
+  // The bridge stores Re and BL as driver.json states them (QO900 R1;
+  // bugs/BUG_20261114_bridge-writes-calculated-per-coil-values-as-entered.md): this SB
+  // sw26dac76-3-dv driver.json holds Re 2.4 ("2 x 2.4 Ω", one coil's) beside the series BL 19.4 Tm.
+  // The bridge rewrites neither, except a per-coil "N x r" Re, which it states for the measured wiring (QO915, QO919).
+  it('projects SB sw26dac76-3-dv flat driver.json form as driver.json states it, with no basis keys', () => {
     const {openisd, wdr, errors} = convert(record());
     expect(errors.filter(error => error.level === 'error')).toEqual([]);
     const woofer = wooferOf(openisd);
-    expect(child(woofer, 'Re_ohm')).toMatchObject({state: 'E', value: 2.4});
-    expect(child(woofer, 'BL_Tm')).toMatchObject({state: 'E', value: 9.7});
+    // "2 x 2.4 Ω" in series (VCCon series): 2 · 2.4 = 4.8 Ω, marked E (QO915, QO919).
+    expect(child(woofer, 'Re_ohm').state).toBe('E');
+    expect(child(woofer, 'Re_ohm').value).toBeCloseTo(4.8, 12);
+    expect(child(woofer, 'BL_Tm')).toMatchObject({state: 'E', value: 19.4});
     expect(woofer).not.toHaveProperty('Re_basis');
     expect(woofer).not.toHaveProperty('BL_basis');
     expect(child(woofer, 'numVC')).toMatchObject({state: 'E', value: 2});
-    expect(child(woofer, 'VCCon')).toMatchObject({state: 'E', value: 2});
+    expect(child(woofer, 'VCCon')).toEqual({state: 'E', value: 'series'});
     expect(wdrValue(wdr, 'Re')).toBe('4.8');
     expect(wdrValue(wdr, 'BL')).toBe('19.4');
     expect(wdrValue(wdr, 'numVC')).toBe('2');
     expect(wdrValue(wdr, 'VCCon')).toBe('2');
   });
 
-  it('derives per-coil values for series connection (VCCon 2)', () => {
-    const withoutNx = convert(withWoofer({
+  // Re printed per coil ("N x r") is stored for the measured wiring (QO915): series N·r, parallel r/N, marked E
+  // (QO919). The read precision scales the same way (series N·δ, parallel δ/N).
+  it.each([
+    // hand calc: series 2 · 2.4 = 4.8; parallel 2.4 / 2 = 1.2
+    ['series', 2.4, '2 x 2.4 Ω', 19.4, 4.8],
+    ['parallel', 2.4, '2 × 2.4 Ω', 9.7, 1.2],
+    // printed as one figure for the wiring: stored as printed
+    ['series', 4.8, '4.8 Ω', 19.4, 4.8],
+    ['parallel', 1.2, '1.2 Ω', 9.7, 1.2],
+  ] as const
+  )('VCCon %s: Re read %s (printed "%s") with BL %s is stored as %s, marked E', (vcCon, Re, printed, BL, stored) => {
+    const {openisd} = convert(withWoofer({
       Fs_hz: entry(30),
       numVC: entry(2),
-      VCCon: entry(2),
-      Re_ohm: entry(4.8, 'manufacturer_datasheet', {actual_reading: '4.8 Ω'}),
-      BL_Tm: entry(19.4, 'manufacturer_datasheet', {actual_reading: '19.4 Tm'}),
+      VCCon: wiringEntry(vcCon),
+      Re_ohm: entry(Re, 'manufacturer_datasheet', {actual_reading: printed, read_precision: 0.05}),
+      BL_Tm: entry(BL, 'manufacturer_datasheet', {actual_reading: `${BL} Tm`}),
     }));
-    const woofer1 = wooferOf(withoutNx.openisd);
-    expect(child(woofer1, 'Re_ohm').value).toBe(2.4);
-    expect(child(woofer1, 'BL_Tm').value).toBe(9.7);
-    expect(woofer1).not.toHaveProperty('Re_basis');
-    expect(woofer1).not.toHaveProperty('BL_basis');
-
-    const withNx = convert(withWoofer({
-      Fs_hz: entry(30),
-      numVC: entry(2),
-      VCCon: entry(2),
-      Re_ohm: entry(2.4, 'manufacturer_datasheet', {actual_reading: '2 x 2.4 Ω'}),
-      BL_Tm: entry(19.4, 'manufacturer_datasheet', {actual_reading: '19.4 Tm'}),
-    }));
-    const woofer2 = wooferOf(withNx.openisd);
-    expect(child(woofer2, 'Re_ohm').value).toBe(2.4);
-    expect(child(woofer2, 'BL_Tm').value).toBe(9.7);
+    const woofer = wooferOf(openisd);
+    expect(child(woofer, 'Re_ohm').state).toBe('E');
+    expect(child(woofer, 'Re_ohm').value).toBeCloseTo(stored, 12);
+    expect(child(woofer, 'BL_Tm').value).toBe(BL);
+    expect(woofer).not.toHaveProperty('Re_basis');
+    expect(woofer).not.toHaveProperty('BL_basis');
   });
 
-  it('derives per-coil values for parallel connection (VCCon 1)', () => {
-    const withoutNx = convert(withWoofer({
+  it.each([
+    // precision 0.05: series 2 · 0.05 = 0.1; parallel 0.05 / 2 = 0.025
+    ['series', '2 x 2.4 Ω', 0.1],
+    ['parallel', '2 × 2.4 Ω', 0.025],
+  ] as const)('VCCon %s: the precision of Re printed "%s" scales to %s', (vcCon, printed, precision) => {
+    const {openisd} = convert(withWoofer({
       Fs_hz: entry(30),
       numVC: entry(2),
-      VCCon: entry(1),
-      Re_ohm: entry(1.2, 'manufacturer_datasheet', {actual_reading: '1.2 Ω'}),
-      BL_Tm: entry(9.7, 'manufacturer_datasheet', {actual_reading: '9.7 Tm'}),
+      VCCon: wiringEntry(vcCon),
+      Re_ohm: entry(2.4, 'manufacturer_datasheet', {actual_reading: printed, read_precision: 0.05}),
     }));
-    const woofer1 = wooferOf(withoutNx.openisd);
-    expect(child(woofer1, 'Re_ohm').value).toBe(2.4);
-    expect(child(woofer1, 'BL_Tm').value).toBe(9.7);
-    expect(woofer1).not.toHaveProperty('Re_basis');
-    expect(woofer1).not.toHaveProperty('BL_basis');
+    expect(child(wooferOf(openisd), 'Re_ohm').precision).toBeCloseTo(precision, 12);
+  });
 
-    const withNx = convert(withWoofer({
+  it('wiring not stated: a per-coil Re stays as printed (2.4), marked E, and the wiring-not-stated warning stands', () => {
+    const {openisd, errors} = convert(withWoofer({
       Fs_hz: entry(30),
       numVC: entry(2),
-      VCCon: entry(1),
-      Re_ohm: entry(2.4, 'manufacturer_datasheet', {actual_reading: '2 × 2.4 Ω'}),
-      BL_Tm: entry(9.7, 'manufacturer_datasheet', {actual_reading: '9.7 Tm'}),
+      Re_ohm: entry(2.4, 'manufacturer_datasheet', {actual_reading: '2 x 2.4 Ω'}),
     }));
-    const woofer2 = wooferOf(withNx.openisd);
-    expect(child(woofer2, 'Re_ohm').value).toBe(2.4);
-    expect(child(woofer2, 'BL_Tm').value).toBe(9.7);
+    const re = child(wooferOf(openisd), 'Re_ohm');
+    expect(re).toMatchObject({state: 'E', value: 2.4});
+    expect(errors.some(e => e.level === 'warn' && /Measured wiring not stated/.test(e.message))).toBe(true);
   });
 
   it('leaves single-coil or unstated connection values unscaled without warnings', () => {

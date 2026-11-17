@@ -112,6 +112,7 @@ describe('useMobileSheet', () => {
       crashReports: new CrashReports(fakeTelemetry, errorContext, async () => ''),
       launch: new LaunchReporter(fakeTelemetry, () => LAUNCH_ENV, work => work(), new InstallMarker(new NoTelemetry(), createMemoryStorage())),
       actions,
+      radiatorPicks: {bundled: () => undefined, saved: () => undefined},
     };
 
     const tune = sheet(SheetMode.TUNE, telemetryUi);

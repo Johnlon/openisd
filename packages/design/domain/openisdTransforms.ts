@@ -162,7 +162,6 @@ export abstract class BoxProjectBuilder {
             driverEmbedding: {
                 device: {...driver},
                 nDrivers: 1,
-                wiring: 'parallel',
                 vcTempRise_K: 0,
                 Rs_ohm: DEFAULT_SOURCE_RESISTANCE_OHM,
                 driverAddedMass_kg: 0,
@@ -197,7 +196,6 @@ export abstract class BoxProjectBuilder {
                 winisdDriverModel: false,
                 winisdVaModel: false,
                 winisdWrapPhase: true,
-                winisdDriverCountModel: false,
                 winisdFlatModel: true,
             },
             charts: {},

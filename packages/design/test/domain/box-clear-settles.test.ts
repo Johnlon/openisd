@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
-import {NumberField} from '@openisd/design/fields';
+import {DEFAULT_VENTED_ALIGNMENT, NumberField} from '@openisd/design/fields';
 import {WINISD_BOX_LOSSES} from '../../domain/boxDefaults.js';
 import {STARTING_SHARED_VOLUME_M3, startingChambersOf} from '../../domain/box/startingChambers.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
@@ -29,9 +29,9 @@ describe('clearing a box volume settles it to the alignment volume', () => {
     new ProjectBuilder(driverFromSpec(createEngine(), driver), createEngine())
       .abc().rearVolume_m3(0.05).frontVolume_m3(0.04).build();
 
-  it('a cleared vented volume is entered, at the QB3 alignment volume', () => {
+  it('a cleared vented volume is entered, at the default (C4) alignment volume', () => {
     const p = vented();
-    const design = p.driver.ventedDesign('qb3', p.Rs_ohm.value, p.box.vented.losses.Ql.value)!;
+    const design = p.driver.ventedDesign(DEFAULT_VENTED_ALIGNMENT, p.Rs_ohm.value, p.box.vented.losses.Ql.value)!;
 
     p.box.vented.volume_m3.clear();
 

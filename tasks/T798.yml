@@ -1,0 +1,23 @@
+id: T798
+release_note: internal
+repo: openisd
+owner: flake-fixer
+status: done
+goal: The phone label column has one writer: the default --mob-col-label is no longer re-applied over the measured value on every render (BUG_20261115_mobile-wizard-box-type-select-width-varies)
+why: John, 15 Nov 2026: layout is deterministic (QO924, BUG_20261115_mobile-wizard-box-type-select-width-varies)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T798.yml
+  - packages/design/fields/phoneRowSizes.ts
+  - packages/design/test/fields/phoneRowColumns.test.ts
+  - packages/ui/src/hooks/MobileSheet-hooks.ts
+  - packages/ui/src/hooks/phoneLabelColumn.ts
+  - packages/ui/src/ui/components/PhoneDialogPage.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/driverEditorSkin.ts
+  - packages/ui/src/ui/shells/mobile/PhoneClassicPage.vue
+  - packages/ui/src/ui/shells/mobile/phoneClassicFieldVars.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/ui/phone-label-column-one-writer.browser.spec.ts
+  - bugs/BUG_20261115_mobile-wizard-box-type-select-width-varies.md
+  - packages/ui/test/architecture/mobile-number-field-sizes-owned-by-shell.test.ts

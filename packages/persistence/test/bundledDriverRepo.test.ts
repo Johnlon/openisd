@@ -26,6 +26,7 @@ const driverRow = {
   path: 'tang-band/w5-1138smf/openisd.yml',
   name: 'Tang Band W5-1138SMF',
   dq: false,
+  discontinued: false,
   datasheet: 'https://example.test/w5.pdf',
   productPage: null,
   listingPage: null,
@@ -38,6 +39,7 @@ const driverRow = {
   Znom_ohm: 4,
   freq_low_hz: 30,
   freq_high_hz: null,
+  sizeFromSd_in: 8,
 };
 
 const radiatorRow = {
@@ -45,6 +47,7 @@ const radiatorRow = {
   path: 'dayton-audio/nd140-pr/openisd.yml',
   name: 'Dayton Audio ND140-PR',
   dq: false,
+  discontinued: false,
   datasheet: null,
   productPage: 'https://example.test/nd140-pr',
   listingPage: null,

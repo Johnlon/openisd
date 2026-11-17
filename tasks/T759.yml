@@ -1,0 +1,12 @@
+id: T759
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: ship.sh pushes and opens pull requests on the portingle copy (one remote variable)
+done_test: bash scripts/land/test/ship.test.sh
+files:
+  - tasks/T759.yml
+  - scripts/ship.sh
+  - ship.conf
+  - scripts/land/test/ship.test.sh

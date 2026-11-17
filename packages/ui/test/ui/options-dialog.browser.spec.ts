@@ -383,9 +383,9 @@ test.describe('Options dialog', () => {
         await expect(page.locator('.projects-list')).toContainText('No projects yet.');
         await expect(page.locator('.opt-modal')).toContainText('Vented design limits');
 
-        // DEFAULT_VENTED_DESIGN_LIMITS in the units on screen: 1 L … 1000 L, 10 Hz … 150 Hz.
+        // DEFAULT_VENTED_DESIGN_LIMITS in the units on screen: 1 L … 100 L (the Vb box's own top, T726), 10 Hz … 150 Hz.
         await expect(page.locator('#set-min-volume')).toHaveValue('1.00');
-        await expect(page.locator('#set-max-volume')).toHaveValue('1000.00');
+        await expect(page.locator('#set-max-volume')).toHaveValue('100.00');
         await expect(page.locator('#set-min-tuning')).toHaveValue('10.00');
         await expect(page.locator('#set-max-tuning')).toHaveValue('150.00');
       });
@@ -408,7 +408,7 @@ test.describe('Options dialog', () => {
         await page.goto('/');
         const modal = await wizardToVentedAlignment(page);
 
-        // An ordinary driver designs an ordinary box: inside 1 L … 1000 L and 10 Hz … 150 Hz, so
+        // An ordinary driver designs an ordinary box: inside 1 L … 100 L and 10 Hz … 150 Hz, so
         // nothing is marked. This is what makes the next test's marks mean something.
         await expect(modal.locator('[data-testid="np-vented-volume-warning"]')).toHaveCount(0);
         await expect(modal.locator('[data-testid="np-vented-tuning-warning"]')).toHaveCount(0);
@@ -452,7 +452,7 @@ test.describe('Options dialog', () => {
         await page.locator('.tb-btn[title="Options"]').click();
         await expect(page.locator('#set-max-volume')).toHaveValue('2.00');
         await page.locator('[data-testid="settings-reset"]').click();
-        await expect(page.locator('#set-max-volume')).toHaveValue('1000.00');
+        await expect(page.locator('#set-max-volume')).toHaveValue('100.00');
         await expect(page.locator('[data-testid="settings-reset"]')).toBeDisabled();
         await clickOk(page);
 

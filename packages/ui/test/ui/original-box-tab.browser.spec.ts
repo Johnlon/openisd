@@ -38,7 +38,7 @@ async function expectReadoutsMoved(page: Page, before: {fsc: string; qtc: string
 }
 
 // T211 (John, 16 Oct 2026, clear-to-blank ruling): an emptied vented volume settles to the volume
-// the current alignment gives (10.69 L for the sample's driver), never blank and never 0.
+// the current alignment gives (10.70 L, alignment C4, for the sample's driver), never blank and never 0.
 test('emptying the box volume settles it to the alignment volume', async ({ appPage: page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   const vol = page.locator('#og-box-volume');
@@ -47,7 +47,7 @@ test('emptying the box volume settles it to the alignment volume', async ({ appP
   await expect(vol).toHaveValue(/^40/);
   await clearWithKeyboard(vol);
   await vol.blur();
-  await expect(vol).toHaveValue('10.69');
+  await expect(vol).toHaveValue('10.70');
 });
 
 test.describe('Original Box tab', () => {

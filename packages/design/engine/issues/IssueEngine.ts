@@ -6,12 +6,13 @@
  */
 import type {
   CalculationIssue, FillRoute, InvalidValueIssue, NegativeValueIssue, OutOfRangeIssue, RequiredValueIssue, SolveRoute,
-  TargetUnreachableIssue,
+  TargetUnreachableIssue, WiringInferredIssue, WiringNotStatedIssue, MultiCoilWithoutNumVCIssue,
 } from '../consistency.js';
 import {
   inconsistentInputs, issueFormula, missingDependencies, nonNegativeValueIssue, outOfRange,
-  positiveValueIssue, requiredPositiveIssue, targetUnreachable,
+  multiCoilWithoutNumVC, positiveValueIssue, requiredPositiveIssue, targetUnreachable, wiringInferred, wiringNotStated,
 } from '../consistency.js';
+import type {Wiring} from '../types.js';
 import type {VentedDesignQuantity, VentedPlausibilityIssue} from '../plausibility.js';
 import {nonPhysicalQuantity, quantityOutOfBand} from '../plausibility.js';
 import {pct, plainNames, relativeGap} from '../issueText.js';
@@ -31,6 +32,12 @@ export interface IssueEngine {
   outOfRange(field: string, value: number, limit: number, side: 'below' | 'above'): OutOfRangeIssue;
   /** A stated target past the maximum this geometry can produce. */
   targetUnreachable(target: string, maxReachable_hz: number): TargetUnreachableIssue;
+  /** A driver with `numVC` ≥ 2 coils whose measured wiring is not stated (warning). */
+  wiringNotStated(numVC: number): WiringNotStatedIssue;
+  /** The measured wiring inferred from Re against a printed per-coil nominal (note). */
+  wiringInferred(wiring: Wiring, Re_ohm: number, perCoilNominal_ohm: number): WiringInferredIssue;
+  /** A title naming several voice coils on a driver stating no coil count (warning). */
+  multiCoilWithoutNumVC(): MultiCoilWithoutNumVCIssue;
   /** A vented-alignment quantity that is zero, negative or not finite. */
   nonPhysicalQuantity(quantity: VentedDesignQuantity, value: number): VentedPlausibilityIssue;
   /** A vented-alignment quantity outside the design band the user owns in Settings. */
@@ -62,6 +69,9 @@ export class IssueEngineImpl implements IssueEngine {
   readonly inconsistentInputs = inconsistentInputs;
   readonly outOfRange = outOfRange;
   readonly targetUnreachable = targetUnreachable;
+  readonly wiringNotStated = wiringNotStated;
+  readonly wiringInferred = wiringInferred;
+  readonly multiCoilWithoutNumVC = multiCoilWithoutNumVC;
   readonly nonPhysicalQuantity = nonPhysicalQuantity;
   readonly quantityOutOfBand = quantityOutOfBand;
   readonly positiveValueIssue = positiveValueIssue;

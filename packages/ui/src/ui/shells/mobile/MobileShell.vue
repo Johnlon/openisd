@@ -36,7 +36,7 @@ const headerVars = Object.fromEntries(PhoneHeaderSizes.CLASSIC.cssVars());
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, flashMessage, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, dismissReconnect, revertProject, projectTitle,
-  browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, sheetTyping, pinSpacePx, onContentScroll,
+  browseDrivers, optionsOpen, openOptions, about, aboutLabel, goToProject, goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, sheetTyping, graphSheetOpen, bannersHeld, pinSpacePx, onContentScroll,
   contentEl, canScrollUp, canScrollDown,
   username, appVersion, projectsPaneOpen, openProjectsPane, closeProjectsPane, projectRows, openProjectRows, selectOpenProject, closeOpenProject, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel, chooseProject,
   setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
@@ -99,7 +99,7 @@ const diagnostics = injectDiagnosticsModal();
 
     <template v-else>
       <main ref="contentEl" class="mob-content" :class="{ 'mob-content-fixed': destination === 'graph' }" @scroll="onContentScroll">
-        <MobileChartView v-if="destination === 'graph'" @menu="toggleMenu" />
+        <MobileChartView v-if="destination === 'graph'" @menu="toggleMenu" @sheet-open="open => graphSheetOpen = open" />
         <MobileBoxTab v-else-if="destination === 'box'" />
         <MobileDriverTab v-else-if="destination === 'driver'" />
         <MobileSignalTab v-else-if="destination === 'signal'" />
@@ -112,6 +112,8 @@ const diagnostics = injectDiagnosticsModal();
       <MobilePaneDialog v-else-if="pane === 'advanced'" title="Advanced" @close="closePane">
         <MobileAdvancedTab />
       </MobilePaneDialog>
+      <!-- A Graph sheet is open: the banners wait until it closes (QO427 B, John 9 Nov 2026). -->
+      <template v-if="!bannersHeld">
       <div v-if="flashMessage" class="mob-update-banner mob-flash-banner" role="status" data-testid="flash-strip">
         <span>{{ flashMessage }}</span>
       </div>
@@ -134,6 +136,7 @@ const diagnostics = injectDiagnosticsModal();
         <button type="button" class="mob-update-reload" @click="turnOnHint">{{ cloudSyncDisplay.hint.yes }}</button>
         <button type="button" class="mob-update-later" :aria-label="cloudSyncDisplay.hint.no" :title="cloudSyncDisplay.hint.no" @click="dismissHint">&#10005;</button>
       </div>
+      </template>
       <MobileTabBar v-show="!sheetTyping" v-model="destination" :shadow-above="canScrollDown" />
 
     </template>
@@ -215,7 +218,7 @@ const diagnostics = injectDiagnosticsModal();
           </button>
           <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
           <button type="button" class="mob-menu-item" @click="diagnostics.show(); closeMenu()">Diagnostics</button>
-          <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
+          <button type="button" class="mob-menu-item" @click="about(); closeMenu()">{{ aboutLabel }}</button>
           <button type="button" class="mob-menu-item" @click="announcements.showList(); closeMenu()">Announcements</button>
           <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
           <button v-if="!skinIsAutomatic" type="button" class="mob-menu-item" @click="useAutomaticSkin">Automatic view</button>
@@ -292,14 +295,20 @@ const diagnostics = injectDiagnosticsModal();
   flex-direction: column;
   background: var(--bg);
   color: var(--fg);
-  font: 15px/1.5 "Inter", system-ui, sans-serif;
+  font: 15px/1.5 var(--font-ui);
   font-variant-numeric: tabular-nums;
 }
 /* Typing in a Graph sheet's box with the keyboard up (MobileShell-hooks sheetTyping): the rows get the
    height. The legend and each chart's band go; the chart keeps a short strip to watch the curve move. */
 .mobile-root.mob-sheet-typing :deep(.mob-chart-legend),
 .mobile-root.mob-sheet-typing :deep(.mob-chart-cell .mob-band) { display: none; }
-.mobile-root.mob-sheet-typing :deep(.mob-chart-stack) { min-height: 80px; }
+.mobile-root.mob-sheet-typing :deep(.mob-chart-stack) { min-height: var(--gp-typing-chart-min); }
+/* QO427 (b), John 8 Nov 2026: the Auto Y / Close bar goes too; the keyboard's Done key closes the keyboard
+   (logic/enterClosesKeyboard.ts) and the bar returns with it. */
+.mobile-root.mob-sheet-typing :deep(.mob-sheet-foot) { display: none; }
+/* ...and the height that bar frees goes to the chart, not to more rows (John 9 Nov 2026): the sheet's cap
+   shrinks by the bar, and the chart's least height above grows by it (ChartPageSizes). */
+.mobile-root.mob-sheet-typing :deep(.mob-sheet) { max-height: calc(var(--gp-sheet-max) - var(--gp-sheet-foot-h)); }
 .mob-content {
   flex: 1;
   /* display:flex here too (not just flex:1) so a full-screen child (the Graph destination) can
@@ -351,7 +360,7 @@ const diagnostics = injectDiagnosticsModal();
 }
 .mob-brand { display: flex; align-items: center; gap: 8px; margin-left: 4px; font-weight: 600; font-size: 17px; }
 .mob-brand img { width: 24px; height: 24px; display: block; }
-/* The focused project's name: takes the rest of the bar and wraps to two lines (ellipsis only past two). */
+/* The focused project's name: takes the rest of the bar and wraps to three lines (ellipsis only past three). */
 .mob-project-title {
   all: unset;
   box-sizing: border-box;

@@ -52,7 +52,7 @@
       <line x1="415" y1="385" x2="415" y2="420"/>
       <line x1="242" y1="410" x2="415" y2="410" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
     </g>
-    <g font-family="system-ui,sans-serif" font-size="14" fill="#4fb0ff" text-anchor="middle">
+    <g style="font-family: var(--font-ui)" font-size="14" fill="#4fb0ff" text-anchor="middle">
       <text x="482" y="225" transform="rotate(90,482,225)">Outer</text>
       <text x="153" y="225" transform="rotate(-90,153,225)">Basket</text>
       <text x="198" y="225" transform="rotate(-90,198,225)">Magnet</text>

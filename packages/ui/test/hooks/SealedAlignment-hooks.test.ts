@@ -3,6 +3,8 @@ import {computed, ref, shallowRef} from 'vue';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
 import {SealedAlignmentEditor} from '../../src/hooks/SealedAlignment-hooks.js';
+import {VentedAlignmentEditor} from '../../src/hooks/VentedAlignment-hooks.js';
+import {recordingTelemetryUi} from '../fixtures/recordingTelemetryUi.js';
 
 function completeProject() {
   const engine = createEngine();
@@ -19,7 +21,7 @@ describe('SealedAlignmentEditor', () => {
   it('keeps alignment edits in draft state until Accept', () => {
     const {engine, project} = completeProject();
     const projectRef = shallowRef(project);
-    const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver);
+    const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver, recordingTelemetryUi().telemetryUi.featureUse);
 
     editor.openEditor();
     editor.selectQtc(0.707);
@@ -33,7 +35,7 @@ describe('SealedAlignmentEditor', () => {
   it('accepts an edited volume and reports the closest WinISD option', () => {
     const {engine, project} = completeProject();
     const projectRef = shallowRef(project);
-    const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver);
+    const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver, recordingTelemetryUi().telemetryUi.featureUse);
 
     editor.openEditor();
     editor.volume_m3.value = 0.012;
@@ -46,7 +48,7 @@ describe('SealedAlignmentEditor', () => {
   it('accepting a picked Qtc keeps the volume as the box\'s entered volume; Qtc is calculated and the volume stays when the driver changes', () => {
     const {engine, project} = completeProject();
     const projectRef = shallowRef(project);
-    const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver);
+    const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver, recordingTelemetryUi().telemetryUi.featureUse);
 
     editor.openEditor();
     editor.selectQtc(0.707);
@@ -66,7 +68,7 @@ describe('SealedAlignmentEditor', () => {
   it('a volume typed after the pick is kept as the entered volume instead', () => {
     const {engine, project} = completeProject();
     const projectRef = shallowRef(project);
-    const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver);
+    const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver, recordingTelemetryUi().telemetryUi.featureUse);
 
     editor.openEditor();
     editor.selectQtc(0.707);
@@ -76,5 +78,19 @@ describe('SealedAlignmentEditor', () => {
     expect(project.box.sealed.volume_m3.entered).toBe(true);
     expect(project.box.sealed.volume_m3.value).toBe(0.02);
     expect(project.box.sealed.q_tc.entered).toBe(false);
+  });
+});
+
+// John, 10 Nov 2026: "scan rest of app for missed telemetry".
+describe('alignment editors: usage counts', () => {
+  it('counts the sealed and the vented alignment editor opened', () => {
+    const {engine, project} = completeProject();
+    const {telemetryUi, events} = recordingTelemetryUi();
+    new SealedAlignmentEditor(computed(() => project), ref(0), engine.sealed, engine.driver, telemetryUi.featureUse).openEditor();
+    expect(events).toEqual([{kind: 'feature', name: 'alignment'}]);
+
+    const vented = recordingTelemetryUi();
+    new VentedAlignmentEditor(computed(() => project), ref(0), engine.driver, vented.telemetryUi.featureUse).openEditor();
+    expect(vented.events).toEqual([{kind: 'feature', name: 'alignment'}]);
   });
 });

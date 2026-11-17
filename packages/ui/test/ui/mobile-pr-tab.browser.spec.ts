@@ -43,10 +43,13 @@ test.describe('MobilePrTab', () => {
     expect(Math.abs(inputBox!.width - outputBox!.width), 'access must not change the standard value-box width').toBeLessThanOrEqual(1);
   });
 
-  test('a passive-radiator box shows passive radiator fields and Select PR opens the browser', async ({ page }) => {
+  // John, 16 Nov 2026 (QO946.c115, 12:57): the radiator by name and its Key figures; its other figures are in the editor.
+  test('a passive-radiator box shows the radiator, its Key figures and User options, and Select PR opens the browser', async ({ page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
     await expect(page.locator('.mob-band-title', {hasText: /^Passive radiator$/})).toHaveCount(1);
-    await expect(mobileFieldRow(page, 'Vas')).toBeVisible();
+    await expect(page.locator('.mob-band-title', {hasText: /^Key figures$/})).toHaveCount(1);
+    await expect(mobileFieldRow(page, 'Vas')).toHaveCount(0);
+    await expect(mobileFieldRow(page, 'Mms')).toBeVisible();
     await expect(page.locator('.ui-field-label', {hasText: /^Added mass$/})).toBeVisible();
     await expect(page.locator('.ui-field-label', {hasText: /^Fpr with mass$/})).toBeVisible();
 
@@ -56,19 +59,21 @@ test.describe('MobilePrTab', () => {
     await expect(page.getByText('Passive radiator library')).toHaveCount(0);
   });
 
-  // John, 2026-10-05: every PR field is editable on the page, so the page has no Edit button.
-  test('the PR page has no Edit button and edits every passive radiator field in place', async ({ page }) => {
+  // John, 16 Nov 2026 (QO946.c115, c117): the phone Box tab shows the radiator by name; every field is edited in its editor (Edit), as the driver's.
+  test('Edit opens the editor, which edits every passive radiator field; OK keeps them', async ({ page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
 
-    await expect(page.locator('.mob-cbtns button', { hasText: /^Edit$/ })).toHaveCount(0);
-
-    const input = (label: string) => mobileFieldRow(page, label).locator('input').first();
-    await page.locator('#mob-pr-name').fill('Bench PR 12');
-    await fillAndCommit(input('Vas'), '7.5');
-    await fillAndCommit(input('Qms'), '12.25');
-    await fillAndCommit(mobileFieldRow(page, 'Fpr').filter({ hasNotText: 'with added mass' }).locator('input').first(), '21.5');
-    await fillAndCommit(input('Sd'), '300');
-    await fillAndCommit(input('Xmax'), '12');
+    await page.locator('#mob-pr-edit').click();
+    const editor = page.locator('.prd-panel');
+    await editor.getByRole('tab', { name: 'General' }).click();
+    await editor.locator('#pr-editor-name').fill('Bench PR 12');
+    await editor.getByRole('tab', { name: 'Parameters' }).click();
+    await fillAndCommit(editor.locator('#pr-editor-vas'), '7.5');
+    await fillAndCommit(editor.locator('#pr-editor-qms'), '12.25');
+    await fillAndCommit(editor.locator('#pr-editor-fs'), '21.5');
+    await fillAndCommit(editor.locator('#pr-editor-sd'), '300');
+    await fillAndCommit(editor.locator('#pr-editor-xmax'), '12');
+    await editor.getByRole('button', { name: 'OK', exact: true }).click();
     await page.locator('#mob-pr-count').selectOption('2');
 
     const stored = await shownPassiveRadiator(page);
@@ -83,7 +88,8 @@ test.describe('MobilePrTab', () => {
 
   test('Mms keeps its unit toggle and both cues inside one phone field row', async ({ page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-    const field = mobileFieldRow(page, 'Mms').first();
+    await page.locator('#mob-pr-edit').click();   // the radiator's figures are in its editor (QO946.c115)
+    const field = page.locator('.prd-panel .ui-field').filter({ has: page.locator('.ui-field-label', { hasText: 'Mms' }) }).first();
     const input = field.locator('.ui-field-value input').first();
     const unit = field.locator('.ui-field-unit.unit-toggle');
     const deviation = field.locator('.ui-field-dev .winisd-deviation-cue');
@@ -121,21 +127,23 @@ test.describe('MobilePrTab', () => {
     expect(Number(await input.inputValue())).not.toBe(beforeValue);
   });
 
-  // John, 2026-10-05: "Save PR to library needs to ask for a name confirmation dialog." The
-  // name typed there names the library copy only; the project's radiator keeps its own name.
-  test('Save to library asks for a name, prefilled, and saves a copy under the typed name', async ({ page }) => {
+  // John, 2026-10-05: a library copy is named on its own; the project's radiator keeps its name. John, 16 Nov 2026
+  // (QO946.c117, c118): Save to library is the editor's Copy to My PRs (in More), as the driver editor's Copy to My Drivers.
+  test('Copy to My PRs in the editor saves a copy under the editor\'s name; the project keeps its own until OK', async ({ page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
 
-    await page.locator('#mob-pr-name').fill('Bench PR');
-    await page.getByRole('button', { name: 'Save to library' }).click();
-    const dialog = page.getByRole('dialog', { name: 'Save passive radiator to library' });
-    const name = dialog.locator('input');
-    await expect(name).toHaveValue('Bench PR');
-    await name.fill('Library Bench PR');
-    await dialog.getByRole('button', { name: 'Save' }).click();
+    await page.locator('#mob-pr-edit').click();
+    const dialog = page.getByRole('dialog', { name: "Edit Project's Passive Radiator" });
+    await dialog.getByRole('tab', { name: 'General' }).click();
+    const before = await dialog.locator('#pr-editor-name').inputValue();
+    await dialog.locator('#pr-editor-name').fill('Library Bench PR');
+    await dialog.getByRole('button', { name: /More/ }).click();
+    await dialog.getByRole('menuitem', { name: 'Copy to My PRs' }).click();
+    await expect(dialog.getByRole('status')).toContainText('Library Bench PR');
+    await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(dialog).toHaveCount(0);
 
-    await expect(page.locator('#mob-pr-name')).toHaveValue('Bench PR');
+    await expect(page.locator('#mob-pr-name-btn')).toContainText(before === '' ? 'Unnamed passive radiator' : before);
     await page.getByText('Select PR', { exact: true }).click();
     await expect(page.locator('.pr-lib-item .pr-lib-name', { hasText: 'Library Bench PR' })).toBeVisible();
   });
@@ -159,11 +167,12 @@ test('a new sealed project switching to PR receives a consistent Dummy PR', asyn
   await expect(page.locator('.mob-np-overlay')).toBeHidden();
   await expect(page.locator('#mob-box-type')).toHaveValue('sealed');
   await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-  await expect(page.locator('#mob-pr-name')).toHaveValue('Dummy PR');
-  const qms = page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})});
+  await expect(page.locator('#mob-pr-name-btn')).toHaveText('Dummy PR');
+  await page.locator('#mob-pr-edit').click();   // the radiator's figures are in its editor (QO946.c115)
+  const qms = page.locator('.prd-panel .mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})});
   expect(Number(await qms.locator('input').inputValue())).toBe(5);
   for (const name of ['Qms', 'Mms', 'Cms']) {
-    const row = page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: new RegExp(`^${name}$`)})});
+    const row = page.locator('.prd-panel .mob-ui-field').filter({has: page.locator('label', {hasText: new RegExp(`^${name}$`)})});
     await expect(row.locator('input')).not.toBeEmpty();
     await expect(row.locator('.ui-field-dq-btn')).toHaveCount(0);
   }

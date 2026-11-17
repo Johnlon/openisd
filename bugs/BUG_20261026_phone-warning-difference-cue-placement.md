@@ -1,6 +1,6 @@
 # Phone warnings and WinISD difference cues use different rails
 
-**Status:** OPEN — reported during T607 review; investigation pending.
+**Status:** CLOSED, not a defect: an unruled design question. Closed by John on QO456, 8 Nov 2026.
 
 During T607, the warning was deliberately moved beside the label to avoid numeric overlap, while the WinISD difference cue stayed inside the value box. John asks whether one outside and one inside is intentional. This was an implementation choice, not an agreed visual standard. Compare simultaneous-cue states with production and the approved design before declaring the placement beneficial. No user approval of the split is inferred.
 

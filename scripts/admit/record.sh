@@ -18,13 +18,15 @@
 # scripts/housekeeping.sh removes the records of dead owners and logs each one.
 
 . "$(dirname "${BASH_SOURCE[0]}")/../paths.sh"
+# shellcheck source=../lib/main-checkout.sh
+. "$(dirname "${BASH_SOURCE[0]}")/../lib/main-checkout.sh"
 
 admit_repo_name() { # the main repo's directory name for the cwd (the script'"'"'s own repo outside any repo)
-  local common
-  common=$(git rev-parse --path-format=absolute --git-common-dir 2> /dev/null) \
-    || common=$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --path-format=absolute --git-common-dir 2> /dev/null) \
+  local main
+  main=$(main_checkout . 2> /dev/null) \
+    || main=$(main_checkout "$(dirname "${BASH_SOURCE[0]}")" 2> /dev/null) \
     || { printf 'openisd\n'; return 0; }
-  basename "$(dirname "$common")"
+  basename "$main"
 }
 
 admit_dir() {

@@ -13,9 +13,9 @@ const GRID = {fmin: 20, fmax: 2000, N: 20};
 /** The source `OpenISDProject` builds for a sweep, over the project's public fields, with `air` and `engine` as given. */
 function sourceOf(p: OpenISDProject, engine: ReturnType<typeof createEngine>, air: Air = p.air): ProjectSweepSource {
   return {
-    driver: p.driver, box: p.box, nDrivers: p.nDrivers, wiring: p.wiring, Rs_ohm: p.Rs_ohm, circuitModel: p.circuitModel,
+    driver: p.driver, box: p.box, nDrivers: p.nDrivers, Rs_ohm: p.Rs_ohm, circuitModel: p.circuitModel,
     winisdDriverModel: p.winisdDriverModel, winisdVaModel: p.winisdVaModel, winisdWrapPhase: p.winisdWrapPhase,
-    winisdDriverCountModel: p.winisdDriverCountModel, winisdFlatModel: p.winisdFlatModel,
+    winisdFlatModel: p.winisdFlatModel,
     winisdAbcIntraPortVelocity: p.winisdAbcIntraPortVelocity, winisdPrNprResonance: p.winisdPrNprResonance,
     winisdBesselHighpass: p.winisdBesselHighpass, winisdAbcGroupDelay: p.winisdAbcGroupDelay,
     winisdTlPortNoEndCorrection: p.winisdTlPortNoEndCorrection, rgAtDriverSide: p.rgAtDriverSide,

@@ -4,6 +4,7 @@ import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import type {Design, FrequencyAxis, FrequencyDragMode, LevelAxis, LevelDragMode, SnapDirection, SnapExtremum} from '@openisd/design/chart';
 import type {Geo} from '../../types.js';
 import type {ChartId} from '@openisd/design/engine';
+import {NumberField} from '@openisd/design/fields';
 import {DESKTOP_DRAW_STYLE, drawOne, PHONE_DRAW_STYLE} from '../canvas.js';
 import {useGraphPanel} from '../../hooks/GraphPanel-hooks.js';
 import {useApp} from '../../logic/app.js';
@@ -207,10 +208,10 @@ function onPointerUp(e: PointerEvent) {
 }
 
 // Double-click the Y-axis strip resets that chart's level scale to auto; double-click
-// the X-axis strip resets the frequency range to the 1–20 kHz default.
+// the X-axis strip resets the frequency range to the app default (NumberField.PLOT_RANGE_DEFAULT_HZ).
 function onDblClick(e: MouseEvent) {
   if (yAxisZone(e)) resetY();
-  else if (xAxisZone(e)) { presentationState.sweepRange = { min: 1, max: 20000 }; }
+  else if (xAxisZone(e)) { presentationState.sweepRange = { min: NumberField.PLOT_RANGE_DEFAULT_HZ.min, max: NumberField.PLOT_RANGE_DEFAULT_HZ.max }; }
 }
 
 function onPointerLeave() {
@@ -360,7 +361,8 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
          @pointercancel="onPointerCancel"
          @dblclick="onDblClick" />
     <div v-if="!classic" class="gtitle">{{ meta.name }}<button v-if="chartData" type="button" class="gdata"
-            title="Show this chart's data as a table, to copy or download as CSV" @click="dataOpen = true">Data</button>
+            title="Show this chart's data as a table, to copy or download as CSV" @click="dataOpen = true">Data</button><button v-if="chartData" type="button" class="gdata-all"
+            title="Export all chart data" aria-label="Export every chart" @click="graph.exportAllChartData()">All</button>
       <label v-if="!blocked && !hideAutoY" class="gautoy"
              title="Auto Y: ticked, the Y axis rescales to fit the curves after every edit. Unticked, the Y axis stays at the range shown when you unticked it, and edits never rescale it; the range is this chart's Y-axis limit in Options, where Reset to auto-scale ticks this again.">
         <input type="checkbox" :checked="autoY" aria-label="Auto Y" @change="graph.setAutoY(inputChecked($event))">
@@ -417,7 +419,8 @@ canvas { touch-action: none; }
 }
 
 /* "Data" opens the chart's data table: a small button after the title, inside the title's band. */
-.gdata {
+.gdata,
+.gdata-all {
   pointer-events: auto;
   position: relative;
   vertical-align: top; /* keeps the title one 12 px line, inside the title's band */
@@ -432,10 +435,10 @@ canvas { touch-action: none; }
   border-radius: 3px;
   cursor: pointer;
 }
-.gdata:hover { color: var(--fg); }
+.gdata:hover, .gdata-all:hover { color: var(--fg); }
 /* A finger needs a bigger target than the drawn button. */
 @media (pointer: coarse) {
-  .gdata::after { content: ''; position: absolute; inset: -12px -10px; }
+  .gdata::after, .gdata-all::after { content: ''; position: absolute; inset: -12px -10px; }
 }
 
 /* Auto Y switch: sits in the title row after the chart title and Data tag (QO278 option b). */

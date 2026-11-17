@@ -33,7 +33,7 @@ for(const regression of regressions){
   });
 }
 
-test('shared DOM contract detects missing Inter faces despite unchanged CSS font family',async({page})=>{
+test('shared DOM contract detects missing Roboto faces despite unchanged CSS font family',async({page})=>{
   await openDriver(page);
   expect((await page.locator('.mob-content').evaluate(measureFieldContent)).issues).toEqual([]);
   // Simulate losing the font imports. No CSS family declaration changes and no
@@ -43,7 +43,7 @@ test('shared DOM contract detects missing Inter faces despite unchanged CSS font
     for(const sheet of document.styleSheets){
       for(let index=sheet.cssRules.length-1;index>=0;index--){
         const rule=sheet.cssRules[index];
-        if(rule instanceof CSSFontFaceRule && rule.style.fontFamily.replace(/["']/g,'')==='Inter'){
+        if(rule instanceof CSSFontFaceRule && rule.style.fontFamily.replace(/["']/g,'')==='Roboto'){
           sheet.deleteRule(index);removed++;
         }
       }
@@ -51,7 +51,7 @@ test('shared DOM contract detects missing Inter faces despite unchanged CSS font
     return removed;
   });
   expect(removed).toBeGreaterThan(0);
-  await expect(page.locator('.mob-content .ui-field-readout input').first()).toHaveCSS('font-family','Inter, system-ui, sans-serif');
+  await expect(page.locator('.mob-content .ui-field-readout input').first()).toHaveCSS('font-family','Roboto, AppSymbols');
   const report=await page.locator('.mob-content').evaluate(measureFieldContent);
   expect(report.issues.filter(issue=>issue.problem.includes('font unavailable'))).toHaveLength(5);
 });

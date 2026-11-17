@@ -76,7 +76,7 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 | ABC (Aperiodic Bi-Chamber)                            | 🚧                                                                                                                                                                                                     | ✅ confirmed — in the box-type list; two vented chambers, both tunings free          |
 | Passive radiator                                      | ✅                                                                                                                                                                                                     | ✅ confirmed                                                                         |
 | Isobaric / compound loading                           | 🚧                                                                                                                                                                                                     | ✅ confirmed — Driver tab "Iso-Barik" radio (view_1_driver…iso-barik.png)            |
-| Multiple drivers (series / parallel wiring)           | ✅                                                                                                                                                                                                     | ✅ confirmed                                                                         |
+| Multiple drivers (count only; WinISD has no series / parallel wiring of drivers) | ✅                                                                                                                                                                                                     | ✅ confirmed                                                                         |
 | Box loss model (Ql leakage, Qa absorption)            | ✅ default Ql=10, Qa=100                                                                                                                                                                               | ✅ confirmed — same defaults (WinISD help file + direct observation)                 |
 | WinISD-compatible circuit model                       | ✅ (default mode)                                                                                                                                                                                      | ✅ confirmed                                                                         |
 | Full gyrator (frequency-dependent Le)                 | ✅ switchable                                                                    | ✅ confirmed — Advanced "Simulate voice coil inductance", default off (`[SimulatorOptions] VCInd`); the two on-models differ by ~0.6 dB at 5–20 kHz (Part 3 §9) |
@@ -978,21 +978,27 @@ below — editing `numVC` resets the combo to parallel without scaling `Re`/`BL`
 quadruple their driver twice without warning: set series (`Re`×4), edit `numVC` (combo back to
 parallel, `Re` still ×4, file says parallel), set series again (`Re`×16).
 
-**OPENISD DEVIATES, on John's ruling 2026-08-28 ("evil", "make it two"):**
+**OPENISD DEVIATES (QO900 and QO907, 14 Nov 2026, superseding the per-coil basis of QO96 and QO97):**
 
-|                         | WinISD                                                   | OpenISD                                                                                       |
-| ----------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| fields                  | one `Re`, whose meaning changes silently with the wiring | `Re_per_coil` (entered, never rewritten) and `Re_terminal` (calculated) — same split for `BL` |
-| on a wiring change      | rewrites the stored value in place                       | recomputes the derived field; the typed value is untouched                                    |
-| provenance              | rewritten value stays marked `E`                         | entered stays entered, calculated is marked calculated                                        |
-| where the scaling lives | in the editor                                            | ONLY in the `.wdr`/`.wpr` adapter                                                             |
+|                         | WinISD                                                   | OpenISD                                                                                                  |
+| ----------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| fields                  | one `Re`, whose meaning changes silently with the wiring | `Re`, `BL`, `Le`, `Znom` as the maker published them, for the measured wiring (`VCCon`: series, parallel or unknown) |
+| on a wiring change      | rewrites the stored value in place                       | nothing stored changes; the project's "Coil wiring" converts the figures the amplifier side reads        |
+| provenance              | rewritten value stays marked `E`                         | stored figures keep their marks; converted figures are never stored                                    |
+| where the scaling lives | in the editor                                            | the engine's `convertWiring`, read by the sweep, power, Rg loading and the `.wpr` writer               |
 
-**The files stay byte-compatible** — the writer emits the effective (terminal) values, exactly
-what WinISD would have written. The deviation is in what OpenISD KEEPS, not in what it produces.
+N identical coils, series to parallel: `Re`, `Le`, `Znom` divided by N², `BL` by N. WinISD converts `Re` and `BL`
+only (winisd_research FINDING_20261115); a yellow switch for that difference is awaiting John (QO942.c22). `Qes`, `Fs`,
+`Mms`, `Cms`, `Vas` never change. Any number of coils above one converts, as WinISD does. A `.wdr` of the driver carries the
+stored figures with the measured wiring; a `.wpr` carries the figures converted to the project's coil wiring, with that
+wiring as `[Driver] VCCon` (the project's `wiring` field is WinISD's project VCCon, both ways). The control WinISD labels
+"Voice coil connection" on the Driver tab is the coil wiring of one driver (winisd_research FINDING_20261115). WinISD has no
+wiring of several drivers, and OpenISD applies none since 15 Nov 2026; the earlier statement here that the control joins
+several drivers was wrong.
 
 Two reasons this is worth diverging over: OpenISD round-trips and TESTS the `E`/`C`/`N` marks, so
 a false `E` corrupts the parity suite itself; and a destructive edit of a typed value is
-unrecoverable — the user cannot get 6.4 back out of 25.6 without knowing what happened to it.
+unrecoverable.
 
 ### Reading a `.wdr` back — the rule, and why a known-broken field is safe to trust
 
@@ -1072,7 +1078,7 @@ Probe `winisd_research/toys/probe_vccon_save_load.py`, runs in
 OpenISD copies neither editor bug: it stores `Re`/`BL` per coil and derives the terminal values
 from the wiring, so a coil-count edit cannot leave them out of step, and it writes the wiring the
 user chose. OpenISD always marks `VCCon` `E` (John, 2026-10-05). WinISD bug record:
-[BUG_20261005_winisd-vccon-editor-combo](../../bugs/BUG_20261005_winisd-vccon-editor-combo.md).
+[FINDING_20261005_vccon-editor-combo](../../winisd_research/findings/FINDING_20261005_vccon-editor-combo.md).
 
 ## 13. Suggested default units — frequency analysis from datasheets
 
@@ -1307,7 +1313,7 @@ after a forced redraw (`winisd_research/runs/pr-sd-edit-1`, `-2`, `pr-sd-load-1`
 1/Sd. Fs and Qms are linked: typing a new value changes the PR charts (`runs/pr-Fs-edit-1`,
 `runs/pr-Qms-edit-1`). Vas: the edit moves the charts straight away (`runs/pr-Vas-ui-drive2`), and the
 file-load route moves both PR charts (`runs/pr-Vas-load-1`); emptying the Vas box crashes WinISD (`runs/pr-Vas-ui-crash1`). Not yet probed: the cut-and-paste
-trigger above. Bug: [BUG_20261003_winisd-pr-sd-edit-ignored.md](../../bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md?html).
+trigger above. Bug: [FINDING_20261003_pr-sd-edit-ignored.md](../../winisd_research/findings/FINDING_20261003_pr-sd-edit-ignored.md?html).
 
 ### Emptying the PR Vas box crashes WinISD (probed 2026-10-04)
 
@@ -1316,7 +1322,7 @@ digits until it is empty makes WinISD die with a floating-point divide by zero (
 window vanishes; `winisd_research/runs/pr-Vas-ui-crash1`). The box's change handler runs on every
 keystroke and divides by the value, the same class as the Box Volume field. Real Windows was not
 tested. OpenISD does not copy it: a zero in Fs, Qms, Vas or Sd leaves every derived value finite or
-absent (`pr-spec-resolve.test.ts`). Bug: [BUG_20261004_winisd-pr-vas-box-emptied-crashes.md](../../bugs/BUG_20261004_winisd-pr-vas-box-emptied-crashes.md?html).
+absent (`pr-spec-resolve.test.ts`). Bug: [FINDING_20261004_pr-vas-box-emptied-crashes.md](../../winisd_research/findings/FINDING_20261004_pr-vas-box-emptied-crashes.md?html).
 
 ### Loading a driver with Fs and Vas at 0 crashes WinISD (probed 2026-10-05)
 
@@ -1325,7 +1331,7 @@ leaves Fs, Qes, Qts, Rms and Vas to be derived kills WinISD about 1.5 s after lo
 draw: a divide by zero at `0x462636` (`Cas` = 0; `winisd_research/runs/sweep-mms-cms-load-crash.json`).
 Entering the same values in the standalone Driver editor works, and WinISD derives Fs 37.2 and the rest;
 that route made the `solve-from-mms-cms` golden. OpenISD derives the fields and does not crash. Bug:
-[BUG_20261005_winisd-driver-without-fs-vas-crashes-on-load.md](../../bugs/BUG_20261005_winisd-driver-without-fs-vas-crashes-on-load.md?html).
+[FINDING_20261005_driver-without-fs-vas-crashes-on-load.md](../../winisd_research/findings/FINDING_20261005_driver-without-fs-vas-crashes-on-load.md?html).
 
 ### Vent end correction edit is not taken (probed 2026-10-19)
 
@@ -1337,7 +1343,7 @@ shows 0.732 regardless (`PROBE_FINDINGS.md` vent geometry probe, `runs/ventshape
 capture settles it: loaded 0.6, 0.732, 0.85 save vent lengths 0.376838, 0.370238, 0.364338 m,
 each step the end-correction change x the 5 cm diameter (`runs/t429-w5-vented-load-endcorr*`). OpenISD honours the value
 (`project-vent-length.test.ts`). Bug:
-[BUG_20261019_winisd-vent-end-correction-edit-not-taken.md](../../bugs/BUG_20261019_winisd-vent-end-correction-edit-not-taken.md?html).
+[FINDING_20261019_vent-end-correction-edit-not-taken.md](../../winisd_research/findings/FINDING_20261019_vent-end-correction-edit-not-taken.md?html).
 
 ## 19. WinISD parameter entry — community best practices (a second source)
 
@@ -1465,7 +1471,6 @@ chain"; `.wpr` `[Filters]` format: `PROBE_FINDINGS.md`. The bugs, one file each:
 | WinISD bug | OpenISD | File |
 |---|---|---|
 | Save loses an Allpass and every filter after it | not copied (no data loss); import to follow WinISD | [bugs/archive/BUG_20260927_winisd-save-drops-allpass-and-later-filters.md](../../bugs/archive/BUG_20260927_winisd-save-drops-allpass-and-later-filters.md) |
-| More than one driver: impedance chart shows one driver's (probe: 18.609 Ω at 1 and 4 drivers; VA 0.968 VA at both, the array's) | fixed by default (the array per the wiring); yellow bug switch "Per-driver impedance" brings WinISD back; a ≠W cue by Num. of drivers. OpenISD's VA had been one driver's; now the array's, as WinISD | [bugs/archive/BUG_20261005_winisd-multi-driver-impedance-is-one-drivers.md](../../bugs/archive/BUG_20261005_winisd-multi-driver-impedance-is-one-drivers.md) |
 | Sealed alignment picker gives a volume whose Qtc on the Box tab is not the picked one (W5-1138SMF, Qts 0.49, Vas 4.85 L, Ql 10: Qtc 0.800 gives 3.13 L, Box tab 0.787); the picker folds in a fixed Rg 0.1 Ω and Qa 100 and leaves out Ql (function 0x45c140, 41 captures to 3.8e-15) | fixed by default (the volume at which the Box tab shows the picked Qtc: 2.96 L); yellow bug switch "Sealed picker volume" brings WinISD's volume back in both pickers (Box tab dialog and New Project wizard); a ≠W cue by the picker | [bugs/archive/BUG_20261017_winisd-sealed-picker-volume-formula-unknown.md](../../bugs/archive/BUG_20261017_winisd-sealed-picker-volume-formula-unknown.md) |
 | "Driver input voltage (each)" does not follow the driver count (1.8 V at 4 drivers, 1 W; really 0.92 V) | a linkage bug, not copied, no switch: OpenISD's readout is each driver's, √(P/N·(Re+Rg)), and follows the driver count; an entered voltage sets P = N·V²/(Re+Rg); the sweep runs at it (SPL +6.02 dB at 1 W, +12.04 dB at the same volts each, 1 → 4 drivers, as WinISD) | [bugs/archive/BUG_20261005_drive-voltage-each-stale-with-driver-count.md](../../bugs/archive/BUG_20261005_drive-voltage-each-stale-with-driver-count.md) |
 | Signal tab power and voltage related through Re alone, P = N·V²/Re (1.85 V each × 4 drivers, Re 3.4 Ω, Rg 0.1 Ω: 4.0 W), while the SPL chart drives that power into Re + Rg | fixed by default (P = N·V²/(Re + Rg): 3.91 W); the yellow bug switch "Re without Rg" (also the VA chart's Re) brings WinISD back: the readout uses Re, the sweep drives the power into Re + Rg. Ticked, 1.85 V each at 4 drivers plays 92.601 dB at 1 kHz against WinISD's 92.573 (WinISD carries the power as shown, 4.0 W); unticked 92.475 | [bugs/archive/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md](../../bugs/archive/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md) |
@@ -1485,7 +1490,7 @@ Both step f ± 1e-10 Hz and difference arg H, as for every box. They differ in H
 |---|---|---|---|
 | ABC | a calculation bug: the box is stepped to f ± δ but the output routine passes the chart frequency f to the driver routine, so the driver part is held at f and the group delay is the box's phase slope alone. It contradicts WinISD's own phase chart (W5-1138SMF, 1.005 Hz: −40.96 ms against −33.86 ms) | fixed by default (−dφ/dω of the plotted phase); yellow error switch "ABC group delay" (ABC only) brings WinISD back, within 1.03e-3 ms; a ≠W cue by the Group delay chart explains it | [bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md](../../bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md) |
 | BP6 | H is right (equals the plotted transfer); above ~200 Hz the 1e-10 Hz step turns the rounding of two nearly cancelling compliance currents into noise, worst 0.11 ms at 4 kHz | not copied, no switch (John, 2026-10-05): rounding noise cannot be reproduced in doubles; OpenISD's own noise is the same size | [bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md](../../bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md) |
-| BP4 | H is right; from 200 Hz up, on the W5-1138SMF and the E150HE-44 box alike, the 1e-10 Hz step turns the rounding of the box terms into noise (phase error × \|H\| is 1.1e-16 to 1.7e-16 rad from 128 Hz to 2 kHz), up to 0.03 ms at 1 to 4 kHz | not copied, no switch (same ruling as BP6, John, 2026-10-05): rounding noise cannot be reproduced in doubles | [bugs/BUG_20261019_winisd-bp4-group-delay-is-rounding-noise-from-200-hz.md](../../bugs/BUG_20261019_winisd-bp4-group-delay-is-rounding-noise-from-200-hz.md) |
+| BP4 | H is right; from 200 Hz up, on the W5-1138SMF and the E150HE-44 box alike, the 1e-10 Hz step turns the rounding of the box terms into noise (phase error × \|H\| is 1.1e-16 to 1.7e-16 rad from 128 Hz to 2 kHz), up to 0.03 ms at 1 to 4 kHz | not copied, no switch (same ruling as BP6, John, 2026-10-05): rounding noise cannot be reproduced in doubles | [winisd_research/findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md](../../winisd_research/findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md) |
 
 ## 23. Vented box alignment polynomials — provenance, accuracy, and pathologies (verified 2026-10-10)
 

@@ -1,0 +1,40 @@
+id: T827
+release_note: internal
+repo: openisd
+owner: claude-upgrade-incremental
+status: done
+goal: The whole-store backup is written compressed (a declared, versioned encoding) and the start-up rewrite stays behind it, so upgrading saved projects from schemaVersion 3 to 4 neither fills the store, nor is skipped silently: when the backup still cannot fit, the user is told nothing was changed
+why: John, 15 Nov 2026 (QO940.c4): "compress", after the release-readiness run showed the whole-store upgrade backup filling a 2.3 MB store to 96% and silently skipping the rewrite at 3.0 MB
+done_test: bash scripts/test.sh packages/persistence/test/storageSnapshot.test.ts
+ruling: QO940
+files:
+  - tasks/T827.yml
+  - bugs/BUG_20261115_upgrade-backup-fills-store-and-skips-silently.md
+  - bugs/BUG_20261115_rewritten-project-uploads-as-v4-in-mixed-rollout.md
+  - package-lock.json
+  - packages/persistence/package.json
+  - packages/persistence/src/index.ts
+  - packages/persistence/src/repos/storageBackup.ts
+  - packages/persistence/src/repos/storageHistory.ts
+  - packages/persistence/src/repos/storageSnapshot.ts
+  - packages/persistence/src/repos/storedTextCompaction.ts
+  - packages/persistence/test/architecture-storage-writes-are-guarded.test.ts
+  - packages/persistence/test/cloud/syncEngine.test.ts
+  - packages/persistence/test/destructivePaths.test.ts
+  - packages/persistence/test/fixtures/stored-v3-projects.json
+  - packages/persistence/test/fixtures/stored-backup-v20261108T0032Z.json
+  - packages/persistence/test/storageBackup.test.ts
+  - packages/persistence/test/storageHistory.test.ts
+  - packages/persistence/test/storageRefused.test.ts
+  - packages/persistence/test/storageSnapshot.test.ts
+  - packages/persistence/test/storedTextCompaction.test.ts
+  - packages/design/fields/browserStorage.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/browserStorage.test.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/hooks/StorageHistory-hooks.ts
+  - packages/ui/src/logic/upgradeRefusedNotice.ts
+  - packages/ui/test/hooks/StorageHistory-hooks.test.ts
+  - packages/ui/test/logic/upgradeRefusedNotice.test.ts
+  - docs/design/BROWSER_STORAGE_KEYS.md
+  - packages/persistence/test/quarantineRetirement.test.ts

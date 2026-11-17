@@ -89,6 +89,12 @@ export function describeVersions(runningVersion: string, entries: readonly Build
   return {running: {version, heading: runningHeading(version, dayOf(running)), stamp: running}};
 }
 
+/** The Info menu's About item: carries the running build's public number once the list names it. */
+export function aboutMenuLabel(view: VersionsView | null): string {
+  const version = view?.running?.version ?? '';
+  return version === '' ? 'About OpenISD' : `About OpenISD ${version}`;
+}
+
 /** The hosted-builds list for About: fetched once at start, described on demand. */
 export class VersionIndex {
   constructor(

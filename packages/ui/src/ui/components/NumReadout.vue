@@ -11,7 +11,7 @@
 // — this is its read-only twin, not a second implementation.
 import {computed} from 'vue';
 import {useApp} from '../../logic/app.js';
-import {formatFixed, type NumberField, type ReadoutFormat} from '@openisd/design/fields';
+import {formatFixed, PHONE_MAX_SIGNIFICANT, type NumberField, type ReadoutFormat} from '@openisd/design/fields';
 const presentationState = useApp().presentation;
 
 const props = withDefaults(defineProps<{
@@ -46,7 +46,7 @@ const text = computed(() => {
   if (si == null || !isFinite(si)) return props.placeholder;
   if (props.format) return props.format.textSI(si, props.placeholder, presentationState.ui.unitTokens ?? {});
   if (props.field) {
-    return props.field.format(si, props.halfWidth, activeToken.value);
+    return props.field.format(si, props.halfWidth, activeToken.value, presentationState.shownSkin() === 'mobile' ? PHONE_MAX_SIGNIFICANT : undefined);
   }
   const minDp = props.precision ?? 2;
   return formatFixed(si, minDp);

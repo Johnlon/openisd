@@ -1,4 +1,5 @@
 import {AppUpdate} from './logic/appUpdate.js';
+import {reloadLosses, type ReloadFacts} from './logic/reloadLosses.js';
 import {ScriptedUpdateHost} from './logic/scriptedUpdateHost.js';
 import {createLoadingOverlay, type LoadingOverlay} from './logic/loadingOverlay.js';
 import {createStoreGateSession} from './logic/storeGate.js';
@@ -58,6 +59,7 @@ import {provideCloudSync} from './hooks/CloudSync-hooks.js';
 import {handleOAuthBoot} from './logic/boot.js';
 import {createLogging} from './logging/flash.js';
 import {flashStartupUse} from './logic/startupUsageNotice.js';
+import {announceUpgradeRefused} from './logic/upgradeRefusedNotice.js';
 import {storedUseOf} from './logic/storedUse.js';
 import {createFaultLog} from './diagnostics/faultLog.js';
 import {createDriverSelection} from './logic/driverSelection.js';
@@ -86,17 +88,18 @@ import {registerServiceWorker} from './logic/telemetry/serviceWorker.js';
 import {installBrowserListeners} from './logic/telemetry/browserListeners.js';
 import {FeatureUse} from './logic/telemetry/featureUse.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
+import {radiatorPickRecorder} from './logic/telemetry/radiatorPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
 import {provideAnnouncementCenter} from './hooks/Announcements-hooks.js';
 import {announcementEndpointsForHostname, createAnnouncementCenter} from './logic/announcementCenter.js';
 import {newUuid} from '@openisd/design';
-import {DesktopSizes, PhoneRowSizes, trailOfLocation} from '@openisd/design/fields';
+import {DesktopSizes, PhoneRowSizes, SkinFonts, trailOfLocation} from '@openisd/design/fields';
 import {createEngine} from '@openisd/design/engine';
 import {basicUtc, browserNameOf, formatDateTime, persistenceLine} from '@openisd/design/fields';
 import {announceLostKeys} from './logic/lostKeyNotice.js';
-import '@fontsource/inter/400.css';
-import '@fontsource/inter/600.css';
-import '@fontsource/inter/700.css';
+import '@fontsource/roboto/latin-400.css';
+import './fonts.css';
+import '@fontsource/jetbrains-mono/latin-400.css';
 import './style.css';
 
 /** The browser's storage under this deployment's prefix: the /test/ build keeps a store of its own. */
@@ -232,10 +235,12 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // --- application layer: the app's state and what it does next ---
   const recentActions = new RecentActions();
   const featureUse = new FeatureUse(telemetry, recentActions);
-  const selection = createDriverSelection({ appState, presentation, driverPicked: driverPickRecorder(telemetry, driverRepo) });
+  const driverPicked = driverPickRecorder(telemetry, driverRepo);
+  const selection = createDriverSelection({ appState, presentation, driverPicked });
   // Stored projects written by earlier builds are indented and carry dq_calculated: rewritten once,
   // behind the whole-store backup, and Cloud sync follows it so it sees no edit. A read-only view of a backup is never written.
-  if (!store.readOnly) createStoredTextCompaction(storage, storageBackup, createLedgerFollowsRewrite(storage, randomBytes)).run();
+  // The backup that must come first is compressed; when it still does not fit, nothing is rewritten and the user is told below.
+  const upgrade = store.readOnly ? {kind: 'nothingToDo' as const} : createStoredTextCompaction(storage, storageBackup, createLedgerFollowsRewrite(storage, randomBytes)).run();
   // Refused copies replace the old quarantine copy of the session: it is removed once, behind the backup.
   if (!store.readOnly) createQuarantineRetirement(storage, storageBackup).run();
   const projectRepo = createProjectRepo(engine, fileStorage, storage, new URL('./', window.location.href).href, storageBackup, exportedFiles, report => faultLog.recordRepair(report), saves.notify);
@@ -249,7 +254,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-    confirmReset: confirmPort.port, exportNotice: createExportNotice(confirmPort.port), appState, presentation,
+    confirmReset: confirmPort.port, exportNotice: createExportNotice(confirmPort.port), appState, presentation, driverPicked, featureUse,
   });
   const viewStateRepo = createViewStateRepo(storage, storageBackup, forgetCloudSyncRecord);
 
@@ -267,12 +272,25 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const updateHost = new ScriptedUpdateHost(location.origin + import.meta.env.BASE_URL);
   const testBuild = import.meta.env.MODE === 'test';
   const controlledAtLoad = testBuild || ('serviceWorker' in navigator && navigator.serviceWorker.controller !== null);
+  // What a reload would lose (T829): unsaved edits are kept by the stored session, so they count only when the
+  // store did not take them; an open driver editor and a What-if are never stored.
+  const reloadFacts = (): ReloadFacts => {
+    const open = appState.openProjects();
+    return {
+      anyUnsaved: open.some(p => appState.projectHasUnsavedChanges(p)),
+      sessionStored: projectRepo.openSessionIsStored(),
+      readOnlyStore: store.readOnly,
+      editorDraftChanged: driverDrafts.hasUnappliedChanges(),
+      whatIfChanged: open.some(p => p.hasWhatIfChanges()),
+    };
+  };
   const appUpdate = new AppUpdate({
     controlledAtLoad,
     container: testBuild ? updateHost : navigator.serviceWorker,
     visibility: {onVisible: listener => document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') listener(); })},
     timer: {every: (ms, listener) => { setInterval(listener, ms); }},
-    anyUnsaved: () => appState.openProjects().some(p => appState.projectHasUnsavedChanges(p)),
+    anyUnsaved: () => { const facts = reloadFacts(); return facts.anyUnsaved || facts.editorDraftChanged || facts.whatIfChanged; },
+    losses: () => reloadLosses(reloadFacts()),
     reload: () => location.reload(),
     caches: {keys: () => globalThis.caches.keys(), delete: name => globalThis.caches.delete(name)},
   });
@@ -437,7 +455,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     window.fetch.bind(window),
     announcementEndpointsForHostname(window.location.hostname),
   ));
-  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions});
+  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions, radiatorPicks: radiatorPickRecorder(telemetry, bundledPRs)});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
@@ -461,12 +479,14 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     crashReports.capture(err);
   };
 
+  applySkinFonts();
   for (const [name, value] of DesktopSizes.cssVars()) document.documentElement.style.setProperty(name, value);
   for (const [name, value] of PhoneRowSizes.TAB.cssVars()) document.documentElement.style.setProperty(name, value);
   app.mount('#app');
   overlay?.onAppMounted();
   flashStartupUse(storedUseOf(projectRepo, storageUsage), createUsageNoticeTab(tabStore), logging.flash);
   if (store.readOnly) logging.flash('Showing a backup read-only. Nothing you change is saved.');
+  void announceUpgradeRefused(upgrade, confirmPort.port);
   // A key that was here at the last start and is gone now: say so, and wait for a click.
   void announceLostKeys(store.lostKeys, {
     confirm: confirmPort.port,
@@ -546,6 +566,12 @@ const recordedProjectIdStore: RecordedProjectIdStore = {
     try { sessionStorage.removeItem(REDIRECT_PROJECT_KEY); } catch { /* ignore */ }
   },
 };
+
+/** The bundled fonts as CSS variables on the page, before anything draws: the store gate shows without the app and needs them as much as the app does. */
+function applySkinFonts(): void {
+  for (const [name, value] of SkinFonts.cssVars()) document.documentElement.style.setProperty(name, value);
+}
+applySkinFonts();
 
 if (opening.kind === 'ready') {
   startApp(opening, loadingOverlay, recordedProjectIdStore);

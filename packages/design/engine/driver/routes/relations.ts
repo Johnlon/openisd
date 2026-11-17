@@ -31,9 +31,15 @@ export const GAMMA_FROM_MOTOR = Object.freeze(new Relation('gamma = Bl/Mms', 'ga
   (v) => v.BL_Tm! / v.Mms_kg!));
 export const VD_FROM_EXCURSION = Object.freeze(new Relation('Vd = Sd·Xmax', 'Vd_m3', Object.freeze(['Vd_m3', 'Sd_m2', 'Xmax_m']),
   (v) => v.Sd_m2! * v.Xmax_m!));
+/** The sheets never print the air their Vas was worked out in, and ρ·c² = γ·p depends on the pressure alone: the app's
+ *  20 °C, 30 % RH, 101325 Pa gives 141855 Pa. The 619 catalogue records that print Vas, Cms and Sd to within 2 % of
+ *  their own value imply ρ·c² from 138.8 kPa (1.18 kg/m³ at 343 m/s, a common convention: 79 records sit in 138 to
+ *  140) to about 144 kPa, median 141.6 kPa. 2.5 % either side of the app's (pressure 98.8 to 103.9 kPa) takes in
+ *  both ends and is added to the printed digits' own rounding; a sheet further out than that contradicts itself. */
+const VAS_AIR_TOLERANCE = 0.025;
 /** ρ and c are the driver's OWN resolved air, never a fixed reference constant. */
 export const VAS_FROM_COMPLIANCE = Object.freeze(new Relation('Vas = ρ·c²·Sd²·Cms', 'Vas_m3', Object.freeze(['Vas_m3', 'Cms_m_per_N', 'Sd_m2', 'roo_kg_per_m3', 'c_m_per_s']),
-  (v) => v.roo_kg_per_m3! * v.c_m_per_s! * v.c_m_per_s! * v.Sd_m2! * v.Sd_m2! * v.Cms_m_per_N!));
+  (v) => v.roo_kg_per_m3! * v.c_m_per_s! * v.c_m_per_s! * v.Sd_m2! * v.Sd_m2! * v.Cms_m_per_N!, VAS_AIR_TOLERANCE));
 export const EBP_FROM_Q = Object.freeze(new Relation('EBP = Fs/Qes', 'EBP_hz', Object.freeze(['EBP_hz', 'Fs_hz', 'Qes']),
   (v) => v.Fs_hz! / v.Qes!));
 

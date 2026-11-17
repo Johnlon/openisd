@@ -1,0 +1,54 @@
+id: T739
+release_note: internal
+priority: high
+repo: openisd
+owner: leader
+status: done
+goal: One reliable list of every view and popup; the live review visits it and reports each visited or not
+why: John, 8 Nov 2026 - "a summary to confirm that all screens or views or popup were checked is ok as long as we have a reliable list of all views and popup (no matter how small) and can state which were or were not visited, without that list of visual components to check then none of our testing is reliable".
+found: There are three lists, the declared phone list (157 views, mobileSurfaceManifest.ts), the declared desktop list (130, desktopSurfaceManifest.ts) and a source scan of 608 conditional popups and branches (mobileSurfaceSourceIndex.json). The scan only proves its own list has not changed; nothing ties each scanned popup to a declared view. The live review (ui-gallery/bin/steps/live) visits a hand-written set and reads none of them.
+ruling: John, 8 Nov 2026 - "we need a single comprehensive index that is automatically maintained as a high priority so tests remain valid, agent must not mod the screens with[out] recording as DD or removal of views (inc warning popups), and inline expansion sections are imho considered views in scope".
+plan:
+  - One index of every view, for both skins: pages, tabs, dialogs, menus, sheets, warning and error popups, field-note popups and inline expansion sections. It replaces the separate phone list, desktop list and source scan.
+  - Maintained automatically: built from the source scan, so a new, changed or removed view shows up in the index without an agent typing it.
+  - Agents cannot change a screen silently: adding, changing or removing a view fails a unit test (and so land.sh) until the index carries the change with its design decision (who ruled it, when).
+  - A unit test fails when a popup or branch found by the source scan has no declared view (or is not named as part of one). A new popup cannot ship unlisted.
+  - The live review drives its sweep from the inventory and writes a coverage table (table data-coverage) with one row per view and skin, marked visited or not visited, with the reason if not.
+  - A view the review cannot reach is a red row, never left out.
+steps:
+  - n: 1
+    what: One typed view index, packages/ui/test/fixtures/viewIndex.ts. Each entry has id, skin (Phone | Desktop | Both), kind (sum type incl. Page, Tab, Dialog, Menu, Sheet, WarningPopup, ErrorPopup, FieldNote, InlineExpansion, Browser), owner file, how to reach it, and decision (Baseline | Ruling{by, date, ref}). Every row of mobileSurfaceManifest.ts and desktopSurfaceManifest.ts is carried over as Baseline. MOBILE_SURFACES and DESKTOP_SURFACES become views derived from the index so their consumers keep working.
+    test: unit test - ids unique, owners exist, every old manifest id is present.
+  - n: 2
+    what: The source scan covers both skins (today it skips shells/original) and gives each branch a stable key (file + condition + title, no line numbers or counters).
+    test: unit test on a scratch tree - moving a branch down a file keeps its key; changing its condition changes it.
+  - n: 3
+    what: Branch map. Every scanned popup and branch maps to a view id, or to part of a view, or to NotAView with a reason. 608+ rows classified by a worker reading each branch; inline expansion sections and warning popups are views (John's ruling).
+    test: unit test fails on any scanned branch without a mapping, and on a mapping whose branch is gone.
+  - n: 4
+    what: Change guard. A frozen baseline id list; a view id not in it needs decision Ruling; a baseline id that disappears needs a row in a removed list with its Ruling. Replaces mobileSurfaceSourceIndex.json.
+    test: unit test - add a fake view without a Ruling, fails; remove a view without a removed row, fails.
+  - n: 5
+    what: The live review (ui-gallery/bin/steps/live) drives its sweep from the index and writes <table data-coverage>, one row per view and skin, visited or not visited with the reason; an unreachable view is a red row. Coordinate with cover (2), who runs the live review.
+    test: check-answerable.mjs passes on the review page; coverage table row count equals index entries per skin.
+  - n: 6
+    what: Read-only architecture review of steps 1-5 against the CLAUDE.md type rules; leader lands with land.sh.
+done_test: bash scripts/test.sh packages/ui/test/scripts/mobile-surface-manifest.test.ts
+files:
+  - tasks/T739.yml
+  - packages/ui/test/fixtures/branchMap/desktop.ts
+  - packages/ui/test/fixtures/branchMap/index.ts
+  - packages/ui/test/fixtures/branchMap/phone.ts
+  - packages/ui/test/fixtures/branchMap/shared.ts
+  - packages/ui/test/fixtures/branchMap/types.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/fixtures/viewBaseline.ts
+  - packages/ui/test/fixtures/viewChangeGuard.ts
+  - packages/ui/test/fixtures/viewIndex.ts
+  - packages/ui/test/fixtures/viewRemoved.ts
+  - packages/ui/test/scripts/branch-map.test.ts
+  - packages/ui/test/scripts/mobile-surface-manifest.test.ts
+  - packages/ui/test/scripts/view-change-guard.test.ts
+  - packages/ui/test/scripts/view-index.test.ts
+  - scripts/export-view-index.ts
+  - scripts/mobile-surface-discovery.ts

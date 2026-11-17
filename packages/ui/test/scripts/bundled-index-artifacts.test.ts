@@ -87,11 +87,11 @@ describe('the tracked catalogue — staleness', () => {
       if (driverRow !== undefined) {
         const driver = OpenISDDriver.fromConformingRecord(record, engine);
         assert.ok(!Array.isArray(driver), `${path}: ${Array.isArray(driver) ? driver.join('; ') : ''}`);
-        assert.deepEqual(driverRow, bundledDriverIndexRowOf(driver, path), `${path}: drivers-index.json is stale — run scripts/bundle-drivers.mjs`);
+        assert.deepEqual(driverRow, bundledDriverIndexRowOf(driver, path, driverRow.discontinued), `${path}: drivers-index.json is stale — run scripts/bundle-drivers.mjs`);
       } else if (radiatorRow !== undefined) {
         const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(record);
         assert.ok(!Array.isArray(radiator), `${path}: ${Array.isArray(radiator) ? radiator.join('; ') : ''}`);
-        assert.deepEqual(radiatorRow, bundledPassiveRadiatorIndexRowOf(radiator, path), `${path}: passive-radiators-index.json is stale — run scripts/bundle-drivers.mjs`);
+        assert.deepEqual(radiatorRow, bundledPassiveRadiatorIndexRowOf(radiator, path, radiatorRow.discontinued), `${path}: passive-radiators-index.json is stale — run scripts/bundle-drivers.mjs`);
       }
     }
   });

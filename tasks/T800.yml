@@ -1,0 +1,20 @@
+id: T800
+release_note: internal
+repo: openisd
+owner: main-red
+status: done
+goal: Main red, stale expectations: the phone and catalogue specs, the number-format specs and the unit chip specs brought to the layout and number format John ruled in T742 (QO466, QO478), and the Signal and Dimensions rows
+why: John, 15 Nov 2026: main suite must be green (QO923); SDLC: main red is fixed first
+done_test: bash scripts/test.sh packages/design/test/fields/field-four-significant.test.ts
+files:
+  - tasks/T800.yml
+  - packages/ui/test/fixtures/approvedJoinedGeometry.json
+  - packages/ui/test/ui/alignment-popup.browser.spec.ts
+  - packages/ui/test/ui/cloudSync.mobile.browser.spec.ts
+  - packages/ui/test/ui/field-renditions.browser.spec.ts
+  - packages/ui/test/ui/joined-field.browser.spec.ts
+  - packages/ui/test/ui/num-input.browser.spec.ts
+  - packages/ui/test/ui/phone-classic-rows.browser.spec.ts
+  - packages/ui/test/ui/unit-label-underline.browser.spec.ts
+  - packages/ui/test/ui/unit-toggle.browser.spec.ts
+  - bugs/BUG_20261115_phone-320-volume-box-text-area-16px.md

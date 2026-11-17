@@ -3,11 +3,15 @@
  * bundle-drivers.mjs — writes the bundled driver catalogue the app serves and fetches.
  *
  *   npx tsx scripts/bundle-drivers.mjs --corpus <datasheets-dir> [--force]
+ *   npx tsx scripts/bundle-drivers.mjs --corpus <datasheets-dir> --public <dir>   (write elsewhere; tests)
  *   npx tsx scripts/bundle-drivers.mjs --corpus <datasheets-dir> --only-record <brand/sku> [--only-record ...]
  *
  * The corpus is `--corpus <dir>` (required;
  * only scripts/sync-driver-snapshot.sh passes it, from committed winisd_drivers/snapshot/datasheets); each `<brand>/<sku>/openisd.json` is the canonical
- * driver record (ARCHITECTURE.md AD-8), written by winisd_tools. Nothing else is read.
+ * driver record (ARCHITECTURE.md AD-8), written by winisd_tools. Nothing else is read, with one
+ * exception (QO450): the sibling driver.json's top-level `discontinued` boolean. A discontinued
+ * record is bundled like any other and its index row carries `discontinued: true` (John, 2026-11-16:
+ * "we can't take away drivers for no good reasons"; "disc flag is important"); the count is printed.
  *
  * Outputs, all under packages/ui/public/ and all tracked in git (CI has no corpus checkout):
  *
@@ -39,6 +43,7 @@ import {dirname, join, relative, resolve} from 'path';
 import {fileURLToPath} from 'url';
 import {isBundlable, project} from './bundleProjection.mjs';
 import {applyBundleOutputs, filesForSelectedPaths, onlyRecordPathsFromArgs} from './bundleOutputs.mjs';
+import {isDiscontinued} from './discontinuedFlag.mjs';
 import {checkOpenisdRoundTrip} from './roundTripGate.mjs';
 import {
     bundleFingerprintOnDisk,
@@ -56,10 +61,11 @@ const RECORD_FILE = 'openisd.json';
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 const CORPUS = corpusArg(process.argv);
 const SELECTED_PATHS = onlyRecordPathsFromArgs(process.argv);
-const PUBLIC = join(ROOT, 'packages', 'ui', 'public');
+const PUBLIC_ARG = process.argv.indexOf('--public');
+const PUBLIC = PUBLIC_ARG >= 0 ? resolve(process.argv[PUBLIC_ARG + 1]) : join(ROOT, 'packages', 'ui', 'public');
 const DRIVER_INDEX = join(PUBLIC, 'drivers-index.json');
 const RADIATOR_INDEX = join(PUBLIC, 'passive-radiators-index.json');
-const STAMP_FILE = join(ROOT, STAMP);
+const STAMP_FILE = PUBLIC_ARG >= 0 ? join(PUBLIC, '.drivers-bundle.stamp') : join(ROOT, STAMP);
 
 function corpusArg(argv) {
   const i = argv.indexOf('--corpus');
@@ -104,12 +110,14 @@ function main() {
   const radiatorRows = [];
   const records = [];
   const skipped = [];
+  const discontinued = [];
   const perGroup = new Map();
   const roundTripFailures = [];
 
   for (const [index, file] of filesToRead.entries()) {
     const path = recordPathOf(CORPUS, file);
     const group = path.split('/')[0];
+    const isDisc = isDiscontinued(dirname(file));
     const record = JSON.parse(readFileSync(file, 'utf8'));
     if (record == null) throw new Error(`${path}: empty or unparseable record`);
 
@@ -124,10 +132,11 @@ function main() {
       } else {
         const device = gate.device;
         if (device instanceof OpenISDPassiveRadiatorStandalone) {
-          radiatorRows.push(bundledPassiveRadiatorIndexRowOf(device, path));
+          radiatorRows.push(bundledPassiveRadiatorIndexRowOf(device, path, isDisc));
         } else {
-          driverRows.push(bundledDriverIndexRowOf(device, path));
+          driverRows.push(bundledDriverIndexRowOf(device, path, isDisc));
         }
+        if (isDisc) discontinued.push(path);
         records.push({ path, record: upgradeToCurrent(record).value });
         perGroup.set(group, (perGroup.get(group) ?? 0) + 1);
       }
@@ -154,6 +163,8 @@ function main() {
     console.log(`  ${skipped.length} records are NOT bundled (structurally unreadable — no specs container), first 5:`);
     for (const p of skipped.slice(0, 5)) console.log(`    - ${p}`);
   }
+
+  console.log(`  ${discontinued.length} discontinued records bundled, flagged discontinued: true in their index row (driver.json, QO450 superseded by John 2026-11-16)`);
 
   const written = applyBundleOutputs({
     publicRoot: PUBLIC,

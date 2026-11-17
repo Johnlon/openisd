@@ -9,7 +9,7 @@
  * wiring enum.
  */
 import {OpenISDDriver, OpenISDDriverStandalone, type VoiceCoilWiring} from '@openisd/design';
-import {type SelectorOption, VC_CONNECTION_OPTIONS} from '@openisd/design/fields';
+import {type SelectorOption, MEASURED_WIRING_NOT_STATED_LABEL, VC_CONNECTION_OPTIONS} from '@openisd/design/fields';
 import type {AppContext} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {EditorDraftSeed} from './driverSelection.js';
@@ -27,11 +27,15 @@ export interface DriverDraft {
   readonly driver: OpenISDDriverStandalone;
   /** Throw the edits away and start again from the same seed. */
   reset(): void;
+  /** The editor closed (OK or Cancel): this draft no longer counts as unapplied work. */
+  release(): void;
   /** Adopt a driver read from a file as the new draft, replacing what was there. */
   replace(driver: OpenISDDriverStandalone): void;
   /** Set the coil wiring. The select's option list (`VC_CONNECTION_OPTIONS`) carries the domain's
    *  own wiring values, so the chosen option is written as-is — nothing to map. */
   setWiring(choice: VoiceCoilWiring): void;
+  /** Say the maker did not state the measured wiring. */
+  clearWiring(): void;
   /** Whether the draft currently derives unknowns. Every seed this session ever holds is a
    *  detached `OpenISDDriverStandalone` — reads `true` only if that narrowing ever stopped
    *  holding, which would itself be a bug elsewhere worth seeing rather than masking. */
@@ -44,7 +48,16 @@ export interface DriverDraft {
 /** Opens the driver editor's editing sessions. Holds the engine and app context a blank My
  *  Driver is built with; constructed once at the composition root. */
 export class DriverDrafts {
+  /** The editing sessions that are open, each with a way to say whether it holds values not yet applied. */
+  private readonly openDrafts = new Set<{changed(): boolean}>();
+
   constructor(private readonly engine: Engine, private readonly appContext: AppContext) {}
+
+  /** Whether an open editor holds values that were typed but not applied (OK) or saved. A reload
+   *  throws these away: they live only in the open dialog, never in the stored session. */
+  hasUnappliedChanges(): boolean {
+    return [...this.openDrafts].some(draft => draft.changed());
+  }
 
   /** `driver` as a new entity: an independent standalone copy with a new id from the app context. */
   copyAsNew(driver: OpenISDDriver): OpenISDDriverStandalone {
@@ -70,15 +83,23 @@ export class DriverDrafts {
       return subject.seed ? subject.seed.detach() : OpenISDDriver.empty(this.engine, this.appContext);
     };
 
+    const textOf = (driver: OpenISDDriverStandalone): string => JSON.stringify(driver.cloneDriver());
     let current = seedDraft();
+    let openedOn = textOf(current);
+    const session = { changed: () => textOf(current) !== openedOn };
+    this.openDrafts.add(session);
 
     return {
       get driver() { return current; },
-      reset() { current = seedDraft(); },
+      reset() { current = seedDraft(); openedOn = textOf(current); },
+      release: () => { this.openDrafts.delete(session); },
       replace(driver: OpenISDDriverStandalone) { current = driver; },
       setWiring(choice: VoiceCoilWiring) {
         const d = current;
         d.specs.VCCon.set(choice);
+      },
+      clearWiring() {
+        current.specs.VCCon.clear();
       },
       get autoCalculate() {
         return current.autoCalculate;
@@ -88,4 +109,9 @@ export class DriverDrafts {
       },
     };
   }
+}
+
+/** The label of the editor's "measured wiring not stated" choice. */
+export function wiringNotStatedLabel(): string {
+  return MEASURED_WIRING_NOT_STATED_LABEL;
 }

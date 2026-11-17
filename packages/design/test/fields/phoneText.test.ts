@@ -55,10 +55,10 @@ describe('phone text', () => {
     }
   });
 
-  it('filter frequencies are shown in whole hertz', () => {
-    expect(NumberField.PHONE_FILTER_FC_HZ.format(31.5)).toBe('32');
+  it('filter frequencies are shown in whole hertz, but never below 4 significant figures (John, 10 Nov 2026, board option B)', () => {
+    expect(NumberField.PHONE_FILTER_FC_HZ.format(31.5)).toBe('31.5');
     expect(NumberField.PHONE_FILTER_FC_HZ.format(100)).toBe('100');
-    expect(NumberField.FILTER_FC_HZ.format(31.5), 'the desktop keeps its decimals').not.toBe('32');
+    expect(NumberField.PHONE_FILTER_FC_HZ.format(1234.5)).toBe('1235');
   });
 
   it('the Filters button counts the filters that are on and flips when open', () => {
@@ -98,15 +98,24 @@ describe('phone text', () => {
   });
 
   it('an inspector badge shows the label, the value to the field\'s precision and its unit', () => {
-    expect(PhoneEditorText.valueBadge('Qes', 0.42)).toBe('Qes = 0.420');
+    expect(PhoneEditorText.valueBadge('Qes', 0.42)).toBe('Qes = 0.42');
     expect(PhoneEditorText.valueBadge('Fs_hz', 45)).toBe('Fs = 45.00 Hz');
     expect(PhoneEditorText.valueBadge('Fs_hz', null)).toBe('Fs');
     expect(PhoneEditorText.valueBadge('no_such_key', 1)).toBe('no_such_key');
   });
 
-  it('the Driver tab has one Driver band over the driver count and wiring, its help names all four rows, and Key figures says tap to edit', () => {
-    expect(PhoneHelp.DRIVER.title).toBe('Driver');
-    expect(PhoneHelp.DRIVER.rows.map(r => r.label)).toEqual(['Select driver', 'Edit', 'Drivers', 'Connection']);
+  // John, 16 Nov 2026 12:47: "the labels on sections aren't consistent "driver" in the driver page and "user options" on the pr page, make both User options".
+  it('the Driver tab has one User options band over the driver count, as the passive radiator\'s; its help names all four rows (the project Coil wiring, no Connection row: several drivers are not wired, QO941), and Key figures says tap to edit', () => {
+    expect(PhoneHelp.DRIVER.title).toBe('User options');
+    expect(PhoneHelp.DRIVER.title).toBe(PhoneHelp.USER_OPTIONS.title);
+    expect(PhoneHelp.DRIVER.rows.map(r => r.label)).toEqual(['Select driver', 'Edit', 'Drivers', 'Coil wiring']);
     expect(PhoneHelp.KEY_FIGURES.intro).toContain('Tap one to edit the driver.');
   });
+
+describe('the passive radiator\'s 2× rule line (John, 16 Nov 2026 13:00)', () => {
+  it('names the displacement the radiators need and how many of this radiator give it', () => {
+    expect(PhoneBoxText.twoTimesRule(173.9e-6, 1)).toBe('2× rule: radiators need ≥ 174 cm³ — 1 of these is enough');
+    expect(PhoneBoxText.twoTimesRule(400e-6, 3)).toBe('2× rule: radiators need ≥ 400 cm³ — needs 3 of these');
+  });
+});
 });

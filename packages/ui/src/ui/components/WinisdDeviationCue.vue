@@ -22,6 +22,6 @@ const {showDeviation, cuesShown} = injectWinisdDifferencesModal();
 
 <style>
 .winisd-deviation { display: inline-flex; align-items: center; }
-.winisd-deviation-cue { font: 600 9px/1 sans-serif; padding: 2px 3px; border: 1px solid #3a6fb0; border-radius: 3px; background: #e6f0fb; color: #23548f; cursor: pointer; }
+.winisd-deviation-cue { font: 600 9px/1 var(--font-ui); padding: 2px 3px; border: 1px solid #3a6fb0; border-radius: 3px; background: #e6f0fb; color: #23548f; cursor: pointer; }
 .winisd-deviation-cue:hover, .winisd-deviation-cue:focus-visible { background: #cfe2f8; outline: 1px solid #3a6fb0; }
 </style>

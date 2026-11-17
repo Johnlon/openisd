@@ -6,7 +6,7 @@ import {PhoneRowSizes} from './phoneRowSizes.js';
  * variables `cssVars()` names; it never picks a size of its own.
  */
 export class PhoneHeaderSizes {
-  static readonly CLASSIC = new PhoneHeaderSizes(PhoneRowSizes.BUTTON_PX, 6, 14, 17, 2);
+  static readonly CLASSIC = new PhoneHeaderSizes(PhoneRowSizes.BUTTON_PX, 6, 12, 14, 3);
 
   private constructor(
     /** The menu, cloud and save controls: the one phone button size. */
@@ -17,7 +17,7 @@ export class PhoneHeaderSizes {
     readonly titleFontPx: number,
     /** The project name's line height. */
     readonly titleLinePx: number,
-    /** The most lines the project name takes before it is cut with an ellipsis. */
+    /** The most lines the project name takes before it is cut with an ellipsis (3 lines of 14 px fit the 44 px control). */
     readonly titleLines: number,
   ) {}
 

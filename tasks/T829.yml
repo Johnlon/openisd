@@ -1,0 +1,43 @@
+id: T829
+release_note: internal
+repo: openisd
+owner: unsaved-reload-agent
+status: done
+goal: What the app tells a user about unsaved work when it reloads onto a new version is true: unsaved edits are kept by the stored session and are not asked about; the question is asked only when a reload really loses something (the store refused the session, a read-only backup, driver editor values not applied, What-if values), and says exactly what
+why: John, 15 Nov 2026: "pulling a new version says you lose unsaved but that is not true" (BUG_20261115_reload-question-says-unsaved-changes-are-discarded-but-they-are-kept)
+done_test: bash scripts/test.sh packages/ui/test/hooks/appUpdateUi.test.ts
+files:
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
+  - packages/ui/test/logic/boot.test.ts
+  - packages/ui/src/logic/boot.ts
+  - tasks/T829.yml
+  - CLAUDE.md
+  - bugs/BUG_20261115_reload-question-says-unsaved-changes-are-discarded-but-they-are-kept.md
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/fields/appUpdateText.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/domain/project-what-if.test.ts
+  - packages/design/test/fields/appUpdateText.test.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/test/projectRepo.test.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/appUpdateUi.ts
+  - packages/ui/src/logic/appUpdate.ts
+  - packages/ui/src/logic/driverDraft.ts
+  - packages/ui/src/logic/reloadLosses.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/test/fixtures/updateHost.ts
+  - packages/ui/test/fixtures/viewOpenFaults.ts
+  - packages/ui/test/hooks/appUpdateUi.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/logic/appUpdate.test.ts
+  - packages/ui/test/logic/driverDraft.test.ts
+  - packages/ui/test/logic/reloadLosses.test.ts
+  - packages/ui/test/ui/app-update.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-update.png
+visual:
+  - mobile-dialog-update
+visual_note: The phone's reload question after a new version now reads "Some of your unsaved changes could not be kept in this browser's storage, so reloading loses them." instead of "Reloading discards all unsaved changes."; it appears only when the browser's storage refused the edits.

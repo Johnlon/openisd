@@ -1,6 +1,6 @@
 # Independent visual review found further unit and control regressions
 
-**Status:** OPEN (4 Nov 2026: `field-visual-contract.browser.spec.ts` passes 144/144 on main, and the gamma/density clipping is repaired, but the spec file does not name findings 3 to 7 (phone action-link size, toggle dividers, chip height, desktop right alignment), so they are not confirmed closed). Gemini findings reproduced by additional general DOM checks.
+**Status:** CLOSED, cannot be reproduced: its visual contract test passes on main; the 26 Oct build pictures are gone. Closed by John on QO456, 8 Nov 2026.
 
 ## Review evidence
 

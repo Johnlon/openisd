@@ -1,0 +1,14 @@
+id: T828
+release_note: internal
+repo: openisd
+owner: sync
+status: done
+goal: OpenISD's bundled driver catalogue is rebuilt from winisd_drivers 9be4f45a1: 24 regenerated records and every record re-projected with the current app bridge
+why: John, 15 Nov 2026: data fixes made today must reach test.openisd.app (lead sync assignment, T824 pattern)
+done_test: bash scripts/test.sh packages/design/test/domain/multi-coil-goldens.test.ts
+files:
+  - tasks/T828.yml
+  - packages/ui/public/**
+  - packages/design/test/fixtures/driver-snapshot/**
+  - scripts/driver-snapshot.pin
+  - scripts/driver-snapshot.dq-baseline.json
