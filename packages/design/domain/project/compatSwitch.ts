@@ -11,33 +11,27 @@ export type CompatSwitchKind = 'bug' | 'option';
  * WinISD option (under "Enable WinISD-style"). Its title and tooltip are `field`'s.
  */
 export class CompatSwitch {
+    /** `winisdValue`: what a new project, or a file that does not say, has. A bug is unticked (fixed) and an option is ticked
+     *  (WinISD's way), except where a ruling names the switch. */
     private constructor(
         readonly field: ToggleField,
         readonly kind: CompatSwitchKind,
+        readonly winisdValue: boolean,
         readonly of: (p: OpenISDProject) => SimpleField<boolean>,
     ) {}
 
-    static readonly DRIVER_MODEL = new CompatSwitch(ToggleField.ADV_WINISDDRIVERMODEL, 'bug', p => p.winisdDriverModel);
-    static readonly VA_MODEL = new CompatSwitch(ToggleField.ADV_WINISDVAMODEL, 'bug', p => p.winisdVaModel);
-    static readonly PR_NPR_RESONANCE = new CompatSwitch(ToggleField.ADV_WINISDPRNPRRESONANCE, 'bug', p => p.winisdPrNprResonance);
-    static readonly BESSEL_HIGHPASS = new CompatSwitch(ToggleField.ADV_WINISDBESSELHIGHPASS, 'bug', p => p.winisdBesselHighpass);
-    static readonly ABC_GROUP_DELAY = new CompatSwitch(ToggleField.ADV_WINISDABCGROUPDELAY, 'bug', p => p.winisdAbcGroupDelay);
-    static readonly SEALED_PICKER = new CompatSwitch(ToggleField.ADV_WINISDSEALEDPICKER, 'bug', p => p.winisdSealedPicker);
-    static readonly TL_PORT_END_CORRECTION = new CompatSwitch(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'bug', p => p.winisdTlPortNoEndCorrection);
-    static readonly COIL_WIRING_RE_BL_ONLY = new CompatSwitch(ToggleField.ADV_WINISDCOILWIRINGREBLONLY, 'bug', p => p.winisdCoilWiringReBlOnly);
+    static readonly DRIVER_MODEL = new CompatSwitch(ToggleField.ADV_WINISDDRIVERMODEL, 'bug', false, p => p.winisdDriverModel);
+    static readonly VA_MODEL = new CompatSwitch(ToggleField.ADV_WINISDVAMODEL, 'bug', false, p => p.winisdVaModel);
+    static readonly PR_NPR_RESONANCE = new CompatSwitch(ToggleField.ADV_WINISDPRNPRRESONANCE, 'bug', false, p => p.winisdPrNprResonance);
+    static readonly BESSEL_HIGHPASS = new CompatSwitch(ToggleField.ADV_WINISDBESSELHIGHPASS, 'bug', false, p => p.winisdBesselHighpass);
+    static readonly ABC_GROUP_DELAY = new CompatSwitch(ToggleField.ADV_WINISDABCGROUPDELAY, 'bug', false, p => p.winisdAbcGroupDelay);
+    static readonly SEALED_PICKER = new CompatSwitch(ToggleField.ADV_WINISDSEALEDPICKER, 'bug', false, p => p.winisdSealedPicker);
+    static readonly TL_PORT_END_CORRECTION = new CompatSwitch(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'bug', false, p => p.winisdTlPortNoEndCorrection);
+    static readonly COIL_WIRING_RE_BL_ONLY = new CompatSwitch(ToggleField.ADV_WINISDCOILWIRINGREBLONLY, 'bug', false, p => p.winisdCoilWiringReBlOnly);
 
-    static readonly WRAP_PHASE = new CompatSwitch(ToggleField.ADV_WINISDWRAPPHASE, 'option', p => p.winisdWrapPhase);
-    static readonly FLAT_MODEL = new CompatSwitch(ToggleField.ADV_WINISDFLATMODEL, 'option', p => p.winisdFlatModel);
-    static readonly ABC_INTRA_PORT_VELOCITY = new CompatSwitch(ToggleField.ADV_WINISDABCINTRAPORTVELOCITY, 'option', p => p.winisdAbcIntraPortVelocity);
-
-    /** What a new project, or a file that does not say, has:
-     *  a bug unticked (fixed), an option ticked (WinISD's way). */
-    get winisdValue(): boolean {
-        switch (this.kind) {
-            case 'bug': return false;
-            case 'option': return true;
-        }
-    }
+    static readonly WRAP_PHASE = new CompatSwitch(ToggleField.ADV_WINISDWRAPPHASE, 'option', true, p => p.winisdWrapPhase);
+    static readonly FLAT_MODEL = new CompatSwitch(ToggleField.ADV_WINISDFLATMODEL, 'option', true, p => p.winisdFlatModel);
+    static readonly ABC_INTRA_PORT_VELOCITY = new CompatSwitch(ToggleField.ADV_WINISDABCINTRAPORTVELOCITY, 'option', true, p => p.winisdAbcIntraPortVelocity);
 
     /** Every switch, bugs first; declared last. */
     static readonly ALL: readonly CompatSwitch[] =

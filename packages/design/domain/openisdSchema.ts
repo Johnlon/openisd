@@ -894,6 +894,9 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // "Uncapped flat response": force flat as WinISD does it, every point to the TF 0 dB, uncapped;
     // off, boost only to the passband reference, capped. Optional: absent parses to ON.
     winisdFlatModel: z.boolean().optional(),
+    // Option "Impedance of one driver" (QO946.c131, plan 4.1): the impedance chart shows one driver as WinISD's does, not the
+    // amplifier's load for the project's Driver wiring. Absent parses to OFF. Saved and loaded only; nothing reads it yet.
+    winisdOneDriverImpedance: z.boolean().optional(),
 }));
 export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
 
@@ -928,6 +931,9 @@ const openISDDriverEmbeddingJsonSchema = z.strictObject({
     // driver"): how this project wires the driver's own voice coils, named as the driver's `VCCon`; WinISD's project VCCon. Absent means
     // the driver's own VCCon (the wiring the maker measured in). Data version 5 renamed the old `wiring` key to `VCCon`, value kept (QO946.c18).
     VCCon: z.enum(['series', 'parallel']).optional(),
+    // "Driver wiring" (QO946.c129, plan 4.1): how the project's `nDrivers` drivers are wired to the amplifier, not the coils inside one
+    // driver (that is `VCCon`). Absent means parallel, so a file from before this key opens as it always meant.
+    driverWiring: z.enum(['parallel', 'series']).optional(),
     // WinISD Driver tab: "Voice coil temp rise".
     vcTempRise_K: z.number(),
     Rs_ohm: z.number(),

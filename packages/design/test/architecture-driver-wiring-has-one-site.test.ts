@@ -44,8 +44,8 @@ describe('driver wiring arithmetic', () => {
     assert.deepEqual(named(/\b(?:driverDrive|amplifierVoltage)\b/), allowed);
   });
 
-  it('the sweep reads the "Impedance of one driver" switch once, in its impedance line, and no other source reads it', () => {
-    const reads = SOURCES.filter(s => /\bwinisdOneDriverImpedance\b/.test(s.text) && s.file !== 'design/engine/types.ts');
+  it('within the engine the sweep reads the "Impedance of one driver" switch once, in its impedance line, and no other engine file reads it (the saved-data files outside the engine only store it)', () => {
+    const reads = SOURCES.filter(s => s.file.startsWith('design/engine/') && /\bwinisdOneDriverImpedance\b/.test(s.text) && s.file !== 'design/engine/types.ts');
     assert.deepEqual(reads.map(s => s.file), ['design/engine/simulation/SimulationEngine.ts']);
     assert.equal(source('design/engine/simulation/SimulationEngine.ts').match(/P\.winisdOneDriverImpedance/g)?.length, 1);
   });

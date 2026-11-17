@@ -1,7 +1,7 @@
 /**
  * Schema version numbers for saved data (QO395, John 4 Nov 2026). A saved project (.owpr), a saved
  * driver (.owdr, stored record) and openisd.json carry `schemaVersion`. The slim format is 3, and
- * 4 stores a multi-coil driver's Re and BL as published, 5 holds the coil wiring in a project's `VCCon`; a file with none is 2. Load upgrades it
+ * 4 stores a multi-coil driver's Re and BL as published, 5 holds the coil wiring in a project's `VCCon`, 6 adds the project's driver wiring keys; a file with none is 2. Load upgrades it
  * one step at a time, on the parsed JSON, BEFORE the strict
  * schema reads it (the schema refuses undeclared keys, so removed fields must be gone first).
  * A file newer than this app knows is refused with a message saying so: never a blank, never a
@@ -12,7 +12,7 @@ import {withSlimModel} from './slimModel.js';
 import {withMultiCoilAsPublished} from './multiCoilAsPublished.js';
 import {withCoilWiringAsVCCon} from './coilWiringAsVCCon.js';
 
-export const CURRENT_SCHEMA_VERSION = 5;
+export const CURRENT_SCHEMA_VERSION = 6;
 /** What a file with no `schemaVersion` is: everything saved before versions existed. */
 export const UNVERSIONED_SCHEMA_VERSION = 2;
 
@@ -40,11 +40,14 @@ function recordOr(upgraded: unknown, fallback: PlainRecord): PlainRecord {
  *  3 to 4: a multi-coil driver's per-coil Re and BL become the published figures, and a defaulted
  *  wiring becomes unknown (`multiCoilAsPublished.ts`, QO908).
  *  4 to 5: a project's saved `wiring` key is renamed `VCCon`, its value kept as saved; `coilWiring` (test site only)
- *  becomes `VCCon` and wins where both exist (`coilWiringAsVCCon.ts`, QO946.c18, c23). */
+ *  becomes `VCCon` and wins where both exist (`coilWiringAsVCCon.ts`, QO946.c18, c23).
+ *  5 to 6: nothing changes (absent `driverWiring` and `winisdOneDriverImpedance` mean Parallel and off); the step exists so that an
+ *  older app refuses a version 6 file as made by a newer OpenISD (QO946.c129-c131, plan 4.2). */
 const UPGRADE_STEPS: readonly UpgradeStep[] = Object.freeze([
     Object.freeze({from: 2, upgrade: (value: PlainRecord) => recordOr(withSlimModel(withoutRetiredSpecKeys(value)), value)}),
     Object.freeze({from: 3, upgrade: (value: PlainRecord) => recordOr(withMultiCoilAsPublished(value), value)}),
     Object.freeze({from: 4, upgrade: (value: PlainRecord) => recordOr(withCoilWiringAsVCCon(value), value)}),
+    Object.freeze({from: 5, upgrade: (value: PlainRecord) => value}),
 ]);
 
 /**

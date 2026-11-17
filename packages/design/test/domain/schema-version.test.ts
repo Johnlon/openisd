@@ -52,28 +52,28 @@ function deviceRecord(): Record<string, unknown> {
 }
 
 describe('schema versions', () => {
-    it('the current version is 5 and an unversioned file is 2', () => {
-        assert.equal(CURRENT_SCHEMA_VERSION, 5);
+    it('the current version is 6 and an unversioned file is 2', () => {
+        assert.equal(CURRENT_SCHEMA_VERSION, 6);
         assert.equal(UNVERSIONED_SCHEMA_VERSION, 2);
     });
 
     it('upgradeToCurrent stamps an unversioned value with the current version', () => {
         const result = upgradeToCurrent({a: 1});
         if ('refusal' in result) throw new Error(result.refusal);
-        assert.deepEqual(result.value, {a: 1, schemaVersion: 5});
+        assert.deepEqual(result.value, {a: 1, schemaVersion: 6});
     });
 
     it('upgradeToCurrent leaves a current value as it was', () => {
-        const result = upgradeToCurrent({a: 1, schemaVersion: 5});
+        const result = upgradeToCurrent({a: 1, schemaVersion: 6});
         if ('refusal' in result) throw new Error(result.refusal);
-        assert.deepEqual(result.value, {a: 1, schemaVersion: 5});
+        assert.deepEqual(result.value, {a: 1, schemaVersion: 6});
     });
 
     it('upgradeToCurrent refuses a newer version and says to update the app', () => {
-        const result = upgradeToCurrent({schemaVersion: 6});
+        const result = upgradeToCurrent({schemaVersion: 7});
         if (!('refusal' in result)) throw new Error('expected a refusal');
         assert.match(result.refusal, /update the app/i);
-        assert.match(result.refusal, /5/);
+        assert.match(result.refusal, /6/);
     });
 
     it('upgradeToCurrent refuses a version that is not a whole number of at least 2', () => {
@@ -104,39 +104,39 @@ describe('schema versions', () => {
     it('an unversioned device record loads and carries the current version', () => {
         const result = OpenISDDeviceJson.fromConformingRecord(deviceRecord());
         if ('problems' in result) throw new Error(result.problems.join(', '));
-        assert.equal(result.json.schemaVersion, 5);
+        assert.equal(result.json.schemaVersion, 6);
     });
 
-    it('a saved driver (.owdr text) carries schemaVersion 5 and reads back', () => {
+    it('a saved driver (.owdr text) carries schemaVersion 6 and reads back', () => {
         const driver = OpenISDDriver.fromConformingRecord(deviceRecord(), createEngine());
         if (Array.isArray(driver)) throw new Error(driver.join(', '));
         const text = driver.toOwdrText();
-        assert.equal(versionIn(text), 5);
+        assert.equal(versionIn(text), 6);
         assert.ok(!Array.isArray(OpenISDDriver.fromOwdrText(text, createEngine())));
     });
 
     it('a .owdr with a newer version is refused with the update message', () => {
         const driver = OpenISDDriver.fromConformingRecord(deviceRecord(), createEngine());
         if (Array.isArray(driver)) throw new Error(driver.join(', '));
-        const newer = JSON.stringify({...deviceRecordOf(driver.toOwdrText()), schemaVersion: 6});
+        const newer = JSON.stringify({...deviceRecordOf(driver.toOwdrText()), schemaVersion: 7});
         const back = OpenISDDriver.fromOwdrText(newer, createEngine());
         assert.ok(Array.isArray(back));
         assert.match(back.join(' '), /update the app/i);
     });
 
-    it('an unversioned project loads; saving it writes 5, as a file and as stored text', () => {
+    it('an unversioned project loads; saving it writes 6, as a file and as stored text', () => {
         const loaded = parseOwprSession(SAVED_PROJECT, () => 'p1');
         if ('errors' in loaded) throw new Error(loaded.errors.join(', '));
-        assert.equal(loaded.session.schemaVersion, 5);
-        assert.equal(versionIn(owprTextOf(loaded.session)), 5);
-        assert.equal(versionIn(storedTextOf(loaded.session)), 5);
+        assert.equal(loaded.session.schemaVersion, 6);
+        assert.equal(versionIn(owprTextOf(loaded.session)), 6);
+        assert.equal(versionIn(storedTextOf(loaded.session)), 6);
     });
 
     it('a project with a newer version is refused by both parsers with the update message', () => {
-        const strict = parseOwprSession(projectWith(6), () => 'p1');
+        const strict = parseOwprSession(projectWith(7), () => 'p1');
         if (!('errors' in strict)) throw new Error('expected a refusal');
         assert.match(strict.errors.join(' '), /update the app/i);
-        const repairing = parseOwprSessionRepairing(projectWith(6), () => 'p1');
+        const repairing = parseOwprSessionRepairing(projectWith(7), () => 'p1');
         if (!Array.isArray(repairing)) throw new Error('expected a refusal, not a repair');
         assert.match(repairing.join(' '), /update the app/i);
     });

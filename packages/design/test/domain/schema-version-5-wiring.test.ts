@@ -62,7 +62,7 @@ function upgraded(session: Plain): unknown {
 
 describe('data version 5', () => {
   it('is the current version', () => {
-    expect(CURRENT_SCHEMA_VERSION).toBe(5);
+    expect(CURRENT_SCHEMA_VERSION).toBe(6);
   });
 
   it('production v3, MX6-22 (series-measured) saved with wiring "parallel": the key is renamed, the value kept, the coils open wired in parallel', () => {
