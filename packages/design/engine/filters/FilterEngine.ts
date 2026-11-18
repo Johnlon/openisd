@@ -5,7 +5,7 @@
  * `*FilterModel` class; this is the one door to them.
  */
 import type {
-  AllpassFilter, AllpassPatch, Filter, FilterSpec, FilterType, LinkwitzFilter, LinkwitzPatch,
+  AllpassFilter, AllpassPatch, Filter, FilterIssue, FilterSpec, FilterType, LinkwitzFilter, LinkwitzPatch,
   ParametricEqFilter, ParametricEqPatch, PassFilter, PassPatch, PeakHighpassFilter, PeakHighpassPatch,
   RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch, StaticGainFilter, StaticGainPatch,
   WinisdFilterErrors, WprFilter, WprFilterImport,
@@ -55,6 +55,8 @@ export interface FilterEngine {
   default(type: FilterType): Filter;
   /** WinISD's Filters-list caption for one filter, exact wording. */
   caption(f: Filter): string;
+  /** What is wrong with `f` as entered (it draws no curve), or `null` when nothing is. */
+  issue(f: Filter): FilterIssue | null;
   /** This filter's `.wpr` `[Filters]` `filter<i>type`/`filter<i>params` shape, or `null` for a
    *  type WinISD has no `.wpr` representation for (the OpenISD-only shelves). */
   wpr(f: Filter): WprFilter | null;
@@ -118,6 +120,10 @@ export class FilterEngineImpl implements FilterEngine {
     }
     // No default arm: `type` is `FilterType`, a closed 10-member union, so an unhandled new
     // variant fails to COMPILE ("not all code paths return a value").
+  }
+
+  issue(f: Filter): FilterIssue | null {
+    return f.type === 'peakHighpass' ? new PeakHighpassFilterModel(f).issue() : null;
   }
 
   caption(f: Filter): string {

@@ -42,6 +42,7 @@ const shortName = (): string => PHONE_FILTER_CHIPS.find(c => c.type === f.type)?
       <button type="button" class="mob-fcard-rm" :aria-label="`Remove ${shortName()}`" @click="emit('remove')">×</button>
       <button type="button" class="mob-band-help mob-fcard-help" :aria-label="`Help: ${shortName()}`" @click="helpOpen = true">?</button>
     </div>
+    <p v-if="api.issueText(f)" class="filter-issue" role="alert">{{ api.issueText(f) }}</p>
     <div v-if="open" class="mob-fcard-body">
       <PassFields          v-if="f.type === 'lowpass' || f.type === 'highpass'" :f="f" :api="api" />
       <AllpassFields       v-else-if="f.type === 'allpass'" :f="f" :api="api" />
@@ -64,6 +65,7 @@ const shortName = (): string => PHONE_FILTER_CHIPS.find(c => c.type === f.type)?
 .mob-fcard-tick input { width: 20px; height: 20px; margin: 0; }
 .mob-fcard-fold { flex: 1 1 auto; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 8px; padding: 4px 0; border: none; background: none; font: inherit; font-size: 14px; color: #222; text-align: left; cursor: pointer; }
 .mob-fcard-name { flex: none; min-width: 44px; font-weight: 700; white-space: nowrap; }
+.filter-issue { margin: 0; padding: 4px 12px 8px; font-size: 13px; line-height: 1.35; color: #8a2a00; overflow-wrap: anywhere; }
 .mob-fcard-cap { flex: 1 1 auto; min-width: 0; color: #444; line-height: 1.35; overflow-wrap: anywhere; }
 .mob-fcard-off { color: #999; text-decoration: line-through; }
 .mob-fcard-arrow { flex: none; width: 18px; color: #666; font-size: 12px; text-align: center; }

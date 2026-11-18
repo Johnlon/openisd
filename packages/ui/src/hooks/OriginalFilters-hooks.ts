@@ -18,6 +18,8 @@ export interface OriginalFiltersAPI {
   setEnabled(f: Filter, enabled: boolean): void;
   /** WinISD's Filters-list caption for one filter, exact wording. */
   caption(f: Filter): string;
+  /** The engine's sentence on why `f` draws no curve as entered, or null when nothing is wrong. */
+  issueText(f: Filter): string | null;
   // One typed edit per filter class: the engine decides what an editor may write (rounding,
   // clamping to the entry range), and the result replaces `f` in the chain. An editor calls
   // the one matching its own `Filter` variant (bugs/archive/BUG_20260927_filter-editors-hold-domain-logic.md).
@@ -73,6 +75,10 @@ export class OriginalFilters implements OriginalFiltersAPI {
 
   setEnabled(f: Filter, enabled: boolean): void {
     this.replace(f, {...f, enabled});
+  }
+
+  issueText(f: Filter): string | null {
+    return this.engine.issue(f)?.text ?? null;
   }
 
   caption(f: Filter): string {

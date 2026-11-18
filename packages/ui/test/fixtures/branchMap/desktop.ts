@@ -2,6 +2,7 @@ import type {BranchMap} from './types.js';
 /** Desktop-skin scanned branches (shells/original) mapped to the view each one is, or sits inside. */
 export const DESKTOP_BRANCH_MAP:BranchMap={
   'conditional-branch-d3fa53388a19399f':{kind:'view',view:'desktop/difference-cue'},
+  'conditional-branch-d6d9f0346da7530f':{kind:'partOf',view:'desktop/workspace/filters'}, // OriginalFilters.vue:66, the negative-peak message; filter-negative-peak-message.browser.spec.ts
   'conditional-branch-04f25a4ea25c79fb':{kind:'partOf',view:'desktop/workspace/filters'},
   'native-ui-84bbd79965252442':{kind:'partOf',view:'desktop/workspace/filters'},
   'native-ui-6ce6972b44a4efcf':{kind:'partOf',view:'desktop/workspace/filters'},

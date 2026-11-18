@@ -63,6 +63,7 @@ function toggleEdit(id: string | undefined) { editing.value = editing.value === 
           <span class="filter-edit-hint" @click="toggleEdit(f.id)">✎ edit</span>
           <button class="filter-del" title="Remove this filter" @click.stop="removeFilter(f.id)">×</button>
         </div>
+        <p v-if="api.issueText(f)" class="filter-issue" role="alert">{{ api.issueText(f) }}</p>
 
         <template v-if="editing === f.id">
           <PassFilterEditor          v-if="f.type === 'lowpass' || f.type === 'highpass'" :f="f" :api="api" />
@@ -94,6 +95,7 @@ function toggleEdit(id: string | undefined) { editing.value = editing.value === 
 .filter-row-head:hover .filter-edit-hint { opacity:.8; }
 .filter-row-inline.editing { background:#eef4ff; }
 .filter-disabled .filter-type-badge, .filter-disabled .filter-summary { opacity:.45; text-decoration:line-through; }
+.filter-issue { margin:0; padding:2px 10px 6px 30px; font-size:12px; color:#8a2a00; overflow-wrap:anywhere; }
 .filter-del { border:none; background:none; color:#b02a2a; cursor:pointer; padding:2px 6px; }
 .filter-del:hover { background:#fbdada; border-radius:3px; }
 </style>

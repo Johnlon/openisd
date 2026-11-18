@@ -41,6 +41,7 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'conditional-branch-258660b326ed880e':{kind:'partOf',view:'box-box-passive-radiator'}, // MobileEnclosureTab.vue:57
   'conditional-branch-534f1ce43febe13c':{kind:'view',view:'pr-picker'}, // MobileEnclosureTab.vue:71
   'conditional-branch-4dca507455f940a4':{kind:'partOf',view:'box-vented'}, // MobileEnclosureTab.vue:93
+  'conditional-branch-05dee2e382c5f81a':{kind:'partOf',view:'filter-peakHighpass'}, // MobileFilterCard.vue:45, the negative-peak message; filter-negative-peak-message.browser.spec.ts
   'conditional-branch-248622210b98b3a7':{kind:'view',view:'phone/filter-card-body'}, // MobileFilterCard.vue:45
   'conditional-branch-4e839ac1a285f175':{kind:'view',view:'filter-lowpass'}, // MobileFilterCard.vue:46
   'conditional-branch-2bd74c11583e97d1':{kind:'view',view:'filter-allpass'}, // MobileFilterCard.vue:47

@@ -140,6 +140,11 @@ export interface ChainEntry { id?: string; enabled: boolean }
 export type Filter = ChainEntry & FilterSpec;
 
 /** Which WinISD filter-chain calculation errors the chain reproduces (each an error switch). */
+/** What the engine says about one filter that cannot be drawn as entered. */
+export interface FilterIssue {
+  readonly text: string;
+}
+
 export interface WinisdFilterErrors {
   /** Bessel high-pass: the low-pass's denominator under (k·s)^n, not the mirror of the low-pass. */
   readonly besselHighpass: boolean;

@@ -1,5 +1,5 @@
 import {biquad} from './biquad.js';
-import type {Complex, FilterSpec, PeakHighpassFilter, WprFilter} from '../types.js';
+import type {Complex, FilterIssue, FilterSpec, PeakHighpassFilter, WprFilter} from '../types.js';
 import type {FilterModel} from './FilterModel.js';
 
 
@@ -10,8 +10,21 @@ import type {FilterModel} from './FilterModel.js';
 export class PeakHighpassFilterModel implements FilterModel {
   constructor(private readonly spec: PeakHighpassFilter) {}
 
+  /** Null when the filter can be drawn; else the issue a negative peak gain raises. WinISD closes
+   *  when such a filter is added (winisd_research/runs/peakhp-negative-20261118/), and the formula
+   *  below has no real answer for it (√(P²−1) of P < 1), so the value is kept and no curve is drawn. */
+  issue(): FilterIssue | null {
+    const {fpk, gainPk} = this.spec;
+    if (gainPk >= 0) return null;
+    return {
+      text: 'WinISD closes when this filter has a negative peak gain, but a peak gain below 0 dB has no curve to draw, '
+        + `so OpenISD keeps the value and draws no curve for this filter (here ${gainPk} dB at ${fpk} Hz).`,
+    };
+  }
+
   response(f: number): Complex {
     const {fpk, gainPk} = this.spec;
+    if (gainPk < 0) return {re: 1, im: 0};
     const P = Math.pow(10, gainPk / 20);
     const Q2 = (P * P + P * Math.sqrt(P * P - 1)) / 2;
     const Q = Math.sqrt(Q2);
