@@ -475,8 +475,12 @@ defineExpose({focusSearchOrList});
   background: #e8edf2;
   color: #4a5560;
   font-weight: normal;
-  white-space: nowrap;
-  flex: none;
+  /* Wraps like the name beside it: a conflict tag ("conflict, 18 Nov 2026, Linux desktop") is longer than the list is wide, and was cut off. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
 }
 
 .project-tag-conflict {
