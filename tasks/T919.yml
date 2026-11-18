@@ -24,4 +24,65 @@ files:
   - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
   - packages/ui/src/ui/shells/original/OriginalNewProject.vue
   - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/isobaric-loading.browser.spec.ts
+  - packages/ui/test/ui/mobile-driver-tab.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-current-info.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-disagreement-list.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-dimensions.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-general.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-dimensions.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-electro-mechanical.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-environment.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-figure-of-merit.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-large-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-miscellaneous.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-overview.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-thermal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-thiele-small.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-parameters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-export-format.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-identity-message.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-library-save.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-project-select.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-equation-inspector.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-driver-editor-incomplete-warning.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-graph-blocked-message.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-graph-warning-pill.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-wizard-placement-info.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step2.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-wizard-isobarik-note.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-wizard-placement.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+visual:
+  - desktop-dialog-driver-current-info
+  - desktop-dialog-driver-disagreement-list
+  - desktop-dialog-driver-editor-advanced
+  - desktop-dialog-driver-editor-dimensions
+  - desktop-dialog-driver-editor-general
+  - desktop-dialog-driver-editor-help-dimensions
+  - desktop-dialog-driver-editor-help-electro-mechanical
+  - desktop-dialog-driver-editor-help-environment
+  - desktop-dialog-driver-editor-help-figure-of-merit
+  - desktop-dialog-driver-editor-help-large-signal
+  - desktop-dialog-driver-editor-help-miscellaneous
+  - desktop-dialog-driver-editor-help-overview
+  - desktop-dialog-driver-editor-help-thermal
+  - desktop-dialog-driver-editor-help-thiele-small
+  - desktop-dialog-driver-editor-parameters
+  - desktop-dialog-driver-export-format
+  - desktop-dialog-driver-identity-message
+  - desktop-dialog-driver-library-save
+  - desktop-dialog-driver-project-select
+  - desktop-dialog-equation-inspector
+  - desktop-dialog-shared-driver-editor-incomplete-warning
+  - desktop-dialog-shared-graph-blocked-message
+  - desktop-dialog-shared-graph-warning-pill
+  - desktop-dialog-wizard-placement-info
+  - desktop-tab-driver
+  - desktop-wizard-sealed-step2
+  - mobile-dialog-phone-wizard-isobarik-note
+  - mobile-dialog-wizard-placement
+  - mobile-tab-driver
 note: Iso-Barik is offered by one component, DriverPlacement.vue, bound to project.loading. Old assertions that pinned "not modelled" (new-project-wizard-walk and phone-classic-rows specs, phoneWizardText.test.ts) were changed to the new behaviour. Open (reported, not changed): OpenISDDriver.ventedDesign uses one driver's Vas for any driver count and loading, and no WinISD reference run exists for it.
