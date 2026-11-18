@@ -136,6 +136,9 @@ jobs:
       - run: bash scripts/ci/pr-setup.sh "$EVENT" "$GROUP_BASE"
       - name: every architecture unit test
         run: bash scripts/land/unit-architecture.sh
+      - name: no new copy of a formula (duplicate-logic scan against the allow-list; QO946.c256)
+        # jscpd (pinned devDependency) plus the formula rules; exit 1 on any finding not in scripts/dupscan-allow.json. Runs in the merge queue like the job's other steps.
+        run: node scripts/dupscan.mjs . --jscpd node_modules/.bin/jscpd --allow scripts/dupscan-allow.json
 
   done-test:
     runs-on: ubuntu-latest

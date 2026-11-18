@@ -1,0 +1,1247 @@
+{
+ "copy|packages/ui/src/ui/shells/mobile/filters/PassFields.vue|packages/ui/src/ui/shells/original/filters/PassFilterEditor.vue|fe8f81efe81c": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/shells/mobile/filters/PassFields.vue:9-17 = packages/ui/src/ui/shells/original/filters/PassFilterEditor.vue:11-20",
+  "count": 1
+ },
+ "copy|packages/ui/src/ui/shells/mobile/MobileProjectsPane.vue|packages/ui/src/ui/shells/mobile/MobileShell.vue|a945b15b9f4f": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/shells/mobile/MobileProjectsPane.vue:465-475 = packages/ui/src/ui/shells/mobile/MobileShell.vue:586-587",
+  "count": 1
+ },
+ "copy|packages/ui/src/ui/shells/mobile/MobileProjectsPane.vue|packages/ui/src/ui/shells/mobile/MobileShell.vue|fc4b5b8df2ff": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/shells/mobile/MobileProjectsPane.vue:466-476 = packages/ui/src/ui/shells/mobile/MobileShell.vue:536-546",
+  "count": 1
+ },
+ "copy|packages/ui/src/ui/shells/mobile/MobileNewProject.vue|packages/ui/src/ui/shells/mobile/MobileNewProject.vue|31dfecad5920": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/shells/mobile/MobileNewProject.vue:222-229 = packages/ui/src/ui/shells/mobile/MobileNewProject.vue:206-213",
+  "count": 1
+ },
+ "copy|packages/ui/src/ui/shells/mobile/MobileNewProject.vue|packages/ui/src/ui/shells/original/OriginalNewProject.vue|ec909d30f262": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/shells/mobile/MobileNewProject.vue:24-34 = packages/ui/src/ui/shells/original/OriginalNewProject.vue:22-32",
+  "count": 1
+ },
+ "copy|packages/ui/src/ui/shells/mobile/MobileNewProject.vue|packages/ui/src/ui/shells/original/OriginalNewProject.vue|aa8f3c30998d": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/shells/mobile/MobileNewProject.vue:61-107 = packages/ui/src/ui/shells/original/OriginalNewProject.vue:60-105",
+  "count": 1
+ },
+ "copy|packages/ui/src/ui/components/StorageHistory.vue|packages/ui/src/ui/components/StorageHistory.vue|e23ccc1e35a0": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/components/StorageHistory.vue:113-119 = packages/ui/src/ui/components/StorageHistory.vue:50-56",
+  "count": 1
+ },
+ "copy|packages/ui/src/ui/components/StorageHistory.vue|packages/ui/src/ui/components/StorageHistory.vue|efd771347a2e": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/components/StorageHistory.vue:135-142 = packages/ui/src/ui/components/StorageHistory.vue:71-78",
+  "count": 1
+ },
+ "copy|packages/ui/src/ui/components/CloudSyncBadge.vue|packages/ui/src/ui/components/CloudSyncDialog.vue|ace67f6cb311": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/components/CloudSyncBadge.vue:16-25 = packages/ui/src/ui/components/CloudSyncDialog.vue:26-35",
+  "count": 1
+ },
+ "copy|packages/ui/src/ui/components/ChartDataDialog.vue|packages/ui/src/ui/components/ConfirmDialog.vue|58a879706da5": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/components/ChartDataDialog.vue:52-60 = packages/ui/src/ui/components/ConfirmDialog.vue:76-84",
+  "count": 1
+ },
+ "copy|packages/persistence/src/cloud/drive/driveStore.ts|packages/persistence/src/cloud/drive/driveStore.ts|57988b520efb": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/cloud/drive/driveStore.ts:351-368 = packages/persistence/src/cloud/drive/driveStore.ts:290-308",
+  "count": 1
+ },
+ "copy|packages/persistence/src/cloud/docs/savedEntryDocs.ts|packages/persistence/src/cloud/docs/singletonDocs.ts|b998acc3e8dc": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/cloud/docs/savedEntryDocs.ts:54-67 = packages/persistence/src/cloud/docs/singletonDocs.ts:41-54",
+  "count": 1
+ },
+ "copy|packages/persistence/src/cloud/auth/implicitSession.ts|packages/persistence/src/cloud/auth/implicitSession.ts|5315b4741065": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/cloud/auth/implicitSession.ts:78-88 = packages/persistence/src/cloud/auth/implicitSession.ts:52-62",
+  "count": 1
+ },
+ "copy|packages/ui/src/logic/driverBrowsingState.ts|packages/ui/src/logic/driverDisplay.ts|ae2196a8435d": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/logic/driverBrowsingState.ts:52-64 = packages/ui/src/logic/driverDisplay.ts:122-125",
+  "count": 1
+ },
+ "copy|packages/ui/src/logic/driverBrowsingState.ts|packages/ui/src/logic/driverBrowsingState.ts|516012bd10a2": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/logic/driverBrowsingState.ts:459-466 = packages/ui/src/logic/driverBrowsingState.ts:446-453",
+  "count": 1
+ },
+ "copy|packages/ui/src/hooks/labelColumns.ts|packages/ui/src/hooks/phoneLabelColumn.ts|106209ac1e11": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/labelColumns.ts:77-91 = packages/ui/src/hooks/phoneLabelColumn.ts:55-69",
+  "count": 1
+ },
+ "copy|packages/ui/src/hooks/SealedAlignment-hooks.ts|packages/ui/src/hooks/VentedAlignment-hooks.ts|494037c4ef0f": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/SealedAlignment-hooks.ts:66-71 = packages/ui/src/hooks/VentedAlignment-hooks.ts:60-65",
+  "count": 1
+ },
+ "copy|packages/ui/src/hooks/SealedAlignment-hooks.ts|packages/ui/src/hooks/VentedAlignment-hooks.ts|c576fa1fa226": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/SealedAlignment-hooks.ts:71-82 = packages/ui/src/hooks/VentedAlignment-hooks.ts:65-76",
+  "count": 1
+ },
+ "copy|packages/ui/src/hooks/OriginalNewProject-hooks.ts|packages/ui/src/hooks/passiveRadiatorEditor.ts|6c0d55eb3d29": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/OriginalNewProject-hooks.ts:529-539 = packages/ui/src/hooks/passiveRadiatorEditor.ts:173-182",
+  "count": 1
+ },
+ "copy|packages/ui/src/hooks/MobileShell-hooks.ts|packages/ui/src/ui/shells/mobile/MobileProjectsPane.vue|079b9f77411a": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/MobileShell-hooks.ts:151-157 = packages/ui/src/ui/shells/mobile/MobileProjectsPane.vue:20-26",
+  "count": 1
+ },
+ "copy|packages/ui/src/hooks/MobileShell-hooks.ts|packages/ui/src/hooks/OriginalShell-hooks.ts|2a4dff476cfd": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/MobileShell-hooks.ts:250-261 = packages/ui/src/hooks/OriginalShell-hooks.ts:315-326",
+  "count": 1
+ },
+ "copy|packages/ui/src/hooks/MobileShell-hooks.ts|packages/ui/src/hooks/OriginalShell-hooks.ts|fc4755c48b24": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/MobileShell-hooks.ts:411-420 = packages/ui/src/hooks/OriginalShell-hooks.ts:718-726",
+  "count": 1
+ },
+ "copy|packages/ui/src/hooks/MobileBoxTab-hooks.ts|packages/ui/src/hooks/OriginalShell-hooks.ts|00493df6a98f": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/MobileBoxTab-hooks.ts:32-42 = packages/ui/src/hooks/OriginalShell-hooks.ts:213-223",
+  "count": 1
+ },
+ "copy|packages/ui/src/hooks/MobileBoxTab-hooks.ts|packages/ui/src/hooks/OriginalShell-hooks.ts|7e174c05b920": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/MobileBoxTab-hooks.ts:44-54 = packages/ui/src/hooks/OriginalShell-hooks.ts:225-235",
+  "count": 1
+ },
+ "copy|packages/ui/src/hooks/MobileBoxTab-hooks.ts|packages/ui/src/ui/shells/mobile/MobileBoxTab.vue|9b9de9c29ee9": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/MobileBoxTab-hooks.ts:60-70 = packages/ui/src/ui/shells/mobile/MobileBoxTab.vue:23-33",
+  "count": 1
+ },
+ "copy|packages/ui/src/hooks/MobileAdvancedTab-hooks.ts|packages/ui/src/hooks/OriginalShell-hooks.ts|e8430a26876f": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/MobileAdvancedTab-hooks.ts:29-41 = packages/ui/src/hooks/OriginalShell-hooks.ts:778-790",
+  "count": 1
+ },
+ "copy|packages/ui/src/hooks/GraphPanel-hooks.ts|packages/ui/src/hooks/OriginalShell-hooks.ts|a1bbf327291b": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/GraphPanel-hooks.ts:73-79 = packages/ui/src/hooks/OriginalShell-hooks.ts:535-537",
+  "count": 1
+ },
+ "copy|packages/persistence/src/repos/myDriverRepo.ts|packages/persistence/src/repos/myPassiveRadiatorRepo.ts|2822dfcaa5dc": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/repos/myDriverRepo.ts:75-96 = packages/persistence/src/repos/myPassiveRadiatorRepo.ts:67-88",
+  "count": 1
+ },
+ "copy|packages/persistence/src/repos/layoutSteps.ts|packages/persistence/src/repos/layoutSteps.ts|a852cb32aec9": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/repos/layoutSteps.ts:135-140 = packages/persistence/src/repos/layoutSteps.ts:124-129",
+  "count": 1
+ },
+ "copy|packages/persistence/src/repos/bundledDriverRepo.ts|packages/persistence/src/repos/bundledPassiveRadiatorRepo.ts|a7dbbfb17ab6": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/repos/bundledDriverRepo.ts:16-21 = packages/persistence/src/repos/bundledPassiveRadiatorRepo.ts:13-18",
+  "count": 1
+ },
+ "copy|packages/persistence/src/cloud/syncEngine.ts|packages/persistence/src/cloud/syncEngine.ts|027890cf1abc": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/cloud/syncEngine.ts:266-287 = packages/persistence/src/cloud/syncEngine.ts:243-264",
+  "count": 1
+ },
+ "copy|packages/persistence/src/cloud/syncEngine.ts|packages/persistence/src/cloud/syncEngine.ts|450ff64dbb50": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/cloud/syncEngine.ts:674-681 = packages/persistence/src/cloud/syncEngine.ts:636-643",
+  "count": 1
+ },
+ "copy|packages/persistence/src/cloud/syncEngine.ts|packages/persistence/src/cloud/syncEngine.ts|bb0453ae62a4": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/cloud/syncEngine.ts:733-740 = packages/persistence/src/cloud/syncEngine.ts:653-660",
+  "count": 1
+ },
+ "copy|packages/persistence/src/cloud/syncEngine.ts|packages/persistence/src/cloud/syncEngine.ts|ff202df1ddd4": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/cloud/syncEngine.ts:743-753 = packages/persistence/src/cloud/syncEngine.ts:711-720",
+  "count": 1
+ },
+ "copy|packages/persistence/src/cloud/syncEngine.ts|packages/persistence/src/cloud/syncEngine.ts|1a3759b3f699": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/cloud/syncEngine.ts:797-808 = packages/persistence/src/cloud/syncEngine.ts:648-660",
+  "count": 1
+ },
+ "copy|packages/persistence/src/cloud/syncEngine.ts|packages/persistence/src/cloud/syncEngine.ts|ce4f590f9f15": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/cloud/syncEngine.ts:808-817 = packages/persistence/src/cloud/syncEngine.ts:672-643",
+  "count": 1
+ },
+ "copy|packages/persistence/src/cloud/auth/implicitSession.ts|packages/persistence/src/cloud/cloudStore.ts|efc1ac3b719a": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/cloud/cloudStore.ts:26-32 = packages/persistence/src/cloud/auth/implicitSession.ts:100-106",
+  "count": 1
+ },
+ "copy|packages/design/engine/simulation/SimulationEngine.ts|packages/design/engine/simulation/SimulationEngine.ts|e7f08c10820d": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:780-790 = packages/design/engine/simulation/SimulationEngine.ts:765-775",
+  "count": 1
+ },
+ "copy|packages/design/engine/pr/PrEngine.ts|packages/design/engine/vent/VentEngine.ts|94180610b0fb": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/pr/PrEngine.ts:216-223 = packages/design/engine/vent/VentEngine.ts:97-104",
+  "count": 1
+ },
+ "copy|packages/design/engine/filters/FilterEngine.ts|packages/design/engine/filters/FilterEngine.ts|bcc3251bc511": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/FilterEngine.ts:233-242 = packages/design/engine/filters/FilterEngine.ts:199-209",
+  "count": 1
+ },
+ "copy|packages/design/engine/boxes/Bandpass4Box.ts|packages/design/engine/boxes/Bandpass6Box.ts|45bb464dbb2f": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/Bandpass4Box.ts:9-18 = packages/design/engine/boxes/Bandpass6Box.ts:10-19",
+  "count": 1
+ },
+ "copy|packages/design/engine/boxes/Bandpass4Box.ts|packages/design/engine/boxes/Bandpass6Box.ts|7acee83b8e5f": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/Bandpass4Box.ts:26-31 = packages/design/engine/boxes/Bandpass6Box.ts:34-40",
+  "count": 1
+ },
+ "copy|packages/design/engine/boxes/Bandpass4Box.ts|packages/design/engine/boxes/Bandpass6Box.ts|3147922a3c08": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/Bandpass4Box.ts:64-70 = packages/design/engine/boxes/Bandpass6Box.ts:82-88",
+  "count": 1
+ },
+ "copy|packages/design/engine/boxes/Bandpass4Box.ts|packages/design/engine/boxes/Bandpass6Box.ts|6581f308092f": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/Bandpass4Box.ts:71-80 = packages/design/engine/boxes/Bandpass6Box.ts:90-99",
+  "count": 1
+ },
+ "copy|packages/design/engine/boxes/AbcBox.ts|packages/design/engine/boxes/Bandpass6Box.ts|56c314107af0": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/AbcBox.ts:11-21 = packages/design/engine/boxes/Bandpass6Box.ts:10-20",
+  "count": 1
+ },
+ "copy|packages/design/engine/boxes/AbcBox.ts|packages/design/engine/boxes/Bandpass6Box.ts|280c236f6777": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/AbcBox.ts:24-30 = packages/design/engine/boxes/Bandpass6Box.ts:22-28",
+  "count": 1
+ },
+ "copy|packages/design/engine/boxes/AbcBox.ts|packages/design/engine/boxes/Bandpass6Box.ts|bbc9e5c2bd5f": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/AbcBox.ts:86-113 = packages/design/engine/boxes/Bandpass6Box.ts:68-95",
+  "count": 1
+ },
+ "copy|packages/design/engine/boxes/AbcBox.ts|packages/design/engine/boxes/AbcBox.ts|9c572365934c": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/AbcBox.ts:117-124 = packages/design/engine/boxes/AbcBox.ts:43-50",
+  "count": 1
+ },
+ "copy|packages/design/domain/project/singleEnteredVentPairs.ts|packages/design/domain/project/withoutImportSku.ts|9220d69b56a5": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/project/singleEnteredVentPairs.ts:58-63 = packages/design/domain/project/withoutImportSku.ts:37-42",
+  "count": 1
+ },
+ "copy|packages/design/domain/project/retiredLossMode.ts|packages/design/domain/project/withoutImportSku.ts|9220d69b56a5": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/project/retiredLossMode.ts:50-55 = packages/design/domain/project/withoutImportSku.ts:37-42",
+  "count": 1
+ },
+ "copy|packages/design/domain/driver/openIsdDriverSpec.ts|packages/design/engine/driver/DriverEngine.ts|7da05087891c": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/driver/openIsdDriverSpec.ts:111-117 = packages/design/engine/driver/DriverEngine.ts:63-70",
+  "count": 1
+ },
+ "copy|packages/design/domain/driver/openIsdDriverSpec.ts|packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts|94f4389d006d": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/driver/openIsdDriverSpec.ts:213-218 = packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts:29-34",
+  "count": 1
+ },
+ "copy|packages/design/domain/box/openISDBox.ts|packages/design/domain/box/openISDBox.ts|09d2a7da1fe0": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/box/openISDBox.ts:736-743 = packages/design/domain/box/openISDBox.ts:658-664",
+  "count": 1
+ },
+ "copy|packages/design/domain/driver/openIsdDriverSpec.ts|packages/design/engine/physicalRange.ts|f45079f8a209": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/physicalRange.ts:30-37 = packages/design/domain/driver/openIsdDriverSpec.ts:111-70",
+  "count": 1
+ },
+ "copy|packages/design/domain/winIsdProjectConverter.ts|packages/design/domain/winIsdProjectConverter.ts|df756e078391": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/winIsdProjectConverter.ts:526-531 = packages/design/domain/winIsdProjectConverter.ts:442-450",
+  "count": 1
+ },
+ "copy|packages/design/domain/winIsdProjectConverter.ts|packages/design/domain/winIsdProjectConverter.ts|19d1b94fa599": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/winIsdProjectConverter.ts:537-545 = packages/design/domain/winIsdProjectConverter.ts:507-515",
+  "count": 1
+ },
+ "copy|packages/design/domain/winIsdProjectConverter.ts|packages/design/domain/winIsdProjectConverter.ts|0b2155558645": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/winIsdProjectConverter.ts:556-561 = packages/design/domain/winIsdProjectConverter.ts:442-531",
+  "count": 1
+ },
+ "copy|packages/design/domain/box/ventWindow.ts|packages/design/domain/vent.ts|e1162a0d14d9": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/vent.ts:6-13 = packages/design/domain/box/ventWindow.ts:27-33",
+  "count": 1
+ },
+ "copy|packages/design/domain/openisdTransforms.ts|packages/design/domain/openisdTransforms.ts|dc01e805f506": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/openisdTransforms.ts:358-374 = packages/design/domain/openisdTransforms.ts:305-321",
+  "count": 1
+ },
+ "copy|packages/design/domain/openisdTransforms.ts|packages/design/domain/openisdTransforms.ts|e456dcd49d31": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/openisdTransforms.ts:396-412 = packages/design/domain/openisdTransforms.ts:244-262",
+  "count": 1
+ },
+ "copy|packages/design/domain/openisdSchema.ts|packages/design/domain/openisdSchema.ts|df108bcc2ad2": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/openisdSchema.ts:242-248 = packages/design/domain/openisdSchema.ts:218-224",
+  "count": 1
+ },
+ "copy|packages/design/domain/cell.ts|packages/design/domain/cell.ts|98d0bb9526a7": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/cell.ts:181-187 = packages/design/domain/cell.ts:151-155",
+  "count": 1
+ },
+ "copy|packages/design/domain/cell.ts|packages/design/domain/cell.ts|36a8d20f2952": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/cell.ts:212-224 = packages/design/domain/cell.ts:174-155",
+  "count": 1
+ },
+ "copy|packages/design/domain/cell.ts|packages/design/domain/cell.ts|1a2e0b92f5f6": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/cell.ts:222-235 = packages/design/domain/cell.ts:194-208",
+  "count": 1
+ },
+ "copy|packages/design/domain/cell.ts|packages/design/domain/cell.ts|f9086c68dc3f": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/cell.ts:338-346 = packages/design/domain/cell.ts:307-315",
+  "count": 1
+ },
+ "copy|packages/design/domain/appContext.ts|packages/ui/src/hooks/OriginalShell-hooks.ts|77595a33b15a": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/appContext.ts:37-42 = packages/ui/src/hooks/OriginalShell-hooks.ts:60-65",
+  "count": 1
+ },
+ "copy|packages/design/cloud/oauthRedirect.ts|packages/design/cloud/oauthRedirect.ts|3037913a229f": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/cloud/oauthRedirect.ts:85-97 = packages/design/cloud/oauthRedirect.ts:40-52",
+  "count": 1
+ },
+ "copy|packages/design/cloud/driveJson.ts|packages/design/cloud/driveJson.ts|6140b48d31c3": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/cloud/driveJson.ts:347-356 = packages/design/cloud/driveJson.ts:267-276",
+  "count": 1
+ },
+ "copy|packages/design/cloud/driveJson.ts|packages/design/cloud/driveJson.ts|13703a7e646b": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/cloud/driveJson.ts:368-382 = packages/design/cloud/driveJson.ts:288-301",
+  "count": 1
+ },
+ "copy|packages/design/cloud/driveJson.ts|packages/design/cloud/driveJson.ts|34d06adc85b0": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/cloud/driveJson.ts:431-443 = packages/design/cloud/driveJson.ts:288-299",
+  "count": 1
+ },
+ "copy|packages/design/cloud/driveJson.ts|packages/design/cloud/driveJson.ts|4945b2a5a0ac": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/cloud/driveJson.ts:446-455 = packages/design/cloud/driveJson.ts:401-410",
+  "count": 1
+ },
+ "copy|packages/design/cloud/driveJson.ts|packages/design/cloud/driveJson.ts|58b8eb5741c8": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/cloud/driveJson.ts:455-491 = packages/design/cloud/driveJson.ts:410-446",
+  "count": 1
+ },
+ "copy|packages/design/cloud/driveJson.ts|packages/design/cloud/driveJson.ts|c2662c45c185": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/cloud/driveJson.ts:513-523 = packages/design/cloud/driveJson.ts:492-502",
+  "count": 1
+ },
+ "copy|packages/design/cloud/docMigrate.ts|packages/design/cloud/docMigrate.ts|ec894b8773d6": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/cloud/docMigrate.ts:89-96 = packages/design/cloud/docMigrate.ts:73-80",
+  "count": 1
+ },
+ "copy|packages/design/chart/series.ts|packages/design/chart/series.ts|b8bc9c8f0375": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/series.ts:272-279 = packages/design/chart/series.ts:259-266",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/chart/axis.ts|return f >= 1000 ? (f / 1000).toFixed(f < 10000 ? 2 : 1) + 'k' : f.toFixed(0);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/axis.ts:134",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/axis.ts|return f >= 1000 ? (f / 1000).toFixed(f < 10000 ? 2 : 1) + 'k' : f.toFixed(0);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/axis.ts:134",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/axis.ts|return f >= 100 ? f.toFixed(0) : f.toFixed(1);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/axis.ts:139",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/axis.ts|return f.toFixed(f < 100 ? 1 : 0);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/axis.ts:144",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/chart/axis.ts|if (a >= 1000) return (v / 1000).toFixed(1) + 'k';": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/axis.ts:209",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/axis.ts|if (a >= 1000) return (v / 1000).toFixed(1) + 'k';": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/axis.ts:209",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/axis.ts|if (a >= 10) return v.toFixed(0);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/axis.ts:210",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/axis.ts|if (a >= 1) return v.toFixed(1);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/axis.ts:211",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/axis.ts|return v.toFixed(2);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/axis.ts:212",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/axis.ts|return v.toFixed(a >= 100 ? 0 : a >= 10 ? 1 : 2) + ' ' + unit;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/axis.ts:219",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/axis.ts|return v.toFixed(1);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/axis.ts:224",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/series.ts|if (f3 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 3), color: '#ffb454', name: `F3 = ${f3.toFixed(0)} Hz`, dash: true, reference: true });": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/series.ts:248",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/series.ts|if (f6 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 6), color: '#ff6b6b', name: `F6 = ${f6.toFixed(0)} Hz`, dash: true, reference: true });": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/series.ts:249",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/series.ts|if (f10 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 10), color: '#c08bff', name: `F10 = ${f10.toFixed(0)} Hz`, dash: true, reference: true });": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/series.ts:250",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/chart/ticks.ts|for (let i = 0; i <= count; i++) ticks.push(+((k0 + i) * step).toPrecision(12));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/chart/ticks.ts:26",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/cloud/syncRules.ts|const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/cloud/syncRules.ts:37",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/domain/box/openISDBox.ts|driverSd * driverXmax * this.#load().nDrivers / (sd * pr.count.value));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/box/openISDBox.ts:625",
+  "count": 1
+ },
+ "sig|displacement|packages/design/domain/box/openISDBox.ts|driverSd * driverXmax * this.#load().nDrivers / (sd * pr.count.value));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/box/openISDBox.ts:625",
+  "count": 1
+ },
+ "sig|displacement|packages/design/domain/box/openISDBox.ts|if (sd !== null && xmax !== null) spec.Vd_m3.set(sd * xmax);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/box/openISDBox.ts:629",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/domain/box/ventWindow.ts|const area_cm2 = area_m2 * 10_000;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/box/ventWindow.ts:105",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/domain/box/ventWindow.ts|return {width_m: bestW / 100, height_m: bestH / 100};": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/box/ventWindow.ts:122",
+  "count": 1
+ },
+ "sig|coil-wiring-scaling|packages/design/domain/driverRecordConverter.ts|const factor = wiring.value === \"series\" ? coils : 1 / coils;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/driverRecordConverter.ts:210",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/domain/driverRoundTripDiffs.ts|return typeof value === \"number\" ? Number(value.toPrecision(12)) : value;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/driverRoundTripDiffs.ts:46",
+  "count": 1
+ },
+ "sig|coil-wiring-scaling|packages/design/domain/multiCoilAsPublished.ts|if (vcCon.value === PARALLEL) return {...section, Re_ohm: scaled(section.Re_ohm, 1 / numVC)};": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/multiCoilAsPublished.ts:61",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/domain/project/compatSwitch.ts|static readonly TL_PORT_END_CORRECTION = new CompatSwitch(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'bug', false, p => p.winisdTlPortNoEndCorrection);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/project/compatSwitch.ts:29",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/domain/project/projectAdvanced.ts|get value() { return lens.value ?? CompatSwitch.TL_PORT_END_CORRECTION.winisdValue; },": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/project/projectAdvanced.ts:152",
+  "count": 1
+ },
+ "sig|circle-area|packages/design/domain/project/projectResolve.ts|vent.area_m2.setCalculated(Math.PI * (vent.diameter_m.value! / 2) ** 2);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/project/projectResolve.ts:237",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/domain/project/projectSweep.ts|maxCurves: sweepParamsOf(source, P, 2.83, box, Vb),": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/domain/project/projectSweep.ts:365",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/engine/air.ts|export const END_CORRECTION = 0.732;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/air.ts:52",
+  "count": 1
+ },
+ "sig|air-defaults|packages/design/engine/air.ts|export const DEFAULT_T_REF_K = 293.15;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/air.ts:55",
+  "count": 1
+ },
+ "sig|air-defaults|packages/design/engine/air.ts|export const DEFAULT_P_REF_PA = 101325;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/air.ts:57",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/array/driverWiring.ts|return {eg_V: amp_V / n, Rg_ohm: rgAtDriverSide ? Rg_ohm : Rg_ohm / n, loadScale: n};": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/array/driverWiring.ts:28",
+  "count": 1
+ },
+ "sig|air-compliance|packages/design/engine/boxes/AbcBox.ts|const rc2 = rho * c * c;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/AbcBox.ts:24",
+  "count": 1
+ },
+ "sig|air-compliance|packages/design/engine/boxes/AbcBox.ts|const Cabr = P.Vb / (rho * c * c);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/AbcBox.ts:86",
+  "count": 1
+ },
+ "sig|air-compliance|packages/design/engine/boxes/AbcBox.ts|const Cabf = (P.Vf ?? NaN) / (rho * c * c);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/AbcBox.ts:87",
+  "count": 1
+ },
+ "sig|air-compliance|packages/design/engine/boxes/Bandpass4Box.ts|const Cabr = P.Vb / (rho * c * c);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/Bandpass4Box.ts:21",
+  "count": 2
+ },
+ "sig|air-compliance|packages/design/engine/boxes/Bandpass4Box.ts|const Cabf = (P.Vf ?? NaN) / (rho * c * c);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/Bandpass4Box.ts:25",
+  "count": 2
+ },
+ "sig|air-compliance|packages/design/engine/boxes/Bandpass6Box.ts|const rc2 = rho * c * c;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/Bandpass6Box.ts:22",
+  "count": 1
+ },
+ "sig|air-compliance|packages/design/engine/boxes/Bandpass6Box.ts|const Cabr = P.Vb / (rho * c * c);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/Bandpass6Box.ts:68",
+  "count": 1
+ },
+ "sig|air-compliance|packages/design/engine/boxes/Bandpass6Box.ts|const Cabf = (P.Vf ?? NaN) / (rho * c * c);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/boxes/Bandpass6Box.ts:69",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/circuit.ts|const pg = P.eg * BlPush / (drv.Sd_m2 * n * Rac);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/circuit.ts:93",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/circuit.ts|const Mas = drv.Mms_kg / (drv.Sd_m2 * drv.Sd_m2) / n;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/circuit.ts:94",
+  "count": 2
+ },
+ "sig|driver-count-scaling|packages/design/engine/circuit.ts|const Sdt = drv.Sd_m2 * n;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/circuit.ts:107",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/circuit.ts|return cScale(z1, 1/n);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/circuit.ts:132",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/circuit.ts|const Cas = drv.Cms_m_per_N * drv.Sd_m2 * drv.Sd_m2 * n;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/circuit.ts:166",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/circuit.ts|const Ras = drv.Rms_kg_per_s / (drv.Sd_m2 * drv.Sd_m2) / n;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/circuit.ts:168",
+  "count": 1
+ },
+ "sig|air-compliance|packages/design/engine/circuit.ts|const Cab = P.Vb / (rho * c * c);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/circuit.ts:174",
+  "count": 1
+ },
+ "sig|bl-from-qes|packages/design/engine/driver/DriverEngine.ts|? Math.sqrt(Re_terminal_ohm / (2 * Math.PI * Fs_hz * Qes * Cms_m_per_N)) : null;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/DriverEngine.ts:201",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/driver/routes/advancedRoutes.ts|return base == null ? null : base + 10 * Math.log10(v.Pe_W) - 3;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/routes/advancedRoutes.ts:29",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/driver/routes/advancedRoutes.ts|return 20 * Math.log10(p20 / P0);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/routes/advancedRoutes.ts:34",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/engine/driver/routes/constants.ts|export const V283_SQ = 2.83 * 2.83;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/routes/constants.ts:5",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/driver/routes/efficiencyRoutes.ts|return base == null ? null : base + 10 * Math.log10(V283_SQ / v.Re_ohm);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/routes/efficiencyRoutes.ts:74",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/driver/routes/efficiencyRoutes.ts|new SolveRoute('SPLref_dB', ['USPL_dB', 'Re_ohm'], v => v.USPL_dB - 10 * Math.log10(V283_SQ / v.Re_ohm), v => v.Re_ohm > 0),": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/routes/efficiencyRoutes.ts:80",
+  "count": 1
+ },
+ "sig|circle-area|packages/design/engine/driver/routes/geometryRoutes.ts|new SolveRoute('Sd_m2', ['Dd_m'], v => Math.PI * (v.Dd_m / 2) ** 2, v => v.Dd_m > 0).inRelation(DD_FROM_SD),": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/routes/geometryRoutes.ts:8",
+  "count": 1
+ },
+ "sig|displacement|packages/design/engine/driver/routes/geometryRoutes.ts|new SolveRoute('Vd_m3', ['Sd_m2', 'Xmax_m'], v => v.Sd_m2 * v.Xmax_m).inRelation(VD_FROM_EXCURSION),": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/routes/geometryRoutes.ts:31",
+  "count": 1
+ },
+ "sig|resonance-mass-compliance|packages/design/engine/driver/routes/relations.ts|(v) => 1 / (TAU * Math.sqrt(v.Mms_kg! * v.Cms_m_per_N!))));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/routes/relations.ts:8",
+  "count": 1
+ },
+ "sig|q-parallel|packages/design/engine/driver/routes/smallSignalRoutes.ts|new SolveRoute('Qts', ['Qes', 'Qms'], v => v.Qes * v.Qms / (v.Qes + v.Qms)).inRelation(Q_PARALLEL),": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/routes/smallSignalRoutes.ts:9",
+  "count": 1
+ },
+ "sig|resonance-mass-compliance|packages/design/engine/driver/routes/smallSignalRoutes.ts|v => 1 / (TAU * Math.sqrt(v.Mms_kg * v.Cms_m_per_N))).inRelation(FS_FROM_MASS_AND_COMPLIANCE));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/routes/smallSignalRoutes.ts:26",
+  "count": 1
+ },
+ "sig|resonance-mass-compliance|packages/design/engine/driver/routes/smallSignalRoutes.ts|v => 1 / ((TAU * v.Fs_hz) ** 2 * v.Cms_m_per_N)).inRelation(FS_FROM_MASS_AND_COMPLIANCE));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/routes/smallSignalRoutes.ts:47",
+  "count": 1
+ },
+ "sig|resonance-mass-compliance|packages/design/engine/driver/routes/smallSignalRoutes.ts|new SolveRoute('Cms_m_per_N', ['Fs_hz', 'Mms_kg'], v => 1 / ((TAU * v.Fs_hz) ** 2 * v.Mms_kg)).inRelation(FS_FROM_MASS_AND_COMPLIANCE),": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/driver/routes/smallSignalRoutes.ts:68",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/engine/dvolRelation.ts|const v = metres * 1000;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/dvolRelation.ts:105",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/dvolRelation.ts|return `${Math.abs(v) >= 100 ? Math.round(v) : Number(v.toPrecision(3))} mm`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/dvolRelation.ts:106",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/efficiency.ts|return 10 * Math.log10((rho * c) / (2 * Math.PI * P0 * P0));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/efficiency.ts:51",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/efficiency.ts|return splReferenceConstantDb(rho, c) + 10 * Math.log10(no);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/efficiency.ts:56",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/filters/AllpassFilterModel.ts|const q = order >= 2 ? `, Q=${Q.toFixed(2)}` : '';": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/AllpassFilterModel.ts:44",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/filters/AllpassFilterModel.ts|return `Allpass (n=${order}, t=${t.toFixed(3)} s${q})`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/AllpassFilterModel.ts:45",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/filters/LinkwitzFilterModel.ts|return `Linkwitz transform (f0=${f0.toFixed(2)} Q0=${Q0.toFixed(2)} fp=${fp.toFixed(2)} Qp=${Qp.toFixed(2)})`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/LinkwitzFilterModel.ts:26",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/filters/ParametricEqFilterModel.ts|const V = Math.pow(10, gain / 20);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/ParametricEqFilterModel.ts:17",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/filters/ParametricEqFilterModel.ts|return `Parametric EQ (fc=${fc.toFixed(2)} Hz, Q=${Q.toFixed(2)}, Gain=${gain.toFixed(2)} dB)`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/ParametricEqFilterModel.ts:24",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/filters/PassFilterModel.ts|const q = this.spec.family === 'sos' ? `, Q=${this.spec.Q.toFixed(3)}` : '';": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/PassFilterModel.ts:67",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/filters/PassFilterModel.ts|return `${label} (${this.family.label}, n=${n}, fc=${this.spec.fc.toFixed(2)} Hz${q})`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/PassFilterModel.ts:68",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/filters/PeakHighpassFilterModel.ts|const P = Math.pow(10, gainPk / 20);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/PeakHighpassFilterModel.ts:15",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/filters/PeakHighpassFilterModel.ts|return `Peaking 2nd order highpass (Gpk=${gainPk.toFixed(2)} dB fpk=${fpk.toFixed(2)} Hz)`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/PeakHighpassFilterModel.ts:24",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/filters/RaisedCosineFilterModel.ts|return `DLP Raised Cosine (fc=${fc.toFixed(2)} Hz, BW=${bwOct.toFixed(2)} oct, Gain=${gain.toFixed(2)} dB)`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/RaisedCosineFilterModel.ts:23",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/filters/ShelfFilterModel.ts|return `${label} (fc ${fc.toFixed(0)} Hz · Q ${Q.toFixed(2)} · ${gain.toFixed(1)} dB)`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/ShelfFilterModel.ts:29",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/filters/StaticGainFilterModel.ts|return cx(Math.pow(10, this.spec.gain / 20), 0);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/StaticGainFilterModel.ts:11",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/filters/StaticGainFilterModel.ts|return `Static gain (Gain=${this.spec.gain.toFixed(2)} dB)`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/filters/StaticGainFilterModel.ts:15",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/engine/issueText.ts|const p = relative * 100;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/issueText.ts:12",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/issueText.ts|if (p > 0 && p < 0.1) return `${p.toFixed(1 - Math.floor(Math.log10(p)))}%`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/issueText.ts:14",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/issueText.ts|return `${p.toFixed(1)}%`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/issueText.ts:15",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/issueText.ts|return Math.abs(v) < 0.1 && v !== 0 ? v.toPrecision(2) : String(Math.round(v * 10) / 10);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/issueText.ts:27",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/engine/issueText.ts|case 'Vb': return `${decimal(value * 1000)} L`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/issueText.ts:33",
+  "count": 1
+ },
+ "sig|displacement|packages/design/engine/pr/PrEngine.ts|return prSd_m2 * prXmax_m;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/pr/PrEngine.ts:95",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/pr/PrEngine.ts|return 2 * nDrivers * driverVd_m3;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/pr/PrEngine.ts:100",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/pr/PrEngine.ts|return Math.max(1, Math.ceil(2 * nDrivers * driverVd_m3 / prVd_m3 - 1e-9));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/pr/PrEngine.ts:106",
+  "count": 1
+ },
+ "sig|air-compliance|packages/design/engine/pr/PrEngine.ts|const Cab = p.Vb / (air.rho() * air.c() * air.c());": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/pr/PrEngine.ts:115",
+  "count": 2
+ },
+ "sig|resonance-mass-compliance|packages/design/engine/pr/PrEngine.ts|return 1 / (2 * Math.PI * Math.sqrt(Map / p.prNum * Cpar));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/pr/PrEngine.ts:119",
+  "count": 1
+ },
+ "sig|air-compliance|packages/design/engine/pr/PrEngine.ts|return prCms * prSd * prSd * air.rho() * air.c() * air.c();": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/pr/PrEngine.ts:131",
+  "count": 1
+ },
+ "sig|air-compliance|packages/design/engine/pr/PrEngine.ts|return prVas_m3 / (prSd * prSd * air.rho() * air.c() * air.c());": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/pr/PrEngine.ts:136",
+  "count": 1
+ },
+ "sig|resonance-mass-compliance|packages/design/engine/pr/PrEngine.ts|return m > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(m * prCms)) : 0;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/pr/PrEngine.ts:141",
+  "count": 1
+ },
+ "sig|resonance-mass-compliance|packages/design/engine/pr/PrEngine.ts|return prFsHz > 0 && prCms > 0 ? 1 / ((2 * Math.PI * prFsHz) ** 2 * prCms) : 0;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/pr/PrEngine.ts:145",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/engine/sealed/SealedEngine.ts|let lo = guess / 1000;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/sealed/SealedEngine.ts:101",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/engine/sealed/SealedEngine.ts|let hi = guess * 1000;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/sealed/SealedEngine.ts:102",
+  "count": 1
+ },
+ "sig|sealed-box-ratio|packages/design/engine/sealed/SealedEngine.ts|const ratio = (Qtc / Qts) ** 2 - 1;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/sealed/SealedEngine.ts:119",
+  "count": 1
+ },
+ "sig|q-parallel|packages/design/engine/sealed/SealedEngine.ts|const QesLoaded = p.Qes * (p.Re + WINISD_PICKER_RG_OHM) / p.Re;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/sealed/SealedEngine.ts:135",
+  "count": 1
+ },
+ "sig|q-parallel|packages/design/engine/sealed/SealedEngine.ts|const QtsLoaded = 1 / (1 / QesLoaded + 1 / p.Qms);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/sealed/SealedEngine.ts:136",
+  "count": 1
+ },
+ "sig|q-parallel|packages/design/engine/sealed/SealedEngine.ts|return this.volumeForQtc(1 / (1 / QtsLoaded + 1 / WINISD_PICKER_QA), p.Vas, Qtc);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/sealed/SealedEngine.ts:137",
+  "count": 1
+ },
+ "sig|sealed-box-ratio|packages/design/engine/sealed/SealedEngine.ts|return Qts * Math.sqrt(1 + Vas_m3 / Vb_m3);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/sealed/SealedEngine.ts:142",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/sealedResonance.ts|return vas * nDrivers * (loading === 'isobaric' ? 0.5 : 1);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/sealedResonance.ts:38",
+  "count": 1
+ },
+ "sig|sealed-box-ratio|packages/design/engine/sealedResonance.ts|return Math.sqrt(1 + vas / vb);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/sealedResonance.ts:44",
+  "count": 1
+ },
+ "sig|resonance-mass-compliance|packages/design/engine/sealedResonance.ts|const Mas = 1 / ((2 * Math.PI * p.Fs) ** 2 * Cas);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/sealedResonance.ts:93",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/engine/signal/SignalEngine.ts|return Math.sqrt(pin * (re + (rs > 0 ? rs : 0)));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/signal/SignalEngine.ts:31",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/signal/SignalEngine.ts|return amplifierVoltage(n, wiring, driveVoltage(pin_W / n, re, drive.Rg_ohm));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/signal/SignalEngine.ts:61",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/engine/simulation/SimulationEngine.ts|const tau = -dphi / (2 * Math.PI * deltaF) * 1000;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:134",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/simulation/SimulationEngine.ts|return { ...P, nDrivers: 1, Vb: P.Vb / n, ...(P.Vf !== undefined ? { Vf: P.Vf / n } : {}), ...(P.Sp !== undefined ? { Sp: P.Sp / n } : {}), ...(P.prNum !== undefined ? { prNum: P.prNum / n } : {}),": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:220",
+  "count": 1
+ },
+ "sig|bl-from-qes|packages/design/engine/simulation/SimulationEngine.ts|return Math.sqrt(Re_ohm / (2 * Math.PI * Fs_hz * Qes * Cms_m_per_N));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:267",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/simulation/SimulationEngine.ts|const near = freqs.slice(0, 3).map(f => f >= 100 ? f.toFixed(0) : f.toFixed(1)).join(', ');": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:338",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/engine/simulation/SimulationEngine.ts|const excursion = peakOf(sw.fs, sw.exc, 1 / 1000);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:432",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/simulation/SimulationEngine.ts|const gain = 20 * Math.log10(n);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:480",
+  "count": 2
+ },
+ "sig|decibel|packages/design/engine/simulation/SimulationEngine.ts|fltMag.push(fltAbs === 0 ? SILENCE_DB : 20 * Math.log10(fltAbs));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:542",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/simulation/SimulationEngine.ts|const Sdt = cq.Sd_m2 * (P.nDrivers || 1); // withAddedMass leaves Sd untouched": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:548",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/simulation/SimulationEngine.ts|spl.push(pm === 0 ? SILENCE_DB : 20 * Math.log10(pm / P0));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:555",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/simulation/SimulationEngine.ts|prSpl.push(prPm === 0 ? SILENCE_DB : 20 * Math.log10(prPm / P0));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:563",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/simulation/SimulationEngine.ts|portGainSpl.push(gainPm === 0 ? SILENCE_DB : 20 * Math.log10(gainPm / P0));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:578",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/engine/simulation/SimulationEngine.ts|exc.push(Math.SQRT2 * cAbs(UD) / (w * Sdt) * 1000);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:580",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/simulation/SimulationEngine.ts|rearGainSpl.push(rearPm === 0 ? SILENCE_DB : 20 * Math.log10(rearPm / P0));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:590",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/engine/simulation/SimulationEngine.ts|excPR.push(box === 'box-passive-radiator' ? Math.SQRT2 * cAbs(UP) / (w * P.prSd! * (P.prNum || 1)) * 1000 : 0);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:603",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/simulation/SimulationEngine.ts|const splRefLimit = 20 * Math.log10(hfAsymptotePressure_Pa(cq, P, r) / P0);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:630",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/simulation/SimulationEngine.ts|const a = Math.pow(10, gDb / 20);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:644",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/engine/simulation/SimulationEngine.ts|const xPeak = exc[i] / 1000; // exc is mm; Xmax is metres": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:666",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/simulation/SimulationEngine.ts|splXlimCurve.push(over ? spl[i] + 20 * Math.log10(Xmax / xPeak) : spl[i]);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:669",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/engine/simulation/SimulationEngine.ts|message: `Force-flat needs more than the allowed boost below ${f >= 100 ? f.toFixed(0) : f.toFixed(1)} Hz — `": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:702",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/engine/simulation/SimulationEngine.ts|const swept = this.sweep(drv, Le_H, box, Object.assign({}, P, { eg: 2.83, filters: [] }));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:725",
+  "count": 1
+ },
+ "sig|driver-count-scaling|packages/design/engine/simulation/SimulationEngine.ts|const Pe = (drvPe_W != null && drvPe_W > 0) ? drvPe_W * (P.nDrivers || 1) : null;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:729",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/engine/simulation/SimulationEngine.ts|const excAt283 = base.exc[i] / 1000;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:742",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/engine/simulation/SimulationEngine.ts|const vXmax = (excAt283 > 0 && xmaxUsable) ? 2.83 * (drvXmax_m! / excAt283) : Infinity;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:743",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/engine/simulation/SimulationEngine.ts|const vPe = Pe != null ? Math.sqrt(Pe * Re) : Infinity;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:744",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/simulation/SimulationEngine.ts|maxspl.push(base.spl[i] + 20 * Math.log10(vUse / 2.83));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:746",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/engine/simulation/SimulationEngine.ts|maxspl.push(base.spl[i] + 20 * Math.log10(vUse / 2.83));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/simulation/SimulationEngine.ts:746",
+  "count": 1
+ },
+ "sig|q-parallel|packages/design/engine/solvers/driverQuantities.ts|out.Qts = (Qes * Qms) / (Qes + Qms);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/solvers/driverQuantities.ts:95",
+  "count": 1
+ },
+ "sig|coil-wiring-scaling|packages/design/engine/solvers/driverQuantities.ts|const n = target === 'parallel' ? 1 / numVC : numVC;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/solvers/driverQuantities.ts:151",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/engine/vent/VentEngine.ts|lengthForTuning(Vb: number, fb: number, Sp: number, count: number, air: Air, endCorrection: number = END_CORRECTION): number {": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/vent/VentEngine.ts:64",
+  "count": 1
+ },
+ "sig|air-compliance|packages/design/engine/vent/VentEngine.ts|const Cab = Vb / (air.rho() * air.c() * air.c());": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/vent/VentEngine.ts:65",
+  "count": 2
+ },
+ "sig|circle-area|packages/design/engine/vent/VentEngine.ts|const d = 2 * Math.sqrt(Sp / Math.PI);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/vent/VentEngine.ts:68",
+  "count": 2
+ },
+ "sig|end-correction|packages/design/engine/vent/VentEngine.ts|tuningFromLength(Vb: number, L: number, Sp: number, count: number, air: Air, endCorrection: number = END_CORRECTION): number {": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/vent/VentEngine.ts:72",
+  "count": 1
+ },
+ "sig|resonance-mass-compliance|packages/design/engine/vent/VentEngine.ts|return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/vent/VentEngine.ts:77",
+  "count": 1
+ },
+ "sig|circle-area|packages/design/engine/vent/VentEngine.ts|return length_m + endCorrection * 2 * Math.sqrt(Sp / Math.PI);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/vent/VentEngine.ts:82",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/engine/vent/VentEngine.ts|const endCorrection = params.endCorrection_m.value ?? 0.732;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/engine/vent/VentEngine.ts:95",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/fields/browserStorage.ts|+ `OpenISD warns you when its storage is ${Math.round(STORAGE_FULL_FROM * 100)}% full (usage is in Options, Your data); `": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/browserStorage.ts:51",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/fields/browserStorage.ts|return full < STORAGE_FULL_FROM ? null : Math.min(100, Math.floor(full * 100));": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/browserStorage.ts:74",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/fields/caretSpin.ts|let out = value.toFixed(decimals);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/caretSpin.ts:86",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/fields/desktopHelp.ts|static readonly VENT_END_CORRECTION = 'End Correction';": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/desktopHelp.ts:15",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/fields/desktopHelp.ts|captioned(PhoneHelpRows.VENT_END_CORRECTION, DesktopLabels.VENT_END_CORRECTION),": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/desktopHelp.ts:53",
+  "count": 1
+ },
+ "sig|air-defaults|packages/design/fields/dimensions.ts|{ token: 'atm', label: 'atm', factor: 1 / 101325, offset: 0 },": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/dimensions.ts:67",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/fields/feedback.ts|export const FEEDBACK_DAY_MS = 24 * 60 * 60 * 1000;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/feedback.ts:68",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/fields/field.ts|description: \"Voltage Sensitivity (USPL)\\nSPL at 1 m for a standard 2.83 V RMS input.\",": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/field.ts:964",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/fields/field.ts|description: \"Sealed picker volume: WinISD's sealed alignment picker suggests a box volume for the Qtc (total Q) you pick, but it works that out with a fixed Rg of 0.1 Ω and a fixed Qa of 100 and leaves out your own box leakage losses (Ql), Rg and Qa, which its charts do use. So WinISD is inconsistent with itself: its Box tab then shows a different Qtc from the one you picked (W5-1138SMF, Qts 0.49, Vas 4.85 L, Ql 10: picking 0.800 gives 3.13 L, and the Box tab shows 0.787). OpenISD gives the volume at which the Box tab shows the Qtc you picked (2.96 L, and the Box tab shows 0.800), counting the project's Rg and every box loss. Tick this to get WinISD's volume: Qt = 1/(1/Qts′ + 1/100), with Qts′ using Qes·(Re + 0.1)/Re, and Vb = Vas/((Qtc/Qt)² − 1).\\nQtc: the picked total Q. Qts′: the driver's Qts with Rg in it. Vas: the driver's equivalent air volume.\",": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/field.ts:1580",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/fields/format.ts|return v.toFixed(decimals);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/format.ts:4",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/fields/format.ts|const out = v.toFixed(decimals);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/format.ts:17",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/fields/format.ts|return v != null && isFinite(v) ? v.toFixed(decimals) : '—';": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/format.ts:26",
+  "count": 1
+ },
+ "sig|display-rounding|packages/design/fields/format.ts|return (Math.round(v * scale) / scale).toFixed(places);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/format.ts:137",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/fields/options.ts|export const END_CORRECTION_TWO_FREE_ENDS_M = 0.613;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/options.ts:15",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/fields/options.ts|export const END_CORRECTION_ONE_FLANGED_END_M = 0.732;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/options.ts:17",
+  "count": 1
+ },
+ "sig|air-defaults|packages/design/fields/phoneDialogText.ts|{label: 'Temperature', text: 'the air temperature in kelvin (K). Add 273.15 to the °C value: 20 °C is 293.15 K.'},": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/phoneDialogText.ts:24",
+  "count": 1
+ },
+ "sig|air-defaults|packages/design/fields/phoneDialogText.ts|{label: 'Air pressure', text: 'the air pressure in pascals (Pa). 101325 Pa is sea level; it is lower up a mountain.'},": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/phoneDialogText.ts:26",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/fields/phoneText.ts|const need = `2× rule: radiators need ≥ ${Math.round(required_m3 * 1e6)} cm³`;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/phoneText.ts:96",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/fields/phoneText.ts|static readonly VENT_END_CORRECTION: PhoneHelpRow = {label: 'End Correction', text: 'an allowance for how the vent ends are fitted; it changes the effective length.'};": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/phoneText.ts:139",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/fields/phoneText.ts|PhoneHelpRows.VENT_END_CORRECTION,": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/phoneText.ts:182",
+  "count": 1
+ },
+ "sig|air-defaults|packages/design/fields/phoneText.ts|{label: 'Air pressure', text: 'the weight of the air above you. Sea level is 101325 Pa.'},": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/phoneText.ts:350",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/fields/phoneText.ts|{label: ToggleField.ADV_TLPORTMODEL.label, text: 'treats the port as a pipe with a length, not a lump of air. The charts then show the pipe\\'s own notes.', difference: WinisdDifference.forDeviation(WinisdDeviation.TL_PORT_END_CORRECTION)},": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/phoneText.ts:358",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/fields/phoneText.ts|bugLine(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'with the transmission line model on, WinISD leaves out the port end correction and tunes the box higher (40.3 Hz for Fb 38 Hz). OpenISD tunes where the Box tab says. Tick for WinISD\\'s.', WinisdDeviation.TL_PORT_END_CORRECTION),": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/phoneText.ts:376",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/fields/winisdDeviation.ts|static readonly TL_PORT_END_CORRECTION = new WinisdDeviation({": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/fields/winisdDeviation.ts:142",
+  "count": 1
+ },
+ "sig|unit-factor|packages/design/filter/sizeClass.ts|const Dd_cm = 2 * Math.sqrt(Sd_m2 / Math.PI) * 100;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/filter/sizeClass.ts:57",
+  "count": 1
+ },
+ "sig|end-correction|packages/design/winisd/winisdProject.ts|['endcorrection', '0.732'], ['crosscalc', '1'],": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/winisd/winisdProject.ts:36",
+  "count": 1
+ },
+ "sig|air-defaults|packages/design/winisd/winisdProject.ts|['T', '293.15'], ['p', '101325'], ['phi', '0.3'], ['d', '1'], ['Med', '0'],": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/design/winisd/winisdProject.ts:53",
+  "count": 1
+ },
+ "sig|unit-factor|packages/persistence/src/cloud/drive/driveStore.ts|return Math.round(val * 1000);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/cloud/drive/driveStore.ts:41",
+  "count": 1
+ },
+ "sig|display-rounding|packages/persistence/src/cloud/drive/driveStore.ts|return Math.round(val * 1000);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/persistence/src/cloud/drive/driveStore.ts:41",
+  "count": 1
+ },
+ "sig|end-correction|packages/ui/src/hooks/AdvancedOptions-hooks.ts|return WinisdDeviation.TL_PORT_END_CORRECTION.cueShown(project.value.errorSwitches);": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/hooks/AdvancedOptions-hooks.ts:32",
+  "count": 1
+ },
+ "sig|unit-factor|packages/ui/src/logic/appUpdate.ts|export const HOURLY_MS = 60 * 60 * 1000;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/logic/appUpdate.ts:78",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/ui/src/logic/provenance.ts|{ formulaText: 'USPL = SPL_dB + 10 × log₁₀(2.83² / Re_ohm)', inputs: ['SPL_dB', 'Re_ohm'] }": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/logic/provenance.ts:168",
+  "count": 1
+ },
+ "sig|unit-factor|packages/ui/src/main.ts|const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/main.ts:253",
+  "count": 1
+ },
+ "sig|end-correction|packages/ui/src/ui/components/AdvancedOptions.vue|<input type=\"checkbox\" :checked=\"project.useTransmissionLinePortModel.value\" @change=\"e => project.useTransmissionLinePortModel.set(inputChecked(e))\" :disabled=\"!hasVent\"> <ToggleLabel :field=\"ToggleField.ADV_TLPORTMODEL\"><WinisdDeviationCue v-if=\"tlPortDeviationShown\" :deviation=\"WinisdDeviation.TL_PORT_END_CORRECTION\" /></ToggleLabel>": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/components/AdvancedOptions.vue:30",
+  "count": 1
+ },
+ "sig|air-defaults|packages/ui/src/ui/components/OptionsModal.vue|<button class=\"opt-reset-btn\" data-testid=\"env-reset\" :disabled=\"envIsFactory\" title=\"Back to the built-in environment: 293.15 K, 30 %, 101325 Pa. Only this fieldset is affected.\" @click=\"resetEnv\">Reset to defaults</button>": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/components/OptionsModal.vue:346",
+  "count": 1
+ },
+ "sig|end-correction|packages/ui/src/ui/shells/original/OriginalShell.vue|<label>{{ DesktopLabels.VENT_END_CORRECTION }}</label>": {
+  "reason": "baseline 2026-11-18 (QO946.c256)",
+  "where": "packages/ui/src/ui/shells/original/OriginalShell.vue:574",
+  "count": 1
+ }
+}
