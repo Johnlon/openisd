@@ -14,6 +14,7 @@
  * `../logic/tabId.ts`. This file JIT-composes them here with the shell's own `project` /
  * `selectedBox` / `projectChanged`.
  */
+import { useDismissOnOutside } from './dismissOnOutside.js';
 import {compatSwitchSetter} from './compatSwitch.js';
 import type {ComputedRef, Ref} from 'vue';
 import {reportDisagreementsSeen} from '../logic/telemetry/valuesProblem.js';
@@ -279,6 +280,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function toggleDropdown(id: string) { openDd.value = openDd.value === id ? null : id; }
   function closeDropdown() { openDd.value = null; }
   function onDocClick() { closeDropdown(); }
+  /** The Info and chart menus' own boxes: a press, Escape or focus outside both closes the open menu (John, 18 Nov 2026, QO946.c253). */
+  const infoMenuRoot = ref<HTMLElement | null>(null);
+  const chartMenuRoot = ref<HTMLElement | null>(null);
+  useDismissOnOutside(computed(() => openDd.value !== null), [infoMenuRoot, chartMenuRoot], closeDropdown);
 
   // Fire the fixup fill the FIRST time a project is available — at mount when one is already
   // open, or when one arrives LATER on a project-less boot (an auto-restored save, a File →
@@ -822,7 +827,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     updateOffered, reloadForUpdate, dismissUpdate,
     handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
-    toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
+    toggleDropdown, openDd, infoMenuRoot, chartMenuRoot, openClick, closeDropdown, presentationState, isModified,
     openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
     projectListRef, duplicateProject, exportProject, cycleProjectColor, setProjectColor, copyProjectCharts, saveProjectRow, renameProject,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,

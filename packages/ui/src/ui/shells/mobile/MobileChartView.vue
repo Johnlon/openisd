@@ -11,7 +11,7 @@ import { watch } from 'vue';
 import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
 const emit = defineEmits<{ menu: []; sheetOpen: [open: boolean] }>();
-const { legendItems, sizeVars, helpFor, openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
+const { legendItems, sizeVars, helpFor, openCharts, chartItems, chartLabel, pickerOpen, pickerButton, pickerList, togglePicker, closePicker, showOnly, toggle,
   chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen, autoY, setAutoY, collectChart, exportAllChartData, TUNE, WHAT_IF } = useMobileChartView();
 // The shell holds its banners back while a sheet is open (QO427 B).
 watch(sheetOpen, open => emit('sheetOpen', open), { immediate: true });
@@ -23,7 +23,7 @@ watch(sheetOpen, open => emit('sheetOpen', open), { immediate: true });
       <button type="button" class="mob-chart-menu" title="Menu" aria-label="Menu" @click.stop="emit('menu')">
         <span></span><span></span><span></span>
       </button>
-      <button class="mob-chart-pick" type="button" :aria-expanded="pickerOpen" @click="togglePicker">
+      <button ref="pickerButton" class="mob-chart-pick" type="button" :aria-expanded="pickerOpen" @click="togglePicker">
         <span class="mob-chart-pick-label">{{ chartLabel }}</span>
         <span class="mob-chart-pick-caret">{{ pickerOpen ? '▴' : '▾' }}</span>
       </button>
@@ -41,7 +41,7 @@ watch(sheetOpen, open => emit('sheetOpen', open), { immediate: true });
       </span>
     </div>
     <div v-if="pickerOpen" class="mob-chart-backdrop" @click="closePicker"></div>
-    <ul v-if="pickerOpen" class="mob-chart-list">
+    <ul v-if="pickerOpen" ref="pickerList" class="mob-chart-list">
       <li v-for="item in chartItems" :key="item.tab" class="mob-chart-row" :class="{ sep: item.sep }">
         <input type="checkbox" :checked="item.open" :aria-label="'Stack ' + item.label" @change="toggle(item.tab)">
         <button class="mob-chart-name" type="button" @click="showOnly(item.tab)">{{ item.label }}</button>

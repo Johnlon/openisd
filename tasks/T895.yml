@@ -1,0 +1,23 @@
+id: T895
+release_note: The chart drop-down menus now close when you click or tap elsewhere, press Escape or move focus away.
+repo: openisd
+owner: agent
+status: done
+label: fixes
+goal: The chart's drop-down menus close when the user presses outside them, presses Escape or moves focus out, and the header click still toggles them
+why: 'John, 18 Nov 2026 (QO946.c253): "the drop down menu on the chart needs to dismiss if it llose focus"; and "at present have to click the header again". On the phone the Graph tab chart picker stayed open when any other header control was pressed (the header sits above the tap-away backdrop) and ignored Escape and Tab; the desktop chart and Info menus ignored Escape and Tab.'
+done_test: npx vitest run packages/ui/test/hooks/dismissOnOutside.test.ts
+files:
+  - tasks/T895.yml
+  - packages/ui/src/hooks/dismissOnOutside.ts
+  - packages/ui/src/hooks/focusLeft.ts
+  - packages/ui/src/ui/components/focusLeft.ts
+  - packages/ui/src/ui/components/ExportMenu.vue
+  - packages/ui/test/ui/focusLeft.test.ts
+  - packages/ui/src/hooks/MobileChartView-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/ui/components/GraphPanel.vue
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/chart-menu-dismiss.browser.spec.ts
+  - packages/ui/test/hooks/dismissOnOutside.test.ts

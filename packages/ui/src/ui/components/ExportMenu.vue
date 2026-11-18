@@ -8,7 +8,7 @@
  * without bespoke styling.
  */
 import {onMounted, onUnmounted, ref, watch} from 'vue';
-import {focusLeft} from './focusLeft.js';
+import {focusLeft} from '../../hooks/focusLeft.js';
 import {useApp} from '../../logic/app.js';
 
 const props = defineProps<{ disabled?: boolean }>();

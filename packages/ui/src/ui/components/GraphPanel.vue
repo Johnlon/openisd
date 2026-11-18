@@ -259,6 +259,10 @@ function jumpAction(f: number) {
   closeMenu();
 }
 
+function onDocKey(e: KeyboardEvent) {
+  if (e.key === 'Escape' && ctxMenu.value.visible) closeMenu();
+}
+
 function onDocClick() {
   if (ctxMenu.value.visible) closeMenu();
 }
@@ -270,6 +274,7 @@ onMounted(() => {
   ro = new ResizeObserver(() => requestAnimationFrame(redraw));
   ro.observe(canvasEl.value!);
   document.addEventListener('click', onDocClick);
+  document.addEventListener('keydown', onDocKey);
   // Canvas text is rasterized at draw time — a draw made before its font is in used a fallback
   // font. Redraw whenever a font finishes loading: a draw itself can start a font's download.
   document.fonts.addEventListener('loadingdone', redraw);
@@ -278,6 +283,7 @@ onUnmounted(() => {
   ro?.disconnect();
   document.fonts.removeEventListener('loadingdone', redraw);
   document.removeEventListener('click', onDocClick);
+  document.removeEventListener('keydown', onDocKey);
 });
 
 const canvasStyles = computed(() => {

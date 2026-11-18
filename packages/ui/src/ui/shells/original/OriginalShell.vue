@@ -51,7 +51,7 @@ const {
   updateOffered, reloadForUpdate, dismissUpdate,
   handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
   handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
-  toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
+  toggleDropdown, openDd, infoMenuRoot, chartMenuRoot, openClick, closeDropdown, presentationState, isModified,
   projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
   projectListRef, duplicateProject, exportProject, cycleProjectColor, setProjectColor, copyProjectCharts, saveProjectRow, renameProject,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
@@ -138,7 +138,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         >
           <CloudSyncBadge :display="cloudDisplay" @tap="openCloudDialog" />
         </div>
-        <div class="tb-menu">
+        <div ref="infoMenuRoot" class="tb-menu">
           <button type="button" class="tb-btn has-menu" aria-label="Info" aria-haspopup="menu" :aria-expanded="openDd === 'info-dropdown'" title="Info" @click.stop="toggleDropdown('info-dropdown')">
             <ToolbarIcon name="info" />
             <span class="caret">&#9662;</span>
@@ -161,7 +161,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           </div>
         </div>
         <div class="tb-sep"></div>
-        <div class="chart-select" @click.stop="toggleDropdown('chart-dropdown')" title="Choose which charts the graph shows — click a name to show it alone, tick boxes to stack several">
+        <div ref="chartMenuRoot" class="chart-select" @click.stop="toggleDropdown('chart-dropdown')" title="Choose which charts the graph shows — click a name to show it alone, tick boxes to stack several">
           <ToolbarIcon name="chart" />
           <span class="chart-name" :title="chartLabel">{{ chartLabel }}</span>
           <span class="caret">&#9662;</span>

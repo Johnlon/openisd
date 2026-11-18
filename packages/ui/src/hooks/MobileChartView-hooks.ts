@@ -3,6 +3,7 @@
  * desktop skin), stacked one column wide with the chosen number to the screen, and the picker
  * that opens and closes them. Mobile only renders this destination once a project is open.
  */
+import { useDismissOnOutside } from './dismissOnOutside.js';
 import {computed, ref, watch} from 'vue';
 import type {ComponentPublicInstance} from 'vue';
 import {useFeatureUse} from './telemetryContext.js';
@@ -45,6 +46,10 @@ export function useMobileChartView() {
   function togglePicker(): void { pickerOpen.value = !pickerOpen.value; }
   /** Tapping anywhere outside the list closes it (John, 13 Oct 2026). */
   function closePicker(): void { pickerOpen.value = false; }
+  /** The picker button and its list; a press, Escape or focus outside both closes the list, the button still toggles it. */
+  const pickerButton = ref<HTMLElement | null>(null);
+  const pickerList = ref<HTMLElement | null>(null);
+  useDismissOnOutside(pickerOpen, [pickerButton, pickerList], closePicker);
   /** Tapping a chart's name shows it alone and closes the list. */
   function showOnly(id: ChartId): void { selection.showOnly(id); pickerOpen.value = false; }
   /** Ticking a chart's box opens or closes it and leaves the list open. */
@@ -86,7 +91,7 @@ export function useMobileChartView() {
     return items.length > 1 ? items.map(({name, color}) => ({name, color})) : [];
   });
 
-  return { openCharts, legendItems, sizeVars: Object.fromEntries(ChartPageSizes.CLASSIC.cssVars()), helpFor: ChartPageHelp.forChart, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
+  return { openCharts, legendItems, sizeVars: Object.fromEntries(ChartPageSizes.CLASSIC.cssVars()), helpFor: ChartPageHelp.forChart, chartItems, chartLabel, pickerOpen, pickerButton, pickerList, togglePicker, closePicker, showOnly, toggle,
     chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen, autoY, setAutoY, collectChart,
     exportAllChartData: () => designIO.downloadAllChartData(),
     TUNE: SheetMode.TUNE, WHAT_IF: SheetMode.WHAT_IF };
