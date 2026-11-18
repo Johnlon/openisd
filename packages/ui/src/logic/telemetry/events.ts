@@ -97,6 +97,21 @@ export interface AnnouncementEvent {
 export type FeedbackPromptOutcome = 'shown' | 'not_now' | 'closed';
 export interface FeedbackPromptEvent { readonly kind: 'feedback_prompt'; readonly outcome: FeedbackPromptOutcome }
 export interface ChartViewEvent { readonly kind: 'chart_view'; readonly chart: ChartId }
+/** The steps whose duration is reported: see `PerfEvent`. */
+export const PERF_STEPS = ['boot_download', 'boot_catalogue', 'boot_restore', 'boot_ready', 'first_chart', 'project_open', 'driver_list_open', 'recalc'] as const;
+export type PerfStep = typeof PERF_STEPS[number];
+/** How long a key step took, so slow devices show up. `ms` is whole milliseconds (for `recalc` the session's median); `maxMs` and `count`
+ *  are the session's slowest and number of recalculations, and null for every other step; `cores` and `memoryGb` are null where the browser does not say. */
+export interface PerfEvent {
+  readonly kind: 'perf';
+  readonly step: PerfStep;
+  readonly ms: number;
+  readonly maxMs: number | null;
+  readonly count: number | null;
+  readonly skin: Skin;
+  readonly cores: number | null;
+  readonly memoryGb: number | null;
+}
 export interface FeatureEvent { readonly kind: 'feature'; readonly name: FeatureName }
 export interface AnonymousErrorContext {
   readonly screen: string;
@@ -144,9 +159,9 @@ export interface FeedbackEvent {
 }
 
 export type TelemetryEvent =
-  | LaunchEvent | InstallEvent | SwBlockedEvent | SessionEndEvent | ProjectOpenEvent | ProjectsRestoredEvent | DriverSearchEmptyEvent | ValuesProblemSeenEvent | AnnouncementEvent | ProjectSaveEvent | DriverPickEvent | RadiatorPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent | FeedbackEvent | FeedbackPromptEvent;
+  | LaunchEvent | InstallEvent | SwBlockedEvent | SessionEndEvent | ProjectOpenEvent | ProjectsRestoredEvent | DriverSearchEmptyEvent | ValuesProblemSeenEvent | AnnouncementEvent | ProjectSaveEvent | DriverPickEvent | RadiatorPickEvent | ChartViewEvent | PerfEvent | FeatureEvent | ErrorEvent | ReportEvent | FeedbackEvent | FeedbackPromptEvent;
 
-export type FieldValue = string | number | boolean;
+export type FieldValue = string | number | boolean | null;
 export type Fields = Record<string, FieldValue>;
 
 /** Where an event comes from: the live site or the test site. */
@@ -193,6 +208,7 @@ export function fieldsOf(e: TelemetryEvent): Fields {
     case 'radiator_pick': return {source: e.source, id: e.id, ...(e.name === '' ? {} : {name: e.name})};
     case 'chart_view': return {chart: e.chart};
     case 'feature': return {name: e.name};
+    case 'perf': return {step: e.step, ms: e.ms, max_ms: e.maxMs, count: e.count, skin: e.skin, cores: e.cores, memory_gb: e.memoryGb};
     case 'error': return {
       message: e.message,
       frames: e.frames,

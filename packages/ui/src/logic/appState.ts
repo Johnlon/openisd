@@ -15,6 +15,7 @@
 
 import {NoTelemetry, type Telemetry} from './telemetry/telemetry.js';
 import type {ProjectSource} from './telemetry/events.js';
+import type {Perf} from './telemetry/perf.js';
 import {computed, reactive, ref, type ComputedRef, type Ref, shallowRef, type ShallowRef, triggerRef, watch, type WritableComputedRef} from 'vue';
 import type {
     BoxType, ChartId, DriverError, DriverPrerequisite, MaxCurvesResult, MaxCurvesSolveResult, SweepIssue, SweepResult,
@@ -141,6 +142,8 @@ export interface AppStateDeps {
   presentation: PresentationState;
   /** Where usage events go; omitted means none are recorded. */
   telemetry?: Telemetry;
+  /** Times the first project open and every edit's redraw; changes nothing the app does. */
+  perf: Perf;
   /** Told of a fault the app survives (the sweep worker failing); omitted means it is dropped. */
   reportFault?: (fault: Error) => void;
 }
@@ -223,6 +226,7 @@ export interface AppState {
 export function createAppState(deps: AppStateDeps): AppState {
   const telemetry: Telemetry = deps.telemetry ?? new NoTelemetry();
   const recordOpen = (source: ProjectSource, p: OpenISDProject): void => {
+    deps.perf.projectOpened();
     telemetry.record({
       kind: 'project_open', source, box: p.box.boxType.value,
       ...projectDriverTelemetry(p.driver),
@@ -491,7 +495,7 @@ export function createAppState(deps: AppStateDeps): AppState {
       disposeProjects = projects.value.map(project => project.subscribe(() => {
         // Editing another row's colour/charts must repaint and persist the session,
         // while only the focused design needs its calculation-facing live ref fired.
-        if (project === focused) triggerRef(liveRef);
+        if (project === focused) { deps.perf.edited(); triggerRef(liveRef); }
         changeTicks.value++;
       }));
     }

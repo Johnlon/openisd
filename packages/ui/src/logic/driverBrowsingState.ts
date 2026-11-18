@@ -1,3 +1,4 @@
+import type {Perf} from './telemetry/perf.js';
 import type {FeatureUse} from './telemetry/featureUse.js';
 import type {DriverSearchEmptyEvent} from './telemetry/events.js';
 import {computed, type ComputedRef, type Ref, ref, shallowRef, watch} from 'vue';
@@ -199,6 +200,8 @@ export interface DriverBrowsingState {
 }
 
 export interface DriverBrowsingStateDeps {
+  /** Times how long the driver list takes to show rows the first time. */
+  perf: Perf;
   driverRepo: BundledDriverRepo;
   myDriverRepo: MyDriverRepo;
   prefs: PrefsRepo;
@@ -499,8 +502,9 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
 
   // ---- sources ---------------------------------------------------------------------------
 
-  async function init(): Promise<void> {
-    if (initialized.value) return;
+  /** Whether the pool has its rows when it settles. */
+  async function init(): Promise<boolean> {
+    if (initialized.value) return catalogueLoaded.value;
     initialized.value = true;
     statusErr.value = false;
 
@@ -515,6 +519,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       statusErr.value = true;
       statusMsg.value = err instanceof Error ? err.message : String(err);
     }
+    return catalogueLoaded.value;
   }
 
   // ---- preview ---------------------------------------------------------------------------
@@ -660,7 +665,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   /** Opening the picker: build the pool once, and refresh the user's saved drivers. */
   function openedLibrary(): void {
     if (projectInfoOpen.value) return;
-    void init();
+    deps.perf.driverListOpened(init());
     reloadMyDrivers();
   }
 

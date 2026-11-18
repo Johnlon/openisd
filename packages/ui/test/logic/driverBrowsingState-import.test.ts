@@ -1,3 +1,4 @@
+import {silentPerf} from '../fixtures/silentPerf.js';
 import {NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
 import {FeatureUse} from '../../src/logic/telemetry/featureUse.js';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -38,7 +39,7 @@ describe('My Drivers Load File flashes what it did', () => {
     const storage = createMemoryStorage();
     const files = new DesignFiles(engine, projectRepoOn(engine, createFileStorage(), storage, 'http://localhost'), exportedFilesOn());
     const logging: Logging = { message: ref(''), flash: vi.fn() };
-    const browsing = createDriverBrowsingState({
+    const browsing = createDriverBrowsingState({perf: silentPerf(), 
       driverRepo: createBundledDriverRepo({
         bundle: () => Promise.reject(new Error('catalogue not used')), engine, maxAge_ms: 1, now: Date.now,
       }),

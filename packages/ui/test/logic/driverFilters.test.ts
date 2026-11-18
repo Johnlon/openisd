@@ -1,3 +1,4 @@
+import {silentPerf} from '../fixtures/silentPerf.js';
 /**
  * The driver list's filters (John, 17 Oct 2026: "empty wizard driver list with no hint"; "the list is empty
  * but the favourite button is selected visible"). Filters are kept between openings, but the list says which
@@ -69,7 +70,7 @@ describe('the driver list filters', () => {
     const mine = project.driver.detach();
     const saved = myDriverRepo.upsert(mine);
     if (!saved) throw new Error('the driver must save');
-    const browsing = createDriverBrowsingState({
+    const browsing = createDriverBrowsingState({perf: silentPerf(), 
       driverRepo: createBundledDriverRepo({
         bundle: () => Promise.reject(new Error('catalogue not used')), engine, maxAge_ms: 1, now: Date.now,
       }),

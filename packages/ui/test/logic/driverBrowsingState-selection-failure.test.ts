@@ -1,3 +1,4 @@
+import {silentPerf} from '../fixtures/silentPerf.js';
 import {FeatureUse} from '../../src/logic/telemetry/featureUse.js';
 import {NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
 import {describe,it,expect} from 'vitest';
@@ -11,7 +12,7 @@ describe('a failed driver selection',()=>{
     const app=testAppLogic();
     app.appState.openProjectFromDriver(OpenISDDriver.empty(app.engine),'Selection failure');
     const failing: DriverSelection={...app.selection,selectDriver:()=>Promise.resolve({ok:false,error:'Embedding failed'})};
-    const browsing=createDriverBrowsingState({
+    const browsing=createDriverBrowsingState({perf: silentPerf(), 
       driverRepo:app.bundledDrivers,myDriverRepo:app.myDrivers,prefs:app.prefs,logging:app.logging,
       selection:failing,files:app.designFiles,confirmReset:app.confirmPort.port,exportNotice:{exported:()=>undefined},
       appState:app.appState,presentation:app.presentation,driverPicked:()=>undefined,featureUse:new FeatureUse(new NoTelemetry()),

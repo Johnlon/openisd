@@ -1,6 +1,7 @@
 import type {InjectionKey, Ref} from 'vue';
 import {useApp} from '../logic/app.js';
 import {computed, ref, watch} from 'vue';
+import {usePerf} from './telemetryContext.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {
   buildPlotData, ChartData, type ChartEngineAreas, referenceLineColors, selectedRangeCss, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats, type Rolloff,
@@ -64,6 +65,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
   const {appState, presentation: presentationState, designIO} = useApp();
   const {allIssues, curvesData, driverName, maxData, openProjects, syncedP} = appState;
   const project = useFocusedProject();
+  const perf = usePerf();
   const overlayDesigns = computed(() => props.overlays ?? []);
 
   const meta = computed(() => TAB_META[props.chartId]);
@@ -117,6 +119,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     const axis = p && ov ? p.levelAxis.overridden(ov.min, ov.max) : null;
     return p && axis ? {...p, ymin: axis.min, ymax: axis.max, levelAxis: axis} : p;
   });
+  watch(viewPlot, plot => { if (plot !== null) perf.chartDrawn(); }, {immediate: true, flush: 'post'});
   const autoY = computed(() => yOverride.value === null);
   const yRangeLabel = computed(() => {
     const axis = viewPlot.value?.levelAxis;

@@ -84,6 +84,7 @@ import {crashHash} from './logic/telemetry/crashHash.js';
 import {LaunchReporter, platformHintOf, platformOf, type LaunchEnvironment} from './logic/telemetry/launch.js';
 import {InstallMarker} from './logic/telemetry/install.js';
 import {browserIdOf} from './logic/telemetry/browserId.js';
+import {PerfReporter, deviceFactsOf, afterPaintOf} from './logic/telemetry/perf.js';
 import {SessionEnd} from './logic/telemetry/sessionEnd.js';
 import {registerServiceWorker} from './logic/telemetry/serviceWorker.js';
 import {installBrowserListeners} from './logic/telemetry/browserListeners.js';
@@ -105,6 +106,9 @@ import '@fontsource/roboto/latin-400.css';
 import './fonts.css';
 import '@fontsource/jetbrains-mono/latin-400.css';
 import './style.css';
+
+/** Milliseconds from navigation start to this script running: every import has been fetched and evaluated by now. */
+const scriptStartMs = performance.now();
 
 /** The browser's storage under this deployment's prefix: the /test/ build keeps a store of its own. */
 const storagePrefix = createStoragePrefix(location.pathname);
@@ -230,18 +234,24 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   });
   // The two live state objects, built once here and handed to everything that needs them.
   const presentation = createPresentationState();
+  // PERF: how long the key steps take, sent as `perf` events (durations and device facts only).
+  const perf = new PerfReporter({
+    telemetry, now: () => performance.now(), skin: () => presentation.shownSkin(), device: deviceFactsOf(navigator),
+    afterPaint: afterPaintOf(callback => requestAnimationFrame(callback), callback => setTimeout(callback, 0)),
+  });
+  perf.bootDownload(scriptStartMs);
   // The crash reporter needs the app state (open projects, box) for its context, so it is built after it;
   // a fault raised before then is kept and sent once it exists.
   let reportFault: (fault: Error) => void = fault => { earlyFaults.push(fault); };
   const earlyFaults: Error[] = [];
-  const appState = createAppState({ engine, appSettings: appSettingsRepo, presentation, telemetry, reportFault: fault => reportFault(fault) });
+  const appState = createAppState({ engine, appSettings: appSettingsRepo, presentation, telemetry, perf, reportFault: fault => reportFault(fault) });
   const logging = createLogging();
   // The bundled catalogue. Two repos over the same
   // mechanism: an index fetched when a picker opens, one record fetched when a device is picked,
   // both held for CATALOGUE_MAX_AGE_MS and then fetched again, so a long-lived tab picks up a
   // republished catalogue without a reload. Nothing is awaited here — the app mounts first.
   const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
-  const catalogue = createCatalogueSource({ fetch, url: `${import.meta.env.BASE_URL}catalogue.json`, build: import.meta.env.VITE_CATALOGUE_BUILD, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
+  const catalogue = perf.timedCatalogue(createCatalogueSource({ fetch, url: `${import.meta.env.BASE_URL}catalogue.json`, build: import.meta.env.VITE_CATALOGUE_BUILD, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now }));
   const driverRepo = createBundledDriverRepo({ bundle: catalogue, engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
   const myDriverRepo = createMyDriverRepo(storage, engine, storageBackup, saves.notify);
   const prefs = createPrefsRepo(storage, saves.notify);
@@ -274,7 +284,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const driverDrafts = new DriverDrafts(engine, appState.appContext);
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
-    driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
+    perf, driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
     confirmReset: confirmPort.port, exportNotice: createExportNotice(confirmPort.port), appState, presentation, driverPicked, featureUse,
   });
   const viewStateRepo = createViewStateRepo(storage, storageBackup, forgetCloudSyncRecord);
@@ -379,7 +389,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     telemetry,
     onUncaught: thrown => crashReports.capture(thrown),
     install: installMarker,
-    session: new SessionEnd(telemetry, featureUse, () => Date.now(), Date.now()),
+    session: new SessionEnd(telemetry, featureUse, () => Date.now(), Date.now(), perf),
   });
 
   const cloudUi = createCloudUiStore(localStore);
@@ -497,7 +507,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     onlineAgain: {listen: listener => { onlineListeners.add(listener); return () => { onlineListeners.delete(listener); }; }},
     screen: () => errorContext.snapshot().screen,
   });
-  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions, radiatorPicks: radiatorPickRecorder(telemetry, bundledPRs)});
+  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions, radiatorPicks: radiatorPickRecorder(telemetry, bundledPRs), perf});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,

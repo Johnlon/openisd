@@ -1,3 +1,4 @@
+import {silentPerf} from '../fixtures/silentPerf.js';
 import {describe, it, expect, vi} from 'vitest';
 import {OpenISDDriverStandalone} from '@openisd/design';
 import {testAppLogic} from '../hooks/testAppLogic.js';
@@ -9,7 +10,7 @@ describe('a driver chosen in the library for a new project is counted as a pick'
   function browsingWith(driverPicked: (d: OpenISDDriverStandalone) => void) {
     const app = testAppLogic();
     const {telemetryUi, events} = recordingTelemetryUi();
-    const browsing = createDriverBrowsingState({
+    const browsing = createDriverBrowsingState({perf: silentPerf(), 
       driverRepo: app.bundledDrivers, myDriverRepo: app.myDrivers, prefs: app.prefs, logging: app.logging,
       selection: app.selection, files: app.designFiles, confirmReset: app.confirmPort.port, exportNotice: {exported: () => undefined},
       appState: app.appState, presentation: app.presentation, driverPicked, featureUse: telemetryUi.featureUse,
@@ -41,7 +42,7 @@ describe('a driver cloned to My Drivers is counted', () => {
   it('counts a clone that was saved', () => {
     const app = testAppLogic();
     const {telemetryUi, events} = recordingTelemetryUi();
-    const browsing = createDriverBrowsingState({
+    const browsing = createDriverBrowsingState({perf: silentPerf(), 
       driverRepo: app.bundledDrivers, myDriverRepo: app.myDrivers, prefs: app.prefs, logging: app.logging,
       selection: app.selection, files: app.designFiles, confirmReset: app.confirmPort.port, exportNotice: {exported: () => undefined},
       appState: app.appState, presentation: app.presentation, driverPicked: () => undefined, featureUse: telemetryUi.featureUse,

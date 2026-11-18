@@ -1,3 +1,4 @@
+import {silentPerf} from '../fixtures/silentPerf.js';
 import {describe, expect, it, vi} from 'vitest';
 import {BeaconTelemetry, NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
 import {errorEventOf, fieldsOf, type AnonymousErrorContext, type TelemetryEvent} from '../../src/logic/telemetry/events.js';
@@ -343,7 +344,7 @@ describe('session end', () => {
     features.chart('SPL');
     features.chart('Zmag');
     record.mockClear();
-    const end = new SessionEnd(telemetry, features, () => 12_600, 1000);
+    const end = new SessionEnd(telemetry, features, () => 12_600, 1000, silentPerf());
     end.end();
     end.end();
     expect(record.mock.calls).toEqual([[{kind: 'session_end', seconds: 12, charts: 2}]]);

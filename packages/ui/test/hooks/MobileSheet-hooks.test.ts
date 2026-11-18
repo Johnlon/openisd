@@ -1,3 +1,4 @@
+import {silentPerf} from '../fixtures/silentPerf.js';
 /**
  * `useMobileSheet` — opening begins the What-if in What-if mode; every way out (Close, and dragging the
  * sheet down, which the browser spec covers) ends it, so the project is as it was and not modified. Reset puts the project's values
@@ -109,6 +110,7 @@ describe('useMobileSheet', () => {
     });
     const telemetryUi: TelemetryUi = {
       featureUse,
+      perf: silentPerf(),
       crashReports: new CrashReports(fakeTelemetry, errorContext, async () => ''),
       launch: new LaunchReporter(fakeTelemetry, () => LAUNCH_ENV, work => work(), new InstallMarker(new NoTelemetry(), createMemoryStorage())),
       actions,

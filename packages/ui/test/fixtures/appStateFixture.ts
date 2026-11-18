@@ -7,6 +7,7 @@ import {createEngine} from '@openisd/design/engine';
 import {type AppSettingsRepo, createMemoryStorage, type ListableStorage} from '@openisd/persistence';
 import {type AppState, createAppState} from '../../src/logic/appState.js';
 import {createPresentationState, type PresentationState} from '../../src/logic/presentationState.js';
+import {silentPerf} from './silentPerf.js';
 import {appSettingsRepoOn} from './repoOn.js';
 import type {Telemetry} from '../../src/logic/telemetry/telemetry.js';
 
@@ -24,6 +25,6 @@ export function createAppStateFixture(storage: ListableStorage = createMemorySto
     envDefaults: () => appSettings.envDefaults(),
   });
   const presentation = createPresentationState();
-  const appState = createAppState({engine, appSettings, presentation, telemetry, reportFault});
+  const appState = createAppState({engine, appSettings, presentation, telemetry, perf: silentPerf(), reportFault});
   return {appState, presentation, appSettings};
 }

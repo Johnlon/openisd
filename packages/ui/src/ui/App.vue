@@ -30,7 +30,7 @@ import {createAppUpdateUi, provideAppUpdateUi} from '../hooks/appUpdateUi.js';
 import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hooks.js';
 import {provideDiagnosticsModal} from '../hooks/DiagnosticsModal-hooks.js';
 import {createViewportWatch} from '../logic/viewport.js';
-import {useTelemetryUi} from '../hooks/telemetryContext.js';
+import {useTelemetryUi, usePerf} from '../hooks/telemetryContext.js';
 import {useAnnouncementCenter} from '../hooks/Announcements-hooks.js';
 import {createFeedbackDialog, injectFeedbackServices, provideFeedbackDialog} from '../hooks/FeedbackDialog-hooks.js';
 import CrashScreen from './components/CrashScreen.vue';
@@ -39,6 +39,7 @@ import {createLabelColumns, type LabelColumns} from '../hooks/labelColumns.js';
 const { designIO, projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId, persistence, browserStorage, storageUsage, saves } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
+const perf = usePerf();
 const { launch, actions: recentActions, crashReports, featureUse } = useTelemetryUi();
 const announcements = useAnnouncementCenter();
 
@@ -135,14 +136,14 @@ let stopStoringNewProjects: () => void = () => {};
 onMounted(async () => {
   // ONE ordered restore (`logic/boot.ts`), then persistence. Nothing writes storage while the
   // boot is still reading it, and no phase runs before the one it depends on has returned.
-  await bootApplication({
+  await perf.restoring(() => bootApplication({
     projectRepo,
     viewStateRepo,
     logging,
     appState,
     presentation: presentationState,
     recordedProjectId,
-  });
+  }));
   void announcements.load();
   viewStateRepo.save(currentViewSnapshot());
   projectRepo.saveOpenProjects(openProjects(), focusedProject(), hiddenTraces(openProjects()));
@@ -150,6 +151,7 @@ onMounted(async () => {
   stopStoringNewProjects = startStoringNewProjects({ projectRepo, appState, onFailed: () => void designIO.reportStorageFull() });
   window.addEventListener('hashchange', handleHashChange);
   launch.report(activeSkin.value);
+  perf.bootReady();
   void showStoragePopup({
     persistence,
     browserStorage,
