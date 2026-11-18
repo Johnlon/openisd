@@ -97,8 +97,11 @@ function filtersSurface(type: FilterType): Surface {
       await openScreen(page, viewport, FILTERS_SCREEN);
       const added = viewport === 'phone' ? page.locator('.mob-fcard') : page.locator('.filter-row-inline');
       if (await added.count() === 0) {
-        if (viewport === 'phone') await page.locator('.mob-fstrip .mob-btn', {hasText: new RegExp(`^\\+ ${chip.short}$`)}).click();
-        else await page.locator('.filters-quickadd .action-btn', {hasText: new RegExp(`^\\+ ${chip.short}$`)}).click();
+        if (viewport === 'phone') {
+          await page.locator('.mob-fstrip .mob-btn', {hasText: new RegExp(`^\\+ ${chip.short}$`)}).click();
+          // A person sees which card appeared: a tap that landed on a neighbouring chip is named here, not as a missing box 20 s later.
+          await expect(page.locator('.mob-fcard-name'), `the + ${chip.short} chip added a ${chip.short} card`).toHaveText(chip.short);
+        } else await page.locator('.filters-quickadd .action-btn', {hasText: new RegExp(`^\\+ ${chip.short}$`)}).click();
       }
       // The desktop row is open for editing after it is added; a row that was folded (the user left the tab) is opened by a click on its summary.
       if (viewport === 'desktop' && await page.locator('.filter-edit-body').count() === 0) await page.locator('.filter-summary').first().click();

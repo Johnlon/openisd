@@ -1,0 +1,20 @@
+id: T897
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+label: fixes
+goal: The phone Filters chip strip no longer jumps sideways by one arrow's width when it is scrolled, so a tap on a far chip (DLP, Gain) lands on the chip the person aimed at
+why: 'Lead brief, 18 Nov 2026: main''s suite failed intermittently on the phone Filters sweep (runs 44285719892 and 44283779423, a different case each time: the number box of the added filter was never found). The strip''s arrow was removed from the layout (display: none) at the start and end, so the strip changed width by 48 px as soon as it scrolled. Bug: BUG_20261118_phone-chip-strip-shifts-when-scrolled.'
+done_test: npx vitest run packages/ui/test/ui/MobileFiltersTab-carousel.test.ts
+visual:
+  - mobile-tab-filters
+  - mobile-dialog-phone-filter-card-body
+files:
+  - tasks/T897.yml
+  - bugs/BUG_20261118_phone-chip-strip-shifts-when-scrolled.md
+  - packages/ui/src/ui/shells/mobile/MobileFiltersTab.vue
+  - packages/ui/test/ui/mobile-filters-tab.browser.spec.ts
+  - packages/ui/test/ui/filters-dependent-values.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-filter-card-body.png
