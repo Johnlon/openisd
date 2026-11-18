@@ -101,18 +101,21 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-587ab05924db500c':{kind:'partOf',view:'tab-driver'}, // components/DriverWiring.vue:15 (the phone row)
   'conditional-branch-eb847ee4b5bc2de2':{kind:'partOf',view:'tab-driver'}, // components/DriverWiring.vue:23 (the desktop row)
   'conditional-branch-b989dd12d68f1ae3':{kind:'notAView',reason:'summary button that opens the driver disagreements list'}, // components/DriverConsistencyList.vue:12
+  'conditional-branch-1b1597ea6d643d49':{kind:'view',view:'editor-general'}, // components/DriverEditorModal.vue:747
+  'conditional-branch-8f4547819e788ef8':{kind:'view',view:'editor-parameters'}, // components/DriverEditorModal.vue:769
+  'conditional-branch-9eadd3d4c6c45bc6':{kind:'view',view:'editor-advanced'}, // components/DriverEditorModal.vue:835
+  'conditional-branch-2c60497fd0fa53a0':{kind:'view',view:'editor-dimensions'}, // components/DriverEditorModal.vue:874
   'surface-root-45df5e0dad260e9f':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:703
   'surface-root-f94135dc62e865bf':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:704
   'native-ui-2bba9f9bd34d1c4b':{kind:'notAView',reason:'help or close button of the driver editor'}, // components/DriverEditorModal.vue:705
   'native-ui-bcf0cdec26b357a9':{kind:'notAView',reason:'help or close button of the driver editor'}, // components/DriverEditorModal.vue:705
   'surface-root-ad2db4b2ed16ed50':{kind:'partOf',view:'section-help'}, // components/DriverEditorModal.vue:707
   'conditional-branch-b6327ad21082a5d6':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:713
-  'conditional-branch-a9cdd6b114605fb9':{kind:'view',view:'editor-general'}, // components/DriverEditorModal.vue:720
   'conditional-branch-64da68131a3d95fc':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:723
   'conditional-branch-ab106a8dc4990e67':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:726
   'conditional-branch-ff14eac5c4729225':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:732
   'conditional-branch-38a18ddd3fdbd7ea':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:735
-  'conditional-branch-6503627ecc201f62':{kind:'view',view:'editor-parameters'}, // components/DriverEditorModal.vue:742
+  'conditional-branch-7f2d63a62de41f1f':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:738 (the warning sign on a tab that holds a refused entry; the tab bar is part of the editor frame)
   'conditional-branch-c390ed4038fc77d6':{kind:'partOf',view:'editor-parameters'}, // components/DriverEditorModal.vue:744
   'conditional-branch-8b38f9a3d547aa83':{kind:'partOf',view:'editor-parameters'}, // components/DriverEditorModal.vue:745
   'conditional-branch-c390ed4038fc77d6-2':{kind:'partOf',view:'editor-parameters'}, // components/DriverEditorModal.vue:756
@@ -121,7 +124,6 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-8b38f9a3d547aa83-3':{kind:'partOf',view:'editor-parameters'}, // components/DriverEditorModal.vue:777
   'conditional-branch-c390ed4038fc77d6-4':{kind:'partOf',view:'editor-parameters'}, // components/DriverEditorModal.vue:790
   'conditional-branch-8b38f9a3d547aa83-4':{kind:'partOf',view:'editor-parameters'}, // components/DriverEditorModal.vue:791
-  'conditional-branch-c85a259ff4d30814':{kind:'view',view:'editor-advanced'}, // components/DriverEditorModal.vue:807
   'conditional-branch-82c9e21f9a102e7c':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:809
   'conditional-branch-9221a8bbab297f6a':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:810
   'conditional-branch-40ec34687539d44d':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:819
@@ -129,7 +131,6 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-9221a8bbab297f6a-2':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:820
   'conditional-branch-82c9e21f9a102e7c-3':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:836
   'conditional-branch-9221a8bbab297f6a-3':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:837
-  'conditional-branch-f82c94a56585319e':{kind:'view',view:'editor-dimensions'}, // components/DriverEditorModal.vue:846
   'conditional-branch-63d5e9a0ebc63177':{kind:'partOf',view:'editor-dimensions'}, // components/DriverEditorModal.vue:848
   'conditional-branch-7586f29f27db56aa':{kind:'partOf',view:'editor-dimensions'}, // components/DriverEditorModal.vue:849
   'native-ui-2fe0596dca458293':{kind:'partOf',view:'editor-dimensions'}, // components/DriverEditorModal.vue:864

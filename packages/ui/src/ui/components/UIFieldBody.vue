@@ -26,6 +26,7 @@ import type {UIBinding, UIFieldCommon} from './uiFieldBinding.js';
 import {CellClass, cellClassOf} from '../../logic/driverCells.js';
 import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
 import {useFieldNotePlacement} from '../../hooks/useFieldNotePlacement.js';
+import {tabOf, useRefusalLedger} from '../../logic/refusalLedger.js';
 
 const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), {
   required: false,
@@ -101,7 +102,12 @@ const refusal = ref('');
 /** The ⚠ sentence: a refused entry first, since it is what the person is looking at. */
 const reason = computed(() => refusal.value !== '' ? refusal.value : view.value.reason);
 
-watch(refusal, text => { reasonOpen.value = text !== ''; });
+const ledger = useRefusalLedger();
+const ledgerOwner = Symbol('UIFieldBody');
+watch(refusal, text => {
+  reasonOpen.value = text !== '';
+  ledger?.report(ledgerOwner, tabOf(root.value), text);
+});
 
 function closeOnOutsideClick(event: MouseEvent): void {
   if (event.target instanceof Node && root.value?.contains(event.target) === true) return;
@@ -128,6 +134,7 @@ watch(reasonOpen, open => {
   }
 });
 onBeforeUnmount(() => {
+  ledger?.clear(ledgerOwner);
   document.removeEventListener('click', closeOnOutsideClick, true);
   document.removeEventListener('keydown', closeOnEscape, true);
 });
