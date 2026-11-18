@@ -24,6 +24,9 @@ async function standInCollector(page: Page): Promise<string[]> {
   return bodies;
 }
 
+// This spec is about the question itself, so its browser starts as a new visitor's, not as one who has answered it.
+test.use({feedbackQuestionQuiet: false});
+
 const feedbackBodies = (bodies: readonly string[]): string[] => bodies.filter(b => b.includes('"name":"feedback"'));
 
 async function openFromDesktopInfoMenu(page: Page): Promise<void> {

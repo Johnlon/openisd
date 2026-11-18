@@ -244,8 +244,15 @@ async function clearHash(page: Page): Promise<void> {
   });
 }
 
+/** Where a test's browser starts with the feedback question. The question is offered from the 3rd launch of the app, and one
+ *  browser tab (the worker's shared page, or a spec that reloads) launches the app again at each reload, so without this the
+ *  question would land over whichever test is the 3rd launch and take its clicks. A user who has answered it once is not asked for
+ *  90 days: the tab starts as that user's (the same way it starts with the welcome screen seen). feedback.browser.spec.ts is the
+ *  spec about the question and starts with a fresh browser (`feedbackQuestionQuiet: false`). */
+const FEEDBACK_ASK_ANSWERED_ALREADY = JSON.stringify({shownAtMs: null, quietUntilMs: 4102444800000, launches: 0});
+
 export const test = base.extend<
-  { browserLog: BrowserLog; context: BrowserContext; page: Page; appPage: Page },
+  { browserLog: BrowserLog; context: BrowserContext; page: Page; appPage: Page; feedbackQuestionQuiet: boolean },
   { workerAppPage: Page; testAdditions: TestAdditions }
 >({
   workerAppPage: [async ({ browser }, use) => {
@@ -259,7 +266,7 @@ export const test = base.extend<
     // deterministic empty feed instead of letting an unrelated cross-origin request pollute every
     // test's browser diagnostics. Feature tests install their own feed when needed.
     await stubAnnouncements(page);
-    await page.addInitScript(() => {
+    await page.addInitScript(ANSWERED => {
       try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
       catch { /* storage disabled */ }
       try { if (localStorage.getItem('openisd_persist_warning_dismissed') === null) localStorage.setItem('openisd_persist_warning_dismissed', '1'); }
@@ -268,7 +275,9 @@ export const test = base.extend<
       // persist warning dismissed; storage-notice.browser.spec.ts opens a fresh tab to see it.
       try { if (sessionStorage.getItem('openisd_usage_notice_shown') === null) sessionStorage.setItem('openisd_usage_notice_shown', '1'); }
       catch { /* storage disabled */ }
-    });
+      try { if (localStorage.getItem('openisd_feedback_ask_v1') === null) localStorage.setItem('openisd_feedback_ask_v1', ANSWERED); }
+      catch { /* storage disabled */ }
+    }, FEEDBACK_ASK_ANSWERED_ALREADY);
     await page.goto('/');
     await page.locator('.original-root, .mobile-root').first().waitFor({ state: 'visible' });
 
@@ -290,9 +299,15 @@ export const test = base.extend<
     await use(context);
   },
 
-  page: async ({ page, browserLog }, use) => {
+  feedbackQuestionQuiet: [true, { option: true }],
+
+  page: async ({ page, browserLog, feedbackQuestionQuiet }, use) => {
     await stubAnnouncements(page);
-    await page.addInitScript(() => {
+    await page.addInitScript(({ANSWERED, quiet}) => {
+      if (quiet) {
+        try { if (localStorage.getItem('openisd_feedback_ask_v1') === null) localStorage.setItem('openisd_feedback_ask_v1', ANSWERED); }
+        catch { /* storage disabled */ }
+      }
       try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
       catch { /* storage disabled */ }
       try { if (localStorage.getItem('openisd_persist_warning_dismissed') === null) localStorage.setItem('openisd_persist_warning_dismissed', '1'); }
@@ -301,7 +316,7 @@ export const test = base.extend<
       // persist warning dismissed; storage-notice.browser.spec.ts opens a fresh tab to see it.
       try { if (sessionStorage.getItem('openisd_usage_notice_shown') === null) sessionStorage.setItem('openisd_usage_notice_shown', '1'); }
       catch { /* storage disabled */ }
-    });
+    }, {ANSWERED: FEEDBACK_ASK_ANSWERED_ALREADY, quiet: feedbackQuestionQuiet});
     const detach = browserLog._attach?.(page);
     try {
       await use(page);
