@@ -4,7 +4,7 @@ import {
   FEEDBACK_TEXTS, FeedbackFace, feedbackAskAfter, feedbackAskDue, parseFeedbackAskState, type FeedbackAskEvent,
 } from '@openisd/design/fields';
 import type {FeedbackDelivery, FeedbackOutbox} from '../logic/feedback/feedbackOutbox.js';
-import type {Skin} from '../logic/telemetry/events.js';
+import type {FeedbackPromptOutcome, Skin} from '../logic/telemetry/events.js';
 
 /** The storage key of the "when did we last ask" state. */
 export const FEEDBACK_ASK_KEY = 'openisd_feedback_ask_v1';
@@ -28,6 +28,8 @@ export interface FeedbackDialogDeps {
   readonly onlineAgain: OnlineAgain;
   /** Runs `fn` a moment later, so the prompt does not land on the splash's own closing. */
   readonly defer: (fn: () => void) => void;
+  /** Told what became of the prompt (not of the Info menu's dialog): shown, Not now, or closed unanswered. */
+  readonly promptOutcome: (outcome: FeedbackPromptOutcome) => void;
 }
 
 /** The click or tap that asks for a send. A send is made only for a real one (`isTrusted`): the app has no
@@ -61,8 +63,10 @@ export interface FeedbackDialogApi {
   pickFace(face: FeedbackFace, action: UserAction): Promise<void>;
   /** Send what was typed as a follow-up. Blank: nothing is sent and the dialog just closes. */
   sendComment(action: UserAction): Promise<void>;
-  /** Not now, Escape, outside tap or Close. */
+  /** Escape, outside tap, the cross or Close: leaves the prompt unanswered (reported as `closed`). */
   dismiss(): void;
+  /** The "Not now" button: leaves the prompt unanswered (reported as `not_now`). */
+  notNow(): void;
   stop(): void;
 }
 
@@ -116,7 +120,18 @@ export function createFeedbackDialog(deps: FeedbackDialogDeps): FeedbackDialogAp
       if (!mayPrompt()) return;
       remember('shown');
       reset('prompt');
+      deps.promptOutcome('shown');
     });
+  }
+
+  /** Closes the dialog; an unanswered prompt starts the quiet time and is reported, an answered one or the menu's dialog is not. */
+  function leave(outcome: FeedbackPromptOutcome): void {
+    if (!open.value) return;
+    if (source.value === 'prompt' && chosen.value === null) {
+      remember('not_now');
+      deps.promptOutcome(outcome);
+    }
+    open.value = false;
   }
 
   // This start of the app counts as a launch; the one offer of the start comes when the splash is closed.
@@ -161,11 +176,8 @@ export function createFeedbackDialog(deps: FeedbackDialogDeps): FeedbackDialogAp
       delivery.value = await deps.outbox.comment(id, text);
       commentSent.value = true;
     },
-    dismiss() {
-      if (!open.value) return;
-      if (source.value === 'prompt' && chosen.value === null) remember('not_now');
-      open.value = false;
-    },
+    dismiss() { leave('closed'); },
+    notNow() { leave('not_now'); },
     stop() {
       stopSplash();
       stopOnline();

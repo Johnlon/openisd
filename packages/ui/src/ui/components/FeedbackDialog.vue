@@ -38,7 +38,7 @@ watch(open, async isOpen => { if (isOpen) { await nextTick(); sheet.value?.focus
         <p class="fb-privacy">{{ texts.privacy }}</p>
       </div>
       <footer class="fb-actions">
-        <button v-if="phase === 'face'" type="button" class="fb-secondary" data-testid="feedback-not-now" @click="dialog.dismiss()">{{ texts.notNow }}</button>
+        <button v-if="phase === 'face'" type="button" class="fb-secondary" data-testid="feedback-not-now" @click="dialog.notNow()">{{ texts.notNow }}</button>
         <template v-else-if="!commentSent">
           <button type="button" class="fb-secondary" data-testid="feedback-done" @click="dialog.dismiss()">{{ texts.close }}</button>
           <button type="button" class="fb-primary" data-testid="feedback-send-comment" @click="dialog.sendComment($event)">{{ texts.sendComment }}</button>

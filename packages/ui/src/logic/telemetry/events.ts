@@ -92,6 +92,10 @@ export interface AnnouncementEvent {
   readonly id: string;
   readonly view: 'latest' | 'list';
 }
+/** What happened to the feedback question the app offers at start: shown, answered with "Not now", or closed (Escape, outside tap,
+ *  the cross) without an answer. An answer is not an outcome here: it is sent as `feedback`. Nothing typed or personal rides along. */
+export type FeedbackPromptOutcome = 'shown' | 'not_now' | 'closed';
+export interface FeedbackPromptEvent { readonly kind: 'feedback_prompt'; readonly outcome: FeedbackPromptOutcome }
 export interface ChartViewEvent { readonly kind: 'chart_view'; readonly chart: ChartId }
 export interface FeatureEvent { readonly kind: 'feature'; readonly name: FeatureName }
 export interface AnonymousErrorContext {
@@ -140,7 +144,7 @@ export interface FeedbackEvent {
 }
 
 export type TelemetryEvent =
-  | LaunchEvent | InstallEvent | SwBlockedEvent | SessionEndEvent | ProjectOpenEvent | ProjectsRestoredEvent | DriverSearchEmptyEvent | ValuesProblemSeenEvent | AnnouncementEvent | ProjectSaveEvent | DriverPickEvent | RadiatorPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent | FeedbackEvent;
+  | LaunchEvent | InstallEvent | SwBlockedEvent | SessionEndEvent | ProjectOpenEvent | ProjectsRestoredEvent | DriverSearchEmptyEvent | ValuesProblemSeenEvent | AnnouncementEvent | ProjectSaveEvent | DriverPickEvent | RadiatorPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent | FeedbackEvent | FeedbackPromptEvent;
 
 export type FieldValue = string | number | boolean;
 export type Fields = Record<string, FieldValue>;
@@ -203,6 +207,7 @@ export function fieldsOf(e: TelemetryEvent): Fields {
       id: e.id, face: e.face, screen: e.screen, skin: e.skin,
       ...(e.comment === '' ? {} : {comment: e.comment}),
     };
+    case 'feedback_prompt': return {outcome: e.outcome};
     case 'report': return {
       hash: e.hash,
       message: e.message,

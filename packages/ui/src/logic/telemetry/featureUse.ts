@@ -1,5 +1,5 @@
 import type {ChartId} from '@openisd/design/engine';
-import type {AnnouncementEvent, DriverSearchEmptyEvent, FeatureName, ValuesProblemSeenEvent} from './events.js';
+import type {AnnouncementEvent, DriverSearchEmptyEvent, FeedbackPromptEvent, FeatureName, ValuesProblemSeenEvent} from './events.js';
 import type {Telemetry} from './telemetry.js';
 import type {ActionName, RecentActions} from './errorContext.js';
 
@@ -85,6 +85,15 @@ export class FeatureUse {
     const key = `${event.stage}|${event.id}|${event.view}`;
     if (this.announcements.has(key)) return;
     this.announcements.add(key);
+    this.telemetry.record(event);
+  }
+
+  private readonly feedbackPrompts = new Set<string>();
+
+  /** The feedback question was shown, put off with "Not now" or closed unanswered: once per outcome per page session. */
+  feedbackPrompt(event: FeedbackPromptEvent): void {
+    if (this.feedbackPrompts.has(event.outcome)) return;
+    this.feedbackPrompts.add(event.outcome);
     this.telemetry.record(event);
   }
 

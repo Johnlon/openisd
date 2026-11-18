@@ -4,6 +4,7 @@ import {nextTick, ref} from 'vue';
 import {createMemoryStorage} from '@openisd/persistence';
 import {FEEDBACK_DAY_MS, FeedbackFace} from '@openisd/design/fields';
 import {createFeedbackDialog, FEEDBACK_ASK_KEY, type FeedbackDialogDeps, type UserAction} from '../../src/hooks/FeedbackDialog-hooks.js';
+import type {FeedbackPromptOutcome} from '../../src/logic/telemetry/events.js';
 import {FeedbackOutbox, type FeedbackTransport} from '../../src/logic/feedback/feedbackOutbox.js';
 
 const PERSON: UserAction = {isTrusted: true};
@@ -35,6 +36,7 @@ function setup(busy: () => boolean = () => false, launches = 3, splashSeen = tru
   const splashOpen = ref(!splashSeen);
   const online = new Online();
   const deferred: (() => void)[] = [];
+  const outcomes: FeedbackPromptOutcome[] = [];
   let ids = 0;
   const outbox = new FeedbackOutbox({
     storage, transport: net, now: () => clock.now, newId: () => `id${++ids}`,
@@ -42,10 +44,11 @@ function setup(busy: () => boolean = () => false, launches = 3, splashSeen = tru
   });
   const deps: FeedbackDialogDeps = {
     outbox, storage, now: () => clock.now, skin: () => 'original', screen: () => 'original/Vented',
-    busy, splashOpen, onlineAgain: online, defer: fn => { deferred.push(fn); },
+    busy, splashOpen, onlineAgain: online, defer: fn => { deferred.push(fn); }, promptOutcome: o => { outcomes.push(o); },
   };
   for (let i = 1; i < launches; i++) createFeedbackDialog(deps).stop();
   deferred.length = 0;
+  outcomes.length = 0;
   const dialog = createFeedbackDialog(deps);
   const runDeferred = () => { for (const fn of deferred.splice(0)) fn(); };
   /** Another start of the app on the same storage. */
@@ -55,7 +58,7 @@ function setup(busy: () => boolean = () => false, launches = 3, splashSeen = tru
     runDeferred();
     return again;
   };
-  return {dialog, net, storage, clock, splashOpen, online, runDeferred, deps, restart};
+  return {dialog, net, storage, clock, splashOpen, online, runDeferred, deps, restart, outcomes};
 }
 
 describe('opening from the Info menu', () => {
@@ -270,5 +273,57 @@ describe('the occasional prompt at app start, after the splash closes', () => {
     dialog.dismiss();
     dialog.show();
     expect(dialog.open.value).toBe(true);
+  });
+});
+
+describe('the prompt reports what became of it, and nothing else', () => {
+  it('shown: the prompt appearing reports shown once', () => {
+    const {runDeferred, outcomes} = setup();
+    runDeferred();
+    expect(outcomes).toEqual(['shown']);
+  });
+
+  it('Not now reports shown then not_now', () => {
+    const {dialog, runDeferred, outcomes} = setup();
+    runDeferred();
+    dialog.notNow();
+    expect(dialog.open.value).toBe(false);
+    expect(outcomes).toEqual(['shown', 'not_now']);
+  });
+
+  it('Escape, an outside tap, the cross or Close without an answer reports shown then closed, and keeps it quiet like Not now', () => {
+    const {dialog, runDeferred, outcomes, clock, restart} = setup();
+    runDeferred();
+    dialog.dismiss();
+    expect(outcomes).toEqual(['shown', 'closed']);
+    clock.now += 59 * FEEDBACK_DAY_MS;
+    expect(restart().open.value).toBe(false);
+  });
+
+  it('an answer is not an outcome: it is sent as feedback, and closing afterwards reports nothing more', async () => {
+    const {dialog, runDeferred, outcomes} = setup();
+    runDeferred();
+    await dialog.pickFace(FeedbackFace.Yes, PERSON);
+    dialog.dismiss();
+    dialog.notNow();
+    expect(outcomes).toEqual(['shown']);
+  });
+
+  it('a prompt never offered reports nothing', () => {
+    const {outcomes} = setup(() => true);
+    expect(outcomes).toEqual([]);
+  });
+
+  it('the Info menu Send feedback path sends no prompt event, however it is closed', async () => {
+    const {dialog, runDeferred, outcomes} = setup(() => true);
+    dialog.show();
+    runDeferred();
+    dialog.dismiss();
+    dialog.show();
+    dialog.notNow();
+    dialog.show();
+    await dialog.pickFace(FeedbackFace.Yes, PERSON);
+    dialog.dismiss();
+    expect(outcomes).toEqual([]);
   });
 });

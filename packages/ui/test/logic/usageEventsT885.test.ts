@@ -222,3 +222,16 @@ describe('announcement events are sent once per stage per announcement', () => {
     expect(events).toEqual([seen, {kind: 'announcement', stage: 'dismissed', id: 'a1', view: 'latest'}]);
   });
 });
+
+describe('feedback_prompt events', () => {
+  it('go out with the one outcome field, once per outcome per session, and nothing else', () => {
+    const {telemetryUi, events} = recordingTelemetryUi();
+    telemetryUi.featureUse.feedbackPrompt({kind: 'feedback_prompt', outcome: 'shown'});
+    telemetryUi.featureUse.feedbackPrompt({kind: 'feedback_prompt', outcome: 'shown'});
+    telemetryUi.featureUse.feedbackPrompt({kind: 'feedback_prompt', outcome: 'not_now'});
+    telemetryUi.featureUse.feedbackPrompt({kind: 'feedback_prompt', outcome: 'closed'});
+    expect(events.map(e => [e.kind, fieldsOf(e)])).toEqual([
+      ['feedback_prompt', {outcome: 'shown'}], ['feedback_prompt', {outcome: 'not_now'}], ['feedback_prompt', {outcome: 'closed'}],
+    ]);
+  });
+});

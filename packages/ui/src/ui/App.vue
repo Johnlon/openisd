@@ -40,7 +40,7 @@ import {provideAppUnsavedNudge} from '../hooks/UnsavedNudge-hooks.js';
 const { designIO, projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId, persistence, browserStorage, storageUsage, saves } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
-const { launch, actions: recentActions, crashReports } = useTelemetryUi();
+const { launch, actions: recentActions, crashReports, featureUse } = useTelemetryUi();
 const announcements = useAnnouncementCenter();
 
 watch(() => presentationState.newProjectOpen, open => { if (open) recentActions.record('dialog:new-project'); });
@@ -116,6 +116,7 @@ const feedback = createFeedbackDialog({
   splashOpen: splash.open,
   onlineAgain: feedbackServices.onlineAgain,
   defer: fn => { window.setTimeout(fn, 2000); },
+  promptOutcome: outcome => featureUse.feedbackPrompt({kind: 'feedback_prompt', outcome}),
 });
 provideFeedbackDialog(feedback);
 
