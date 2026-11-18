@@ -56,3 +56,10 @@ describe('the Driver wiring help (ticket 519)', () => {
     expect(DesktopHelp.PLACEMENT.rows).toContain(PhoneHelpRows.DRIVER_WIRING);
   });
 });
+
+describe('the phone Driver help lists Driver wiring only when its caption is on screen (T882)', () => {
+  it('a single-coil/1-driver project drops the Driver wiring row; 2 or more drivers keep it', () => {
+    expect(PhoneHelp.driver(true).rows.map(r => r.label)).toEqual(['Select driver', 'Edit', 'Drivers', 'Driver wiring', 'Coil wiring']);
+    expect(PhoneHelp.driver(false).rows.map(r => r.label)).toEqual(['Select driver', 'Edit', 'Drivers', 'Coil wiring']);
+  });
+});

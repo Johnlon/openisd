@@ -242,6 +242,15 @@ export class PhoneHelp {
     PhoneHelpRows.DRIVER_WIRING,
     PhoneHelpRows.COIL_WIRING,
   ]);
+
+  /**
+   * The Driver tab's help for the project as it is on screen: "Driver wiring" is drawn only with 2 or more drivers,
+   * so its line is listed only then (help lists what the user can see, T882; desktop twin: DesktopHelp.placement).
+   */
+  static driver(driverWiringApplies: boolean): PhoneHelpSection {
+    const rows = driverWiringApplies ? PhoneHelp.DRIVER.rows : PhoneHelp.DRIVER.rows.filter(r => r !== PhoneHelpRows.DRIVER_WIRING);
+    return new PhoneHelpSection(PhoneHelp.DRIVER.title, PhoneHelp.DRIVER.intro, rows);
+  }
   static readonly KEY_FIGURES = new PhoneHelpSection('Key figures', 'The driver\'s main parameters, for reference. Tap one to edit the driver.', [
     {label: 'Fs', text: 'the frequency at which the driver vibrates most freely, out of a box. Lower Fs can reach lower bass.'},
     {label: 'Qts', text: 'how sharply the driver resonates, from its motor and suspension together. It shows which box type suits the driver.'},

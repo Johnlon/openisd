@@ -11,7 +11,7 @@ import PhoneBand from './PhoneBand.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
 import { useMobileDriverTab } from '../../../hooks/MobileDriverTab-hooks.js';
 
-const { project, fullName, keyFigures, consistencyReasons, browseDrivers, editDriver, showDisagreements, showDriverInfo } = useMobileDriverTab();
+const { project, fullName, driverHelp, keyFigures, consistencyReasons, browseDrivers, editDriver, showDisagreements, showDriverInfo } = useMobileDriverTab();
 </script>
 
 <template>
@@ -24,7 +24,7 @@ const { project, fullName, keyFigures, consistencyReasons, browseDrivers, editDr
       <PhoneButton class="mob-btn-secondary mob-driver-info" title="View information about this project’s driver" @click="showDriverInfo">Info</PhoneButton>
       <button type="button" class="mob-btn mob-btn-secondary" @click="editDriver">Edit</button>
     </div>
-    <PhoneBand :section="PhoneHelp.DRIVER" />
+    <PhoneBand :section="driverHelp" />
     <UIFixedField class="mob-ui-field" input-id="mob-n-drivers" :field="NumberField.DRIVER_NDRIVERS" :label="PhoneLabels.DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" />
     <DriverWiring phone />
     <DriverCoilWiring phone />
