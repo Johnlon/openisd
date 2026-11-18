@@ -48,9 +48,19 @@ export function createCloudSyncAPI(sync: CloudSync | null, uiStore: CloudUiStore
       conflicts.value = sync.conflicts();
       activity.value = sync.activity();
       projectsNotOnDrive.value = sync.projectsNotOnDrive();
+      forgetSeenConflictsGone();
     });
     if (getCurrentScope()) {
       onScopeDispose(unwatch);
+    }
+  }
+
+  /** A conflict the user opened is gone from the list; the "seen" count follows it down, so the next conflict
+   *  is news again (it was hidden while the count stayed at its old high). */
+  function forgetSeenConflictsGone(): void {
+    if (conflicts.value.length < ui.value.conflictsSeen) {
+      uiStore.setConflictsSeen(conflicts.value.length);
+      ui.value = uiStore.read();
     }
   }
 

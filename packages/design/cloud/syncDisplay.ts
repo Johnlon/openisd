@@ -1,6 +1,6 @@
 import {APP_UPDATE_TEXT} from '../fields/appUpdateText.js';
 import {formatCountOf, formatDateTime, formatTime} from '../fields/format.js';
-import {type ConflictCopy, type SyncStatus, conflictKeptText, conflictKindWord} from './syncStatus.js';
+import {type ConflictCopy, type SyncStatus, conflictKeptText, conflictKind, conflictKindWord} from './syncStatus.js';
 import {cloudFaultText} from './cloudTypes.js';
 import {type SyncActivity, activityForDisplay, syncActivityLine} from './syncActivity.js';
 
@@ -110,7 +110,10 @@ function buttonOf(action: SyncDialogAction, configured: boolean): SyncDialogButt
 /** The items kept twice, named: one in full, several as a list after the count. */
 function conflictsText(conflicts: readonly ConflictCopy[]): string {
   const [only] = conflicts;
-  if (conflicts.length === 1 && only !== undefined) return `${conflictKeptText(only)}.`;
+  if (conflicts.length === 1 && only !== undefined) {
+    // A project's copy is the user's own open edits: say its new name, so both projects are named.
+    return conflictKind(only.id) === 'project' ? `${conflictKeptText(only)}. Yours is now "${only.name}".` : `${conflictKeptText(only)}.`;
+  }
   const names = conflicts.map(c => `${conflictKindWord(c.id)} "${c.item}"`).join(', ');
   return `${formatCountOf(conflicts.length, 'item')} changed on two devices. Both kept: ${names}.`;
 }

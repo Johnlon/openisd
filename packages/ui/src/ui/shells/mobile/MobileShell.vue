@@ -43,7 +43,7 @@ const {
   setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   cloudEnabled, cloudSyncDisplay, handleSyncTap, onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel,
-  openCloudSync, reconnectCloud, openConflictNotice, turnOnHint, dismissHint, connectCloud, syncNowCloud,
+  openCloudSync, reconnectCloud, openConflictNotice, turnOnHint, dismissHint, connectCloud, syncNowCloud, saveForSync, saveForSyncProject,
   disconnectCloud, openConflict,
 } = useMobileShell();
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
@@ -70,7 +70,7 @@ const diagnostics = injectDiagnosticsModal();
         <img src="/icon.svg" alt="" aria-hidden="true">
         <span>OpenISD</span>
       </div>
-      <button v-if="projectTitle" type="button" class="mob-project-title" :title="projectTitle" @click="openProjectsPane">{{ projectTitle }}</button>
+      <button v-if="projectTitle" type="button" class="mob-project-title" :title="projectTitle" @click="openProjectsPane"><span class="mob-project-title-text">{{ projectTitle }}</span></button>
       <CloudSyncBadge
         v-if="cloudEnabled"
         class="mob-header-sync"
@@ -138,6 +138,12 @@ const diagnostics = injectDiagnosticsModal();
         <button type="button" class="mob-update-reload" @click="turnOnHint">{{ cloudSyncDisplay.hint.yes }}</button>
         <button type="button" class="mob-update-later" :aria-label="cloudSyncDisplay.hint.no" :title="cloudSyncDisplay.hint.no" @click="dismissHint">&#10005;</button>
       </div>
+      <!-- Cloud sync is on and a project's unsaved edits are 5 minutes old: ask to save (logic/unsavedNudge.ts). -->
+      <div v-if="saveForSync.bar.value" class="mob-update-banner mob-save-for-sync-banner" role="status" data-testid="save-for-sync-bar">
+        <span>{{ saveForSync.bar.value.text }}</span>
+        <button type="button" class="mob-update-reload" data-testid="save-for-sync-save" @click="saveForSyncProject(saveForSync.bar.value.id)">{{ saveForSync.bar.value.save }}</button>
+        <button type="button" class="mob-update-later" data-testid="save-for-sync-later" @click="saveForSync.later()">{{ saveForSync.bar.value.later }}</button>
+      </div>
       </template>
       <MobileTabBar v-show="!sheetTyping" v-model="destination" :shadow-above="canScrollDown" />
 
@@ -151,6 +157,8 @@ const diagnostics = injectDiagnosticsModal();
       <div class="mob-cloud-dialog-body">
         <CloudSyncDialog
           :model="cloudSyncDisplay.dialog"
+          :unsaved="saveForSync.list.value"
+          @saveProject="saveForSyncProject"
           @connect="connectCloud"
           @syncNow="syncNowCloud"
           @reconnect="reconnectCloud"
@@ -370,9 +378,15 @@ const diagnostics = injectDiagnosticsModal();
   flex: 1; min-width: 0; margin-left: 12px; text-align: right;
   max-height: var(--mob-header-control);
   font-size: var(--mob-header-title-px); line-height: var(--mob-header-title-lh); overflow-wrap: anywhere;
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--mob-header-title-lines); overflow: hidden;
+  overflow: hidden;
   cursor: pointer;
   color: inherit;
+}
+/* The clamp sits on the text inside the button: on the button itself it did not apply, and the fourth line was cut off bare. */
+.mob-project-title-text {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--mob-header-title-lines); overflow: hidden;
+  /* Room for the ellipsis: right-aligned, it would be drawn past the edge and cut off. */
+  padding-right: 1em;
 }
 .mob-hamburger span { display: block; width: 20px; height: 2px; background: var(--fg); border-radius: 1px; }
 .mob-header-sync {
@@ -586,6 +600,15 @@ const diagnostics = injectDiagnosticsModal();
   color: color-mix(in srgb, var(--acc2, #b8790f) 60%, black);
 }
 .mob-reconnect-banner .mob-update-reload {
+  background: var(--acc2, #b8790f);
+  border-color: var(--acc2, #b8790f);
+}
+.mob-save-for-sync-banner {
+  background: color-mix(in srgb, var(--acc2, #b8790f) 15%, var(--panel, #f9faf9));
+  border-top-color: var(--acc2, #b8790f);
+  color: color-mix(in srgb, var(--acc2, #b8790f) 60%, black);
+}
+.mob-save-for-sync-banner .mob-update-reload {
   background: var(--acc2, #b8790f);
   border-color: var(--acc2, #b8790f);
 }

@@ -46,7 +46,7 @@ import {useAnnouncementCenter} from '../../../hooks/Announcements-hooks.js';
 import {injectFeedbackDialog} from '../../../hooks/FeedbackDialog-hooks.js';
 
 const {
-  cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog,
+  cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog, saveForSync, saveForSyncProject,
   handleCloudConnect, handleCloudSyncNow, handleCloudReconnect, handleCloudDismissReconnect,
   updateOffered, reloadForUpdate, dismissUpdate,
   handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
@@ -112,7 +112,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <button type="button" class="tb-btn" aria-label="New project" title="New project — choose box type + starting volume, then a driver." @click="presentationState.newProjectOpen = true">
           <ToolbarIcon name="new" />
         </button>
-        <button type="button" class="tb-btn" :class="{ dirty: isModified, disabled: !projectOpen }" :disabled="!projectOpen" aria-label="Save" title="Save - saves the file to browser storage. Use Export to save as file" @click="saveProject">
+        <button type="button" class="tb-btn" :class="{ dirty: isModified, disabled: !projectOpen }" :disabled="!projectOpen" aria-label="Save" :title="saveForSync.tooltip('Save - saves the file to browser storage. Use Export to save as file')" @click="saveProject">
           <ToolbarIcon name="save" />
         </button>
         <button type="button" class="tb-btn" :class="{ dirty: anyUnsaved, disabled: !anyUnsaved }" :disabled="!anyUnsaved" aria-label="Save all" :title="anyUnsaved ? 'Save all — saves every open project with unsaved changes to browser storage.' : 'Save all — no open project has unsaved changes.'" @click="saveAllProjects">
@@ -246,6 +246,15 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <button type="button" class="cloud-strip-btn pri" @click="handleHintTurnOn">{{ cloudDisplay.hint.yes }}</button>
         <button type="button" class="cloud-strip-btn" @click="handleHintDismiss">{{ cloudDisplay.hint.no }}</button>
       </div>
+    </div>
+
+    <!-- Cloud sync is on and a project's unsaved edits are 5 minutes old: ask to save (logic/unsavedNudge.ts). -->
+    <div v-if="saveForSync.bar.value" class="save-for-sync-bar" role="status" data-testid="save-for-sync-bar">
+      <span class="cloud-strip-label">{{ saveForSync.bar.value.text }}</span>
+      <span class="cloud-strip-actions">
+        <button type="button" class="cloud-strip-btn pri" data-testid="save-for-sync-save" @click="saveForSyncProject(saveForSync.bar.value.id)">{{ saveForSync.bar.value.save }}</button>
+        <button type="button" class="cloud-strip-btn" data-testid="save-for-sync-later" @click="saveForSync.later()">{{ saveForSync.bar.value.later }}</button>
+      </span>
     </div>
 
     <!-- ================= Main: 2×2 quadrants + splitters ================= -->
@@ -731,7 +740,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <div class="save-rail">
           <button v-if="projectOpen && tabHelpShown" type="button" class="tab-help-btn" aria-label="Help: this tab" title="What this tab is for" @click="openTabHelp">?</button>
           <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try values &amp; watch the charts. Your project will not be updated." @click="startWhatIf"><svg class="whatif-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3 13 1.5V10.5" /><path d="M6 3V12" /><ellipse cx="4.2" cy="12.2" rx="2.2" ry="1.6" /><ellipse cx="11.2" cy="10.7" rx="2.2" ry="1.6" /></svg> What-if</button>
-          <button v-if="projectOpen" class="edit-btn project-save-btn" title="Save the project to browser storage" @click="saveProject">Save</button>
+          <button v-if="projectOpen" class="edit-btn project-save-btn" :title="saveForSync.tooltip('Save the project to browser storage')" @click="saveProject">Save</button>
           <button v-if="projectOpen" class="edit-btn revert-btn" :disabled="!isModified" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="resetProjectToGround(confirmDiscard)">Revert</button>
         </div>
         </template>
@@ -860,6 +869,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <div class="cloud-modal-body">
           <CloudSyncDialog
             :model="cloudDisplay.dialog"
+            :unsaved="saveForSync.list.value"
+            @save-project="saveForSyncProject"
             @connect="handleCloudConnect"
             @sync-now="handleCloudSyncNow"
             @reconnect="handleCloudReconnect"
@@ -928,6 +939,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* ---------- Cloud strips & modal ---------- */
 .cloud-reconnect-strip,
 .cloud-conflict-notice,
+.save-for-sync-bar,
 .cloud-hint {
   display: flex;
   align-items: center;
@@ -947,6 +959,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   background: color-mix(in srgb, var(--acc, #1868d1) 15%, var(--panel, #f7f7f7));
   border-bottom-color: var(--acc, #1868d1);
   color: color-mix(in srgb, var(--acc, #1868d1) 60%, black);
+}
+.save-for-sync-bar {
+  background: color-mix(in srgb, var(--acc2, #b8790f) 15%, var(--panel, #f7f7f7));
+  border-bottom-color: var(--acc2, #b8790f);
+  color: color-mix(in srgb, var(--acc2, #b8790f) 60%, black);
 }
 .cloud-hint {
   background: var(--panel2, #ececec);

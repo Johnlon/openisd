@@ -83,6 +83,26 @@ describe('followPulledProjects', () => {
     expect(keptBoth).toHaveBeenCalledWith(copyId, copyName, 'Sub 12', 'iPhone');
   });
 
+  it('does not rename the open project when the copy cannot be saved', () => {
+    const {appState, projectRepo, keptBoth, deps, openSaved, pull} = setup();
+    const {project, id} = openSaved(17);
+    project.portVelocityLimit_m_per_s.set(20);
+    pull(id, 25);
+    const refusingRepo = {
+      storedIdOf: projectRepo.storedIdOf,
+      loadStoredProject: projectRepo.loadStoredProject,
+      saveToStorageAs: () => ({kind: 'failed' as const, reason: 'the browser store is full'}),
+    };
+
+    expect(followPulledProjects({...deps, projectRepo: refusingRepo}, [{id, from: 'iPhone'}])).toEqual(['refused']);
+    expect(project.name.value).toBe('Sub 12');
+    expect(project.portVelocityLimit_m_per_s.value).toBe(20);
+    expect(appState.projectHasUnsavedChanges(project)).toBe(true);
+    expect(projectRepo.storedIdOf(project)).toBe(id);
+    expect(projectRepo.listStoredProjects().map(p => p.name)).toEqual(['Sub 12']);
+    expect(keptBoth).not.toHaveBeenCalled();
+  });
+
   it('leaves a pulled project that is not open alone', () => {
     const {appState, deps} = setup();
     expect(followPulledProjects(deps, [{id: 'not-open', from: 'iPhone'}])).toEqual(['notOpen']);

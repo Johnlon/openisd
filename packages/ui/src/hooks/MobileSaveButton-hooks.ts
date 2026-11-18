@@ -1,5 +1,7 @@
 import {computed, ref, type ComputedRef, type Ref} from 'vue';
 import {saveButtonState, savedMessage, type SaveButtonState} from '@openisd/design/fields';
+import {saveTooltip} from '@openisd/design/cloud';
+import {useCloudSyncOn} from './UnsavedNudge-hooks.js';
 import {useApp} from '../logic/app.js';
 
 /** How long the "Saved" note stays beside the button. */
@@ -15,7 +17,12 @@ export interface MobileSaveButtonApi {
 
 export function useMobileSaveButton(): MobileSaveButtonApi {
   const { appState, designIO } = useApp();
-  const state = computed(() => saveButtonState(appState.isModified.value));
+  const syncOn = useCloudSyncOn();
+  const state = computed(() => {
+    const usual = saveButtonState(appState.isModified.value);
+    // With Cloud sync on, a lit button says what saving does for sync; a saved one still says "Saved".
+    return usual.lit ? {...usual, title: saveTooltip(syncOn.value, usual.title)} : usual;
+  });
   const note = ref('');
   let timer: ReturnType<typeof setTimeout> | undefined;
   async function save(): Promise<void> {

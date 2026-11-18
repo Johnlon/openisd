@@ -1,0 +1,110 @@
+id: T886
+release_note: When Cloud sync is on, the Save button says it sends this version to your other devices, the Cloud sync dialog lists projects with unsaved changes (each with a Save button), a bar asks you to save after 5 minutes of unsaved edits, and a sync conflict copy of an open project shows a notice naming both projects
+repo: openisd
+owner: sonnet-save-for-sync
+status: done
+goal: With Cloud sync on, tell users that only saved versions reach their other devices (Save tooltip, a list in the Cloud sync dialog) and ask them to save after 5 minutes of unsaved edits; show a notice naming both projects when sync makes a conflict copy of an open project
+why: "John, 18 Nov 2026, QO946.c244: \"if cloud sync isn't enabled then don't tell user to save\"; QO946.c245 (tell and ask, sync on only): \"ok do that\". Only 78 of 664 people ever pressed Save, so most projects never sync, because Cloud sync sends saved versions only."
+done_test: bash scripts/quiet-test.sh npx vitest run packages/ui/test/logic/unsavedNudge.test.ts packages/ui/test/logic/pulledProjects.test.ts packages/design/test/cloud/unsavedSync.test.ts
+files:
+  - tasks/T886.yml
+  - packages/design/cloud/index.ts
+  - packages/design/cloud/syncDisplay.ts
+  - packages/design/cloud/unsavedSync.ts
+  - packages/design/fields/phoneDialogText.ts
+  - packages/design/test/cloud/unsavedSync.test.ts
+  - packages/ui/src/hooks/CloudSync-hooks.ts
+  - packages/ui/src/hooks/MobileSaveButton-hooks.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/UnsavedNudge-hooks.ts
+  - packages/ui/src/logic/pulledProjects.ts
+  - packages/ui/src/logic/unsavedNudge.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/components/CloudSyncDialog.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/fixtures/branchMap/desktop.ts
+  - packages/ui/test/fixtures/branchMap/phone.ts
+  - packages/ui/test/fixtures/branchMap/shared.ts
+  - packages/ui/test/fixtures/idleUnsavedNudge.ts
+  - packages/ui/test/hooks/CloudSync-hooks.test.ts
+  - packages/ui/test/hooks/MobileShell-hooks.test.ts
+  - packages/ui/test/hooks/OriginalShell-hooks.test.ts
+  - packages/ui/test/logic/pulledProjects.test.ts
+  - packages/ui/test/logic/unsavedNudge.test.ts
+  - packages/ui/test/ui/cloud-conflict-open-project.browser.spec.ts
+  - packages/ui/test/ui/cloud-save-for-sync.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-complete-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-announcements-current.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-confirmation.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-exports.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-field-dq.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-abc-front.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-abc-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-bandpass4-front.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-bandpass4-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-bandpass6-front.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-bandpass6-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-box-passive-radiator-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-sealed-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-vented-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-menu-announcementsmodal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-cloud-conflict-notice.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-cloud-hint.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-cloud-reconnect-strip.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-filter-card-body.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-save-note.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-tuning-unreachable-warning.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-update-strip.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-pr-picker.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-sealed-alignment.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-section-help.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-feedback-dialog.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-flash-message.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-update.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-vented-alignment.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-signal.png
+visual:
+  - mobile-complete-project
+  - mobile-dialog-announcements-current
+  - mobile-dialog-confirmation
+  - mobile-dialog-exports
+  - mobile-dialog-field-dq
+  - mobile-dialog-losses-abc-front
+  - mobile-dialog-losses-abc-rear
+  - mobile-dialog-losses-bandpass4-front
+  - mobile-dialog-losses-bandpass4-rear
+  - mobile-dialog-losses-bandpass6-front
+  - mobile-dialog-losses-bandpass6-rear
+  - mobile-dialog-losses-box-passive-radiator-rear
+  - mobile-dialog-losses-sealed-rear
+  - mobile-dialog-losses-vented-rear
+  - mobile-dialog-menu-announcementsmodal
+  - mobile-dialog-menu
+  - mobile-dialog-phone-cloud-conflict-notice
+  - mobile-dialog-phone-cloud-hint
+  - mobile-dialog-phone-cloud-reconnect-strip
+  - mobile-dialog-phone-filter-card-body
+  - mobile-dialog-phone-save-note
+  - mobile-dialog-phone-tuning-unreachable-warning
+  - mobile-dialog-phone-update-strip
+  - mobile-dialog-pr-picker
+  - mobile-dialog-sealed-alignment
+  - mobile-dialog-section-help
+  - mobile-dialog-shared-feedback-dialog
+  - mobile-dialog-shared-flash-message
+  - mobile-dialog-update
+  - mobile-dialog-vented-alignment
+  - mobile-menu
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-filters
+  - mobile-tab-signal

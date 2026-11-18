@@ -42,8 +42,13 @@ function keepEdits(deps: PulledProjectsDeps, open: OpenISDProject, pulled: Pulle
   const item = open.name.value;
   const name = conflictCopyName(item, deps.deviceName, deps.now());
   const copyId = newUuid();
+  // The copy is stored under its new name, so the name is set for the save; a refused save gives the project
+  // its own name back, never leaving the open project renamed to a copy that was not kept.
   open.name.set(name);
-  if (deps.projectRepo.saveToStorageAs(open, copyId).kind !== 'saved') return 'refused';
+  if (deps.projectRepo.saveToStorageAs(open, copyId).kind !== 'saved') {
+    open.name.set(item);
+    return 'refused';
+  }
   open.save();
   deps.appState.setOpenIdentity(open, {kind: 'stored', id: copyId});
   deps.keptBoth(copyId, name, item, pulled.from);

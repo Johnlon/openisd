@@ -5,6 +5,8 @@ import {APP_LOGIC} from '../../src/logic/app.js';
 import {FOCUSED_PROJECT} from '../../src/logic/focusedProjectContext.js';
 import {SplashModalKey} from '../../src/hooks/SplashModal-hooks.js';
 import {provideCloudSync} from '../../src/hooks/CloudSync-hooks.js';
+import {provideUnsavedNudgeTo} from '../../src/hooks/UnsavedNudge-hooks.js';
+import {idleUnsavedNudge} from '../fixtures/idleUnsavedNudge.js';
 import {createCloudUiStore, createMemoryStorage} from '@openisd/persistence';
 import {DriverId, ProjectId} from '@openisd/design/cloud';
 import {testAppLogic} from './testAppLogic.js';
@@ -48,6 +50,7 @@ describe('OriginalShell-hooks', () => {
       dismiss: () => undefined, show: () => undefined,
     });
     provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));
+    provideUnsavedNudgeTo(app, idleUnsavedNudge());
     const shell = app.runWithContext(() => useOriginalShell());
 
     shell.handleCloudOpenConflict(ProjectId.of(storedProjectId)!);
@@ -86,6 +89,7 @@ describe('OriginalShell-hooks', () => {
       dismiss: () => undefined, show: () => undefined,
     });
     provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));
+    provideUnsavedNudgeTo(app, idleUnsavedNudge());
     provideTelemetryUi(app, telemetryUi);
     return {shell: app.runWithContext(() => useOriginalShell()), events};
   }
@@ -332,6 +336,7 @@ describe('OriginalShell-hooks', () => {
         dismiss: () => undefined, show: () => undefined,
       });
       provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));
+      provideUnsavedNudgeTo(app, idleUnsavedNudge());
       return app.runWithContext(() => useOriginalShell());
     }
 
