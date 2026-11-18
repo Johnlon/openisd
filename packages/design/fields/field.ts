@@ -53,7 +53,7 @@ import type {SelectorOption} from './options.js';
 import type {SpinRule} from './spinnerStep.js';
 import {
   BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, FILTER_TYPE_OPTIONS,
-  SEALED_ALIGNMENT_OPTIONS, VC_CONNECTION_OPTIONS, VENT_SHAPE_OPTIONS,
+  DRIVER_WIRING_OPTIONS, SEALED_ALIGNMENT_OPTIONS, VC_CONNECTION_OPTIONS, VENT_SHAPE_OPTIONS,
 } from './options.js';
 
 /** What a field is, for the one place that shows it as text — the diagnostics list. Branching
@@ -600,7 +600,7 @@ export class NumberField extends Field {
     limits: {min: 0.01, max: 1000},
     precision: 2,
     formula: "driveV = √(Pin · Re)",
-    description: "Driver Terminal Voltage\nRMS voltage across the driver's voice-coil terminals (V = √(P · Re)).",
+    description: "Amplifier Output Voltage\nThe voltage at your amplifier's output. With one driver, or several wired in parallel, each driver gets all of it (V = √(P · Re) for one driver); wired in series each gets its share, the voltage divided by the number of drivers. Power and voltage set each other.",
   });
   static readonly SIGNAL_RS_OHM = new NumberField({
     value: "signal_Rs_ohm",
@@ -1437,6 +1437,13 @@ export class EnumField extends Field {
     options: VC_CONNECTION_OPTIONS,
     description: "Coil wiring: how you wire it in this project\nHow you wire this driver's voice coils in this project. If it differs from how the driver was measured, the calculations use the figures for your wiring (for 2 coils, Series gives Re, Le and nominal impedance ×4 and BL ×2 compared with Parallel; Fs, Q, Vas and Mms do not change). The driver's own figures are never changed. It can be changed only for a driver with 2 or more coils whose measured wiring is stated.",
   });
+  /** How the project's several drivers are wired to the amplifier (ticket 519; John's approved text, copied exactly after the title line). */
+  static readonly PROJECT_DRIVERWIRING = new EnumField({
+    value: "project_driverWiring",
+    label: "Driver wiring",
+    options: DRIVER_WIRING_OPTIONS,
+    description: "Driver wiring\nHow the drivers are connected to the amplifier. Parallel: each driver gets the full amplifier voltage; the load is one driver's impedance divided by the number of drivers (4 × 8 Ω → 2 Ω). Series: the voltage is split between the drivers; the load is the impedance times the number (4 × 8 Ω → 32 Ω). This changes the impedance chart, the SPL and excursion for a given amplifier voltage, and how Rg acts. Not the same as Coil wiring, which connects the voice coils inside one driver.",
+  });
 
   // ── Filters ───────────────────────────────────────────────────────────────────────────────
   static readonly FILTER_TYPE = new EnumField({
@@ -1610,6 +1617,11 @@ export class ToggleField extends Field {
     label: "Simplified ABC intra-port velocity",
     description: "Simplified ABC intra-port velocity: WinISD works out the air speed in an ABC box's inner port without a small leak term, Zf·jωMai/Ricl, but that term is part of the real current through the port mass. So its chart is slightly off: by up to 1.35 dB and 4.6° near 110 Hz, and under 0.1 dB elsewhere (W5-1138SMF). OpenISD drops the same term by default, so it matches WinISD. Untick this to use the exact port-mass current. It changes the ABC box's Intra port velocity chart only.",
   }, null, 'intra-port');
+  static readonly ADV_WINISDONEDRIVERIMPEDANCE = new ToggleField({
+    value: "adv_WinisdOneDriverImpedance",
+    label: "Impedance of one driver",
+    description: "Impedance of one driver: WinISD works out the sound as if the drivers were wired in parallel (each gets the full voltage), but its impedance chart shows only ONE driver, not the load the amplifier really sees with them in parallel (4 × 8 Ω is 2 Ω). So the two do not match. OpenISD shows the load for the wiring you chose under Driver wiring. Tick this to see one driver's impedance as WinISD does; the sound and every other chart stay the same.",
+  });
 
   static readonly ALL: readonly ToggleField[] =
     Object.freeze(Object.values(ToggleField).filter((v): v is ToggleField => v instanceof ToggleField));

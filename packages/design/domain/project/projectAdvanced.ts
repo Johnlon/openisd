@@ -185,4 +185,14 @@ export class ProjectAdvanced {
             set: (on: boolean) => lens.set(on),
         };
     }
+
+    /** WinISD Compatibility "Impedance of one driver": the impedance chart shows one driver, as WinISD's does. Off: the load the
+     *  amplifier sees for the project's Driver wiring. Off where a project does not say (QO946.c131). Saved and loaded only. */
+    get winisdOneDriverImpedance(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdOneDriverImpedance');
+        return {
+            get value() { return lens.value ?? CompatSwitch.ONE_DRIVER_IMPEDANCE.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
 }

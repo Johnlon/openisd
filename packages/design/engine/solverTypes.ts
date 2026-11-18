@@ -108,7 +108,7 @@ export interface SignalSolverParams {
   /** Drivers sharing `power_W`; each gets `power_W / nDrivers` at `voltage_V`. Absent: 1. */
   nDrivers?: SolverInput;
   /** How the drivers are wired to the amplifier (ticket #519); `voltage_V` is then the amplifier's output voltage and
-   *  `rgAtDriverSide` says where `Rs_ohm` sits. Absent: `power_W = nDrivers · voltage_V² / (Re + Rs)`. */
+   *  `rgAtDriverSide` says where `Rs_ohm` sits. Absent wiring: Parallel; absent `rgAtDriverSide`: at the driver. */
   driverWiring?: DriverWiring;
   rgAtDriverSide?: boolean;
 }

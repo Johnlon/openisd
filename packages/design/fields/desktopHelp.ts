@@ -70,6 +70,7 @@ const FILTER_ROWS: readonly PhoneHelpRow[] = PHONE_FILTER_CHIPS.map(chip => {
 export class DesktopHelp {
   static readonly PLACEMENT = new PhoneHelpSection('Placement', 'How many drivers the box holds and how you wire a multi-coil driver in this project.', [
     captioned(PhoneHelpRows.DRIVERS, DesktopLabels.NUM_DRIVERS),
+    PhoneHelpRows.DRIVER_WIRING,
     PhoneHelpRows.COIL_WIRING,
   ]);
 

@@ -31,6 +31,7 @@ import { ProjectCoilWiring } from './projectCoilWiring.js';
 import { ProjectMeta } from './projectMeta.js';
 import { ProjectListeners } from './projectListeners.js';
 import { resolveProject, usableRe } from './projectResolve.js';
+import { PROJECT_DEFAULT_DRIVER_WIRING } from './driverWiringDefault.js';
 import { ProjectSignal } from './projectSignal.js';
 import { TuneLimits } from './tuneLimits.js';
 import { tuneViewOf } from './tuneView.js';
@@ -174,6 +175,16 @@ export class OpenISDProject {
      *  goes back to one driver (John, 2026-10-09). */
     get nDrivers(): SimpleField<number> & Clearable {
         return defaultedField(focus(this.#slot('driverEmbedding'), 'nDrivers'), 1);
+    }
+
+    /** "Driver wiring": how the project's `nDrivers` drivers are wired to the amplifier (QO946.c129). Parallel where a project does
+     *  not say. Saved and loaded only; the engine does not read it yet. Not the coil wiring inside one driver (`coilWiring`). */
+    get driverWiring(): SimpleField<'parallel' | 'series'> {
+        const lens = focus(this.#slot('driverEmbedding'), 'driverWiring');
+        return {
+            get value() { return lens.value ?? PROJECT_DEFAULT_DRIVER_WIRING; },
+            set: (wiring: 'parallel' | 'series') => lens.set(wiring),
+        };
     }
 
     /** "Coil wiring": how the user wires a multi-coil driver's own coils, beside the wiring it was
@@ -333,6 +344,16 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdAbcIntraPortVelocity;
     }
 
+    /** "Driver wiring" says something only with 2 or more drivers; the control is drawn only then (plan 519, 3.1). */
+    get driverWiringApplies(): boolean {
+        return this.nDrivers.value >= 2;
+    }
+
+    /** "Impedance of one driver" changes the impedance chart only with 2 or more drivers (plan 519, 3.2). */
+    get winisdOneDriverImpedanceApplies(): boolean {
+        return this.nDrivers.value >= 2;
+    }
+
     /** "Simplified ABC intra-port velocity" acts on the open box: an ABC box only. */
     get winisdAbcIntraPortVelocityApplies(): boolean {
         return this.box.boxType.value === 'abc';
@@ -382,6 +403,11 @@ export class OpenISDProject {
             coilWiringApplies: this.coilWiring.canChoose,
             tlPortModel: this.useTransmissionLinePortModel.value,
         });
+    }
+
+    /** WinISD Compatibility "Impedance of one driver" — see `ProjectAdvanced.winisdOneDriverImpedance`. Saved and loaded only. */
+    get winisdOneDriverImpedance(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdOneDriverImpedance;
     }
 
     /** WinISD Compatibility "Uncapped flat response" — see `ProjectAdvanced.winisdFlatModel`. */
@@ -628,6 +654,8 @@ export class OpenISDProject {
             powerDriveOver: (root) => this.#signalOver(root).powerDrive_W,
             driveVoltageOver: (root) => this.#signalOver(root).driveVoltage_V,
             readoutRsOhmOver: (root) => this.#signalOver(root).readoutRs_ohm,
+            driverWiringOver: () => this.driverWiring.value,
+            rgAtDriverSideOver: () => this.rgAtDriverSide.value,
         });
     }
 
@@ -717,6 +745,8 @@ export class OpenISDProject {
             () => this.Rs_ohm.value,
             () => this.winisdVaModel.value,
             () => this.nDrivers.value,
+            () => this.driverWiring.value,
+            () => this.rgAtDriverSide.value,
             () => this.#issues.signal,
         );
     }
@@ -811,6 +841,8 @@ export class OpenISDProject {
             driver: this.driver,
             box: this.box,
             nDrivers: this.nDrivers,
+            driverWiring: this.driverWiring,
+            winisdOneDriverImpedance: this.winisdOneDriverImpedance,
             Rs_ohm: this.Rs_ohm,
             circuitModel: this.circuitModel,
             winisdDriverModel: this.winisdDriverModel,

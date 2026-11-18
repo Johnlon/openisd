@@ -32,6 +32,11 @@ export function useMobileAdvancedTab() {
     void projectChanged.value;
     return project.value.winisdAbcIntraPortVelocityApplies;
   });
+  /** "Impedance of one driver" acts with 2 or more drivers. */
+  const oneDriverImpedanceApplies = computed(() => {
+    void projectChanged.value;
+    return project.value.winisdOneDriverImpedanceApplies;
+  });
 
   return {
     project,
@@ -40,6 +45,6 @@ export function useMobileAdvancedTab() {
     envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
     advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
     resetAirToAppDefaults, advAir,
-    abcVelocityApplies, errorSwitches,
+    abcVelocityApplies, oneDriverImpedanceApplies, errorSwitches,
   };
 }

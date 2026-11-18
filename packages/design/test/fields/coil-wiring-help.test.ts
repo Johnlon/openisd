@@ -47,3 +47,12 @@ describe('the two Coil wiring helps', () => {
     expect(body(project).length).toBeGreaterThan(40);
   });
 });
+
+describe('the Driver wiring help (ticket 519)', () => {
+  it('the ? sheets (phone and desktop) carry the approved registry text, word for word', () => {
+    const body = EnumField.PROJECT_DRIVERWIRING.description.slice(EnumField.PROJECT_DRIVERWIRING.description.indexOf('\n') + 1);
+    expect(PhoneHelpRows.DRIVER_WIRING.text.toLowerCase()).toBe(body.toLowerCase());
+    expect(PhoneHelp.DRIVER.rows).toContain(PhoneHelpRows.DRIVER_WIRING);
+    expect(DesktopHelp.PLACEMENT.rows).toContain(PhoneHelpRows.DRIVER_WIRING);
+  });
+});

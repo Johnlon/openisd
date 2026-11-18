@@ -37,8 +37,8 @@ describe('driver wiring data (slice 2, inert): the saved file', () => {
     const p = sealedProject();
     p.save();
     return p.toOwprText()
-      .replace(/"nDrivers": 1,/, '"nDrivers": 1, "driverWiring": "series",')
-      .replace(/"advanced": \{/, '"advanced": { "winisdOneDriverImpedance": true,');
+      .replace(/"driverWiring": "parallel"/, '"driverWiring": "series"')
+      .replace(/"winisdOneDriverImpedance": false/, '"winisdOneDriverImpedance": true');
   }
 
   it('a file that carries driverWiring is accepted and writes both back as they were', () => {
@@ -58,18 +58,19 @@ describe('driver wiring data (slice 2, inert): the saved file', () => {
   it('a file from before the keys existed (neither key) is accepted', () => {
     const p = sealedProject();
     p.save();
-    const text = p.toOwprText();
+    // Every save now writes both keys (plan 4.1), so a file from before them is made by taking them out.
+    const text = p.toOwprText().replace(/,?\s*"driverWiring": "parallel"/, '').replace(/,?\s*"winisdOneDriverImpedance": false/, '');
     expect(text).not.toMatch(/driverWiring|winisdOneDriverImpedance/);
     expect(Array.isArray(OpenISDProject.fromOwprText(text, createEngine()))).toBe(false);
   });
 
   it('a winisdOneDriverImpedance that is not a boolean is refused by the schema', () => {
-    const text = sealedProjectText().replace(/"advanced": \{/, '"advanced": { "winisdOneDriverImpedance": "yes",');
+    const text = sealedProjectText().replace(/"winisdOneDriverImpedance": false/, '"winisdOneDriverImpedance": "yes"');
     expect(Array.isArray(OpenISDProject.fromOwprText(text, createEngine()))).toBe(true);
   });
 
   it('a driverWiring that is not parallel or series is refused by the schema', () => {
-    const text = sealedProjectText().replace(/"nDrivers": 1,/, '"nDrivers": 1, "driverWiring": "star",');
+    const text = sealedProjectText().replace(/"driverWiring": "parallel"/, '"driverWiring": "star"');
     expect(text).toMatch(/"driverWiring": "star"/);
     expect(Array.isArray(OpenISDProject.fromOwprText(text, createEngine()))).toBe(true);
   });

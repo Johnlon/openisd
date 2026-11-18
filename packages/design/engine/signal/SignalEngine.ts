@@ -11,7 +11,8 @@
 import {missingDependencies} from '../consistency.js';
 import type {CalculationIssue} from '../consistency.js';
 import type {SignalSolverParams} from '../solverTypes.js';
-import {amplifierVoltage, driverDrive} from '../array/driverWiring.js';
+import type {DriverWiring} from '../array/driverWiring.js';
+import {DEFAULT_DRIVER_WIRING, amplifierVoltage, driverDrive} from '../array/driverWiring.js';
 
 export type SignalQuantityName = keyof SignalSolverParams;
 export type SignalIssue = CalculationIssue<SignalQuantityName>;
@@ -44,6 +45,9 @@ export function driveFromVoltage(eg: number, re: number, rs: number = 0): number
 export interface SignalEngine {
   /** The voltage that delivers `pin` watts into `re` (+ `rs`) ohms. */
   driveVoltage(pin: number, re: number, rs?: number): number;
+  /** The amplifier's output voltage that delivers `pin_W` into `n` drivers of `re` ohms wired `wiring` through source resistance `rs`
+   *  (placed as `rgAtDriverSide` says). */
+  amplifierVoltageFor(pin_W: number, n: number, wiring: DriverWiring, re: number, rs: number, rgAtDriverSide: boolean): number;
   /** With a usable Re: an entered V writes P = N·V²/Re as calculated, otherwise P writes
    *  V = √(P/N·Re) as calculated. Without Re: P not available, with the issue naming Re. */
   solve(p: SignalSolverParams): readonly SignalIssue[];
@@ -52,25 +56,27 @@ export interface SignalEngine {
 export class SignalEngineImpl implements SignalEngine {
   readonly driveVoltage = driveVoltage;
 
+  amplifierVoltageFor(pin_W: number, n: number, wiring: DriverWiring, re: number, rs: number, rgAtDriverSide: boolean): number {
+    const drive = driverDrive(n, wiring, 1, rs, rgAtDriverSide);
+    return amplifierVoltage(n, wiring, driveVoltage(pin_W / n, re, drive.Rg_ohm));
+  }
+
   solve(p: SignalSolverParams): readonly SignalIssue[] {
     const Re_ohm = p.Re_ohm.value;
     const Rs_ohm = p.Rs_ohm?.value ?? 0;
     const nDrivers = p.nDrivers?.value ?? null;
     const n = usable(nDrivers) ? nDrivers : 1;
     if (usable(Re_ohm)) {
-      // With a driver wiring `voltage_V` is the amplifier's voltage: each driver gets `drive.eg_V` through `drive.Rg_ohm`.
-      // Without one, each driver gets `voltage_V` and `Rs_ohm` as they are.
-      const wiring = p.driverWiring;
-      const drive = wiring === undefined ? null : driverDrive(n, wiring, p.voltage_V.value, Rs_ohm, p.rgAtDriverSide !== false);
+      // `voltage_V` is the amplifier's voltage: each driver gets `drive.eg_V` through `drive.Rg_ohm`. Absent wiring is Parallel.
+      const wiring = p.driverWiring ?? DEFAULT_DRIVER_WIRING;
+      const drive = driverDrive(n, wiring, p.voltage_V.value, Rs_ohm, p.rgAtDriverSide !== false);
       if (p.voltage_V.entered) {
-        p.power_W.setCalculated(n * (drive === null ? driveFromVoltage(p.voltage_V.value, Re_ohm, Rs_ohm) : driveFromVoltage(drive.eg_V, Re_ohm, drive.Rg_ohm)));
+        p.power_W.setCalculated(n * driveFromVoltage(drive.eg_V, Re_ohm, drive.Rg_ohm));
         return [];
       }
       const power_W = p.power_W.value;
       if (usable(power_W)) {
-        const eachRg_ohm = drive === null ? Rs_ohm : drive.Rg_ohm;
-        const eg_V = this.driveVoltage(power_W / n, Re_ohm, eachRg_ohm);
-        p.voltage_V.setCalculated(wiring === undefined ? eg_V : amplifierVoltage(n, wiring, eg_V));
+        p.voltage_V.setCalculated(this.amplifierVoltageFor(power_W, n, wiring, Re_ohm, Rs_ohm, p.rgAtDriverSide !== false));
         return [];
       }
     }

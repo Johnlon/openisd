@@ -32,7 +32,7 @@ interface Case {
   readonly capture: { readonly grid: Grid; readonly step: number };
   /** The non-default switches the capture was logged with. */
   readonly configure: (project: OpenISDProject) => void;
-  readonly checks: (sw: Sweep, mx: MaxCurves) => readonly Check[];
+  readonly checks: (sw: Sweep, mx: MaxCurves, load: Sweep) => readonly Check[];
 }
 
 const spl = (sw: Sweep, want: readonly WinIsdPlottedPoint[]): Check => ({title: 'SPL (≤1e-12 relative)', name: 'SPL', got: sw.spl, want, bound: relative(1e-12)});
@@ -43,11 +43,11 @@ const CASES: readonly Case[] = [
   {
     label: 'sealed box', wpr: 'sealed-w5-nd2', capture: SEALED,
     configure: (project) => project.nDrivers.set(2),
-    checks: (sw, mx) => [
+    checks: (sw, mx, load) => [
       spl(sw, SEALED.spl_dB),
       // OpenISD states excursion in mm; the ÷1000 back to m costs ~2e-12 relative.
       {title: 'excursion (≤1e-11 relative)', name: 'excursion', got: sw.exc.map((mm) => mm / 1000), want: SEALED.excursion_m, bound: relative(1e-11)},
-      impedance(sw, SEALED.impedance_ohm),
+      impedance(load, SEALED.impedance_ohm),
       // TF passes through 0 dB, where a relative bound means nothing.
       {title: 'transfer function (≤1e-12 dB)', name: 'transfer function', got: sw.tfMag, want: SEALED.tfMag_dB, bound: absolute(1e-12)},
       maxPower(mx, SEALED.maxPower_W),
@@ -61,31 +61,41 @@ const CASES: readonly Case[] = [
   {
     label: '4th-order bandpass box', wpr: 'bp4-w5-nd2', capture: BP4,
     configure: () => undefined,
-    checks: (sw, mx) => [spl(sw, BP4.spl_dB), impedance(sw, BP4.impedance_ohm), maxPower(mx, BP4.maxPower_W)],
+    checks: (sw, mx, load) => [spl(sw, BP4.spl_dB), impedance(load, BP4.impedance_ohm), maxPower(mx, BP4.maxPower_W)],
   },
   {
     label: '6th-order bandpass box', wpr: 'bp6-w5-nd2', capture: BP6,
     configure: () => undefined,
-    checks: (sw, mx) => [spl(sw, BP6.spl_dB), impedance(sw, BP6.impedance_ohm), maxPower(mx, BP6.maxPower_W)],
+    checks: (sw, mx, load) => [spl(sw, BP6.spl_dB), impedance(load, BP6.impedance_ohm), maxPower(mx, BP6.maxPower_W)],
   },
   {
     label: 'ABC box', wpr: 'abc-w5-nd2', capture: ABC,
     configure: () => undefined,
-    checks: (sw, mx) => [spl(sw, ABC.spl_dB), impedance(sw, ABC.impedance_ohm), maxPower(mx, ABC.maxPower_W)],
+    checks: (sw, mx, load) => [spl(sw, ABC.spl_dB), impedance(load, ABC.impedance_ohm), maxPower(mx, ABC.maxPower_W)],
   },
   {
     label: 'passive-radiator box', wpr: 'pr-w5-nd2', capture: PR,
     // WinISD's own fixed-loss frequency (Npr times below the tuning) is what these captures show.
     configure: (project) => project.winisdPrNprResonance.set(true),
-    checks: (sw, mx) => [spl(sw, PR.spl_dB), impedance(sw, PR.impedance_ohm), maxPower(mx, PR.maxPower_W)],
+    checks: (sw, mx, load) => [spl(sw, PR.spl_dB), impedance(load, PR.impedance_ohm), maxPower(mx, PR.maxPower_W)],
   },
 ];
 
-function setUpProject(c: Case): OpenISDProject {
+/** Where the amplifier's series resistance Rg sits, and whether the Impedance chart shows one driver.
+ *  John, 18 Nov 2026, "A: real circuit": Rg sits at the amplifier, so N drivers in parallel each see N x Rg.
+ *  WinISD instead gives EACH driver Rg (its SPL, excursion, TF and max power) and plots an impedance WITHOUT Rg, of one
+ *  driver. No single OpenISD setting reproduces both, so each capture is matched with the setting that reproduces it:
+ *  `rgAtDriver` true for the response checks, false (with the "Impedance of one driver" switch) for the impedance check. */
+interface Setting { readonly rgAtDriver: boolean; readonly oneDriverImpedance: boolean }
+const RESPONSE: Setting = {rgAtDriver: true, oneDriverImpedance: false};
+const LOAD: Setting = {rgAtDriver: false, oneDriverImpedance: true};
+
+function setUpProject(c: Case, setting: Setting): OpenISDProject {
   const {value: project, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(readFileSync(join(FIXTURES, `${c.wpr}.wpr`), 'utf8'));
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   project.winisdDriverModel.set(true);
-  project.rgAtDriverSide.set(false);
+  project.rgAtDriverSide.set(setting.rgAtDriver);
+  project.winisdOneDriverImpedance.set(setting.oneDriverImpedance);
   c.configure(project);
   return project;
 }
@@ -93,11 +103,12 @@ function setUpProject(c: Case): OpenISDProject {
 describe('two drivers match WinISD (one driver\'s impedance, the array\'s SPL, VA and power)', () => {
   for (const c of CASES) {
     describe(`${c.label} (${c.wpr})`, () => {
-      const project = setUpProject(c);
+      const project = setUpProject(c, RESPONSE);
       const sw = project.sweep(c.capture.grid).values!;
       const mx = project.maxCurves(c.capture.grid).values!;
+      const load = setUpProject(c, LOAD).sweep(c.capture.grid).values!;
 
-      for (const check of c.checks(sw, mx)) {
+      for (const check of c.checks(sw, mx, load)) {
         it(check.title, () => assertMatchesCapture(check, c.capture.step));
       }
     });
@@ -111,7 +122,7 @@ describe('two drivers match WinISD (one driver\'s impedance, the array\'s SPL, V
 describe('driver count and drive level (W5-1138SMF sealed, 4.48 L per driver)', () => {
   const grid: FrequencyGrid = {fmin: 10, fmax: 1000, N: 100};
   const project = (n: number): OpenISDProject => {
-    const p = setUpProject(CASES[0]);
+    const p = setUpProject(CASES[0], RESPONSE);
     p.nDrivers.set(n);
     p.box.sealed.volume_m3.set(0.00448 * n);
     return p;

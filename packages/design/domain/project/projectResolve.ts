@@ -33,6 +33,9 @@ export interface ProjectResolveContext {
     readonly driveVoltageOver: (root: SimpleField<OpenISDProjectJson>) => DefaultingFieldImpl<number>;
     /** The series resistance the power/voltage relation counts (Rg, or 0 with WinISD's Re-only readout). */
     readonly readoutRsOhmOver: (root: SimpleField<OpenISDProjectJson>) => number;
+    /** The project's Driver wiring and where its Rg sits: what `voltage_V` (the amplifier's) means for each driver. */
+    readonly driverWiringOver: (root: SimpleField<OpenISDProjectJson>) => 'parallel' | 'series';
+    readonly rgAtDriverSideOver: (root: SimpleField<OpenISDProjectJson>) => boolean;
 }
 
 /** The issues of whichever box type is active; the rest stay empty. */
@@ -60,7 +63,7 @@ interface BoxSolved {
  * flow, same reads, same writes: only the collaborators that were `this.#x` are now `ctx.x`.
  */
 export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
-    const { directRoot, engine, driverOver, boxOver, airFieldsOver, powerDriveOver, driveVoltageOver, readoutRsOhmOver } = ctx;
+    const { directRoot, engine, driverOver, boxOver, airFieldsOver, powerDriveOver, driveVoltageOver, readoutRsOhmOver, driverWiringOver, rgAtDriverSideOver } = ctx;
 
     // Before the driver: the five air quantities are worked out first, from the entered ones and
     // else from the app's values, so the driver, the box and the sweep run in a settled air.
@@ -78,6 +81,8 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         voltage_V: driveVoltageOver(directRoot),
         Rs_ohm: inputOf(() => readoutRsOhmOver(directRoot)),
         nDrivers: inputOf(() => directRoot.value.driverEmbedding.nDrivers),
+        driverWiring: driverWiringOver(directRoot),
+        rgAtDriverSide: rgAtDriverSideOver(directRoot),
     });
 
     const box = boxOver(directRoot);

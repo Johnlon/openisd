@@ -12,6 +12,7 @@ import UIField from '../../components/UIField.vue';
 import PortShapeToggle from '../../components/PortShapeToggle.vue';
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import DriverCoilWiring from '../../components/DriverCoilWiring.vue';
+import DriverWiring from '../../components/DriverWiring.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
@@ -66,7 +67,7 @@ const {
   showEnclosureTab, enclosureNavLabel,
   helpPanel, closeHelp, openSectionHelp, openTabHelp, tabHelpShown, rearChamberHelp, frontChamberHelp, passiveRadiatorHelp, userOptionsHelp,
   placementHelp, advancedOptionsHelp, listeningPlaceHelp, signalSourceHelp, limitsHelp, ventHelp,
-  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown,
+  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, abcVelocityApplies, oneDriverImpedanceApplies, errorSwitches, chartDeviations, prNprDeviationShown,
   boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -471,6 +472,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <label><input type="radio" name="og-placement" value="standard" v-model="placement"> Standard</label>
                 <label><input type="radio" name="og-placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
               </div>
+              <DriverWiring />
               <DriverCoilWiring />
             </div>
             <div>
@@ -647,6 +649,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div>
                   <label data-field-key="winisdAbcIntraPortVelocity" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :class="{ 'compat-switch-na': !abcVelocityApplies }" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
                     <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => setCompatSwitch(project.winisdAbcIntraPortVelocity, inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY" />
+                  </label>
+                </div>
+                <div>
+                  <label data-field-key="winisdOneDriverImpedance" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :class="{ 'compat-switch-na': !oneDriverImpedanceApplies }" :title="ToggleField.ADV_WINISDONEDRIVERIMPEDANCE.description">
+                    <input type="checkbox" :checked="project.winisdOneDriverImpedance.value" :disabled="!oneDriverImpedanceApplies" @change="e => setCompatSwitch(project.winisdOneDriverImpedance, inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDONEDRIVERIMPEDANCE" />
                   </label>
                 </div>
                 </div>

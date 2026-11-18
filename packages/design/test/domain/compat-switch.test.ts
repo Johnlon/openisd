@@ -2,7 +2,7 @@
  * The WinISD Compatibility switches (John, 2026-10-05): each is a WinISD bug or a WinISD option.
  * A bug switch sits under the "Enable WinISD bugs" heading and is named by the bug ("Re without Rg");
  * an option sits under "Enable WinISD-style" and is named by the calculation ("Phase wrapping").
- * A new project, and a file that does not say, has every bug unticked and every option ticked.
+ * A new project, and a file that does not say, has every bug unticked and every option ticked, except "Impedance of one driver" (off: QO946.c131).
  */
 import {describe, expect, it} from 'vitest';
 import {CompatSwitch} from '../../domain/project/compatSwitch.js';
@@ -13,7 +13,7 @@ import {CompatSwitchGroup} from '../../fields/compatSwitchGroup.js';
 import {ToggleField} from '../../fields/field.js';
 import {WinisdDeviation} from '../../fields/winisdDeviation.js';
 describe('CompatSwitch', () => {
-  it('lists the eight WinISD bugs and the three options', () => {
+  it('lists the eight WinISD bugs and the four options', () => {
     expect(CompatSwitch.BUGS.map(s => s.field.label)).toEqual([
       'Two-BL driver',
       'Re without Rg',
@@ -28,6 +28,7 @@ describe('CompatSwitch', () => {
       'Phase wrapping',
       'Uncapped flat response',
       'Simplified ABC intra-port velocity',
+      'Impedance of one driver',
     ]);
     expect(CompatSwitch.ALL).toEqual([...CompatSwitch.BUGS, ...CompatSwitch.OPTIONS]);
   });
@@ -59,7 +60,11 @@ describe('CompatSwitch', () => {
   it('a new project has every bug unticked and every option on WinISD\'s side', () => {
     const p = sealedProject();
     for (const s of CompatSwitch.BUGS) expect(s.of(p).value, s.field.label).toBe(false);
-    for (const s of CompatSwitch.OPTIONS) expect(s.of(p).value, s.field.label).toBe(true);
+    for (const s of CompatSwitch.OPTIONS) expect(s.of(p).value, s.field.label).toBe(s === CompatSwitch.ONE_DRIVER_IMPEDANCE ? false : true);
+  });
+
+  it('"Impedance of one driver" is the one option that is OFF for a new project (John, QO946.c131; CLAUDE.md carries the allowance)', () => {
+    expect(CompatSwitch.OPTIONS.filter(s => !s.winisdValue)).toEqual([CompatSwitch.ONE_DRIVER_IMPEDANCE]);
   });
 
   it('a project file that does not say reads the same as a new project', () => {

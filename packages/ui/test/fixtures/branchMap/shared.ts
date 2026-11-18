@@ -98,6 +98,8 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-86a74738b0c40fb4':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:32
   'conditional-branch-265d98b1829da319':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:35
   'conditional-branch-ad20275eedeb4b3a':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:34 (the catcher over the greyed control)
+  'conditional-branch-587ab05924db500c':{kind:'partOf',view:'tab-driver'}, // components/DriverWiring.vue:15 (the phone row)
+  'conditional-branch-eb847ee4b5bc2de2':{kind:'partOf',view:'tab-driver'}, // components/DriverWiring.vue:23 (the desktop row)
   'conditional-branch-b989dd12d68f1ae3':{kind:'notAView',reason:'summary button that opens the driver disagreements list'}, // components/DriverConsistencyList.vue:12
   'surface-root-45df5e0dad260e9f':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:703
   'surface-root-f94135dc62e865bf':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:704

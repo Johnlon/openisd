@@ -22,7 +22,7 @@ const {
   envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
   advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
   resetAirToAppDefaults,
-  abcVelocityApplies, errorSwitches, setCompatSwitch,
+  abcVelocityApplies, oneDriverImpedanceApplies, errorSwitches, setCompatSwitch,
 } = useMobileAdvancedTab();
 </script>
 
@@ -57,6 +57,11 @@ const {
     <div class="mob-switch-row" :class="{ 'mob-row-na': !abcVelocityApplies }">
       <label data-field-key="winisdAbcIntraPortVelocity" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
         <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => setCompatSwitch(project.winisdAbcIntraPortVelocity, inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY" />
+      </label>
+    </div>
+    <div class="mob-switch-row" :class="{ 'mob-row-na': !oneDriverImpedanceApplies }">
+      <label data-field-key="winisdOneDriverImpedance" :title="ToggleField.ADV_WINISDONEDRIVERIMPEDANCE.description">
+        <input type="checkbox" :checked="project.winisdOneDriverImpedance.value" :disabled="!oneDriverImpedanceApplies" @change="e => setCompatSwitch(project.winisdOneDriverImpedance, inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDONEDRIVERIMPEDANCE" />
       </label>
     </div>
     <ErrorSwitchGroup>

@@ -239,27 +239,29 @@ describe('OpenISDProject signal', () => {
         if (dq?.kind === 'missing-dependencies') expect(dq.routes[0].missing).toContain('Re_ohm');
       });
 
-      // "Driver input voltage (each)": N drivers share the power, each fed P/N, so
-      // V_each = √(P/N · (Re+Rs)) and P = N·V_each²/(Re+Rs) (WinISD, winisd_research nd-1).
+      // "Driver input voltage (each)": N drivers share the power, each fed P/N. With N = 1 that is
+      // V = √(P · (Re+Rg)) and P = V²/(Re+Rg) (WinISD, winisd_research nd-1). John, 18 Nov 2026, "A: real circuit":
+      // the amplifier's Rg sits at the amplifier, so N drivers in parallel each see Re + N·Rg:
+      // V_each = √(P/N · (Re+N·Rg)) and P = N·V_each²/(Re+N·Rg). Here Re 6, Rg 0.1, N 4: Re+N·Rg = 6.4.
       // BUG_20261005_drive-voltage-each-stale-with-driver-count.
-      it('pre: Re 6, P 1 E, N 1 | N → 4 | post: V each = √(6.1/4) C, P 1 E', () => {
+      it('pre: Re 6, P 1 E, N 1 | N → 4 | post: V each = √(6.4/4) C, P 1 E', () => {
         const p = sealedProject();
         p.driver.specs.Re_ohm.set(6);
         p.nDrivers.set(4);
         expect(p.powerDrive_W.value).toBe(1);
         expect(p.powerDrive_W.entered).toBe(true);
-        expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6.1 / 4), 12);
+        expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6.4 / 4), 12);
         expect(p.driveVoltage_V.calculated).toBe(true);
       });
 
-      it('pre: Re 6, N 4 | type V each 2 | post: P = 4·4/6.1 C', () => {
+      it('pre: Re 6, N 4 | type V each 2 | post: P = 4·4/6.4 C', () => {
         const p = sealedProject();
         p.driver.specs.Re_ohm.set(6);
         p.nDrivers.set(4);
         p.driveVoltage_V.set(2);
         expect(p.driveVoltage_V.value).toBe(2);
         expect(p.powerDrive_W.calculated).toBe(true);
-        expect(p.powerDrive_W.value).toBeCloseTo(16 / 6.1, 12);
+        expect(p.powerDrive_W.value).toBeCloseTo(16 / 6.4, 12);
       });
 
       it('pre: Re 6, N 4, V each 2 E | N → 1 | post: P = 4/6.1 C, V 2 E', () => {
@@ -279,7 +281,7 @@ describe('OpenISDProject signal', () => {
         p.nDrivers.set(4);
         const plan = p.sweepPlan({fmin: 10, fmax: 1000, N: 10});
         if (plan.kind !== 'ready') throw new Error('sweep blocked');
-        expect(plan.job.sweep.eg).toBeCloseTo(Math.sqrt(6.1 / 4), 12);
+        expect(plan.job.sweep.eg).toBeCloseTo(Math.sqrt(6.4 / 4), 12);
       });
 
       it('pre: Re none, P N, V 1 C | type V 10 | post: P N, V 10 E', () => {

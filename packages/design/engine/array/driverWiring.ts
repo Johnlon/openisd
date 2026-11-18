@@ -7,6 +7,9 @@
 
 export type DriverWiring = 'parallel' | 'series';
 
+/** The wiring of a project that never chose one: Parallel (the saved default, plan 4.1). */
+export const DEFAULT_DRIVER_WIRING: DriverWiring = 'parallel';
+
 /** What ONE of n identical drivers sees, and how its impedance maps to the load the amplifier sees. */
 export interface DriverDrive {
   /** The voltage across the one-driver circuit's source (V). */

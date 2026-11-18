@@ -28,7 +28,7 @@ import {hotRe, isobarikPair, withAddedMass} from '../solvers/driverQuantities.js
 import {applyFilters} from '../filters.js';
 import {driveFromVoltage} from '../signal/SignalEngine.js';
 import type {DriverDrive} from '../array/driverWiring.js';
-import {driverDrive} from '../array/driverWiring.js';
+import {DEFAULT_DRIVER_WIRING, driverDrive} from '../array/driverWiring.js';
 import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepPeaks, SweepResult, WinisdFilterErrors} from '../types.js';
 import type {DriverValues, SweepDriver} from '../solverTypes.js';
 import type {BoxParamsIssue, BoxParamsQuantityName, BoxParamsSolveResult} from '../params.js';
@@ -221,17 +221,14 @@ function oneBoxOfN(P: SweepParams, n: number): SweepParams {
     ...(P.Spr !== undefined ? { Spr: P.Spr / n } : {}), ...(P.SpIntra !== undefined ? { SpIntra: P.SpIntra / n } : {}) };
 }
 
-/** What each of the N drivers sees when the project states a driver wiring; `null` when it does not (today's path:
- *  every driver gets `eg` and `Rs` unscaled and the impedance chart is one driver's). */
-function arrayDrive(P: SweepParams, n: number): DriverDrive | null {
-  if (P.driverWiring === undefined) return null;
-  return driverDrive(n, P.driverWiring, P.eg, P.Rs || 0, P.rgAtDriverSide !== false);
+/** What each of the N drivers sees. An absent `driverWiring` is Parallel, what a project that never chose one is (saved default). */
+function arrayDrive(P: SweepParams, n: number): DriverDrive {
+  return driverDrive(n, P.driverWiring ?? DEFAULT_DRIVER_WIRING, P.eg, P.Rs || 0, P.rgAtDriverSide !== false);
 }
 
-/** One driver's share of the array, driven as the wiring says; with no wiring, just its share of the box. */
-function oneDriverOfArray(P: SweepParams, n: number, drive: DriverDrive | null): SweepParams {
-  const share = oneBoxOfN(P, n);
-  return drive === null ? share : {...share, eg: drive.eg_V, Rs: drive.Rg_ohm};
+/** One driver's share of the array, driven as the wiring says: its share of the box, the voltage and the series resistance it sees. */
+function oneDriverOfArray(P: SweepParams, n: number, drive: DriverDrive): SweepParams {
+  return {...oneBoxOfN(P, n), eg: drive.eg_V, Rs: drive.Rg_ohm};
 }
 
 function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | undefined, BL_typed_Tm: number | null): { value: CircuitQuantities | null; issues: DriverIssue[] } {
@@ -478,8 +475,8 @@ export class SimulationEngineImpl implements SimulationEngine {
       // The impedance chart is one driver's, as WinISD's (winisd_research FINDING_20261115: the routine
       // computes Nd·BL²/(Nd·Sd)²/(Za+Zload) + Re + jωLe, so Re is never scaled by Nd). The array's
       // impedance is ticket Johnlon/openisd#519; it replaced the "Per-driver impedance" switch (QO941).
-      // With a driver wiring the chart is the amplifier's load, one driver's x loadScale, unless "Impedance of one driver" is ticked.
-      const zScale = drive === null || P.winisdOneDriverImpedance === true ? 1 : drive.loadScale;
+      // The chart is the amplifier's load, one driver's x loadScale, unless "Impedance of one driver" is ticked (absent: unticked).
+      const zScale = P.winisdOneDriverImpedance === true ? 1 : drive.loadScale;
       const gain = 20 * Math.log10(n);
       return { ...one, values: { ...one.values,
         spl: one.values.spl.map((v) => isSilence(v) ? v : v + gain),

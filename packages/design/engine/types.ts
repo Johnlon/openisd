@@ -180,8 +180,8 @@ export type EnclosureParams = Partial<Pick<SweepParams, 'Vb' | 'Vf' | 'Sp' | 'pr
 
 export interface SweepParams {
   Vb: number;
-  /** The amplifier's output voltage (V); with one driver, the voltage at it. With `nDrivers` N and no `driverWiring`,
-   *  the voltage each driver gets (the array takes N times its power). */
+  /** The amplifier's output voltage (V); with one driver, the voltage at it. With N drivers
+   *  `driverWiring` says what each gets (Parallel: all of it, Series: 1/N). */
   eg: number;
   // Frequency grid
   fmin?: number;
@@ -189,11 +189,11 @@ export interface SweepParams {
   N?: number;
   // Multi-driver
   nDrivers?: number;
-  /** How the N drivers are wired to the amplifier (ticket #519). Absent: today's path, every driver gets `eg` and `Rs`
-   *  unscaled and the impedance chart is one driver's. Present: `engine/array/driverWiring.ts` decides what each sees. */
+  /** How the N drivers are wired to the amplifier (ticket #519); `engine/array/driverWiring.ts` decides what each sees.
+   *  Absent: Parallel, as a project that never chose one. */
   driverWiring?: DriverWiring;
   /** WinISD-style "Impedance of one driver" (ticket #519): the impedance chart shows one driver's, whatever the wiring.
-   *  Read only with `driverWiring`; absent/false = the amplifier's load. */
+   *  Absent/false: the amplifier's load. */
   winisdOneDriverImpedance?: boolean;
   Rs?: number;
   circuitModel?: CircuitModel;

@@ -5,6 +5,7 @@ import {EnumField, NumberField, PhoneHelp, PhoneLabels} from '@openisd/design/fi
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import DriverCoilWiring from '../../components/DriverCoilWiring.vue';
+import DriverWiring from '../../components/DriverWiring.vue';
 import PhoneButton from './PhoneButton.vue';
 import PhoneBand from './PhoneBand.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
@@ -25,6 +26,7 @@ const { project, fullName, keyFigures, consistencyReasons, browseDrivers, editDr
     </div>
     <PhoneBand :section="PhoneHelp.DRIVER" />
     <UIFixedField class="mob-ui-field" input-id="mob-n-drivers" :field="NumberField.DRIVER_NDRIVERS" :label="PhoneLabels.DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" />
+    <DriverWiring phone />
     <DriverCoilWiring phone />
 
     <PhoneBand :section="PhoneHelp.KEY_FIGURES" />

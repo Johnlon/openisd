@@ -27,6 +27,8 @@ export interface ProjectSweepSource {
     readonly driver: OpenISDDriverEmbedded;
     readonly box: Box;
     readonly nDrivers: SimpleField<number>;
+    readonly driverWiring: SimpleField<'parallel' | 'series'>;
+    readonly winisdOneDriverImpedance: SimpleField<boolean>;
     readonly Rs_ohm: SimpleField<number>;
     readonly circuitModel: SimpleField<'winisd' | 'gyrator' | 'winisdGyrator'>;
     readonly winisdDriverModel: SimpleField<boolean>;
@@ -96,6 +98,8 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         fmax: P.fmax,
         N: P.N ?? undefinedIfNull(source.sweepN.value),
         nDrivers: source.nDrivers.value,
+        driverWiring: source.driverWiring.value,
+        winisdOneDriverImpedance: source.winisdOneDriverImpedance.value,
         Rs: source.Rs_ohm.value,
         circuitModel: engineCircuitModel(source.circuitModel.value, source.winisdDriverModel.value),
         winisdVaModel: source.winisdVaModel.value,
@@ -305,7 +309,7 @@ function boxSweepIssuesOf(source: ProjectSweepSource, box: SimulatableBoxType): 
 }
 
 /** A sweep's settings without its air: the job carries the air once, as plain numbers. */
-export type SweepJobParams = Omit<SweepParams, 'air'>;
+export type SweepJobParams = Omit<SweepParams, 'air' | 'driverWiring' | 'winisdOneDriverImpedance'> & Required<Pick<SweepParams, 'driverWiring' | 'winisdOneDriverImpedance'>>;
 
 /** A sweep the engine runs through `runSweepJob` and `runMaxCurvesJob`. Plain data, so it crosses
  *  a Worker boundary: the air is its c and ρ as numbers, since a structured clone drops an `Air`'s

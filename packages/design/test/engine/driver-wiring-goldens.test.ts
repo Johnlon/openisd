@@ -3,8 +3,7 @@
  * Dayton DA215-8 x4 at 2.83 V: Fs 34.9 Hz, Qes 0.45, Qms 1.95, Vas 42.7 L, Sd 211.2 cm2, Re 6.8 ohm
  * (packages/ui/public/drivers/dayton-audio/da215-8.json). Absolute SPL hangs on the air model (0.05 dB); every ratio is 1e-9 dB.
  *
- * Slice 1 is inert: a sweep with no `driverWiring` is today's path, so the first block pins that it equals Parallel
- * with "Impedance of one driver" (WinISD = Parallel plus the one-driver chart).
+ * A sweep with no `driverWiring` is Parallel with "Impedance of one driver" unticked (slice 3; the slice-1 no-wiring path is gone).
  */
 import {describe, expect, it} from 'vitest';
 import type {SweepDriver} from '../../engine/solverTypes.js';
@@ -41,14 +40,14 @@ const max = (a: readonly number[]) => a.reduce((m, v) => Math.max(m, v), -Infini
 const at = (fs: readonly number[], a: readonly number[], f: number) => a[fs.findIndex((x) => x >= f)];
 const GAIN_DB = 20 * Math.log10(N);
 
-describe('absent driverWiring is today\'s path: Parallel plus "Impedance of one driver" gives the same arrays, byte for byte', () => {
+describe('a sweep with no wiring stated is exactly the Parallel result (plan 5.2, slice 3)', () => {
   for (const [label, rs, atDriver] of [['Rg 0', 0, true], ['Rg 0.5 at each driver', 0.5, true]] as const) {
     for (const [box, P] of [['sealed', SEALED_160L], ['vented', VENTED]] as const) {
-      it(`${box}, ${label}: every output array equals the absent-field sweep`, () => {
+      it(`${box}, ${label}: every output array equals the Parallel sweep, "Impedance of one driver" unticked`, () => {
         const base: SweepParams = {...P, Rs: rs, rgAtDriverSide: atDriver};
-        const today = sweepOf(DA215, box, base);
-        const wired = sweepOf(DA215, box, on(base, 'parallel', true));
-        expect(wired).toEqual(today);
+        const unstated = sweepOf(DA215, box, base);
+        const parallel = sweepOf(DA215, box, on(base, 'parallel', false));
+        expect(unstated).toEqual(parallel);
       });
     }
   }
@@ -147,6 +146,25 @@ describe('maximum curves', () => {
     const one = engine.simulation.maxCurves(DA215, undefined, 'sealed', {...SEALED_160L, nDrivers: 1, Vb: 0.04, Rs: 2.0, rgAtDriverSide: false}).values!;
     wired.maxpwr.forEach((v, i) => expect(v / (one.maxpwr[i] * N)).toBeCloseTo(1, 9));
     wired.maxspl.forEach((v, i) => expect(v - (one.maxspl[i] + GAIN_DB)).toBeCloseTo(0, 9));
+  });
+});
+
+describe('maximum curves, power limit with Rg at the amplifier (John, 18 Nov 2026, "A: real circuit")', () => {
+  // DA215: Re 6.8, Pe 100 W, 4 drivers in parallel, Rg 0.5 at the amplifier, so each driver sees Re + 4 x 0.5 = 8.8 ohm.
+  // The amplifier voltage at which each driver takes its rated Pe: V = sqrt(Pe x 8.8) = sqrt(880) = 29.665 V
+  // (not sqrt(100 x 7.3) = 27.02 V, which would put Rg at each driver). At 10 kHz the excursion is far below Xmax, so
+  // the power limit is the one that applies: array power = N x Pe = 4 x 100 = 400 W whatever Rg is.
+  const wired: SweepParams = {...on(SEALED_160L, 'parallel', false), Rs: 0.5, rgAtDriverSide: false};
+  const V_PE = Math.sqrt(100 * (6.8 + N * 0.5));
+  it('the power limit is the amplifier voltage sqrt(Pe x (Re + N x Rg)) = sqrt(880) V, and the array power is 400 W', () => {
+    expect(V_PE).toBeCloseTo(29.6648, 4);
+    const m = engine.simulation.maxCurves(DA215, undefined, 'sealed', wired).values!;
+    expect(at(m.fs, m.maxpwr, 10000)).toBeCloseTo(400, 6);
+  });
+  it('the maximum SPL at 10 kHz is the SPL the same array makes when the amplifier is set to sqrt(880) V', () => {
+    const m = engine.simulation.maxCurves(DA215, undefined, 'sealed', wired).values!;
+    const s = sweepOf(DA215, 'sealed', {...wired, eg: V_PE});
+    expect(at(m.fs, m.maxspl, 10000) - at(s.fs, s.spl, 10000)).toBeCloseTo(0, 9);
   });
 });
 

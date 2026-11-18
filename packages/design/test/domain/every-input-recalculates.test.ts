@@ -226,6 +226,7 @@ const highpass: Filter = {id: 'hp', type: 'highpass', family: 'sos', order: 2, e
 
 const PROJECT_SETTINGS: Readonly<Record<SettingKey, SettingCase>> = {
   nDrivers: moves(p => p.nDrivers.set(2)),
+  driverWiring: moves(p => p.driverWiring.set('series'), 'sealed', p => p.nDrivers.set(2)),
   vcTempRise_K: moves(p => p.vcTempRise_K.set(60)),
   Rs_ohm: moves(p => p.Rs_ohm.set(1)),
   driverAddedMass_kg: moves(p => p.driverAddedMass_kg.set(0.02)),
@@ -254,6 +255,7 @@ const PROJECT_SETTINGS: Readonly<Record<SettingKey, SettingCase>> = {
   winisdAbcGroupDelay: compat,
   winisdTlPortNoEndCorrection: compat,
   winisdFlatModel: compat,
+  winisdOneDriverImpedance: compat,
   graphs: exempt('which charts are open: view state'),
   cursorF: exempt('chart cursor: view state'),
   pinnedF: exempt('chart cursor: view state'),
@@ -301,6 +303,8 @@ const COMPAT_SCENARIOS: ReadonlyMap<CompatSwitch, CompatScenario | string> = new
   [CompatSwitch.WRAP_PHASE, {box: 'sealed', prepare: () => undefined}],
   [CompatSwitch.FLAT_MODEL, {box: 'sealed', prepare: p => p.forceFlatResponse.set(true)}],
   [CompatSwitch.ABC_INTRA_PORT_VELOCITY, {box: 'abc', prepare: () => undefined}],
+  // Two drivers: with one the impedance chart is the one driver's either way.
+  [CompatSwitch.ONE_DRIVER_IMPEDANCE, {box: 'sealed', prepare: p => p.nDrivers.set(2)}],
 ]);
 
 describe('compat switches', () => {

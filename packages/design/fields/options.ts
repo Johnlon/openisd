@@ -1,4 +1,4 @@
-import type {BoxType, FilterType, PassFamily, VentedAlignment} from '../engine/index.js';
+import type {BoxType, DriverWiring, FilterType, PassFamily, VentedAlignment} from '../engine/index.js';
 import type {VoiceCoilWiring} from '../domain/voiceCoilWiring.js';
 import type {VentShape} from '../domain/vent.js';
 
@@ -33,6 +33,12 @@ export const VENT_SHAPE_OPTIONS: readonly SelectorOption<VentShape>[] = Object.f
  *  chosen option is written to the driver as-is — the compiler checks each literal against
  *  `VoiceCoilWiring`. */
 export const VC_CONNECTION_OPTIONS: readonly SelectorOption<VoiceCoilWiring>[] = Object.freeze([
+  Object.freeze({ value: 'parallel', label: 'Parallel' }),
+  Object.freeze({ value: 'series', label: 'Series' }),
+]);
+
+/** How a project's several drivers are wired to the amplifier ("Driver wiring", ticket 519). The VALUES are the engine's own `DriverWiring`. */
+export const DRIVER_WIRING_OPTIONS: readonly SelectorOption<DriverWiring>[] = Object.freeze([
   Object.freeze({ value: 'parallel', label: 'Parallel' }),
   Object.freeze({ value: 'series', label: 'Series' }),
 ]);

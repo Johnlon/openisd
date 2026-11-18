@@ -768,6 +768,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     void projectChanged.value;
     return project.value.winisdAbcIntraPortVelocityApplies;
   });
+  /** "Impedance of one driver" acts with 2 or more drivers. */
+  const oneDriverImpedanceApplies = computed(() => {
+    void projectChanged.value;
+    return project.value.winisdOneDriverImpedanceApplies;
+  });
 
   const cloudDialogOpen = ref(false);
   function openCloudDialog(): void { cloudDialogOpen.value = true; }
@@ -824,7 +829,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     genOn, toggleGenerate, genHz, setCompatSwitch: compatSwitchSetter(featureUse),
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel, ...desktopHelp,
-    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown,
+    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, abcVelocityApplies, oneDriverImpedanceApplies, errorSwitches, chartDeviations, prNprDeviationShown,
      boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,

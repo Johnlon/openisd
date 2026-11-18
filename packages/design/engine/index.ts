@@ -50,6 +50,7 @@ export type { SimulationEngine, SweepIssue, SweepSolveResult, MaxCurvesSolveResu
 export { createSimulationEngine } from './simulation/SimulationEngine.js';
 export type {DriverEngine, DriverQuantityName, DriverIssue, DriverPrerequisite} from './driver/DriverEngine.js';
 export type {WiredMotor, WiringConversion, WiringConverted, WiringRefused} from './solvers/driverQuantities.js';
+export type {DriverWiring} from './array/driverWiring.js';
 export type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
 export type {AirInput, AirInputs, AirIssue, AirQuantityName, AirSolution, AirSolvedValues} from './environment/airSolver.js';
 export type {IssueEngine} from './issues/IssueEngine.js';

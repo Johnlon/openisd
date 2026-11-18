@@ -60,6 +60,16 @@ export class WinisdOption {
     switchField: ToggleField.ADV_WINISDABCINTRAPORTVELOCITY,
   });
 
+  /** The first option that is OFF by default (QO946.c131): ticked, WinISD's way. */
+  static readonly ONE_DRIVER_IMPEDANCE = new WinisdOption({
+    title: 'Impedance of one driver',
+    winisd: 'WinISD works out the sound as if the drivers were wired in parallel, but its impedance chart shows only ONE driver, not the load the amplifier sees (4 × 8 Ω is 2 Ω).',
+    openisd: 'Unticked (the default), OpenISD shows the load for the wiring you chose under Driver wiring.',
+    seenIn: 'the Impedance chart, with 2 or more drivers. The sound and every other chart stay the same.',
+    size: 'Four DA215-8 drivers in parallel: 1.7 Ω at high frequency in OpenISD, 6.8 Ω in WinISD. In series: 27.2 Ω against 6.8 Ω.',
+    switchField: ToggleField.ADV_WINISDONEDRIVERIMPEDANCE,
+  });
+
   /** Every option, by reflection; declared last. */
   static readonly ALL: readonly WinisdOption[] =
     Object.freeze(Object.values(WinisdOption).filter((v): v is WinisdOption => v instanceof WinisdOption));

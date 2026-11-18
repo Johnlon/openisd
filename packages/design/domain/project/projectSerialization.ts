@@ -7,14 +7,26 @@ import { parseRepairing, type Repaired } from '../schemaRepair.js';
 import { withoutDerivedMarks } from '../derivedMarks.js';
 import { retireLossMode } from './retiredLossMode.js';
 import { singleEnteredVentPairs } from './singleEnteredVentPairs.js';
+import { PROJECT_DEFAULT_DRIVER_WIRING } from './driverWiringDefault.js';
+import { CompatSwitch } from './compatSwitch.js';
+
+/** The project with "Driver wiring" and "Impedance of one driver" written out, as every save does (plan 519, 4.1), also at one
+ *  driver, so a later change of the driver count brings back the user's choice. A key the project holds is kept. */
+function withDrivingKeys(project: OpenISDProjectJson): OpenISDProjectJson {
+    return {
+        ...project,
+        driverEmbedding: {...project.driverEmbedding, driverWiring: project.driverEmbedding.driverWiring ?? PROJECT_DEFAULT_DRIVER_WIRING},
+        advanced: {...project.advanced, winisdOneDriverImpedance: project.advanced.winisdOneDriverImpedance ?? CompatSwitch.ONE_DRIVER_IMPEDANCE.winisdValue},
+    };
+}
 
 /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */
 export function sessionOf(id: string, name: string, saved: OpenISDProjectJson, edited: OpenISDProjectJson | null): OpenISDProjectSessionJson {
     return {
         id,
         label: name,
-        saved: structuredClone(saved),
-        edited: edited ? structuredClone(edited) : null,
+        saved: withDrivingKeys(structuredClone(saved)),
+        edited: edited ? withDrivingKeys(structuredClone(edited)) : null,
     };
 }
 

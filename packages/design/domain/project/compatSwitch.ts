@@ -33,6 +33,10 @@ export class CompatSwitch {
     static readonly FLAT_MODEL = new CompatSwitch(ToggleField.ADV_WINISDFLATMODEL, 'option', true, p => p.winisdFlatModel);
     static readonly ABC_INTRA_PORT_VELOCITY = new CompatSwitch(ToggleField.ADV_WINISDABCINTRAPORTVELOCITY, 'option', true, p => p.winisdAbcIntraPortVelocity);
 
+    /** "Impedance of one driver" (QO946.c131, John): the first option OFF by default, so a new project shows the amplifier's load.
+     *  Exception to "every option ticked" (CLAUDE.md, which carries the allowance line). */
+    static readonly ONE_DRIVER_IMPEDANCE = new CompatSwitch(ToggleField.ADV_WINISDONEDRIVERIMPEDANCE, 'option', false, p => p.winisdOneDriverImpedance);
+
     /** Every switch, bugs first; declared last. */
     static readonly ALL: readonly CompatSwitch[] =
         Object.freeze(Object.values(CompatSwitch).filter((v): v is CompatSwitch => v instanceof CompatSwitch));

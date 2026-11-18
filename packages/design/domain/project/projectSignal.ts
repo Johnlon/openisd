@@ -21,6 +21,8 @@ export class ProjectSignal {
     readonly #rsOhm: () => number;
     readonly #winisdReWithoutRg: () => boolean;
     readonly #nDrivers: () => number;
+    readonly #driverWiring: () => 'parallel' | 'series';
+    readonly #rgAtDriverSide: () => boolean;
     readonly #signalIssues: () => readonly SignalIssue[];
 
     constructor(
@@ -30,6 +32,8 @@ export class ProjectSignal {
         rsOhm: () => number,
         winisdReWithoutRg: () => boolean,
         nDrivers: () => number,
+        driverWiring: () => 'parallel' | 'series',
+        rgAtDriverSide: () => boolean,
         signalIssues: () => readonly SignalIssue[],
     ) {
         this.#lens = lens;
@@ -38,6 +42,8 @@ export class ProjectSignal {
         this.#rsOhm = rsOhm;
         this.#winisdReWithoutRg = winisdReWithoutRg;
         this.#nDrivers = nDrivers;
+        this.#driverWiring = driverWiring;
+        this.#rgAtDriverSide = rgAtDriverSide;
         this.#signalIssues = signalIssues;
     }
 
@@ -61,7 +67,7 @@ export class ProjectSignal {
                     if (Re_ohm === null) {
                         throw new Error('powerDrive_W cannot be entered: the driver has no usable Re_ohm yet.');
                     }
-                    if (!(v > 0 && this.#engine.driveVoltage(v / this.#nDrivers(), Re_ohm, this.readoutRs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
+                    if (!(v > 0 && this.#amplifierVoltageFor(v, Re_ohm, this.readoutRs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
                         throw new RangeError(`powerDrive_W ${v} W drives below the 10 mV minimum voltage.`);
                     }
                     signal.set({...signal.value, power_W: enteredEntry(v), voltage_V: undefined});
@@ -84,7 +90,12 @@ export class ProjectSignal {
         return this.#winisdReWithoutRg() ? 0 : this.#rsOhm();
     }
 
-    /** The voltage each driver gets in the sweep: `driveVoltage_V`, or with "Re without Rg"
+    /** The amplifier voltage that delivers `power_W` into this project's drivers, wired as chosen. */
+    #amplifierVoltageFor(power_W: number, Re_ohm: number, rs_ohm: number): number {
+        return this.#engine.amplifierVoltageFor(power_W, this.#nDrivers(), this.#driverWiring(), Re_ohm, rs_ohm, this.#rgAtDriverSide());
+    }
+
+    /** The amplifier voltage the sweep runs at (`eg`): `driveVoltage_V`, or with "Re without Rg"
      *  bug switch ticked, the voltage that drives the power read into Re + Rg — WinISD's SPL
      *  chart drives its Re-only power readout into Re + Rg. */
     get sweepVoltage_V(): number {
@@ -92,7 +103,7 @@ export class ProjectSignal {
         const Re_ohm = this.#usableRe();
         const power_W = this.powerDrive_W.value;
         if (!this.#winisdReWithoutRg() || Re_ohm === null || power_W === null) return V;
-        return this.#engine.driveVoltage(power_W / this.#nDrivers(), Re_ohm, this.#rsOhm());
+        return this.#amplifierVoltageFor(power_W, Re_ohm, this.#rsOhm());
     }
 
     /**
