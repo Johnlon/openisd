@@ -101,5 +101,12 @@ for gf in land.conf scripts/land.sh; do
     if refused_gates "$r" && grep -q "$gf" "$SCRATCH/out"; then ok "10 $gf without field refuses gates"; else fail "10 $gf (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-300)"; fi
 done
 
+# 11: the duplicate check's known-copies list is a gate file (John, 18 Nov 2026, QO948): refused without gates_approved, lands with it.
+setup "" scripts/dupscan-allow.json; r=$(land)
+if refused_gates "$r" && grep -q 'scripts/dupscan-allow.json' "$SCRATCH/out"; then ok "11 dupscan-allow.json without field refuses gates"; else fail "11 (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-300)"; fi
+
+setup $'gates_approved: QO1\n' scripts/dupscan-allow.json; r=$(land)
+[ "$r" = 0 ] && ok "12 dupscan-allow.json with a John-answered gates_approved lands" || fail "12 (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-300)"
+
 [ $fails = 0 ] && { echo "land-gates: all passed"; exit 0; }
 echo "land-gates: $fails failed"; exit 1
