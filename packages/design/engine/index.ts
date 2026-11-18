@@ -45,7 +45,7 @@ export type {
   EnclosureParams, PrParams, SweepParams, SweepResult, SweepPeaks, WprFilter, WprFilterImport,
 } from './types.js';
 export type { BoxEngine, ChartId } from './box/BoxEngine.js';
-export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
+export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult, SweepSettingName, SweepSettingIssue, SweepSettingsSolveResult } from './params.js';
 export type { SignalEngine, SignalQuantityName, SignalIssue } from './signal/SignalEngine.js';
 export type { SimulationEngine, SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './simulation/SimulationEngine.js';
 export { createSimulationEngine } from './simulation/SimulationEngine.js';

@@ -72,6 +72,9 @@ export async function openScreen(page: Page, viewport: SweepViewport, screen: Sw
   if (viewport === 'phone') {
     // The phone's Advanced screen is a pane opened from the menu, not a tab; the pane covers the tab bar until closed.
     const pane = page.locator('.mob-dlg');
+    // A person already on the Advanced pane reads it as it is: closing and reopening it would drop a refused entry
+    // still in its box (T916: the air boxes refuse 0 and below), so the reading would miss the refusal.
+    if (screen.name === 'Advanced' && await pane.isVisible()) return;
     if (await pane.isVisible()) await pane.locator('.mob-dlg-close').click();
     if (screen.name === 'Advanced') {
       await page.locator('.mob-hamburger').click();

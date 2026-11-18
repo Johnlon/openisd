@@ -5,8 +5,8 @@
  */
 import type {AirEnvironment, AppAir, EnvironmentIssue, EnvironmentSolveResult} from '../air.js';
 import {appAirOf, solveEnvironment, temperatureIssues} from '../air.js';
-import {solveAir} from './airSolver.js';
-import type {AirInputs, AirSolution} from './airSolver.js';
+import {airFloorIssues, solveAir} from './airSolver.js';
+import type {AirInputs, AirIssue, AirQuantityName, AirSolution} from './airSolver.js';
 import type {AppSettings, EnvDefaults} from '../appSettings.js';
 
 export interface EnvironmentEngine {
@@ -18,6 +18,9 @@ export interface EnvironmentEngine {
   solveAir(inputs: AirInputs): AirSolution;
   /** What is wrong with a temperature the air model does not support; empty when it is in range. */
   temperatureIssues(tempK: number): readonly EnvironmentIssue[];
+  /** What is wrong with a stated pressure, sound velocity or density at or below zero: air with
+   *  none of it is not air. Empty when the value is above zero, and for temperature and humidity. */
+  airFloorIssues(name: AirQuantityName, value: number): readonly AirIssue[];
   /** The app's air: the Options constants, which a quantity no calculation gives falls back to
    *  (as calculated), and which a new project copies in as its T, RH and p (as entered). */
   readonly appAir: AppAir;
@@ -32,6 +35,8 @@ export class EnvironmentEngineImpl implements EnvironmentEngine {
   readonly solve = solveEnvironment;
   /** `air.ts`'s temperature check, published as-is. */
   readonly temperatureIssues = temperatureIssues;
+  /** `airSolver.ts`'s floor check, published as-is. */
+  readonly airFloorIssues = airFloorIssues;
   readonly appAir: AppAir;
   /** The settings' own `envDefaults`, published as-is — `AppSettings` is a bag of arrows, so it
    *  needs no receiver. */

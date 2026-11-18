@@ -700,6 +700,7 @@ export class NumberField extends Field {
     label: "Air pressure",
     display: {kind: 'switchable', group: 'pressure', base: 'Pa'},
     limits: {min: 1000, max: 200000},
+    floor: "positive",
     precision: 0,
     description: "Air Pressure\nAtmospheric pressure — affects air density and acoustic impedance.",
   });
@@ -708,6 +709,7 @@ export class NumberField extends Field {
     label: "Sound velocity",
     display: {kind: 'fixed', symbol: 'm/s'},
     limits: {min: 0, max: 1000},
+    floor: "positive",
     precision: 2,
     formula: "c = √(γ·p/ρ), γ = 1.4",
     description: "Speed of Sound\nHow fast an acoustic wave travels through air, at the stated conditions.",
@@ -717,6 +719,7 @@ export class NumberField extends Field {
     label: "Air density",
     display: {kind: 'fixed', symbol: 'kg/m³'},
     limits: {min: 0, max: 10},
+    floor: "positive",
     precision: 5,
     formula: "ρ = p·Ma/(R·T)·[1 − xv(1 − Mv/Ma)]",
     description: "Air Density\nMass density of air, derived from temperature, humidity and pressure.",
@@ -1274,6 +1277,7 @@ export class NumberField extends Field {
     label: "Tuning freq (Frc)",
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 20000},
+    floor: "positive",
     precision: 2,
     description: "Rear Chamber Tuning Frequency (Frc)\nHelmholtz tuning frequency of the vented rear chamber in a 6th-order bandpass or ABC box. Enter the tuning frequency to calculate port length, or enter port length to calculate the tuning frequency. An unbuildable port is flagged.",
   });

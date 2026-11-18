@@ -9,6 +9,7 @@
  */
 
 import {missingDependencies} from '../consistency.js';
+import {NumberField} from '../../fields/field.js';
 import type {CalculationIssue} from '../consistency.js';
 import type {SignalSolverParams} from '../solverTypes.js';
 import type {DriverWiring} from '../array/driverWiring.js';
@@ -18,6 +19,9 @@ export type SignalQuantityName = keyof SignalSolverParams;
 export type SignalIssue = CalculationIssue<SignalQuantityName>;
 
 const usable = (v: number | null): v is number => v !== null && Number.isFinite(v) && v > 0;
+
+/** The lowest drive voltage a sweep runs at: 10 mV, the Driver input voltage box's own minimum. */
+const MIN_DRIVE_VOLTAGE_V = NumberField.SIGNAL_DRIVEV_V.limits.min;
 
 const POWER_FORMULA = 'power_W = nDrivers · voltage_V² / Re_ohm';
 const POWER_INPUTS: readonly SignalQuantityName[] = Object.freeze(['voltage_V', 'Re_ohm'] as const);
@@ -51,6 +55,9 @@ export interface SignalEngine {
   /** With a usable Re: an entered V writes P = N·V²/Re as calculated, otherwise P writes
    *  V = √(P/N·Re) as calculated. Without Re: P not available, with the issue naming Re. */
   solve(p: SignalSolverParams): readonly SignalIssue[];
+  /** The drive level no sweep runs at, read before `solve`: an entered voltage below 10 mV, or an
+   *  entered power that is not above 0 W or drives below 10 mV. Each issue names the entered box. */
+  driveLevelIssues(p: SignalSolverParams): readonly SignalIssue[];
 }
 
 export class SignalEngineImpl implements SignalEngine {
@@ -59,6 +66,28 @@ export class SignalEngineImpl implements SignalEngine {
   amplifierVoltageFor(pin_W: number, n: number, wiring: DriverWiring, re: number, rs: number, rgAtDriverSide: boolean): number {
     const drive = driverDrive(n, wiring, 1, rs, rgAtDriverSide);
     return amplifierVoltage(n, wiring, driveVoltage(pin_W / n, re, drive.Rg_ohm));
+  }
+
+  driveLevelIssues(p: SignalSolverParams): readonly SignalIssue[] {
+    const refused = (target: SignalQuantityName, text: string): readonly SignalIssue[] =>
+      [{ kind: 'result-refused', target, fields: [target], text }];
+    if (p.voltage_V.entered) {
+      const V = p.voltage_V.value;
+      return V >= MIN_DRIVE_VOLTAGE_V ? [] : refused('voltage_V',
+        `Driver input voltage ${V} V is below the ${MIN_DRIVE_VOLTAGE_V} V minimum, so the charts are not drawn: enter at least ${MIN_DRIVE_VOLTAGE_V} V.`);
+    }
+    const power_W = p.power_W.value;
+    if (!p.power_W.entered || power_W === null) return [];
+    if (!usable(power_W)) {
+      return refused('power_W', `System input power ${power_W} W is not above 0 W, so the charts are not drawn: enter a power above 0 W.`);
+    }
+    const Re_ohm = p.Re_ohm.value;
+    if (!usable(Re_ohm)) return [];
+    const nDrivers = p.nDrivers?.value ?? null;
+    const V = this.amplifierVoltageFor(power_W, usable(nDrivers) ? nDrivers : 1, p.driverWiring ?? DEFAULT_DRIVER_WIRING,
+      Re_ohm, p.Rs_ohm?.value ?? 0, p.rgAtDriverSide !== false);
+    return V >= MIN_DRIVE_VOLTAGE_V ? [] : refused('power_W',
+      `System input power ${power_W} W drives below the ${MIN_DRIVE_VOLTAGE_V} V minimum voltage, so the charts are not drawn: enter a larger power.`);
   }
 
   solve(p: SignalSolverParams): readonly SignalIssue[] {

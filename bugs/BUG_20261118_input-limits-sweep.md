@@ -1,6 +1,8 @@
 # Number boxes: values that turn the charts to NaN, found by a sweep of every box
 
-Status: OPEN, phase 1 (finding only; no limit or app code changed). Task T915, the input-limits sweep (`tasks/T915.yml`).
+Status: OPEN. Phase 1 (T915, the input-limits sweep, `tasks/T915.yml`) found the cases; phase 2 (T916, the fixes,
+`tasks/T916.yml`, ruled QO951 and QO953) fixed every **plain** row but one: System input power / Driver input voltage (32
+cases, see "Phase 2" below).
 Asked by John, 18 Nov 2026 (board general chat, 20:17 UTC): "ok look make the ap robust / and include proper limits on ui",
 after the Peaking 2nd order highpass with a negative peak gain turned the charts to NaN (that one is fixed separately by T913,
 the change that draws no curve for a negative peak gain, ruled QO951, which reached main during this sweep; the sweep
@@ -86,6 +88,19 @@ carried it. A NaN the project already had before the edit is not counted. No AI 
 | D10 | air 410 K, 60 % RH, 93000 Pa | finite | plain |
 | D11 | driver with only Re 123 | refused with a message, nothing throws | plain |
 | D12 | driver editor closed, then the Signal tab (heap corruption in WinISD) | no native heap in OpenISD; the same sequence reads finite | plain |
+
+## Phase 2 (T916): what was done
+
+| row | typing | maths | test |
+|---|---|---|---|
+| Air pressure, sound velocity, air density at 0 or below | the three fields carry floor "positive"; the boxes (still `allow-out-of-range`, so any value above 0 is stored as before) now honour the floor: 0 and -1 stay red with "must be greater than 0" (QO953, John 18 Nov 2026: "0 and negust have robust protection as per other crappy user input from UI or files") | a stated value at or below 0 is marked on its box by the air solver and blocks the sweep with that message (`airFloorIssues`); the engine's sweep-setting check also refuses ρ or c at or below 0 | plain |
+| Frc 0 Hz (6th-order bandpass, ABC) | floor "positive": 0 is refused with a note | the rear port's own vent issues ("Tuning frequency must be greater than zero") now block the sweep, as the front port's always did | plain |
+| ABC intra port | screen unchanged | the sweep is refused with "Intra port cross area must be greater than zero ... enter its diameter, or its slot width and height" or "Intra port length must be stated" | plain |
+| Volume 0 | screen unchanged (min 0.0001 m³) | the sweep blocks on the engine's own enclosure precondition (`solveBoxParams`, "Box volume (Vb) must be greater than zero"), not only on an empty volume | plain |
+| Vent length below 0 | screen unchanged | the vent solve refuses it: the tuning is not available and the issue says "a port has length" | plain |
+| Losses Q 0, PR count, PR added mass, driver count, series resistance, chart range | screen unchanged | the engine's sweep-setting precondition (`SimulationEngine.solveSweepSettings`, rules in `engine/params.ts`) refuses each with a sentence; the domain's sweep plan blocks on it | plain |
+| Duplicate project, Vas 0 | - | the sealed solve no longer writes a NaN Qtc (which the saved text wrote as null), so the strict reader takes the project's own text | plain |
+| System input power / Driver input voltage below 10 mV | screen unchanged | NOT DONE: making the setter keep the value and report an issue instead of throwing turns the existing test `project-signal.test.ts` "type V 0.005 or a P driving below 10 mV / post: refused, unchanged" (which expects the throw) red. Waiting for a ruling. What is in: a loaded file's voltage below 10 mV, or power at or below 0 W, is refused by the signal solve (`driveLevelIssues`) and blocks the sweep with its message | 32 `it.fails` |
 
 ## Proposed limits
 

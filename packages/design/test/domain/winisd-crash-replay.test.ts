@@ -78,8 +78,9 @@ describe('WinISD crash list, replayed on OpenISD', () => {
   });
 
   // The same project duplicated (appState.ts duplicateFocusedProject round-trips through the strict
-  // fromOwprText) is refused: "edited.box.sealed.Qtc.value: expected number, received null".
-  it.fails('D4: a driver with Vas 0 round-trips through its own saved text (Duplicate project) (BUG_20261118_input-limits-sweep)', () => {
+  // fromOwprText). It was refused, "edited.box.sealed.Qtc.value: expected number, received null",
+  // until the sealed solve stopped writing a NaN Qtc (T916).
+  it('D4: a driver with Vas 0 round-trips through its own saved text (Duplicate project)', () => {
     const project = loadProject('sealed');
     project.driver.specField('Vas_m3').set(0);
     const reopened = OpenISDProject.fromOwprText(project.toOwprText(), engine);

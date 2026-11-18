@@ -729,9 +729,13 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     show: si => props.field ? props.field.format(si, null, activeToken.value) : formatFixed(si, props.precision ?? 2),
   }));
 
+  /** What a typed number is checked against: the band, or with `allowOutOfRange` the field's floor
+   *  alone (an air density past its band is stored with a data-quality mark; 0 or below never, QO953). */
+  const entryBounds = computed<EntryBounds>(() =>
+    props.allowOutOfRange ? {...bounds.value, min: -Infinity, max: undefined} : bounds.value);
+
   function valid(si: number): boolean {
-    if (props.allowOutOfRange) return isFinite(si);
-    return entryRefusal(bounds.value, { kind: 'number', si }) === '';
+    return entryRefusal(entryBounds.value, { kind: 'number', si }) === '';
   }
 
   const dispMin = computed(() => toDisp(effMin.value));
@@ -810,14 +814,13 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
    *  entry is refused: the stored value showing unchanged is never refused, even when a limit has
    *  since moved past it (a bigger box lowering the PR's Fp ceiling) — that is the domain's ⚠. */
   const refusal = computed<string>(() => {
-    if (props.allowOutOfRange) return '';
-    if (badEntry.value) return entryRefusal(bounds.value, { kind: 'not-a-number' });
+    if (badEntry.value) return props.allowOutOfRange ? '' : entryRefusal(bounds.value, { kind: 'not-a-number' });
     // Refused only when the person emptied the box. A box that never had a value is just unset, so a value that arrives later still shows.
-    if (emptied.value && props.blankRefused) return entryRefusal(bounds.value, { kind: 'not-a-number' });
+    if (emptied.value && props.blankRefused && !props.allowOutOfRange) return entryRefusal(bounds.value, { kind: 'not-a-number' });
     if (!typedDraft.value) return '';
     if (display.value === '' || !isFinite(numberOf(display.value))) return '';
     if (display.value === fmt(props.modelValue)) return '';
-    return entryRefusal(bounds.value, { kind: 'number', si: fromDisp(numberOf(display.value)) });
+    return entryRefusal(entryBounds.value, { kind: 'number', si: fromDisp(numberOf(display.value)) });
   });
   watch(refusal, text => {
     emit('refusal', text);

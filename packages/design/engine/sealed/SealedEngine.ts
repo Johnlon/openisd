@@ -162,7 +162,7 @@ export class SealedEngineImpl implements SealedEngine {
     if (Qtc != null && !params.Vb_m3.entered) {
       if (Qts != null && Vas != null) {
         const v = this.volumeForQtc(Qts, Vas, Qtc);
-        if (v != null) {
+        if (v != null && Number.isFinite(v)) {
           params.Vb_m3.setCalculated(v);
         } else {
           params.Vb_m3.setNotAvailable();
@@ -180,7 +180,8 @@ export class SealedEngineImpl implements SealedEngine {
               Fs, Vas, Qts, Vb, Ql: params.Ql.value ?? Infinity, Qa: params.Qa.value ?? Infinity,
             }).Qtc
           : this.qtcFromVolume(Qts, Vas, Vb);
-        if (v != null) {
+        // A Vas of 0 gives no finite Qtc: not available, never a NaN the saved text writes as null.
+        if (v != null && Number.isFinite(v)) {
           params.Qtc.setCalculated(v);
         } else {
           params.Qtc.setNotAvailable();

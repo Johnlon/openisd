@@ -5,7 +5,7 @@ import { dateStamp, realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { defaultedField, focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
-import type { EnvironmentIssue } from '../../engine/index.js';
+import type { AirIssue, EnvironmentIssue } from '../../engine/index.js';
 import { airOf } from './projectAir.js';
 import { DEFAULT_SOURCE_RESISTANCE_OHM } from '../../fields/defaults.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
@@ -91,7 +91,7 @@ export class OpenISDProject {
     readonly #appContext: AppContext;
 
     /** The current layer's cached issues — see the class doc comment's "ONE EXCEPTION". */
-    #issues: ProjectIssues = { driver: [], signal: [], vent: [], rearVent: [], pr: [], radiator: [], sealed: [], ventTuningExtra: null, air: [] };
+    #issues: ProjectIssues = { driver: [], signal: [], driveLevel: [], vent: [], rearVent: [], pr: [], radiator: [], sealed: [], ventTuningExtra: null, air: [] };
 
     private constructor(saved: OpenISDProjectJson, uuid: string, engine: Engine, appContext: AppContext) {
         this.#saved = saved;
@@ -831,10 +831,15 @@ export class OpenISDProject {
     // any of the rest back in would let a caller override a fact the project already states about
     // itself, which is the thing John's 2026-09-06 ruling rules out.
 
-    /** What is wrong with the temperature the air runs at: outside the range the air model supports. */
-    #airRangeIssues(root: SimpleField<OpenISDProjectJson>): readonly EnvironmentIssue[] {
-        const stated = [this.#airFieldsOver(root).tempK.value].filter(tempK => tempK !== null);
-        return stated.flatMap(tempK => this.#engine.environment.temperatureIssues(tempK));
+    /** What is wrong with the air the sweep runs in: a temperature outside the range the air model
+     *  supports, or a stated pressure, sound velocity or density at or below zero (QO953). */
+    #airRangeIssues(root: SimpleField<OpenISDProjectJson>): readonly (EnvironmentIssue | AirIssue)[] {
+        const fields = this.#airFieldsOver(root);
+        const stated = [fields.tempK.value].filter(tempK => tempK !== null);
+        const environment = this.#engine.environment;
+        const floors = ([['pressurePa', fields.pressurePa.value], ['c', fields.c.value], ['rho', fields.rho.value]] as const)
+            .flatMap(([name, value]) => value === null ? [] : environment.airFloorIssues(name, value));
+        return [...stated.flatMap(tempK => environment.temperatureIssues(tempK)), ...floors];
     }
 
     /** Everything `projectSweep.ts`'s free functions need to read off this project — built fresh
@@ -874,7 +879,9 @@ export class OpenISDProject {
             airIssues: this.#airRangeIssues(root),
             engine: this.#engine,
             ventIssues: this.#issues.vent,
+            rearVentIssues: this.#issues.rearVent,
             prIssues: this.#issues.pr,
+            driveLevelIssues: this.#issues.driveLevel,
         };
     }
 

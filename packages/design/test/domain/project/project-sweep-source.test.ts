@@ -22,7 +22,7 @@ function sourceOf(p: OpenISDProject, engine: ReturnType<typeof createEngine>, ai
     useTransmissionLinePortModel: p.useTransmissionLinePortModel, forceFlatResponse: p.forceFlatResponse,
     filters: p.filters, driverAddedMass_kg: p.driverAddedMass_kg, vcTempRise_K: p.vcTempRise_K, loading: p.loading,
     alfaVC_per_K: p.alfaVC_per_K, sweepN: p.sweepN, driveVoltage_V: 2.83, air, airIssues: [], engine,
-    ventIssues: [], prIssues: [],
+    ventIssues: [], rearVentIssues: [], prIssues: [], driveLevelIssues: [],
   };
 }
 

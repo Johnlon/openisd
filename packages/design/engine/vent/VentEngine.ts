@@ -123,8 +123,14 @@ export class VentEngineImpl implements VentEngine {
             required: ['tuning_goal_hz', ...VENT_GEOMETRY], missing: missingGeometry }]));
       }
     } else if (length != null && !params.tuning_goal_hz.entered) {
-      if (geometryComplete) {
-        params.tuning_goal_hz.setCalculated(this.tuningFromLength(Vb, length, area, count, air, endCorrection));
+      const tuningFromLength = geometryComplete ? this.tuningFromLength(Vb, length, area, count, air, endCorrection) : null;
+      if (tuningFromLength !== null && !(length >= 0 && Number.isFinite(tuningFromLength))) {
+        // A negative length: the effective length can go below zero and the tuning's square root is NaN.
+        params.tuning_goal_hz.setNotAvailable();
+        issues.push({kind: 'result-refused', target: 'length_m', fields: ['length_m', 'tuning_goal_hz'],
+          text: `Port length ${length} m is below zero: a port has length, so the tuning cannot be worked out. Enter a length of 0 m or more.`});
+      } else if (tuningFromLength !== null) {
+        params.tuning_goal_hz.setCalculated(tuningFromLength);
       } else {
         params.tuning_goal_hz.setNotAvailable();
         issues.push(missingDependencies('tuning_goal_hz',

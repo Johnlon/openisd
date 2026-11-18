@@ -5,6 +5,9 @@ import type { AirIssue, DqIssue, DriverIssue, PrIssue, PrSpecIssue, SealedAlignm
 export interface ProjectIssues {
     readonly driver: readonly DriverIssue[];
     readonly signal: readonly SignalIssue[];
+    /** The drive level no sweep runs at (an entered voltage below 10 mV, a power not above 0 W or
+     *  driving below it); also in `signal`, for the power box's mark. */
+    readonly driveLevel: readonly SignalIssue[];
     /** The vented box's vent; bandpass4's, bandpass6's and ABC's front vent. */
     readonly vent: readonly VentIssue[];
     /** bandpass6's and ABC's rear vent. */

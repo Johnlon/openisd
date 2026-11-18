@@ -3,11 +3,12 @@ import { DefaultingFieldImpl, DualWriteFieldImpl, absentCell, calculatedCell, en
 import type { SimpleField } from '../cell.js';
 import { calculatedEntry, enteredEntry } from '../specEntry.js';
 import type { OpenISDProjectJson } from '../openisdSchema.js';
+import { NumberField } from '../../fields/field.js';
 
 /** The voltage a sweep runs at before anything is known. */
 const DEFAULT_DRIVE_VOLTAGE_V = 1;
-/** The lowest drive voltage a project may hold: 10 mV, the smallest the UI's 2 dp shows. */
-const MIN_DRIVE_VOLTAGE_V = 0.01;
+/** The lowest drive voltage a project may hold: 10 mV, the Driver input voltage box's own minimum. */
+const MIN_DRIVE_VOLTAGE_V = NumberField.SIGNAL_DRIVEV_V.limits.min;
 
 /** A project's own signal window (drive power/voltage), built fresh on every access — same
  *  reasoning as `driver`/`box`/`ProjectMeta`/`ProjectEnvironment`.

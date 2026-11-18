@@ -31,8 +31,8 @@ import type {DriverDrive} from '../array/driverWiring.js';
 import {DEFAULT_DRIVER_WIRING, driverDrive} from '../array/driverWiring.js';
 import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepPeaks, SweepResult, WinisdFilterErrors} from '../types.js';
 import type {DriverValues, SweepDriver} from '../solverTypes.js';
-import type {BoxParamsIssue, BoxParamsQuantityName, BoxParamsSolveResult} from '../params.js';
-import {requiredParamsFor} from '../params.js';
+import type {BoxParamsIssue, BoxParamsQuantityName, BoxParamsSolveResult, SweepSettingIssue, SweepSettingsSolveResult} from '../params.js';
+import {requiredParamsFor, sweepSettingRules} from '../params.js';
 import type {SolveRoute} from '../consistency.js';
 import type {SignalIssue} from '../signal/SignalEngine.js';
 import {DEFAULT_SWEEP_POINTS} from '../../fields/defaults.js';
@@ -52,7 +52,7 @@ import {NumberField} from '../../fields/field.js';
  *  instead). Never a sweep-own quantity: `sweep()` computes nothing a caller enters, so it has
  *  no target of its own to report an issue about. */
 export type SweepIssue =
-  | DriverIssue | AirIssue | BoxParamsIssue
+  | DriverIssue | AirIssue | BoxParamsIssue | SweepSettingIssue
   | VentIssue | PrIssue | SignalIssue;
 
 /** The unified sweep result: the curves (or null if nothing could be derived), and why. */
@@ -352,6 +352,10 @@ export interface SimulationEngine {
    *  circuit divides by is present for `box`'s topology, else `null`, with `issues` naming what
    *  is missing. */
   solveBoxParams(box: BoxType, P: EnclosureParams): BoxParamsSolveResult;
+  /** The sweep-setting precondition: `values` is `P` unchanged when the air, drive level, counts,
+   *  series resistance, frequency grid and the losses and tunings `box` reads are usable, else
+   *  `null`, with `issues` naming each value broken and what it must be. */
+  solveSweepSettings(box: BoxType, P: SweepParams): SweepSettingsSolveResult;
   /** The passband reference level a response is measured against. */
   passbandRef(spl: number[]): number;
   /** The real levels of a dB curve: finite, and not the silence sentinel. A real level may sit
@@ -462,6 +466,20 @@ export class SimulationEngineImpl implements SimulationEngine {
       issues.push(missingDependencies(p.field, [route]));
     }
     return { values: issues.length === 0 ? P : null, issues };
+  }
+
+  /** The sweep-setting rules (`engine/params.ts` `sweepSettingRules`) that `box` reads, each value
+   *  that breaks one reported with what it must be. Like `solveBoxParams`, a precondition the domain
+   *  checks before it builds a sweep: `sweep` itself stays the raw circuit. */
+  solveSweepSettings(box: BoxType, P: SweepParams): SweepSettingsSolveResult {
+    const issues: SweepSettingIssue[] = [];
+    for (const rule of sweepSettingRules()) {
+      if (!rule.boxes.includes(box)) continue;
+      const v = rule.read(P);
+      if (v === null ? !rule.required : rule.usable(v)) continue;
+      issues.push({kind: 'result-refused', target: rule.field, fields: [rule.field], text: rule.text});
+    }
+    return {values: issues.length === 0 ? P : null, issues};
   }
 
   sweep(drv: SweepDriver, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {

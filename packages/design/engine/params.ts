@@ -20,8 +20,9 @@
  * This is input validation only: it changes no formula and no computed number.
  */
 
-import type {BoxType, EnclosureParams} from './types.js';
+import type {BoxType, EnclosureParams, SweepParams} from './types.js';
 import type {CalculationIssue} from './consistency.js';
+import {NumberField} from '../fields/field.js';
 
 export type BoxParamsQuantityName = keyof EnclosureParams;
 export type BoxParamsIssue = CalculationIssue<BoxParamsQuantityName>;
@@ -109,3 +110,86 @@ export function requiredParamsFor(box: BoxType): readonly RequiredParam[] {
   return REQUIRED_BY_BOX[box];
 }
 
+
+/** A sweep setting the circuit cannot run with: the air, the drive level, the counts, the series
+ *  resistance, the frequency grid, the losses and tunings the box reads directly. */
+export type SweepSettingName =
+  | 'rho' | 'c' | 'eg' | 'nDrivers' | 'Rs' | 'fmin' | 'fmax' | 'prNum' | 'prMadd'
+  | 'Fb' | 'Fr' | 'Ff' | 'Qlr' | 'Qar' | 'Qpr' | 'Qiclfr' | 'Qlf' | 'Qaf' | 'Qpf' | 'SpIntra' | 'LeffIntra';
+export type SweepSettingIssue = CalculationIssue<SweepSettingName>;
+
+/** `solveSweepSettings`'s one result: `values` is the sweep's parameters unchanged when every rule
+ *  holds, else `null` with `issues` naming each value broken and what it must be. */
+export interface SweepSettingsSolveResult {
+  readonly values: SweepParams | null;
+  readonly issues: readonly SweepSettingIssue[];
+}
+
+/** One sweep setting's rule (`SimulationEngine.solveSweepSettings` checks each): where it applies,
+ *  the value it reads, whether that value is usable, and the sentence the person reads. `read`
+ *  gives null where the setting is absent: that is a fault only where `required`; elsewhere absent
+ *  keeps the engine's own default. */
+export interface SweepSettingRule {
+  readonly field: SweepSettingName;
+  readonly boxes: readonly BoxType[];
+  readonly read: (P: SweepParams) => number | null;
+  readonly required: boolean;
+  readonly usable: (v: number) => boolean;
+  readonly text: string;
+}
+
+/** Every rule `SimulationEngine.solveSweepSettings` checks. Each is a value no design can use: one
+ *  that gives NaN or Infinity at every frequency (bugs/BUG_20261118_input-limits-sweep.md). */
+export function sweepSettingRules(): readonly SweepSettingRule[] {
+  const ALL: readonly BoxType[] = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'];
+  const TWO_CHAMBER: readonly BoxType[] = ['bandpass4', 'bandpass6', 'abc'];
+  const VENTED_REAR: readonly BoxType[] = ['bandpass6', 'abc'];
+  const PR: readonly BoxType[] = ['box-passive-radiator'];
+  const positive = (v: number) => Number.isFinite(v) && v > 0;
+  const atLeast = (min: number) => (v: number) => Number.isFinite(v) && v >= min;
+  const given = (v: number | undefined): number | null => v ?? null;
+  const fGrid = NumberField.PLOT_FMIN_HZ.limits.min;
+  const loss = (field: SweepSettingName, read: (P: SweepParams) => number | undefined, boxes: readonly BoxType[], label: string): SweepSettingRule => ({
+    field, boxes, read: P => given(read(P)), required: false, usable: positive,
+    text: `${label} must be greater than zero: a zero or negative Q makes a zero or infinite resistance inside the box.`,
+  });
+  const tuning = (field: SweepSettingName, read: (P: SweepParams) => number | undefined, boxes: readonly BoxType[], label: string): SweepSettingRule => ({
+    field, boxes, read: P => given(read(P)), required: false, usable: positive,
+    text: `${label} must be greater than zero: a port tuned to 0 Hz or below has no finite length, so the box has no response.`,
+  });
+  return [
+    {field: 'rho', boxes: ALL, read: P => P.air.rho(), required: false, usable: positive,
+      text: 'Air density must be greater than zero: air with no density carries no sound.'},
+    {field: 'c', boxes: ALL, read: P => P.air.c(), required: false, usable: positive,
+      text: 'Sound velocity must be greater than zero: the box compliance Vb/(ρc²) is infinite without it.'},
+    {field: 'eg', boxes: ALL, read: P => P.eg, required: false, usable: positive,
+      text: 'Drive voltage must be greater than zero: the driver is not driven.'},
+    {field: 'nDrivers', boxes: ALL, read: P => given(P.nDrivers), required: false, usable: atLeast(1),
+      text: `${NumberField.DRIVER_NDRIVERS.label} must be at least 1.`},
+    {field: 'Rs', boxes: ALL, read: P => given(P.Rs), required: false, usable: atLeast(0),
+      text: `${NumberField.SIGNAL_RS_OHM.label} must not be negative: a negative resistance is not a wire.`},
+    {field: 'fmin', boxes: ALL, read: P => given(P.fmin), required: false, usable: atLeast(fGrid),
+      text: `${NumberField.PLOT_FMIN_HZ.label} must be at least ${fGrid} Hz.`},
+    {field: 'fmax', boxes: ALL, read: P => given(P.fmax), required: false, usable: atLeast(fGrid),
+      text: `${NumberField.PLOT_FMAX_HZ.label} must be at least ${fGrid} Hz.`},
+    {field: 'prNum', boxes: PR, read: P => given(P.prNum), required: false, usable: atLeast(1),
+      text: `${NumberField.PR_NUM.label} must be at least 1.`},
+    {field: 'prMadd', boxes: PR, read: P => given(P.prMadd), required: false, usable: atLeast(0),
+      text: `${NumberField.PR_MADD_G.label} must not be negative: a negative mass makes the radiator's mass negative.`},
+    tuning('Fb', P => P.Fb, ['vented'], 'Vent tuning (Fb)'),
+    tuning('Ff', P => P.Ff, TWO_CHAMBER, 'Front chamber tuning (Ffc)'),
+    tuning('Fr', P => P.Fr, VENTED_REAR, 'Rear chamber tuning (Frc)'),
+    loss('Qlr', P => P.Qlr, TWO_CHAMBER, 'Leakage Ql (rear chamber)'),
+    loss('Qar', P => P.Qar, TWO_CHAMBER, 'Absorption Qa (rear chamber)'),
+    loss('Qpr', P => P.Qpr, VENTED_REAR, 'Port Qp (rear chamber)'),
+    loss('Qiclfr', P => P.Qiclfr, TWO_CHAMBER, 'Interchamber Qicl'),
+    loss('Qlf', P => P.Qlf, TWO_CHAMBER, 'Leakage Ql (front chamber)'),
+    loss('Qaf', P => P.Qaf, TWO_CHAMBER, 'Absorption Qa (front chamber)'),
+    loss('Qpf', P => P.Qpf, TWO_CHAMBER, 'Port Qp (front chamber)'),
+    // ABC's intra port has no tuning to solve its mass from: Mai = ρ·LeffIntra/SpIntra (`AbcBox`).
+    {field: 'SpIntra', boxes: ['abc'], read: P => given(P.SpIntra), required: true, usable: positive,
+      text: 'Intra port cross area must be greater than zero: its mass ρ·Leff/Sp is infinite. Enter its diameter, or its slot width and height.'},
+    {field: 'LeffIntra', boxes: ['abc'], read: P => given(P.LeffIntra), required: true, usable: positive,
+      text: 'Intra port length must be stated: the intra port has no mass ρ·Leff/Sp to sweep with. Enter its length.'},
+  ];
+}
