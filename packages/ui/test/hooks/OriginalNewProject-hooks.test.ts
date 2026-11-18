@@ -335,7 +335,7 @@ describe('useOgNewProject', () => {
     wizard.selectSealedAlignment(0.6);
 
     // The volume that shows Qtc 0.6 on the Box tab (lossy, default Rg and box losses), to 2dp litres.
-    const raw = driver.sealedVolumeForQtc(0.6, DEFAULT_SOURCE_RESISTANCE_OHM, {Ql: NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA})!;
+    const raw = driver.sealedVolumeForQtc(0.6, {Rs_ohm: DEFAULT_SOURCE_RESISTANCE_OHM, nDrivers: 1, loading: 'standard'}, {Ql: NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA})!;
     expect(wizard.sealedVolume_m3.value).toBeCloseTo(Math.round(raw * 1e5) / 1e5, 9);
     expect(wizard.sealedVolume_m3.value).not.toBe(raw);
   });

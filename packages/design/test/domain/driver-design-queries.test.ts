@@ -6,6 +6,7 @@
 import {describe, expect, it} from 'vitest';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {createEngine} from '../../engine/Engine.js';
+import {oneDriver} from '../fixtures/driveLoad.js';
 
 function driver(): OpenISDDriver {
   const d = OpenISDDriver.empty(createEngine());
@@ -41,25 +42,25 @@ describe('OpenISDDriver design queries', () => {
     const d = driver();
     const losses = {Ql: 10, Qa: 100};
     const loaded = d.sourceLoadedQts(0.1)!;
-    expect(d.sealedFsc(0.03, 0.1, losses)).toBe(engine.sealed.resonance({Fs: 40, Vas: 0.02, Qts: loaded, Vb: 0.03, ...losses}).Fsc);
-    expect(d.sealedFsc(0, 0.1, losses)).toBeNull();
-    expect(OpenISDDriver.empty(createEngine()).sealedFsc(0.03, 0.1, losses)).toBeNull();
+    expect(d.sealedFsc(0.03, oneDriver(0.1), losses)).toBe(engine.sealed.resonance({Fs: 40, Vas: 0.02, Qts: loaded, Vb: 0.03, ...losses}).Fsc);
+    expect(d.sealedFsc(0, oneDriver(0.1), losses)).toBeNull();
+    expect(OpenISDDriver.empty(createEngine()).sealedFsc(0.03, oneDriver(0.1), losses)).toBeNull();
   });
 
   it('sealedQtc(volume, Rs, losses) is the lossy Qtc of the source-loaded driver, and sealedVolumeForQtc inverts it', () => {
     const d = driver();
     const losses = {Ql: 10, Qa: 100};
     const loaded = d.sourceLoadedQts(0.1)!;
-    expect(d.sealedQtc(0.03, 0.1, losses)).toBe(engine.sealed.resonance({Fs: 40, Vas: 0.02, Qts: loaded, Vb: 0.03, ...losses}).Qtc);
+    expect(d.sealedQtc(0.03, oneDriver(0.1), losses)).toBe(engine.sealed.resonance({Fs: 40, Vas: 0.02, Qts: loaded, Vb: 0.03, ...losses}).Qtc);
     for (const target of [0.5, 0.707, 1]) {
-      const vb = d.sealedVolumeForQtc(target, 0.1, losses);
+      const vb = d.sealedVolumeForQtc(target, oneDriver(0.1), losses);
       expect(vb, `Qtc ${target}`).not.toBeNull();
-      expect(d.sealedQtc(vb!, 0.1, losses)).toBeCloseTo(target, 6);
+      expect(d.sealedQtc(vb!, oneDriver(0.1), losses)).toBeCloseTo(target, 6);
     }
-    expect(d.sealedQtc(0, 0.1, losses)).toBeNull();
-    expect(d.sealedVolumeForQtc(Qts, 0.1, losses)).toBeNull();
-    expect(OpenISDDriver.empty(createEngine()).sealedQtc(0.03, 0.1, losses)).toBeNull();
-    expect(OpenISDDriver.empty(createEngine()).sealedVolumeForQtc(0.707, 0.1, losses)).toBeNull();
+    expect(d.sealedQtc(0, oneDriver(0.1), losses)).toBeNull();
+    expect(d.sealedVolumeForQtc(Qts, oneDriver(0.1), losses)).toBeNull();
+    expect(OpenISDDriver.empty(createEngine()).sealedQtc(0.03, oneDriver(0.1), losses)).toBeNull();
+    expect(OpenISDDriver.empty(createEngine()).sealedVolumeForQtc(0.707, oneDriver(0.1), losses)).toBeNull();
   });
 
   it('ventedDesign(alignment, Rs, Ql) designs for the source-loaded Qts', () => {

@@ -6,7 +6,7 @@
 import {SEALED_ALIGNMENT_OPTIONS} from '../../fields/options.js';
 import type {SealedAlignmentOption} from '../types.js';
 import type {SealedParams} from '../sealedResonance.js';
-import {sealedResonanceLossless, sealedResonanceWinisd} from '../sealedResonance.js';
+import {arrayVas, sealedResonanceLossless, sealedResonanceWinisd} from '../sealedResonance.js';
 import type {SealedAlignmentSolverParams} from '../solverTypes.js';
 import {missingDependencies} from '../consistency.js';
 import type {CalculationIssue} from '../consistency.js';
@@ -23,6 +23,9 @@ export interface SealedEngine {
   /** System resonance Fsc and Q Qtc under WinISD's lossy model — the Box tab readout. Takes
    *  `Vas` directly. Ql and Qa at or above the lossless limit give the lossless figure. */
   resonance(p: SealedParams): { Fsc: number; Qtc: number };
+  /** The Vas the sealed readout takes for `nDrivers` identical drivers in one box: N·Vas, half that when isobaric.
+   *  Fs and Qts do not change. The same rule as the chart sweep's one driver in Vb/N. */
+  arrayVas(vas_m3: number, nDrivers: number, loading: 'standard' | 'isobaric'): number;
   /** The lossless textbook Fsc and Qtc, whatever Ql and Qa are. Only for a chamber WinISD itself
    *  reports lossless (the bandpass4 rear). */
   losslessResonance(p: SealedParams): { Fsc: number; Qtc: number };
@@ -109,6 +112,8 @@ export class SealedEngineImpl implements SealedEngine {
   readonly resonance = sealedResonanceWinisd;
 
   readonly losslessResonance = sealedResonanceLossless;
+
+  readonly arrayVas = arrayVas;
 
   volumeForQtc(Qts: number, Vas_m3: number, Qtc: number): number | null {
     const ratio = (Qtc / Qts) ** 2 - 1;

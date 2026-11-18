@@ -6,6 +6,15 @@
  */
 
 
+/** What loads a driver in a project's array, beyond the driver itself: the amplifier's source resistance,
+ *  how many drivers share the box and how they are loaded. The Box tab's sealed readout and the volume it
+ *  gives back read all of them. */
+export interface DriveLoad {
+  Rs_ohm: number;
+  nDrivers: number;
+  loading: 'standard' | 'isobaric';
+}
+
 /** A complex number in rectangular form. */
 export interface Complex {
   re: number;

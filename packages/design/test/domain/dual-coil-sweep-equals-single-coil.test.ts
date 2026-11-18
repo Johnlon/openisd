@@ -10,6 +10,7 @@ import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
 import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
+import {oneDriver} from '../fixtures/driveLoad.js';
 
 const GRID: FrequencyGrid = {fmin: 10, fmax: 5000, N: 60};
 const MOTOR = {Fs_hz: 40, Mms_kg: 0.0266, Cms_m_per_N: 0.0006, Sd_m2: 0.009503, Qms: 2.94, Le_H: 0.0016};
@@ -48,7 +49,7 @@ describe('dual-coil driver swept like its single-coil equivalent', () => {
 describe('dual-coil driver in the sealed alignment picker', () => {
   const volume = (spec: Record<string, number | VoiceCoilWiring>, winisdPicker: boolean): number | null =>
     driverFromSpec(createEngine(), {...MOTOR, ...spec})
-      .sealedPickerVolume(0.707, 0.1, {Ql: 10, Qa: 100}, winisdPicker);
+      .sealedPickerVolume(0.707, oneDriver(0.1), {Ql: 10, Qa: 100}, winisdPicker);
 
   it.each([true, false])('picks the single-coil volume (winisdPicker %s)', (winisdPicker) => {
     const single = volume({numVC: 1, Re_ohm: 6.6, BL_Tm: 9.8}, winisdPicker);

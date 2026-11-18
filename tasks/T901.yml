@@ -1,0 +1,30 @@
+id: T901
+release_note: The sealed box readout on the Box tab now counts the number of drivers, so four drivers in 4.48 L read Qtc 1.085 as WinISD does.
+repo: openisd
+owner: t901
+status: done
+goal: The Box tab's sealed Fsc and Qtc, and the volume a typed Fsc or Qtc gives, use all the project's drivers (N times Vas, halved for an isobaric pair) by the one engine rule the chart sweep already follows
+why: "John, 18 Nov 2026, on the board: \"is there any bug in openisd\" after the WinISD spec page for the sealed box found that OpenISD's readout gives one driver's Qtc 0.719 where WinISD gives 1.085 for 4 drivers in 4.48 L (bugs/BUG_20261118_sealed-readout-ignores-driver-count.md)."
+done_test: npx vitest run packages/design/test/domain/sealed-readout-counts-drivers.test.ts
+files:
+  - bugs/BUG_20261118_sealed-readout-ignores-driver-count.md
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/project/driveLoad.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectResolve.ts
+  - packages/design/engine/index.ts
+  - packages/design/engine/sealed/SealedEngine.ts
+  - packages/design/engine/sealedResonance.ts
+  - packages/design/engine/types.ts
+  - packages/design/test/domain/box-starting-values.test.ts
+  - packages/design/test/domain/driver-design-queries.test.ts
+  - packages/design/test/domain/dual-coil-sweep-equals-single-coil.test.ts
+  - packages/design/test/domain/project-builder-starting-values.test.ts
+  - packages/design/test/domain/sealed-readout-counts-drivers.test.ts
+  - packages/design/test/domain/winisd-sealed-picker.test.ts
+  - packages/design/test/fixtures/driveLoad.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/hooks/SealedAlignment-hooks.ts
+  - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+  - tasks/T901.yml

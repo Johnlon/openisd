@@ -28,6 +28,16 @@ export interface SealedParams {
 
 export const LOSSLESS_LIMIT = LOSSLESS_Q;
 
+/**
+ * The compliance volume the box sees from `nDrivers` identical drivers: N·Vas, halved for an isobaric pair
+ * (WinISD, spec/S04_sealed_box.md section 2, 0x45e0ad-0x45e0f2). Fs and Qts are unchanged. This is the chart
+ * sweep's rule written the other way round: N drivers in Vb are one driver in Vb/N (`oneBoxOfN`), and
+ * Vb/(N·Vas) = (Vb/N)/Vas; the isobaric pair is `isobarikPair`'s Vas/2.
+ */
+export function arrayVas(vas: number, nDrivers: number, loading: 'standard' | 'isobaric'): number {
+  return vas * nDrivers * (loading === 'isobaric' ? 0.5 : 1);
+}
+
 
 /** Lossless multiplier √(1+Vas/Vb). */
 export function boxRatio(vas: number, vb: number): number {

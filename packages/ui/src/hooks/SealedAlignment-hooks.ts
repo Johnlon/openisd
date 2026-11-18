@@ -61,7 +61,7 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
       void changed.value;
       const p = project.value;
       const volume = this.volume_m3.value;
-      return volume == null ? null : p.driver.sealedQtc(volume, p.Rs_ohm.value, this.#losses());
+      return volume == null ? null : p.driver.sealedQtc(volume, p.driveLoad, this.#losses());
     });
     this.selectedOption = computed(() => this.qtc.value == null ? null : sealed.closestAlignment(this.qtc.value));
     this.ebp = computed(() => {
@@ -94,7 +94,7 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
   selectQtc(targetQtc: number): void {
     const p = this.project.value;
     const winisdPicker = p.winisdSealedPicker.value;
-    const volume = p.driver.sealedPickerVolume(targetQtc, p.Rs_ohm.value, this.#losses(), winisdPicker);
+    const volume = p.driver.sealedPickerVolume(targetQtc, p.driveLoad, this.#losses(), winisdPicker);
     this.volume_m3.value = volume;
   }
 

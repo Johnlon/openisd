@@ -7,6 +7,7 @@ import type { OpenISDProjectJson } from '../openisdSchema.js';
 import type { Vent } from '../vent.js';
 import { isPortCount } from '../box/isPortCount.js';
 import type { OpenISDBox } from '../box/openISDBox.js';
+import { driveLoadOf } from './driveLoad.js';
 import type { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import { resolveAir } from './projectAir.js';
 import type { AirFields } from './projectAir.js';
@@ -169,13 +170,18 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         const rgLoadedQts = (): number | null => {
             const Qts = ts.Qts.value;
             if (Qts === null) return null;
+            const load = driveLoadOf(directRoot.value.driverEmbedding);
             return engine.driver.sourceLoadedQts(
                 ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.solverParams().Re_terminal_ohm.value ?? NaN,
-                directRoot.value.driverEmbedding.Rs_ohm, Qts);
+                load.Rs_ohm, Qts);
         };
         const sealed = engine.sealed.solve({
             Qts: inputOf(rgLoadedQts),
-            Vas_m3: inputOf(() => ts.Vas_m3.value),
+            Vas_m3: inputOf(() => {
+                const Vas = ts.Vas_m3.value;
+                const load = driveLoadOf(directRoot.value.driverEmbedding);
+                return Vas === null ? null : engine.sealed.arrayVas(Vas, load.nDrivers, load.loading);
+            }),
             Fs_hz: inputOf(() => ts.Fs_hz.value),
             Ql: inputOf(() => box.sealed.losses.Ql.value),
             Qa: inputOf(() => box.sealed.losses.Qa.value),

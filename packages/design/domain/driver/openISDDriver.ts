@@ -1,5 +1,5 @@
 import {type Engine, FixedAir} from '../../engine/index.js';
-import type { Air, DriverError, Wiring, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
+import type { Air, DriveLoad, DriverError, Wiring, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -208,7 +208,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         const Qts = ts.Qts.value;
         if (Qts === null) return null;
         return this.engine.driver.sourceLoadedQts(
-            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.solverParams().Re_terminal_ohm.value ?? NaN, Rs_ohm, Qts);
+            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.solverParams().Re_terminal_ohm.value ?? NaN,
+            Rs_ohm, Qts);
     }
 
     /** Efficiency bandwidth product, Fs/Qes. Null without Fs or Qes, or for Qes = 0. */
@@ -223,31 +224,31 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return ebp !== null ? this.engine.driver.ebpSuitability(ebp) : null;
     }
 
-    /** The Qtc a sealed box of `volume_m3` gives this driver as driven through `Rs_ohm` with box losses
+    /** The Qtc a sealed box of `volume_m3` gives this driver as driven as `load` says (source, driver count) with box losses
      *  `losses`: the lossy figure the Box tab shows. Null without Fs/Qts/Vas or for a non-positive volume. */
-    sealedQtc(volume_m3: number, Rs_ohm: number, losses: SealedBoxLosses): number | null {
-        const feed = this.#sealedFeed(Rs_ohm, losses);
+    sealedQtc(volume_m3: number, load: DriveLoad, losses: SealedBoxLosses): number | null {
+        const feed = this.#sealedFeed(load, losses);
         return feed === null || !(volume_m3 > 0) ? null : this.engine.sealed.resonance({...feed, Vb: volume_m3}).Qtc;
     }
 
     /** The sealed box resonance Fsc (Hz) of this driver in `volume_m3`, on the same footing as `sealedQtc`. */
-    sealedFsc(volume_m3: number, Rs_ohm: number, losses: SealedBoxLosses): number | null {
-        const feed = this.#sealedFeed(Rs_ohm, losses);
+    sealedFsc(volume_m3: number, load: DriveLoad, losses: SealedBoxLosses): number | null {
+        const feed = this.#sealedFeed(load, losses);
         return feed === null || !(volume_m3 > 0) ? null : this.engine.sealed.resonance({...feed, Vb: volume_m3}).Fsc;
     }
 
     /** The sealed volume that gives this driver `targetQtc` on the Box tab, as driven through `Rs_ohm`
      *  with box losses `losses`. Null without Fs/Qts/Vas, or when no volume reaches it. */
-    sealedVolumeForQtc(targetQtc: number, Rs_ohm: number, losses: SealedBoxLosses): number | null {
-        const feed = this.#sealedFeed(Rs_ohm, losses);
+    sealedVolumeForQtc(targetQtc: number, load: DriveLoad, losses: SealedBoxLosses): number | null {
+        const feed = this.#sealedFeed(load, losses);
         return feed === null ? null : this.engine.sealed.volumeForLossyQtc(feed, targetQtc);
     }
 
     /** The volume the sealed alignment picker gives for `targetQtc`. `winisdPicker` off (the "Sealed picker
      *  volume" bug switch unticked): the volume at which the Box tab shows `targetQtc`, as `sealedVolumeForQtc`.
-     *  On: WinISD's picker volume, which ignores `Rs_ohm` and `losses` for its own fixed Rg 0.1 and Qa 100. */
-    sealedPickerVolume(targetQtc: number, Rs_ohm: number, losses: SealedBoxLosses, winisdPicker: boolean): number | null {
-        if (!winisdPicker) return this.sealedVolumeForQtc(targetQtc, Rs_ohm, losses);
+     *  On: WinISD's picker volume, which ignores `load` and `losses` for its own fixed Rg 0.1 and Qa 100. */
+    sealedPickerVolume(targetQtc: number, load: DriveLoad, losses: SealedBoxLosses, winisdPicker: boolean): number | null {
+        if (!winisdPicker) return this.sealedVolumeForQtc(targetQtc, load, losses);
         const {Vas_m3, Qes, Qms} = this.specs;
         // The Re the amplifier sees: the picker loads Qes with Rg against it.
         const [Vas, qes, qms, Re] = [Vas_m3.value, Qes.value, Qms.value, this.specs.solverParams().Re_terminal_ohm.value];
@@ -257,12 +258,14 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     }
 
     /** What the sealed-box engine takes of this driver, or null while Fs, Vas or Qts is unresolved. */
-    #sealedFeed(Rs_ohm: number, losses: SealedBoxLosses): Omit<SealedParams, 'Vb'> | null {
-        const Fs = this.specs.Fs_hz.value, Vas = this.specs.Vas_m3.value, Qts = this.sourceLoadedQts(Rs_ohm);
-        return Fs === null || Vas === null || Qts === null ? null : {Fs, Vas, Qts, Ql: losses.Ql, Qa: losses.Qa};
+    #sealedFeed(load: DriveLoad, losses: SealedBoxLosses): Omit<SealedParams, 'Vb'> | null {
+        const Fs = this.specs.Fs_hz.value, Vas = this.specs.Vas_m3.value, Qts = this.sourceLoadedQts(load.Rs_ohm);
+        return Fs === null || Vas === null || Qts === null
+            ? null
+            : {Fs, Vas: this.engine.sealed.arrayVas(Vas, load.nDrivers, load.loading), Qts, Ql: losses.Ql, Qa: losses.Qa};
     }
 
-    /** The vented box `alignment` designs for this driver as driven through `Rs_ohm` with box
+    /** The vented box `alignment` designs for this driver as driven as `load` says (source, coil heating, driver count) with box
      *  losses `Ql` — WinISD designs for the source-loaded Qts, not the datasheet Qts. Null
      *  without Fs/Qts/Vas. */
     ventedDesign(alignment: VentedAlignment, Rs_ohm: number, Ql: number): VentedDesign | null {

@@ -17,6 +17,7 @@ export { createEngine } from './Engine.js';
 export type { FilterEngine } from './filters/index.js';
 export type { PassOrderEntry } from './filters/FilterEngine.js';
 export type { SealedParams } from './sealedResonance.js';
+export type { DriveLoad } from './types.js';
 export {
   DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA,
   MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K,

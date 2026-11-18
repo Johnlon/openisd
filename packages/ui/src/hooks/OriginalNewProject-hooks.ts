@@ -3,7 +3,7 @@ import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef, watc
 // hook only names their shapes, so neither import is a layering edge (QO80).
 import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, defaultProjectName, startingChambersOf, takesChamberTunings, WizardPlan, WizardStep } from '@openisd/design';
 import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
-import { type BoxType, type EbpSuitability, type EnvironmentEngine, FixedAir, type PrEngine, type SealedEngine, type VentedAlignment, type VentedEngine } from '@openisd/design/engine';
+import { type BoxType, type DriveLoad, type EbpSuitability, type EnvironmentEngine, FixedAir, type PrEngine, type SealedEngine, type VentedAlignment, type VentedEngine } from '@openisd/design/engine';
 import {DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SEALED_QTC, DEFAULT_SEALED_VOLUME_L, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {DUAL_CHAMBER} from './boxFields.js';
 import {useApp} from '../logic/app.js';
@@ -315,16 +315,19 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     }
   });
 
+  /** What the project being made will load its driver with: the default source resistance, the drivers asked for. */
+  const newProjectLoad = (): DriveLoad => ({Rs_ohm: DEFAULT_SOURCE_RESISTANCE_OHM, nDrivers: nDrivers.value, loading: 'standard'});
+
   const qtc = computed(() => {
     const driver = selectedDriver.value;
     if (!driver) return null;
-    return driver.sealedQtc(sealedVolume_m3.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_SEALED_LOSSES);
+    return driver.sealedQtc(sealedVolume_m3.value, newProjectLoad(), NEW_PROJECT_SEALED_LOSSES);
   });
 
   const sealedFsc_hz = computed(() => {
     const driver = selectedDriver.value;
     if (!driver) return null;
-    return driver.sealedFsc(sealedVolume_m3.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_SEALED_LOSSES);
+    return driver.sealedFsc(sealedVolume_m3.value, newProjectLoad(), NEW_PROJECT_SEALED_LOSSES);
   });
 
   const selectedSealedAlignment = computed(() => {
@@ -340,7 +343,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
    *  Qts/Vas leaves the previous volume standing. */
   function recomputeSealedVolume(driver: OpenISDDriver, target: number): void {
     const winisdPicker = winisdSealedPicker();
-    const calculated_m3 = driver.sealedPickerVolume(target, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_SEALED_LOSSES, winisdPicker);
+    const calculated_m3 = driver.sealedPickerVolume(target, newProjectLoad(), NEW_PROJECT_SEALED_LOSSES, winisdPicker);
     // Vb is a 2dp field everywhere else in the app — match that here instead of showing the solver's raw float.
     if (calculated_m3 != null) {
       sealedVolume_m3.value = NumberField.BOX_VB_L.toSI(Number(NumberField.BOX_VB_L.format(calculated_m3)));

@@ -1,5 +1,6 @@
 import {type Engine} from '../../engine/index.js';
-import type { Air, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepPeaks, SweepResult, SweepSolveResult } from '../../engine/index.js';
+import type { Air, BoxParamsIssue, DriveLoad, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepPeaks, SweepResult, SweepSolveResult } from '../../engine/index.js';
+import { driveLoadOf } from './driveLoad.js';
 import { dateStamp, realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { defaultedField, focus, simpleField } from '../cell.js';
@@ -141,11 +142,10 @@ export class OpenISDProject {
     #boxOver(root: SimpleField<OpenISDProjectJson>): OpenISDBox {
         return OpenISDBox.wrap(
             focus(root, 'box'), this.#driverOver(root), this.#engine,
-            () => root.value.driverEmbedding.Rs_ohm,
+            () => driveLoadOf(root.value.driverEmbedding),
             () => this.#issues,
             () => this.#issues.ventTuningExtra,
             () => this.#airOver(root),
-            () => root.value.driverEmbedding.nDrivers,
         );
     }
 
@@ -215,6 +215,12 @@ export class OpenISDProject {
      *  they can diverge). */
     get alfaVC_per_K(): SimpleField<number> {
         return focus(this.#slot('driverEmbedding'), 'alfaVC_per_K');
+    }
+
+    /** What loads this project's driver beyond the driver itself (source resistance, driver count and loading): the
+     *  figures the Box tab's sealed readout, and the sealed volume a typed Qtc gives, are worked out under. */
+    get driveLoad(): DriveLoad {
+        return driveLoadOf(this.#root().value.driverEmbedding);
     }
 
     /** WinISD Driver tab "Standard" / "Iso-Barik" radio. */

@@ -4,6 +4,7 @@ import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {createEngine} from '../../engine/Engine.js';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../../fields/defaults.js';
 import {DEFAULT_VENTED_ALIGNMENT} from '../../fields/options.js';
+import {oneDriver} from '../fixtures/driveLoad.js';
 
 function driver(): OpenISDDriver {
   const d = OpenISDDriver.empty(createEngine());
@@ -22,7 +23,7 @@ describe('ProjectBuilder starting values', () => {
   it('sealed() without a volume builds the flat volume', () => {
     const p = new ProjectBuilder(driver(), createEngine()).sealed().build();
     const losses = {Ql: p.box.sealed.losses.Ql.value, Qa: p.box.sealed.losses.Qa.value};
-    expect(p.box.sealed.volume_m3.value).toBe(p.driver.sealedVolumeForQtc(0.707, DEFAULT_SOURCE_RESISTANCE_OHM, losses));
+    expect(p.box.sealed.volume_m3.value).toBe(p.driver.sealedVolumeForQtc(0.707, oneDriver(DEFAULT_SOURCE_RESISTANCE_OHM), losses));
     expect(p.isModified()).toBe(false);
   });
 
