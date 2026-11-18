@@ -15,7 +15,7 @@ import {OpenISDDriver} from './driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';
 import {type Engine, type VentedAlignment} from '../engine/index.js';
-import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../fields/defaults.js';
+import {DEFAULT_ALFAVC_PER_K, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VC_TEMP_RISE_K} from '../fields/defaults.js';
 import {type AppContext, dateStamp, realAppContext} from './appContext.js';
 
 // ── BUILDING A PROJECT — the wizard's path in, and the only way to make an `OpenISDProject` ──
@@ -162,10 +162,10 @@ export abstract class BoxProjectBuilder {
             driverEmbedding: {
                 device: {...driver},
                 nDrivers: 1,
-                vcTempRise_K: 0,
+                vcTempRise_K: DEFAULT_VC_TEMP_RISE_K,
                 Rs_ohm: DEFAULT_SOURCE_RESISTANCE_OHM,
                 driverAddedMass_kg: 0,
-                alfaVC_per_K: 0.0039,
+                alfaVC_per_K: DEFAULT_ALFAVC_PER_K,
                 loading: 'standard',
             },
             box: this.emptyBox(),

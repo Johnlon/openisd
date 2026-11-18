@@ -149,6 +149,13 @@ export interface DriverEngine {
    *  when Qms/Qes/Re are unavailable (a driver carrying only Qts).
    *  winisd_research/SEALED_FSC_MODEL.md §5. */
   sourceLoadedQts(qms: number, qes: number, re: number, rg: number, fallbackQts: number): number;
+  /** `sourceLoadedQts` with the voice coil heated by `dT_K` as well: the hot coil's extra resistance
+   *  `Re·alfaVC·ΔT` is in series with Rg, so Qes' = Qes·(Re + Rg + Re·alfaVC·ΔT)/Re = Qes·(hotRe + Rg)/Re
+   *  (WinISD `fr_45e090`, 0x45e150-0x45e183; winisd_research/spec/S04_sealed_box.md section 2, quirk Q8). The
+   *  chart circuit puts the same hot Re plus Rg in series with the coil (`circuit.ts` `coilRdc`). */
+  heatedSourceLoadedQts(
+    qms: number, qes: number, re: number, rg: number, alfaVC_per_K: number, dT_K: number, fallbackQts: number,
+  ): number;
   /** A multi-coil driver's published Re/BL/Le/Znom, measured in `measured`, as they are in
    *  `target`, for `numVC` identical coils; or why not. Never written over the stored figures. */
   convertWiring(motor: WiredMotor, numVC: number | null, measured: Wiring | null, target: Wiring, reBlOnly?: boolean): WiringConversion;
@@ -401,8 +408,14 @@ export class DriverEngineImpl implements DriverEngine {
   sourceLoadedQts(
     qms: number, qes: number, re: number, rg: number, fallbackQts: number,
   ): number {
+    return this.heatedSourceLoadedQts(qms, qes, re, rg, 0, 0, fallbackQts);
+  }
+
+  heatedSourceLoadedQts(
+    qms: number, qes: number, re: number, rg: number, alfaVC_per_K: number, dT_K: number, fallbackQts: number,
+  ): number {
     if (!(qms > 0) || !(qes > 0) || !(re > 0)) return fallbackQts;
-    const qesLoaded = (qes * (re + Math.max(0, rg))) / re;
+    const qesLoaded = (qes * (hotRe(re, alfaVC_per_K, dT_K) + Math.max(0, rg))) / re;
     return 1 / (1 / qms + 1 / qesLoaded);
   }
 

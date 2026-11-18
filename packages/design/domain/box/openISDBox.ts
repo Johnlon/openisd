@@ -784,7 +784,7 @@ export class OpenISDBox implements Box {
         const ts = this.#driver.specs;
         const Fs = ts.Fs_hz.value;
         const Vas = ts.Vas_m3.value;
-        const Qts = this.#driver.sourceLoadedQts(this.#load().Rs_ohm);
+        const Qts = this.#driver.heatedSourceLoadedQts(this.#load());
         if (Fs === null || Vas === null || Qts === null) return null;
         // The same lossy model the Box tab reads Fsc from, so the volume gives back the value typed.
         const feed = {Fs, Vas: this.#arrayVas(Vas), Qts, Ql: losses.Ql.value, Qa: losses.Qa.value};
@@ -805,7 +805,9 @@ export class OpenISDBox implements Box {
      * `Box.Fr` readout bit-for-bit (`winisd-parity-goldens.test.ts` "Box.Fr") passes exactly
      * the driver's stored Vas and `sourceLoadedQts(Qms, Qes, Re, Rg, Qts)` — never the inline
      * compliance reconstruction `Cms·Sd²·ρc²` and never bare `Qts` (Rg alone moves Fsc by 0.040 Hz
-     * on the golden scene; `SEALED_FSC_MODEL.md` §5).
+     * on the golden scene; `SEALED_FSC_MODEL.md` §5). The voice coil's heating is folded in with Rg
+     * (`heatedSourceLoadedQts`): WinISD's dTVC 100 moves the W5-1138SMF's Qtc 0.719 to 0.920
+     * (winisd_research/spec/S04_sealed_box.md quirk Q8).
      */
     #sealedResonance(volume_m3: number | null, losses: SealedLosses,
                      form: 'lossy' | 'lossless'): { Fsc: number; Qtc: number } | null {
@@ -813,7 +815,7 @@ export class OpenISDBox implements Box {
         const ts = this.#driver.specs;
         const Fs_hz = ts.Fs_hz.value;
         const Vas = ts.Vas_m3.value;
-        const QtsLoaded = this.#driver.sourceLoadedQts(this.#load().Rs_ohm);
+        const QtsLoaded = this.#driver.heatedSourceLoadedQts(this.#load());
         if (Fs_hz === null || Vas === null || QtsLoaded === null) return null;
         // WinISD displays and saves the LOSSY figure by default (John 2026-08-27: "default is
         // winisd = Lossy") and it MOVES with the chamber's losses: measured, `Fr` shifts 5.8 Hz

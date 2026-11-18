@@ -1,0 +1,26 @@
+id: T908
+release_note: The sealed box readout on the Box tab now heats the voice coil by the project's temperature rise, so the Tang Band W5-1138SMF in 4.48 L with a 100 K rise reads Qtc 0.920 and Fsc 66.64 Hz as WinISD does, and the readout agrees with the charts.
+repo: openisd
+owner: t908
+status: done
+label: fixes
+goal: The Box tab's sealed Fsc and Qtc, and the volume a typed Fsc or Qtc gives, fold the project's voice-coil heating (Re*alfaVC*dTVC) into Qes with Rg, by one engine rule that uses the same hot Re as the chart circuit
+why: 'WinISD probe of 18 Nov 2026 (winisd_research spec/S04_sealed_box.md quirk Q8, section 6 difference b; runs/s04-dtvc-20261118/): with the W5-1138SMF in 4.48 L, Ql 10, Qa 100, Rg 0.1, WinISD reads Qtc 0.719 / Fsc 67.23 at dTVC 0 and Qtc 0.920 / Fsc 66.64 at dTVC 100 with the project alfaVC 0.0039; OpenISD read 0.719 / 67.23 either way while its charts already heated the coil (bugs/BUG_20261118_sealed-readout-ignores-coil-heating.md). Fixing a proven defect is pre-approved (John, 3 Nov: "I approve uncontroversial fixes.").'
+done_test: npx vitest run packages/design/test/domain/sealed-readout-heats-coil.test.ts
+files:
+  - tasks/T908.yml
+  - bugs/BUG_20261118_sealed-readout-ignores-coil-heating.md
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/engine/types.ts
+  - packages/design/fields/defaults.ts
+  - packages/design/fields/index.ts
+  - packages/design/domain/openisdTransforms.ts
+  - packages/design/domain/project/driveLoad.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectResolve.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/box/openISDBox.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/design/test/domain/sealed-readout-heats-coil.test.ts
+  - packages/design/test/fixtures/driveLoad.ts
+  - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts

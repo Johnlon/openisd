@@ -7,12 +7,17 @@
 
 
 /** What loads a driver in a project's array, beyond the driver itself: the amplifier's source resistance,
- *  how many drivers share the box and how they are loaded. The Box tab's sealed readout and the volume it
- *  gives back read all of them. */
+ *  how many drivers share the box and how they are loaded, and how hot the voice coil runs. The Box tab's
+ *  sealed readout and the volume it gives back read all of them. */
 export interface DriveLoad {
   Rs_ohm: number;
   nDrivers: number;
   loading: 'standard' | 'isobaric';
+  /** The project's voice-coil temperature coefficient, 1/K (WinISD `[Box] alfaVC`, the Driver tab "Advanced options"
+   *  field) — not the driver record's own `alfaVC_per_K` (WinISD `[Driver] alfaVC`), which WinISD's Box tab ignores. */
+  alfaVC_per_K: number;
+  /** The project's voice-coil temperature rise, K (WinISD `[Box] dTVC`). */
+  vcTempRise_K: number;
 }
 
 /** A complex number in rectangular form. */

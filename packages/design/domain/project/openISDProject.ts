@@ -217,7 +217,7 @@ export class OpenISDProject {
         return focus(this.#slot('driverEmbedding'), 'alfaVC_per_K');
     }
 
-    /** What loads this project's driver beyond the driver itself (source resistance, driver count and loading): the
+    /** What loads this project's driver beyond the driver itself (source resistance, driver count, loading and coil heating): the
      *  figures the Box tab's sealed readout, and the sealed volume a typed Qtc gives, are worked out under. */
     get driveLoad(): DriveLoad {
         return driveLoadOf(this.#root().value.driverEmbedding);

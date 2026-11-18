@@ -212,6 +212,18 @@ export abstract class OpenISDDriver extends OpenISDDevice {
             Rs_ohm, Qts);
     }
 
+    /** Qts as `load` drives it on the Box tab: the source resistance `load.Rs_ohm` and the hot voice coil's extra
+     *  resistance (the project's `alfaVC_per_K` and `vcTempRise_K`) folded into Qes. The bare Qts when Qms/Qes/Re
+     *  cannot be resolved; null when Qts cannot. */
+    heatedSourceLoadedQts(load: DriveLoad): number | null {
+        const ts = this.specs;
+        const Qts = ts.Qts.value;
+        if (Qts === null) return null;
+        return this.engine.driver.heatedSourceLoadedQts(
+            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.solverParams().Re_terminal_ohm.value ?? NaN,
+            load.Rs_ohm, load.alfaVC_per_K, load.vcTempRise_K, Qts);
+    }
+
     /** Efficiency bandwidth product, Fs/Qes. Null without Fs or Qes, or for Qes = 0. */
     ebp(): number | null {
         const Fs_hz = this.specs.Fs_hz.value, Qes = this.specs.Qes.value;
@@ -259,7 +271,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
     /** What the sealed-box engine takes of this driver, or null while Fs, Vas or Qts is unresolved. */
     #sealedFeed(load: DriveLoad, losses: SealedBoxLosses): Omit<SealedParams, 'Vb'> | null {
-        const Fs = this.specs.Fs_hz.value, Vas = this.specs.Vas_m3.value, Qts = this.sourceLoadedQts(load.Rs_ohm);
+        const Fs = this.specs.Fs_hz.value, Vas = this.specs.Vas_m3.value, Qts = this.heatedSourceLoadedQts(load);
         return Fs === null || Vas === null || Qts === null
             ? null
             : {Fs, Vas: this.engine.sealed.arrayVas(Vas, load.nDrivers, load.loading), Qts, Ql: losses.Ql, Qa: losses.Qa};

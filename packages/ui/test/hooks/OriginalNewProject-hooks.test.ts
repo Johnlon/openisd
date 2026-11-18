@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type {RadiatorPicks} from '../../src/logic/telemetry/radiatorPick.js';
 import {DEFAULT_ENV_DEFAULTS, type Engine, createEngine, type VentedDesignLimits} from '@openisd/design/engine';
 import { OpenISDDriver, ProjectBuilder, WizardStep } from '@openisd/design';
-import { DEFAULT_NEW_PROJECT_QA, DEFAULT_SOURCE_RESISTANCE_OHM } from '@openisd/design/fields';
+import { DEFAULT_ALFAVC_PER_K, DEFAULT_NEW_PROJECT_QA, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VC_TEMP_RISE_K } from '@openisd/design/fields';
 import { NEW_PROJECT_VENTED_QL, type NewProjectPassiveRadiatorRepos, useOgNewProject } from '../../src/hooks/OriginalNewProject-hooks.js';
 import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import { type BundledPassiveRadiatorRepo, createMemoryStorage } from '@openisd/persistence';
@@ -335,7 +335,7 @@ describe('useOgNewProject', () => {
     wizard.selectSealedAlignment(0.6);
 
     // The volume that shows Qtc 0.6 on the Box tab (lossy, default Rg and box losses), to 2dp litres.
-    const raw = driver.sealedVolumeForQtc(0.6, {Rs_ohm: DEFAULT_SOURCE_RESISTANCE_OHM, nDrivers: 1, loading: 'standard'}, {Ql: NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA})!;
+    const raw = driver.sealedVolumeForQtc(0.6, {Rs_ohm: DEFAULT_SOURCE_RESISTANCE_OHM, nDrivers: 1, loading: 'standard', alfaVC_per_K: DEFAULT_ALFAVC_PER_K, vcTempRise_K: DEFAULT_VC_TEMP_RISE_K}, {Ql: NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA})!;
     expect(wizard.sealedVolume_m3.value).toBeCloseTo(Math.round(raw * 1e5) / 1e5, 9);
     expect(wizard.sealedVolume_m3.value).not.toBe(raw);
   });
