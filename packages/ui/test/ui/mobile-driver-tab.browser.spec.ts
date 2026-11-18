@@ -35,13 +35,13 @@ test('changing the number of drivers writes the project', async ({ appPage: page
 });
 
 // John, 16 Nov 2026 12:46 (QO946.c118): the band over the count is headed User options, as the passive radiator's.
-test('page order matches the mock: name, buttons, User options band, count, Key figures band, five figures, then the consistency checks', async ({ appPage: page }) => {
+test('page order matches the mock: name, buttons, User options band, count, placement (T919), Key figures band, five figures, then the consistency checks', async ({ appPage: page }) => {
   await page.setViewportSize({ width: 374, height: 705 });
   const kids = await page.locator('.mob-classic').evaluate(root => [...root.children].map(e => ({
     cls: e.className,
     text: (e instanceof HTMLElement ? e.innerText : '').replace(/\s+/g, ' ').trim(),
   })));
-  expect(kids.map(k => k.text.split(' ')[0])).toEqual(['Tang', 'Select', 'USER', 'Drivers', 'KEY', 'Fs', 'Qts', 'Vas', 'Re', 'Xmax', '⚠']);
+  expect(kids.map(k => k.text.split(' ')[0])).toEqual(['Tang', 'Select', 'USER', 'Drivers', 'Placement', 'KEY', 'Fs', 'Qts', 'Vas', 'Re', 'Xmax', '⚠']);
   expect(kids.filter(k => k.cls.includes('mob-band')).map(k => k.text)).toEqual(['USER OPTIONS ?', 'KEY FIGURES ?']);
 });
 
