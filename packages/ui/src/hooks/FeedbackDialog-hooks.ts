@@ -51,11 +51,11 @@ export interface FeedbackDialogApi {
   /** The wire value of the face tapped, or null before a tap (a member is never held in a ref: Vue's proxy breaks `===`). */
   readonly chosen: Readonly<Ref<string | null>>;
   readonly heading: ComputedRef<string>;
-  /** "Thanks, sent" or "Saved, will send when online" for the face tap; '' before a tap. */
+  /** The one confirmation line: "Thanks, sent" or "Saved, will send when online" for what the user has given (the face,
+   *  then the face and the comment); '' before a tap. A comment updates this line; it never adds a second one (T881). */
   readonly statusText: ComputedRef<string>;
   readonly comment: Ref<string>;
   readonly commentSent: Readonly<Ref<boolean>>;
-  readonly commentStatusText: ComputedRef<string>;
   readonly texts: typeof FEEDBACK_TEXTS;
   /** True on the phone skin: the dialog is a bottom sheet with bigger faces. */
   readonly phone: ComputedRef<boolean>;
@@ -86,8 +86,8 @@ export function createFeedbackDialog(deps: FeedbackDialogDeps): FeedbackDialogAp
   const phase = ref<FeedbackPhase>('face');
   const chosen = ref<string | null>(null);
   const answerId = ref<string | null>(null);
+  /** Where the answer (with its comment, once one is sent) stands: the outbox tracks both under one id. */
   const delivery = ref<FeedbackDelivery | null>(null);
-  const commentDelivery = ref<FeedbackDelivery | null>(null);
   const comment = ref('');
   const commentSent = ref(false);
 
@@ -105,7 +105,6 @@ export function createFeedbackDialog(deps: FeedbackDialogDeps): FeedbackDialogAp
     chosen.value = null;
     answerId.value = null;
     delivery.value = null;
-    commentDelivery.value = null;
     comment.value = '';
     commentSent.value = false;
     open.value = true;
@@ -127,10 +126,7 @@ export function createFeedbackDialog(deps: FeedbackDialogDeps): FeedbackDialogAp
   const stopOnline = deps.onlineAgain.listen(() => {
     void deps.outbox.flush().then(() => {
       const id = answerId.value;
-      if (id !== null && deps.outbox.deliveryOf(id) === 'sent') {
-        delivery.value = 'sent';
-        if (commentDelivery.value !== null) commentDelivery.value = 'sent';
-      }
+      if (id !== null && deps.outbox.deliveryOf(id) === 'sent') delivery.value = 'sent';
     });
   });
 
@@ -141,7 +137,6 @@ export function createFeedbackDialog(deps: FeedbackDialogDeps): FeedbackDialogAp
     phone: computed(() => deps.skin() === 'mobile'),
     heading: computed(() => phase.value === 'face' ? FEEDBACK_TEXTS.title : FEEDBACK_TEXTS.thanks),
     statusText: computed(() => statusLine(delivery.value)),
-    commentStatusText: computed(() => statusLine(commentDelivery.value)),
     show: () => reset('menu'),
     async pickFace(face, action) {
       if (!action.isTrusted || chosen.value !== null) return;
@@ -157,7 +152,7 @@ export function createFeedbackDialog(deps: FeedbackDialogDeps): FeedbackDialogAp
       const id = answerId.value;
       const text = comment.value.trim();
       if (id === null || text === '') { open.value = false; return; }
-      commentDelivery.value = await deps.outbox.comment(id, text);
+      delivery.value = await deps.outbox.comment(id, text);
       commentSent.value = true;
     },
     dismiss() {

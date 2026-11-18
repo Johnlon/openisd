@@ -1,0 +1,16 @@
+id: T881
+release_note: internal
+repo: openisd
+owner: feedbackfix
+status: done
+goal: Feedback dialog shows one confirmation after a face and a comment are sent, not two
+why: John, 18 Nov 2026: feedback feature on test; lead found the double confirmation on test.openisd.app
+ruling: QO946
+done_test: bash scripts/quiet-test.sh npx vitest run packages/ui/test/hooks/FeedbackDialog-hooks.test.ts packages/ui/test/logic/feedback
+files:
+  - tasks/T881.yml
+  - packages/ui/src/hooks/FeedbackDialog-hooks.ts
+  - packages/ui/src/ui/components/FeedbackDialog.vue
+  - packages/ui/test/hooks/FeedbackDialog-hooks.test.ts
+  - packages/ui/test/ui/feedback.browser.spec.ts
+  - packages/ui/test/fixtures/branchMap/shared.ts

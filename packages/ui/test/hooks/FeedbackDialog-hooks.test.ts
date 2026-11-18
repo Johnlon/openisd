@@ -94,7 +94,38 @@ describe('opening from the Info menu', () => {
     expect(net.bodies[1]).toContain('"comment":"add a dark theme"');
     expect(net.bodies[1]).toContain('"id":"id1"');
     expect(dialog.commentSent.value).toBe(true);
-    expect(dialog.commentStatusText.value).toBe('Thanks, sent');
+    expect(dialog.statusText.value).toBe('Thanks, sent');
+  });
+
+  it('face then comment: one confirmation line, which speaks for the comment too (T881: it showed "Thanks, sent" twice)', async () => {
+    const {dialog, net} = setup();
+    net.isOnline = false;
+    dialog.show();
+    await dialog.pickFace(FeedbackFace.Yes, PERSON);
+    expect(dialog.statusText.value).toBe('Saved, will send when online');
+    // Back online without the online event: sending the comment sends the waiting face with it.
+    net.isOnline = true;
+    dialog.comment.value = 'Love the charts';
+    await dialog.sendComment(PERSON);
+    expect(net.bodies.join('')).toContain('"comment":"Love the charts"');
+    expect(dialog.commentSent.value).toBe(true);
+    expect(dialog.statusText.value).toBe('Thanks, sent');
+    expect(Object.keys(dialog).filter(key => /status/i.test(key))).toEqual(['statusText']);
+  });
+
+  it('offline comment: the one line says saved, then sent when the network is back', async () => {
+    const {dialog, net, online} = setup();
+    net.isOnline = false;
+    dialog.show();
+    await dialog.pickFace(FeedbackFace.Ok, PERSON);
+    dialog.comment.value = 'add a dark theme';
+    await dialog.sendComment(PERSON);
+    expect(dialog.statusText.value).toBe('Saved, will send when online');
+    net.isOnline = true;
+    online.fire();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(net.bodies.join('')).toContain('"comment":"add a dark theme"');
+    expect(dialog.statusText.value).toBe('Thanks, sent');
   });
 
   it('a blank comment sends nothing and still shows a result', async () => {

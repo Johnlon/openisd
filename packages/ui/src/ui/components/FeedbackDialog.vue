@@ -3,7 +3,7 @@ import {nextTick, ref, watch} from 'vue';
 import {injectFeedbackDialog} from '../../hooks/FeedbackDialog-hooks.js';
 
 const dialog = injectFeedbackDialog();
-const {open, phone, phase, faces, chosen, heading, statusText, comment, commentSent, commentStatusText, texts} = dialog;
+const {open, phone, phase, faces, chosen, heading, statusText, comment, commentSent, texts} = dialog;
 /** The drawn mouth of each face, in the order `faces` lists them: sad, flat, smiling. */
 const sheet = ref<HTMLElement | null>(null);
 // Focus the dialog when it opens so Escape closes it.
@@ -35,7 +35,6 @@ watch(open, async isOpen => { if (isOpen) { await nextTick(); sheet.value?.focus
           <label class="fb-prompt" for="fb-comment">{{ texts.commentPrompt }}</label>
           <textarea id="fb-comment" v-model="comment" class="fb-text" rows="3" maxlength="1000" :placeholder="texts.commentPlaceholder" data-testid="feedback-comment"></textarea>
         </template>
-        <p v-if="commentStatusText !== ''" class="fb-status" role="status" data-testid="feedback-comment-status">{{ commentStatusText }}</p>
         <p class="fb-privacy">{{ texts.privacy }}</p>
       </div>
       <footer class="fb-actions">

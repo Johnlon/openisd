@@ -80,7 +80,8 @@ test.describe('desktop skin', () => {
     await page.getByTestId('feedback-comment').fill('Love the charts');
     await expectDialogFits(page);
     await page.getByTestId('feedback-send-comment').click();
-    await expect(page.getByTestId('feedback-comment-status')).toHaveText('Thanks, sent');
+    await expect(page.getByTestId('feedback-status')).toHaveText('Thanks, sent');
+    await expect(page.getByTestId('feedback-dialog').getByRole('status')).toHaveCount(1); // one confirmation, not one per send (T881)
     await expect.poll(() => feedbackBodies(bodies).length).toBe(2);
     expect(feedbackBodies(bodies)[1]).toContain('"comment":"Love the charts"');
     await page.getByTestId('feedback-done').click();
@@ -152,7 +153,8 @@ test.describe('phone skin', () => {
     await page.getByTestId('feedback-comment').fill('The phone keyboard hides the chart');
     await expectDialogFits(page);
     await page.getByTestId('feedback-send-comment').click();
-    await expect(page.getByTestId('feedback-comment-status')).toHaveText('Saved, will send when online');
+    await expect(page.getByTestId('feedback-status')).toHaveText('Saved, will send when online');
+    await expect(page.getByTestId('feedback-dialog').getByRole('status')).toHaveCount(1); // one confirmation, not one per send (T881)
     expect(feedbackBodies(bodies)).toHaveLength(0);
 
     await context.setOffline(false);
