@@ -91,7 +91,8 @@ export async function systemFontUses(page: Page): Promise<SystemFontUse[]> {
 
 for (const screen of SCREENS) {
   test(`visual fonts ${screen.skin.name} ${screen.name}: every glyph is drawn in a bundled font`, async ({page, browserLog}) => {
-    await screen.open(page);
+    // At the test server's address, not the release address: the developer protocol this reads fonts through fetches the stylesheets again from the address itself.
+    await screen.openOnServer(page);
     await page.evaluate(() => document.fonts.ready);
     browserLog.reset();
     const uses = await systemFontUses(page);

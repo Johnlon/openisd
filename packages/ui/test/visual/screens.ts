@@ -76,6 +76,10 @@ export interface Screen {
   readonly skin: VisualSkin;
   /** Brings the screen up, from a fresh page. */
   open(page: Page): Promise<void>;
+  /** The same screen with the page at the test server's own address. For a check that reads the page through the browser's
+   *  developer protocol (visual-fonts.browser.spec.ts): that protocol re-fetches the page's stylesheets from the address
+   *  itself, outside what a route can answer, so at the release address it would ask the live site and get its 404. */
+  openOnServer(page: Page): Promise<void>;
   /** CSS selectors of parts the machine decides, masked in the picture (the build stamp is always masked). */
   readonly mask: readonly string[];
   /** The console errors the screen's own fault writes (a fault view); any other console error fails it. */
@@ -84,7 +88,11 @@ export interface Screen {
 
 function screen(skin: VisualSkin, name: string, open: (page: Page) => Promise<void>, mask: readonly string[] = [],
   ownConsoleErrors: readonly RegExp[] = [], kind: ScreenKind = 'page'): Screen {
-  return {name, kind, skin, mask, ownConsoleErrors, open: async page => { await skin.startOnReleaseSite(page); await open(page); }};
+  return {
+    name, kind, skin, mask, ownConsoleErrors,
+    open: async page => { await skin.startOnReleaseSite(page); await open(page); },
+    openOnServer: async page => { await skin.start(page); await open(page); },
+  };
 }
 
 /**

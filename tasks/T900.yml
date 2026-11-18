@@ -1,0 +1,14 @@
+id: T900
+release_note: internal
+repo: openisd
+owner: lead
+status: done
+goal: The visual-fonts spec passes again on main, because it reads the page at the test server's address (the browser's developer protocol fetches the stylesheets from the page's own address, which at https://openisd.app/ is the live site and answers 404)
+why: 'Suite run 44301107347 on main after T896 failed 183 visual-fonts screens with two "404 ()" console errors; cause and fix in bugs/BUG_20261118_fonts-spec-asks-the-live-site-for-stylesheets.md. Main red is fixed first (QO946.c241, John, 18 Nov 2026).'
+done_test: npx vitest run packages/ui/test/architecture/visual-fonts-at-server-address.test.ts
+files:
+  - tasks/T900.yml
+  - bugs/BUG_20261118_fonts-spec-asks-the-live-site-for-stylesheets.md
+  - packages/ui/test/visual/screens.ts
+  - packages/ui/test/visual/visual-fonts.browser.spec.ts
+  - packages/ui/test/architecture/visual-fonts-at-server-address.test.ts
