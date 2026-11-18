@@ -1,5 +1,5 @@
 import type {Page} from '@playwright/test';
-import {ANNOUNCEMENTS_URL} from '../../src/logic/announcementCenter.js';
+import {announcementEndpointsForHostname} from '../../src/logic/announcementCenter.js';
 import {deviceRecord} from './seedMyDrivers.js';
 import {tapMobileMenuItem} from './mobileSkin.js';
 import {WalkSkin} from './viewOpenTypes.js';
@@ -23,7 +23,8 @@ async function launchWith(page: Page, savedViewText: string): Promise<void> {
 /** Announcement feed stand-in: the address answers with one announcement the user has not seen. */
 const announcementCurrent: OpenStep = {root: '.ann-modal', open: async page => {
   const item = {id: 'walk-announcement-1', version: '7.0.999', published: '2026-11-10', title: 'Mobile controls and driver library fixes', summary: 'The fields are more consistent.', body: ['Alignment units are part of the control.'], href: 'https://openisd.app/'};
-  await page.route(ANNOUNCEMENTS_URL, route => route.fulfill({status: 200, contentType: 'application/json', headers: {'Cache-Control': 'no-store'}, body: JSON.stringify({version: 1, announcements: [item]})}));
+  // The feed the page's own address reads: the test service on localhost, the production one at the release address.
+  await page.route(announcementEndpointsForHostname(new URL(page.url()).hostname).feedUrl, route => route.fulfill({status: 200, contentType: 'application/json', headers: {'Cache-Control': 'no-store'}, body: JSON.stringify({version: 1, announcements: [item]})}));
   await launchWith(page, SPLASH_SEEN);
   await page.locator('.ann-modal').waitFor({state: 'visible'});
 }};

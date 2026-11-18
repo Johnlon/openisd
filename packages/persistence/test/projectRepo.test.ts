@@ -718,6 +718,17 @@ describe('projectRepo', () => {
     });
   });
 
+  describe('where the projects are kept', () => {
+    // Browser storage belongs to one address, so the label names the page address it is handed, as a user sees it:
+    // on the release site "https://openisd.app/", on the test site "https://test.openisd.app/". It is not a defect that
+    // it shows the address; the visual baselines are taken at the release address (bugs/BUG_20261118_visual-baselines-show-the-test-servers-address.md).
+    it.each(['https://openisd.app/', 'https://test.openisd.app/'])('the label names the address %s', address => {
+      const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), address);
+      expect(repo.storeAddress).toBe(address);
+      expect(repo.storeLabel).toBe(`Projects saved in this browser at ${address}`);
+    });
+  });
+
   describe('save failure', () => {
     it('returns a failed result when storage throws', () => {
       const storage = createMemoryStorage();

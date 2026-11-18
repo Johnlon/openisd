@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Compare the visual spec with the committed pictures on THIS machine (comparison only: nothing is drawn, and
 # scripts/test.sh still refuses --update-snapshots). It is the suite's browser job with the test server on port 4300,
-# which the pictures show ("saved in this browser at http://localhost:4300/"); scripts/test.sh hands out a pooled port
-# (4100+) instead, and that one digit differs from every picture that shows the address.
+# the stand-in for the release address (the pictures show "saved in this browser at https://openisd.app/") finds its build by
+# that port; scripts/test.sh hands out a pooled port (4100+) instead.
 #   bash scripts/visual/compare-local.sh [playwright arguments, e.g. -g "visual desktop tab-box"]
 # A difference here is a real difference (the app draws only in its bundled fonts, the browser's time zone is UTC): read it.
 set -euo pipefail

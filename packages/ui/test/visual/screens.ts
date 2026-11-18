@@ -6,6 +6,7 @@ import {COMPLETE_DRIVER_PROJECT_OWPR} from '../fixtures.js';
 import {openTargets, WalkSkin} from '../fixtures/viewOpen.js';
 import {BASE_SCREEN, CANNOT_BE_SHOWN, SAME_VIEW, WAITING_FOR_FIX} from './pictureSet.js';
 import {ViewKind} from '../fixtures/viewIndex.js';
+import {standInForReleaseSite} from '../fixtures/releaseSite.js';
 
 /**
  * Every screen the visual baselines cover. A screen is a name, a skin and the steps that bring it up;
@@ -26,6 +27,18 @@ export class VisualSkin {
    *  document and closes it (the phone's Save As / Export menu never opened).
    *  `waitUntil` 'domcontentloaded' for a test that holds a font: the page's load event waits for fonts it uses. */
   async start(page: Page, waitUntil: 'load' | 'domcontentloaded' = 'load'): Promise<void> {
+    await this.prepare(page);
+    await page.goto('/', {waitUntil});
+  }
+
+  /** `start`, with the page at RELEASE_SITE as a user's browser shows it: the visual baselines' way in. */
+  async startOnReleaseSite(page: Page): Promise<void> {
+    await this.prepare(page);
+    await standInForReleaseSite(page);
+    await page.goto('/', {waitUntil: 'load'});
+  }
+
+  private async prepare(page: Page): Promise<void> {
     await page.clock.install({time: FIXTURE_DATE});
     await page.clock.resume();
     await page.setViewportSize(this.viewport);
@@ -38,7 +51,6 @@ export class VisualSkin {
     else await page.addInitScript(() => {
       localStorage.setItem('openisd_view', JSON.stringify({ui: {splashSeen: true}}));
     });
-    await page.goto('/', {waitUntil});
   }
 
   /** Opens a project file in this skin; the sample project unless another is named. */
@@ -72,7 +84,7 @@ export interface Screen {
 
 function screen(skin: VisualSkin, name: string, open: (page: Page) => Promise<void>, mask: readonly string[] = [],
   ownConsoleErrors: readonly RegExp[] = [], kind: ScreenKind = 'page'): Screen {
-  return {name, kind, skin, mask, ownConsoleErrors, open: async page => { await skin.start(page); await open(page); }};
+  return {name, kind, skin, mask, ownConsoleErrors, open: async page => { await skin.startOnReleaseSite(page); await open(page); }};
 }
 
 /**
@@ -80,8 +92,8 @@ function screen(skin: VisualSkin, name: string, open: (page: Page) => Promise<vo
  * - the phone About's "Build · <date>" line: the build's own date, which differs with every build.
  * The sizes Options, Your data states are not masked (T834, QO924): a backup is stored packed, and its packed size followed the sample
  * project's random id until the sample projects were generated with fixed ids (`generateSample.ts`). The storage quota line is not
- * masked either: `VisualSkin.start` fixes the browser's answer. The "saved in this browser at http://localhost:<port>/" line is not
- * masked: the suite and the re-take both serve on port 4300 (OPENISD_TEST_PORT).
+ * masked either: `VisualSkin.start` fixes the browser's answer. The "saved in this browser at https://openisd.app/" line (the page is opened at the release address, fixtures/releaseSite.ts) is not
+ * masked.
  */
 const MACHINE_DECIDED_PARTS: readonly string[] = [
   '[data-testid="about-version-line"]',
