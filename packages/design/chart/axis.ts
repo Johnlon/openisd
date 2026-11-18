@@ -161,13 +161,14 @@ export class LevelAxis {
   }
 
   /** Ticks for a plot `ph` px tall. Linear: round steps, all labelled, majors every ten steps'
-   *  decade. Log: 1, 2, 5 per decade, majors and labels on the decades. */
+   *  decade. Log: 1, 2, 5 per decade, majors and labels on the decades (every tick labelled when under two decades show). */
   ticks(ph: number): LevelTick[] {
     if (this.logy) {
-      return logTicks(this.min, this.max).map(value => {
-        const major = Math.abs(Math.log10(value) - Math.round(Math.log10(value))) < 1e-9;
-        return { value, major, labelled: major };
-      });
+      const values = logTicks(this.min, this.max);
+      const isDecade = (v: number): boolean => Math.abs(Math.log10(v) - Math.round(Math.log10(v))) < 1e-9;
+      // Under two decades on show, a decade-only label leaves one label (or none): label every tick.
+      const labelAll = values.filter(isDecade).length < 2;
+      return values.map(value => ({ value, major: isDecade(value), labelled: labelAll || isDecade(value) }));
     }
     const { ticks, step, mag } = linearTicks(this.min, this.max, ph);
     return ticks.map(value => ({

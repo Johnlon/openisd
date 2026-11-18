@@ -332,8 +332,10 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   Zmag: ({ meta, sw, pick }) => ({
     series: [{ ...pick(sw.zmag), color: meta.color, name: '|Z|' }],
     logy: true,
+    // 10 % below the lowest point, wherever that is: an array of drivers wired in parallel
+    // falls well under 1 ohm, and a floor of 1 ohm cut that curve off (T903).
     // FIXME - Magic number
-    ymin: Math.max(1, Math.min(...sw.zmag) * 0.9),
+    ymin: Math.min(...sw.zmag) * 0.9,
     // FIXME - Magic number
     ymax: Math.max(...sw.zmag) * 1.15,
   }),

@@ -62,6 +62,13 @@ describe('LevelAxis', () => {
       expect(t.filter(x => x.major).map(x => x.value)).toEqual([10, 100, 1000]);
       expect(t.filter(x => x.labelled).map(x => x.value)).toEqual([10, 100, 1000]);
     });
+
+    it('log ticks: an axis with fewer than two decades labels every tick, so it is not left with one label (T903)', () => {
+      const t = new LevelAxis(0.4, 8, true).ticks(300);
+      expect(t.map(x => x.value)).toEqual([0.5, 1, 2, 5]);
+      expect(t.filter(x => x.major).map(x => x.value)).toEqual([1]);
+      expect(t.filter(x => x.labelled).map(x => x.value)).toEqual([0.5, 1, 2, 5]);
+    });
   });
 
   describe('LevelAxis.drag — pan and zoom in display space', () => {
