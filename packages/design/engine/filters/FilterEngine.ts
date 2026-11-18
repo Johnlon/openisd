@@ -16,7 +16,7 @@ import {
 } from './index.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
-  FILTER_T_LIMITS, LINKWITZ_RILEY_ORDER_LIMITS, type FieldLimits,
+  FILTER_T_LIMITS, LINKWITZ_RILEY_ORDER_LIMITS, PEAK_HIGHPASS_GAIN_LIMITS, type FieldLimits,
 } from '../../fields/filterLimits.js';
 import {integerSpin, type FieldSpin} from '../../fields/field.js';
 import {clamp, roundClamp} from './limits.js';
@@ -217,7 +217,8 @@ export class FilterEngineImpl implements FilterEngine {
     return {
       ...next,
       fpk: clamp(next.fpk, FILTER_FC_LIMITS),
-      gainPk: clamp(next.gainPk, FILTER_GAIN_LIMITS),
+      // A typed Gpk stops at 0 dB; a negative one already held (from a file) is kept (QO951.c9).
+      gainPk: clamp(next.gainPk, patch.gainPk === undefined ? FILTER_GAIN_LIMITS : PEAK_HIGHPASS_GAIN_LIMITS),
     };
   }
 

@@ -38,7 +38,7 @@ const ROWS: Readonly<Record<FilterType, readonly string[]>> = {
 
 /** What each number box's NumberField is, by label, on each skin. */
 const KEY: Readonly<Record<string, string>> = {
-  Order: 'filter_Order', Q: 'filter_Q', Q0: 'filter_Q', Qp: 'filter_Q', t: 'filter_T_s', Gain: 'filter_Gain_dB', Gpk: 'filter_Gain_dB', BW: 'filter_BW_oct',
+  Order: 'filter_Order', Q: 'filter_Q', Q0: 'filter_Q', Qp: 'filter_Q', t: 'filter_T_s', Gain: 'filter_Gain_dB', Gpk: 'filter_Peak_Highpass_Gain_dB', BW: 'filter_BW_oct',
   Cutoff: 'filter_Fc_hz', fc: 'filter_Fc_hz', f0: 'filter_Fc_hz', fp: 'filter_Fc_hz', fpk: 'filter_Fc_hz',
 };
 const PHONE_KEY: Readonly<Record<string, string>> = {...KEY, Cutoff: 'phone_Filter_Fc_hz', fc: 'phone_Filter_Fc_hz', f0: 'phone_Filter_Fc_hz', fp: 'phone_Filter_Fc_hz', fpk: 'phone_Filter_Fc_hz'};

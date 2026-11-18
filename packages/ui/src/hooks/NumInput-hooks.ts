@@ -725,6 +725,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     floor: props.field?.floor ?? 'none',
     min: effMin.value,
     max: effMax.value,
+    minimumReason: props.field?.minimumReason,
     show: si => props.field ? props.field.format(si, null, activeToken.value) : formatFixed(si, props.precision ?? 2),
   }));
 

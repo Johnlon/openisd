@@ -1,0 +1,28 @@
+id: T914
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+label: fixes
+goal: The Peaking 2nd order highpass Peak mag (Gpk) box refuses a typed value below 0 dB with a note saying a 2nd-order high-pass cannot peak below its flat level (desktop and phone); other filter gains keep -60..+60 dB; a negative Gpk loaded from a file is kept and shows T913's message.
+why: QO951 (John, 18 Nov 2026, QO951.c9 "UI should not allow and maths should do what you said anyway"; QO951.c11, no WinISD-range tick-box).
+ruling: QO951
+done_test: bash scripts/test.sh packages/design/test/fields/peak-highpass-gain-limit.test.ts
+files:
+  - tasks/T914.yml
+  - packages/design/fields/filterLimits.ts
+  - packages/design/fields/field.ts
+  - packages/design/engine/filters/FilterEngine.ts
+  - packages/design/test/fields/peak-highpass-gain-limit.test.ts
+  - packages/ui/src/logic/entryRefusal.ts
+  - packages/ui/src/hooks/NumInput-hooks.ts
+  - packages/ui/src/ui/shells/original/filters/PeakHighpassEditor.vue
+  - packages/ui/src/ui/shells/mobile/filters/PeakHighpassFields.vue
+  - packages/ui/src/ui/shells/original/OriginalFilters.vue
+  - packages/ui/test/logic/entryRefusal.test.ts
+  - packages/ui/test/ui/filter-peak-highpass-gain-floor.browser.spec.ts
+  - packages/ui/test/ui/filters-dependent-values.browser.spec.ts
+  - packages/ui/test/ui/filter-negative-peak-message.browser.spec.ts
+  - packages/design/test/fixtures/inputLimitsSweep.ts
+  - packages/design/test/domain/winisd-crash-replay.test.ts
+note: Ruled QO951. The browser journey packages/ui/test/ui/filter-peak-highpass-gain-floor.browser.spec.ts runs in the full suite. A typed refusal follows ruling "b" (bugs/archive/BUG_20261005_no-common-ui-field-component.md) - the typed text stays, red, with the note, and nothing is stored. The desktop Filters list no longer clips a field's note (it never scrolled; its overflow only cut popups off). T913 journey loads -6 from a file: typing it is refused since QO951.c9 (John 18 Nov: 'UI should not allow and maths should do what you said anyway'). D1 replays -6 dB through the load path: the typed edit clamps since QO951.c9.

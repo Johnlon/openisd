@@ -12,7 +12,7 @@ import {createEngine} from '../../engine/Engine.js';
 import {DRIVER_SPEC_FIELD_NAMES} from '../../domain/driver/driverSpecFieldName.js';
 import type {NumericDriverSpecFieldName} from '../../domain/driver/driverSpecFieldName.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
-import {DEFAULT_GRID, SLOW_MS, loadProject, projectFindings} from '../fixtures/inputLimitsSweep.js';
+import {DEFAULT_GRID, SLOW_MS, importWprText, loadProject, projectFindings, wprText} from '../fixtures/inputLimitsSweep.js';
 
 const engine = createEngine();
 const NUMERIC_DRIVER_FIELDS = DRIVER_SPEC_FIELD_NAMES.filter((n): n is NumericDriverSpecFieldName => n !== 'VCCon');
@@ -31,11 +31,18 @@ const nonFinite = (values: readonly (number | null)[]) => values.filter(v => v !
 
 describe('WinISD crash list, replayed on OpenISD', () => {
   // D1: WinISD dies on Add. OpenISD keeps the value and draws no curve for that filter (T913, ruled QO951).
+  // D1 replays -6 dB through the load path: the typed edit clamps since QO951.c9. The sealed W5 file
+  // is opened with one Peak HP filter at 50 Hz, -6 dB in its [Filters] section, as File > Open reads it.
   it('D1: a Peaking 2nd order highpass at -6 dB and 50 Hz on a sealed W5 leaves the charts finite', () => {
-    const project = loadProject('sealed');
-    const start = {...engine.filters.default('peakHighpass'), id: 'd1', enabled: true};
-    if (start.type !== 'peakHighpass') throw new Error('the default peaking highpass is not one');
-    project.filters.set([engine.filters.editPeakHighpass(start, {fpk: 50, gainPk: -6})]);
+    const plain = wprText('sealed');
+    const text = plain.replace('[Filters]\nCount=0\n', '[Filters]\nCount=1\nfilter0type=5\nfilter0params=0;1;50;-6\n');
+    expect(text, 'the sealed W5 file has an empty [Filters] section').not.toBe(plain);
+    const project = importWprText('sealed W5 with a -6 dB Peak HP', text);
+    const filters = project.filters.value;
+    expect(filters, 'the stored gain is -6 dB, never quietly 0').toEqual([expect.objectContaining({type: 'peakHighpass', fpk: 50, gainPk: -6})]);
+    expect(engine.filters.issue(filters[0])?.text).toBe(
+      'WinISD closes when this filter has a negative peak gain, but a peak gain below 0 dB has no curve to draw, '
+      + 'so OpenISD keeps the value and draws no curve for this filter (here -6 dB at 50 Hz).');
     expect(projectFindings(project, DEFAULT_GRID).findings).toEqual([]);
   });
 

@@ -14,6 +14,8 @@ export interface EntryBounds {
   readonly floor: ValueFloor;
   readonly min: number;
   readonly max: number | undefined;
+  /** The field's own sentence on why a value below `min` is refused (`NumberField.minimumReason`). */
+  readonly minimumReason: string | undefined;
   readonly show: (si: number) => string;
 }
 
@@ -45,7 +47,8 @@ export function entryRefusal(b: EntryBounds, entry: Entry): string {
   if (!Number.isFinite(si)) return `${b.label} must be a finite number — ${enter}`;
   const lo = lowerBound(b);
   if (lo.inclusive ? si < lo.value : si <= lo.value) {
-    return lo.inclusive ? `${b.label} is below its minimum — ${enter}` : `${b.label} must be greater than 0 — ${enter}`;
+    const why = b.minimumReason === undefined ? '' : ` ${b.minimumReason}`;
+    return lo.inclusive ? `${b.label} is below its minimum — ${enter}${why}` : `${b.label} must be greater than 0 — ${enter}${why}`;
   }
   if (b.max !== undefined && si > b.max) return `${b.label} is above its maximum — ${enter}`;
   return '';

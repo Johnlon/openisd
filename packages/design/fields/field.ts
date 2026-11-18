@@ -47,7 +47,7 @@ import {formatFixed, formatTrimmedTo} from './format.js';
 import type {FieldLimits} from './filterLimits.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
-  FILTER_T_LIMITS,
+  FILTER_T_LIMITS, PEAK_HIGHPASS_GAIN_LIMITS,
 } from './filterLimits.js';
 import type {SelectorOption} from './options.js';
 import type {SpinRule} from './spinnerStep.js';
@@ -130,6 +130,7 @@ interface NumberFieldSpec extends FieldSpec {
   readonly limits: FieldLimits;
   readonly precision: number;
   readonly formula?: string;
+  readonly minimumReason?: string;
   readonly plausible?: FieldLimits;
   readonly floor?: ValueFloor;
   readonly spin?: FieldSpin;
@@ -150,6 +151,9 @@ export class NumberField extends Field {
   readonly precision: number;
   /** Closed form derivation, for a quantity the engine calculates. */
   readonly formula: string | undefined;
+  /** Why a typed value below `limits.min` is refused, added to the box's note, for a floor whose
+   *  reason is not plain from the field itself (the Peak HP Gpk stops at 0 dB). */
+  readonly minimumReason: string | undefined;
   /**
    * The band a REAL driver's value falls in — narrower than `limits`, which is only what the
    * input will accept. A value inside `limits` but outside this is enterable and gets a
@@ -171,6 +175,7 @@ export class NumberField extends Field {
     this.limits = Object.freeze(spec.limits);
     this.precision = spec.precision;
     this.formula = spec.formula;
+    this.minimumReason = spec.minimumReason;
     this.plausible = Object.freeze(spec.plausible ?? spec.limits);
     this.floor = spec.floor ?? 'none';
     this.spin = spec.spin ?? PROPORTIONAL_SPIN;
@@ -1339,6 +1344,18 @@ export class NumberField extends Field {
     spin: {kind: 'proportionalFloored', finestExp: -1},
     precision: 3,
     description: "Filter Gain\nBoost or cut applied by the filter or equalizer, in dB.",
+    allowedEmpty: true,
+  });
+  /** The Peaking 2nd order highpass peak gain: 0..60 dB when typing (QO951.c9). */
+  static readonly FILTER_PEAK_HIGHPASS_GAIN_DB = new NumberField({
+    value: "filter_Peak_Highpass_Gain_dB",
+    label: "Gpk",
+    display: {kind: 'fixed', symbol: 'dB'},
+    limits: PEAK_HIGHPASS_GAIN_LIMITS,
+    minimumReason: 'A 2nd-order high-pass cannot peak below its flat level.',
+    spin: {kind: 'proportionalFloored', finestExp: -1},
+    precision: 3,
+    description: "Peak Gain (Gpk)\nHow far the peaking highpass rises above its flat level at fpk, in dB.\n0 dB or more: a 2nd-order high-pass cannot peak below its flat level.",
     allowedEmpty: true,
   });
   static readonly FILTER_ORDER = new NumberField({

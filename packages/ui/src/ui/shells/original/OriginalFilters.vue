@@ -85,7 +85,7 @@ function toggleEdit(id: string | undefined) { editing.value = editing.value === 
 .filters-quickadd { flex:none; display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
 .action-btn { background:#f0f0f0; border:1px solid #999; border-radius:3px; padding:4px 10px; cursor:pointer; font:inherit; }
 .action-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
-.filters-list { flex:1 1 auto; min-height:0; border:1px solid #999; background:#fff; overflow:auto; }
+.filters-list { flex:1 1 auto; min-height:0; border:1px solid #999; background:#fff; }
 .filter-row-inline { border-bottom:1px solid #eee; }
 .filter-row-head { display:flex; align-items:center; gap:8px; padding:6px 10px; cursor:pointer; }
 .filter-row-head:hover { background:#f5f8fc; }

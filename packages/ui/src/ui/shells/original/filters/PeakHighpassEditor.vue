@@ -10,7 +10,7 @@ const {f, api} = defineProps<{ f: PeakHighpassFilter; api: OriginalFiltersAPI }>
 
 <template>
   <div class="filter-edit-body">
-    <UIFixedField :field="NumberField.FILTER_GAIN_DB" label="Gpk" :value="f.gainPk" @update:value="v => api.editPeakHighpass(f, {gainPk: v})" />
+    <UIFixedField :field="NumberField.FILTER_PEAK_HIGHPASS_GAIN_DB" label="Gpk" :value="f.gainPk" @update:value="v => api.editPeakHighpass(f, {gainPk: v})" />
     <UIFixedField :field="NumberField.FILTER_FC_HZ" label="fpk" :value="f.fpk" @update:value="v => api.editPeakHighpass(f, {fpk: v})" />
   </div>
 </template>
