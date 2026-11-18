@@ -176,7 +176,7 @@ function setup(initial: Partial<NumInputProps> = {}, attrs: Record<string, unkno
   });
   const app = renderer.createApp(defineComponent({
     setup() {
-      api = useNumInput(props, emit, {presentationState, stepperPin: options.stepperPin ?? null, fieldEditMode: options.fieldEditMode ?? null, dragClock, attrs});
+      api = useNumInput(props, emit, {presentationState, stepperPin: options.stepperPin ?? null, fieldEditMode: options.fieldEditMode ?? null, dragClock, attrs, refusalSeen: () => undefined});
       return () => null;
     },
   }));

@@ -435,7 +435,7 @@ export function createAppState(deps: AppStateDeps): AppState {
   }
 
   function recordStartupRestoredProjects(): void {
-    for (const project of projects.value) recordOpen('restore', project);
+    if (projects.value.length > 0) telemetry.record({kind: 'projects_restored', count: projects.value.length});
   }
 
 

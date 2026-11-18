@@ -9,16 +9,18 @@ import {DRIVER_WIRING_OPTIONS} from '@openisd/design/fields';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {selectedOption} from '../logic/domEvents.js';
+import {useFeatureUse} from './telemetryContext.js';
 
 export function useDriverWiring() {
   const {appState} = useApp();
   const project = useFocusedProject();
+  const featureUse = useFeatureUse();
 
   const shown = computed(() => { void appState.projectChanged.value; return project.value.driverWiringApplies; });
   const mine = computed<DriverWiring>(() => { void appState.projectChanged.value; return project.value.driverWiring.value; });
   const options = DRIVER_WIRING_OPTIONS;
 
-  function choose(wiring: DriverWiring): void { project.value.driverWiring.set(wiring); }
+  function choose(wiring: DriverWiring): void { project.value.driverWiring.set(wiring); featureUse.feature('multi_driver_wiring_changed'); }
   function onSelect(e: Event): void {
     const wiring = selectedOption(e, options);
     if (wiring !== null) choose(wiring);

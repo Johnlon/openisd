@@ -4,8 +4,9 @@
  * decision made here); browsing/editing a driver reuses the app's existing global overlays
  * (`DriverBrowser`, `DriverEditorModal`), reached the same way the desktop shell reaches them.
  */
-import {computed} from 'vue';
+import {computed, watch} from 'vue';
 import {PhoneHelp} from '@openisd/design/fields';
+import {reportDisagreementsSeen} from '../logic/telemetry/valuesProblem.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {useFeatureUse} from './telemetryContext.js';
@@ -36,6 +37,7 @@ export function useMobileDriverTab() {
     void projectChanged.value;
     return project.value.driver.inconsistentInputReasons();
   });
+  watch(consistencyReasons, reasons => { if (reasons.length > 0) reportDisagreementsSeen(featureUse, project.value.driver); }, {immediate: true});
 
   /** The "User options" band's help: lists Driver wiring only while that control is drawn (2 or more drivers, T882). */
   const driverHelp = computed(() => { void projectChanged.value; return PhoneHelp.driver(project.value.driverWiringApplies); });

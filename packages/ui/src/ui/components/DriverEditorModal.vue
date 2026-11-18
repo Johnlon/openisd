@@ -20,6 +20,7 @@ import UIFixedField from './UIFixedField.vue';
 import UIPickField from './UIPickField.vue';
 import type {DriverEditorSkin} from './driverEditorSkin.js';
 import {provideCellScope} from './cellScope.js';
+import {provideEditedDriver} from '../../hooks/refusalSeen.js';
 import {createRefusalLedger, provideRefusalLedger} from '../../logic/refusalLedger.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {DriverFileFormat} from '../../fileFormat.js';
@@ -86,6 +87,7 @@ provideCellScope({ revision: trigger, written: forceUpdate });
 // the ledger marks the tab that holds one and lets OK say what it did not apply.
 const refusals = createRefusalLedger();
 provideRefusalLedger(refusals);
+provideEditedDriver(() => draft.driver);
 const draftDriver = computed(() => { void trigger.value; return draft.driver; });
 
 /** OK on a myDriver subject: save the draft under its uuid — in place, same identity. A save

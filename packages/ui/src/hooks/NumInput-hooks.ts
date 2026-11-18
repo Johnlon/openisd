@@ -45,11 +45,13 @@ export interface NumInputDependencies {
   readonly fieldEditMode: FieldEditMode | null;
   readonly dragClock: DragClock;
   readonly attrs: Readonly<Record<string, unknown>>;
+  /** Told the id of the field whose box has just refused an entry (usage statistics). */
+  readonly refusalSeen: (fieldId: string) => void;
 }
 
 /** One injectable owner of numeric input, digit spinning, validation and focus behaviour. */
 export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, dependencies: NumInputDependencies) {
-  const {presentationState, stepperPin, fieldEditMode, dragClock, attrs} = dependencies;
+  const {presentationState, stepperPin, fieldEditMode, dragClock, attrs, refusalSeen} = dependencies;
   const activeToken = computed(() => props.field?.unitTokenFor(presentationState.ui.unitTokens ?? {}));
 
   function fmt(v: number | null | undefined, halfWidth: number | null | undefined = props.halfWidth): string {
@@ -816,7 +818,10 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     if (display.value === fmt(props.modelValue)) return '';
     return entryRefusal(bounds.value, { kind: 'number', si: fromDisp(numberOf(display.value)) });
   });
-  watch(refusal, text => emit('refusal', text));
+  watch(refusal, text => {
+    emit('refusal', text);
+    if (text !== '' && props.field !== undefined) refusalSeen(props.field.value);
+  });
 
   const classes = computed(() => {
     const isEmp = props.modelValue == null || props.modelValue <= 0 || display.value === '';

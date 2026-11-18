@@ -5,6 +5,7 @@ import {STEPPER_PIN} from '../../logic/stepperPin.js';
 import {DRAG_CLOCK, REAL_DRAG_CLOCK} from '../../logic/dragClock.js';
 import {FIELD_EDIT_MODE} from '../../logic/fieldEditMode.js';
 import {ENTER_CLOSES_KEYBOARD} from '../../logic/enterClosesKeyboard.js';
+import {useRefusalSeen} from '../../hooks/refusalSeen.js';
 import {useNumInput, type NumInputProps} from '../../hooks/NumInput-hooks.js';
 
 defineOptions({inheritAttrs: false});
@@ -30,6 +31,7 @@ const {inputEl, unitEl, increaseEl, decreaseEl, isReadonly, keyboard, display, c
   fieldEditMode: inject(FIELD_EDIT_MODE, null),
   dragClock: inject(DRAG_CLOCK, REAL_DRAG_CLOCK),
   attrs: useAttrs(),
+  refusalSeen: useRefusalSeen(),
 });
 /** In a phone Graph sheet the keyboard's Done key closes the keyboard (logic/enterClosesKeyboard.ts). */
 const enterCloses = inject(ENTER_CLOSES_KEYBOARD, false);

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import {computed} from 'vue';
-import {useAnnouncementCenter} from '../../hooks/Announcements-hooks.js';
+import {useAnnouncementCenter, useAnnouncementTelemetry} from '../../hooks/Announcements-hooks.js';
+import {useFeatureUse} from '../../hooks/telemetryContext.js';
 import {injectSplashModal} from '../../hooks/SplashModal-hooks.js';
 
 const center = useAnnouncementCenter();
 const splash = injectSplashModal();
+useAnnouncementTelemetry(center, () => splash.open.value, useFeatureUse());
 const visible = computed(() => center.open.value && !splash.open.value);
 const current = center.latest;
 </script>

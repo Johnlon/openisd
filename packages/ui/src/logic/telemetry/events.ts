@@ -11,7 +11,7 @@ export type Skin = typeof SKINS[number];
 export type ScreenWidthBand = '<600' | '<1024' | '<1440' | '<1920' | '>=1920';
 export type DisplayMode = 'standalone' | 'browser';
 export type Platform = 'Android' | 'iOS' | 'Windows' | 'macOS' | 'Linux' | 'other';
-export type ProjectSource = 'new' | 'wizard' | 'file' | 'stored' | 'driver' | 'restore' | 'share' | 'copy';
+export type ProjectSource = 'new' | 'wizard' | 'file' | 'stored' | 'driver' | 'share' | 'copy';
 export type SaveFormat = 'stored' | 'owpr' | 'wpr' | 'archive';
 export type DriverSource = 'bundled' | 'mine' | 'import';
 
@@ -42,6 +42,8 @@ export interface ProjectOpenEvent {
   readonly driverId?: string;
   readonly driverName?: string;
 }
+/** The projects restored from browser storage at app start: how many, in one event (each is no `project_open`). */
+export interface ProjectsRestoredEvent { readonly kind: 'projects_restored'; readonly count: number }
 export interface ProjectSaveEvent {
   readonly kind: 'project_save';
   readonly format: SaveFormat;
@@ -57,7 +59,39 @@ export type RadiatorSource = 'bundled' | 'mine';
 export interface RadiatorPickEvent { readonly kind: 'radiator_pick'; readonly source: RadiatorSource; readonly id: string; readonly name: string }
 export type FeatureName =
   | 'whatif' | 'tune' | 'filters' | 'export' | 'import' | 'driver_db' | 'options' | 'vents' | 'save_file' | 'share_link' | 'diagnostics' | 'backup' | 'restore' | 'chart_data' | 'driver_editor' | 'skin_switch'
-  | 'winisd_differences' | 'bin_restore' | 'history_restore' | 'cloud_connect' | 'cloud_sync' | 'box_type' | 'alignment' | 'help' | 'compat_switch' | 'losses' | 'signal_generator' | 'save_my_driver' | 'driver_clone';
+  | 'winisd_differences' | 'bin_restore' | 'history_restore' | 'cloud_connect' | 'cloud_sync' | 'box_type' | 'alignment' | 'help' | 'compat_switch' | 'losses' | 'signal_generator' | 'save_my_driver' | 'driver_clone'
+  | 'multi_driver_wiring_changed' | 'coil_wiring_changed';
+/**
+ * The driver list's filters left no driver. Every field is a closed set or a count: chip ids, size classes, impedances,
+ * scope, and which ranges are used; the search text is only counted, never sent.
+ */
+export interface DriverSearchEmptyEvent {
+  readonly kind: 'driver_search_empty';
+  readonly scope: string;
+  /** The type chips that are on, comma-joined in sorted order; '' for none. */
+  readonly types: string;
+  readonly sizes: string;
+  readonly impedances: string;
+  /** Which range filters are used: 'fs', 'range', 'sd', comma-joined; '' for none. */
+  readonly ranges: string;
+  readonly favorites: boolean;
+  /** Length of the typed search text; 0 when none. */
+  readonly textLength: number;
+}
+/** A driver's values that disagree, or a refused number-box entry, was shown. `driver` is a bundled driver's catalogue name, else 'own'. */
+export interface ValuesProblemSeenEvent {
+  readonly kind: 'values_problem_seen';
+  readonly problem: 'disagree' | 'refused';
+  readonly field: string;
+  readonly driver: string;
+}
+/** The release announcement popup: shown, then closed (`dismissed` is the Dismiss button on the latest one). */
+export interface AnnouncementEvent {
+  readonly kind: 'announcement';
+  readonly stage: 'seen' | 'dismissed' | 'closed';
+  readonly id: string;
+  readonly view: 'latest' | 'list';
+}
 export interface ChartViewEvent { readonly kind: 'chart_view'; readonly chart: ChartId }
 export interface FeatureEvent { readonly kind: 'feature'; readonly name: FeatureName }
 export interface AnonymousErrorContext {
@@ -106,7 +140,7 @@ export interface FeedbackEvent {
 }
 
 export type TelemetryEvent =
-  | LaunchEvent | InstallEvent | SwBlockedEvent | SessionEndEvent | ProjectOpenEvent | ProjectSaveEvent | DriverPickEvent | RadiatorPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent | FeedbackEvent;
+  | LaunchEvent | InstallEvent | SwBlockedEvent | SessionEndEvent | ProjectOpenEvent | ProjectsRestoredEvent | DriverSearchEmptyEvent | ValuesProblemSeenEvent | AnnouncementEvent | ProjectSaveEvent | DriverPickEvent | RadiatorPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent | FeedbackEvent;
 
 export type FieldValue = string | number | boolean;
 export type Fields = Record<string, FieldValue>;
@@ -140,6 +174,12 @@ export function fieldsOf(e: TelemetryEvent): Fields {
       ...(e.driverId === undefined ? {} : {driverId: e.driverId}),
       ...(e.driverName === undefined ? {} : {driverName: e.driverName}),
     };
+    case 'projects_restored': return {count: e.count};
+    case 'driver_search_empty': return {
+      scope: e.scope, types: e.types, sizes: e.sizes, impedances: e.impedances, ranges: e.ranges, favorites: e.favorites, textLength: e.textLength,
+    };
+    case 'values_problem_seen': return {problem: e.problem, field: e.field, driver: e.driver};
+    case 'announcement': return {stage: e.stage, id: e.id, view: e.view};
     case 'project_save': return {
       format: e.format, box: e.box,
       ...(e.driverId === undefined ? {} : {driverId: e.driverId}),

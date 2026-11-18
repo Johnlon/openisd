@@ -1,4 +1,5 @@
 import type {FeatureUse} from './telemetry/featureUse.js';
+import type {DriverSearchEmptyEvent} from './telemetry/events.js';
 import {computed, type ComputedRef, type Ref, ref, shallowRef, watch} from 'vue';
 import type {OpenISDDriverStandalone} from '@openisd/design';
 import {Chip, DriverType, SizeClass} from '@openisd/design/filter';
@@ -231,6 +232,8 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const statusMsg = ref('');
   const statusErr = ref(false);
   const initialized = ref(false);
+  /** True once the catalogue index has arrived: before that an empty list says nothing about the filters. */
+  const catalogueLoaded = ref(false);
   const typeStates = ref<Record<string, string>>({});   // id → 'include' | 'exclude'
   const fsMin = ref('');
   const fsMax = ref('');
@@ -394,9 +397,35 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
    */
   const listedCount = computed<number>(() => filteredDrivers.value.length + filteredMyDrivers.value.length);
 
+  /** The filters in force as a usage event's closed-set fields; the typed text is only measured. */
+  function emptySearchEvent(): DriverSearchEmptyEvent {
+    const ranges = [
+      ...(fsMin.value.trim() !== '' || fsMax.value.trim() !== '' ? ['fs'] : []),
+      ...(rangeFrom.value.trim() !== '' || rangeTo.value.trim() !== '' ? ['range'] : []),
+      ...(sdMin.value.trim() !== '' || sdMax.value.trim() !== '' ? ['sd'] : []),
+    ];
+    return {
+      kind: 'driver_search_empty',
+      scope: driverScope.value.value,
+      types: Object.keys(typeStates.value).sort().join(','),
+      sizes: [...selSizes.value].sort().join(','),
+      impedances: [...selZ.value].sort().join(','),
+      ranges: ranges.join(','),
+      favorites: favoritesOnly.value,
+      textLength: filterQ.value.trim().length,
+    };
+  }
+
   const activeFilters = computed<readonly string[]>(() => activeFilterLabels(criteria(), driverScope.value));
   const filtersOn = computed<boolean>(() => activeFilters.value.length > 0);
   const foldedFilterCount = computed<number>(() => activeFilters.value.length - (filterQ.value.trim() ? 1 : 0));
+
+  // A filter set that lists no driver is reported once per distinct set (FeatureUse keeps the rule), and only
+  // once the catalogue is loaded and a filter is on: an empty list otherwise says nothing about the filters.
+  watch(() => [catalogueLoaded.value && filtersOn.value, listedCount.value, JSON.stringify(emptySearchEvent())] as const, ([ready, count]) => {
+    if (ready && count === 0) deps.featureUse.driverSearchEmpty(emptySearchEvent());
+  });
+
 
   function reloadMyDrivers(): void {
     const read = myDriverRepo.read();
@@ -479,6 +508,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     // fetch that fails is shown where the count would be, and the next open tries again.
     try {
       allDrivers.value = await driverRepo.index();
+      catalogueLoaded.value = true;
       statusMsg.value = '';   // a count is not a message — the pickers render `listedCount`
     } catch (err) {
       initialized.value = false;
