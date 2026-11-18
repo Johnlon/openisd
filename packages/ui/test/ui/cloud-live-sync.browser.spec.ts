@@ -44,6 +44,20 @@ async function syncNow(page: Page): Promise<void> {
   await page.locator('.cloud-modal-x').click();
 }
 
+/**
+ * Desktop: Sync now when both devices changed the project, then the dialog closed. The run keeps both versions, so what
+ * the badge shows when it ends is the conflict mark (the alert cloud with the count 1), never the plain done cloud:
+ * waiting for the done cloud passed only on the cloud left over from before the click, and failed whenever the
+ * edit-triggered run was still going.
+ */
+async function syncNowKeepingBoth(page: Page): Promise<void> {
+  await page.locator('.cloud-sync-badge').click();
+  await page.locator('.cloud-modal button', {hasText: 'Sync now'}).click();
+  await expect(page.locator('.cloud-sync-badge .icon-cloudAlert')).toBeVisible();
+  await expect(page.locator('.cloud-sync-badge .cloud-sync-badge-num')).toHaveText('1');
+  await page.locator('.cloud-modal-x').click();
+}
+
 /** Device A has the sample project saved and on Drive; device B has pulled it and opened it from its Projects list. */
 async function twoDevicesOnOneProject(page: Page, browser: Browser, baseURL: string) {
   const drive = await connectedToDrive(page);
@@ -112,7 +126,7 @@ test.describe('desktop, Cloud sync on, two devices', () => {
       await expect.poll(() => unsavedOnDrive(drive), {timeout: 20_000}).toBe(true);
       // A different edit (the same one on both would be one version, not two).
       await setFocusedBoxVolume(other.page, 0.0444);
-      await syncNow(other.page);
+      await syncNowKeepingBoth(other.page);
 
       const notice = other.page.locator('.cloud-conflict-notice');
       await expect(notice).toContainText(`Project "${PROJECT}" kept both: yours and the copy from `);

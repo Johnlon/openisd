@@ -1,0 +1,13 @@
+id: T898
+release_note: internal
+repo: openisd
+owner: t898-live-sync-flake
+status: done
+goal: The cloud sync spec for two devices editing before either syncs waits for the conflict mark the badge shows, not the done cloud
+why: bugs/BUG_20261118_cloud-live-sync-spec-waits-for-done-cloud-after-conflict.md
+done_test: bash scripts/quiet-test.sh npx vitest run packages/design/test/cloud/syncDisplay.test.ts
+files:
+  - tasks/T898.yml
+  - bugs/BUG_20261118_cloud-live-sync-spec-waits-for-done-cloud-after-conflict.md
+  - packages/design/test/cloud/syncDisplay.test.ts
+  - packages/ui/test/ui/cloud-live-sync.browser.spec.ts
