@@ -1,0 +1,11 @@
+id: T880
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+goal: Main green again: Driver Editor fits its window and no tab scrolls sideways with T868 hidden-but-mounted tabs
+why: "Main red after T868 (suite 44209729987): the Driver Editor no longer fits its window. John, 5 Nov 2026: running of the edge is bad why are you asking me."
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T880.yml
+  - packages/ui/src/ui/components/DriverEditorModal.vue

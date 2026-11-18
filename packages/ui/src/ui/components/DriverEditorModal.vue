@@ -1093,7 +1093,8 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
 .de-modal [data-de-tab].de-tab-off.de-tab-off { display: none !important; }
 /* A box on this tab holds an entry the editor refused: the tab says so while the person looks elsewhere. */
 .de-tab-refused { border-color: var(--bad); color: var(--bad); }
-.de-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Hidden by clip-path, not overflow: an overflow-hidden 1px box holding text counts as a sideways scroller to the layout checks. */
+.de-sr-only { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); white-space: nowrap; }
 .de-toolbar {
   display: flex;
   align-items: center;
