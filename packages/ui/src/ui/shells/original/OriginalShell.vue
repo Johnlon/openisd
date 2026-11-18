@@ -12,6 +12,7 @@ import UIField from '../../components/UIField.vue';
 import PortShapeToggle from '../../components/PortShapeToggle.vue';
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import DriverCoilWiring from '../../components/DriverCoilWiring.vue';
+import DriverPlacement from '../../components/DriverPlacement.vue';
 import DriverWiring from '../../components/DriverWiring.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
@@ -79,7 +80,7 @@ const {
   boxResonance, rearQtc, prSystemTuningDq,
   fbUnreachable, fbUnreachableMsg, isDual,
   frontVolumeCell, rearTuningCell, rearResonance,
-  model, startEdit, showDriverDisagreements, showDriverInfo, startWhatIf, placement, driverConsistencyReasons,
+  model, startEdit, showDriverDisagreements, showDriverInfo, startWhatIf, driverConsistencyReasons,
   ventPorts, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, prEditor, startEditPR, defineNewPREntry, prInfoOpen, prInfo, openPRInfo,
   prResonanceMassDq, prFsMass_hz,
@@ -471,10 +472,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <div class="field-row" style="margin-bottom:4px;">
                 <UIFixedField class="field" input-id="og-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="DesktopLabels.NUM_DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" />
               </div>
-              <div class="radio-group field-row" style="margin-bottom:4px;">
-                <label><input type="radio" name="og-placement" value="standard" v-model="placement"> Standard</label>
-                <label><input type="radio" name="og-placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
-              </div>
+              <DriverPlacement />
               <DriverWiring />
               <DriverCoilWiring />
             </div>

@@ -177,13 +177,13 @@ function handleCreate() {
             <label class="mob-crow-label" for="np-placement">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
             <select id="np-placement" class="mob-cselect mob-cselect-info" v-model="placement">
               <option value="standard">{{ PhoneWizardText.PLACEMENT_STANDARD }}</option>
-              <option value="iso">{{ PhoneWizardText.PLACEMENT_ISOBARIK }}</option>
+              <option value="isobaric">{{ PhoneWizardText.PLACEMENT_ISOBARIK }}</option>
             </select>
             <WizardInfoButton label="About driver placement" @click="openPlacementInfo" />
           </div>
           <div class="mob-np-pic mob-np-pic-note">
             <PlacementDiagram :placement="placement" />
-            <div v-if="placement === 'iso'" class="mob-np-pic-caption">{{ PhoneWizardText.ISOBARIK_NOT_MODELLED }}</div>
+            <div v-if="placement === 'isobaric'" class="mob-np-pic-caption">{{ PhoneWizardText.ISOBARIK_CAPTION }}</div>
           </div>
         </template>
 

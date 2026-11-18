@@ -25,7 +25,8 @@ export class PhoneWizardText {
   static readonly PLACEMENT_LABEL = 'Placement';
   static readonly PLACEMENT_STANDARD = 'Standard';
   static readonly PLACEMENT_ISOBARIK = 'Iso-Barik';
-  static readonly ISOBARIK_NOT_MODELLED = 'Iso-Barik is not modelled yet';
+
+  static readonly ISOBARIK_CAPTION = 'Two drivers face to face: the pair acts as one driver with half the Vas, so the same Qtc needs half the box volume.';
 
   static readonly BOX_TYPE_LABEL = 'Box type';
   static readonly EBP_LABEL = 'EBP';
@@ -93,7 +94,7 @@ export class PhoneWizardText {
       'Standard: each driver sits in its own place on the baffle, and they all share the box volume.',
       'Iso-Barik: two drivers coupled face to face in a short tunnel. The pair acts as one driver with half the Vas, so the box can be half the size.',
     ],
-    note: 'Iso-Barik is not modelled yet in OpenISD.',
+    note: 'OpenISD works the pair out as WinISD does: the same Qtc in half the volume.',
   };
 
   /** The ⓘ popup on the EBP row, with the chosen driver's value. */
@@ -121,7 +122,7 @@ export class PhoneWizardHelp {
   ])];
   static readonly COUNT: readonly PhoneHelpSection[] = [new PhoneHelpSection('Driver Array', 'The number of drivers and how they are mounted.', [
     row('Drivers', 'the number of drivers in the box.'),
-    row('Placement', 'Standard: each driver is mounted in the front panel. Iso-Barik: two drivers coupled face to face, which halves the box size needed (not modelled yet).'),
+    row('Placement', 'Standard: each driver is mounted in the front panel. Iso-Barik: two drivers coupled face to face, which halves the box size needed.'),
   ])];
   static readonly BOX_TYPE: readonly PhoneHelpSection[] = [new PhoneHelpSection('Enclosure', 'The enclosure type.', [
     row('Box type', 'the enclosure type: sealed (listed as Closed), vented, passive radiator, 4th or 6th order bandpass, or ABC.'),

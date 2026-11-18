@@ -80,6 +80,7 @@ Plans are in [docs/plans/](docs/plans/). Finished or superseded plans are delete
 | [PLAN_20261115_DRIVER_SEARCH.md](docs/plans/PLAN_20261115_DRIVER_SEARCH.md) | Driver library search: size, sort, brand, impedance, enclosure (#516) |
 | [PLAN_20261116_PASSIVE_RADIATOR_EDITOR.md](docs/plans/PLAN_20261116_PASSIVE_RADIATOR_EDITOR.md) | Passive radiator Select / Info / Edit as the driver's; one editor, both skins (T840, QO946.c115-c120) |
 | [PLAN_20261118_SAVE_AND_UNDO.md](docs/plans/PLAN_20261118_SAVE_AND_UNDO.md) | Save, sync and undo: sync the whole project, Save as a shared checkpoint, then undo history and snapshots (QO946.c248-c249) |
+| [PLAN_20261118_ISOBARIC.md](docs/plans/PLAN_20261118_ISOBARIC.md) | Turn on Iso-Barik (isobaric) loading on desktop and phone, checked against WinISD for every box type (T919, QO953.c38) |
 | [PLAN_20261009_APP_WORK.md](docs/plans/PLAN_20261009_APP_WORK.md) | Outstanding app work |
 | [PLAN_20261009_CONSOLIDATED.md](docs/plans/PLAN_20261009_CONSOLIDATED.md) | Consolidated plan for all agents |
 

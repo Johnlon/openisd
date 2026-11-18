@@ -377,14 +377,16 @@ test('classic wizard: the ? on the step bar opens that step\'s help and closes a
   await expect(sheet).toHaveCount(0);
 });
 
-test('classic wizard: Iso-Barik shows its drawing and the not-modelled note; the ⓘ explains placement', async ({page}) => {
+test('classic wizard: Iso-Barik shows its drawing and its caption, no not-modelled note; the ⓘ explains placement', async ({page}) => {
   await page.setViewportSize(PIXEL_9);
   await forceMobileSkin(page);
   await page.goto('/');
   await wizardAt(page, 2, 'vented');
   await expect(page.locator('.mob-np-pic')).not.toContainText('not modelled');
-  await page.locator('#np-placement').selectOption('iso');
-  await expect(page.locator('.mob-np-pic')).toContainText('Iso-Barik is not modelled yet');
+  await page.locator('#np-placement').selectOption('isobaric');
+  await expect(page.locator('#np-placement')).toHaveValue('isobaric');
+  await expect(page.locator('.mob-np-pic')).not.toContainText('not modelled');
+  await expect(page.locator('.mob-np-pic')).toContainText('half the box volume');
   await page.getByRole('button', {name: 'About driver placement'}).click();
   await expect(page.getByRole('dialog', {name: 'Driver placement'})).toContainText('Standard');
   await page.getByRole('dialog', {name: 'Driver placement'}).getByRole('button', {name: 'Close'}).click();

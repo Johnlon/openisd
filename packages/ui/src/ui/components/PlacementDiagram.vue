@@ -4,7 +4,7 @@
  * not chosen yet), in the box pictures' style. Standard: one driver on a short baffle line. Iso-Barik:
  * two drivers cone to cone in a short tunnel on the baffle, magnets outward (clamshell).
  */
-defineProps<{ placement: 'standard' | 'iso' }>();
+defineProps<{ placement: 'standard' | 'isobaric' }>();
 </script>
 
 <template>

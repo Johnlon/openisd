@@ -154,7 +154,7 @@ function handleCreate() {
               <label id="np-placement-label" class="ui-field-label placement-label">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
               <span class="placement-choices">
                 <label><input type="radio" name="placement" value="standard" v-model="placement"> Standard</label>
-                <label><input type="radio" name="placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
+                <label><input type="radio" name="placement" value="isobaric" v-model="placement"> {{ PhoneWizardText.PLACEMENT_ISOBARIK }}</label>
                 <WizardInfoButton question label="About driver placement" @click="openPlacementInfo" />
               </span>
             </div>

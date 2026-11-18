@@ -59,7 +59,7 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'conditional-branch-58736f6b5c8566db':{kind:'partOf',view:'wizard-sealed-1'}, // MobileNewProject.vue:167
   'conditional-branch-823daaa21d686929':{kind:'partOf',view:'wizard-sealed-2'}, // MobileNewProject.vue:168
   'conditional-branch-a475511eae68d4e8':{kind:'view',view:'wizard-sealed-2'}, // MobileNewProject.vue:174
-  'conditional-branch-2bdea8c707768ead':{kind:'view',view:'phone/wizard-isobarik-note'}, // MobileNewProject.vue:187
+  'conditional-branch-b0586818b42c8d59':{kind:'view',view:'phone/wizard-isobarik-note'}, // MobileNewProject.vue:186
   'conditional-branch-8b07b49310d89c3d':{kind:'view',view:'wizard-sealed-3'}, // MobileNewProject.vue:198
   'conditional-branch-04e32cc2e2adb6d4':{kind:'notAView',reason:'EBP badge value shown or hidden in a row'}, // MobileNewProject.vue:209
   'conditional-branch-b984624ebd5179ce':{kind:'view',view:'wizard-sealed-4'}, // MobileNewProject.vue:217

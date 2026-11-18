@@ -21,9 +21,10 @@ describe('phone wizard text', () => {
     expect([PhoneWizardText.CANCEL, PhoneWizardText.BACK, PhoneWizardText.NEXT, PhoneWizardText.CREATE]).toEqual(['Cancel', '◀ Back', 'Next ▸', 'Create Project']);
   });
 
-  it('the ⓘ popups carry the driver\'s EBP and say Iso-Barik is not modelled', () => {
+  it('the ⓘ popups carry the driver\'s EBP and say Iso-Barik is worked out as WinISD does', () => {
     expect(PhoneWizardText.ebpInfo('84.9').note).toBe('Your driver: EBP 84.9.');
-    expect(PhoneWizardText.PLACEMENT_INFO.note).toContain('not modelled');
+    expect(PhoneWizardText.PLACEMENT_INFO.note).toContain('as WinISD does');
+    expect(PhoneWizardText.PLACEMENT_INFO.note).not.toContain('not modelled');
   });
 
   it('each box type has its own details help; bandpass 4 has no rear tuning line', () => {

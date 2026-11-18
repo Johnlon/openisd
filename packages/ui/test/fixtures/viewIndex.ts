@@ -92,7 +92,7 @@ const RULED_VIEWS:readonly ViewEntry[]=[
   phoneRuled('phone/response-model-pending-notice',ViewKind.WarningPopup,'MobileBoxTab.vue','Box page, pick a box type the engine does not model yet: a Response model pending notice appears.'),
   phoneRuled('phone/tuning-unreachable-warning',ViewKind.WarningPopup,'MobileEnclosureTab.vue','Box page, vented box whose target tuning cannot be reached: a red message appears under the field.'),
   phoneRuled('phone/filter-card-body',ViewKind.InlineExpansion,'MobileFilterCard.vue','Filters page: tap a filter card to open its fields inline.'),
-  phoneRuled('phone/wizard-isobarik-note',ViewKind.FieldNote,'MobileNewProject.vue','New project, driver count step: choose isobarik placement and a caption says it is not modelled.'),
+  phoneRuled('phone/wizard-isobarik-note',ViewKind.FieldNote,'MobileNewProject.vue','New project, driver count step: choose isobarik placement and a caption says the pair needs half the box volume.'),
   phoneRuled('phone/wizard-vented-volume-warning',ViewKind.WarningPopup,'MobileNewProject.vue','New project, vented box, details step: enter a volume the alignment rejects.'),
   phoneRuled('phone/wizard-vented-tuning-warning',ViewKind.WarningPopup,'MobileNewProject.vue','New project, vented box, details step: enter a tuning the box cannot reach.'),
   phoneRuled('phone/wizard-passive-radiator-pick-error',ViewKind.ErrorPopup,'MobileNewProject.vue','New project, passive radiator, details step: pick a radiator that cannot be used.'),

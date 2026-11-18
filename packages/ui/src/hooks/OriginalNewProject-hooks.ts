@@ -92,7 +92,7 @@ export interface OriginalNewProjectAPI {
 
   // Step 2: Driver count & placement
   readonly nDrivers: Ref<number>;
-  readonly placement: Ref<'standard' | 'iso'>;
+  readonly placement: Ref<'standard' | 'isobaric'>;
 
   // Step 3: Box type & starting volume (non-sealed types; a sealed box gets its volume from step 4)
   readonly boxType: Ref<BoxType>;
@@ -219,7 +219,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const selectedDriver = shallowRef<OpenISDDriver | null>(initialDriver);
 
   const nDrivers = ref(1);
-  const placement = ref<'standard' | 'iso'>('standard');
+  const placement = ref<'standard' | 'isobaric'>('standard');
 
   const boxType = ref<BoxType>('sealed');
   const BOX_OPTIONS = newProjectBoxTypeOptions();
@@ -317,7 +317,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
   /** What the project being made will load its driver with: the default source resistance and coil heating, the drivers asked for. */
   const newProjectLoad = (): DriveLoad => ({
-    Rs_ohm: DEFAULT_SOURCE_RESISTANCE_OHM, nDrivers: nDrivers.value, loading: 'standard',
+    Rs_ohm: DEFAULT_SOURCE_RESISTANCE_OHM, nDrivers: nDrivers.value, loading: placement.value,
     alfaVC_per_K: DEFAULT_ALFAVC_PER_K, vcTempRise_K: DEFAULT_VC_TEMP_RISE_K,
   });
 
@@ -610,6 +610,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
         made.description.set(projDescription.value.trim());
       }
       made.nDrivers.set(nDrivers.value);
+      made.loading.set(placement.value);
       made.box.applyStartingValues();
     });
 

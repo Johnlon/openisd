@@ -37,7 +37,7 @@ const ebpInfo: OpenStep = {root: '.mob-np-icard', open: async page => {
 
 const isobarikNote: OpenStep = {root: '.mob-np-overlay', open: async page => {
   await openPhoneWizardStep(page, 'sealed', 2);
-  await page.locator('#np-placement').selectOption('iso');
+  await page.locator('#np-placement').selectOption('isobaric');
   await page.locator('.mob-np-pic-caption').waitFor({state: 'visible'});
 }};
 

@@ -43,6 +43,12 @@ export const DRIVER_WIRING_OPTIONS: readonly SelectorOption<DriverWiring>[] = Ob
   Object.freeze({ value: 'series', label: 'Series' }),
 ]);
 
+/** How a project's drivers are mounted (WinISD's Driver tab "Standard" / "Iso-Barik" radio). The VALUES are the project's own `loading`. */
+export const DRIVER_PLACEMENT_OPTIONS: readonly SelectorOption<'standard' | 'isobaric'>[] = Object.freeze([
+  Object.freeze({ value: 'standard', label: 'Standard' }),
+  Object.freeze({ value: 'isobaric', label: 'Iso-Barik' }),
+]);
+
 /** The driver editor's choice for a measured wiring the maker did not state. */
 export const MEASURED_WIRING_NOT_STATED_LABEL = 'Not stated';
 

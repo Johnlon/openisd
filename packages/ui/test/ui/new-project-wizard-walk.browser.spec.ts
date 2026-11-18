@@ -362,7 +362,7 @@ async function walk(page: Page, skin: Skin): Promise<void> {
   await expect.soft(nDrivers, 'Num. of drivers default').toHaveValue(String(NumberField.DRIVER_NDRIVERS.countOptions()[0]?.value));
   if (skin === DESKTOP) {
     await expect.soft(root.locator('input[type=radio][value=standard]'), 'Placement Standard default').toBeChecked();
-    await expect.soft(root.locator('input[type=radio][value=iso]'), 'Iso-Barik is not offered').toBeDisabled();
+    await expect.soft(root.locator('input[type=radio][value=isobaric]'), 'Iso-Barik is offered, not chosen').toBeEnabled();
   } else {
     await expect.soft(root.locator('#np-placement'), 'Placement default').toHaveValue('standard');
   }
