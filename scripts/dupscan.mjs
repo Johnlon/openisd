@@ -15,8 +15,12 @@
 //   node dupscan.mjs <repo> --report out.json    # also write every finding to a file
 // Options: --allow <file> (default: dupscan-allow.json next to this script), --jscpd <path to jscpd bin>.
 //
-// Allow-list entries that no longer match are reported as "stale" (exit 0, so removing a copy never
-// fails); delete them to tighten the ratchet.
+// A copy that has been consolidated into the engine is never deleted from the allow-list: its entry stays, marked
+//   "resolved": true, "resolved_to": "<engine file>:<function>", "resolved_by": "<task id>", "ruling": "<questions.yml id>"
+// (John, QO949, 18 Nov 2026: "old entries stay, marked 'resolved, resolved to <engine function> by T902'; a resolved copy
+// that reappears fails"). A resolved entry never allows its key: the copy reappearing fails, naming the function to call.
+// An allowed (unresolved) entry whose key no longer matches anything is stale and fails the run (exit 1) until it is
+// marked resolved, so every consolidation is recorded.
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {existsSync, mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync} from 'node:fs';
@@ -137,7 +141,9 @@ for (const f of findings.filter(f => f.kind === 'signature')) (groups[f.rule] ??
 if (opt('--report')) writeFileSync(opt('--report'), JSON.stringify({findings, layersPerRule: Object.fromEntries(Object.entries(groups).map(([k, v]) => [k, [...v]]))}, null, 2));
 
 if (writeBaseline) {
-  const entries = {};
+  // Resolved entries are the record of consolidations (QO949): a new baseline keeps them.
+  const previous = existsSync(allowPath) ? JSON.parse(readFileSync(allowPath, 'utf8')) : {};
+  const entries = Object.fromEntries(Object.entries(previous).filter(([, e]) => e.resolved === true));
   for (const f of findings) {
     const e = entries[f.key] ??= {reason: 'baseline 2026-11-18 (QO946.c256)', where: f.where, count: 0};
     e.count += 1;
@@ -147,19 +153,36 @@ if (writeBaseline) {
   process.exit(0);
 }
 
-const allow = existsSync(allowPath) ? JSON.parse(readFileSync(allowPath, 'utf8')) : {};
+const allowFile = existsSync(allowPath) ? JSON.parse(readFileSync(allowPath, 'utf8')) : {};
+const resolved = Object.fromEntries(Object.entries(allowFile).filter(([, e]) => e.resolved === true));
+const allow = Object.fromEntries(Object.entries(allowFile).filter(([, e]) => e.resolved !== true));
+const incomplete = Object.keys(resolved).filter(k => !['resolved_to', 'resolved_by', 'ruling'].every(f => typeof resolved[k][f] === 'string' && resolved[k][f] !== ''));
 const seen = new Set(findings.map(f => f.key));
 const counts = {};
 const fresh = findings.filter(f => { counts[f.key] = (counts[f.key] ?? 0) + 1; return !(f.key in allow) || counts[f.key] > (allow[f.key].count ?? 1); });
+const back = fresh.filter(f => f.key in resolved);
+const unlisted = fresh.filter(f => !(f.key in resolved));
 const stale = Object.keys(allow).filter(k => !seen.has(k));
 
-console.log(`dupscan: ${findings.length} findings (${findings.filter(f => f.kind === 'copy').length} copies, ${findings.filter(f => f.kind === 'signature').length} formula signatures), ${Object.keys(allow).length} allowed`);
+console.log(`dupscan: ${findings.length} findings (${findings.filter(f => f.kind === 'copy').length} copies, ${findings.filter(f => f.kind === 'signature').length} formula signatures), ${Object.keys(allow).length} allowed, ${Object.keys(resolved).length} resolved`);
 for (const [rule, layers] of Object.entries(groups)) console.log(`  ${rule.padEnd(26)} in: ${[...layers].join(', ')}`);
-if (stale.length) { console.log(`\n${stale.length} allow-list entries no longer match (copy removed or line edited) — delete them to tighten:`); for (const k of stale) console.log(`  ${allow[k].where}  ${k.slice(0, 140)}`); }
-if (fresh.length) {
-  console.log(`\nFAIL: ${fresh.length} new duplicated logic not in the allow-list (${allowPath}):`);
-  for (const f of fresh) console.log(f.kind === 'copy' ? `  copy ${f.lines} lines: ${f.where}` : `  ${f.rule} (${f.layer}) ${f.where}: ${f.what}`);
-  console.log('\nMove the calculation into the engine and call it, or, if the copy is right, add its key to the allow-list with a reason (a ruling, quoted).');
-  process.exit(1);
+const where = f => f.kind === 'copy' ? `copy ${f.lines} lines: ${f.where}` : `${f.rule} (${f.layer}) ${f.where}: ${f.what}`;
+if (incomplete.length) {
+  console.log(`\nFAIL: ${incomplete.length} resolved allow-list entries lack resolved_to, resolved_by or ruling (${allowPath}):`);
+  for (const k of incomplete) console.log(`  ${resolved[k].where}  ${k.slice(0, 140)}`);
 }
+if (stale.length) {
+  console.log(`\nFAIL: ${stale.length} allowed entries no longer match (copy removed or line edited). Never delete one: mark it resolved, with resolved_to (the engine function now used), resolved_by (the task) and ruling (QO949):`);
+  for (const k of stale) console.log(`  ${allow[k].where}  ${k.slice(0, 140)}`);
+}
+if (back.length) {
+  console.log(`\nFAIL: ${back.length} consolidated copies are back:`);
+  for (const f of back) { const e = resolved[f.key]; console.log(`  ${where(f)}\n    this copy was consolidated into ${e.resolved_to} by ${e.resolved_by}; call ${e.resolved_to}`); }
+}
+if (unlisted.length) {
+  console.log(`\nFAIL: ${unlisted.length} new duplicated logic not in the allow-list (${allowPath}):`);
+  for (const f of unlisted) console.log(`  ${where(f)}`);
+  console.log('\nMove the calculation into the engine and call it, or, if the copy is right, add its key to the allow-list with a reason (a ruling, quoted).');
+}
+if (incomplete.length || stale.length || back.length || unlisted.length) process.exit(1);
 console.log('\nOK: no new duplicated logic.');
