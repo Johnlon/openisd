@@ -1,0 +1,12 @@
+id: T893
+release_note: internal
+repo: openisd
+owner: lead
+status: done
+goal: The plan for Save, sync and undo is written down and indexed
+why: 'John, 18 Nov 2026 (QO946.c249): "we do need a plan for save and I think it''s ok as it is for now, one level cross machine undo".'
+done_test: test -f docs/plans/PLAN_20261118_SAVE_AND_UNDO.md
+files:
+  - tasks/T893.yml
+  - docs/plans/PLAN_20261118_SAVE_AND_UNDO.md
+  - DOCUMENTATION.md
