@@ -53,6 +53,11 @@ jobs:
             printf '%s\n' "$out" | awk -F'\t' '$1 == "REFUSE" { printf "::error title=task contract (%s)::%s\n", $2, $3 }'; printf '%s\n' "$out"; rc=1
           done
           exit "$rc"
+      - name: task files say the truth (status, landed sha, release_note a sentence) on every pull request
+        # T891: the shell job below runs task-status.test.sh only when scripts/ or workflows change, so a pull request that
+        # changed only its task file was never checked (main went red on T886's release_note with no full stop, 18 Nov 2026).
+        # Always run here; ~15 s.
+        run: bash scripts/land/test/task-status.test.sh
       - name: attribution on every commit message
         run: bash scripts/land/attribution-range.sh origin/main HEAD
       - name: driver model ruling (from main's copy of the gate)

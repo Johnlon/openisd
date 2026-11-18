@@ -1,0 +1,13 @@
+id: T891
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+label: fixes
+goal: Every pull request is checked for the task-file rules that task-status.test.sh enforces (release_note, status), whether or not it touches scripts/
+why: 'John, 15 Nov 2026: "problems cannot be ignored again: checks refuse". Lead finding, 18 Nov 2026 (suite run 44276673202, shell job): main went red because tasks/T886.yml had a release_note with no full stop. task-status.test.sh catches that, but pr-gate ran the shell job only when scripts/ or workflows changed, so a pull request that changes only its task file (every pull request has one) was never checked; pull request 212 then failed for the same fault.'
+done_test: bash scripts/land/test/pr-task-status.test.sh
+files:
+  - tasks/T891.yml
+  - .github/workflows/pr.yml
+  - scripts/land/test/pr-task-status.test.sh
