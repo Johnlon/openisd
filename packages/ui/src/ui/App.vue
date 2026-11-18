@@ -99,7 +99,7 @@ provideWinisdDifferencesModal();
 // One diagnostics modal for the whole app.
 const diagnostics = provideDiagnosticsModal();
 
-// One feedback dialog for both skins: the Info menu opens it, and after a user save it may offer itself,
+// One feedback dialog for both skins: the Info menu opens it, and at app start, just after the splash closes, it may offer itself,
 // but never over the welcome screen, the What's new popup, the update banner, a crash report or any other dialog.
 const feedbackServices = injectFeedbackServices();
 const feedback = createFeedbackDialog({
@@ -112,7 +112,7 @@ const feedback = createFeedbackDialog({
     || appUpdate.state.value.kind === 'offered' || crashReports.pending.value !== null
     || presentationState.newProjectOpen || presentationState.browseOpen || presentationState.optionsOpen
     || presentationState.openDialogOpen || presentationState.editDriverInfo || presentationState.editDriver,
-  userSaves: feedbackServices.userSaves,
+  splashOpen: splash.open,
   onlineAgain: feedbackServices.onlineAgain,
   defer: fn => { window.setTimeout(fn, 2000); },
 });

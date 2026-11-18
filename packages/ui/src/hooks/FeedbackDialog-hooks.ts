@@ -1,4 +1,4 @@
-import {computed, inject, provide, ref, type App, type ComputedRef, type InjectionKey, type Ref} from 'vue';
+import {computed, inject, provide, ref, watch, type App, type ComputedRef, type InjectionKey, type Ref} from 'vue';
 import type {KeyValueStorage} from '@openisd/persistence';
 import {
   FEEDBACK_TEXTS, FeedbackFace, feedbackAskAfter, feedbackAskDue, parseFeedbackAskState, type FeedbackAskEvent,
@@ -8,11 +8,6 @@ import type {Skin} from '../logic/telemetry/events.js';
 
 /** The storage key of the "when did we last ask" state. */
 export const FEEDBACK_ASK_KEY = 'openisd_feedback_ask_v1';
-
-/** Where the app hears that the user saved a project. */
-export interface UserSaves {
-  onUserSave(listener: () => void): () => void;
-}
 
 /** Where the app hears that the network is back. */
 export interface OnlineAgain {
@@ -28,9 +23,10 @@ export interface FeedbackDialogDeps {
   readonly screen: () => string;
   /** True while another dialog, the welcome screen, the What's new popup or the update banner is up. */
   readonly busy: () => boolean;
-  readonly userSaves: UserSaves;
+  /** True while the welcome screen is up. The prompt waits for it to close. */
+  readonly splashOpen: Readonly<Ref<boolean>>;
   readonly onlineAgain: OnlineAgain;
-  /** Runs `fn` a moment later, so the prompt does not land on the save's own confirmation. */
+  /** Runs `fn` a moment later, so the prompt does not land on the splash's own closing. */
   readonly defer: (fn: () => void) => void;
 }
 
@@ -77,8 +73,8 @@ function statusLine(delivery: FeedbackDelivery | null): string {
 
 /**
  * The feedback dialog and the occasional prompt. One tap on a face sends the answer (kept on the device
- * when offline); the comment is an optional follow-up. The prompt follows a user save, at most once in
- * 60 days, never over another dialog.
+ * when offline); the comment is an optional follow-up. The prompt is offered at app start, just after the
+ * splash closes, from the 3rd launch, at most once in 60 days, never over another dialog.
  */
 export function createFeedbackDialog(deps: FeedbackDialogDeps): FeedbackDialogApi {
   const open = ref(false);
@@ -114,14 +110,24 @@ export function createFeedbackDialog(deps: FeedbackDialogDeps): FeedbackDialogAp
     return !open.value && !deps.busy() && feedbackAskDue(askNow(), deps.now());
   }
 
-  const stopSaves = deps.userSaves.onUserSave(() => {
+  function offer(): void {
     if (!mayPrompt()) return;
     deps.defer(() => {
       if (!mayPrompt()) return;
       remember('shown');
       reset('prompt');
     });
-  });
+  }
+
+  // This start of the app counts as a launch; the one offer of the start comes when the splash is closed.
+  remember('launched');
+  let offered = false;
+  function offerOnce(): void {
+    if (offered) return;
+    offered = true;
+    offer();
+  }
+  const stopSplash = watch(deps.splashOpen, isOpen => { if (!isOpen) offerOnce(); }, {flush: 'sync', immediate: true});
 
   const stopOnline = deps.onlineAgain.listen(() => {
     void deps.outbox.flush().then(() => {
@@ -161,7 +167,7 @@ export function createFeedbackDialog(deps: FeedbackDialogDeps): FeedbackDialogAp
       open.value = false;
     },
     stop() {
-      stopSaves();
+      stopSplash();
       stopOnline();
     },
   };
@@ -184,7 +190,6 @@ export function injectFeedbackDialog(): FeedbackDialogApi {
 export interface FeedbackServices {
   readonly outbox: FeedbackOutbox;
   readonly storage: KeyValueStorage;
-  readonly userSaves: UserSaves;
   readonly onlineAgain: OnlineAgain;
   readonly screen: () => string;
 }

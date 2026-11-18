@@ -115,17 +115,35 @@ test.describe('desktop skin', () => {
     expect(feedbackBodies(bodies)).toHaveLength(0);
   });
 
-  test('after a save the prompt offers itself once, and a Not now keeps it quiet on the next save', async ({page}) => {
+  test('the prompt is not offered on the 1st or 2nd launch, offers itself on the 3rd once the splash is closed, and a Not now keeps it quiet on the next launch', async ({page}) => {
     await standInCollector(page);
     await page.clock.install();
     await page.goto('/');
     await openAProject(page);
-    await page.getByRole('button', {name: 'Save', exact: true}).first().click();
-    await page.clock.runFor(2500);
+    await page.clock.runFor(3000);
+    await expect(page.getByTestId('feedback-dialog')).toBeHidden();
+    await page.reload();
+    await openAProject(page);
+    await page.clock.runFor(3000);
+    await expect(page.getByTestId('feedback-dialog')).toBeHidden();
+    await page.reload();
+    await openAProject(page);
+    await page.clock.runFor(3000);
     await expect(page.getByTestId('feedback-dialog')).toBeVisible();
     await expectDialogFits(page);
     await page.getByTestId('feedback-not-now').click();
     await expect(page.getByTestId('feedback-dialog')).toBeHidden();
+    await page.reload();
+    await openAProject(page);
+    await page.clock.runFor(3000);
+    await expect(page.getByTestId('feedback-dialog')).toBeHidden();
+  });
+
+  test('saving never offers the prompt', async ({page}) => {
+    await standInCollector(page);
+    await page.clock.install();
+    await page.goto('/');
+    await openAProject(page);
     await page.getByRole('button', {name: 'Save', exact: true}).first().click();
     await page.clock.runFor(3000);
     await expect(page.getByTestId('feedback-dialog')).toBeHidden();
@@ -164,12 +182,17 @@ test.describe('phone skin', () => {
     expect(feedbackBodies(bodies).join('')).toContain('The phone keyboard hides the chart');
   });
 
-  test('after a save the prompt offers itself', async ({page}) => {
+  test('on the 3rd launch the prompt offers itself', async ({page}) => {
     await standInCollector(page);
     await forceMobileSkin(page);
     await page.goto('/');
     await openAMobileProject(page);
-    await tapMobileMenuItem(page, /^Save$/);
+    await expect(page.getByTestId('feedback-dialog')).toBeHidden();
+    await page.reload();
+    await openAMobileProject(page);
+    await expect(page.getByTestId('feedback-dialog')).toBeHidden();
+    await page.reload();
+    await openAMobileProject(page);
     await expect(page.getByTestId('feedback-dialog')).toBeVisible();
     await expectDialogFits(page);
   });

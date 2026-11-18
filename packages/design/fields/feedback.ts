@@ -70,29 +70,34 @@ const MIN_GAP_DAYS = 60;
 const NOT_NOW_DAYS = 30;
 const ANSWERED_DAYS = 90;
 
-/** What the app remembers about asking: when it last showed the prompt, and the earliest time it may
- *  show it again after the user's last reply. */
+/** The first launch on which a user may be asked: a new visitor is not asked on the 1st or 2nd. */
+const FIRST_ASK_LAUNCH = 3;
+
+/** What the app remembers about asking: when it last showed the prompt, the earliest time it may
+ *  show it again after the user's last reply, and how many times the app has been started. */
 export interface FeedbackAskState {
   readonly shownAtMs: number | null;
   readonly quietUntilMs: number;
+  readonly launches: number;
 }
 
-export type FeedbackAskEvent = 'shown' | 'not_now' | 'answered';
+export type FeedbackAskEvent = 'launched' | 'shown' | 'not_now' | 'answered';
 
-export const FEEDBACK_ASK_NEVER: FeedbackAskState = {shownAtMs: null, quietUntilMs: 0};
+export const FEEDBACK_ASK_NEVER: FeedbackAskState = {shownAtMs: null, quietUntilMs: 0, launches: 0};
 
-/** May the app show the prompt now? At most once every 60 days from the last showing, and not before
- *  the quiet time the user's last reply set (Not now 30 days, an answer 90 days). */
+/** May the app show the prompt now? Not before the 3rd launch, at most once every 60 days from the last
+ *  showing, and not before the quiet time the user's last reply set (Not now 30 days, an answer 90 days). */
 export function feedbackAskDue(state: FeedbackAskState, nowMs: number): boolean {
   const gapEnds = state.shownAtMs === null ? 0 : state.shownAtMs + MIN_GAP_DAYS * FEEDBACK_DAY_MS;
-  return nowMs >= gapEnds && nowMs >= state.quietUntilMs;
+  return state.launches >= FIRST_ASK_LAUNCH && nowMs >= gapEnds && nowMs >= state.quietUntilMs;
 }
 
 export function feedbackAskAfter(state: FeedbackAskState, event: FeedbackAskEvent, nowMs: number): FeedbackAskState {
   switch (event) {
-    case 'shown': return {shownAtMs: nowMs, quietUntilMs: state.quietUntilMs};
-    case 'not_now': return {shownAtMs: state.shownAtMs, quietUntilMs: nowMs + NOT_NOW_DAYS * FEEDBACK_DAY_MS};
-    case 'answered': return {shownAtMs: state.shownAtMs, quietUntilMs: nowMs + ANSWERED_DAYS * FEEDBACK_DAY_MS};
+    case 'launched': return {...state, launches: state.launches + 1};
+    case 'shown': return {...state, shownAtMs: nowMs};
+    case 'not_now': return {...state, quietUntilMs: nowMs + NOT_NOW_DAYS * FEEDBACK_DAY_MS};
+    case 'answered': return {...state, quietUntilMs: nowMs + ANSWERED_DAYS * FEEDBACK_DAY_MS};
   }
 }
 
@@ -100,7 +105,7 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
-/** A stored state read back; text that is not one is "never asked". */
+/** A stored state read back; text that is not one is "never asked". A missing or bad launch count reads as 0. */
 export function parseFeedbackAskState(json: string | null): FeedbackAskState {
   if (json === null) return FEEDBACK_ASK_NEVER;
   let raw: unknown;
@@ -109,5 +114,8 @@ export function parseFeedbackAskState(json: string | null): FeedbackAskState {
   const shown = raw['shownAtMs'];
   const quiet = raw['quietUntilMs'];
   if ((shown !== null && typeof shown !== 'number') || typeof quiet !== 'number') return FEEDBACK_ASK_NEVER;
-  return {shownAtMs: shown, quietUntilMs: quiet};
+  // A state stored before launches were counted has none: it is read as 0, not refused.
+  const counted = raw['launches'];
+  const launches = typeof counted === 'number' && Number.isFinite(counted) && counted > 0 ? Math.floor(counted) : 0;
+  return {shownAtMs: shown, quietUntilMs: quiet, launches};
 }

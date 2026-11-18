@@ -92,7 +92,6 @@ import {radiatorPickRecorder} from './logic/telemetry/radiatorPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
 import {FeedbackOutbox} from './logic/feedback/feedbackOutbox.js';
 import {FetchFeedbackTransport, OfflineFeedbackTransport} from './logic/feedback/feedbackTransport.js';
-import {SaveTappedTelemetry} from './logic/feedback/saveTappedTelemetry.js';
 import {provideFeedbackServices} from './hooks/FeedbackDialog-hooks.js';
 import {provideAnnouncementCenter} from './hooks/Announcements-hooks.js';
 import {announcementEndpointsForHostname, createAnnouncementCenter} from './logic/announcementCenter.js';
@@ -199,9 +198,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
         browserId: browserIdOf(telemetryStorage, newUuid),
       });
   // Feedback is the user's own answer to "Do you like OpenISD?", sent to the same collector with the same
-  // anonymous browser id; it is kept on the device until the collector has it. The tap tells it when the user saved.
-  const saveTap = new SaveTappedTelemetry(usageTelemetry);
-  const telemetry: Telemetry = saveTap;
+  // anonymous browser id; it is kept on the device until the collector has it.
+  const telemetry: Telemetry = usageTelemetry;
   const feedbackOutbox = new FeedbackOutbox({
     storage: telemetryStorage,
     transport: telemetryTarget === null
@@ -483,7 +481,6 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   provideFeedbackServices(app, {
     outbox: feedbackOutbox,
     storage: telemetryStorage,
-    userSaves: saveTap,
     onlineAgain: {listen: listener => { onlineListeners.add(listener); return () => { onlineListeners.delete(listener); }; }},
     screen: () => errorContext.snapshot().screen,
   });

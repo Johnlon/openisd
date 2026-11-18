@@ -1,11 +1,10 @@
 /** `createFeedbackDialog`: the one-tap flow, and the rules for when the app may ask. */
 import {describe, expect, it} from 'vitest';
+import {nextTick, ref} from 'vue';
 import {createMemoryStorage} from '@openisd/persistence';
 import {FEEDBACK_DAY_MS, FeedbackFace} from '@openisd/design/fields';
 import {createFeedbackDialog, FEEDBACK_ASK_KEY, type FeedbackDialogDeps, type UserAction} from '../../src/hooks/FeedbackDialog-hooks.js';
 import {FeedbackOutbox, type FeedbackTransport} from '../../src/logic/feedback/feedbackOutbox.js';
-import {SaveTappedTelemetry} from '../../src/logic/feedback/saveTappedTelemetry.js';
-import {NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
 
 const PERSON: UserAction = {isTrusted: true};
 const SCRIPT: UserAction = {isTrusted: false};
@@ -27,11 +26,13 @@ class Online {
   fire(): void { this.listener(); }
 }
 
-function setup(busy: () => boolean = () => false) {
+/** `launches` is how many times the app has been started, this start included: each start builds a new dialog on the
+ *  same storage, as a real start does. `splashSeen` false means the welcome screen is up at start. */
+function setup(busy: () => boolean = () => false, launches = 3, splashSeen = true) {
   const net = new Net();
   const storage = createMemoryStorage();
   const clock = {now: Date.UTC(2026, 10, 17, 12)};
-  const saves = new SaveTappedTelemetry(new NoTelemetry());
+  const splashOpen = ref(!splashSeen);
   const online = new Online();
   const deferred: (() => void)[] = [];
   let ids = 0;
@@ -41,11 +42,20 @@ function setup(busy: () => boolean = () => false) {
   });
   const deps: FeedbackDialogDeps = {
     outbox, storage, now: () => clock.now, skin: () => 'original', screen: () => 'original/Vented',
-    busy, userSaves: saves, onlineAgain: online, defer: fn => { deferred.push(fn); },
+    busy, splashOpen, onlineAgain: online, defer: fn => { deferred.push(fn); },
   };
+  for (let i = 1; i < launches; i++) createFeedbackDialog(deps).stop();
+  deferred.length = 0;
   const dialog = createFeedbackDialog(deps);
   const runDeferred = () => { for (const fn of deferred.splice(0)) fn(); };
-  return {dialog, net, storage, clock, saves, online, runDeferred, deps};
+  /** Another start of the app on the same storage. */
+  const restart = () => {
+    dialog.stop();
+    const again = createFeedbackDialog(deps);
+    runDeferred();
+    return again;
+  };
+  return {dialog, net, storage, clock, splashOpen, online, runDeferred, deps, restart};
 }
 
 describe('opening from the Info menu', () => {
@@ -168,77 +178,94 @@ describe('only a person sends', () => {
   });
 });
 
-describe('the occasional prompt after a save', () => {
-  it('appears after a user save, after a short wait, and not before', () => {
-    const {dialog, saves, runDeferred} = setup();
-    saves.record({kind: 'project_save', format: 'stored', box: 'vented'});
+describe('the occasional prompt at app start, after the splash closes', () => {
+  it('on the 3rd launch it appears after the splash closes and a short wait, not before', async () => {
+    const {dialog, splashOpen, runDeferred} = setup(() => false, 3, false);
+    runDeferred();
+    expect(dialog.open.value).toBe(false);
+    splashOpen.value = false;
+    await nextTick();
     expect(dialog.open.value).toBe(false);
     runDeferred();
     expect(dialog.open.value).toBe(true);
     expect(dialog.source.value).toBe('prompt');
   });
 
-  it('is not shown on top of another dialog, and a save then does not use up the turn', () => {
-    let busy = true;
-    const {dialog, saves, runDeferred, storage} = setup(() => busy);
-    saves.record({kind: 'project_save', format: 'stored', box: 'vented'});
-    runDeferred();
+  it('with the splash already seen, it appears a short wait after start', () => {
+    const {dialog, runDeferred} = setup();
     expect(dialog.open.value).toBe(false);
-    expect(storage.get(FEEDBACK_ASK_KEY)).toBeNull();
-    busy = false;
-    saves.record({kind: 'project_save', format: 'stored', box: 'vented'});
     runDeferred();
     expect(dialog.open.value).toBe(true);
   });
 
+  it('is not asked on the 1st or 2nd launch', async () => {
+    for (const launches of [1, 2]) {
+      const {dialog, splashOpen, runDeferred} = setup(() => false, launches, false);
+      splashOpen.value = false;
+      await nextTick();
+      runDeferred();
+      expect(dialog.open.value).toBe(false);
+    }
+  });
+
+  it('is not asked on a save: there is no save trigger any more (John, QO946.c238: "relying on save is useless")', () => {
+    const {dialog, runDeferred, storage} = setup(() => false, 1);
+    runDeferred();
+    expect(dialog.open.value).toBe(false);
+    expect(storage.get(FEEDBACK_ASK_KEY)).toContain('"launches":1');
+  });
+
+  it('is not shown on top of another dialog, and that does not use up the turn', () => {
+    let busy = true;
+    const {dialog, runDeferred, storage, restart} = setup(() => busy);
+    runDeferred();
+    expect(dialog.open.value).toBe(false);
+    expect(storage.get(FEEDBACK_ASK_KEY)).toContain('"shownAtMs":null');
+    busy = false;
+    expect(restart().open.value).toBe(true);
+  });
+
   it('is re-checked when the wait is over: another dialog that opened meanwhile wins', () => {
     let busy = false;
-    const {dialog, saves, runDeferred} = setup(() => busy);
-    saves.record({kind: 'project_save', format: 'stored', box: 'vented'});
+    const {dialog, runDeferred} = setup(() => busy);
     busy = true;
     runDeferred();
     expect(dialog.open.value).toBe(false);
   });
 
-  it('asks at most once every 60 days, Not now keeps it quiet, an answer for 90 days', () => {
-    const {dialog, saves, runDeferred, clock} = setup();
-    const save = () => { saves.record({kind: 'project_save', format: 'stored', box: 'vented'}); runDeferred(); };
-    save();
+  it('asks at most once every 60 days, Not now keeps it quiet', () => {
+    const {dialog, runDeferred, clock, restart} = setup();
+    runDeferred();
     dialog.dismiss();
     expect(dialog.open.value).toBe(false);
     clock.now += 59 * FEEDBACK_DAY_MS;
-    save();
-    expect(dialog.open.value).toBe(false);
+    const second = restart();
+    expect(second.open.value).toBe(false);
     clock.now += 2 * FEEDBACK_DAY_MS;
-    save();
-    expect(dialog.open.value).toBe(true);
+    const third = restart();
+    expect(third.open.value).toBe(true);
   });
 
   it('after an answer it stays quiet for 90 days', async () => {
-    const {dialog, saves, runDeferred, clock} = setup();
-    const save = () => { saves.record({kind: 'project_save', format: 'stored', box: 'vented'}); runDeferred(); };
-    save();
+    const {dialog, runDeferred, clock, restart} = setup();
+    runDeferred();
     await dialog.pickFace(FeedbackFace.Yes, PERSON);
     dialog.dismiss();
     clock.now += 89 * FEEDBACK_DAY_MS;
-    save();
-    expect(dialog.open.value).toBe(false);
+    expect(restart().open.value).toBe(false);
     clock.now += 2 * FEEDBACK_DAY_MS;
-    save();
-    expect(dialog.open.value).toBe(true);
+    expect(restart().open.value).toBe(true);
   });
 
   it('never replaces a dialog the user already has open', () => {
-    const {dialog, saves, runDeferred} = setup();
+    const {dialog, runDeferred} = setup();
     dialog.show();
-    saves.record({kind: 'project_save', format: 'stored', box: 'vented'});
     runDeferred();
     expect(dialog.source.value).toBe('menu');
   });
 
   it('the Info menu entry ignores the quiet time', () => {
-    const {dialog, saves, runDeferred} = setup();
-    saves.record({kind: 'project_save', format: 'stored', box: 'vented'});
+    const {dialog, runDeferred} = setup();
     runDeferred();
     dialog.dismiss();
     dialog.show();
