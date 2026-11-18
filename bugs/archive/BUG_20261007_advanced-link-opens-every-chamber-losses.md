@@ -13,7 +13,7 @@ Checked 2026-10-07:
   and the popup loops over every set from `Box.lossGroupsOf`.
 - Mobile: a single "Box losses ->" button (`MobileBoxTab.vue:88`) opens every set.
 - WinISD: each chamber panel has its own Advanced-> menu listing that chamber's Q values
-  (winisd_research `PROBE_FINDINGS.md`, commit e7c754c; John's live test 2026-07-29).
+  (`winisd_research/archive/PROBE_FINDINGS.md`, commit e7c754c; John's live test 2026-07-29).
 
 ## Cause
 The popup state is one boolean, not "which chamber is open". A link carries no chamber.

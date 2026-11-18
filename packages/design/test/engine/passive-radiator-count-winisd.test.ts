@@ -6,7 +6,7 @@
  * (`../winisd/fixtures/pr-w5-npr-1.wpr`, `pr-w5-me-npr-1.wpr`).
  *
  * Model under test: `engine/boxes/PassiveRadiatorBox.ts`, `lossMode: 'winisd-lossy'`. Formula:
- * winisd_research/GHIDRA_FINDINGS.md "4th-order bandpass" § "Added mass and radiator count" —
+ * winisd_research/archive/GHIDRA_FINDINGS.md "4th-order bandpass" § "Added mass and radiator count" —
  * the fixed-loss frequency omega_r = 1/sqrt(Npr*Map*(Cab || Npr*Cap)), reproducing WinISD's own
  * bug (omega_r is Npr times too low; invisible at Npr = 1).
  */

@@ -2,7 +2,7 @@
 
 Status: CLOSED (re-verified 2026-09-26) — confirmed: `terminalRe_ohm`/`terminalBL_Tm` (`packages/design/engine/solver.ts`) derive the terminal quantities from `numVC`/wiring.
 
-## THE MECHANISM — from the binary, `winisd_research/GHIDRA_FINDINGS.md`
+## THE MECHANISM — from the binary, `winisd_research/archive/GHIDRA_FINDINGS.md`
 
 > "`edConMode` switching series<->parallel rewrites the driver in place (`0x461242`): 1->2
 > multiplies `BL` by `numVC` and `Re` by `numVC^2`; 2->1 divides by the same. No state mark is

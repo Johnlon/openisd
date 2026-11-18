@@ -104,7 +104,7 @@ function polynomialAlignment(poly: VentedPolynomials, Qts: number): AlignmentRat
  *   QB3, C4/SC4, EBS3/6:   alpha = exp(P_alpha(ln Qts')), h = exp(P_h(ln Qts'))
  *   Vb = Vas / alpha,  Fb = h · Fs
  *
- * Decompile and validation: `winisd_research/GHIDRA_FINDINGS.md`, "VENTED ALIGNMENT MECHANISM
+ * Decompile and validation: `winisd_research/archive/GHIDRA_FINDINGS.md`, "VENTED ALIGNMENT MECHANISM
  * FOUND — `0x46afd0`"; OpenISD summary `docs/research/VENTED_ALIGNMENT_FORMULAS.md`.
  */
 function ventedAlphaAndH(alignment: VentedAlignment, Qts: number, Ql: number): AlignmentRatios {

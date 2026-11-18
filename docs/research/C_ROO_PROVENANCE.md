@@ -26,7 +26,7 @@ never stored constants**:
   scenarios vary the `[Box]` env, which WinISD never reads.
 
 Evidence: ledger QO93 (questions.yml, 2026-08-27, ANSWERED BY EXPERIMENT);
-`winisd_research/PROBE_FINDINGS.md` FINDING-008; data `runs/qo93_air_output/results.jsonl`
+`winisd_research/archive/PROBE_FINDINGS.md` FINDING-008; data `runs/qo93_air_output/results.jsonl`
 (six controlled environments written to `settings.ini` before launch, outputs read from
 the saved `.wpr` at 15 significant digits). Provenance rule: `PROBE_METHOD.md`
 "PROVENANCE" — measured, not assumed.

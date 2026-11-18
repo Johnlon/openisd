@@ -144,7 +144,7 @@ export interface DriverEngine {
   /** Qts as the amplifier's source impedance loads it: WinISD folds Rg into Qes before
    *  designing — Qes' = Qes·(Re+Rg)/Re, Qts = 1/(1/Qms + 1/Qes'). Falls back to `fallbackQts`
    *  when Qms/Qes/Re are unavailable (a driver carrying only Qts).
-   *  winisd_research/SEALED_FSC_MODEL.md §5. */
+   *  winisd_research/spec/S04_sealed_box.md §2. */
   sourceLoadedQts(qms: number, qes: number, re: number, rg: number, fallbackQts: number): number;
   /** `sourceLoadedQts` with the voice coil heated by `dT_K` as well: the hot coil's extra resistance
    *  `Re·alfaVC·ΔT` is in series with Rg, so Qes' = Qes·(Re + Rg + Re·alfaVC·ΔT)/Re = Qes·(hotRe + Rg)/Re
@@ -406,7 +406,7 @@ export class DriverEngineImpl implements DriverEngine {
    * 6 L box at Ql=10/Qa=100/Rg=0.1 reads 63.22 Hz/0.592 instead of WinISD's 63.18 Hz/0.599).
    *
    * Falls back to `fallbackQts` when Qms/Qes/Re are unavailable (a driver carrying only Qts).
-   * Reference: winisd_research/SEALED_FSC_MODEL.md §5.
+   * Reference: winisd_research/spec/S04_sealed_box.md §2.
    */
   sourceLoadedQts(
     qms: number, qes: number, re: number, rg: number, fallbackQts: number,

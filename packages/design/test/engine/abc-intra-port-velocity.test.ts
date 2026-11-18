@@ -6,7 +6,7 @@
  *   V / [jωMai + Zf·(1 + jωMai/Ricl)].
  * WinISD's chart is V/(jωMai + Zf): it drops the term Zf·jωMai/Ricl. `winisdAbcIntraPortVelocity`
  * on (the default) reproduces WinISD's chart; off uses the full form.
- * Evidence: winisd_research/PROBE_FINDINGS.md (abc velocity self-consistency) and
+ * Evidence: winisd_research/archive/PROBE_FINDINGS.md (abc velocity self-consistency) and
  * bugs/archive/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md.
  *
  * Goes through the engine's door (`engine.simulation.sweep`) with a driver from the test solver.

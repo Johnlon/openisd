@@ -14,7 +14,7 @@ A driver whose wiring is not stated gets VCCon = parallel and numVC = 1 invented
 ## Cause
 - `/home/johnl/work/winisd/openisd/packages/design/domain/driver/openIsdDriverSpec.ts:391` `resolve()` stores `calcVCCon()` (parallel) when VCCon is unset; `:395` stores `calcNumVC()` (1) for numVC.
 - `/home/johnl/work/winisd/openisd/packages/design/domain/winIsdDriverImport.ts:56` does the same on import.
-- The default then drives `toTerminalSpace`. In WinISD, VCCon is not a calculation input (`/home/johnl/work/winisd/winisd_research/findings/FINDING_20261019_numvc-is-not-a-simulation-input.md`), so copying the default was harmless there. Here it feeds the maths.
+- The default then drives `toTerminalSpace`. In WinISD, VCCon is not a calculation input (`/home/johnl/work/winisd/winisd_research/archive/findings/FINDING_20261019_numvc-is-not-a-simulation-input.md`), so copying the default was harmless there. Here it feeds the maths.
 
 ## Fix
 Plan Phase 1 step 2 (QO900 R1): no VCCon/numVC default; null stays null; `winIsdDriverImport.ts` does no division by the wiring factor; remove `calcVCCon` / `calcNumVC` from `voiceCoilWiring.ts` as defaults.

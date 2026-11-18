@@ -555,7 +555,7 @@ export class SimulationEngineImpl implements SimulationEngine {
       spl.push(pm === 0 ? SILENCE_DB : 20 * Math.log10(pm / P0));
       phase.push(cArg(Hc));
       // The radiator's OWN pressure, jω·Upr, on the same 0 dB reference as `Hc` above — but,
-      // unlike `Hc`, NOT multiplied by `Hf` (winisd_research/GHIDRA_FINDINGS.md "Passive
+      // unlike `Hc`, NOT multiplied by `Hf` (winisd_research/archive/GHIDRA_FINDINGS.md "Passive
       // radiator box", "Radiator transfer function" bullet). `s.UP` here is the raw box-solve
       // output, before the loop's own filtered `UP` local shadows it.
       const Hpr = cScale(cMul(cx(0, w), s.UP), rho / (2 * Math.PI * r));
@@ -613,7 +613,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     const pressure = (f: number): Complex =>
       cMul(cMul(cx(0, 2 * Math.PI * f), solve(f, cq, box, P).U0), applyFilters(f, P.filters, filterErrors));
     const filterChain = (f: number): Complex => applyFilters(f, P.filters, filterErrors);
-    // WinISD's ABC group delay (winisd_research GHIDRA_FINDINGS.md "Group delay of the 6th-order
+    // WinISD's ABC group delay (winisd_research/archive/GHIDRA_FINDINGS.md "Group delay of the 6th-order
     // bandpass and ABC"): the box at the stepped f', the driver part and jω held at the chart f.
     const winisdAbcGd = box === 'abc' && P.winisdAbcGroupDelay === true;
     const pressureDriverAt = (fd: number) => (f: number): Complex =>

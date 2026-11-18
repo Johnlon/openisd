@@ -63,7 +63,7 @@ export interface BoxOutput extends Pick<Solution, 'Zbox' | 'UD' | 'UP' | 'U0'> {
    *  `SimulationEngine.ts` turns it into `SweepResult.pvRear` for the `RearPort` chart. */
   readonly UPr?: Complex;
   /** ABC's intra-chamber port volume velocity, WinISD's own chart-21 form (Ricl left out of the
-   *  load impedance it divides by — winisd_research/GHIDRA_FINDINGS.md "ABC (Aperiodic
+   *  load impedance it divides by — winisd_research/archive/GHIDRA_FINDINGS.md "ABC (Aperiodic
    *  Bi-Chamber)" — a WinISD wart, reproduced by default). Present only for `AbcBox`'s
    *  `winisd-lossy` branch; forwarded the same way as `UPr`, into `Solution.UPi` /
    *  `SweepResult.pvIntra`. */

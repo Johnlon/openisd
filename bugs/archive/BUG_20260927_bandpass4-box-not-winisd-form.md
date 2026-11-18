@@ -8,7 +8,7 @@
 ## Evidence
 - WinISD: `winisd_research/runs/bp4-w5-1` (Vr 10 L, Vf 5 L, Ff 60 Hz, Qlr 7, Qar 30, Qiclfr 20,
   Qlf 9, Qaf 40, Qpf 15), impedance/transfer/port velocity reproduced to ≤ 5e-14 by the closed
-  form in winisd_research GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`".
+  form in winisd_research/archive/GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`".
 - OpenISD: `packages/design/engine/circuit.ts` `solve`, `box === 'bandpass4'` branch.
 
 ## Cause

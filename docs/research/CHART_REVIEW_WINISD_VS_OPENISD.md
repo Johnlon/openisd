@@ -708,7 +708,7 @@ Rg 0.1, the §3.4 filter chain. OpenISD after
 | EQ/Filter phase           | 8e-13          |
 | EQ/Filter group delay     | 0.00066 ms     |
 
-WinISD's vented model: winisd_research GHIDRA_FINDINGS.md "Vented box — `0x456800`".
+WinISD's vented model: winisd_research/archive/GHIDRA_FINDINGS.md "Vented box — `0x456800`".
 
 ### 3.6 Passive radiator with a 4-filter chain
 
@@ -735,7 +735,7 @@ Qp 15 (unused by WinISD), Rg 0.1, the §3.4 filter chain. OpenISD after
 | EQ/Filter phase           | 8e-13          |
 | EQ/Filter group delay     | 0.00066 ms     |
 
-Not checked: Me ≠ 0, more than one radiator. WinISD's model: winisd_research GHIDRA_FINDINGS.md
+Not checked: Me ≠ 0, more than one radiator. WinISD's model: winisd_research/archive/GHIDRA_FINDINGS.md
 "Passive radiator — `0x45a960`".
 
 ### 3.7 Passive radiator: "Transfer function magnitude/phase (PR)"
@@ -755,7 +755,7 @@ plotted value. After BUG_20260927_winisd-charts-missing.md.
 
 WinISD wart, reproduced exactly: the phase chart plots `arg(Upr)`, NOT `arg(jω·Upr)` — it drops
 the 90° rotation its own magnitude chart carries. WinISD's model: winisd_research
-GHIDRA_FINDINGS.md "Passive radiator — `0x45a960`", "Radiator transfer function" bullet.
+winisd_research/archive/GHIDRA_FINDINGS.md "Passive radiator — `0x45a960`", "Radiator transfer function" bullet.
 
 ### 3.8 Vented: "Rear port - Gain"
 
@@ -771,7 +771,7 @@ BUG_20260927_winisd-charts-missing.md.
 Same `K·ω·Up` formula and real-ω wart as `prTfMag`/`prTfPhase` (§3.7), on the SAME `tfMag` 0 dB
 reference — but, unlike the PR transfer charts, `Up` here is multiplied by the filter chain
 `Hf`, same as `tfMag` itself: the filter's own +6 dB peaking band shows through this chart, not
-just the port's raw resonance. WinISD's model: winisd_research GHIDRA_FINDINGS.md "Passive
+just the port's raw resonance. WinISD's model: winisd_research/archive/GHIDRA_FINDINGS.md "Passive
 radiator box — `0x45a960`", "Rear port gain" bullet (the formula is box-agnostic; found by
 fitting `toys/w5_port_gain_shape.py` against this vented capture).
 
@@ -791,7 +791,7 @@ Same computation as `rearPortGain` (§3.8) — WinISD's own formula keeps the j 
 |jω| = ω makes the two formulas the identical computation; `sweep.ts` runs it once
 (`portGainSpl`) and splits the result into `rearPortGain`/`frontPortGain` only at the return,
 gated to the box type that has each port. WinISD's model: winisd_research
-GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`", "Front port gain" bullet.
+winisd_research/archive/GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`", "Front port gain" bullet.
 
 ### 3.10 4th-order bandpass with a 4-filter chain
 

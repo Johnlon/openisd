@@ -5,7 +5,7 @@
  * by debugger (winisd_research runs/bp6-w5-1).
  *
  * Model under test: `engine/boxes/Bandpass6Box.ts`, `lossMode: 'winisd-lossy'`.
- * Formula: winisd_research/GHIDRA_FINDINGS.md "6th-order bandpass — `0x5668c0`".
+ * Formula: winisd_research/archive/GHIDRA_FINDINGS.md "6th-order bandpass — `0x5668c0`".
  *
  * Goes through `WinIsdProjectConverter.winIsdProjectToOpenIsdProject` + `Engine`/`project.sweep()` — the SAME
  * `../winisd/fixtures/bp6-w5-1.wpr` this fixture's own numbers were captured from (the `.wpr`

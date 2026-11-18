@@ -51,7 +51,7 @@ export class AbcBox implements BoxModel {
         return {Zbox, UD, UP, U0, UPr};
       }
       case 'winisd-lossy': {
-        // WinISD's ABC box (winisd_research/GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber) —
+        // WinISD's ABC box (winisd_research/archive/GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber) —
         // `0x4591b0`", captured runs/abc-w5-1). Both chambers exactly as `Bandpass6Box`'s own
         // `winisd-lossy` branch — same tuning-based losses, same inter-chamber Ricl at the
         // driver's own ωs — but the driver's back sits in the REAR chamber directly (Zr a
@@ -75,8 +75,8 @@ export class AbcBox implements BoxModel {
         //                                       `winisdAbcIntraPortVelocity` on (the default, and
         //                                       where the flag is absent): V/(jωMai + Zf),
         //                                       WinISD's chart-21 form, which omits the term
-        //                                       Zf·jωMai/Ricl (winisd_research/GHIDRA_FINDINGS.md,
-        //                                       PROBE_FINDINGS.md abc velocity self-consistency).
+        //                                       Zf·jωMai/Ricl (winisd_research/archive/GHIDRA_FINDINGS.md,
+        //                                       winisd_research/archive/PROBE_FINDINGS.md abc velocity self-consistency).
         //   U0 = Vf/(Raaf+1/jωCabf) + V/(Raar+1/jωCabr)
         //        the SUM of the two compliance currents — captured to 1.6e-15, no sign
         //        correction needed (unlike `Bandpass6Box`'s own transfer).

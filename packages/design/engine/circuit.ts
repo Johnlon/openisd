@@ -68,7 +68,7 @@ export interface CircuitQuantities {
     BL_Qes_Tm?: number;
     /** The BL the driver STATES, at the terminals. Equals `BL_terminal_Tm` unless "Use WinISD
      *  driver calculations" replaced the motor term's BL with the Qes-derived one; WinISD's `CLe`
-     *  reads the entered figure either way (`fr_45e090` at 0x45e3ab, GHIDRA_FINDINGS.md). */
+     *  reads the entered figure either way (`fr_45e090` at 0x45e3ab, winisd_research/archive/GHIDRA_FINDINGS.md). */
     BL_entered_Tm: number;
 }
 
@@ -146,7 +146,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   // 'winisd': Le excluded from the acoustic circuit (constant Rae/Uad) and from the impedance, as WinISD with VCInd off.
   //   Source: docs/winisd_helpfiles/help/aboutequivalentcircuits.html
   // 'gyrator': textbook — the coil Re+Rs+jωLe drives the gyrator, one BL throughout.
-  // 'winisdGyrator': WinISD's VCInd=1 model (winisd_research/GHIDRA_FINDINGS.md §"VCInd").
+  // 'winisdGyrator': WinISD's VCInd=1 model (winisd_research/archive/GHIDRA_FINDINGS.md §"VCInd").
   //   WinISD builds the damping resistance Rae from Qes/Fs/Vas (the BL those imply) but the
   //   inductance's acoustic compliance CLe = Sd²·Le/BL² from the ENTERED BL. Through this
   //   circuit's single Bl that is an electrical inductance Le·(BL_Qes/BL)²; the two BLs agree,

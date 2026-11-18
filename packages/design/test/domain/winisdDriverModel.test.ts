@@ -2,7 +2,7 @@
  * "Two-BL driver" (`winisdDriverModel`) on a driver whose entered `Mms`, `BL`
  * and `Rms` disagree with its own `Fs`, `Cms`, `Qes` and `Qms`.
  *
- * WinISD 0.7.0.950, probed under wine 2026-09-26 (`winisd_research/PROBE_FINDINGS.md`), keeps all
+ * WinISD 0.7.0.950, probed under wine 2026-09-26 (`winisd_research/archive/PROBE_FINDINGS.md`), keeps all
  * three entered values untouched and simulates from `Fs`, `Vas`, `Qes`, `Qms`, `Sd` and `Re`
  * alone — its equivalent circuit names neither `BL` nor `Rms` except in `CLe`. So with the flag
  * set, an inconsistent driver must sweep as the consistent driver its `Fs`/`Cms`/`Qes`/`Qms`/`Re`

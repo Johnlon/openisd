@@ -20,7 +20,7 @@ losses is corrected. The front chamber's own stored Qicl is not shown or read: s
 
 ## Ruling (John, 2026-10-07, bug walk: "decide that is best quality solution")
 Popup only: storage, converter and sweep already keep losses per chamber (`bandpass4.chambers.rear/front.losses`);
-`lossGroupsOf('bandpass4')` returned one merged group. Probe (winisd_research e7c754c, PROBE_FINDINGS.md): rear
+`lossGroupsOf('bandpass4')` returned one merged group. Probe (winisd_research e7c754c, winisd_research/archive/PROBE_FINDINGS.md): rear
 (sealed) lists Ql, Qa, Qicl, no Qp; front lists Ql, Qa, Qp, Qicl; Qicl is one shared value (`Qiclfr`). Fix as
 maryu has it: Rear and Front sets, one Qicl row bound to the single stored value in bp4, bp6 and abc.
 

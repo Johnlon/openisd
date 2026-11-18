@@ -8,7 +8,7 @@ Different: peak height and frequency, notch depth and frequency. This is NOT a s
 
 Known: OpenISD's `winisd-lossy` PR box (`PassiveRadiatorBox.ts` L43-L73) already reproduces WinISD's form
 (fixed Ral/Raa at WinISD's own wr incl. the Npr bug, Rpr = wp*Map_free/Qms, output = Cab branch current),
-pinned to 1e-15 on runs/pr-w5-1.. by GHIDRA_FINDINGS.md §"Passive radiator box". So the engine formula is not
+pinned to 1e-15 on runs/pr-w5-1.. by winisd_research/archive/GHIDRA_FINDINGS.md §"Passive radiator box". So the engine formula is not
 the first suspect; the inputs or the selected loss mode are.
 
 Suspects, in order:

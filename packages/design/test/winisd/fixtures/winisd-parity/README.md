@@ -87,7 +87,7 @@ A scenario that leaves `Fs` and `Vas` to be derived (`solve-from-mms-cms`) crash
 project is loaded. It is captured through the toolbar's standalone Driver editor instead, which
 draws no chart: load a `.wdr` holding only the entered values, retype `Le` as itself, save the
 driver, then run the usual steps on a project built from the result
-(`winisd_research/toys/probe_mms_cms_editor_route.py`, `PROBE_FINDINGS.md`).
+(`winisd_research/toys/probe_mms_cms_editor_route.py`, `winisd_research/archive/PROBE_FINDINGS.md`).
 
 ---
 

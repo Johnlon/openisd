@@ -3,7 +3,7 @@
  *
  * Golden data: `../fixtures/winisdFilterCaptures.ts` (`WINISD_FILTER_CAPTURES`) — one filter
  * per capture, its response and group delay logged live from WinISD 0.7.0.950 by debugger.
- * Formulas and quirks: winisd_research/GHIDRA_FINDINGS.md "EQ/Filter chain — every filter
+ * Formulas and quirks: winisd_research/archive/GHIDRA_FINDINGS.md "EQ/Filter chain — every filter
  * type's response and group delay".
  *
  * The engine has one door (`Engine`); a single filter's own response/group delay is read off

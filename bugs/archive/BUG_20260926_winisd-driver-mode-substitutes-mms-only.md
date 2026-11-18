@@ -29,7 +29,7 @@ OpenISD's and not WinISD's.
   - probes: `winisd_research/toys/probe_entered_mms_overwrite.py`,
     `winisd_research/toys/probe_sim_uses_which_mms.py`; artifacts in
     `winisd_research/runs/entered_mms_overwrite/`; write-up in
-    `winisd_research/PROBE_FINDINGS.md`.
+    `winisd_research/archive/PROBE_FINDINGS.md`.
 
 ## Cause
 
@@ -56,7 +56,7 @@ uses, so the terminal `BL` keeps coming from `engine.terminalBL_Tm`.
 ## Scope of the substitution
 
 The derived BL goes into the motor term only. WinISD's `CLe = S_d^2 L_e/BL^2` reads the ENTERED
-BL (`fr_45e090` at 0x45e3ab, `winisd_research/GHIDRA_FINDINGS.md`), which is what makes the
+BL (`fr_45e090` at 0x45e3ab, `winisd_research/archive/GHIDRA_FINDINGS.md`), which is what makes the
 W5-1138SMF's inductance roll-off deeper than a consistent driver's. `CircuitQuantities` therefore
 carries both: `BL_terminal_Tm`, the motor term's BL, which this flag replaces, and
 `BL_entered_Tm`, the stated one, which `winisdLeScale` divides by. Before this change the two

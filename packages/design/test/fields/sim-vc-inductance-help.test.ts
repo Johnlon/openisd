@@ -3,7 +3,7 @@ import {PhoneHelp, ToggleField} from '../../fields/index.js';
 
 /**
  * Issue Johnlon/openisd#521: the help of "Simulate voice coil inductance" said that, off, Le is still in the impedance plot.
- * WinISD (winisd_research GHIDRA_FINDINGS.md, "VCInd"): the impedance routine 0x45e740 adds jωLe only when VCInd is set, and
+ * WinISD (winisd_research/archive/GHIDRA_FINDINGS.md, "VCInd"): the impedance routine 0x45e740 adds jωLe only when VCInd is set, and
  * CLe in the acoustic circuit is 0 unless VCInd is set. Off, Le is in neither; on, it is in both. OpenISD's default circuit
  * model does the same (`circuit.ts`, `ZcoilForZel`).
  */

@@ -2,7 +2,7 @@
 /**
  * Sealed-box resonance: WinISD's lossy readout (Fsc/Qtc), and the lossless closed form.
  *
- * - Lossy    Box tab: Fsc = pole frequency of WinISD's lossy 3rd-order model (SEALED_FSC_MODEL.md)
+ * - Lossy    Box tab: Fsc = pole frequency of WinISD's lossy 3rd-order model (winisd_research/spec/S04_sealed_box.md §2)
  *            Sweep: Zbox = Ral_const ∥ (Raa_series + Zc), Raa_series = ωsc·Mas/Qa,
  *            U0 = UD - Uleak (leak volume velocity subtraction); docs/CHARTS.md §1.2
  * - Lossless Fsc = Fs·√(1+Vas/Vb), Qtc = Qts·√(1+Vas/Vb). Reached through Ql and Qa at or above
@@ -77,7 +77,7 @@ function cubicRoots(b: number, c: number, d: number): { re: number; im: number }
 /**
  * WinISD's lossy sealed-box readout: Fsc = pole frequency of the lossy 3rd-order model, and Qtc
  * from the same dominant pole pair. Bit-exact to WinISD's own readout; converges to the lossless
- * value as Ql→∞. See SEALED_FSC_MODEL.md §3.
+ * value as Ql→∞. See winisd_research/spec/S04_sealed_box.md §2 and §3.
  */
 export function sealedResonanceWinisd(p: SealedParams): { Fsc: number; Qtc: number } {
   const fc0 = p.Fs * boxRatio(p.Vas, p.Vb);

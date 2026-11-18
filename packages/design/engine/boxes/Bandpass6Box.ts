@@ -42,7 +42,7 @@ export class Bandpass6Box implements BoxModel {
         return {Zbox, UD, UP, U0, UPr};
       }
       case 'winisd-lossy': {
-        // WinISD's 6th-order bandpass (winisd_research/GHIDRA_FINDINGS.md "6th-order bandpass —
+        // WinISD's 6th-order bandpass (winisd_research/archive/GHIDRA_FINDINGS.md "6th-order bandpass —
         // `0x5668c0`", captured runs/bp6-w5-1). Each chamber a vented box in its own right, at
         // its own tuning, exactly the loss form `VentedBox`'s own `winisd-lossy` branch uses —
         // twice, once per chamber, plus the inter-chamber leak Ricl at the DRIVER's own ωs:

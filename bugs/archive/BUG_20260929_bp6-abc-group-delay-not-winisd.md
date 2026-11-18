@@ -17,10 +17,10 @@ winisd_research runs/bp6-w5-base2 and abc-w5-base2 (2026-09-29) against OpenISD 
 | ABC | −40.988 / −33.888          | 0.00446 / 0.0559             | 1.5e-5 / 1.1e-4              |
 
 Sealed/vented/BP4/PR group delay matches to ~7e-4 ms (the 1e-10 Hz step staircase,
-GHIDRA_FINDINGS.md "Group delay").
+winisd_research/archive/GHIDRA_FINDINGS.md "Group delay").
 
 ## Cause
-Decoded bit for bit (winisd_research commit 864d53a, `GHIDRA_FINDINGS.md` "Group delay of the
+Decoded bit for bit (winisd_research commit 864d53a, `winisd_research/archive/GHIDRA_FINDINGS.md` "Group delay of the
 6th-order bandpass and ABC — chart byte 12 (2026-10-05)"; runs `bp6-w5-gd1`, `abc-w5-gd1`,
 `abc-w5-gd2`; `scratch/gd_x87.py` replays case 12 in x87 extended and matches every H, arg and gd
 value). Both boxes step f ± δ, δ = 1e-10 Hz, as every box does. They differ in H.

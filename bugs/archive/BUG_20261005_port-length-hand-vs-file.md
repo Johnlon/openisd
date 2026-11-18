@@ -11,8 +11,8 @@ the `.wpr` and loading it moved nothing.
 There are two paths, the hand edit and the case's file edit. The hand edit sets the port length and
 derives the tuning from it; the case's file edit wrote `[VentRear]`/`[VentFront] len` alone and left
 `[Box] Fr`/`Ff` as they were. WinISD writes `len` as a readout and tunes from `Fr`/`Ff` on load
-(Vents tab: "Vent length" is a disabled read-only box, `winisd_research/PROBE_FINDINGS.md`; debugger
-fit "Map = 1/(ωb²·Cab), [VentRear] len is not used", `winisd_research/GHIDRA_FINDINGS.md`, vented and
+(Vents tab: "Vent length" is a disabled read-only box, `winisd_research/archive/PROBE_FINDINGS.md`; debugger
+fit "Map = 1/(ωb²·Cab), [VentRear] len is not used", `winisd_research/archive/GHIDRA_FINDINGS.md`, vented and
 bandpass4). The case therefore built a file WinISD never writes. OpenISD loads it as WinISD does.
 
 A typed length saved by OpenISD writes the tuning it gives to `Fr`/`Ff`, so it loads back to the same

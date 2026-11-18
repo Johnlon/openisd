@@ -4,9 +4,9 @@
  * ignoring its own order field, …) is WinISD behaviour, verified live by debugger and copied
  * exactly onto the class that owns it, except the WinISD calculation errors behind an error
  * switch (`WinisdFilterErrors`: Bessel HP not mirroring its LP) and the inputs WinISD ignores
- * (Allpass order above 2, Linkwitz-Riley order), which OpenISD honours: winisd_research/GHIDRA_FINDINGS.md "EQ/Filter
+ * (Allpass order above 2, Linkwitz-Riley order), which OpenISD honours: winisd_research/archive/GHIDRA_FINDINGS.md "EQ/Filter
  * chain — every filter type's response and group delay". `.wpr` field names and Add defaults:
- * winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format".
+ * winisd_research/archive/PROBE_FINDINGS.md "`.wpr` `[Filters]` format".
  */
 import type {Filter, WinisdFilterErrors} from '../types.js';
 import type {FilterModel} from './FilterModel.js';

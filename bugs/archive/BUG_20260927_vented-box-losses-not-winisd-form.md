@@ -8,7 +8,7 @@ Vented box charts differ from WinISD whenever Ql, Qa or Qp are finite (always, b
 ## Evidence
 - WinISD: `winisd_research/runs/vented-w5-2` (Fb 38, Ql 7, Qa 30, Qp 15), impedance at all 2087
   points matched to 1.05e-15 by one model only (`toys/w5_vented_model_check.py`; winisd_research
-  GHIDRA_FINDINGS.md "Vented box — `0x456800`").
+  winisd_research/archive/GHIDRA_FINDINGS.md "Vented box — `0x456800`").
 - OpenISD: `packages/design/engine/circuit.ts` `solve`, `box === 'vented'` branch.
 
 ## Cause

@@ -29,7 +29,7 @@ see the doc comment on `readingJsonSchema` in
 | --- | --- |
 | **WH** | WinISD Pro help, `Thiele/Small Specs — What They Mean` (`docs/winisd_helpfiles/help/thielesmall.html`). The parameter explanations there were "originally written by Claus Futtrup and used here with permission"; the page itself is by JJ Richard, revised by Janne Ahonen. |
 | **CF** | Claus Futtrup, *DPC Formulas* — <https://www.cfuttrup.com/dpc/formulas.htm> |
-| **GH** | This project's own decompilation of the WinISD binary, `winisd_research/GHIDRA_FINDINGS.md`, with each relation confirmed against live runs of the real program. |
+| **GH** | This project's own decompilation of the WinISD binary, `winisd_research/archive/GHIDRA_FINDINGS.md`, with each relation confirmed against live runs of the real program. |
 | **BX** | WinISD Pro help, `Box design` (`docs/winisd_helpfiles/help/boxdesign.html`). |
 
 WH and CF share an author for the parameter definitions, so where they agree that is one

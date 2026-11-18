@@ -64,7 +64,7 @@ export const TAB_META: Record<ChartId, TabMeta> = {
   // Same 0 dB / -3 dB passband-asymptote convention as RearPortGain (packages/design/engine/simulation/SimulationEngine.ts
   // frontPortGain, the SAME computation as rearPortGain reused) — run through the filter chain.
   FrontPortGain: { id:'FrontPortGain', name:'Front port - Gain', unit:'dB', color:'#4fb0ff' },
-  // ABC only (WinISD chart-21, GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber)" "Charts" bullet) —
+  // ABC only (WinISD chart-21, winisd_research/archive/GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber)" "Charts" bullet) —
   // same air-velocity quantity/hue as RearPort/FrontPort, off `sw.pvIntra`.
   IntraPort: { id:'IntraPort', name:'Intra-chamber port - Air velocity', unit:'m/s', color:'#5ad17a' },
   GD:        { id:'GD',        name:'Group delay',     unit:'ms',  color:'#c08bff' },

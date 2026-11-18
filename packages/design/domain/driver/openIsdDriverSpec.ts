@@ -146,7 +146,7 @@ export class OpenIsdDriverSpec {
     readonly Le_H: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly fLe_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     /** `Le·√(2π·fLe)` — the Vanderkooy lossy-inductance coefficient (`WINISD_PARITY.md:1009`,
-     *  `GHIDRA_FINDINGS.md:1039`). Henries times the square root of hertz; not dimensionless. */
+     *  `winisd_research/archive/GHIDRA_FINDINGS.md:1105`). Henries times the square root of hertz; not dimensionless. */
     readonly KLe_H_sqrtHz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Znom_ohm: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Qts: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
@@ -192,7 +192,7 @@ export class OpenIsdDriverSpec {
      *  costs to build, but the unit is not currency — the ratio is dimensionless, so the figure
      *  carries `Rme`'s kg/s. WinISD's own help: "an indicator on the price of the driver, but
      *  please forget about the unit". (Formula decompiled and reproduced exactly on 10 live WinISD
-     *  runs: `winisd_research/GHIDRA_FINDINGS.md` §"Four advanced-panel formulas".) */
+     *  runs: `winisd_research/archive/GHIDRA_FINDINGS.md` §"Four advanced-panel formulas".) */
     readonly Mcost_kg_per_s: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Gloss: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     /** The air THIS DRIVER states — the conditions its own figures were measured or computed at.

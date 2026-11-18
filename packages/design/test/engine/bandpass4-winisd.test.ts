@@ -6,7 +6,7 @@
  * `.wpr` this test imports (`../winisd/fixtures/bp4-w5-1.wpr`).
  *
  * Model under test: `engine/boxes/Bandpass4Box.ts`, `lossMode: 'winisd-lossy'`.
- * Formula: winisd_research/GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`".
+ * Formula: winisd_research/archive/GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`".
  */
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';

@@ -383,7 +383,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
   });
 
   // BUG_20261005_port-length-hand-vs-file: WinISD writes a port's `len` as a readout and tunes
-  // from [Box] Fr/Ff on load (debugger fit, winisd_research GHIDRA_FINDINGS "[VentRear] len is not
+  // from [Box] Fr/Ff on load (debugger fit, winisd_research/archive/GHIDRA_FINDINGS "[VentRear] len is not
   // used"). A length typed by hand reaches a file as the tuning it gives, so it must load back
   // unchanged; a lone `len` that contradicts the tuning loads as WinISD loads it.
   describe('winIsdProjectToOpenIsdProject — a port length typed by hand vs the file\'s len', () => {

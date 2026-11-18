@@ -8,7 +8,7 @@
  * Measured at Qiclfr 1e6: the switch on matches WinISD at 4e-15 (pinned at 1e-9), the switch off at
  * 3.3e-6 (Ricl is large, not infinite); the gap between off and on shrinks as 1/Qiclfr. At Qiclfr 20
  * (abc-w5-1) the switch off differs from WinISD's chart by 0.14 relative (1.35 dB), the switch on
- * matches (`abc-winisd.test.ts`). Evidence: winisd_research/PROBE_FINDINGS.md (abc velocity
+ * matches (`abc-winisd.test.ts`). Evidence: winisd_research/archive/PROBE_FINDINGS.md (abc velocity
  * self-consistency), bugs/archive/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md.
  */
 import {readFileSync} from 'node:fs';

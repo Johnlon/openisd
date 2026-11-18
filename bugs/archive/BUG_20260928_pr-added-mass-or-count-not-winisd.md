@@ -23,7 +23,7 @@ Me 0.01, Npr 2, no filters), compared with OpenISD by toys/chart_plot_compare.py
 Npr, not Me. `PassiveRadiatorBox.ts`'s `winisd-lossy` branch already handles added mass correctly
 (Map includes Me, confirmed by pr-w5-me-1 matching before this fix). The box's fixed-loss
 frequency ωr was taken from the domain's `systemTuning_hz` (`P.Fr`), which does not depend on
-Npr. WinISD's own ωr does, and is wrong: `winisd_research/GHIDRA_FINDINGS.md` "4th-order
+Npr. WinISD's own ωr does, and is wrong: `winisd_research/archive/GHIDRA_FINDINGS.md` "4th-order
 bandpass" § "Added mass and radiator count" (fit to pr-w5-me-npr-1, 8e-16 impedance):
 
     ωr = 1/√(Npr·Map·(Cab ∥ Npr·Cap))     Map = Map_free + Me/Sd² (per radiator)

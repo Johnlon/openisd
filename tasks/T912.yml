@@ -1,0 +1,110 @@
+id: T912
+release_note: internal
+repo: openisd
+owner: t912
+status: done
+label: docs
+goal: Every openisd reference to a winisd_research note that moved to winisd_research/archive/ on 18 Nov 2026 points at the new path, four wrong sealed-box statements agree with the research repo's sealed-box page, and a test fails if an old path comes back
+why: 'John, 18 Nov 2026, about the research repo retiring its old notes: "I would rather you retire old docs"; "archive so not visited unless some strange cause"; "if you are changing something you MUST have proof". The sealed-box statements are corrected from winisd_research/spec/S04_sealed_box.md (sections 2 and 5b Q1, Q2, Q6, Q7) with the proof paths it lists, each with a "Corrected 18 Nov 2026" line; the comment, doc and task-file changes carry no code behaviour change.'
+ruling: QO946
+done_test: bash scripts/test/archived-research-paths.test.sh
+files:
+  - tasks/T912.yml
+  - scripts/test/archived-research-paths.test.sh
+  - docs/research/WINISD_PARITY.md
+  - docs/research/ACCURACY_IMPROVEMENTS.md
+  - RESEARCH.md
+  - CLAUDE.md
+  - bugs/BUG_20261114_vccon-default-feeds-maths.md
+  - bugs/BUG_20261114_wdr-default-vccon-marked-entered.md
+  - bugs/archive/BUG_20260813_winisd-will-not-open-the-solve-from-mms-cms-parity-project-so-that-golden-cannot-be-captured.md
+  - bugs/archive/BUG_20260827_wpr_export_writes_a_lossless_Fr_while_the_screen_shows_a_lossy_one.md
+  - bugs/archive/BUG_20260828_dual_voice_coil_fields_are_carried_but_never_simulated.md
+  - bugs/archive/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md
+  - bugs/archive/BUG_20260926_winisd-driver-mode-substitutes-mms-only.md
+  - bugs/archive/BUG_20260926_winisd-spl-level-uses-entered-bl.md
+  - bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md
+  - bugs/archive/BUG_20260927_max-spl-and-max-power-include-the-filter-chain.md
+  - bugs/archive/BUG_20260927_passive-radiator-losses-not-winisd-form.md
+  - bugs/archive/BUG_20260927_vented-box-losses-not-winisd-form.md
+  - bugs/archive/BUG_20260928_pr-added-mass-or-count-not-winisd.md
+  - bugs/archive/BUG_20260928_pr-system-tuning-ignores-radiator-count.md
+  - bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md
+  - bugs/archive/BUG_20261003_pr-transfer-notch-depth.md
+  - bugs/archive/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md
+  - bugs/archive/BUG_20261005_no-common-ui-field-component.md
+  - bugs/archive/BUG_20261005_port-length-hand-vs-file.md
+  - bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md
+  - bugs/archive/BUG_20261007_4th-order-bandpass-merges-per-chamber-losses.md
+  - bugs/archive/BUG_20261007_advanced-link-opens-every-chamber-losses.md
+  - bugs/archive/BUG_20261017_winisd-sealed-picker-volume-formula-unknown.md
+  - bugs/archive/BUG_20261018_what-if-qts-vas-do-not-move-charts.md
+  - docs/CHARTS.md
+  - docs/FIELD_REFERENCE.md
+  - docs/handover/HANDOVER_20260927_winisd-chart-parity.md
+  - docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md
+  - docs/research/C_ROO_PROVENANCE.md
+  - docs/research/VENTED_ALIGNMENT_FORMULAS.md
+  - docs/research/WINISD_EQUIVALENCE.md
+  - drivers/myprobes/README.md
+  - packages/design/chart/series.ts
+  - packages/design/compat/README.md
+  - packages/design/domain/box/abcBox.ts
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
+  - packages/design/engine/box/BoxEngine.ts
+  - packages/design/engine/boxes/AbcBox.ts
+  - packages/design/engine/boxes/Bandpass4Box.ts
+  - packages/design/engine/boxes/Bandpass6Box.ts
+  - packages/design/engine/boxes/BoxModel.ts
+  - packages/design/engine/boxes/PassiveRadiatorBox.ts
+  - packages/design/engine/boxes/VentedBox.ts
+  - packages/design/engine/circuit.ts
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/engine/filters/AllpassFilterModel.ts
+  - packages/design/engine/filters/FilterEngine.ts
+  - packages/design/engine/filters/PassFilterModel.ts
+  - packages/design/engine/filters/index.ts
+  - packages/design/engine/filters/passFamilies/BesselFamily.ts
+  - packages/design/engine/filters/passFamilies/ButterworthFamily.ts
+  - packages/design/engine/sealedResonance.ts
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/engine/types.ts
+  - packages/design/engine/vented/VentedEngine.ts
+  - packages/design/test/domain/pr-edit-parity-nd140-pr.test.ts
+  - packages/design/test/domain/pr-edit-parity-sb15sfcr-00.test.ts
+  - packages/design/test/domain/pr-sd-edit.test.ts
+  - packages/design/test/domain/solve-from-mms-cms-load.test.ts
+  - packages/design/test/domain/winisdDriverModel.test.ts
+  - packages/design/test/engine/abc-group-delay-winisd.test.ts
+  - packages/design/test/engine/abc-intra-port-velocity.test.ts
+  - packages/design/test/engine/abc-large-qiclfr-winisd.test.ts
+  - packages/design/test/engine/abc-winisd.test.ts
+  - packages/design/test/engine/bandpass4-winisd.test.ts
+  - packages/design/test/engine/bandpass6-winisd.test.ts
+  - packages/design/test/engine/bp4-front-port-gain-winisd.test.ts
+  - packages/design/test/engine/filter-defaults.test.ts
+  - packages/design/test/engine/filters-winisd.test.ts
+  - packages/design/test/engine/passive-radiator-count-winisd.test.ts
+  - packages/design/test/engine/passive-radiator-tf-winisd.test.ts
+  - packages/design/test/engine/passive-radiator-winisd.test.ts
+  - packages/design/test/engine/sealed-resonance.test.ts
+  - packages/design/test/engine/vented-alignment.test.ts
+  - packages/design/test/engine/vented-port-gain-winisd.test.ts
+  - packages/design/test/engine/vented-winisd.test.ts
+  - packages/design/test/fields/sim-vc-inductance-help.test.ts
+  - packages/design/test/fixtures/winisdAbcCapture.ts
+  - packages/design/test/fixtures/winisdBandpass4Capture.ts
+  - packages/design/test/fixtures/winisdBandpass6Capture.ts
+  - packages/design/test/fixtures/winisdBp4PortGainCapture.ts
+  - packages/design/test/fixtures/winisdEditRuns.ts
+  - packages/design/test/fixtures/winisdPassiveRadiatorCapture.ts
+  - packages/design/test/fixtures/winisdPassiveRadiatorCountCapture.ts
+  - packages/design/test/fixtures/winisdPassiveRadiatorTfCapture.ts
+  - packages/design/test/fixtures/winisdVentedCapture.ts
+  - packages/design/test/fixtures/winisdVentedPortGainCapture.ts
+  - packages/design/test/winisd/fixtures/winisd-parity/README.md
+  - packages/design/test/winisd/wdr-vccon-one-coil-series.test.ts
+  - packages/design/test/winisd/winIsdProjectToOpenIsdProject.test.ts
+  - packages/ui/test/ui/closed-box-typing-cue.browser.spec.ts
+  - packages/ui/test/ui/original-box-tab.browser.spec.ts

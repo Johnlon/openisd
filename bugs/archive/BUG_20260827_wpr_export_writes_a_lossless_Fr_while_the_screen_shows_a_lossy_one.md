@@ -71,7 +71,7 @@ Two facts follow directly:
 2. **`Fr` MOVES with the loss model** — 5.8 Hz for a `Ql` change alone, at the same volume. A
    lossless value could not move at all.
 
-**Corroborated independently** by `winisd_research/PROBE_FINDINGS.md` "Finding 3" (2026-08-09),
+**Corroborated independently** by `winisd_research/archive/PROBE_FINDINGS.md` "Finding 3" (2026-08-09),
 over nine wizard-created alignments saved to nine `.wpr` files
 (`runs/closed_alignments.jsonl`): *"the saved `Fr` is the LOSSY Fsc, not `Fs·√(1+Vas/Vr)`"* —
 `Fr / Fc(Vr)` runs 1.030–1.048 across the set, peaking near α≈2, which is the QL=10 leakage

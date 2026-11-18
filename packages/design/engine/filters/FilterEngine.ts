@@ -49,7 +49,7 @@ const ORDER_SOS: PassOrderEntry = Object.freeze({
 
 export interface FilterEngine {
   /** A fresh, enabled filter of `type` with its starting values — WinISD's own Filter Editor
-   *  "Add" defaults for its 8 types (winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]`
+   *  "Add" defaults for its 8 types (winisd_research/archive/PROBE_FINDINGS.md "`.wpr` `[Filters]`
    *  format", Add defaults column); linkwitz and the two OpenISD-only shelves keep the values
    *  OpenISD already shipped. No list id: the UI mints that. */
   default(type: FilterType): Filter;
@@ -83,7 +83,7 @@ export interface FilterEngine {
 
 /** `fields[1]` is every WinISD `.wpr` filter type's own `enabled` bit — parse it once here;
  *  `fallback` (the type default's own `enabled`, always `true`) covers an absent/non-numeric
- *  line (winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). */
+ *  line (winisd_research/archive/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). */
 function enabledFromWprFields(fields: readonly string[], fallback: boolean): boolean {
   const n = Number(fields[1]);
   return Number.isFinite(n) ? n === 1 : fallback;

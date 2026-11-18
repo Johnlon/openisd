@@ -1,6 +1,6 @@
 /**
  * The WinISD oracle values are WinISD Pro 0.7.0.950's own `[Box] Fr` readout, captured by
- * reverse-engineering + live gdb capture (research repo SEALED_FSC_MODEL.md §4). The reference
+ * reverse-engineering + live gdb capture (winisd_research/spec/S04_sealed_box.md §4 and §7). The reference
  * driver is Fs=40, Vas=7.47 L, with the Qts WinISD derives for it (0.395643).
  */
 import {describe, it} from 'vitest';
@@ -27,7 +27,7 @@ function closeTo(got: number, want: number, digits: number, msg: string) {
 
 describe('Sealed-Box Resonance', () => {
   describe('WinisdLossy — bit-exact to WinISD readout', () => {
-    // WinISD [Box] Fr at Vb=6 L, QA=10000, over the QL sweep (SEALED_FSC_MODEL.md §6).
+    // WinISD [Box] Fr at Vb=6 L, QA=10000, over the QL sweep (winisd_research/spec/S04_sealed_box.md §4).
     const oracle: [number, number][] = [
       [2, 74.60915], [5, 65.73862], [10, 62.79619], [20, 61.35111], [100, 60.21429],
     ];
@@ -136,7 +136,7 @@ describe('Sealed-Box Resonance', () => {
   //   Lossless (Ql=Qa=999999):            Fsc 60.32 Hz,  Qtc 0.596
   // The algorithm reproduces these BIT-EXACTLY when fed WinISD's own derived Qts. WinISD
   // derives Qts≈0.3952 for this driver via its Re_eff / voice-coil-temperature convention
-  // (SEALED_FSC_MODEL.md §5), NOT the nominal Qts=0.39 from Qms=2.94/Qes=0.45. That derivation
+  // (winisd_research/spec/S04_sealed_box.md §2), NOT the nominal Qts=0.39 from Qms=2.94/Qes=0.45. That derivation
   // is a driver-solver concern separate from the box model.
   describe('Dayton E150HE-44 in 6L sealed — WinISD golden', () => {
     const box = { Fs: 40, Vas: 0.007645536, Vb: 0.006, Ql: 10, Qa: 100 };

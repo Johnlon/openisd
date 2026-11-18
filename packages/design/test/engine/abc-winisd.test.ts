@@ -5,7 +5,7 @@
  * (winisd_research runs/abc-w5-1).
  *
  * Model under test: `engine/boxes/AbcBox.ts`, `lossMode: 'winisd-lossy'`.
- * Formula: winisd_research/GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber) — `0x4591b0`".
+ * Formula: winisd_research/archive/GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber) — `0x4591b0`".
  *
  * Chart-21 wart (leader's "Gotcha 2", also `docs/research/ACCURACY_IMPROVEMENTS.md`): the intra
  * port velocity chart is `V/(jωMai + Zf)`, dropping `Ricl` — the load `Zbox` and every other

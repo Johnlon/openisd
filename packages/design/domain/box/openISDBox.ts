@@ -803,7 +803,7 @@ export class OpenISDBox implements Box {
      * `Box.Fr` readout bit-for-bit (`winisd-parity-goldens.test.ts` "Box.Fr") passes exactly
      * the driver's stored Vas and `sourceLoadedQts(Qms, Qes, Re, Rg, Qts)` — never the inline
      * compliance reconstruction `Cms·Sd²·ρc²` and never bare `Qts` (Rg alone moves Fsc by 0.040 Hz
-     * on the golden scene; `SEALED_FSC_MODEL.md` §5). The voice coil's heating is folded in with Rg
+     * on the golden scene; `winisd_research/spec/S04_sealed_box.md` §2). The voice coil's heating is folded in with Rg
      * (`heatedSourceLoadedQts`): WinISD's dTVC 100 moves the W5-1138SMF's Qtc 0.719 to 0.920
      * (winisd_research/spec/S04_sealed_box.md quirk Q8).
      */

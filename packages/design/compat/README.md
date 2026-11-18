@@ -21,7 +21,7 @@ The same value entered by hand and loaded from a file should give the same resul
 not, an edit is not reaching the calculation. That is one strong signal, not the only one. Found
 this way (2026-10-03): in OpenISD, editing a passive radiator's Fs, Vas or Qms did nothing, because
 only the `.wpr` import derived Mms, Cms and Rms from them. WinISD has the same kind of bug for the PR
-Sd box (`winisd_research/findings/FINDING_20261003_pr-sd-edit-ignored.md`, found by a WinISD consistency test). The
+Sd box (`winisd_research/archive/findings/FINDING_20261003_pr-sd-edit-ignored.md`, found by a WinISD consistency test). The
 rule for copying WinISD behaviour is in `CLAUDE.md` ("WinISD controls behave as native WinISD").
 
 ## Run OpenISD consistency
@@ -65,7 +65,7 @@ it back (see `areas/vents.ts`).
 
 Copy `winisd_research/toys/probe_pr_sd_edit.py` (a UI edit with chart screenshots before and after)
 and run it with `winisd_research/scripts/headless.sh`. Load the same project with the value already
-changed to get the file route. Findings go in `winisd_research/PROBE_FINDINGS.md`; differences from
+changed to get the file route. Findings go in `winisd_research/archive/PROBE_FINDINGS.md`; differences from
 OpenISD go in `docs/research/WINISD_PARITY.md`. A WinISD linkage bug also gets a
 `bugs/BUG_*_winisd-*.md` file and a row in the "fixed by default" section of
 `docs/research/ACCURACY_IMPROVEMENTS.md`.
