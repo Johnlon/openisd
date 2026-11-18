@@ -36,7 +36,7 @@ function setup(busy: () => boolean = () => false) {
   const deferred: (() => void)[] = [];
   let ids = 0;
   const outbox = new FeedbackOutbox({
-    storage, transport: net, now: () => clock.now, sessionAgeS: () => 30, newId: () => `id${++ids}`,
+    storage, transport: net, now: () => clock.now, newId: () => `id${++ids}`,
     version: 'v', sessionId: 's', browserId: () => 'b', environment: 'test',
   });
   const deps: FeedbackDialogDeps = {

@@ -202,14 +202,12 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // anonymous browser id; it is kept on the device until the collector has it. The tap tells it when the user saved.
   const saveTap = new SaveTappedTelemetry(usageTelemetry);
   const telemetry: Telemetry = saveTap;
-  const pageOpenedAt = Date.now();
   const feedbackOutbox = new FeedbackOutbox({
     storage: telemetryStorage,
     transport: telemetryTarget === null
       ? new OfflineFeedbackTransport()
       : new FetchFeedbackTransport(telemetryTarget.endpoint, window.fetch.bind(window), () => navigator.onLine),
     now: () => Date.now(),
-    sessionAgeS: () => Math.floor((Date.now() - pageOpenedAt) / 1000),
     newId: newUuid,
     version: appVersionText,
     sessionId: visitSessionId,

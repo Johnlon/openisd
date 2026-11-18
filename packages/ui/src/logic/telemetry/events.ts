@@ -103,8 +103,6 @@ export interface FeedbackEvent {
   readonly comment: string;
   readonly screen: string;
   readonly skin: Skin;
-  /** Whole seconds the page had been open when the user answered: the collector drops answers that come too quickly to be a person. */
-  readonly ageS: number;
 }
 
 export type TelemetryEvent =
@@ -162,7 +160,7 @@ export function fieldsOf(e: TelemetryEvent): Fields {
       device: e.device,
     };
     case 'feedback': return {
-      id: e.id, face: e.face, screen: e.screen, skin: e.skin, age_s: e.ageS,
+      id: e.id, face: e.face, screen: e.screen, skin: e.skin,
       ...(e.comment === '' ? {} : {comment: e.comment}),
     };
     case 'report': return {
