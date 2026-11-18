@@ -1,0 +1,14 @@
+id: T906
+release_note: The app no longer sends usage stats, crash reports or feedback to the stats collector from an automated browser (one driven by Playwright, Selenium or Puppeteer), so test runs are not counted as users.
+repo: openisd
+owner: t906
+status: done
+goal: An automated browser (navigator.webdriver true) sends nothing to the stats collector on openisd.app or test.openisd.app, except the browser suite's one opt-in telemetry spec
+why: "John, board 18 Nov 2026, about agents' browser checks counting as real users in the stats: relying on agents to block the collector 'that's unrealistic isn't it' (bugs/BUG_20261118_automated-browsers-count-as-users-in-stats.md)."
+done_test: npx vitest run packages/ui/test/logic/telemetry.test.ts
+files:
+  - tasks/T906.yml
+  - bugs/BUG_20261118_automated-browsers-count-as-users-in-stats.md
+  - packages/ui/src/logic/telemetry/endpoint.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/logic/telemetry.test.ts

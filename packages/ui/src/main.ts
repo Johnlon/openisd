@@ -186,6 +186,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     hostname: location.hostname,
     mode: import.meta.env.MODE,
     testOptIn: Reflect.get(globalThis, 'openisdTelemetryOn') === true,
+    automatedBrowser: navigator.webdriver === true,
   });
   const telemetryStorage = localStore;
   // One id for this visit, shared by the usage events and the feedback answer so the two can be read together.

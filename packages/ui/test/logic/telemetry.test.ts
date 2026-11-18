@@ -258,17 +258,28 @@ describe('launch helpers and endpoint', () => {
   });
 
   it('chooses no target on localhost, other hosts or in the suite unless opted in', () => {
-    expect(chooseEndpoint({hostname: 'localhost', mode: 'development', testOptIn: false})).toBeNull();
-    expect(chooseEndpoint({hostname: '127.0.0.1', mode: 'production', testOptIn: false})).toBeNull();
-    expect(chooseEndpoint({hostname: 'localhost', mode: 'test', testOptIn: false})).toBeNull();
-    expect(chooseEndpoint({hostname: 'x.github.io', mode: 'production', testOptIn: false})).toBeNull();
-    expect(chooseEndpoint({hostname: 'snapshots.openisd.app', mode: 'production', testOptIn: false})).toBeNull();
+    expect(chooseEndpoint({hostname: 'localhost', mode: 'development', testOptIn: false, automatedBrowser: false})).toBeNull();
+    expect(chooseEndpoint({hostname: '127.0.0.1', mode: 'production', testOptIn: false, automatedBrowser: false})).toBeNull();
+    expect(chooseEndpoint({hostname: 'localhost', mode: 'test', testOptIn: false, automatedBrowser: false})).toBeNull();
+    expect(chooseEndpoint({hostname: 'x.github.io', mode: 'production', testOptIn: false, automatedBrowser: false})).toBeNull();
+    expect(chooseEndpoint({hostname: 'snapshots.openisd.app', mode: 'production', testOptIn: false, automatedBrowser: false})).toBeNull();
   });
 
   it('derives the environment from the hostname: production sends as production, test sends as test', () => {
-    expect(chooseEndpoint({hostname: 'openisd.app', mode: 'production', testOptIn: false})).toEqual({endpoint: TELEMETRY_ENDPOINT, environment: 'production'});
-    expect(chooseEndpoint({hostname: 'test.openisd.app', mode: 'production', testOptIn: false})).toEqual({endpoint: TELEMETRY_ENDPOINT, environment: 'test'});
-    expect(chooseEndpoint({hostname: 'localhost', mode: 'test', testOptIn: true})).toEqual({endpoint: TELEMETRY_ENDPOINT, environment: 'test'});
+    expect(chooseEndpoint({hostname: 'openisd.app', mode: 'production', testOptIn: false, automatedBrowser: false})).toEqual({endpoint: TELEMETRY_ENDPOINT, environment: 'production'});
+    expect(chooseEndpoint({hostname: 'test.openisd.app', mode: 'production', testOptIn: false, automatedBrowser: false})).toEqual({endpoint: TELEMETRY_ENDPOINT, environment: 'test'});
+    expect(chooseEndpoint({hostname: 'localhost', mode: 'test', testOptIn: true, automatedBrowser: false})).toEqual({endpoint: TELEMETRY_ENDPOINT, environment: 'test'});
+  });
+
+  it('sends nothing from an automated browser (navigator.webdriver), on production or the test site', () => {
+    expect(chooseEndpoint({hostname: 'openisd.app', mode: 'production', testOptIn: false, automatedBrowser: true})).toBeNull();
+    expect(chooseEndpoint({hostname: 'test.openisd.app', mode: 'production', testOptIn: false, automatedBrowser: true})).toBeNull();
+    expect(chooseEndpoint({hostname: 'openisd.app', mode: 'production', testOptIn: true, automatedBrowser: true})).toBeNull();
+  });
+
+  it('lets the browser suite spec that opts in send even though its browser is automated', () => {
+    expect(chooseEndpoint({hostname: 'localhost', mode: 'test', testOptIn: true, automatedBrowser: true})).toEqual({endpoint: TELEMETRY_ENDPOINT, environment: 'test'});
+    expect(chooseEndpoint({hostname: 'localhost', mode: 'test', testOptIn: false, automatedBrowser: true})).toBeNull();
   });
 
   it('puts the environment on every event sent', async () => {
