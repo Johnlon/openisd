@@ -65,6 +65,13 @@ function withProjectId(parsed: unknown, newId: () => string): unknown {
     return isRecord(parsed) && !('id' in parsed) ? {id: newId(), ...parsed} : parsed;
 }
 
+/** A session text that holds no `edited` key (a hand-made or very old text, or a synced document from a build
+ *  that dropped it) has no unsaved edits: it gets `edited: null`, never a refusal (John: "dont refuse data we
+ *  can fix"). A text that states its unsaved layer keeps it. */
+function withEditedLayer(parsed: unknown): unknown {
+    return isRecord(parsed) && isRecord(parsed.saved) && !('edited' in parsed) ? {...parsed, edited: null} : parsed;
+}
+
 /** A stored or `.owpr` project text as `storedTextOf` writes it; null when the text is not a
  *  project session, which the repo that owns it reports and this leaves untouched. */
 export function compactedStoredText(text: string): string | null {
@@ -91,7 +98,7 @@ export function parseOwprSession(text: string, newId: () => string): { session: 
     } catch {
         return {errors: ['not valid JSON']};
     }
-    const upgraded = upgradeToCurrent(withProjectId(parsed, newId));
+    const upgraded = upgradeToCurrent(withEditedLayer(withProjectId(parsed, newId)));
     if ('refusal' in upgraded) return {errors: [upgraded.refusal]};
     const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(upgraded.value));
     if (!result.success) {
@@ -113,7 +120,7 @@ export function parseOwprSessionRepairing(text: string, newId: () => string): Re
     } catch {
         return ['not valid JSON'];
     }
-    const upgraded = upgradeToCurrent(withProjectId(parsed, newId));
+    const upgraded = upgradeToCurrent(withEditedLayer(withProjectId(parsed, newId)));
     if ('refusal' in upgraded) return [upgraded.refusal];
     const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(upgraded.value));
     if (Array.isArray(repaired)) return repaired;

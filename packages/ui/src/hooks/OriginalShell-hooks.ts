@@ -36,7 +36,6 @@ import {useFeatureUse, useRadiatorPicks, useRecentActions} from './telemetryCont
 import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
-import {useSaveForSync} from './UnsavedNudge-hooks.js';
 import {createAppUpdateUi} from './appUpdateUi.js';
 import {BOX_TYPE_OPTIONS, dateStampFrom, END_CORRECTION_OPTIONS, formatDateStamp, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
@@ -787,11 +786,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function openCloudDialog(): void { cloudDialogOpen.value = true; }
   function closeCloudDialog(): void { cloudDialogOpen.value = false; }
   useEscToClose(() => cloudDialogOpen.value, closeCloudDialog);
-  const saveForSync = useSaveForSync(cloudDialogOpen);
-  async function saveForSyncProject(id: string): Promise<void> {
-    await saveForSync.save(id);
-    binView.refresh();
-  }
 
   // The update prompt (a newer build waits and edits are unsaved) takes the cloud strip's place.
   const updateUi = createAppUpdateUi(appUpdate, confirmPort.port);
@@ -823,7 +817,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }
 
   return {
-    cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog, saveForSync, saveForSyncProject,
+    cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog,
     handleCloudTap, handleCloudConnect, handleCloudSyncNow, handleCloudReconnect, handleCloudDismissReconnect,
     updateOffered, reloadForUpdate, dismissUpdate,
     handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,

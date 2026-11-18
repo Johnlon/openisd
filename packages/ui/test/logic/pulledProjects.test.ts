@@ -33,13 +33,17 @@ function setup() {
     return {project, id};
   }
 
-  /** What a pull writes: the iPhone's version of saved project `id`, at a port limit of `limit`. */
-  function pull(id: string, limit: number): void {
+  /** What a pull writes: the iPhone's version of saved project `id`, at a port limit of `limit`. Returns what the
+   *  store held for it before, as the sync reports it. */
+  function pull(id: string, limit: number): string {
+    const held = projectRepo.storedDocs();
+    const before = held.kind === 'ok' ? held.docs.find(d => d.id === id)?.body ?? '' : '';
     const theirs = ProjectBuilder.empty(appState.engine);
     theirs.name.set('Sub 12');
     theirs.portVelocityLimit_m_per_s.set(limit);
     theirs.save();
     expect(projectRepo.putStoredDoc(id, theirs.toStoredText())).toBe('done');
+    return before;
   }
 
   return {appState, projectRepo, keptBoth, deps, openSaved, pull};
@@ -49,9 +53,9 @@ describe('followPulledProjects', () => {
   it('shows a pulled version of an open project in place, keeping its tab and focus', () => {
     const {appState, deps, openSaved, pull} = setup();
     const {project, id} = openSaved(17);
-    pull(id, 25);
+    const before = pull(id, 25);
 
-    expect(followPulledProjects(deps, [{id, from: 'iPhone'}])).toEqual(['refreshed']);
+    expect(followPulledProjects(deps, [{id, from: 'iPhone', before, copyId: null}])).toEqual(['refreshed']);
     const [shown] = appState.openProjects();
     expect(appState.openProjects()).toHaveLength(1);
     expect(shown).not.toBe(project);
@@ -64,9 +68,9 @@ describe('followPulledProjects', () => {
     const {appState, projectRepo, keptBoth, deps, openSaved, pull} = setup();
     const {project, id} = openSaved(17);
     project.portVelocityLimit_m_per_s.set(20);
-    pull(id, 25);
+    const before = pull(id, 25);
 
-    expect(followPulledProjects(deps, [{id, from: 'iPhone'}])).toEqual(['keptEdits']);
+    expect(followPulledProjects(deps, [{id, from: 'iPhone', before, copyId: null}])).toEqual(['keptEdits']);
     const copyName = `Sub 12 (conflict, ${formatDay(new Date(NOW))}, ${DESKTOP.text})`;
     expect(appState.openProjects()).toEqual([project]);
     expect(project.name.value).toBe(copyName);
@@ -87,14 +91,14 @@ describe('followPulledProjects', () => {
     const {appState, projectRepo, keptBoth, deps, openSaved, pull} = setup();
     const {project, id} = openSaved(17);
     project.portVelocityLimit_m_per_s.set(20);
-    pull(id, 25);
+    const before = pull(id, 25);
     const refusingRepo = {
       storedIdOf: projectRepo.storedIdOf,
       loadStoredProject: projectRepo.loadStoredProject,
       saveToStorageAs: () => ({kind: 'failed' as const, reason: 'the browser store is full'}),
     };
 
-    expect(followPulledProjects({...deps, projectRepo: refusingRepo}, [{id, from: 'iPhone'}])).toEqual(['refused']);
+    expect(followPulledProjects({...deps, projectRepo: refusingRepo}, [{id, from: 'iPhone', before, copyId: null}])).toEqual(['refused']);
     expect(project.name.value).toBe('Sub 12');
     expect(project.portVelocityLimit_m_per_s.value).toBe(20);
     expect(appState.projectHasUnsavedChanges(project)).toBe(true);
@@ -105,7 +109,7 @@ describe('followPulledProjects', () => {
 
   it('leaves a pulled project that is not open alone', () => {
     const {appState, deps} = setup();
-    expect(followPulledProjects(deps, [{id: 'not-open', from: 'iPhone'}])).toEqual(['notOpen']);
+    expect(followPulledProjects(deps, [{id: 'not-open', from: 'iPhone', before: '', copyId: null}])).toEqual(['notOpen']);
     expect(appState.openProjects()).toEqual([]);
   });
 });

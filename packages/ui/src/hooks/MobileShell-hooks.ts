@@ -19,7 +19,6 @@ import type {BinRow} from './binRows.js';
 import type {ProjectListRow} from './projectBinView.js';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
 import {createProjectBinView} from './projectBinView.js';
-import {useSaveForSync, type SaveForSyncApi} from './UnsavedNudge-hooks.js';
 import {
   type ConflictCopy,
   type SyncDisplay,
@@ -185,9 +184,6 @@ export interface MobileShellApi {
   syncNowCloud: () => void;
   disconnectCloud: () => Promise<void>;
   openConflict: (id: ConflictCopy['id']) => void;
-  /** Cloud sync only sends saved versions: the list and bar asking to save. */
-  saveForSync: SaveForSyncApi;
-  saveForSyncProject: (id: string) => Promise<void>;
 }
 
 export function useMobileShell(): MobileShellApi {
@@ -587,11 +583,6 @@ export function useMobileShell(): MobileShellApi {
     contentResizeObserver?.disconnect();
   });
 
-  const saveForSync = useSaveForSync(computed(() => pane.value !== null));
-  async function saveForSyncProject(id: string): Promise<void> {
-    await saveForSync.save(id);
-    binView.refresh();
-  }
   const cloudSyncUi = useCloudSyncUi(updateBannerVisible, () => {
     pane.value = 'cloudSync';
   });
@@ -658,6 +649,5 @@ export function useMobileShell(): MobileShellApi {
     reconnectCloud: cloudSyncUi.reconnect, dismissReconnect: cloudSyncUi.dismissReconnect, openConflictNotice: cloudSyncUi.viewConflicts,
     turnOnHint: cloudSyncUi.hintTurnOn, dismissHint: cloudSyncUi.hintDismiss, connectCloud: cloudSyncUi.connect,
     syncNowCloud: cloudSyncUi.syncNow, disconnectCloud: cloudSyncUi.disconnect, openConflict,
-    saveForSync, saveForSyncProject,
   };
 }

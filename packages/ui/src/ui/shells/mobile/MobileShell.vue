@@ -43,7 +43,7 @@ const {
   setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   cloudEnabled, cloudSyncDisplay, handleSyncTap, onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel,
-  openCloudSync, reconnectCloud, openConflictNotice, turnOnHint, dismissHint, connectCloud, syncNowCloud, saveForSync, saveForSyncProject,
+  openCloudSync, reconnectCloud, openConflictNotice, turnOnHint, dismissHint, connectCloud, syncNowCloud,
   disconnectCloud, openConflict,
 } = useMobileShell();
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
@@ -138,12 +138,6 @@ const diagnostics = injectDiagnosticsModal();
         <button type="button" class="mob-update-reload" @click="turnOnHint">{{ cloudSyncDisplay.hint.yes }}</button>
         <button type="button" class="mob-update-later" :aria-label="cloudSyncDisplay.hint.no" :title="cloudSyncDisplay.hint.no" @click="dismissHint">&#10005;</button>
       </div>
-      <!-- Cloud sync is on and a project's unsaved edits are 5 minutes old: ask to save (logic/unsavedNudge.ts). -->
-      <div v-if="saveForSync.bar.value" class="mob-update-banner mob-save-for-sync-banner" role="status" data-testid="save-for-sync-bar">
-        <span>{{ saveForSync.bar.value.text }}</span>
-        <button type="button" class="mob-update-reload" data-testid="save-for-sync-save" @click="saveForSyncProject(saveForSync.bar.value.id)">{{ saveForSync.bar.value.save }}</button>
-        <button type="button" class="mob-update-later" data-testid="save-for-sync-later" @click="saveForSync.later()">{{ saveForSync.bar.value.later }}</button>
-      </div>
       </template>
       <MobileTabBar v-show="!sheetTyping" v-model="destination" :shadow-above="canScrollDown" />
 
@@ -157,8 +151,6 @@ const diagnostics = injectDiagnosticsModal();
       <div class="mob-cloud-dialog-body">
         <CloudSyncDialog
           :model="cloudSyncDisplay.dialog"
-          :unsaved="saveForSync.list.value"
-          @saveProject="saveForSyncProject"
           @connect="connectCloud"
           @syncNow="syncNowCloud"
           @reconnect="reconnectCloud"
@@ -600,15 +592,6 @@ const diagnostics = injectDiagnosticsModal();
   color: color-mix(in srgb, var(--acc2, #b8790f) 60%, black);
 }
 .mob-reconnect-banner .mob-update-reload {
-  background: var(--acc2, #b8790f);
-  border-color: var(--acc2, #b8790f);
-}
-.mob-save-for-sync-banner {
-  background: color-mix(in srgb, var(--acc2, #b8790f) 15%, var(--panel, #f9faf9));
-  border-top-color: var(--acc2, #b8790f);
-  color: color-mix(in srgb, var(--acc2, #b8790f) 60%, black);
-}
-.mob-save-for-sync-banner .mob-update-reload {
   background: var(--acc2, #b8790f);
   border-color: var(--acc2, #b8790f);
 }

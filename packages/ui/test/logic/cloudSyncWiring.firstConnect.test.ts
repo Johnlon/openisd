@@ -76,6 +76,7 @@ function deviceOn(drive: DriveEmulator, fill: number, userAgent = 'Windows') {
       now: () => NOW,
       deviceName,
       projectsPulled: p => { pulled.push(...p); },
+      beforeRun: () => undefined,
     });
   }
 
@@ -131,8 +132,10 @@ describe('cloud sync first connect', () => {
     expect(phone.projectRepo.saveToStorage(project).kind).toBe('saved');
     await phoneSync.scheduler.syncNow();
 
+    const desktopDocs = desktop.projectRepo.storedDocs();
+    const desktopBefore = desktopDocs.kind === 'ok' ? desktopDocs.docs.find(d => d.id === id)?.body : undefined;
     await desktopSync.scheduler.syncNow();
-    expect(desktop.pulled).toEqual([{id, from: DeviceName.ofBrowser(phoneUa, 0).text}]);
+    expect(desktop.pulled).toEqual([{id, from: DeviceName.ofBrowser(phoneUa, 0).text, before: desktopBefore, copyId: null}]);
   });
 
   it('Delete on one device removes the project from the other device after both sync', async () => {

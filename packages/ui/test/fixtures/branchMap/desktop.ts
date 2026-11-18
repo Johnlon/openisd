@@ -61,6 +61,7 @@ export const DESKTOP_BRANCH_MAP:BranchMap={
   'surface-root-a58ff662a7a7139a':{kind:'partOf',view:'desktop/projects/library/actions'},
   'native-ui-0e7488977c57e909':{kind:'notAView',reason:'toolbar button; the surface it opens is its own view'},
   'native-ui-d03facac04984dfe':{kind:'notAView',reason:'toolbar button; the surface it opens is its own view'},
+  'native-ui-320537559a1928d5':{kind:'notAView',reason:'toolbar button; the surface it opens is its own view'},
   'surface-root-0c9c8bbbbd7db54e':{kind:'view',view:'desktop/projects/export/formats'},
   'native-ui-787489ae75be4af3':{kind:'notAView',reason:'toolbar button; the surface it opens is its own view'},
   'native-ui-e2c0c2a8f89775df':{kind:'notAView',reason:'toolbar button; the surface it opens is its own view'},
@@ -142,8 +143,7 @@ export const DESKTOP_BRANCH_MAP:BranchMap={
   'conditional-branch-817d561340c59d77':{kind:'view',view:'desktop/enclosure/tuning-unreachable-warning'},
   'conditional-branch-ec17e7d8f9a9c89c':{kind:'partOf',view:'desktop/help/tab-help-panel'},
   'conditional-branch-8646d36e8fec3347':{kind:'partOf',view:'desktop/workspace/project'},
-  'conditional-branch-80f2f7203bb20a85':{kind:'partOf',view:'desktop/workspace/project'}, // OriginalShell.vue:743
-  'conditional-branch-ab2a88d2de08cdd0':{kind:'notAView',reason:'the save-for-sync bar: only with Cloud sync on and 5 minutes of unsaved edits; walked by cloud-save-for-sync.browser.spec.ts'}, // OriginalShell.vue:252
+  'conditional-branch-641e749d9d291add':{kind:'partOf',view:'desktop/workspace/project'},
   'conditional-branch-5196bc44d41a7501':{kind:'partOf',view:'desktop/workspace/project'},
   'conditional-branch-c4eb6321526f6fbc':{kind:'notAView',reason:'empty state: No projects open'},
   'conditional-branch-4ae29d1a56289179':{kind:'view',view:'desktop/help/tab-help-panel'},

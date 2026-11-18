@@ -54,7 +54,8 @@ import {
 } from '@openisd/persistence';
 import {DeviceName, cloudSyncReportLines, cloudSyncSummary, isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
 import {createBrowserTimer, createCloudSyncWiring, createDefaultRunLock} from './logic/cloudSyncWiring.js';
-import {followPulledProjects} from './logic/pulledProjects.js';
+import {followPulledProjects, keepAsConflictCopy, type PulledProjectsDeps} from './logic/pulledProjects.js';
+import {startLiveProjectSync, type LiveProjectSync} from './logic/liveProjectSync.js';
 import {provideCloudSync} from './hooks/CloudSync-hooks.js';
 import {handleOAuthBoot} from './logic/boot.js';
 import {createLogging} from './logging/flash.js';
@@ -415,6 +416,15 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
       location: { assign: (url: string) => window.location.assign(url) },
     });
 
+    // Sends the open projects' unsaved edits with them (QO946.c248); built after the wiring, whose runs flush it first.
+    let liveSync: LiveProjectSync | null = null;
+    const followDeps = (): PulledProjectsDeps => ({
+      appState,
+      projectRepo,
+      keptBoth: (copyId, name, item, otherDevice) => wiring.cloudSync.projectKeptBoth(copyId, name, item, otherDevice),
+      deviceName,
+      now: Date.now,
+    });
     const wiring = createCloudSyncWiring({
       storage,
       projectRepo,
@@ -438,16 +448,19 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
       random: randomBytes,
       now: Date.now,
       deviceName,
-      projectsPulled: pulled => void followPulledProjects({
-        appState,
-        projectRepo,
-        keptBoth: (copyId, name, item, otherDevice) => wiring.cloudSync.projectKeptBoth(copyId, name, item, otherDevice),
-        deviceName,
-        now: Date.now,
-      }, pulled),
+      projectsPulled: pulled => void followPulledProjects(followDeps(), pulled),
+      beforeRun: () => { liveSync?.flush(); },
     });
 
     saves.listen(() => wiring.scheduler.onSave());
+    liveSync = startLiveProjectSync({
+      appState,
+      projectRepo,
+      active: () => wiring.session.grant().kind !== 'none',
+      timer: createBrowserTimer(),
+      push: () => void wiring.scheduler.syncNow(),
+      keepBoth: project => void keepAsConflictCopy(followDeps(), project, ''),
+    });
 
     cloudSync = wiring.cloudSync;
 

@@ -1,0 +1,68 @@
+id: T892
+release_note: With Cloud sync on, your other devices get the whole project a few seconds after you stop editing, unsaved changes included and shown as unsaved there, so Revert goes back to the same saved version on every device; the Save reminder bar and the Cloud sync dialog's list of unsaved projects are gone.
+repo: openisd
+owner: t892-whole-project-sync
+status: done
+goal: Cloud sync sends the whole project, unsaved edits included, a few seconds after editing stops; Save stays the checkpoint and syncs too; T886's save bar, the dialog's unsaved list and the sync Save tooltip are removed
+why: "John, 18 Nov 2026, QO946.c247: \"why are we sending on saved state and not entire project? why force user to do anything\"; QO946.c248 chose option A: sync the whole project including unsaved edits, Save stays the user's checkpoint (Revert goes back to it) and syncs too, T886's save bar and the dialog's 'Not on your other devices yet' list are removed and the Save tooltip goes back, conflict copies still keep both and are announced. The data-model change (the synced document carries the unsaved layer) is the one John approved with A."
+design: |
+  Stored: a project's saved entry (= its Drive document) is the project session it already is: `saved` (the checkpoint Save
+  writes, Revert returns to) and `edited` (the unsaved edits, null when none). No new field: an old document with no
+  `edited` key loads as saved with nothing unsaved (repaired on read, never refused).
+  Pushed when: SYNC_AFTER_EDIT_MS (3 s) after the last edit of an open project its session is written to its entry and a run
+  starts; every run first writes the open projects' sessions (so Sync now sends what is on screen). Save writes the checkpoint
+  with no unsaved layer and its run follows 3 s later, as before. Closing without saving clears the entry's unsaved layer.
+  Guard: a project writes its unsaved layer only over the entry it came from, told by the entry's `modified` stamp (only a
+  Save, a pull or a conflict copy gives a new stamp; unsaved-layer writes keep it), so tabs of one browser share one version
+  and a pull that landed meanwhile is never written over.
+  Receiver: a pulled project that is open is shown in place with the pulled checkpoint and unsaved edits (unsaved marker on,
+  Revert to the shared checkpoint), when everything it showed was already in its store.
+  Conflict: both devices changed the project since they last synced -> both kept. The run keeps the other version under the
+  name and this device's version as "<name> (conflict, <day>, <this device>)", which stays open, and announces it (T886's
+  notice). Edits the store did not have yet when a pull lands, or a pull that landed before them, give the same copy and notice.
+done_test: bash scripts/quiet-test.sh npx vitest run packages/ui/test/logic/liveProjectSync.test.ts packages/ui/test/logic/pulledProjects.test.ts packages/design/test/cloud/editSync.test.ts packages/persistence/test/projectRepo.unsavedLayer.test.ts
+files:
+  - tasks/T892.yml
+  - packages/design/cloud/editSync.ts
+  - packages/design/cloud/index.ts
+  - packages/design/cloud/unsavedSync.ts
+  - packages/design/domain/project/projectSerialization.ts
+  - packages/design/fields/phoneDialogText.ts
+  - packages/design/test/cloud/editSync.test.ts
+  - packages/design/test/cloud/unsavedSync.test.ts
+  - packages/persistence/src/cloud/docs/projectDocs.ts
+  - packages/persistence/src/index.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/test/cloud/docs/projectDocs.test.ts
+  - packages/persistence/test/cloud/ledgerFollowsRewrite.test.ts
+  - packages/persistence/test/projectRepo.unsavedLayer.test.ts
+  - packages/ui/src/hooks/MobileSaveButton-hooks.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/UnsavedNudge-hooks.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/cloudSyncWiring.ts
+  - packages/ui/src/logic/liveProjectSync.ts
+  - packages/ui/src/logic/pulledProjects.ts
+  - packages/ui/src/logic/unsavedNudge.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/components/CloudSyncDialog.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/fixtures/branchMap/desktop.ts
+  - packages/ui/test/fixtures/branchMap/phone.ts
+  - packages/ui/test/fixtures/branchMap/shared.ts
+  - packages/ui/test/fixtures/driveEmulator.ts
+  - packages/ui/test/fixtures/idleUnsavedNudge.ts
+  - packages/ui/test/hooks/MobileShell-hooks.test.ts
+  - packages/ui/test/hooks/OriginalShell-hooks.test.ts
+  - packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts
+  - packages/ui/test/logic/cloudSyncWiring.test.ts
+  - packages/ui/test/logic/liveProjectSync.test.ts
+  - packages/ui/test/logic/pulledProjects.test.ts
+  - packages/ui/test/logic/unsavedNudge.test.ts
+  - packages/ui/test/ui/cloud-conflict-open-project.browser.spec.ts
+  - packages/ui/test/ui/cloud-live-sync.browser.spec.ts
+  - packages/ui/test/ui/cloud-save-for-sync.browser.spec.ts
+  - packages/ui/test/ui/fixtures/driveConnected.ts

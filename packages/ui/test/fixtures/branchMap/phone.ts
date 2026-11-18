@@ -144,7 +144,6 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'conditional-branch-6fe61d2be8cac907':{kind:'view',view:'phone/cloud-conflict-notice'}, // MobileShell.vue:128
   'conditional-branch-35b05b46e88c1090':{kind:'view',view:'phone/cloud-hint'}, // MobileShell.vue:132
   'conditional-branch-cbb818c2036c6c93':{kind:'notAView',reason:'tab bar chrome'}, // MobileShell.vue:137
-  'conditional-branch-16a2d6291f49f363':{kind:'notAView',reason:'the save-for-sync bar: only with Cloud sync on and 5 minutes of unsaved edits; walked by cloud-save-for-sync.browser.spec.ts'}, // MobileShell.vue:142
   'conditional-branch-25062a83676537d0':{kind:'view',view:'menu-manage-drivers'}, // MobileShell.vue:142
   'conditional-branch-76cad433425166e9':{kind:'view',view:'cloud'}, // MobileShell.vue:145
   'surface-root-2ef0fa4dc3d7c83c':{kind:'view',view:'menu'}, // MobileShell.vue:158

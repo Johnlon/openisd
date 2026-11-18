@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type {ConflictCopy, SyncDialogAction, SyncDialogModel, SyncTone, UnsavedSyncList} from '@openisd/design/cloud';
+import type {ConflictCopy, SyncDialogAction, SyncDialogModel, SyncTone} from '@openisd/design/cloud';
 import {computed} from 'vue';
 import {PhoneDialogHelp} from '@openisd/design/fields';
 import {createConfirmPort} from '../../logic/confirmPort.js';
@@ -11,8 +11,6 @@ import {PRIVACY_URL} from '../siteLinks.js';
 
 const props = defineProps<{
   model: SyncDialogModel;
-  /** Open projects whose unsaved changes are not synced (Cloud sync on); null draws nothing. */
-  unsaved: UnsavedSyncList | null;
 }>();
 
 const emit = defineEmits<{
@@ -21,7 +19,6 @@ const emit = defineEmits<{
   (e: 'reconnect'): void;
   (e: 'disconnect'): void;
   (e: 'openConflict', id: ConflictCopy['id']): void;
-  (e: 'saveProject', id: string): void;
 }>();
 
 const {port: confirmPort, state: confirmState} = createConfirmPort();
@@ -76,17 +73,6 @@ async function handleAction(action: SyncDialogAction): Promise<void> {
       <div class="mob-cbtns mob-dbtns-one cloud-sync-buttons">
         <button v-for="btn in model.buttons" :key="btn.action" type="button" :disabled="!btn.enabled" :class="{ pri: btn.primary }" @click="handleAction(btn.action)">{{ btn.label }}</button>
       </div>
-      <template v-if="unsaved !== null">
-        <PhoneBand :section="PhoneDialogHelp.syncUnsaved(unsaved.heading)" />
-        <p class="mob-dhint cloud-sync-unsaved-note">{{ unsaved.note }}</p>
-        <div class="cloud-sync-unsaved-rows">
-          <p v-if="unsaved.rows.length === 0" class="mob-dhint cloud-sync-unsaved-empty">{{ unsaved.empty }}</p>
-          <div v-for="row in unsaved.rows" :key="row.id" class="mob-dkv cloud-sync-unsaved-row">
-            <div class="cloud-sync-conflict-info"><div class="cloud-sync-conflict-title">{{ row.name }}</div></div>
-            <button type="button" class="cloud-sync-conflict-open-btn" :aria-label="row.saveAria" @click="emit('saveProject', row.id)">{{ row.saveLabel }}</button>
-          </div>
-        </div>
-      </template>
       <template v-if="model.activity.length > 0">
         <PhoneBand :section="PhoneDialogHelp.syncActivity(model.activityHeading)" />
         <ol class="mob-dpre cloud-sync-activity">
@@ -135,18 +121,6 @@ async function handleAction(action: SyncDialogAction): Promise<void> {
         :class="{ pri: btn.primary }"
         @click="handleAction(btn.action)"
       >{{ btn.label }}</button>
-    </div>
-
-    <div v-if="unsaved !== null" class="cloud-sync-unsaved-section">
-      <div class="cloud-sync-heading">{{ unsaved.heading }}</div>
-      <p class="cloud-sync-unsaved-note">{{ unsaved.note }}</p>
-      <div class="cloud-sync-unsaved-rows">
-        <p v-if="unsaved.rows.length === 0" class="cloud-sync-unsaved-empty">{{ unsaved.empty }}</p>
-        <div v-for="row in unsaved.rows" :key="row.id" class="cloud-sync-conflict-row cloud-sync-unsaved-row">
-          <div class="cloud-sync-conflict-info"><div class="cloud-sync-conflict-title">{{ row.name }}</div></div>
-          <button type="button" class="cloud-sync-conflict-open-btn" :aria-label="row.saveAria" @click="emit('saveProject', row.id)">{{ row.saveLabel }}</button>
-        </div>
-      </div>
     </div>
 
     <div v-if="model.activity.length > 0" class="cloud-sync-activity-section">
@@ -294,31 +268,6 @@ async function handleAction(action: SyncDialogAction): Promise<void> {
   padding: 2px 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-
-.cloud-sync-unsaved-section {
-  border-top: 1px solid var(--line, #ccd3db);
-  padding-top: 14px;
-  margin-top: 8px;
-  margin-bottom: 8px;
-}
-
-.cloud-sync-unsaved-note {
-  color: var(--mut);
-  font-size: 12px;
-  margin: 0 0 6px;
-}
-
-.cloud-sync-unsaved-rows {
-  /* Fixed: the dialog is the same size with no project listed and with several. */
-  height: 112px;
-  overflow-y: auto;
-}
-
-.cloud-sync-unsaved-empty {
-  color: var(--mut);
-  font-size: 13px;
-  margin: 8px 0;
 }
 
 .cloud-sync-conflicts-section {

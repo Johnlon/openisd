@@ -104,12 +104,4 @@ export {
 } from './cloudUiState.js';
 
 
-export {
-  UNSAVED_ASK_AFTER_MS,
-  UNSAVED_SYNC_TEXT,
-  cloudSyncIsOn,
-  saveTooltip,
-  unsavedBarOf,
-  unsavedSyncList,
-} from './unsavedSync.js';
-export type {UnsavedBar, UnsavedProject, UnsavedSyncList, UnsavedSyncRow} from './unsavedSync.js';
+export {SYNC_AFTER_EDIT_MS} from './editSync.js';

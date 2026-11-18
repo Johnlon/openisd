@@ -102,11 +102,6 @@ export class PhoneDialogHelp {
     return new PhoneHelpSection(heading, 'The latest things cloud sync did, newest last.', []);
   }
 
-  /** The help sheet of the list of unsaved projects in the Cloud sync dialog, under the heading the dialog states. */
-  static syncUnsaved(heading: string): PhoneHelpSection {
-    return new PhoneHelpSection(heading, 'Open projects with changes you have not saved. Cloud sync sends saved versions only: Save sends that project to your other devices.', []);
-  }
-
   /** The help sheet of the conflicts list of the Cloud sync dialog, under the heading the dialog states. */
   static syncConflicts(heading: string): PhoneHelpSection {
     return new PhoneHelpSection(heading, 'Items changed here and in your Drive since the last sync. Open one to choose which copy to keep.', []);

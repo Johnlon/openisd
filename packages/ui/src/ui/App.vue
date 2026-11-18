@@ -35,7 +35,6 @@ import {useAnnouncementCenter} from '../hooks/Announcements-hooks.js';
 import {createFeedbackDialog, injectFeedbackServices, provideFeedbackDialog} from '../hooks/FeedbackDialog-hooks.js';
 import CrashScreen from './components/CrashScreen.vue';
 import {createLabelColumns, type LabelColumns} from '../hooks/labelColumns.js';
-import {provideAppUnsavedNudge} from '../hooks/UnsavedNudge-hooks.js';
 
 const { designIO, projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId, persistence, browserStorage, storageUsage, saves } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
@@ -119,14 +118,6 @@ const feedback = createFeedbackDialog({
   promptOutcome: outcome => featureUse.feedbackPrompt({kind: 'feedback_prompt', outcome}),
 });
 provideFeedbackDialog(feedback);
-
-// With Cloud sync on, a project with unsaved edits is asked to save after 5 minutes (the bar both shells show).
-// One instance for the app: the once-per-session rule must survive a skin switch.
-provideAppUnsavedNudge(() => splash.open.value || announcements.open.value || diagnostics.open.value || confirmState.current.value !== null
-    || crashReports.pending.value !== null
-    || presentationState.newProjectOpen || presentationState.browseOpen || presentationState.optionsOpen
-    || presentationState.openDialogOpen || presentationState.editDriverInfo || presentationState.editDriver
-    || presentationState.mobilePane !== null || presentationState.projectsPaneOpen);
 
 /** Whether a project is focused right now. The overlays below are project-bound: the shell
  *  renders without one, they must not. */

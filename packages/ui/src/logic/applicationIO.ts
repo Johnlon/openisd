@@ -223,8 +223,9 @@ export function createApplicationIO(deps: {
     deps.actions?.record('save-project');
     if (project === focusedProject()) endWhatIfBeforeIO();
     else project.cancelWhatIf();
-    // Storage first: a refused write must leave the project showing its unsaved changes.
-    const result = deps.projectRepo.saveToStorage(project);
+    // Storage first: a refused write must leave the project showing its unsaved changes. What is stored is the
+    // project as saved (no unsaved layer): Cloud sync sends that checkpoint, and Revert returns to it (QO946.c248).
+    const result = deps.projectRepo.saveToStorage(project.committedSnapshot());
     if (result.kind === 'failed') {
       await handleSaveFailure();
       return false;
@@ -243,7 +244,7 @@ export function createApplicationIO(deps: {
     let savedCount = 0;
     for (const project of dirty) {
       project.cancelWhatIf();
-      const result = deps.projectRepo.saveToStorage(project);
+      const result = deps.projectRepo.saveToStorage(project.committedSnapshot());
       if (result.kind === 'failed') {
         await handleSaveFailure();
         return savedCount; // stop saving on failure; this project still shows its unsaved changes

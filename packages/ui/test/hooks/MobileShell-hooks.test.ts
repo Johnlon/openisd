@@ -6,8 +6,6 @@ import {APP_LOGIC} from '../../src/logic/app.js';
 import {FOCUSED_PROJECT} from '../../src/logic/focusedProjectContext.js';
 import {SplashModalKey} from '../../src/hooks/SplashModal-hooks.js';
 import {provideCloudSync} from '../../src/hooks/CloudSync-hooks.js';
-import {provideUnsavedNudgeTo} from '../../src/hooks/UnsavedNudge-hooks.js';
-import {idleUnsavedNudge} from '../fixtures/idleUnsavedNudge.js';
 import {useMobileShell} from '../../src/hooks/MobileShell-hooks.js';
 import {createConfirmPort} from '../../src/logic/confirmPort.js';
 import {testAppLogic} from './testAppLogic.js';
@@ -31,7 +29,6 @@ describe('MobileShell-hooks revertProject', () => {
       dismiss: () => undefined, show: () => undefined,
     });
     provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));
-    provideUnsavedNudgeTo(app, idleUnsavedNudge());
     const shell = app.runWithContext(() => useMobileShell());
     expect(shell.isModified.value).toBe(true);
     shell.toggleMenu();
@@ -58,7 +55,6 @@ describe('MobileShell-hooks usage counts', () => {
       dismiss: () => undefined, show: () => undefined,
     });
     provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));
-    provideUnsavedNudgeTo(app, idleUnsavedNudge());
     provideTelemetryUi(app, telemetryUi);
     const shell = app.runWithContext(() => useMobileShell());
     shell.switchToDesktop();
