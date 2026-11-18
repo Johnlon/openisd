@@ -10,10 +10,19 @@ import {recordingTelemetryUi} from '../fixtures/recordingTelemetryUi.js';
 describe('createDesktopHelp usage counts', () => {
   it('counts help opened from a band ? and from a tab ?', () => {
     const {telemetryUi, events} = recordingTelemetryUi();
-    const help = createDesktopHelp({activeTab: ref<TabId>('filters'), selectedBox: ref<BoxType>('sealed'), featureUse: telemetryUi.featureUse});
+    const help = createDesktopHelp({activeTab: ref<TabId>('filters'), selectedBox: ref<BoxType>('sealed'), driverWiringApplies: ref(false), featureUse: telemetryUi.featureUse});
     help.openSectionHelp(DesktopHelp.FRONT_CHAMBER);
     expect(events).toEqual([{kind: 'feature', name: 'help'}]);
     help.openTabHelp();
     expect(telemetryUi.actions.snapshot()).toEqual(['feature:help', 'feature:help']);
+  });
+
+  it("the Placement band's help lists Driver wiring only while that control is drawn", () => {
+    const {telemetryUi} = recordingTelemetryUi();
+    const applies = ref(false);
+    const help = createDesktopHelp({activeTab: ref<TabId>('driver'), selectedBox: ref<BoxType>('sealed'), driverWiringApplies: applies, featureUse: telemetryUi.featureUse});
+    expect(help.placementHelp.value.rows.map(r => r.label)).not.toContain('Driver wiring');
+    applies.value = true;
+    expect(help.placementHelp.value.rows.map(r => r.label)).toContain('Driver wiring');
   });
 });

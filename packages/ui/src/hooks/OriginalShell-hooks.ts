@@ -556,7 +556,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     if (tab === 'enclosure') featureUse.feature('vents');
   });
   watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
-  const desktopHelp = createDesktopHelp({ activeTab, selectedBox, featureUse });
+  const desktopHelp = createDesktopHelp({ activeTab, selectedBox, driverWiringApplies: computed(() => { void projectChanged.value; return project.value.driverWiringApplies; }), featureUse });
 
   // ---- Projects list -------------------------------------------------------------
   const projectList = computed(() => openProjects());

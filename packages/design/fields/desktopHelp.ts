@@ -74,6 +74,15 @@ export class DesktopHelp {
     PhoneHelpRows.COIL_WIRING,
   ]);
 
+  /**
+   * The Placement band's help for the project as it is on screen: "Driver wiring" is drawn only with 2 or more drivers,
+   * so its line is listed only then (help lists what the user can see, T879).
+   */
+  static placement(driverWiringApplies: boolean): PhoneHelpSection {
+    const rows = driverWiringApplies ? DesktopHelp.PLACEMENT.rows : DesktopHelp.PLACEMENT.rows.filter(r => r !== PhoneHelpRows.DRIVER_WIRING);
+    return new PhoneHelpSection(DesktopHelp.PLACEMENT.title, DesktopHelp.PLACEMENT.intro, rows);
+  }
+
   static readonly ADVANCED_OPTIONS = new PhoneHelpSection('Advanced options', 'Extra driver settings: how hot the voice coil runs and mass added to the cone.', [
     {label: NumberField.DRIVER_VCTEMPRISE_K.label, text: 'how much hotter the voice coil runs than the air, in kelvin. A hotter coil has more resistance, so the driver plays quieter (power compression). 0 means no heating.'},
     {label: NumberField.DRIVER_ADDEDMASS_G.label, text: 'mass added to the cone, in grams. It raises Mms and lowers Fs.'},

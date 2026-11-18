@@ -18,10 +18,12 @@ export interface HelpPanelContent {
 interface DesktopHelpDeps {
   activeTab: Ref<TabId>;
   selectedBox: Ref<BoxType>;
+  /** Whether the project's "Driver wiring" control is drawn (2 or more drivers); its help line follows. */
+  driverWiringApplies: Ref<boolean>;
   featureUse: FeatureUse;
 }
 
-export function createDesktopHelp({activeTab, selectedBox, featureUse}: DesktopHelpDeps) {
+export function createDesktopHelp({activeTab, selectedBox, driverWiringApplies, featureUse}: DesktopHelpDeps) {
   const panel = shallowRef<HelpPanelContent | null>(null);
 
   function openSection(section: PhoneHelpSection): void {
@@ -60,7 +62,7 @@ export function createDesktopHelp({activeTab, selectedBox, featureUse}: DesktopH
     frontChamberHelp: DesktopHelp.FRONT_CHAMBER,
     passiveRadiatorHelp: DesktopHelp.PASSIVE_RADIATOR,
     userOptionsHelp: DesktopHelp.USER_OPTIONS,
-    placementHelp: DesktopHelp.PLACEMENT,
+    placementHelp: computed(() => DesktopHelp.placement(driverWiringApplies.value)),
     advancedOptionsHelp: DesktopHelp.ADVANCED_OPTIONS,
     listeningPlaceHelp: DesktopHelp.LISTENING_PLACE,
     signalSourceHelp: DesktopHelp.SIGNAL_SOURCE,

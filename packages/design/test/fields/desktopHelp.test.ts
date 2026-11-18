@@ -20,6 +20,11 @@ describe('desktop help', () => {
     expect(DesktopHelp.SIGNAL_SOURCE.rows.map(r => r.text)).toEqual(PhoneHelp.SIGNAL.rows.map(r => r.text));
   });
 
+  it('Placement lists the Driver wiring line only when that control is drawn (2 or more drivers)', () => {
+    expect(labels(DesktopHelp.placement(true).rows)).toEqual([DesktopLabels.NUM_DRIVERS, 'Driver wiring', 'Coil wiring']);
+    expect(labels(DesktopHelp.placement(false).rows)).toEqual([DesktopLabels.NUM_DRIVERS, 'Coil wiring']);
+  });
+
   it('Advanced options and Listening place name the rows by the field labels', () => {
     expect(labels(DesktopHelp.ADVANCED_OPTIONS.rows)).toEqual([NumberField.DRIVER_VCTEMPRISE_K.label, NumberField.DRIVER_ADDEDMASS_G.label, NumberField.ALFAVC_PER_K.label]);
     expect(labels(DesktopHelp.LISTENING_PLACE.rows)).toEqual([NumberField.SIGNAL_DISTANCE_M.label, DesktopLabels.ANGLE]);
