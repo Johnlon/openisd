@@ -1,4 +1,5 @@
 import {G_STANDARD, P0} from '../../constants.js';
+import {splMaxAtRatedPower} from '../../efficiency.js';
 import {nominalImpedance} from '../../solvers/driverQuantities.js';
 import {TAU} from './constants.js';
 import {SolveRoute} from './SolveRoute.js';
@@ -19,24 +20,23 @@ import {GAMMA_FROM_MOTOR, MPOW_FROM_MOTOR, MPOW_FROM_RME, RME_FROM_MOTIONAL, RME
  * stays absent when that divisor is zero or missing.
  */
 export const ADVANCED_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Rme_kg_per_s', ['Fs_hz', 'Mms_kg', 'Qes'], v => TAU * v.Fs_hz * v.Mms_kg / v.Qes, v => v.Qes > 0).inRelation(RME_FROM_MOTIONAL),
-  new SolveRoute('Rme_kg_per_s', ['BL_Tm', 'Re_ohm'], v => v.BL_Tm * v.BL_Tm / v.Re_ohm, v => v.Re_ohm > 0).inRelation(RME_FROM_MOTOR),
-  new SolveRoute('Mpow_N_per_sqrtW', ['BL_Tm', 'Re_ohm'], v => v.BL_Tm / Math.sqrt(v.Re_ohm), v => v.Re_ohm > 0).inRelation(MPOW_FROM_MOTOR),
-  new SolveRoute('Mpow_N_per_sqrtW', ['Rme_kg_per_s'], v => Math.sqrt(v.Rme_kg_per_s), v => v.Rme_kg_per_s > 0).inRelation(MPOW_FROM_RME),
-  new SolveRoute('gamma_m_per_s2_A', ['BL_Tm', 'Mms_kg'], v => v.BL_Tm / v.Mms_kg, v => v.Mms_kg > 0).inRelation(GAMMA_FROM_MOTOR),
-  new SolveRoute('SPLmax_dB', ['Pe_W'], v => {
-    const base = v.SPL_dB ?? v.SPLref_dB;
-    return base == null ? null : base + 10 * Math.log10(v.Pe_W) - 3;
-  }, v => v.Pe_W > 0),
-  new SolveRoute('Gloss', ['Fs_hz', 'Xmax_m'], v => G_STANDARD / ((TAU * v.Fs_hz) ** 2 * v.Xmax_m), v => v.Fs_hz > 0 && v.Xmax_m > 0),
-  new SolveRoute('SPLmaxLF_dB', ['Vd_m3', 'roo_kg_per_m3'], v => {
+  new SolveRoute('Rme_kg_per_s', ['Fs_hz', 'Mms_kg', 'Qes'], 'Rme_kg_per_s = (2π × Fs_hz × Mms_kg) / Qes', v => TAU * v.Fs_hz * v.Mms_kg / v.Qes, v => v.Qes > 0).inRelation(RME_FROM_MOTIONAL),
+  new SolveRoute('Rme_kg_per_s', ['BL_Tm', 'Re_ohm'], 'Rme_kg_per_s = BL² / Re_ohm', v => v.BL_Tm * v.BL_Tm / v.Re_ohm, v => v.Re_ohm > 0).inRelation(RME_FROM_MOTOR),
+  new SolveRoute('Mpow_N_per_sqrtW', ['BL_Tm', 'Re_ohm'], 'Mpow_N_per_sqrtW = BL_Tm / √Re_ohm', v => v.BL_Tm / Math.sqrt(v.Re_ohm), v => v.Re_ohm > 0).inRelation(MPOW_FROM_MOTOR),
+  new SolveRoute('Mpow_N_per_sqrtW', ['Rme_kg_per_s'], 'Mpow_N_per_sqrtW = √Rme_kg_per_s', v => Math.sqrt(v.Rme_kg_per_s), v => v.Rme_kg_per_s > 0).inRelation(MPOW_FROM_RME),
+  new SolveRoute('gamma_m_per_s2_A', ['BL_Tm', 'Mms_kg'], 'γ = BL_Tm / Mms_kg', v => v.BL_Tm / v.Mms_kg, v => v.Mms_kg > 0).inRelation(GAMMA_FROM_MOTOR),
+  // SPLmax on the stated SPL, else on the SPLref the efficiency routes produced: one route per base, each declaring it (T902).
+  new SolveRoute('SPLmax_dB', ['SPL_dB', 'Pe_W'], 'SPLmax_dB = SPL_dB + 10 × log₁₀(Pe_W) − 3',
+    v => splMaxAtRatedPower(v.SPL_dB, v.Pe_W), v => v.Pe_W > 0),
+  new SolveRoute('SPLmax_dB', ['SPLref_dB', 'Pe_W'], 'SPLmax_dB = SPLref_dB + 10 × log₁₀(Pe_W) − 3',
+    v => splMaxAtRatedPower(v.SPLref_dB, v.Pe_W), v => v.Pe_W > 0),
+  new SolveRoute('Gloss', ['Fs_hz', 'Xmax_m'], 'Gloss = g / ((2π × Fs_hz)² × Xmax_m)', v => G_STANDARD / ((TAU * v.Fs_hz) ** 2 * v.Xmax_m), v => v.Fs_hz > 0 && v.Xmax_m > 0),
+  new SolveRoute('SPLmaxLF_dB', ['Vd_m3', 'roo_kg_per_m3'], 'SPLmaxLF_dB = 20 × log₁₀(ρ × (2π × 20)² × Vd_m3 / (2π√2) / p_ref)', v => {
     const p20 = v.roo_kg_per_m3 * (TAU * 20) ** 2 * v.Vd_m3 / (TAU * Math.SQRT2);
     return 20 * Math.log10(p20 / P0);
   }, v => v.Vd_m3 > 0),
-  new SolveRoute('Mcost_kg_per_s', ['Rme_kg_per_s', 'Xmax_m'], v => {
-    const minHeight = v.Hc_m != null && v.Hg_m != null ? Math.min(v.Hc_m, v.Hg_m) : 0;
-    return minHeight > 0 ? v.Rme_kg_per_s * (1 + v.Xmax_m / minHeight) : null;
-  }),
+  new SolveRoute('Mcost_kg_per_s', ['Rme_kg_per_s', 'Xmax_m', 'Hc_m', 'Hg_m'], 'Mcost_kg_per_s = Rme_kg_per_s × (1 + Xmax_m / min(Hc_m, Hg_m))',
+    v => v.Rme_kg_per_s * (1 + v.Xmax_m / Math.min(v.Hc_m, v.Hg_m)), v => Math.min(v.Hc_m, v.Hg_m) > 0),
 ]);
 
 /**
@@ -46,7 +46,7 @@ export const ADVANCED_ROUTES: readonly DriverRoute[] = Object.freeze([
  * driver). An entered Znom is never touched.
  */
 export const ZNOM_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Znom_ohm', ['Re_ohm'], v => nominalImpedance(v.Re_ohm), v => v.Re_ohm > 0, true),
+  new SolveRoute('Znom_ohm', ['Re_ohm'], 'Znom_ohm = 2 × round_half_to_even(0.75 × Re_ohm)', v => nominalImpedance(v.Re_ohm), v => v.Re_ohm > 0, true),
 ]);
 
 /**
@@ -55,5 +55,5 @@ export const ZNOM_ROUTES: readonly DriverRoute[] = Object.freeze([
  * Le or fLe, so a driver never reports a CALCULATED Le that no datasheet stated.
  */
 export const KLE_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('KLe_H_sqrtHz', ['Le_H', 'fLe_hz'], v => v.Le_H * Math.sqrt(TAU * v.fLe_hz), v => v.fLe_hz > 0),
+  new SolveRoute('KLe_H_sqrtHz', ['Le_H', 'fLe_hz'], 'KLe_H_sqrtHz = Le_H × √(2π × fLe_hz)', v => v.Le_H * Math.sqrt(TAU * v.fLe_hz), v => v.fLe_hz > 0),
 ]);

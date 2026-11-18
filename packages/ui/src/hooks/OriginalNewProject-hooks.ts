@@ -347,10 +347,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   function recomputeSealedVolume(driver: OpenISDDriver, target: number): void {
     const winisdPicker = winisdSealedPicker();
     const calculated_m3 = driver.sealedPickerVolume(target, newProjectLoad(), NEW_PROJECT_SEALED_LOSSES, winisdPicker);
-    // Vb is a 2dp field everywhere else in the app — match that here instead of showing the solver's raw float.
-    if (calculated_m3 != null) {
-      sealedVolume_m3.value = NumberField.BOX_VB_L.toSI(Number(NumberField.BOX_VB_L.format(calculated_m3)));
-    }
+    // The engine's volume as it gives it, as the Box tab's picker stores it; the volume field rounds only what it shows (T902).
+    if (calculated_m3 != null) sealedVolume_m3.value = calculated_m3;
   }
 
   function selectDriver(driver: OpenISDDriver): void {
@@ -484,7 +482,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   }
 
   const passiveRadiatorEditor = createPassiveRadiatorEditor({
-    myPassiveRadiators: prRepos.saved, resolve: resolveCopy,
+    myPassiveRadiators: prRepos.saved, resolve: resolveCopy, radiatorFormulas: eng.pr.routeFormulas(),
     files: deps === undefined ? appPassiveRadiatorFiles(useApp()) : deps.passiveRadiatorFiles,
   });
   function startDefinePassiveRadiator(): void {

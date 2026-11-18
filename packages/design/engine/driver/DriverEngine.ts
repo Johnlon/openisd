@@ -32,10 +32,11 @@ import {convertWiring, hotRe} from '../solvers/driverQuantities.js';
 import type {WiringConversion, WiredMotor} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 import {
-  CMS_FROM_VAS_SD_ROUTE, ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, MMS_FROM_FS_CMS_ROUTE,
+  CMS_FROM_VAS_SD_ROUTE, ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTE_FORMULAS, DRIVER_ROUTES, EBP_AFTER_FIXED_POINT_ROUTE,
+  efficiencyBandwidthProduct, MMS_FROM_FS_CMS_ROUTE,
   RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
 } from './routes/index.js';
-import type {DriverRoute} from './routes/index.js';
+import type {DriverRoute, RouteFormulas} from './routes/index.js';
 
 /** WinISD's fallback for a driver with a Qts and neither Qes nor Qms (decompile `fr_45e090`: `+0x4c8 = 2*Qts`):
  *  both Q's are twice Qts, which makes the total Q equal Qts. */
@@ -103,12 +104,8 @@ function writeDriverBack(field: SolverField, value: number | undefined, width: n
   if (value != null) field.setCalculated(value, undefined, width); else field.setNotAvailable();
 }
 
-/**
- * Efficiency Bandwidth Product — criterion for enclosure type selection.
- * EBP = Fs / Qes.  EBP < 50 → sealed preferred; EBP > 100 → vented preferred.
- * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
- */
-function ebp(Fs_hz: number, Qes: number): number { return Fs_hz / Qes; }
+/** Efficiency Bandwidth Product, Fs / Qes (`efficiencyBandwidthProduct`). */
+const ebp = efficiencyBandwidthProduct;
 
 /** The driver area of the engine: the T/S consistency solve over a driver's own handles, the
  *  derived indicators a picker shows (EBP and its verdict, reference efficiency and SPL, the
@@ -169,6 +166,9 @@ export interface DriverEngine {
   rangeIssue(field: string, value: number): OutOfRangeIssue | undefined;
   /** Sealed resonance and Qtc read off a swept impedance curve, rather than computed. */
   findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null;
+  /** The formulas `solve` works quantities out by: one per route, with its text and inputs, in the order it tries them.
+   *  The Driver Editor's formula panel shows these (T902). */
+  routeFormulas(): RouteFormulas;
 }
 
 export class DriverEngineImpl implements DriverEngine {
@@ -176,6 +176,10 @@ export class DriverEngineImpl implements DriverEngine {
     private readonly routes: RouteGroup,
     private readonly consistency: ConsistencyCheck,
   ) {}
+
+  routeFormulas(): RouteFormulas {
+    return DRIVER_ROUTE_FORMULAS;
+  }
 
   /** Shared with the consistency group and the sweep, so these stay free functions and the
    *  area publishes them as-is. */
@@ -306,10 +310,9 @@ export class DriverEngineImpl implements DriverEngine {
 
     // EBP (Fs/Qes) likewise: a real derivable field, computed once every input it needs is
     // available, through the SAME `ebp` formula the area publishes for every other caller —
-    // never recomputed ad hoc downstream.
-    if (r.EBP_hz == null && r.Fs_hz != null && r.Qes != null && r.Qes > 0) {
-      r.EBP_hz = ebp(r.Fs_hz, r.Qes);
-    }
+    // never recomputed ad hoc downstream. Its route also gives the formula panel its text.
+    const ebpValue = EBP_AFTER_FIXED_POINT_ROUTE.value(r);
+    if (ebpValue !== null) r.EBP_hz = ebpValue;
 
     return r;
   }

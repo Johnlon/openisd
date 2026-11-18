@@ -1,7 +1,8 @@
 import {clearWithKeyboard} from '../fixtures/numField.js';
 import {driverEditorField, expect, forEachEditorTab, openAProject, openAMobileProject, openDriverEditor, seedDriverInEditor, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
-import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
+import {createEngine} from '@openisd/design/engine';
+import {provenanceMap} from '../../src/logic/provenance.js';
 import {ALL_FIELDS} from '@openisd/design/fields';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
@@ -48,6 +49,9 @@ async function unclassified(page: Page): Promise<string[]> {
       })
       .map(el => el.outerHTML.slice(0, 120)));
 }
+
+/** The formulas the editor's panel shows, from the engine as the editor gets them (T902). */
+const PROVENANCE_MAP = provenanceMap(createEngine().driver.routeFormulas());
 
 interface Provenance { explained: string[] }
 

@@ -30,7 +30,7 @@ import PhoneBand from '../shells/mobile/PhoneBand.vue';
 import PhoneHelpSheet from '../shells/mobile/PhoneHelpSheet.vue';
 import SaveToLibraryDialog from './SaveToLibraryDialog.vue';
 import type {SaveNameField} from '../../hooks/saveNameField.js';
-import {getProvenanceInfo, PROVENANCE_MAP} from '../../logic/provenance.js';
+import {getProvenanceInfo, provenanceMap} from '../../logic/provenance.js';
 import {editableFrom, elementFrom, inputFrom, selectedOption, selectValue} from '../../logic/domEvents.js';
 import {FIELD_EDIT_MODE} from '../../logic/fieldEditMode.js';
 
@@ -38,7 +38,9 @@ function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calcul
   return fieldOf(field);
 }
 
-const { presentation: presentationState, selection, myDrivers, logging, driverFileStorage, designFiles, driverDrafts, confirmPort } = useApp();
+const { presentation: presentationState, selection, myDrivers, logging, driverFileStorage, designFiles, driverDrafts, confirmPort, engine } = useApp();
+/** The formulas the engine works each field out by, as the formula panel shows them (T902). */
+const provenance = provenanceMap(engine.driver.routeFormulas());
 const featureUse = useFeatureUse();
 
 // Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
@@ -366,7 +368,7 @@ const inspectedValues = computed<Record<string, number | null>>(() => {
 
 const provenanceInfo = computed(() => {
   if (!inspectProvenance.value || !inspectedField.value) return null;
-  return getProvenanceInfo(inspectedField.value, inspectedValues.value);
+  return getProvenanceInfo(provenance, inspectedField.value, inspectedValues.value);
 });
 
 /** Phone inspector: a formula input with its current value ("Qes = 0.420"); none on the desktop. */
@@ -383,7 +385,7 @@ function feedsClass(fieldKey: string): string {
 /** Phone: a row whose value can be worked out from other rows carries the ƒ mark while Inspect Provenance is on. */
 function fxClass(fieldKey: string): string {
   if (props.skin === undefined || !inspectProvenance.value) return '';
-  return Object.hasOwn(PROVENANCE_MAP, fieldKey) ? 'de-fx' : '';
+  return Object.hasOwn(provenance, fieldKey) ? 'de-fx' : '';
 }
 
 /** The classes a row takes while the provenance inspector is on: fed by the inspected field, and the ƒ mark. */

@@ -5,7 +5,8 @@
  * tuning/added-mass the project has not entered.
  */
 import type {Air, AirWorkingName} from '../air.js';
-import type {ConsistencyCheck, RouteGroup, RouteQuantity} from '../driver/routes/index.js';
+import type {ConsistencyCheck, RouteFormulas, RouteGroup, RouteQuantity} from '../driver/routes/index.js';
+import {RADIATOR_ROUTE_FORMULAS} from '../driver/routes/index.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import type {PrParams} from '../types.js';
 import type {PrSolverParams} from '../solverTypes.js';
@@ -62,6 +63,12 @@ export interface PrEngine {
   countForTwiceDisplacement(prVd_m3: number | null, driverVd_m3: number | null, nDrivers: number): number | null;
   /** What the "2×" rule asks of the radiators: `2·nDrivers·driverVd`. Null without a positive driver displacement. */
   twiceDriverDisplacement(driverVd_m3: number | null, nDrivers: number): number | null;
+  /** The Xmax of the starting placeholder radiator: enough that `prCount` radiators of `prSd_m2` meet the "2×" rule
+   *  (`prCount·prSd·Xmax = 2·nDrivers·driverVd`, `countForTwiceDisplacement` then gives at most `prCount`), and never less
+   *  than twice one driver's Xmax (a radiator has no motor, so it needs more excursion than the driver; John, 2026-09-29).
+   *  Null without a positive driver Xmax and displacement, radiator Sd and count. */
+  placeholderRadiatorXmax(driverXmax_m: number | null, driverVd_m3: number | null, nDrivers: number, prSd_m2: number | null,
+    prCount: number): number | null;
   /** Mechanical Q: `√(Mmd/Cms)/Rms`. 0 when Rms ≤ 0. */
   qms(prMmd: number, prCms: number, prRms: number): number;
   /** Mechanical resistance from Qms — the inverse of `qms`. 0 when Qms ≤ 0. */
@@ -83,7 +90,13 @@ export interface PrEngine {
    *  not available, a value that needs it stays `not-available` and its issue names `c_m_per_s`
    *  and `roo_kg_per_m3`. */
   solve(params: PrSolverParams, air: Air): PrIssue[];
+  /** The formulas `solveSpec` works a radiator's figures out by: one per route among its own figures, with its text and
+   *  inputs, in the order it tries them. The radiator editor's formula panel shows these (T902). */
+  routeFormulas(): RouteFormulas;
 }
+
+/** The starting placeholder radiator's least excursion, in multiples of one driver's Xmax (John, 2026-09-29). */
+const PLACEHOLDER_RADIATOR_XMAX_MULTIPLE = 2;
 
 /** The PR geometry every solve route needs, beside `tuning_goal_hz`/`addedMass_kg` themselves —
  *  named once so both routes report the identical missing set. */
@@ -98,6 +111,17 @@ export class PrEngineImpl implements PrEngine {
   twiceDriverDisplacement(driverVd_m3: number | null, nDrivers: number): number | null {
     if (driverVd_m3 === null || !(driverVd_m3 > 0) || !(nDrivers > 0)) return null;
     return 2 * nDrivers * driverVd_m3;
+  }
+
+  routeFormulas(): RouteFormulas {
+    return RADIATOR_ROUTE_FORMULAS;
+  }
+
+  placeholderRadiatorXmax(driverXmax_m: number | null, driverVd_m3: number | null, nDrivers: number, prSd_m2: number | null,
+    prCount: number): number | null {
+    const required = this.twiceDriverDisplacement(driverVd_m3, nDrivers);
+    if (required === null || driverXmax_m === null || prSd_m2 === null || !(driverXmax_m > 0) || !(prSd_m2 > 0) || !(prCount > 0)) return null;
+    return Math.max(PLACEHOLDER_RADIATOR_XMAX_MULTIPLE * driverXmax_m, required / (prSd_m2 * prCount));
   }
 
   countForTwiceDisplacement(prVd_m3: number | null, driverVd_m3: number | null, nDrivers: number): number | null {

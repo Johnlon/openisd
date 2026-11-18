@@ -59,7 +59,7 @@ export function createPassiveRadiatorActions({ project, myPassiveRadiators, bund
   // ---- The passive-radiator editor (John, 16 Nov 2026, QO946.c115) -----------------------------------------------
   // Edits a copy of the radiator; OK puts it in the project's box as edited (nothing stated is dropped), Cancel keeps
   // nothing. The project's count, added mass and tuning are not the radiator's and are not touched (QO946.c38).
-  const prEditor = createPassiveRadiatorEditor({ myPassiveRadiators, resolve: resolveInAppAir(engine), files });
+  const prEditor = createPassiveRadiatorEditor({ myPassiveRadiators, resolve: resolveInAppAir(engine), radiatorFormulas: engine.pr.routeFormulas(), files });
   const useRadiator = (pr: OpenISDPassiveRadiatorStandalone): void => { project.value.box.passiveRadiator.holdEditedPR(pr); };
   function startEditPR(): void {
     prEditor.open(project.value.box.passiveRadiator.radiator.detach(), "Edit Project's Passive Radiator", useRadiator);

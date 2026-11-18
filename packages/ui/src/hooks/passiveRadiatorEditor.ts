@@ -11,11 +11,10 @@ import {computed, ref, shallowRef, triggerRef} from 'vue';
 import type {ComputedRef, Ref} from 'vue';
 import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 import type {MyPassiveRadiatorRepo} from '@openisd/persistence';
-import {type EnvironmentEngine, FixedAir, type PrEngine} from '@openisd/design/engine';
+import {type EnvironmentEngine, FixedAir, type PrEngine, type RouteFormulas} from '@openisd/design/engine';
 import {isoDay, NumberField} from '@openisd/design/fields';
 import type {ClearableUICell} from '../ui/components/uiFieldBinding.js';
 import type {PassiveRadiatorStepCells} from './OriginalNewProject-hooks.js';
-import {PROVENANCE_MAP} from '../logic/provenance.js';
 import type {DesignFiles} from '../logic/fileImportExport.js';
 import type {FileStorage} from '@openisd/persistence';
 import type {Logging} from '../logging/flash.js';
@@ -34,6 +33,9 @@ export interface PassiveRadiatorEditorDeps {
   readonly myPassiveRadiators: MyPassiveRadiatorRepo;
   /** Fills the figures the stated ones give; called after every typed figure while Auto calculate unknowns is on. */
   resolve(pr: OpenISDPassiveRadiatorStandalone): void;
+  /** The formulas the engine works a radiator's figures out by (`engine.pr.routeFormulas()`): what Inspect Provenance
+   *  shows (T902). */
+  readonly radiatorFormulas: RouteFormulas;
   /** Export and Import; without it they say they cannot. */
   readonly files?: PassiveRadiatorFiles;
 }
@@ -140,19 +142,12 @@ const FIGURE_LABEL: Readonly<Record<PassiveRadiatorFigure, string>> = {
   Sd_m2: NumberField.PR_SD_CM2.label, Mms_kg: NumberField.MMS_KG.label, Cms_m_per_N: NumberField.CMS_M_PER_N.label,
   Rms_kg_per_s: NumberField.RMS_KG_PER_S.label, Xmax_m: NumberField.PR_XMAX_MM.label,
 };
-const FIGURES = Object.keys(FIGURE_LABEL);
-
-/** The radiator's routes to a figure: the driver's formulas that read only the radiator's own figures (a route through
- *  Qes, BL or Re is a driver's, not a radiator's). */
-function radiatorRoutes(key: PassiveRadiatorFigure): readonly {readonly formulaText: string; readonly inputs: readonly string[]}[] {
-  return (PROVENANCE_MAP[key]?.paths ?? []).filter(p => p.inputs.every(i => FIGURES.includes(i)));
-}
 
 function pickCell(spec: Spec, key: PassiveRadiatorFigure): SpecCell {
   return spec[key];
 }
 
-export function createPassiveRadiatorEditor({myPassiveRadiators, resolve, files}: PassiveRadiatorEditorDeps): PassiveRadiatorEditor {
+export function createPassiveRadiatorEditor({myPassiveRadiators, resolve, radiatorFormulas, files}: PassiveRadiatorEditorDeps): PassiveRadiatorEditor {
   const draft = shallowRef<OpenISDPassiveRadiatorStandalone | null>(null);
   /** What the editor opened with, for Reset. */
   let opened: OpenISDPassiveRadiatorStandalone | null = null;
@@ -208,7 +203,8 @@ export function createPassiveRadiatorEditor({myPassiveRadiators, resolve, files}
     const key = inspected.value;
     if (pr === null || !inspect.value || key === null) return null;
     const c = pickCell(pr.spec, key);
-    const routes = radiatorRoutes(key);
+    // The engine's routes among the radiator's own figures; a figure no route works out (Xmax) has none.
+    const routes = Object.hasOwn(radiatorFormulas, key) ? radiatorFormulas[key] : [];
     return {
       key, label: FIGURE_LABEL[key],
       state: c.value === null ? 'Not available' : c.entered ? 'Entered' : 'Calculated',

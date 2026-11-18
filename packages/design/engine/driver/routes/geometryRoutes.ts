@@ -5,8 +5,8 @@ import {DD_FROM_SD, VD_FROM_EXCURSION} from './relations.js';
 
 /** Block 1: Sd and Dd from each other. */
 export const SD_DD_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Sd_m2', ['Dd_m'], v => Math.PI * (v.Dd_m / 2) ** 2, v => v.Dd_m > 0).inRelation(DD_FROM_SD),
-  new SolveRoute('Dd_m', ['Sd_m2'], v => 2 * Math.sqrt(v.Sd_m2 / Math.PI), v => v.Sd_m2 > 0).inRelation(DD_FROM_SD),
+  new SolveRoute('Sd_m2', ['Dd_m'], 'Sd_m2 = π × (Dd_m / 2)²', v => Math.PI * (v.Dd_m / 2) ** 2, v => v.Dd_m > 0).inRelation(DD_FROM_SD),
+  new SolveRoute('Dd_m', ['Sd_m2'], 'Dd_m = 2 × √(Sd_m2 / π)', v => 2 * Math.sqrt(v.Sd_m2 / Math.PI), v => v.Sd_m2 > 0).inRelation(DD_FROM_SD),
 ]);
 
 /**
@@ -15,20 +15,20 @@ export const SD_DD_ROUTES: readonly DriverRoute[] = Object.freeze([
  * through to Vd/Sd. Probe case G, ledger QO39/QO40.
  */
 export const XMAX_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Xmax_m', ['Hc_m', 'Hg_m'], v => Math.abs(v.Hc_m - v.Hg_m) / 2, v => v.Hc_m !== v.Hg_m),
-  new SolveRoute('Hc_m', ['Xmax_m', 'Hg_m'], v => v.Hg_m > 2 * v.Xmax_m ? v.Hg_m - 2 * v.Xmax_m : v.Hg_m + 2 * v.Xmax_m),
-  new SolveRoute('Hg_m', ['Xmax_m', 'Hc_m'], v => v.Hc_m > 2 * v.Xmax_m ? v.Hc_m - 2 * v.Xmax_m : v.Hc_m + 2 * v.Xmax_m),
-  new SolveRoute('Xmax_m', ['Vd_m3', 'Sd_m2'], v => v.Vd_m3 / v.Sd_m2, v => v.Sd_m2 > 0).inRelation(VD_FROM_EXCURSION),
+  new SolveRoute('Xmax_m', ['Hc_m', 'Hg_m'], 'Xmax_m = |Hc_m - Hg_m| / 2', v => Math.abs(v.Hc_m - v.Hg_m) / 2, v => v.Hc_m !== v.Hg_m),
+  new SolveRoute('Hc_m', ['Xmax_m', 'Hg_m'], 'Hc_m = Hg_m − 2 × Xmax_m when Hg_m > 2 × Xmax_m, else Hg_m + 2 × Xmax_m', v => v.Hg_m > 2 * v.Xmax_m ? v.Hg_m - 2 * v.Xmax_m : v.Hg_m + 2 * v.Xmax_m),
+  new SolveRoute('Hg_m', ['Xmax_m', 'Hc_m'], 'Hg_m = Hc_m − 2 × Xmax_m when Hc_m > 2 × Xmax_m, else Hc_m + 2 × Xmax_m', v => v.Hc_m > 2 * v.Xmax_m ? v.Hc_m - 2 * v.Xmax_m : v.Hc_m + 2 * v.Xmax_m),
+  new SolveRoute('Xmax_m', ['Vd_m3', 'Sd_m2'], 'Xmax_m = Vd_m3 / Sd_m2', v => v.Vd_m3 / v.Sd_m2, v => v.Sd_m2 > 0).inRelation(VD_FROM_EXCURSION),
 ]);
 
 /** Block 8: Sd fallback from Vd and Xmax. */
 export const SD_FROM_VD_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Sd_m2', ['Vd_m3', 'Xmax_m'], v => v.Vd_m3 / v.Xmax_m, v => v.Xmax_m > 0).inRelation(VD_FROM_EXCURSION),
+  new SolveRoute('Sd_m2', ['Vd_m3', 'Xmax_m'], 'Sd_m2 = Vd_m3 / Xmax_m', v => v.Vd_m3 / v.Xmax_m, v => v.Xmax_m > 0).inRelation(VD_FROM_EXCURSION),
 ]);
 
 /** Block 9: Vd. */
 export const VD_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Vd_m3', ['Sd_m2', 'Xmax_m'], v => v.Sd_m2 * v.Xmax_m).inRelation(VD_FROM_EXCURSION),
+  new SolveRoute('Vd_m3', ['Sd_m2', 'Xmax_m'], 'Vd_m3 = Sd_m2 × Xmax_m', v => v.Sd_m2 * v.Xmax_m).inRelation(VD_FROM_EXCURSION),
 ]);
 
 /**
@@ -37,12 +37,12 @@ export const VD_ROUTES: readonly DriverRoute[] = Object.freeze([
  * own their domain checks and return null on a degenerate geometry (dvolRelation.ts).
  */
 export const MAGNET_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('DVol_m3', ['Dd_m', 'Vcd_m', 'Depth_m', 'MagDepth_m', 'Magnet_m'],
+  new SolveRoute('DVol_m3', ['Dd_m', 'Vcd_m', 'Depth_m', 'MagDepth_m', 'Magnet_m'], 'DVol_m3 = (π/4)·[ (Dd² + Dd_m·Vcd_m + Vcd²)·(Depth_m − MagDepth_m)/3 + Magnet²·MagDepth_m ]',
     v => dvolFromDims({Dd: v.Dd_m, Vcd: v.Vcd_m, Depth: v.Depth_m, MagDepth: v.MagDepth_m, Magnet: v.Magnet_m})),
-  new SolveRoute('Depth_m', ['Dd_m', 'Vcd_m', 'DVol_m3', 'MagDepth_m', 'Magnet_m'],
+  new SolveRoute('Depth_m', ['Dd_m', 'Vcd_m', 'DVol_m3', 'MagDepth_m', 'Magnet_m'], 'Depth_m = MagDepth_m + 3·(4·DVol_m3/π − Magnet²·MagDepth_m) / (Dd² + Dd_m·Vcd_m + Vcd²)',
     v => depthFromDims({Dd: v.Dd_m, Vcd: v.Vcd_m, DVol: v.DVol_m3, MagDepth: v.MagDepth_m, Magnet: v.Magnet_m})),
-  new SolveRoute('MagDepth_m', ['Dd_m', 'Vcd_m', 'DVol_m3', 'Depth_m', 'Magnet_m'],
+  new SolveRoute('MagDepth_m', ['Dd_m', 'Vcd_m', 'DVol_m3', 'Depth_m', 'Magnet_m'], 'MagDepth_m = (4·DVol_m3/π − S·Depth_m/3) / (Magnet² − S/3),  S = Dd² + Dd_m·Vcd_m + Vcd²',
     v => magDepthFromDims({Dd: v.Dd_m, Vcd: v.Vcd_m, DVol: v.DVol_m3, Depth: v.Depth_m, Magnet: v.Magnet_m})),
-  new SolveRoute('Magnet_m', ['Dd_m', 'Vcd_m', 'DVol_m3', 'Depth_m', 'MagDepth_m'],
+  new SolveRoute('Magnet_m', ['Dd_m', 'Vcd_m', 'DVol_m3', 'Depth_m', 'MagDepth_m'], 'Magnet_m = √[ (4·DVol_m3/π − S·(Depth_m − MagDepth_m)/3) / MagDepth_m ],  S = Dd² + Dd_m·Vcd_m + Vcd²',
     v => magnetFromDims({Dd: v.Dd_m, Vcd: v.Vcd_m, DVol: v.DVol_m3, Depth: v.Depth_m, MagDepth: v.MagDepth_m})),
 ]);

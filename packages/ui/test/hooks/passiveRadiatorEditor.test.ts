@@ -2,13 +2,15 @@
 import {describe, expect, it, vi} from 'vitest';
 import {createMemoryStorage} from '@openisd/persistence';
 import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import {createEngine} from '@openisd/design/engine';
 import {type ApplyRadiator, createPassiveRadiatorEditor} from '../../src/hooks/passiveRadiatorEditor.js';
 import {myPassiveRadiatorRepoOn} from '../fixtures/repoOn.js';
+import {RADIATOR_ROUTES} from '../../../design/engine/driver/routes/index.js';
 
 function setUp() {
   const myPassiveRadiators = myPassiveRadiatorRepoOn(createMemoryStorage());
   const resolve = vi.fn();
-  const editor = createPassiveRadiatorEditor({myPassiveRadiators, resolve});
+  const editor = createPassiveRadiatorEditor({myPassiveRadiators, resolve, radiatorFormulas: createEngine().pr.routeFormulas()});
   const source = OpenISDPassiveRadiatorStandalone.empty();
   source.model.set('Source PR');
   source.spec.Xmax_m.set(0.01);
@@ -141,12 +143,25 @@ describe('createPassiveRadiatorEditor — the driver editor\'s tools (John, 16 N
     expect(editor.provenance.value).toBeNull();
   });
 
+  // T902: the radiator's formulas are the engine's radiator routes, not a UI filter over a hand-typed copy of the driver's.
+  it('Inspect Provenance shows, for every radiator figure, the engine\'s radiator routes to it', () => {
+    const {editor, source} = setUp();
+    editor.open(source, 'Edit', vi.fn());
+    editor.setInspect(true);
+    for (const key of ['Vas_m3', 'Qms', 'Fs_hz', 'Sd_m2', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s'] as const) {
+      editor.inspectField(key);
+      const routes = RADIATOR_ROUTES.filter(r => r.target === key);
+      expect(editor.provenance.value?.formulas, key)
+        .toEqual(routes.map(r => r.formulaText));
+    }
+  });
+
   it('Export writes the radiator under its name and says so; Import reads a file back into the editor and says so', async () => {
     const myPassiveRadiators = myPassiveRadiatorRepoOn(createMemoryStorage());
     const saved: {name: string; text: string}[] = [];
     const flash = vi.fn();
     const editor = createPassiveRadiatorEditor({
-      myPassiveRadiators, resolve: vi.fn(),
+      myPassiveRadiators, resolve: vi.fn(), radiatorFormulas: createEngine().pr.routeFormulas(),
       files: {
         save: async (pr, fileName) => { saved.push({name: fileName, text: pr.toOwdrText()}); return fileName; },
         read: text => OpenISDPassiveRadiatorStandalone.fromOwdrText(text),

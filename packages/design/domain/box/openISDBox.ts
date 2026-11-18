@@ -617,16 +617,14 @@ export class OpenISDBox implements Box {
         radiator.model.set(STARTING.radiatorModel);
         const spec = radiator.spec;
         const driverSd = this.#driver.specs.Sd_m2.value;
-        const driverXmax = this.#driver.specs.Xmax_m.value;
         if (spec.Sd_m2.value === null) spec.Sd_m2.set(driverSd !== null && driverSd > 0 ? driverSd : STARTING.radiatorSd_m2);
         const sd = spec.Sd_m2.value;
-        if (sd !== null && sd > 0 && driverSd !== null && driverXmax !== null && driverXmax > 0) {
-            const excursion = Math.max(driverXmax * STARTING.radiatorXmaxMultiple,
-                driverSd * driverXmax * this.#load().nDrivers / (sd * pr.count.value));
-            if ((spec.Xmax_m.value ?? 0) < excursion) spec.Xmax_m.set(excursion);
-        }
-        const xmax = spec.Xmax_m.value;
-        if (sd !== null && xmax !== null) spec.Vd_m3.set(sd * xmax);
+        // Sized by the engine to meet the engine's own "2×" rule shown under the radiator (T902).
+        const excursion = this.#engine.pr.placeholderRadiatorXmax(this.#driver.specs.Xmax_m.value, this.#driver.specs.Vd_m3.value,
+            this.#load().nDrivers, sd, pr.count.value);
+        if (excursion !== null && (spec.Xmax_m.value ?? 0) < excursion) spec.Xmax_m.set(excursion);
+        const displacement = this.#engine.pr.displacement(sd, spec.Xmax_m.value);
+        if (displacement !== null) spec.Vd_m3.set(displacement);
         if (spec.Qms.value === null) spec.Qms.set(STARTING.radiatorQms);
         if (spec.Fs_hz.value === null) spec.Fs_hz.set(this.#engine.pr.fsWithMass(STARTING.radiatorMms_kg, 0, STARTING.radiatorCms_m_per_N));
         const air = this.#air();

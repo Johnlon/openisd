@@ -21,6 +21,7 @@
  */
 
 import {P0} from './constants.js';
+import {V283_SQ} from './driver/routes/constants.js';
 
 /** 4π²/c³ — the coefficient of the Fs³·Vas/Qes efficiency form, at the speed of sound `c`. */
 export function efficiencyConstant(c: number): number {
@@ -59,4 +60,32 @@ export function splFromEfficiency(no: number, rho: number, c: number): number {
 /** The exact inverse: FRACTIONAL η₀ implied by a stated 1 W/1 m sensitivity. */
 export function efficiencyFromSpl(spl: number, rho: number, c: number): number {
   return Math.pow(10, (spl - splReferenceConstantDb(rho, c)) / 10);
+}
+
+/**
+ * The driver's sensitivity at 2.83 V and 1 m (USPL) from its 1 W / 1 m sensitivity and Re: 2.83² W into Re is
+ * 2.83²/Re watts, so USPL = SPL + 10·log₁₀(2.83²/Re). `2.83² = 8.0089`, not the bare 8 (docs/spec/SPEC_ENGINE.md
+ * "USPL / SPLmax"). The one copy: the USPL routes on the stated SPL and on SPLref both call it (T902).
+ */
+export function splAt283V(spl1W_dB: number, Re_ohm: number): number {
+  return spl1W_dB + 10 * Math.log10(V283_SQ / Re_ohm);
+}
+
+/** The inverse of `splAt283V` for Re: the Re at which 2.83 V gives `uspl_dB` when 1 W gives `spl1W_dB`. */
+export function reFromSplAt283V(uspl_dB: number, spl1W_dB: number): number {
+  return V283_SQ / Math.pow(10, (uspl_dB - spl1W_dB) / 10);
+}
+
+/** The inverse of `splAt283V` for the 1 W / 1 m sensitivity: USPL less the 2.83 V power gain through Re. */
+export function spl1WFromSplAt283V(uspl_dB: number, Re_ohm: number): number {
+  return uspl_dB - 10 * Math.log10(V283_SQ / Re_ohm);
+}
+
+/**
+ * Maximum SPL at the rated power Pe (WinISD's SPLmax): the 1 W / 1 m sensitivity + 10·log₁₀(Pe) − 3 dB
+ * (docs/spec/SPEC_ENGINE.md "USPL / SPLmax"). The one copy: the SPLmax routes on the stated SPL and on SPLref both
+ * call it (T902).
+ */
+export function splMaxAtRatedPower(spl1W_dB: number, Pe_W: number): number {
+  return spl1W_dB + 10 * Math.log10(Pe_W) - 3;
 }

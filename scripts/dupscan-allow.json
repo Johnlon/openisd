@@ -457,17 +457,29 @@
  "sig|driver-count-scaling|packages/design/domain/box/openISDBox.ts|driverSd * driverXmax * this.#load().nDrivers / (sd * pr.count.value));": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/domain/box/openISDBox.ts:625",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/engine/pr/PrEngine.ts:placeholderRadiatorXmax",
+  "resolved_by": "T902",
+  "ruling": "QO949"
  },
  "sig|displacement|packages/design/domain/box/openISDBox.ts|driverSd * driverXmax * this.#load().nDrivers / (sd * pr.count.value));": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/domain/box/openISDBox.ts:625",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/engine/pr/PrEngine.ts:placeholderRadiatorXmax",
+  "resolved_by": "T902",
+  "ruling": "QO949"
  },
  "sig|displacement|packages/design/domain/box/openISDBox.ts|if (sd !== null && xmax !== null) spec.Vd_m3.set(sd * xmax);": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/domain/box/openISDBox.ts:629",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/engine/pr/PrEngine.ts:displacement",
+  "resolved_by": "T902",
+  "ruling": "QO949"
  },
  "sig|unit-factor|packages/design/domain/box/ventWindow.ts|const area_cm2 = area_m2 * 10_000;": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
@@ -617,7 +629,11 @@
  "sig|decibel|packages/design/engine/driver/routes/advancedRoutes.ts|return base == null ? null : base + 10 * Math.log10(v.Pe_W) - 3;": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/engine/driver/routes/advancedRoutes.ts:29",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/engine/efficiency.ts:splMaxAtRatedPower",
+  "resolved_by": "T902",
+  "ruling": "QO949"
  },
  "sig|decibel|packages/design/engine/driver/routes/advancedRoutes.ts|return 20 * Math.log10(p20 / P0);": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
@@ -632,22 +648,38 @@
  "sig|decibel|packages/design/engine/driver/routes/efficiencyRoutes.ts|return base == null ? null : base + 10 * Math.log10(V283_SQ / v.Re_ohm);": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/engine/driver/routes/efficiencyRoutes.ts:74",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/engine/efficiency.ts:splAt283V",
+  "resolved_by": "T902",
+  "ruling": "QO949"
  },
  "sig|decibel|packages/design/engine/driver/routes/efficiencyRoutes.ts|new SolveRoute('SPLref_dB', ['USPL_dB', 'Re_ohm'], v => v.USPL_dB - 10 * Math.log10(V283_SQ / v.Re_ohm), v => v.Re_ohm > 0),": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/engine/driver/routes/efficiencyRoutes.ts:80",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/engine/efficiency.ts:spl1WFromSplAt283V",
+  "resolved_by": "T902",
+  "ruling": "QO949"
  },
  "sig|circle-area|packages/design/engine/driver/routes/geometryRoutes.ts|new SolveRoute('Sd_m2', ['Dd_m'], v => Math.PI * (v.Dd_m / 2) ** 2, v => v.Dd_m > 0).inRelation(DD_FROM_SD),": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/engine/driver/routes/geometryRoutes.ts:8",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/engine/driver/routes/geometryRoutes.ts:SD_DD_ROUTES",
+  "resolved_by": "T902",
+  "ruling": "QO949"
  },
  "sig|displacement|packages/design/engine/driver/routes/geometryRoutes.ts|new SolveRoute('Vd_m3', ['Sd_m2', 'Xmax_m'], v => v.Sd_m2 * v.Xmax_m).inRelation(VD_FROM_EXCURSION),": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/engine/driver/routes/geometryRoutes.ts:31",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/engine/driver/routes/geometryRoutes.ts:VD_ROUTES",
+  "resolved_by": "T902",
+  "ruling": "QO949"
  },
  "sig|resonance-mass-compliance|packages/design/engine/driver/routes/relations.ts|(v) => 1 / (TAU * Math.sqrt(v.Mms_kg! * v.Cms_m_per_N!))));": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
@@ -657,7 +689,11 @@
  "sig|q-parallel|packages/design/engine/driver/routes/smallSignalRoutes.ts|new SolveRoute('Qts', ['Qes', 'Qms'], v => v.Qes * v.Qms / (v.Qes + v.Qms)).inRelation(Q_PARALLEL),": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/engine/driver/routes/smallSignalRoutes.ts:9",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/engine/driver/routes/smallSignalRoutes.ts:Q_ROUTES",
+  "resolved_by": "T902",
+  "ruling": "QO949"
  },
  "sig|resonance-mass-compliance|packages/design/engine/driver/routes/smallSignalRoutes.ts|v => 1 / (TAU * Math.sqrt(v.Mms_kg * v.Cms_m_per_N))).inRelation(FS_FROM_MASS_AND_COMPLIANCE));": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
@@ -672,7 +708,11 @@
  "sig|resonance-mass-compliance|packages/design/engine/driver/routes/smallSignalRoutes.ts|new SolveRoute('Cms_m_per_N', ['Fs_hz', 'Mms_kg'], v => 1 / ((TAU * v.Fs_hz) ** 2 * v.Mms_kg)).inRelation(FS_FROM_MASS_AND_COMPLIANCE),": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/engine/driver/routes/smallSignalRoutes.ts:68",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/engine/driver/routes/smallSignalRoutes.ts:CMS_SD_ROUTES",
+  "resolved_by": "T902",
+  "ruling": "QO949"
  },
  "sig|unit-factor|packages/design/engine/dvolRelation.ts|const v = metres * 1000;": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
@@ -1222,7 +1262,11 @@
  "sig|drive-voltage-power|packages/ui/src/logic/provenance.ts|{ formulaText: 'USPL = SPL_dB + 10 × log₁₀(2.83² / Re_ohm)', inputs: ['SPL_dB', 'Re_ohm'] }": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/ui/src/logic/provenance.ts:168",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/engine/driver/routes/efficiencyRoutes.ts:USPL_ROUTES",
+  "resolved_by": "T902",
+  "ruling": "QO949"
  },
  "sig|unit-factor|packages/ui/src/main.ts|const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
@@ -1242,6 +1286,66 @@
  "sig|end-correction|packages/ui/src/ui/shells/original/OriginalShell.vue|<label>{{ DesktopLabels.VENT_END_CORRECTION }}</label>": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/ui/src/ui/shells/original/OriginalShell.vue:574",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/engine/driver/routes/efficiencyRoutes.ts|new SolveRoute('USPL_dB', ['SPL_dB', 'Re_ohm'], 'USPL_dB = SPL_dB + 10 × log₁₀(2.83² / Re_ohm)',": {
+  "reason": "consolidated by T902 (QO949)",
+  "where": "packages/design/engine/driver/routes/efficiencyRoutes.ts:75",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/engine/driver/routes/efficiencyRoutes.ts|new SolveRoute('USPL_dB', ['SPLref_dB', 'Re_ohm'], 'USPL_dB = SPLref_dB + 10 × log₁₀(2.83² / Re_ohm)',": {
+  "reason": "consolidated by T902 (QO949)",
+  "where": "packages/design/engine/driver/routes/efficiencyRoutes.ts:77",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/engine/driver/routes/efficiencyRoutes.ts|new SolveRoute('Re_ohm', ['USPL_dB', 'SPL_dB'], 'Re_ohm = 2.83² / 10^((USPL_dB − SPL_dB) / 10)',": {
+  "reason": "consolidated by T902 (QO949)",
+  "where": "packages/design/engine/driver/routes/efficiencyRoutes.ts:79",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/engine/driver/routes/efficiencyRoutes.ts|new SolveRoute('Re_ohm', ['USPL_dB', 'SPLref_dB'], 'Re_ohm = 2.83² / 10^((USPL_dB − SPLref_dB) / 10)',": {
+  "reason": "consolidated by T902 (QO949)",
+  "where": "packages/design/engine/driver/routes/efficiencyRoutes.ts:81",
+  "count": 1
+ },
+ "sig|drive-voltage-power|packages/design/engine/driver/routes/efficiencyRoutes.ts|new SolveRoute('SPLref_dB', ['USPL_dB', 'Re_ohm'], 'SPLref_dB = USPL_dB − 10 × log₁₀(2.83² / Re_ohm)', v => spl1WFromSplAt283V(v.USPL_dB, v.Re_ohm), v => v.Re_ohm > 0),": {
+  "reason": "consolidated by T902 (QO949)",
+  "where": "packages/design/engine/driver/routes/efficiencyRoutes.ts:83",
+  "count": 1
+ },
+ "sig|circle-area|packages/design/engine/driver/routes/geometryRoutes.ts|new SolveRoute('Sd_m2', ['Dd_m'], 'Sd_m2 = π × (Dd_m / 2)²', v => Math.PI * (v.Dd_m / 2) ** 2, v => v.Dd_m > 0).inRelation(DD_FROM_SD),": {
+  "reason": "consolidated by T902 (QO949)",
+  "where": "packages/design/engine/driver/routes/geometryRoutes.ts:8",
+  "count": 1
+ },
+ "sig|displacement|packages/design/engine/driver/routes/geometryRoutes.ts|new SolveRoute('Vd_m3', ['Sd_m2', 'Xmax_m'], 'Vd_m3 = Sd_m2 × Xmax_m', v => v.Sd_m2 * v.Xmax_m).inRelation(VD_FROM_EXCURSION),": {
+  "reason": "consolidated by T902 (QO949)",
+  "where": "packages/design/engine/driver/routes/geometryRoutes.ts:31",
+  "count": 1
+ },
+ "sig|q-parallel|packages/design/engine/driver/routes/smallSignalRoutes.ts|new SolveRoute('Qts', ['Qes', 'Qms'], 'Qts = (Qes × Qms) / (Qes + Qms)', v => v.Qes * v.Qms / (v.Qes + v.Qms)).inRelation(Q_PARALLEL),": {
+  "reason": "consolidated by T902 (QO949)",
+  "where": "packages/design/engine/driver/routes/smallSignalRoutes.ts:9",
+  "count": 1
+ },
+ "sig|resonance-mass-compliance|packages/design/engine/driver/routes/smallSignalRoutes.ts|new SolveRoute('Cms_m_per_N', ['Fs_hz', 'Mms_kg'], 'Cms_m_per_N = 1 / (4π² × Fs² × Mms_kg)', v => 1 / ((TAU * v.Fs_hz) ** 2 * v.Mms_kg)).inRelation(FS_FROM_MASS_AND_COMPLIANCE),": {
+  "reason": "consolidated by T902 (QO949)",
+  "where": "packages/design/engine/driver/routes/smallSignalRoutes.ts:68",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/efficiency.ts|return spl1W_dB + 10 * Math.log10(V283_SQ / Re_ohm);": {
+  "reason": "consolidated by T902 (QO949)",
+  "where": "packages/design/engine/efficiency.ts:71",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/efficiency.ts|return uspl_dB - 10 * Math.log10(V283_SQ / Re_ohm);": {
+  "reason": "consolidated by T902 (QO949)",
+  "where": "packages/design/engine/efficiency.ts:81",
+  "count": 1
+ },
+ "sig|decibel|packages/design/engine/efficiency.ts|return spl1W_dB + 10 * Math.log10(Pe_W) - 3;": {
+  "reason": "consolidated by T902 (QO949)",
+  "where": "packages/design/engine/efficiency.ts:90",
   "count": 1
  }
 }

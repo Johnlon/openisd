@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type {RadiatorPicks} from '../../src/logic/telemetry/radiatorPick.js';
 import {DEFAULT_ENV_DEFAULTS, type Engine, createEngine, type VentedDesignLimits} from '@openisd/design/engine';
 import { OpenISDDriver, ProjectBuilder, WizardStep } from '@openisd/design';
-import { DEFAULT_ALFAVC_PER_K, DEFAULT_NEW_PROJECT_QA, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VC_TEMP_RISE_K } from '@openisd/design/fields';
+import { DEFAULT_ALFAVC_PER_K, DEFAULT_NEW_PROJECT_QA, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VC_TEMP_RISE_K, NumberField } from '@openisd/design/fields';
 import { NEW_PROJECT_VENTED_QL, type NewProjectPassiveRadiatorRepos, useOgNewProject } from '../../src/hooks/OriginalNewProject-hooks.js';
 import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import { type BundledPassiveRadiatorRepo, createMemoryStorage } from '@openisd/persistence';
@@ -327,17 +327,20 @@ describe('useOgNewProject', () => {
     expect(project?.box.passiveRadiator.volume_m3.value).toBeCloseTo(0.007, 6);
   });
 
-  it('rounds the derived sealed volume to the 2dp litres the volume field shows, instead of showing the raw calculation', () => {
+  // T902: John, 27 Sep 2026, "UI is display only: no calcs, defaults, option lists, rounding or decisions in packages/ui".
+  // The wizard stores the engine's volume, as the Box tab's picker does; the volume field shows it to 2dp litres.
+  it('stores the derived sealed volume as the engine gives it, and the volume field shows it to 2dp litres', () => {
     const engine = createEngine();
     const driver = createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 });
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
 
     wizard.selectSealedAlignment(0.6);
 
-    // The volume that shows Qtc 0.6 on the Box tab (lossy, default Rg and box losses), to 2dp litres.
+    // The volume that shows Qtc 0.6 on the Box tab (lossy, default Rg and box losses), as the engine gives it.
     const raw = driver.sealedVolumeForQtc(0.6, {Rs_ohm: DEFAULT_SOURCE_RESISTANCE_OHM, nDrivers: 1, loading: 'standard', alfaVC_per_K: DEFAULT_ALFAVC_PER_K, vcTempRise_K: DEFAULT_VC_TEMP_RISE_K}, {Ql: NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA})!;
-    expect(wizard.sealedVolume_m3.value).toBeCloseTo(Math.round(raw * 1e5) / 1e5, 9);
-    expect(wizard.sealedVolume_m3.value).not.toBe(raw);
+    expect(wizard.sealedVolume_m3.value).toBe(raw);
+    expect(wizard.sealedVolume_m3.value).toBe(0.02049685518650786);
+    expect(NumberField.BOX_VB_L.format(wizard.sealedVolume_m3.value)).toBe('20.50');
   });
 
   it('a picked Qtc becomes the new project\'s entered volume, with Qtc calculated', () => {
