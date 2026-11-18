@@ -1,5 +1,5 @@
 id: T886
-release_note: When Cloud sync is on, the Save button says it sends this version to your other devices, the Cloud sync dialog lists projects with unsaved changes (each with a Save button), a bar asks you to save after 5 minutes of unsaved edits, and a sync conflict copy of an open project shows a notice naming both projects
+release_note: When Cloud sync is on, the Save button says it sends this version to your other devices, the Cloud sync dialog lists projects with unsaved changes (each with a Save button), a bar asks you to save after 5 minutes of unsaved edits, and a sync conflict copy of an open project shows a notice naming both projects.
 repo: openisd
 owner: sonnet-save-for-sync
 status: done

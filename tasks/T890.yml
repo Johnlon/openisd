@@ -1,0 +1,12 @@
+id: T890
+release_note: internal
+repo: openisd
+owner: lead
+status: done
+label: fixes
+goal: Main is green again; the T886 task file's release note ends in a full stop
+why: 'Main suite run 44276673202 (f704488f) failed its shell job: task-status.test.sh found tasks/T886.yml release_note not ending in a full stop. pr-gate runs the shell job only when scripts or workflows change, so a task-file-only fault reached main. Any red on main is fixed first (QO946.c241, John, 18 Nov 2026: keep merge-then-test).'
+done_test: bash scripts/land/test/task-status.test.sh
+files:
+  - tasks/T890.yml
+  - tasks/T886.yml
