@@ -42,7 +42,8 @@ export interface SealedEngine {
   /** The volume WinISD's sealed alignment picker (winisd.exe 0x45c140) gives for system Q `Qtc`: a fixed
    *  Rg of 0.1 Ω folded into Qes, a fixed Qa of 100 folded into Qt, box losses Ql left out.
    *  `Qes' = Qes·(Re + 0.1)/Re`, `Qts' = 1/(1/Qes' + 1/Qms)`, `Qt = 1/(1/Qts' + 1/100)`,
-   *  `Vb = Vas/((Qtc/Qt)² − 1)`. Null when `Qtc ≤ Qt`, or an input is not positive. */
+   *  `Vb = Vas/((Qtc/Qt)² − 1)`, where `Vas` is the array Vas (`arrayVas`: N·Vas, halved for Iso-barik), as WinISD's
+   *  picker divides its design object's Nd·Vas. Null when `Qtc ≤ Qt`, or an input is not positive. */
   winisdPickerVolume(p: {Vas: number; Qes: number; Qms: number; Re: number}, Qtc: number): number | null;
   /** The lossless textbook Qtc a volume gives — the inverse of `volumeForQtc`. Null when any
    *  input is not positive. */

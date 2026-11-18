@@ -258,7 +258,9 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
     /** The volume the sealed alignment picker gives for `targetQtc`. `winisdPicker` off (the "Sealed picker
      *  volume" bug switch unticked): the volume at which the Box tab shows `targetQtc`, as `sealedVolumeForQtc`.
-     *  On: WinISD's picker volume, which ignores `load` and `losses` for its own fixed Rg 0.1 and Qa 100. */
+     *  On: WinISD's picker volume, which ignores the load's `Rs_ohm` and `losses` for its own fixed Rg 0.1 and Qa 100,
+     *  but counts the drivers as the Box tab does: WinISD's picker divides the design object's Nd·Vas (`0x4b0`, halved
+     *  for Iso-barik), written by `fr_45e090` (winisd_research/archive/GHIDRA_FINDINGS.md, "Number of drivers and placement"). */
     sealedPickerVolume(targetQtc: number, load: DriveLoad, losses: SealedBoxLosses, winisdPicker: boolean): number | null {
         if (!winisdPicker) return this.sealedVolumeForQtc(targetQtc, load, losses);
         const {Vas_m3, Qes, Qms} = this.specs;
@@ -266,7 +268,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         const [Vas, qes, qms, Re] = [Vas_m3.value, Qes.value, Qms.value, this.specs.solverParams().Re_terminal_ohm.value];
         return Vas === null || qes === null || qms === null || Re === null
             ? null
-            : this.engine.sealed.winisdPickerVolume({Vas, Qes: qes, Qms: qms, Re}, targetQtc);
+            : this.engine.sealed.winisdPickerVolume(
+                {Vas: this.engine.sealed.arrayVas(Vas, load.nDrivers, load.loading), Qes: qes, Qms: qms, Re}, targetQtc);
     }
 
     /** What the sealed-box engine takes of this driver, or null while Fs, Vas or Qts is unresolved. */

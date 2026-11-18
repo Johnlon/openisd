@@ -1,0 +1,18 @@
+id: T907
+release_note: With the "Sealed picker volume" WinISD bug switch ticked, the sealed alignment picker now counts the number of drivers as WinISD's picker does, so four W5-1138SMF drivers at Qtc 0.800 get 12.54 L instead of one driver's 3.13 L.
+repo: openisd
+owner: t907
+status: done
+gates_approved: QO950
+label: fixes
+goal: The sealed alignment picker with the "Sealed picker volume" WinISD bug switch ticked uses all the project's drivers (N times Vas, halved for an isobaric pair) through the same engine rule as the Box tab and the unticked picker
+why: 'Left over from T901, the change that made the Box tab''s sealed readout count the drivers (bugs/BUG_20261118_sealed-readout-ignores-driver-count.md, "Not changed"). WinISD''s picker 0x45c140 divides the design object''s Nd times Vas (slot 0x4b0, written by fr_45e090 after the wizard copies its driver count in), so the switch that reproduces WinISD must count the drivers too (bugs/BUG_20261118_winisd-sealed-picker-ignores-driver-count.md).'
+done_test: npx vitest run packages/design/test/domain/winisd-sealed-picker-counts-drivers.test.ts
+files:
+  - tasks/T907.yml
+  - scripts/dupscan-allow.json
+  - bugs/BUG_20261118_winisd-sealed-picker-ignores-driver-count.md
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/engine/sealed/SealedEngine.ts
+  - packages/design/fields/field.ts
+  - packages/design/test/domain/winisd-sealed-picker-counts-drivers.test.ts
