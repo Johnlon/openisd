@@ -119,6 +119,7 @@ const RULED_VIEWS:readonly ViewEntry[]=[
   sharedRuled('shared/driver-editor-incomplete-warning',ViewKind.WarningPopup,CMP+'DriverEditorModal.vue','Driver editor with a missing brand or model, charts blocked, or disagreeing values: a warning strip lists why.'),
   sharedRuled('shared/driver-library-storage-note',ViewKind.WarningPopup,CMP+'DriverLibrary.vue','Driver list when browser storage is inaccessible: a note says saved drivers are unavailable.'),
   sharedRuled('shared/driver-library-broken-entry',ViewKind.WarningPopup,CMP+'DriverLibrary.vue','Driver list with a saved driver this version cannot read: a flagged row offers Export and Delete.'),
+  sharedRuled('shared/feedback-dialog',ViewKind.Dialog,CMP+'FeedbackDialog.vue','Info menu, Send feedback (or the prompt after a save): one tap on a face sends the answer, then an optional comment box opens.'),
   sharedRuled('shared/driver-type-help',ViewKind.FieldNote,CMP+'DriverLibrary.vue','Driver list filters, press the ? by the types: a table explains the driver range classifications.'),
 ];
 /** Basis: control change T763, Fable review 10 Nov 2026 (workspace docs/process/CONTROL_CHANGES.md), not a ruling by John: views the index listed for the phone only, though the desktop skin has them too. */

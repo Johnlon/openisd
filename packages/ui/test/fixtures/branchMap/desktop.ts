@@ -71,6 +71,7 @@ export const DESKTOP_BRANCH_MAP:BranchMap={
   'surface-root-bbda5f09185c7376':{kind:'view',view:'desktop/navigation/info-menu'},
   'surface-root-456088162ac76c19':{kind:'partOf',view:'desktop/navigation/info-menu'},
   'surface-root-456088162ac76c19-2':{kind:'partOf',view:'desktop/navigation/info-menu'},
+  'surface-root-456088162ac76c19-3':{kind:'partOf',view:'desktop/navigation/info-menu'}, // Send feedback
   'surface-root-95dea4d1f1a17566':{kind:'partOf',view:'desktop/navigation/info-menu'},
   'surface-root-153fc71b410a2a2a':{kind:'partOf',view:'desktop/navigation/info-menu'},
   'surface-root-d79d62377f9b4f02':{kind:'partOf',view:'desktop/navigation/info-menu'},

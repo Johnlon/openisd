@@ -94,8 +94,21 @@ export interface ReportEvent {
   readonly device: string;
 }
 
+/** The user's answer to "Do you like OpenISD?" (`face` is a `FeedbackFace` wire value) and, when they wrote one,
+ *  their comment. A follow-up comment repeats the `id` and `face` of the answer it belongs to. */
+export interface FeedbackEvent {
+  readonly kind: 'feedback';
+  readonly id: string;
+  readonly face: string;
+  readonly comment: string;
+  readonly screen: string;
+  readonly skin: Skin;
+  /** Whole seconds the page had been open when the user answered: the collector drops answers that come too quickly to be a person. */
+  readonly ageS: number;
+}
+
 export type TelemetryEvent =
-  | LaunchEvent | InstallEvent | SwBlockedEvent | SessionEndEvent | ProjectOpenEvent | ProjectSaveEvent | DriverPickEvent | RadiatorPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent;
+  | LaunchEvent | InstallEvent | SwBlockedEvent | SessionEndEvent | ProjectOpenEvent | ProjectSaveEvent | DriverPickEvent | RadiatorPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent | FeedbackEvent;
 
 export type FieldValue = string | number | boolean;
 export type Fields = Record<string, FieldValue>;
@@ -147,6 +160,10 @@ export function fieldsOf(e: TelemetryEvent): Fields {
       projects: e.projects,
       actions: e.actions,
       device: e.device,
+    };
+    case 'feedback': return {
+      id: e.id, face: e.face, screen: e.screen, skin: e.skin, age_s: e.ageS,
+      ...(e.comment === '' ? {} : {comment: e.comment}),
     };
     case 'report': return {
       hash: e.hash,

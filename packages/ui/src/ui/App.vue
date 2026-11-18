@@ -17,6 +17,7 @@ import SplashModal from './components/SplashModal.vue';
 import AnnouncementsModal from './components/AnnouncementsModal.vue';
 import WinisdDifferencesModal from './components/WinisdDifferencesModal.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
+import FeedbackDialog from './components/FeedbackDialog.vue';
 import {bootApplication} from '../logic/boot.js';
 import {startSessionSync} from '../logic/sessionSync.js';
 import {startStoringNewProjects} from '../logic/newProjectStore.js';
@@ -31,13 +32,14 @@ import {provideDiagnosticsModal} from '../hooks/DiagnosticsModal-hooks.js';
 import {createViewportWatch} from '../logic/viewport.js';
 import {useTelemetryUi} from '../hooks/telemetryContext.js';
 import {useAnnouncementCenter} from '../hooks/Announcements-hooks.js';
+import {createFeedbackDialog, injectFeedbackServices, provideFeedbackDialog} from '../hooks/FeedbackDialog-hooks.js';
 import CrashScreen from './components/CrashScreen.vue';
 import {createLabelColumns, type LabelColumns} from '../hooks/labelColumns.js';
 
 const { designIO, projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId, persistence, browserStorage, storageUsage, saves } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
-const { launch, actions: recentActions } = useTelemetryUi();
+const { launch, actions: recentActions, crashReports } = useTelemetryUi();
 const announcements = useAnnouncementCenter();
 
 watch(() => presentationState.newProjectOpen, open => { if (open) recentActions.record('dialog:new-project'); });
@@ -95,7 +97,26 @@ provideAppUpdateUi(createAppUpdateUi(appUpdate, confirmPort.port));
 provideWinisdDifferencesModal();
 
 // One diagnostics modal for the whole app.
-provideDiagnosticsModal();
+const diagnostics = provideDiagnosticsModal();
+
+// One feedback dialog for both skins: the Info menu opens it, and after a user save it may offer itself,
+// but never over the welcome screen, the What's new popup, the update banner, a crash report or any other dialog.
+const feedbackServices = injectFeedbackServices();
+const feedback = createFeedbackDialog({
+  outbox: feedbackServices.outbox,
+  storage: feedbackServices.storage,
+  now: () => Date.now(),
+  skin: () => presentationState.shownSkin(),
+  screen: feedbackServices.screen,
+  busy: () => splash.open.value || announcements.open.value || diagnostics.open.value || confirmState.current.value !== null
+    || appUpdate.state.value.kind === 'offered' || crashReports.pending.value !== null
+    || presentationState.newProjectOpen || presentationState.browseOpen || presentationState.optionsOpen
+    || presentationState.openDialogOpen || presentationState.editDriverInfo || presentationState.editDriver,
+  userSaves: feedbackServices.userSaves,
+  onlineAgain: feedbackServices.onlineAgain,
+  defer: fn => { window.setTimeout(fn, 2000); },
+});
+provideFeedbackDialog(feedback);
 
 /** Whether a project is focused right now. The overlays below are project-bound: the shell
  *  renders without one, they must not. */
@@ -139,6 +160,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  feedback.stop();
   stopSessionSync();
   stopStoringNewProjects();
   window.removeEventListener('hashchange', handleHashChange);
@@ -187,6 +209,8 @@ onUnmounted(() => {
     <AnnouncementsModal />
     <!-- Help → "OpenISD and WinISD differences"; also opened by the group headings and ≠W cues. -->
     <WinisdDifferencesModal />
+    <!-- "Do you like OpenISD?": one tap on a face sends it. Info menu, or offered once after a save. -->
+    <FeedbackDialog />
     <!-- In-app confirm dialog, hosted once for both skins. -->
     <ConfirmDialog :state="confirmState" />
   </div>
