@@ -10,7 +10,7 @@ import {RADIATOR_ROUTE_FORMULAS} from '../driver/routes/index.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import type {PrParams} from '../types.js';
 import type {PrSolverParams} from '../solverTypes.js';
-import {inconsistentInputs, missingDependencies, targetUnreachable} from '../consistency.js';
+import {isPositiveGeometry, missingDependencies, targetUnreachable, tuningGoalIssue} from '../consistency.js';
 import type {CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
 
 export type PrQuantityName = keyof PrSolverParams | AirWorkingName;
@@ -239,13 +239,13 @@ export class PrEngineImpl implements PrEngine {
 
     const issues: PrIssue[] = [];
 
-    if (tuning != null && tuning <= 0) {
-      issues.push(inconsistentInputs('tuning_goal_hz', ['tuning_goal_hz'],
-        'Tuning frequency must be greater than zero', 0, tuning, 1));
-    }
+    const goalIssue = tuningGoalIssue(tuning);
+    if (goalIssue !== null) issues.push(goalIssue);
 
-    const geometryComplete = Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null;
-    const missingGeometry = PR_GEOMETRY.filter(f => { const v = params[f].value; return !(typeof v === 'number' && v > 0); });
+    // The geometry needs Vb, Mmd, Sd and Cms all above 0 (T930): a zero Sd or Cms is not geometry,
+    // and tuning from it is NaN or Infinity, the same rule PR_GEOMETRY's own filter applies below.
+    const geometryComplete = isPositiveGeometry(Vb) && isPositiveGeometry(prMmd) && isPositiveGeometry(prSd) && isPositiveGeometry(prCms);
+    const missingGeometry = PR_GEOMETRY.filter(f => !isPositiveGeometry(params[f].value));
 
     if (addedMass != null && !params.tuning_goal_hz.entered) {
       if (geometryComplete) {
@@ -279,12 +279,12 @@ export class PrEngineImpl implements PrEngine {
     }
 
     const resolvedMass = params.addedMass_kg.value;
-    if (resolvedMass != null && prMmd != null && prCms != null) {
+    if (resolvedMass != null && isPositiveGeometry(prMmd) && isPositiveGeometry(prCms)) {
       params.resonanceWithAddedMass_hz.setCalculated(this.fsWithMass(prMmd, resolvedMass, prCms));
     } else {
       params.resonanceWithAddedMass_hz.setNotAvailable();
     }
-    if (resolvedMass != null && Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null) {
+    if (resolvedMass != null && geometryComplete) {
       params.systemTuning_hz.setCalculated(this.tuning({ Vb, prMmd, prMadd: resolvedMass, prSd, prCms, prNum }, air));
     } else {
       params.systemTuning_hz.setNotAvailable();
