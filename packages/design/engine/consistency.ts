@@ -317,6 +317,20 @@ export function positiveValueIssue(value: number): InvalidValueIssue | null {
   return Number.isFinite(value) && value > 0 ? null : invalidValue(value);
 }
 
+/** A geometry value the vent and passive-radiator solves can use: a number above 0. Blank, zero or
+ *  negative is not geometry, and tuning from it is NaN or Infinity (T930). */
+export function isPositiveGeometry(value: number | null): value is number {
+  return typeof value === 'number' && value > 0;
+}
+
+/** The tuning goal's own floor, the one check the vent and passive-radiator solves share: a goal of
+ *  0 Hz or below is refused on the goal alone. `null` is the goal passing (or blank). */
+export function tuningGoalIssue(tuning: number | null): CalculationIssue<'tuning_goal_hz'> | null {
+  return tuning !== null && tuning <= 0
+    ? inconsistentInputs('tuning_goal_hz', ['tuning_goal_hz'], 'Tuning frequency must be greater than zero', 0, tuning, 1)
+    : null;
+}
+
 /** The positive floor for a value that may also be blank: blank is `requiredValue(label)`. */
 export function requiredPositiveIssue(label: string, value: number | null, fill: FillRoute = 'none'): RequiredValueIssue | InvalidValueIssue | null {
   return value === null ? requiredValue(label, fill) : positiveValueIssue(value);

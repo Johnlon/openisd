@@ -192,7 +192,11 @@
  "copy|packages/design/engine/pr/PrEngine.ts|packages/design/engine/vent/VentEngine.ts|94180610b0fb": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/engine/pr/PrEngine.ts:216-223 = packages/design/engine/vent/VentEngine.ts:97-104",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/engine/consistency.ts:tuningGoalIssue, packages/design/engine/consistency.ts:isPositiveGeometry",
+  "resolved_by": "T930",
+  "ruling": "QO949"
  },
  "copy|packages/design/engine/filters/FilterEngine.ts|packages/design/engine/filters/FilterEngine.ts|bcc3251bc511": {
   "reason": "baseline 2026-11-18 (QO946.c256)",

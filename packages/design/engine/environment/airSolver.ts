@@ -358,6 +358,8 @@ export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
         if (outcome.kind === 'failed' || !withinLimits(target, outcome.value)) {
           gaveUp.add(target);
           issues.push(unavailable(target, rel, outcome.kind === 'failed' ? outcome.why : 'the answer is outside its limits', known));
+          // A failed step does not stop the pass: the next relation may still solve another quantity (T930).
+          continue;
         } else {
           const others = rel.fields.filter(f => f !== target);
           record(target, outcome.value, propagatedWidth(others, snapshotOf(known), k => {
