@@ -106,6 +106,55 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-graph-context-menu.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-wizard-ebp-info.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-rename.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-complete-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-announcements-current.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-confirmation.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-exports.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-field-dq.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-abc-front.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-abc-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-bandpass4-front.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-bandpass4-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-bandpass6-front.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-bandpass6-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-box-passive-radiator-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-sealed-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-losses-vented-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-menu-announcementsmodal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-cloud-conflict-notice.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-cloud-hint.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-cloud-reconnect-strip.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-save-note.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-tuning-unreachable-warning.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-update-strip.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-wizard-passive-radiator-pick-error.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-wizard-vented-volume-warning.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-pr-picker.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-sealed-alignment.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-section-help.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-feedback-dialog.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-flash-message.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-update.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-vented-alignment.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-wizard-ebp.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-wizard-help.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step2.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step4.png
 visual:
   - desktop-box-abc
   - desktop-box-bandpass4
@@ -140,6 +189,7 @@ visual:
   - desktop-dialog-driver-library-overview
   - desktop-dialog-driver-library-save
   - desktop-dialog-driver-project-select
+  - desktop-dialog-driver-rename
   - desktop-dialog-enclosure-abc-losses-front
   - desktop-dialog-enclosure-abc-losses-rear
   - desktop-dialog-enclosure-bandpass-4th-order-losses-front
@@ -177,8 +227,56 @@ visual:
   - desktop-tab-box
   - desktop-tab-driver
   - desktop-wizard-sealed-step2
+  - mobile-complete-project
+  - mobile-dialog-announcements-current
+  - mobile-dialog-confirmation
+  - mobile-dialog-exports
+  - mobile-dialog-field-dq
+  - mobile-dialog-losses-abc-front
+  - mobile-dialog-losses-abc-rear
+  - mobile-dialog-losses-bandpass4-front
+  - mobile-dialog-losses-bandpass4-rear
+  - mobile-dialog-losses-bandpass6-front
+  - mobile-dialog-losses-bandpass6-rear
+  - mobile-dialog-losses-box-passive-radiator-rear
+  - mobile-dialog-losses-sealed-rear
+  - mobile-dialog-losses-vented-rear
+  - mobile-dialog-menu
+  - mobile-dialog-menu-announcementsmodal
+  - mobile-dialog-phone-cloud-conflict-notice
+  - mobile-dialog-phone-cloud-hint
+  - mobile-dialog-phone-cloud-reconnect-strip
+  - mobile-dialog-phone-save-note
+  - mobile-dialog-phone-tuning-unreachable-warning
+  - mobile-dialog-phone-update-strip
   - mobile-dialog-phone-wizard-isobarik-note
+  - mobile-dialog-phone-wizard-passive-radiator-pick-error
+  - mobile-dialog-phone-wizard-vented-volume-warning
+  - mobile-dialog-pr-picker
+  - mobile-dialog-sealed-alignment
+  - mobile-dialog-section-help
+  - mobile-dialog-shared-feedback-dialog
+  - mobile-dialog-shared-flash-message
+  - mobile-dialog-update
+  - mobile-dialog-vented-alignment
+  - mobile-dialog-wizard-ebp
+  - mobile-dialog-wizard-help
   - mobile-dialog-wizard-placement
+  - mobile-menu
+  - mobile-tab-box
   - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-wizard-abc-step3
+  - mobile-wizard-abc-step4
+  - mobile-wizard-bandpass4-step3
+  - mobile-wizard-bandpass4-step4
+  - mobile-wizard-bandpass6-step3
+  - mobile-wizard-bandpass6-step4
+  - mobile-wizard-box-passive-radiator-step3
+  - mobile-wizard-sealed-step2
+  - mobile-wizard-sealed-step3
+  - mobile-wizard-sealed-step4
+  - mobile-wizard-vented-step3
+  - mobile-wizard-vented-step4
 visual_note: The Iso-Barik choice is no longer greyed or marked (not modelled): the desktop Driver tab and New Project have a working radio, and the phone Driver tab has a new Placement row under Drivers. Iso-Barik is drawn both ways, clamshell and back to front: drivers only on the New Project step and the Driver tab, the box with the pair in it on both Box tabs.
 note: Iso-Barik is offered by one component, DriverPlacement.vue, bound to project.loading. Old assertions that pinned "not modelled" (new-project-wizard-walk and phone-classic-rows specs, phoneWizardText.test.ts) were changed to the new behaviour. Open (reported, not changed): OpenISDDriver.ventedDesign uses one driver's Vas for any driver count and loading, and no WinISD reference run exists for it.
