@@ -14,6 +14,36 @@ export interface WizardInfoCard {
   readonly note: string | null;
 }
 
+/**
+ * The three placement drawings the New Project dialog offers on step 2 (John, 19 Nov 2026: "click the images to select the active
+ * one of the 3 ... both iso have same effect but it's nice for the user to select their intent even if maths the same").
+ * `value` is the radio's value; `loading` is what the project gets (both Iso-Barik drawings give 'isobaric'); `art` is the drawing.
+ * The clamshell/back-to-front choice is the dialog's only: no project field holds it until John decides to save it.
+ */
+export class PlacementChoice {
+  static readonly STANDARD = new PlacementChoice('standard', 'standard', 'single', 'Standard', 'Standard');
+  static readonly CLAMSHELL = new PlacementChoice('isobaric', 'isobaric', 'clamshell', 'Iso-Barik clamshell', 'Iso-Barik: clamshell (face to face)');
+  static readonly TANDEM = new PlacementChoice('isobaric-tandem', 'isobaric', 'tandem', 'Iso-Barik back to front', 'Iso-Barik: back to front');
+  static readonly ALL: readonly PlacementChoice[] = Object.freeze([PlacementChoice.STANDARD, PlacementChoice.CLAMSHELL, PlacementChoice.TANDEM]);
+
+  private constructor(
+    readonly value: string,
+    readonly loading: 'standard' | 'isobaric',
+    readonly art: 'single' | 'clamshell' | 'tandem',
+    /** The words under the drawing (two short lines on the desktop card). */
+    readonly label: string,
+    /** The words of the phone's dropdown row. */
+    readonly optionLabel: string,
+  ) {}
+
+  /** The choice a radio or dropdown value names. */
+  static of(value: string): PlacementChoice {
+    const found = PlacementChoice.ALL.find(c => c.value === value);
+    if (found === undefined) throw new Error(`no placement choice ${value}`);
+    return found;
+  }
+}
+
 /** The words of the phone New project wizard (PHONE_CLASSIC_BUILD_SPEC screen 25, `QO267/wizard-live.html`). */
 export class PhoneWizardText {
   static readonly TITLE = 'New project';

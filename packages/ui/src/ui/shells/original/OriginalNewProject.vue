@@ -4,13 +4,13 @@
  * State management delegated to useOgNewProject() hook per ui.md.
  */
 import { computed, onBeforeUnmount, ref } from 'vue';
-import { NumberField, PhoneWizardText, PickWidth, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
+import { NumberField, PhoneWizardText, PickWidth, PlacementChoice, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxPlacementDiagram from '../../components/BoxPlacementDiagram.vue';
-import PlacementDiagram from '../../components/PlacementDiagram.vue';
+import PlacementArt from '../../components/PlacementArt.vue';
 import UIPickField from '../../components/UIPickField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
@@ -42,6 +42,8 @@ const {
 
   nDrivers,
   placement,
+  placementChoice,
+  placementValue,
 
   boxType,
   BOX_OPTIONS,
@@ -140,7 +142,7 @@ function handleCreate() {
         </div>
 
         <!-- Step 1: the driver library itself (Q1). A row summarises; the footer's Next chooses it. -->
-        <div v-if="isDriverStep" class="step-content">
+        <div v-if="isDriverStep" class="step-content np-library-step">
           <DriverLibrary class="np-library" show-name :host="DriverListMode.Pick" />
         </div>
 
@@ -149,19 +151,26 @@ function handleCreate() {
           <div class="field-row">
             <UIFixedField input-id="np-ndrivers" :field="NumberField.DRIVER_NDRIVERS" label="Num. of drivers" :value="nDrivers" @update:value="n => nDrivers = n" />
           </div>
-          <div class="field-row">
-            <!-- A field row like the pick fields around it, so its label column is the group's and the radios start where their boxes do. -->
-            <div class="ui-field ui-pick-field radio-group" role="group" aria-labelledby="np-placement-label">
-              <label id="np-placement-label" class="ui-field-label placement-label">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
-              <span class="placement-choices">
-                <label><input type="radio" name="placement" value="standard" v-model="placement"> Standard</label>
-                <label><input type="radio" name="placement" value="isobaric" v-model="placement"> {{ PhoneWizardText.PLACEMENT_ISOBARIK }}</label>
-                <WizardInfoButton question label="About driver placement" @click="openPlacementInfo" />
-              </span>
-            </div>
-          </div>
           <div class="np-placement-pic">
-            <PlacementDiagram :placement="placement" />
+            <div class="field-row">
+              <!-- A field row like the pick fields around it, so its label column is the group's and the radios start where their boxes do.
+                   Three choices, one per drawing (John, 19 Nov 2026: "click the images to select the active one of the 3"): both Iso-Barik
+                   drawings give the same Iso-Barik loading; which one is the user's intent, held by the dialog only. -->
+              <div class="ui-field ui-pick-field radio-group" role="group" aria-labelledby="np-placement-label">
+                <label id="np-placement-label" class="ui-field-label placement-label">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
+                <span class="placement-choices">
+                  <label v-for="c in PlacementChoice.ALL" :key="c.value" class="np-place-radio">
+                    <input :id="`np-place-${c.value}`" type="radio" name="placement" :value="c.value" v-model="placementValue"> {{ c.label }}
+                  </label>
+                  <WizardInfoButton question label="About driver placement" @click="openPlacementInfo" />
+                  <!-- Each drawing is its choice's label, under its radio: a click on it ticks that radio. The chosen one is framed. -->
+                  <label v-for="c in PlacementChoice.ALL" :key="`art-${c.value}`" :for="`np-place-${c.value}`" class="np-place-drawing"
+                    :class="{'np-place-on': placementChoice === c}" :data-testid="`placement-${c.art}`" :title="c.optionLabel">
+                    <PlacementArt :art="c.art" />
+                  </label>
+                </span>
+              </div>
+            </div>
             <div class="np-placement-caption" :class="{'np-placement-caption-off': placement !== 'isobaric'}" :aria-hidden="placement !== 'isobaric'">{{ PhoneWizardText.ISOBARIK_CAPTION }}</div>
           </div>
         </div>
@@ -299,54 +308,95 @@ function handleCreate() {
 .np-chamber h4 { margin: 0 0 8px; font-weight: 600; }
 .np-chamber .field { margin-bottom: 6px; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.18); z-index: 100; display: flex; align-items: flex-start; justify-content: center; }
-.modal { margin-top: 2vh; background: #f7f7f7; border: 1px solid #888; box-shadow: 3px 6px 18px rgba(0,0,0,.35); width: 800px; max-width: 92vw; display: flex; flex-direction: column; height: 690px; max-height: calc(100vh - 2vh - 6px); }
-/* One size on every step and in both placements (John: "dlg changing size for a workflow is anti pattern"): the tallest step, the driver library, sets it. */
+.modal { margin-top: 6vh; background: #f7f7f7; border: 1px solid #888; box-shadow: 3px 6px 18px rgba(0,0,0,.35); width: 800px; max-width: 92vw; display: flex; flex-direction: column; height: 500px; max-height: calc(100vh - 6vh - 6px); }
+/* One compact size on every step and in both placements (John: "dlg changing size for a workflow is anti pattern"; "that MASSIVE popup is terrible!!!!").
+   The content fits the size: the driver library scrolls inside its own area, the radiator rows sit in two columns. */
 .modal-titlebar { display: flex; align-items: center; justify-content: space-between; background: #e9e9e9; border-bottom: 1px solid #bbb; padding: 8px 12px; font-size: 15px; }
 .modal-titlebar .tb-left { display: flex; align-items: center; gap: 8px; }
 .modal-titlebar .app-icon { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #888, #333 70%); }
 .modal-titlebar .close-btn { cursor: pointer; padding: 1px 6px; color: #555; }
 .modal-titlebar .close-btn:hover { background: #e64545; color: #fff; }
-.modal-body { padding: 16px 20px; flex: 1 1 auto; overflow-y: auto; }
-.np-step { color: #666; margin-bottom: 10px; font-weight: 500; }
-.step-content { margin-top: 10px; }
-.selected-driver-banner { background: #eef4fc; border: 1px solid #b8d4f8; padding: 6px 10px; border-radius: 3px; margin-bottom: 12px; font-size: 13px; color: #224466; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.modal-body { padding: 10px 16px; flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
+.np-step { color: #666; margin: 0 0 8px; font-weight: 500; }
+.step-content { margin-top: 4px; }
+/* The driver step: the library fills what is left of the dialog and scrolls its list inside it. */
+.np-library-step { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.selected-driver-banner { background: #eef4fc; border: 1px solid #b8d4f8; padding: 5px 10px; border-radius: 3px; margin-bottom: 6px; font-size: 13px; color: #224466; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .driver-specs-preview { display: inline-flex; gap: 12px; font-size: 12px; color: #556; margin-left: auto; }
-/* The library sets its own height here: the overlay gives it a 535px window, the wizard has no window to fill. */
-.np-library { height: 420px; }
-.field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.step-content :deep(.ui-field) { margin-bottom: 10px; }
-/* The passive radiator step is the tallest (nine rows and a pick error): a smaller top margin keeps the one fixed dialog size inside a 1280x720 window. */
-.np-pr-fields :deep(.np-pr-step .ui-field) { margin-top: 6px; margin-bottom: 4px; }
-/* The passive radiator step is the tallest: tighter rows keep the one fixed dialog size within a normal window. */
+.np-library { flex: 1 1 auto; min-height: 0; }
+/* The library in two columns, so its list gets the dialog's height: search and filters on the left, the count, the list and its
+   buttons on the right. The overlay's own library keeps its one column. */
+.np-library { display: grid; grid-template-columns: 330px minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; column-gap: 14px; row-gap: 6px; }
+.np-library > :deep(.filter) { grid-column: 1; grid-row: 1; }
+.np-library > :deep(.filters-block) { grid-column: 1; grid-row: 2 / -1; min-height: 0; overflow-y: auto; align-self: start; display: flex; flex-direction: column; gap: 6px; }
+/* In the narrow filter column every filter takes its own line: Fs, Range, its checkbox, Sd, Z. */
+.np-library :deep(.param-row) { grid-template-columns: max-content; }
+.np-library :deep(.param-row > .pgroup) { grid-column: 1; }
+.np-library > :deep(.statusrow) { grid-column: 2; grid-row: 1; }
+.np-library > :deep(.filters-on) { grid-column: 2; grid-row: 2; }
+.np-library > :deep(.dlist) { grid-column: 2; grid-row: 3; min-height: 0; }
+/* A driver's details, opened from its row, take the whole library. */
+.np-library > :deep(.preview) { grid-column: 1 / -1; grid-row: 1 / 4; min-height: 0; overflow-y: auto; }
+.np-library > :deep(.browser-footer) { grid-column: 2; grid-row: 4; }
+.field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.step-content :deep(.ui-field) { margin-bottom: 6px; }
+/* The passive radiator step: Starting volume beside the Select button, the name across, then the eight radiator rows in two
+   columns (Vas Qms Fs Sd | Mms Cms Rms Xmax), the pick error across the bottom. The step component's own box is dissolved
+   (display: contents) so its rows join this grid; the phone keeps its one column. */
+.np-pr-fields { display: grid; grid-template-columns: max-content max-content; column-gap: 24px; row-gap: 6px; align-items: center; align-content: start; }
+.np-pr-fields :deep(.np-pr-step) { display: contents; }
+.np-pr-fields :deep(.ui-field) { margin: 0; }
+.np-pr-fields :deep(.np-pr-browse) { grid-row: 1; grid-column: 2; justify-self: start; width: auto; padding: 0 14px; }
+.np-pr-fields :deep(.np-pr-hint) { grid-row: 2; grid-column: 1 / -1; margin: 0; }
+.np-pr-fields :deep(.ui-field:has(#np-pr-name)) { grid-row: 3; grid-column: 1 / -1; }
+.np-pr-fields :deep(.ui-field:has(#np-pr-vas)) { grid-row: 4; grid-column: 1; }
+.np-pr-fields :deep(.ui-field:has(#np-pr-qms)) { grid-row: 5; grid-column: 1; }
+.np-pr-fields :deep(.ui-field:has(#np-pr-fs)) { grid-row: 6; grid-column: 1; }
+.np-pr-fields :deep(.ui-field:has(#np-pr-sd)) { grid-row: 7; grid-column: 1; }
+.np-pr-fields :deep(.ui-field:has(#np-pr-mms)) { grid-row: 4; grid-column: 2; }
+.np-pr-fields :deep(.ui-field:has(#np-pr-cms)) { grid-row: 5; grid-column: 2; }
+.np-pr-fields :deep(.ui-field:has(#np-pr-rms)) { grid-row: 6; grid-column: 2; }
+.np-pr-fields :deep(.ui-field:has(#np-pr-xmax)) { grid-row: 7; grid-column: 2; }
+/* Width 0 and min-width 100%: the long error wraps inside the two columns instead of widening them. */
+.np-pr-fields .np-pr-error { grid-row: 8; grid-column: 1 / -1; width: 0; min-width: 100%; box-sizing: border-box; }
 .field { display: flex; align-items: center; gap: 6px; }
 .field label { color: #333; display: inline-block; min-width: 150px; }
 .field input, .field select { border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff; }
 .field input { width: 140px; }
 .field .unit { color: #555; }
-.radio-group { display: grid; align-items: center; margin-bottom: 12px; }
-.np-placement-pic { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 16px; }
+.radio-group { display: grid; align-items: center; margin-bottom: 6px; }
+.np-placement-pic { display: flex; flex-direction: column; gap: 4px; }
+/* The radios on one line and the drawings under them share one set of columns, starting at the value column. */
+.placement-choices { display: grid; grid-template-columns: repeat(3, 168px) auto; align-items: center; column-gap: 8px; row-gap: 6px; }
+.np-place-radio { white-space: nowrap; }
+/* The label sits level with the radios, not in the middle of radios and drawings. */
+.np-placement-pic .placement-label { align-self: start; line-height: 20px; }
+/* A drawing is a click target; the chosen one is framed. The Box tab's drawing height, not the phone's larger one. */
+.np-place-drawing { display: flex; justify-content: center; box-sizing: border-box; padding: 4px 0; border: 2px solid transparent; border-radius: 4px; cursor: pointer; }
+.np-place-drawing:hover { border-color: #b8d4f8; }
+.np-place-drawing.np-place-on { border-color: #2e7d32; background: #f0f7f0; }
+.np-place-drawing :deep(svg) { height: 88px; width: auto; }
 /* The note starts where the labels above it start. */
 .np-placement-caption { align-self: flex-start; font-size: 13px; color: #666; }
 /* The note's row stays for Standard so the dialog keeps its size when Placement changes. */
 .np-placement-caption-off { visibility: hidden; }
 .placement-label { color: #333; white-space: nowrap; }
-.placement-choices { display: inline-flex; align-items: center; gap: 16px; }
 /* The first radio circle starts at the column edge, where the boxes above and below start. */
 .placement-choices > label:first-child input { margin-left: 0; }
 .radio-group label { cursor: pointer; }
-.ebp-readout-card { background: #f0f7f0; border: 1px solid #c0e0c0; border-radius: 4px; padding: 10px 14px; margin: 12px 0; display: flex; align-items: center; justify-content: space-between; }
+.ebp-readout-card { background: #f0f7f0; border: 1px solid #c0e0c0; border-radius: 4px; padding: 8px 14px; margin: 8px 0; display: flex; align-items: center; justify-content: space-between; }
 .ebp-row { font-size: 13.5px; }
 .suitability-badge { padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
 .suitability-badge.sealed { background: #e1f5fe; color: #0277bd; border: 1px solid #81d4fa; }
 .suitability-badge.vented { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
 .suitability-badge.either { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
-.box-diagram-container { display: flex; justify-content: center; margin: 10px 0; }
+.box-diagram-container { --bpd-h: 112px; display: flex; justify-content: center; margin: 4px 0; }
 .volume-fields { margin-top: 10px; }
-.readout-box { background: #fafafa; border: 1px solid #ddd; padding: 10px 14px; border-radius: 4px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.readout-box { background: #fafafa; border: 1px solid #ddd; padding: 8px 14px; border-radius: 4px; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
 .readout-item { display: flex; gap: 12px; white-space: nowrap; }
 .readout-warning { color: #8a5b00; background: #fff6e0; border: 1px solid #e8cd8a; border-radius: 3px; padding: 4px 8px; font-size: 12px; white-space: normal; }
 .hint { color: #888; font-size: 12px; font-style: italic; margin-top: 8px; }
-.modal-footer { display: flex; align-items: center; justify-content: flex-end; border-top: 1px solid #ccc; padding: 10px 20px; background: #eee; }
+.modal-footer { display: flex; flex: none; align-items: center; justify-content: flex-end; border-top: 1px solid #ccc; padding: 8px 16px; background: #eee; }
 .footer-buttons { display: flex; gap: 8px; }
 .footer-buttons button { border: 1px solid #999; background: #f0f0f0; color: #222; border-radius: 3px; padding: 6px 14px; cursor: pointer; }
 .footer-buttons button:hover:not(:disabled) { background: #dbeaff; border-color: #7fb3ff; }

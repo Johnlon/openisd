@@ -25,7 +25,9 @@ files:
   - packages/ui/src/ui/shells/original/OriginalNewProject.vue
   - packages/ui/src/ui/shells/original/OriginalShell.vue
   - packages/ui/test/ui/isobaric-loading.browser.spec.ts
+  - packages/ui/test/ui/new-project-step4-alignment.browser.spec.ts
   - packages/ui/src/ui/components/PlacementDiagram.vue
+  - packages/ui/src/ui/components/PlacementArt.vue
   - packages/ui/src/ui/components/DriverPairArt.vue
   - packages/ui/src/ui/components/BoxPlacementDiagram.vue
   - packages/ui/src/ui/components/BoxTypeDiagram.vue
@@ -315,4 +317,5 @@ visual:
   - mobile-wizard-vented-step3
   - mobile-wizard-vented-step4
 visual_note: The Iso-Barik choice is no longer greyed or marked (not modelled): the desktop Driver tab and New Project have a working radio, and the phone Driver tab has a new Placement row under Drivers. Iso-Barik is drawn both ways, clamshell and back to front: drivers only on the New Project step and the Driver tab, the box with the pair in it on both Box tabs.
+compact_note: "Desktop New Project is one compact size on every step, 800 x 500 at 1280x720 (was 800 x 690; John 19 Nov 2026 18:11 UTC: 'that MASSIVE popup is terrible!!!!'). The content fits the size: the driver library in two columns (filters left, list right, the list scrolls), the passive radiator rows in two columns with the Select button beside Starting volume, smaller step 2 drawings. Step 2 offers the three drawings (Standard, Iso-Barik clamshell, Iso-Barik back to front) as three radios, each drawing clickable, the chosen one framed (John 18:14 UTC: 'click the images to select the active one of the 3'); both Iso-Barik choices give loading isobaric and the clamshell or back-to-front choice is dialog state only, no project field (John deciding whether to save it). Phone: the Placement dropdown lists the same three."
 note: Iso-Barik is offered by one component, DriverPlacement.vue, bound to project.loading. Old assertions that pinned "not modelled" (new-project-wizard-walk and phone-classic-rows specs, phoneWizardText.test.ts) were changed to the new behaviour. Open (reported, not changed): OpenISDDriver.ventedDesign uses one driver's Vas for any driver count and loading, and no WinISD reference run exists for it.

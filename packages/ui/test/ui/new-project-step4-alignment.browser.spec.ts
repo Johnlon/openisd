@@ -10,10 +10,11 @@ import {PIXEL_9} from '../fixtures/phoneSizes.js';
  * (John, 17 Oct 2026: "check the field width and height, alignment and button sizes".)
  */
 
-/** Each box type and how many label columns its step 4 has on the desktop: the chambers sit side by side. */
+/** Each box type and how many label columns its step 4 has on the desktop, and how many label-to-control distances: the chambers
+ *  sit side by side with one distance; so do the passive radiator's rows, each column sized to its own labels (Vas | Mms) (John, 19 Nov 2026, on the radiator step: "omg it's so big"; his lead's brief: "the radiator fields in two columns"). */
 const BOX_TYPES = [
-  {box: 'sealed', desktopColumns: 1}, {box: 'vented', desktopColumns: 1}, {box: 'box-passive-radiator', desktopColumns: 1},
-  {box: 'bandpass4', desktopColumns: 2}, {box: 'bandpass6', desktopColumns: 2}, {box: 'abc', desktopColumns: 2},
+  {box: 'sealed', desktopColumns: 1, desktopGaps: 1}, {box: 'vented', desktopColumns: 1, desktopGaps: 1}, {box: 'box-passive-radiator', desktopColumns: 2, desktopGaps: 2},
+  {box: 'bandpass4', desktopColumns: 2, desktopGaps: 1}, {box: 'bandpass6', desktopColumns: 2, desktopGaps: 1}, {box: 'abc', desktopColumns: 2, desktopGaps: 1},
 ] as const;
 const TEST_DRIVER = 'Tang Band W5-1138SMF';
 
@@ -64,7 +65,7 @@ for (const mobile of [false, true]) {
       await page.goto('/');
     });
 
-    for (const {box, desktopColumns} of BOX_TYPES) {
+    for (const {box, desktopColumns, desktopGaps} of BOX_TYPES) {
       test(`${box}: one label column, one control left edge, one control height`, async ({page}) => {
         await toStepFour(page, mobile, box);
         const r = await rows(page, mobile);
@@ -73,12 +74,19 @@ for (const mobile of [false, true]) {
         // Chambers are two side-by-side columns on desktop: each column is one column of its own.
         const columns = new Map<number, Edges[]>();
         for (const e of r) columns.set(Math.round(e.labelLeft), [...(columns.get(Math.round(e.labelLeft)) ?? []), e]);
-        for (const e of r) {
-          const actualLabelGap = e.controlLeft - e.labelLeft;
-          const firstLabelGap = (r[0]?.controlLeft ?? 0) - (r[0]?.labelLeft ?? 0);
-          expect(actualLabelGap, `${e.id}: label-to-control distance ${actualLabelGap.toFixed(1)}px; ${r[0]?.id} is ${firstLabelGap.toFixed(1)}px`).toBeCloseTo(firstLabelGap, 0);
-          expect(e.height, `${e.id}: same height as ${r[0]?.id}`).toBeCloseTo(r[0]?.height ?? 0, 0);
+        // Within a column every label-to-control distance is the column's first row's; every control is one height.
+        for (const column of columns.values()) {
+          const first = column[0]!;
+          for (const e of column) {
+            const actualLabelGap = e.controlLeft - e.labelLeft;
+            const firstLabelGap = first.controlLeft - first.labelLeft;
+            expect(actualLabelGap, `${e.id}: label-to-control distance ${actualLabelGap.toFixed(1)}px; ${first.id} is ${firstLabelGap.toFixed(1)}px`).toBeCloseTo(firstLabelGap, 0);
+          }
         }
+        for (const e of r) expect(e.height, `${e.id}: same height as ${r[0]?.id}`).toBeCloseTo(r[0]?.height ?? 0, 0);
+        // Side-by-side chambers share one distance; only the radiator's second column (short labels) has its own.
+        const gaps = new Set([...columns.values()].map(column => Math.round(column[0]!.controlLeft - column[0]!.labelLeft)));
+        expect(gaps.size, `${box}: label-to-control distances ${[...gaps].join(', ')}`).toBe(mobile ? 1 : desktopGaps);
         expect(columns.size, `${box}: label columns`).toBe(mobile ? 1 : desktopColumns);
       });
 

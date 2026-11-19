@@ -3,7 +3,7 @@
 // Driver -> Num/placement -> Box type + EBP -> Sealed alignment -> Metadata). Uses the SAME
 // useOgNewProject() hook as OriginalNewProject.vue: one wizard implementation, two presentations.
 import { computed, onBeforeUnmount, ref } from 'vue';
-import { NumberField, PhoneLabels, PhoneWizardHelp, PhoneWizardText, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
+import { NumberField, PhoneLabels, PhoneWizardHelp, PhoneWizardText, PlacementChoice, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
@@ -41,6 +41,7 @@ const {
 
   nDrivers,
   placement,
+  placementValue,
 
   boxType,
   BOX_OPTIONS,
@@ -175,9 +176,9 @@ function handleCreate() {
           <UIFixedField class="mob-ui-field" input-id="np-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="PhoneLabels.DRIVERS" :value="nDrivers" @update:value="n => nDrivers = n" />
           <div class="mob-crow">
             <label class="mob-crow-label" for="np-placement">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
-            <select id="np-placement" class="mob-cselect mob-cselect-info" v-model="placement">
-              <option value="standard">{{ PhoneWizardText.PLACEMENT_STANDARD }}</option>
-              <option value="isobaric">{{ PhoneWizardText.PLACEMENT_ISOBARIK }}</option>
+            <!-- The desktop's three drawings as three choices; both Iso-Barik ones give the same Iso-Barik loading. -->
+            <select id="np-placement" class="mob-cselect mob-cselect-info" v-model="placementValue">
+              <option v-for="c in PlacementChoice.ALL" :key="c.value" :value="c.value">{{ c.optionLabel }}</option>
             </select>
             <WizardInfoButton label="About driver placement" @click="openPlacementInfo" />
           </div>

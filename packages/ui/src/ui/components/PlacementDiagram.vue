@@ -6,7 +6,7 @@
  * one behind the other). Display only.
  */
 import {PhoneWizardText} from '@openisd/design/fields';
-import DriverPairArt from './DriverPairArt.vue';
+import PlacementArt from './PlacementArt.vue';
 
 defineProps<{ placement: 'standard' | 'isobaric' }>();
 </script>
@@ -14,28 +14,17 @@ defineProps<{ placement: 'standard' | 'isobaric' }>();
 <template>
   <div v-if="placement === 'standard'" class="pd-pair">
     <figure class="pd-fig" data-testid="placement-single">
-    <svg viewBox="47 45 175 210" height="126" aria-hidden="true">
-      <path d="M160,70 L160,110 M160,190 L160,230" fill="none" stroke="#0F4761" stroke-width="4"/>
-      <path d="M160,110 L130,130 L130,170 L160,190" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
-      <path d="M160,106 L126,136 M160,194 L126,164" fill="none" stroke="#0F4761" stroke-width="2"/>
-      <rect x="108" y="138" width="20" height="24" fill="#0F4761"/>
-    </svg>
+      <PlacementArt art="single" />
       <figcaption>{{ PhoneWizardText.PLACEMENT_STANDARD }}</figcaption>
     </figure>
   </div>
   <div v-else class="pd-pair">
     <figure class="pd-fig" data-testid="placement-clamshell">
-      <svg viewBox="47 45 175 210" height="126" aria-hidden="true">
-        <path d="M160,70 L160,110 M160,190 L160,230" fill="none" stroke="#0F4761" stroke-width="4"/>
-        <DriverPairArt variant="clamshell" :x="160" :y="150" :half="40" :x-scale="1"/>
-      </svg>
+      <PlacementArt art="clamshell" />
       <figcaption>{{ PhoneWizardText.ISOBARIK_CLAMSHELL }}</figcaption>
     </figure>
     <figure class="pd-fig" data-testid="placement-tandem">
-      <svg viewBox="47 45 175 210" height="126" aria-hidden="true">
-        <path d="M160,70 L160,110 M160,190 L160,230" fill="none" stroke="#0F4761" stroke-width="4"/>
-        <DriverPairArt variant="tandem" :x="160" :y="150" :half="40" :x-scale="1"/>
-      </svg>
+      <PlacementArt art="tandem" />
       <figcaption>{{ PhoneWizardText.ISOBARIK_TANDEM }}</figcaption>
     </figure>
   </div>

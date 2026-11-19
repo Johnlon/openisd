@@ -1,10 +1,10 @@
-import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef, watch } from 'vue';
+import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef, watch, type WritableComputedRef } from 'vue';
 // Type-only: the store constructs projects (`newProject()`) and owns the engine instance; this
 // hook only names their shapes, so neither import is a layering edge (QO80).
 import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, defaultProjectName, startingChambersOf, takesChamberTunings, WizardPlan, WizardStep } from '@openisd/design';
 import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
 import { type BoxType, type DriveLoad, type EbpSuitability, type EnvironmentEngine, FixedAir, type PrEngine, type SealedEngine, type VentedAlignment, type VentedEngine } from '@openisd/design/engine';
-import {DEFAULT_ALFAVC_PER_K, DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SEALED_QTC, DEFAULT_SEALED_VOLUME_L, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VC_TEMP_RISE_K, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
+import {DEFAULT_ALFAVC_PER_K, DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SEALED_QTC, DEFAULT_SEALED_VOLUME_L, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VC_TEMP_RISE_K, DEFAULT_VENTED_ALIGNMENT, NumberField, PlacementChoice, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {DUAL_CHAMBER} from './boxFields.js';
 import {useApp} from '../logic/app.js';
 import type {AppState} from '../logic/appState.js';
@@ -92,7 +92,12 @@ export interface OriginalNewProjectAPI {
 
   // Step 2: Driver count & placement
   readonly nDrivers: Ref<number>;
-  readonly placement: Ref<'standard' | 'isobaric'>;
+  /** The project's loading, from the chosen drawing; setting it keeps the chosen Iso-Barik drawing when it stays Iso-Barik. */
+  readonly placement: WritableComputedRef<'standard' | 'isobaric'>;
+  /** Which of the three drawings the user chose (dialog state only: no project field holds clamshell or back to front). */
+  readonly placementChoice: Ref<PlacementChoice>;
+  /** The chosen drawing's radio or dropdown value (PlacementChoice.value), for v-model. */
+  readonly placementValue: WritableComputedRef<string>;
 
   // Step 3: Box type & starting volume (non-sealed types; a sealed box gets its volume from step 4)
   readonly boxType: Ref<BoxType>;
@@ -219,7 +224,18 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const selectedDriver = shallowRef<OpenISDDriver | null>(initialDriver);
 
   const nDrivers = ref(1);
-  const placement = ref<'standard' | 'isobaric'>('standard');
+  const placementChoice = shallowRef<PlacementChoice>(PlacementChoice.STANDARD);
+  const placementValue = computed<string>({
+    get: () => placementChoice.value.value,
+    set: value => { placementChoice.value = PlacementChoice.of(value); },
+  });
+  const placement = computed<'standard' | 'isobaric'>({
+    get: () => placementChoice.value.loading,
+    set: loading => {
+      if (loading === placementChoice.value.loading) return;
+      placementChoice.value = loading === 'standard' ? PlacementChoice.STANDARD : PlacementChoice.CLAMSHELL;
+    },
+  });
 
   const boxType = ref<BoxType>('sealed');
   const BOX_OPTIONS = newProjectBoxTypeOptions();
@@ -638,6 +654,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
     nDrivers,
     placement,
+    placementChoice,
+    placementValue,
 
     boxType,
     BOX_OPTIONS,

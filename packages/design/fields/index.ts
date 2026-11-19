@@ -164,7 +164,7 @@ export { PhoneHeaderSizes } from './phoneHeaderSizes.js';
 export { AppFont, SkinFonts } from './appFonts.js';
 export { type PhoneHelpRow, PhoneHelpRows, type PhoneFilterChip, PHONE_FILTER_CHIPS, PhoneHelpSection, KeyStripText, PhoneLabels, PhoneBoxText, PhoneHelp, PhoneDriverListText, PhonePrBrowserText, PhoneEditorText } from './phoneText.js';
 export { DesktopHelp, DesktopLabels } from './desktopHelp.js';
-export { type EbpBadge, type WizardInfoCard, PhoneWizardText, PhoneWizardHelp } from './phoneWizardText.js';
+export { type EbpBadge, type WizardInfoCard, PhoneWizardText, PhoneWizardHelp, PlacementChoice } from './phoneWizardText.js';
 export { DesktopSizes, PickWidth } from './desktopSizes.js';
 export { SheetMode, type SheetEdits } from './sheetMode.js';
 export { NO_PROJECT_OPEN } from './noProject.js';
