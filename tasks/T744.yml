@@ -233,6 +233,9 @@ files:
   - packages/ui/test/ui/field-visual-contract.browser.spec.ts
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-dimensions.png
   - packages/ui/test/ui/driver-editor-help-overview-clip.browser.spec.ts
+  - CLAUDE.md
+  - packages/design/test/domain/driver-wiring-data-facade.test.ts
+# Merge with main 19 Nov: CLAUDE.md names QO539's unticked option beside QO946.c131's allowance; main's option-default test lists both off options.
 # Desktop and phone graph screens: the charts read the boxes as they show (QO534); phone Driver tab: the blue dot by Re (QO532);
 # both Advanced tabs: the "Chart from Fs, Vas, Qms (WinISD's way)" switch (QO539); every desktop screen: the saved size of a new project (its new switch).
 # Driver editor and radiator dialogs: the blue dots and ≠W cues; other dialogs over a project: its saved size (re-taken by CI after the merge with main, 16 Nov).
