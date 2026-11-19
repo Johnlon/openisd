@@ -165,7 +165,7 @@ function handleCreate() {
                   <WizardInfoButton question label="About driver placement" @click="openPlacementInfo" />
                   <!-- Each drawing is its choice's label, under its radio: a click on it ticks that radio. The chosen one is framed. -->
                   <label v-for="c in PlacementChoice.ALL" :key="`art-${c.value}`" :for="`np-place-${c.value}`" class="np-place-drawing"
-                    :class="{'np-place-on': placementChoice === c}" :data-testid="`placement-${c.art}`" :title="c.optionLabel">
+                    :class="{'np-place-on': placementChoice === c}" :data-testid="`placement-${c.art}`" :title="c.label">
                     <PlacementArt :art="c.art" />
                   </label>
                 </span>

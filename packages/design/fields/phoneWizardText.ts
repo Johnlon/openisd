@@ -21,19 +21,17 @@ export interface WizardInfoCard {
  * The clamshell/back-to-front choice is the dialog's only: no project field holds it until John decides to save it.
  */
 export class PlacementChoice {
-  static readonly STANDARD = new PlacementChoice('standard', 'standard', 'single', 'Standard', 'Standard');
-  static readonly CLAMSHELL = new PlacementChoice('isobaric', 'isobaric', 'clamshell', 'Iso-Barik clamshell', 'Iso-Barik: clamshell (face to face)');
-  static readonly TANDEM = new PlacementChoice('isobaric-tandem', 'isobaric', 'tandem', 'Iso-Barik back to front', 'Iso-Barik: back to front');
+  static readonly STANDARD = new PlacementChoice('standard', 'standard', 'single', 'Standard');
+  static readonly CLAMSHELL = new PlacementChoice('isobaric', 'isobaric', 'clamshell', 'Iso-Barik clamshell');
+  static readonly TANDEM = new PlacementChoice('isobaric-tandem', 'isobaric', 'tandem', 'Iso-Barik back to front');
   static readonly ALL: readonly PlacementChoice[] = Object.freeze([PlacementChoice.STANDARD, PlacementChoice.CLAMSHELL, PlacementChoice.TANDEM]);
 
   private constructor(
     readonly value: string,
     readonly loading: 'standard' | 'isobaric',
     readonly art: 'single' | 'clamshell' | 'tandem',
-    /** The words under the drawing (two short lines on the desktop card). */
+    /** The words of the desktop radio and of the phone's dropdown row (short enough for the phone's dropdown). */
     readonly label: string,
-    /** The words of the phone's dropdown row. */
-    readonly optionLabel: string,
   ) {}
 
   /** The choice a radio or dropdown value names. */

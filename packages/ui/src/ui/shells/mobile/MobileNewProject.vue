@@ -178,7 +178,7 @@ function handleCreate() {
             <label class="mob-crow-label" for="np-placement">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
             <!-- The desktop's three drawings as three choices; both Iso-Barik ones give the same Iso-Barik loading. -->
             <select id="np-placement" class="mob-cselect mob-cselect-info" v-model="placementValue">
-              <option v-for="c in PlacementChoice.ALL" :key="c.value" :value="c.value">{{ c.optionLabel }}</option>
+              <option v-for="c in PlacementChoice.ALL" :key="c.value" :value="c.value">{{ c.label }}</option>
             </select>
             <WizardInfoButton label="About driver placement" @click="openPlacementInfo" />
           </div>
