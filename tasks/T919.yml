@@ -30,6 +30,8 @@ files:
   - packages/ui/src/ui/components/BoxPlacementDiagram.vue
   - packages/ui/src/ui/components/BoxTypeDiagram.vue
   - packages/ui/src/ui/components/DriverPlacementPicture.vue
+  - packages/ui/src/ui/components/BoxPairDrawing.vue
+  - packages/ui/src/ui/components/boxPairContext.ts
   - packages/ui/test/ui/mobile-driver-tab.browser.spec.ts
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-current-info.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-disagreement-list.png
@@ -60,7 +62,64 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-phone-wizard-isobarik-note.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-wizard-placement.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-complete-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-announcements-current.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-cloud-conflict-notice.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-cloud-hint.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-cloud-reconnect-strip.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-cloud-update-strip.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-confirmation.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-crash.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-library-overview.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-abc-losses-front.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-abc-losses-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-bandpass-4th-order-losses-front.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-bandpass-4th-order-losses-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-bandpass-6th-order-losses-front.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-bandpass-6th-order-losses-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-closed-box-losses-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-passive-radiator-losses-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-sealed-alignment.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-tuning-unreachable-warning.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-vented-alignment.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-enclosure-vented-losses-rear.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-help-announcements.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-help-diagnostics.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-navigation-info-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-projects-close-unsaved.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-projects-export-formats.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-projects-library-actions.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-projects-new-passive-radiator-pick-error.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-projects-new-vented-volume-warning.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-results-charts-choose.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-chart-readout.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-driver-delete-challenge-warning.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-driver-library-broken-entry.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-driver-type-help.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-feedback-dialog.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-flash-message.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-graph-context-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-wizard-ebp-info.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
 visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-complete-project
+  - desktop-dialog-announcements-current
+  - desktop-dialog-cloud-conflict-notice
+  - desktop-dialog-cloud-hint
+  - desktop-dialog-cloud-reconnect-strip
+  - desktop-dialog-cloud-update-strip
+  - desktop-dialog-confirmation
+  - desktop-dialog-crash
   - desktop-dialog-driver-current-info
   - desktop-dialog-driver-disagreement-list
   - desktop-dialog-driver-editor-advanced
@@ -78,13 +137,44 @@ visual:
   - desktop-dialog-driver-editor-parameters
   - desktop-dialog-driver-export-format
   - desktop-dialog-driver-identity-message
+  - desktop-dialog-driver-library-overview
   - desktop-dialog-driver-library-save
   - desktop-dialog-driver-project-select
+  - desktop-dialog-enclosure-abc-losses-front
+  - desktop-dialog-enclosure-abc-losses-rear
+  - desktop-dialog-enclosure-bandpass-4th-order-losses-front
+  - desktop-dialog-enclosure-bandpass-4th-order-losses-rear
+  - desktop-dialog-enclosure-bandpass-6th-order-losses-front
+  - desktop-dialog-enclosure-bandpass-6th-order-losses-rear
+  - desktop-dialog-enclosure-closed-box-losses-rear
+  - desktop-dialog-enclosure-passive-radiator-losses-rear
+  - desktop-dialog-enclosure-sealed-alignment
+  - desktop-dialog-enclosure-tuning-unreachable-warning
+  - desktop-dialog-enclosure-vented-alignment
+  - desktop-dialog-enclosure-vented-losses-rear
   - desktop-dialog-equation-inspector
+  - desktop-dialog-help-announcements
+  - desktop-dialog-help-diagnostics
+  - desktop-dialog-navigation-info-menu
+  - desktop-dialog-projects-close-unsaved
+  - desktop-dialog-projects-export-formats
+  - desktop-dialog-projects-library-actions
+  - desktop-dialog-projects-new-passive-radiator-pick-error
+  - desktop-dialog-projects-new-vented-volume-warning
+  - desktop-dialog-results-charts-choose
+  - desktop-dialog-shared-chart-readout
+  - desktop-dialog-shared-driver-delete-challenge-warning
   - desktop-dialog-shared-driver-editor-incomplete-warning
+  - desktop-dialog-shared-driver-library-broken-entry
+  - desktop-dialog-shared-driver-type-help
+  - desktop-dialog-shared-feedback-dialog
+  - desktop-dialog-shared-flash-message
   - desktop-dialog-shared-graph-blocked-message
+  - desktop-dialog-shared-graph-context-menu
   - desktop-dialog-shared-graph-warning-pill
+  - desktop-dialog-wizard-ebp-info
   - desktop-dialog-wizard-placement-info
+  - desktop-tab-box
   - desktop-tab-driver
   - desktop-wizard-sealed-step2
   - mobile-dialog-phone-wizard-isobarik-note
