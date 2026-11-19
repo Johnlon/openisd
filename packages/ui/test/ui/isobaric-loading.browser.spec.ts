@@ -14,6 +14,14 @@ const TEST_DRIVER = 'Tang Band W5-1138SMF';
 const PICTURES = process.env['ISOBARIC_PICTURES'];
 
 async function picture(page: Page, name: string): Promise<void> {
+  // Nothing in the way and nothing mid-fade: the "Project imported" toast gone, the desktop nav's 0.2 s highlight fade finished
+  // (a picture taken inside that fade shows the old tab lit beside the new tab's content).
+  await expect(page.locator('.flash')).toHaveCount(0, {timeout: 20000});
+  const nav = page.locator('.project-nav li.active');
+  if (await nav.count() > 0) {
+    await expect(nav).toHaveCSS('background-color', 'rgb(207, 228, 247)');
+    await expect(page.locator('.project-nav li:not(.active)').first()).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  }
   if (PICTURES !== undefined) await page.screenshot({path: `${PICTURES}/${name}.png`, fullPage: false});
 }
 
@@ -150,6 +158,7 @@ for (const shell of [DESKTOP, PHONE]) {
       await picture(page, `${shell.name}-3-after-driver-isobaric`);
 
       await openTab(page, 'Box');
+      await expect(page.locator('.project-nav li.active, .mob-tab.active')).toHaveText('Box');
       // The Box tab draws the box with the pair in it, both ways.
       await expect(page.getByTestId('box-clamshell')).toBeVisible();
       await expect(page.getByTestId('box-tandem')).toBeVisible();

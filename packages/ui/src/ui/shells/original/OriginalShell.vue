@@ -1291,13 +1291,13 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* The field span is fixed at the WIDEST box layout (the dual-chamber types: two field
    columns + the gap), so the diagram column starts at the same x for every box type
    instead of being pushed to the far right whenever the fields need less room. */
-.box-tab-row { display:flex; gap:24px; align-items:flex-start; min-height:100%; --box-col-w:302px; --box-col-gap:24px; }
+.box-tab-row { display:flex; gap:12px; align-items:flex-start; min-height:100%; --box-col-w:302px; --box-col-gap:24px; }
 .box-tab-row .field-row { margin-bottom: 4px; }
 .box-tab-row .section-header { margin-bottom: 4px; padding: 2px 8px; }
 .box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }
 /* Width tracks the diagrams' own scale (each SVG height is 0.7 of its drawn size), so the
    column stays snug around the widest cut-through rather than padding it with slack. */
-.box-diagram-col { --bpd-h: 66px; flex:none; width:119px; display:flex; align-items:flex-start; justify-content:center; }
+.box-diagram-col { --bpd-h: 112px; flex:none; width:150px; display:flex; align-items:flex-start; justify-content:center; }
 /* Third span, right of the diagram. Text WRAPS rather than overflowing, so unlike the
    fixed-width control columns this one may shrink without reintroducing the overlap. */
 /* The fields column sets the row height; this column follows it (size containment keeps its text

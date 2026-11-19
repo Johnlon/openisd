@@ -9,11 +9,21 @@ import type {BoxType} from '@openisd/design/engine';
 import DriverPairArt from './DriverPairArt.vue';
 
 /** `variant`: one driver, or the Iso-Barik pair drawn face to face (clamshell) or one behind the other (tandem). */
-defineProps<{ boxType: BoxType; variant: 'single' | 'clamshell' | 'tandem' }>();
+const props = defineProps<{ boxType: BoxType; variant: 'single' | 'clamshell' | 'tandem'; idSuffix: string }>();
+
+/**
+ * The static id and viewBox stay for the single drawing. In an Iso-Barik pair the box is drawn twice on one page: the cut-through is
+ * cropped to the box and its driver (the margins are empty) so two fit side by side, and the second drawing gets a suffixed id
+ * (no repeated ids in the page).
+ */
+function overrides(id: string, pairViewBox: string): {id?: string; viewBox?: string} {
+  if (props.variant === 'single') return {};
+  return props.idSuffix === '' ? {viewBox: pairViewBox} : {id: `${id}${props.idSuffix}`, viewBox: pairViewBox};
+}
 </script>
 
 <template>
-  <svg v-show="boxType === 'sealed'" id="og-box-diagram-sealed" viewBox="0 30 200 240" height="126">
+  <svg v-show="boxType === 'sealed'" id="og-box-diagram-sealed" viewBox="0 30 200 240" height="126" v-bind="overrides('og-box-diagram-sealed', '30 30 150 240')">
     <polyline points="160,40 40,40 40,260 160,260" fill="none" stroke="#0F4761" stroke-width="4"/>
     <line x1="160" y1="40" x2="160" y2="110" stroke="#0F4761" stroke-width="4"/>
     <line x1="160" y1="190" x2="160" y2="260" stroke="#0F4761" stroke-width="4"/>
@@ -23,7 +33,7 @@ defineProps<{ boxType: BoxType; variant: 'single' | 'clamshell' | 'tandem' }>();
     </template>
     <DriverPairArt v-else :variant="variant" :x="160" :y="150" :half="40" :x-scale="variant === 'clamshell' ? 0.6 : 0.45"/>
   </svg>
-  <svg v-show="boxType === 'vented'" id="og-box-diagram-vented" viewBox="0 30 200 240" height="126">
+  <svg v-show="boxType === 'vented'" id="og-box-diagram-vented" viewBox="0 30 200 240" height="126" v-bind="overrides('og-box-diagram-vented', '30 30 150 240')">
     <polyline points="160,40 40,40 40,260 160,260" fill="none" stroke="#0F4761" stroke-width="4"/>
     <line x1="160" y1="40" x2="160" y2="70" stroke="#0F4761" stroke-width="4"/>
     <line x1="160" y1="150" x2="160" y2="200" stroke="#0F4761" stroke-width="4"/>
@@ -36,7 +46,7 @@ defineProps<{ boxType: BoxType; variant: 'single' | 'clamshell' | 'tandem' }>();
     </template>
     <DriverPairArt v-else :variant="variant" :x="160" :y="110" :half="40" :x-scale="variant === 'clamshell' ? 0.6 : 0.45"/>
   </svg>
-  <svg v-show="boxType === 'box-passive-radiator'" id="og-box-diagram-passive-radiator" viewBox="0 30 200 240" height="126">
+  <svg v-show="boxType === 'box-passive-radiator'" id="og-box-diagram-passive-radiator" viewBox="0 30 200 240" height="126" v-bind="overrides('og-box-diagram-passive-radiator', '30 30 150 240')">
     <polyline points="160,40 40,40 40,260 160,260" fill="none" stroke="#0F4761" stroke-width="4"/>
     <line x1="160" y1="40" x2="160" y2="60" stroke="#0F4761" stroke-width="4"/>
     <line x1="160" y1="130" x2="160" y2="170" stroke="#0F4761" stroke-width="4"/>
@@ -48,7 +58,7 @@ defineProps<{ boxType: BoxType; variant: 'single' | 'clamshell' | 'tandem' }>();
     <DriverPairArt v-else :variant="variant" :x="160" :y="95" :half="35" :x-scale="variant === 'clamshell' ? 0.6 : 0.45"/>
     <path d="M160,170 L130,185 L130,225 L160,240" fill="#A0B8C6" stroke="#0F4761" stroke-width="3"/>
   </svg>
-  <svg v-show="boxType === 'bandpass4'" id="og-box-diagram-bandpass4" viewBox="0 30 200 240" height="126">
+  <svg v-show="boxType === 'bandpass4'" id="og-box-diagram-bandpass4" viewBox="0 30 200 240" height="126" v-bind="overrides('og-box-diagram-bandpass4', '30 30 150 240')">
     <polyline points="160,200 160,40 40,40 40,260 160,260 160,230" fill="none" stroke="#0F4761" stroke-width="4"/>
     <line x1="100" y1="40" x2="100" y2="110" stroke="#0F4761" stroke-width="4"/>
     <line x1="100" y1="190" x2="100" y2="260" stroke="#0F4761" stroke-width="4"/>
@@ -60,7 +70,7 @@ defineProps<{ boxType: BoxType; variant: 'single' | 'clamshell' | 'tandem' }>();
     </template>
     <DriverPairArt v-else :variant="variant" :x="100" :y="150" :half="40" :x-scale="variant === 'clamshell' ? 0.6 : 0.45"/>
   </svg>
-  <svg v-show="boxType === 'bandpass6'" id="og-box-diagram-bandpass6" viewBox="0 30 200 240" height="126">
+  <svg v-show="boxType === 'bandpass6'" id="og-box-diagram-bandpass6" viewBox="0 30 200 240" height="126" v-bind="overrides('og-box-diagram-bandpass6', '30 30 150 240')">
     <line x1="40" y1="40" x2="160" y2="40" stroke="#0F4761" stroke-width="4"/>
     <line x1="40" y1="260" x2="160" y2="260" stroke="#0F4761" stroke-width="4"/>
     <line x1="160" y1="40" x2="160" y2="200" stroke="#0F4761" stroke-width="4"/>
@@ -79,7 +89,7 @@ defineProps<{ boxType: BoxType; variant: 'single' | 'clamshell' | 'tandem' }>();
     </template>
     <DriverPairArt v-else :variant="variant" :x="100" :y="150" :half="40" :x-scale="variant === 'clamshell' ? 0.6 : 0.45"/>
   </svg>
-  <svg v-show="boxType === 'abc'" id="og-box-diagram-abc" viewBox="0 15 200 270" height="126">
+  <svg v-show="boxType === 'abc'" id="og-box-diagram-abc" viewBox="0 15 200 270" height="126" v-bind="overrides('og-box-diagram-abc', '30 15 150 270')">
     <path d="M 100,20 L 100,140 M 75,140 L 125,140 M 100,180 L 100,280 M 75,180 L 125,180" fill="none" stroke="#0F4761" stroke-width="4"/>
     <path d="M 100,20 L 40,20 L 40,70 L 80,70" fill="none" stroke="#0F4761" stroke-width="4" stroke-linejoin="miter"/>
     <path d="M 80,100 L 40,100 L 40,280 L 100,280" fill="none" stroke="#0F4761" stroke-width="4" stroke-linejoin="miter"/>

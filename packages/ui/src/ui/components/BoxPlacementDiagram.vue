@@ -12,14 +12,14 @@ defineProps<{ boxType: BoxType; loading: 'standard' | 'isobaric' }>();
 </script>
 
 <template>
-  <BoxTypeDiagram v-if="loading === 'standard'" :box-type="boxType" variant="single" />
+  <BoxTypeDiagram v-if="loading === 'standard'" :box-type="boxType" variant="single" id-suffix="" />
   <div v-else class="bpd-pair" data-testid="box-placement-pair">
     <figure class="bpd-fig" data-testid="box-clamshell">
-      <BoxTypeDiagram :box-type="boxType" variant="clamshell" />
+      <BoxTypeDiagram :box-type="boxType" variant="clamshell" id-suffix="" />
       <figcaption>{{ PhoneWizardText.ISOBARIK_CLAMSHELL }}</figcaption>
     </figure>
     <figure class="bpd-fig" data-testid="box-tandem">
-      <BoxTypeDiagram :box-type="boxType" variant="tandem" />
+      <BoxTypeDiagram :box-type="boxType" variant="tandem" id-suffix="-tandem" />
       <figcaption>{{ PhoneWizardText.ISOBARIK_TANDEM }}</figcaption>
     </figure>
   </div>
