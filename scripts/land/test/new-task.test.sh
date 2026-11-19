@@ -76,4 +76,25 @@ out5="$(bash scripts/new-task.sh erin 2>&1)"; r=$?
   && [ "$(ls -d "$SCRATCH"/openisd-t* | wc -l)" = "$before" ] && [ "$(git branch --list 't*' | wc -l)" = "$brbefore" ] \
   && ok "refuses without the ship remote, names the git remote add, claims nothing" || fail "no ship remote (r=$r): $out5"
 
+# A hard-linked node_modules that does not match the new worktree's package-lock.json gets npm ci (stub npm in PATH);
+# one that matches does not. Optional packages absent on this platform do not count as stale.
+git remote add portingle "$SCRATCH/portingle.git"
+mkdir -p "$SCRATCH/bin" node_modules/a
+printf '#!/bin/sh\necho "npm $*" >> "%s/npm.calls"\n' "$SCRATCH" > "$SCRATCH/bin/npm"; chmod +x "$SCRATCH/bin/npm"
+lock() { printf '{"packages":{"":{},"node_modules/a":{"version":"1.0.0"},"node_modules/b":{"version":"%s"},"node_modules/opt":{"version":"1.0.0","optional":true}}}' "$1"; }
+inst() { printf '{"packages":{"node_modules/a":{"version":"1.0.0"},"node_modules/b":{"version":"%s"}}}' "$1" > node_modules/.package-lock.json; }
+lock 2.0.0 > package-lock.json; inst 2.0.0
+git add package-lock.json; git commit -qm lock; git push -q origin main   # node_modules is untracked: the main checkout's own
+: > "$SCRATCH/npm.calls"
+out6="$(PATH="$SCRATCH/bin:$PATH" bash scripts/new-task.sh gina 2>&1)"
+[ ! -s "$SCRATCH/npm.calls" ] && ok "matching node_modules: no npm ci" || fail "npm ran for a matching node_modules: $(cat "$SCRATCH/npm.calls")"
+inst 1.0.0   # now older than the lockfile
+out7="$(PATH="$SCRATCH/bin:$PATH" bash scripts/new-task.sh hal 2>&1)"
+grep -q '^npm ci' "$SCRATCH/npm.calls" && ok "stale node_modules: npm ci ran" || fail "npm ci did not run for a stale node_modules: $out7"
+[ "$(wc -l < "$SCRATCH/npm.calls")" = 1 ] && ok "npm ci ran once" || fail "npm calls: $(cat "$SCRATCH/npm.calls")"
+printf '{"packages":{"node_modules/a":{"version":"1.0.0"}}}' > node_modules/.package-lock.json   # lz-string case: a package missing
+: > "$SCRATCH/npm.calls"
+PATH="$SCRATCH/bin:$PATH" bash scripts/new-task.sh ivy > /dev/null 2>&1
+grep -q '^npm ci' "$SCRATCH/npm.calls" && ok "missing package: npm ci ran" || fail "npm ci did not run for a missing package"
+
 [ "$fails" -eq 0 ] && echo "new-task.test: all passed" || { echo "new-task.test: $fails failed"; exit 1; }
