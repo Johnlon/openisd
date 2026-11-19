@@ -8,6 +8,7 @@ import {
   type SnapDirection, type SnapExtremum, snapFrequency, TAB_META,
 } from '@openisd/design/chart';
 import type {ChartId, DriverError} from '@openisd/design/engine';
+import {blockedChartFixLine} from '@openisd/design/fields';
 
 export interface GraphPanelProps {
   chartId: ChartId;
@@ -25,6 +26,8 @@ export interface GraphPanelAPI {
   readonly plotData: Readonly<Ref<PlotData | null>>;
   readonly blockErrors: Readonly<Ref<DriverError[]>>;
   readonly blocked: Readonly<Ref<boolean>>;
+  /** The line under a blocked chart's reason that names the field(s) to fix; the phone adds each field's tab. */
+  blockFixLine(onPhone: boolean): string;
   readonly warnings: Readonly<Ref<DriverError[]>>;
   readonly warningsDismissed: Readonly<Ref<boolean>>;
   /** The plot as drawn: `plotData` with this chart's Y-axis override applied, when it has one. */
@@ -178,6 +181,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     plotData,
     blockErrors,
     blocked,
+    blockFixLine: (onPhone: boolean) => blockedChartFixLine(blockErrors.value.map(e => e.field), onPhone),
     warnings,
     warningsDismissed,
     viewPlot,

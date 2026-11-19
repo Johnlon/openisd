@@ -158,6 +158,7 @@ export { SheetSizes } from './sheetSizes.js';
 export { ChartPageSizes, type ChartPageSizesValues } from './chartPageSizes.js';
 export { ChartPageHelp } from './chartPageText.js';
 export { CHART_HELP } from './chartHelpText.js';
+export { blockedChartFixLine, type FieldPlace } from './chartBlockText.js';
 export { PhoneRowColumns, PhoneRowSizes } from './phoneRowSizes.js';
 export { PhoneHeaderSizes } from './phoneHeaderSizes.js';
 export { AppFont, SkinFonts } from './appFonts.js';
