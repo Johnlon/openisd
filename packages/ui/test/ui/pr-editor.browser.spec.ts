@@ -108,6 +108,20 @@ function suite(skin: 'desktop' | 'phone') {
     await expectProjectName(page, new RegExp(LOADED));
   });
 
+  // Clipping is a bug (John, 5 Nov 2026): with the blue dot's wider label column (QO532) the right-hand column's steppers
+  // (Sd, Xmax) ran past the desktop dialog's edge at the visual picture's 1880 x 1000. The phone editor is one full-width column.
+  if (skin === 'desktop') test('every figure\'s box, unit and steppers lie inside the editor at 1880 x 1000', async ({appPage: page}) => {
+    await page.setViewportSize({width: 1880, height: 1000});
+    const editor = await openEditor(page);
+    const right = await editor.locator('.prd-fields').evaluate(el => el.getBoundingClientRect().right);
+    for (const f of FIGURES) {
+      const row = editor.locator('.prd-fig', {has: page.locator(`#pr-editor-${f}`)});
+      const ends = await row.evaluate(el => Array.from(el.querySelectorAll('*')).map(c => c.getBoundingClientRect().right));
+      expect(Math.max(...ends), f).toBeLessThanOrEqual(right + 0.5);
+    }
+    await editor.getByRole('button', {name: 'Cancel', exact: true}).click();
+  });
+
   test('the editor holds every radiator figure and the name, the driver editor\'s buttons, and no build choice', async ({appPage: page}) => {
     const editor = await openEditor(page);
     await expect(editor.getByRole('tab', {name: 'Parameters'})).toHaveAttribute('aria-selected', 'true');
