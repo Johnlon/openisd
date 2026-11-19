@@ -58,9 +58,10 @@ const shortName = (): string => PHONE_FILTER_CHIPS.find(c => c.type === f.type)?
 </template>
 
 <style scoped>
-.mob-fcard { margin: 8px 8px 0; border: 1px solid #b9c7dd; border-radius: 6px; background: #fff; overflow: hidden; }
-.mob-fcard-head { display: flex; align-items: center; min-height: 48px; background: #e8effa; }
-.mob-fcard-shut .mob-fcard-head { background: #f3f6fb; }
+.mob-fcard { margin: 8px 8px 0; border: 1px solid #b9c7dd; border-radius: 6px; background: #fff; }
+/* No overflow:hidden on the card: a field's note is a popup that hangs below its row and the card cut it off ("running off the edge is bad"). The head keeps the rounded corners itself. */
+.mob-fcard-head { display: flex; align-items: center; min-height: 48px; background: #e8effa; border-radius: 5px 5px 0 0; }
+.mob-fcard-shut .mob-fcard-head { background: #f3f6fb; border-radius: 5px; }
 .mob-fcard-tick { flex: none; width: 40px; align-self: stretch; display: grid; place-items: center; cursor: pointer; }
 .mob-fcard-tick input { width: 20px; height: 20px; margin: 0; }
 .mob-fcard-fold { flex: 1 1 auto; min-width: 0; align-self: stretch; display: flex; align-items: center; gap: 8px; padding: 4px 0; border: none; background: none; font: inherit; font-size: 14px; color: #222; text-align: left; cursor: pointer; }

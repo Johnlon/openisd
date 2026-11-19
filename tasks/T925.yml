@@ -1,0 +1,18 @@
+id: T925
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+goal: 'Fix two phone clipping bugs: a filter card cut off its refusal note, and the Choose alignment sheet cut the label Alignment to Alignmer'
+why: 'Clipping is always a bug (John, 5 Nov 2026: running of the edge is bad why are you asking me)'
+done_test: bash scripts/quiet-test.sh npm run typecheck
+visual:
+  - mobile-dialog-sealed-alignment
+visual_note: On the phone Choose sealed alignment sheet the label column is now wide enough for Alignment, so the label is whole and the select is a little narrower.
+note: 'Root causes: MobileFilterCard.vue had overflow hidden on the card, cutting the note popup; phoneLabelColumn.ts measured only .ui-field labels and .mob-crow-label, not .mob-row-label, so the sheet column was sized to Volume. New browser spec mobile-popups-not-clipped.browser.spec.ts.'
+files:
+  - tasks/T925.yml
+  - packages/ui/src/hooks/phoneLabelColumn.ts
+  - packages/ui/src/ui/shells/mobile/MobileFilterCard.vue
+  - packages/ui/test/ui/mobile-popups-not-clipped.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-sealed-alignment.png
