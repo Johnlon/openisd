@@ -1,5 +1,19 @@
 const ANNOUNCEMENTS = [
   {
+    id: 'openisd-7.0.961',
+    version: '7.0.961',
+    published: '2026-11-19',
+    title: 'Tell us what you think',
+    summary: 'Send feedback in one tap, and Cloud sync now carries unsaved edits too.',
+    body: [
+      'Send feedback from the Info menu: one tap on a face, an optional comment.',
+      'Cloud sync sends the whole project, unsaved edits included.',
+      "Number boxes refuse impossible values and say why; charts say why they can't draw.",
+      'The Box tab and the alignment pickers count the number of drivers, as WinISD.',
+    ],
+    href: 'https://openisd.app/',
+  },
+  {
     id: 'openisd-7.0.960',
     version: '7.0.960',
     published: '2026-11-17',
