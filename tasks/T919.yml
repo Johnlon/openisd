@@ -155,6 +155,24 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step4.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step3.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step1.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step5.png
 visual:
   - desktop-box-abc
   - desktop-box-bandpass4
@@ -226,7 +244,25 @@ visual:
   - desktop-dialog-wizard-placement-info
   - desktop-tab-box
   - desktop-tab-driver
+  - desktop-wizard-abc-step3
+  - desktop-wizard-abc-step4
+  - desktop-wizard-abc-step5
+  - desktop-wizard-bandpass4-step3
+  - desktop-wizard-bandpass4-step4
+  - desktop-wizard-bandpass4-step5
+  - desktop-wizard-bandpass6-step3
+  - desktop-wizard-bandpass6-step4
+  - desktop-wizard-bandpass6-step5
+  - desktop-wizard-box-passive-radiator-step3
+  - desktop-wizard-box-passive-radiator-step4
+  - desktop-wizard-sealed-step1
   - desktop-wizard-sealed-step2
+  - desktop-wizard-sealed-step3
+  - desktop-wizard-sealed-step4
+  - desktop-wizard-sealed-step5
+  - desktop-wizard-vented-step3
+  - desktop-wizard-vented-step4
+  - desktop-wizard-vented-step5
   - mobile-complete-project
   - mobile-dialog-announcements-current
   - mobile-dialog-confirmation
