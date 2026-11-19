@@ -776,6 +776,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     d => openCharts.value.some(id => d.cueShownOnChart(errorSwitches.value, id))) : []);
   /** The passive-radiator Npr cue by the radiator count, at any count (`WinisdDeviation` cue rule). */
   const prNprDeviationShown = computed(() => projectOpen.value && WinisdDeviation.PR_NPR_RESONANCE.cueShown(errorSwitches.value));
+  /** The coil coefficient cue by the project's AlfaVC, where the driver's own AlfaVC changes the sums (QO953.c16). */
+  const projectAlfaVCDeviationShown = computed(() => projectOpen.value && WinisdDeviation.PROJECT_ALFAVC.cueShown(errorSwitches.value));
   /** "Simplified ABC intra-port velocity" acts on the open box. */
   const abcVelocityApplies = computed(() => {
     void projectChanged.value;
@@ -842,7 +844,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     genOn, toggleGenerate, genHz, setCompatSwitch: compatSwitchSetter(featureUse),
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel, ...desktopHelp,
-    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, abcVelocityApplies, oneDriverImpedanceApplies, errorSwitches, chartDeviations, prNprDeviationShown,
+    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, abcVelocityApplies, oneDriverImpedanceApplies, errorSwitches, chartDeviations, prNprDeviationShown, projectAlfaVCDeviationShown,
      boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,

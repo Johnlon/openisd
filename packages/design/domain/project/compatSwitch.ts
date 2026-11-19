@@ -28,6 +28,7 @@ export class CompatSwitch {
     static readonly SEALED_PICKER = new CompatSwitch(ToggleField.ADV_WINISDSEALEDPICKER, 'bug', false, p => p.winisdSealedPicker);
     static readonly TL_PORT_END_CORRECTION = new CompatSwitch(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'bug', false, p => p.winisdTlPortNoEndCorrection);
     static readonly COIL_WIRING_RE_BL_ONLY = new CompatSwitch(ToggleField.ADV_WINISDCOILWIRINGREBLONLY, 'bug', false, p => p.winisdCoilWiringReBlOnly);
+    static readonly PROJECT_ALFAVC = new CompatSwitch(ToggleField.ADV_WINISDPROJECTALFAVC, 'bug', false, p => p.winisdProjectAlfaVC);
 
     static readonly WRAP_PHASE = new CompatSwitch(ToggleField.ADV_WINISDWRAPPHASE, 'option', true, p => p.winisdWrapPhase);
     static readonly FLAT_MODEL = new CompatSwitch(ToggleField.ADV_WINISDFLATMODEL, 'option', true, p => p.winisdFlatModel);

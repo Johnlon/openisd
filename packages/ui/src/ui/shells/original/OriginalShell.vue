@@ -68,7 +68,7 @@ const {
   showEnclosureTab, enclosureNavLabel,
   helpPanel, closeHelp, openSectionHelp, openTabHelp, tabHelpShown, rearChamberHelp, frontChamberHelp, passiveRadiatorHelp, userOptionsHelp,
   placementHelp, advancedOptionsHelp, listeningPlaceHelp, signalSourceHelp, limitsHelp, ventHelp,
-  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, abcVelocityApplies, oneDriverImpedanceApplies, errorSwitches, chartDeviations, prNprDeviationShown,
+  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, abcVelocityApplies, oneDriverImpedanceApplies, errorSwitches, chartDeviations, prNprDeviationShown, projectAlfaVCDeviationShown,
   boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -484,7 +484,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div class="driver-advanced-fields">
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_VCTEMPRISE_K" :value="project.vcTempRise_K.value" @update:value="v => project.vcTempRise_K.set(v)" /></div>
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_ADDEDMASS_G" :value="project.driverAddedMass_kg.value" @update:value="v => project.driverAddedMass_kg.set(v)" /></div>
-                  <div class="field-row"><UIFixedField class="field" :field="NumberField.ALFAVC_PER_K" :value="project.alfaVC_per_K.value" @update:value="v => project.alfaVC_per_K.set(v)" /></div>
+                  <div class="field-row"><UIFixedField class="field" :field="NumberField.ALFAVC_PER_K" :value="project.alfaVC_per_K.value" @update:value="v => project.alfaVC_per_K.set(v)" :deviation="projectAlfaVCDeviationShown ? WinisdDeviation.PROJECT_ALFAVC : undefined" /></div>
                 </div>
 
               </div>
@@ -696,6 +696,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <div>
                     <ErrorSwitch as="label" field-key="winisdCoilWiringReBlOnly" style="font-size: 12px;" :marked="errorSwitches.coilWiringReBlOnly.marked" :applicable="errorSwitches.coilWiringReBlOnly.applicable" :reproduces-error="errorSwitches.coilWiringReBlOnly.reproducesError" :title="ToggleField.ADV_WINISDCOILWIRINGREBLONLY.description">
                       <input type="checkbox" :checked="project.winisdCoilWiringReBlOnly.value" :disabled="!errorSwitches.coilWiringReBlOnly.applicable" @change="e => setCompatSwitch(project.winisdCoilWiringReBlOnly, inputChecked(e))"> {{ ToggleField.ADV_WINISDCOILWIRINGREBLONLY.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdProjectAlfaVC" style="font-size: 12px;" :marked="errorSwitches.projectAlfaVC.marked" :applicable="errorSwitches.projectAlfaVC.applicable" :reproduces-error="errorSwitches.projectAlfaVC.reproducesError" :title="ToggleField.ADV_WINISDPROJECTALFAVC.description">
+                      <input type="checkbox" :checked="project.winisdProjectAlfaVC.value" :disabled="!errorSwitches.projectAlfaVC.applicable" @change="e => setCompatSwitch(project.winisdProjectAlfaVC, inputChecked(e))"> {{ ToggleField.ADV_WINISDPROJECTALFAVC.label }}
                     </ErrorSwitch>
                   </div>
                   <div>

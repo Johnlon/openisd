@@ -87,6 +87,9 @@ const {
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdCoilWiringReBlOnly" :marked="errorSwitches.coilWiringReBlOnly.marked" :applicable="errorSwitches.coilWiringReBlOnly.applicable" :reproduces-error="errorSwitches.coilWiringReBlOnly.reproducesError" :title="ToggleField.ADV_WINISDCOILWIRINGREBLONLY.description">
         <input type="checkbox" :checked="project.winisdCoilWiringReBlOnly.value" :disabled="!errorSwitches.coilWiringReBlOnly.applicable" @change="e => setCompatSwitch(project.winisdCoilWiringReBlOnly, inputChecked(e))"> {{ ToggleField.ADV_WINISDCOILWIRINGREBLONLY.label }}
       </ErrorSwitch>
+      <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdProjectAlfaVC" :marked="errorSwitches.projectAlfaVC.marked" :applicable="errorSwitches.projectAlfaVC.applicable" :reproduces-error="errorSwitches.projectAlfaVC.reproducesError" :title="ToggleField.ADV_WINISDPROJECTALFAVC.description">
+        <input type="checkbox" :checked="project.winisdProjectAlfaVC.value" :disabled="!errorSwitches.projectAlfaVC.applicable" @change="e => setCompatSwitch(project.winisdProjectAlfaVC, inputChecked(e))"> {{ ToggleField.ADV_WINISDPROJECTALFAVC.label }}
+      </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdTlPortNoEndCorrection" :marked="errorSwitches.tlPortEndCorrection.marked" :applicable="errorSwitches.tlPortEndCorrection.applicable" :reproduces-error="errorSwitches.tlPortEndCorrection.reproducesError" :title="ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.description">
         <input type="checkbox" :checked="project.winisdTlPortNoEndCorrection.value" :disabled="!errorSwitches.tlPortEndCorrection.applicable" @change="e => setCompatSwitch(project.winisdTlPortNoEndCorrection, inputChecked(e))"> {{ ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.label }}
       </ErrorSwitch>

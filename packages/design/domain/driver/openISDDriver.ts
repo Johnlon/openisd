@@ -213,8 +213,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     }
 
     /** Qts as `load` drives it on the Box tab: the source resistance `load.Rs_ohm` and the hot voice coil's extra
-     *  resistance (the project's `alfaVC_per_K` and `vcTempRise_K`) folded into Qes. The bare Qts when Qms/Qes/Re
-     *  cannot be resolved; null when Qts cannot. */
+     *  resistance (`load.alfaVC_per_K`, chosen by `coilAlfaVC_per_K`, and the project's `vcTempRise_K`) folded into
+     *  Qes. The bare Qts when Qms/Qes/Re cannot be resolved; null when Qts cannot. */
     heatedSourceLoadedQts(load: DriveLoad): number | null {
         const ts = this.specs;
         const Qts = ts.Qts.value;
@@ -222,6 +222,13 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return this.engine.driver.heatedSourceLoadedQts(
             ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.solverParams().Re_terminal_ohm.value ?? NaN,
             load.Rs_ohm, load.alfaVC_per_K, load.vcTempRise_K, Qts);
+    }
+
+    /** The voice-coil temperature coefficient a project heats this driver's Re with: this driver's own `alfaVC_per_K`
+     *  when stated and not 0, else `projectAlfaVC_per_K`; the project's only with `winisdProjectAlfaVC` (QO953.c16,
+     *  `Engine.driver.coilAlfaVC_per_K`). */
+    coilAlfaVC_per_K(projectAlfaVC_per_K: number, winisdProjectAlfaVC: boolean): number {
+        return this.engine.driver.coilAlfaVC_per_K(this.specs.alfaVC_per_K.value, projectAlfaVC_per_K, winisdProjectAlfaVC);
     }
 
     /** Efficiency bandwidth product, Fs/Qes. Null without Fs or Qes, or for Qes = 0. */

@@ -373,6 +373,7 @@ export class PhoneHelp {
     bugLine(ToggleField.ADV_WINISDABCGROUPDELAY, 'WinISD\'s ABC group delay leaves the driver out, so it disagrees with its own phase chart. OpenISD includes it. Tick for WinISD\'s.', WinisdDeviation.ABC_GROUP_DELAY),
     bugLine(ToggleField.ADV_WINISDSEALEDPICKER, 'WinISD\'s sealed picker gives a volume for your Qtc, but the Box tab then shows a different one (0.800 picked, 0.787 shown). OpenISD\'s picker matches the Box tab. Tick for WinISD\'s.', WinisdDeviation.SEALED_PICKER),
     bugLine(ToggleField.ADV_WINISDCOILWIRINGREBLONLY, 'WinISD converts only Re and BL when you rewire a multi-coil driver, so Le stays wrong (1.5 mH, should be 0.375 mH). OpenISD converts all. Tick for WinISD\'s.', WinisdDeviation.COIL_WIRING_RE_BL_ONLY),
+    bugLine(ToggleField.ADV_WINISDPROJECTALFAVC, 'WinISD heats the coil with the project\'s AlfaVC only and ignores the driver\'s, so an aluminium coil (0.0042) is heated as copper (hot Re 4.448 Ω, should be 4.544 Ω). OpenISD uses the driver\'s when it gives one. Tick for WinISD\'s.', WinisdDeviation.PROJECT_ALFAVC),
     bugLine(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'with the transmission line model on, WinISD leaves out the port end correction and tunes the box higher (40.3 Hz for Fb 38 Hz). OpenISD tunes where the Box tab says. Tick for WinISD\'s.', WinisdDeviation.TL_PORT_END_CORRECTION),
   ]);
   static readonly ADVANCED_SECTIONS: readonly PhoneHelpSection[] = [

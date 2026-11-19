@@ -884,6 +884,9 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // Bug switch "Coil wiring: Re and BL only" (QO942.c62): a coil wiring other than the driver's converts Re and BL only, as WinISD's
     // routine does; Le and Znom stay as published. Absent parses to OFF (they convert too).
     winisdCoilWiringReBlOnly: z.boolean().optional(),
+    // Bug switch "Coil coefficient from project" (QO953.c16, T917): the voice coil is heated with the project's AlfaVC only,
+    // as WinISD does, not the driver's own AlfaVC where it states one other than 0. Absent parses to OFF.
+    winisdProjectAlfaVC: z.boolean().optional(),
     // "Phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
     winisdWrapPhase: z.boolean().optional(),
     // Retired (QO941) switch "Per-driver impedance": the impedance chart is always one driver's, as WinISD's. Old files carry it; it is read and ignored.

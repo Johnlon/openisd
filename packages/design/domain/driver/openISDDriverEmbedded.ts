@@ -58,8 +58,9 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
     }
 
     /** Re at the project's voice-coil temperature rise — the Re WinISD drives from — when Re is a
-     *  positive finite number, else null. The coefficient and the rise are the project's, not the
-     *  driver record's (bugs/archive/BUG_20260928_vc-temperature-drive-uses-hot-re.md). */
+     *  positive finite number, else null. The rise is the project's; the coefficient is the one the project's
+     *  `driveLoad` chose (the driver's own when not 0, else the project's; QO953.c16), passed in
+     *  (bugs/archive/BUG_20260928_vc-temperature-drive-uses-hot-re.md). */
     hotRe_ohm(alfaVC_per_K: number, dT_K: number): number | null {
         // The Re the amplifier sees: a multi-coil driver's wiring changes it.
         const Re_ohm = this.specs.solverParams().Re_terminal_ohm.value;

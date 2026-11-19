@@ -8,6 +8,8 @@
  *   dTVC 0:                                       Qtc 0.719, Fsc 67.23 (saved Fr 67.2338865319546)
  *   dTVC 100, project alfaVC 0.0039:              Qtc 0.920, Fsc 66.64 (saved Fr 66.6438991716757)
  *   dTVC 100, driver alfaVC 0.0039, project 0:    Qtc 0.719, Fsc 67.23 (unchanged)
+ * OpenISD gives that last WinISD figure with the "Coil coefficient from project" bug switch ticked; unticked it heats with
+ * the driver's own 0.0039 (T917, John QO953.c16; coil-alfavc-driver-first.test.ts).
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
@@ -47,8 +49,11 @@ describe('the sealed Box readout heats the voice coil (WinISD numbers)', () => {
     expect(s.resonance_hz.value!).toBeCloseTo(66.64, 2);
   });
 
-  it('dTVC 100 with only the driver record\'s alfaVC set reads the cold Qtc 0.719 and Fsc 67.23 Hz', () => {
-    const s = sealedW5(0.0039, 0, 100, 0.1).box.sealed;
+  it('dTVC 100 with only the driver record\'s alfaVC set reads WinISD\'s cold Qtc 0.719 and Fsc 67.23 Hz with "Coil coefficient from project" ticked', () => {
+    // T917 (QO953.c16): unticked, OpenISD heats with the driver's own 0.0039 and reads 0.920 (coil-alfavc-driver-first.test.ts).
+    const p = sealedW5(0.0039, 0, 100, 0.1);
+    p.winisdProjectAlfaVC.set(true);
+    const s = p.box.sealed;
     expect(s.q_tc.value!).toBeCloseTo(0.719, 3);
     expect(s.resonance_hz.value!).toBeCloseTo(67.23, 2);
   });

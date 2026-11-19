@@ -28,7 +28,7 @@ import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue, WiringI
 import {geometryRefusal} from '../dvolRelation.js';
 import {checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
-import {convertWiring, hotRe} from '../solvers/driverQuantities.js';
+import {coilAlfaVC_per_K, convertWiring, hotRe} from '../solvers/driverQuantities.js';
 import type {WiringConversion, WiredMotor} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 import {
@@ -159,6 +159,10 @@ export interface DriverEngine {
   /** Re at a voice-coil temperature rise: `Re·(1 + alfaVC·ΔT)`. WinISD drives from it and
    *  states maximum power into it. */
   hotRe(Re_ohm: number, alfaVC_per_K: number, dT_K: number): number;
+  /** The voice-coil temperature coefficient the sums heat Re with: the driver's `alfaVC_per_K` when stated and not 0,
+   *  else the project's; the project's only with `winisdProjectAlfaVC` (WinISD's sum). QO953.c16. The one place that
+   *  chooses: the Box readout, the charts and the Signal tab's power all take it from here (`driveLoadOf`). */
+  coilAlfaVC_per_K(driverAlfaVC_per_K: number | null, projectAlfaVC_per_K: number, winisdProjectAlfaVC: boolean): number;
   /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9
    *  tier 1) — the domain's one door into that table. */
   isPhysicallyPlausible(field: string, value: number): boolean;
@@ -186,6 +190,7 @@ export class DriverEngineImpl implements DriverEngine {
   readonly ebp = ebp;
   readonly convertWiring = convertWiring;
   readonly hotRe = hotRe;
+  readonly coilAlfaVC_per_K = coilAlfaVC_per_K;
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
   readonly rangeIssue = rangeIssue;
 

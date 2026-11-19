@@ -154,6 +154,17 @@ export class ProjectAdvanced {
         };
     }
 
+    /** WinISD Compatibility "Coil coefficient from project" (QO953.c16): the voice coil is heated with the project's
+     *  AlfaVC only, as WinISD does, whatever the driver states. Off: the driver's own AlfaVC when it is not 0, else the
+     *  project's. Off where a project does not say. */
+    get winisdProjectAlfaVC(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdProjectAlfaVC');
+        return {
+            get value() { return lens.value ?? CompatSwitch.PROJECT_ALFAVC.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
     /** WinISD Compatibility "Phase wrapping": wraps phase curves to [-180°, +180°] (default).
      *  Off: continuous unwrapped phase. On where a project does not say. */
     get winisdWrapPhase(): SimpleField<boolean> {
