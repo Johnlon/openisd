@@ -25,6 +25,11 @@ files:
   - packages/ui/src/ui/shells/original/OriginalNewProject.vue
   - packages/ui/src/ui/shells/original/OriginalShell.vue
   - packages/ui/test/ui/isobaric-loading.browser.spec.ts
+  - packages/ui/src/ui/components/PlacementDiagram.vue
+  - packages/ui/src/ui/components/DriverPairArt.vue
+  - packages/ui/src/ui/components/BoxPlacementDiagram.vue
+  - packages/ui/src/ui/components/BoxTypeDiagram.vue
+  - packages/ui/src/ui/components/DriverPlacementPicture.vue
   - packages/ui/test/ui/mobile-driver-tab.browser.spec.ts
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-current-info.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-disagreement-list.png
@@ -85,5 +90,5 @@ visual:
   - mobile-dialog-phone-wizard-isobarik-note
   - mobile-dialog-wizard-placement
   - mobile-tab-driver
-visual_note: The Iso-Barik choice is no longer greyed or marked (not modelled): the desktop Driver tab and New Project have a working radio, and the phone Driver tab has a new Placement row under Drivers. The phone New Project caption says the pair needs half the box volume.
+visual_note: The Iso-Barik choice is no longer greyed or marked (not modelled): the desktop Driver tab and New Project have a working radio, and the phone Driver tab has a new Placement row under Drivers. Iso-Barik is drawn both ways, clamshell and back to front: drivers only on the New Project step and the Driver tab, the box with the pair in it on both Box tabs.
 note: Iso-Barik is offered by one component, DriverPlacement.vue, bound to project.loading. Old assertions that pinned "not modelled" (new-project-wizard-walk and phone-classic-rows specs, phoneWizardText.test.ts) were changed to the new behaviour. Open (reported, not changed): OpenISDDriver.ventedDesign uses one driver's Vas for any driver count and loading, and no WinISD reference run exists for it.
