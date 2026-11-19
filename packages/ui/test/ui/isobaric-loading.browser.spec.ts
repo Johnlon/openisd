@@ -362,10 +362,15 @@ for (const boxType of ['Closed', 'Vented'] as const) {
           const body = el.querySelector('.modal-body')!;
           const footer = el.querySelector('.modal-footer')!.getBoundingClientRect();
           const box = el.getBoundingClientRect();
-          // Everything in the dialog drawn inside its edges (a popup or overlay fixed over the page aside).
+          // Everything in the dialog drawn inside its edges (a popup or overlay fixed over the page aside, and rows scrolled out of
+          // a list that scrolls inside itself).
+          const scrolledAway = (e: Element): boolean => {
+            for (let a = e.parentElement; a !== null && a !== el; a = a.parentElement) if (/auto|scroll/.test(getComputedStyle(a).overflowY) && a.scrollHeight > a.clientHeight) return true;
+            return false;
+          };
           const outside = [...el.querySelectorAll('*')].filter((e) => {
             const r = e.getBoundingClientRect();
-            return r.width > 0 && r.height > 0 && getComputedStyle(e).position !== 'fixed' && (r.right > box.right + 0.5 || r.bottom > box.bottom + 0.5 || r.left < box.left - 0.5);
+            return r.width > 0 && r.height > 0 && getComputedStyle(e).position !== 'fixed' && !scrolledAway(e) && (r.right > box.right + 0.5 || r.bottom > box.bottom + 0.5 || r.left < box.left - 0.5);
           }).length;
           return {vertical: body.scrollHeight - body.clientHeight, horizontal: body.scrollWidth - body.clientWidth, outside, footerInWindow: footer.bottom <= window.innerHeight};
         });
@@ -456,6 +461,17 @@ test('phone New Project: Iso-Barik back to front is offered and gives an Iso-Bar
   await expect(page.locator('.mob-np-overlay')).toBeHidden();
   await openTab(page, 'Driver');
   await PHONE.expectIsobaricChosen(page);
+});
+
+/** Step 1 at 1280x720: every driver name in the list reads whole, none cut short with "..." (John: "running of the edge is bad"). */
+test('desktop New Project step 1: no driver name in the list is cut short', async ({appPage: page}) => {
+  await page.goto('/');
+  await page.locator('.tb-btn[title*="New project"]').click();
+  const names = page.locator('.overlay.open .dlist .ditem b');
+  await expect(names.first()).toBeVisible();
+  const cut = await names.evaluateAll((els) => els.filter((el) => el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight).map((el) => el.textContent));
+  expect(await names.count(), 'names listed').toBeGreaterThan(0);
+  expect(cut, 'driver names cut short').toEqual([]);
 });
 
 /** The two-chamber Box tabs at the default window: the Rear chamber's controls keep a gap before the Front chamber's labels, and each header bar spans its controls. */

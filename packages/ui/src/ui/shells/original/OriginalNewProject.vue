@@ -338,6 +338,8 @@ function handleCreate() {
 /* A driver's details, opened from its row, take the whole library. */
 .np-library > :deep(.preview) { grid-column: 1 / -1; grid-row: 1 / 4; min-height: 0; overflow-y: auto; }
 .np-library > :deep(.browser-footer) { grid-column: 2; grid-row: 4; }
+/* The list column is narrower than the overlay's: a long driver name wraps to a second line instead of ending in '...' (John: clipping is a bug). */
+.np-library :deep(.ditem b) { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
 .field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .step-content :deep(.ui-field) { margin-bottom: 6px; }
 /* The passive radiator step: Starting volume beside the Select button, the name across, then the eight radiator rows in two
