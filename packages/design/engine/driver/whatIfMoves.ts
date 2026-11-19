@@ -8,8 +8,13 @@
  * - A part (Mms, Cms, Rms, Bl, Sd, Re) typed: the other parts stay; the results that depend on it follow (Mms moves Fs and the Q's, not Vas).
  *
  * The relations, with the parts fixed by the wiring: Fs ∝ 1/√(Mms·Cms), Vas ∝ Sd²·Cms, Qms ∝ √(Mms/Cms)/Rms, Qes ∝ √(Mms/Cms)·Re/Bl²,
- * Qts = Qes·Qms/(Qes+Qms), SPL = constant + 10·log₁₀(Fs³·Vas/Qes).
+ * Qts = Qes·Qms/(Qes+Qms), SPL = K(air) + 10·log₁₀(η₀) with η₀ ∝ Fs³·Vas/Qes. Qts comes from the engine's `Q_PARALLEL` relation
+ * and SPL from its one SPL-to-efficiency pair (`efficiencyFromSpl`, `splFromEfficiency`), so this file holds no copy of either.
  */
+
+import type {Air} from '../air.js';
+import {efficiencyFromSpl, splFromEfficiency} from '../efficiency.js';
+import {Q_PARALLEL} from './routes/relations.js';
 
 /** The figures the rule reads and moves, as the boxes show them; null where a box is empty. */
 export interface WhatIfFigures {
@@ -43,17 +48,23 @@ export type WhatIfMoves = Partial<Record<WhatIfFigure, number>>;
 
 const positive = (x: number | null): x is number => x !== null && Number.isFinite(x) && x > 0;
 
-/** `Qes·Qms/(Qes+Qms)`. */
-const parallelQ = (Qes: number, Qms: number): number => Qes * Qms / (Qes + Qms);
+/** Qts from Qes and Qms: the engine's `Q_PARALLEL` relation. */
+const parallelQ = (Qes: number, Qms: number): number => Q_PARALLEL.predict({Qes, Qms});
 
 /** `value` scaled by `factor`, or nothing when the box is empty. */
 function scaled(value: number | null, factor: number): number | null {
   return positive(value) ? value * factor : null;
 }
 
-/** `SPL` moved by `dB`, or nothing when the box is empty (an SPL may be any finite number). */
-function shifted(SPL: number | null, dB: number): number | null {
-  return SPL !== null && Number.isFinite(SPL) ? SPL + dB : null;
+/** The reference efficiency η₀ the sensitivity `SPL` stands for in `air`. */
+function efficiencyOf(SPL: number, air: Air): number {
+  return efficiencyFromSpl(SPL, air.rho(), air.c());
+}
+
+/** `SPL` moved as η₀ is scaled by `factor`, or nothing when the box is empty (an SPL may be any finite number). The air's own
+ *  constant cancels, so the move is the same in any air. */
+function shifted(SPL: number | null, factor: number, air: Air): number | null {
+  return SPL !== null && Number.isFinite(SPL) ? splFromEfficiency(efficiencyOf(SPL, air) * factor, air.rho(), air.c()) : null;
 }
 
 /** The moves as a record without the empty ones. */
@@ -64,18 +75,19 @@ function moves(entries: readonly (readonly [WhatIfFigure, number | null])[]): Wh
 }
 
 /** Qes set to `Qes` with Fs, Vas and Qms kept: Bl moves (Qes ∝ 1/Bl²), Qts and SPL follow. */
-function qesMoves(shown: WhatIfFigures, Qes: number): readonly (readonly [WhatIfFigure, number | null])[] {
+function qesMoves(shown: WhatIfFigures, Qes: number, air: Air): readonly (readonly [WhatIfFigure, number | null])[] {
   if (!positive(shown.Qes) || !positive(Qes)) return [];
   const ratio = Qes / shown.Qes;
   return [
     ['BL_Tm', scaled(shown.BL_Tm, 1 / Math.sqrt(ratio))],
     ['Qts', positive(shown.Qms) ? parallelQ(Qes, shown.Qms) : null],
-    ['SPL_dB', shifted(shown.SPL_dB, -10 * Math.log10(ratio))],
+    ['SPL_dB', shifted(shown.SPL_dB, 1 / ratio, air)],
   ];
 }
 
-/** Every figure that moves when `figure` is typed as `value`, from the figures the boxes show now. The typed figure itself is not listed. */
-export function whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFigures): WhatIfMoves {
+/** Every figure that moves when `figure` is typed as `value`, from the figures the boxes show now, the driver's sensitivity read in
+ *  `air`. The typed figure itself is not listed. */
+export function whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFigures, air: Air): WhatIfMoves {
   if (!Number.isFinite(value)) return {};
   switch (figure) {
     case 'Fs_hz': {
@@ -86,7 +98,7 @@ export function whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFi
         ['Mms_kg', scaled(shown.Mms_kg, 1 / (r * r))],
         ['Rms_kg_per_s', scaled(shown.Rms_kg_per_s, 1 / r)],
         ['BL_Tm', scaled(shown.BL_Tm, 1 / Math.sqrt(r))],
-        ['SPL_dB', shifted(shown.SPL_dB, 30 * Math.log10(r))],
+        ['SPL_dB', shifted(shown.SPL_dB, r * r * r, air)],
       ]);
     }
     case 'Vas_m3': {
@@ -98,11 +110,11 @@ export function whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFi
         ['Mms_kg', scaled(shown.Mms_kg, 1 / r)],
         ['Rms_kg_per_s', scaled(shown.Rms_kg_per_s, 1 / r)],
         ['BL_Tm', scaled(shown.BL_Tm, 1 / Math.sqrt(r))],
-        ['SPL_dB', shifted(shown.SPL_dB, 10 * Math.log10(r))],
+        ['SPL_dB', shifted(shown.SPL_dB, r, air)],
       ]);
     }
     case 'Qes':
-      return moves(qesMoves(shown, value));
+      return moves(qesMoves(shown, value, air));
     case 'Qms': {
       if (!positive(shown.Qms) || !positive(value)) return {};
       return moves([
@@ -114,13 +126,13 @@ export function whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFi
       // Qms stays, so Qes is what gives: Qes = Qts·Qms/(Qms−Qts). A Qts at or above Qms has no Qes.
       if (!positive(shown.Qms) || !positive(value) || value >= shown.Qms) return {};
       const Qes = value * shown.Qms / (shown.Qms - value);
-      return moves([['Qes', Qes], ...qesMoves(shown, Qes).filter(([f]) => f !== 'Qts')]);
+      return moves([['Qes', Qes], ...qesMoves(shown, Qes, air).filter(([f]) => f !== 'Qts')]);
     }
     case 'SPL_dB': {
-      // Fs and Vas stay, so Qes is what gives: SPL rises 10·log₁₀ of the drop in Qes.
+      // Fs and Vas stay, so Qes is what gives: η₀ ∝ 1/Qes.
       if (shown.SPL_dB === null || !Number.isFinite(shown.SPL_dB) || !positive(shown.Qes)) return {};
-      const Qes = shown.Qes * Math.pow(10, -(value - shown.SPL_dB) / 10);
-      return moves([['Qes', Qes], ...qesMoves(shown, Qes).filter(([f]) => f !== 'SPL_dB')]);
+      const Qes = shown.Qes * efficiencyOf(shown.SPL_dB, air) / efficiencyOf(value, air);
+      return moves([['Qes', Qes], ...qesMoves(shown, Qes, air).filter(([f]) => f !== 'SPL_dB')]);
     }
     case 'Mms_kg': {
       if (!positive(shown.Mms_kg) || !positive(value)) return {};
@@ -131,7 +143,7 @@ export function whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFi
         ['Fs_hz', scaled(shown.Fs_hz, 1 / Math.sqrt(r))],
         ['Qes', Qes], ['Qms', Qms],
         ['Qts', Qes !== null && Qms !== null ? parallelQ(Qes, Qms) : null],
-        ['SPL_dB', shifted(shown.SPL_dB, -20 * Math.log10(r))],
+        ['SPL_dB', shifted(shown.SPL_dB, 1 / (r * r), air)],
       ]);
     }
     case 'Cms_m_per_N': {
@@ -162,7 +174,7 @@ export function whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFi
       return moves([
         ['Qes', Qes],
         ['Qts', Qes !== null && positive(shown.Qms) ? parallelQ(Qes, shown.Qms) : null],
-        ['SPL_dB', shifted(shown.SPL_dB, 20 * Math.log10(r))],
+        ['SPL_dB', shifted(shown.SPL_dB, r * r, air)],
       ]);
     }
     case 'Sd_m2': {
@@ -170,7 +182,7 @@ export function whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFi
       const r = value / shown.Sd_m2;
       return moves([
         ['Vas_m3', scaled(shown.Vas_m3, r * r)],
-        ['SPL_dB', shifted(shown.SPL_dB, 20 * Math.log10(r))],
+        ['SPL_dB', shifted(shown.SPL_dB, r * r, air)],
       ]);
     }
     case 'Re_ohm': {
@@ -180,7 +192,7 @@ export function whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFi
       return moves([
         ['Qes', Qes],
         ['Qts', Qes !== null && positive(shown.Qms) ? parallelQ(Qes, shown.Qms) : null],
-        ['SPL_dB', shifted(shown.SPL_dB, -10 * Math.log10(r))],
+        ['SPL_dB', shifted(shown.SPL_dB, 1 / r, air)],
       ]);
     }
   }

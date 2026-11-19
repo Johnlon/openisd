@@ -161,8 +161,9 @@ export interface DriverEngine {
    *  QO539): Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms, by the same routes as the driver's.
    *  Each stated value stands where its inputs are missing or give no positive value. `air` is the project's. */
   winisdRadiatorMechanics(radiator: RadiatorFigures, air: Air): RadiatorMechanics;
-  /** The figures the What-if panel moves when `figure` is typed as `value`, from the boxes as they show now (QO535). Pure. */
-  whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFigures): WhatIfMoves;
+  /** The figures the What-if panel moves when `figure` is typed as `value`, from the boxes as they show now (QO535), the
+   *  sensitivity read in `air` (the driver's). Pure. */
+  whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFigures, air: Air): WhatIfMoves;
   /** Every figure the What-if rule moves or is typed into, once. */
   readonly whatIfFigures: readonly WhatIfFigure[];
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */

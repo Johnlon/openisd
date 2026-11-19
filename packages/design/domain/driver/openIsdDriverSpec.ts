@@ -435,7 +435,7 @@ export class OpenIsdDriverSpec {
             SPL_dB: this.SPL_dB.value, Mms_kg: this.Mms_kg.value, Cms_m_per_N: this.Cms_m_per_N.value,
             Rms_kg_per_s: this.Rms_kg_per_s.value, BL_Tm: this.BL_Tm.value, Sd_m2: this.Sd_m2.value, Re_ohm: this.Re_ohm.value,
         } satisfies WhatIfFigures;
-        const moves = this.#driver.whatIfMoves(key, value, shown);
+        const moves = this.#driver.whatIfMoves(key, value, shown, this.#context.air());
         const out: Partial<Record<WhatIfFigure, SpecEntryJson>> = {};
         for (const name of this.#driver.whatIfFigures) {
             const moved = moves[name];
