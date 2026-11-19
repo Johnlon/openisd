@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
-import {dqOfCell, dqReason} from '../../src/logic/cellDataQuality.js';
+import {dqOfCell, dqReason, marksOfCell, marksReason} from '../../src/logic/cellDataQuality.js';
 
 function createCompleteProject() {
   const engine = createEngine();
@@ -71,6 +71,24 @@ describe('cellDataQuality', () => {
     it('joins several marks and is empty when there are none', () => {
       expect(dqReason({dq: ['a', 'b'], dqState: 'N'})).toBe('a; b');
       expect(dqReason({dq: [], dqState: 'E'})).toBe('');
+    });
+  });
+
+  describe('marksOfCell / marksReason — a band warning is a warning, not a conflict (QO953.c14 "warn odd")', () => {
+    const SAYS = 'Air pressure 5000 Pa is outside the sane range for air (30000 Pa to 110000 Pa). It is kept and used; check it.';
+
+    it('an entered air pressure of 5000 Pa is a warning only: no flag, and the ⚠ says it without the conflict prefix', () => {
+      const {project} = createCompleteProject();
+      project.envPressurePa.set(5000);
+      expect(marksOfCell(project.envPressurePa)).toEqual({dq: [], dqState: 'E', warnings: [SAYS]});
+      expect(dqOfCell(project.envPressurePa)).toEqual({dq: [], dqState: 'E'});
+      expect(marksReason(marksOfCell(project.envPressurePa))).toBe(SAYS);
+    });
+
+    it('flags keep their prefix and a warning follows them as it is', () => {
+      expect(marksReason({dq: ['x disagrees'], dqState: 'E', warnings: ['w odd']})).toBe('Conflicts with other values: x disagrees; w odd');
+      expect(marksReason({dq: ['x'], dqState: 'C', warnings: []})).toBe('Calculated from flagged values: x');
+      expect(marksReason({dq: [], dqState: 'E', warnings: []})).toBe('');
     });
   });
 });

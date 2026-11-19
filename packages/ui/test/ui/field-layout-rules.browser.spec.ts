@@ -120,6 +120,19 @@ const EXTRA: readonly Screen[] = [
     await next.click();
     await page.locator('#np-pr-select').waitFor();
   }},
+  // Driver wiring (ticket 519) is drawn only with 2 or more drivers: the Driver tab at 4 drivers, both skins.
+  {id: 'desktop Driver tab with 4 drivers', skin: 'desktop', root: '.content-panel', open: async page => {
+    await startDesktop(page, 'sealed');
+    await page.locator('.project-nav li', {hasText: /^Driver$/}).click();
+    await page.locator('#og-ndrivers').selectOption('4');
+    await page.locator('#og-driver-wiring').waitFor();
+  }},
+  {id: 'phone Driver tab with 4 drivers', skin: 'phone', root: '.mob-content', open: async page => {
+    await startPhone(page, 'sealed');
+    await page.locator('.mob-tab', {hasText: /^Driver$/}).click();
+    await page.locator('#mob-n-drivers').selectOption('4');
+    await page.locator('#mob-driver-wiring').waitFor();
+  }},
   ...(['General', 'Parameters', 'Advanced', 'Dimensions'] as const).map((tab): Screen => ({id: `phone Driver editor ${tab}`, skin: 'phone', root: '.de-modal', open: async page => {
     await startPhone(page, 'vented');
     await page.locator('.mob-tab', {hasText: 'Driver'}).click();

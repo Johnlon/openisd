@@ -240,6 +240,17 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       });
     });
 
+    it('row 5: a run that kept both versions of one project ends on the conflict mark, never the done cloud', () => {
+      const display = syncDisplayOf({
+        ...defaultInputs({kind: 'synced', account: 'john@gmail.com', at_ms: sampleTime, conflicts: 1}),
+        conflicts: [sampleConflict()],
+        conflictsSeen: 1,
+      });
+      expect(display.glyph).toBe('cloudAlert');
+      expect(display.badge).toBe(1);
+      expect(display.shortText).toBe('1 conflict');
+    });
+
     it('row 5: synced, conflicts N', () => {
       const conflict1 = sampleConflict('Sub 12 (conflict, 13 Oct 2026, Android phone)');
       const conflict2 = sampleConflict('RS225 (conflict, 13 Oct 2026, Android phone)', DriverId.of('drv-2')!, 'RS225');

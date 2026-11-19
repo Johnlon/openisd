@@ -50,6 +50,15 @@ export type CalculationIssue<Q extends string> =
       readonly text: string;
     };
 
+/** A stated value outside its field's normal band (`NumberField.plausible`): odd but possible, so
+ *  it is kept and used. A warning, not a conflict (QO953.c14, "refuse impossible, warn odd"). */
+export interface NormalBandIssue<Q extends string> {
+  readonly kind: 'outside-normal-band';
+  readonly target: Q;
+  readonly fields: readonly Q[];
+  readonly text: string;
+}
+
 /** A stated target (a vent's `length_m`, a passive radiator's `addedMass_kg`) whose geometry is
  *  complete and internally consistent, but whose solved value is on the wrong side of zero —
  *  the geometry has a maximum reachable tuning, and the stated target sits past it. The solver
@@ -150,7 +159,7 @@ export interface MultiCoilWithoutNumVCIssue {
 
 export type WiringIssue = WiringNotStatedIssue | WiringInferredIssue | MultiCoilWithoutNumVCIssue;
 
-export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | OutOfRangeIssue | InvalidValueIssue | NegativeValueIssue | RequiredValueIssue | WiringIssue;
+export type DqIssue = CalculationIssue<string> | NormalBandIssue<string> | VentedPlausibilityIssue | TargetUnreachableIssue | OutOfRangeIssue | InvalidValueIssue | NegativeValueIssue | RequiredValueIssue | WiringIssue;
 
 // ───────────────────────────── Issues, each carrying its own sentence ───────────────────────────
 //
@@ -199,6 +208,11 @@ export function approximateCharts<Q extends string>(target: Q, fields: readonly 
  *  alone: nothing else is wrong with the stated inputs. */
 export function resultRefused<Q extends string>(target: Q, text: string): CalculationIssue<Q> {
   return {kind: 'result-refused', target, fields: [target], text};
+}
+
+/** `target`'s stated value is outside its normal band: kept and used, with `text` saying so. */
+export function outsideNormalBand<Q extends string>(target: Q, text: string): NormalBandIssue<Q> {
+  return {kind: 'outside-normal-band', target, fields: [target], text};
 }
 
 /** A driver field outside its physically possible band (D14). */

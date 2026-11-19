@@ -14,7 +14,7 @@ Related: [ARCHITECTURE.md](ARCHITECTURE.md) · [gap list](OPENISD_WINISD_GAPS_AN
 | Source                                                                      | What it settles                                                                                                    |
 |-----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
 | Claus Futtrup, *Driver Parameter Calculator* (DPC): [air.htm](https://www.cfuttrup.com/dpc/air.htm), [airmodel.htm](https://www.cfuttrup.com/dpc/airmodel.htm), [formulas.htm](https://www.cfuttrup.com/dpc/formulas.htm) | WinISD's air model and parameter definitions. WinISD's help names DPC as the source. Its published constants reproduce six WinISD air measurements to 3.3e-15. |
-| [`winisd_research/WINISD_IS_BUILT_ON_DPC.md`](../winisd_research/WINISD_IS_BUILT_ON_DPC.md) | The evidence for the claim above, and the rule that follows: look in DPC before deriving or fitting anything.       |
+| [`winisd_research/archive/WINISD_IS_BUILT_ON_DPC.md`](../winisd_research/archive/WINISD_IS_BUILT_ON_DPC.md) | The evidence for the claim above, and the rule that follows: look in DPC before deriving or fitting anything.       |
 | WinISD's own help, [`docs/winisd_helpfiles/help/`](docs/winisd_helpfiles/help/) | Field meanings (`thielesmall.html`, written by Futtrup), box losses, and the DPC citation (`boxdesign.html`).       |
 | WinISD 0.7 screenshots, [`docs/images/winisd/`](docs/images/winisd/) | Every pane, dialog, filter type and chart type WinISD offers.                                                       |
 
@@ -45,9 +45,9 @@ The full list, with oracles and cross-check implementations, is in
 
 | Document                                                                         | Contents                                                                         |
 |----------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`winisd_research/WINISD_MODEL.md`](../winisd_research/WINISD_MODEL.md)          | How WinISD behaves: the solver rule, the sealed-box Fsc cubic, the air model, file-format facts. |
-| [`winisd_research/PROBE_FINDINGS.md`](../winisd_research/PROBE_FINDINGS.md)      | Every finding and WinISD bug from driving the real app, with reproductions.       |
-| [`winisd_research/GHIDRA_FINDINGS.md`](../winisd_research/GHIDRA_FINDINGS.md)    | What the disassembly shows: constants, addresses, formulas.                       |
+| [`winisd_research/archive/WINISD_MODEL.md`](../winisd_research/archive/WINISD_MODEL.md)          | How WinISD behaved (archived 18 Nov 2026; the sealed box is now `winisd_research/spec/S04_sealed_box.md`): the solver rule, the Fsc cubic, the air model, file-format facts. |
+| [`winisd_research/archive/PROBE_FINDINGS.md`](../winisd_research/archive/PROBE_FINDINGS.md)      | Every finding and WinISD bug from driving the real app, with reproductions.       |
+| [`winisd_research/archive/GHIDRA_FINDINGS.md`](../winisd_research/archive/GHIDRA_FINDINGS.md)    | What the disassembly shows: constants, addresses, formulas.                       |
 | [`winisd_research/PROBE_METHOD.md`](../winisd_research/PROBE_METHOD.md)          | The wine harness: how to drive WinISD and read numbers back.                      |
 | [`winisd_research/GHIDRA_METHOD.md`](../winisd_research/GHIDRA_METHOD.md)        | The Ghidra environment and the live gdb technique.                                |
 | [`docs/design/WINISD_SCHEMA.md`](docs/design/WINISD_SCHEMA.md)                   | `.wdr`/`.wpr` byte format and the 27 consistency relations.                        |
@@ -68,14 +68,14 @@ is [`winisd_research/README.md`](../winisd_research/README.md).
 
 - This is constraint propagation to a fixpoint. It is not field precedence and not recency.
 - The relations are the 27 of `WINISD_SCHEMA.md` §4: 22 from the binary's group strings (15 confirmed, 7 inferred) and 5 read from the calculation engine.
-- Route priority is address order; for Fs, relation 11 beats 14, 2, 4 and 12 (`GHIDRA_FINDINGS.md`; FINDING-027/028 in `PROBE_FINDINGS.md`).
+- Route priority is address order; for Fs, relation 11 beats 14, 2, 4 and 12 (`winisd_research/archive/GHIDRA_FINDINGS.md`; FINDING-027/028 in `winisd_research/archive/PROBE_FINDINGS.md`).
 - Each field carries a ParState mark: **E** entered, **C** calculated, **N** not available. WinISD's editor colours show it (green, blue, black).
 - WinISD never flags a contradiction:
   - two entered values that disagree are never compared;
   - where two routes could fill one hole, the losing route is dropped without notice.
 - The derived figure-of-merit fields read `0` after a file load until any field is edited (BUG-005).
 
-Source: `WINISD_MODEL.md` §"The rule".
+Source: `winisd_research/archive/WINISD_MODEL.md` §"The rule".
 
 ### Air
 
@@ -83,7 +83,7 @@ Source: `WINISD_MODEL.md` §"The rule".
   - WinISD reads temperature, humidity and pressure from the app-level Options, and nothing else.
   - A driver's stored `c`/`roo` win when both are present. When only one is, see `WINISD_SCHEMA.md` §12.
   - A project's own `[Box] T/phi/p` reach only the Project tab readouts.
-  - Sources: FINDING-006, `WINISD_MODEL.md` §"Air".
+  - Sources: FINDING-006, `winisd_research/archive/WINISD_MODEL.md` §"Air".
 - **When it runs:** once per process, at load. Changing Options with a project open leaves that project's `c`/`roo` stale (BUG-009).
 - **The formula:**
   - `c` is ideal-gas moist-air mixing over Hyland–Wexler vapour pressure, with DPC's constants.
@@ -100,9 +100,9 @@ Source: `WINISD_MODEL.md` §"The rule".
 - So `Fsc` rises as the leakage Q (`QL`) falls, by about 2.8 Hz over the usable range. The textbook value is the `QL → ∞` limit.
 - OpenISD's sealed resonance (`sealedResonanceWinisd`) matches WinISD's `[Box] Fr` to within 5e-5 Hz over a Ql sweep (`sealed-resonance.test.ts`).
 - `.wpr [Box] Fr` stores this lossy value (FINDING-007).
-- The Qts that feeds Fsc, Qtc and the vented designer is Rg-corrected: `Qes' = Qes·(Re+Rg)/Re`. Without it Fsc is 0.03 Hz low and Vb about 3 % off (`WINISD_MODEL.md` §5; `sourceLoadedQts`).
+- The Qts that feeds Fsc, Qtc and the vented designer is Rg-corrected: `Qes' = Qes·(Re+Rg)/Re`. Without it Fsc is 0.03 Hz low and Vb about 3 % off (`winisd_research/spec/S04_sealed_box.md` §2; `sourceLoadedQts`).
 
-Source: `WINISD_MODEL.md` §"WinISD's sealed-box resonance".
+Source: `winisd_research/spec/S04_sealed_box.md` (the single source for the sealed box; the old note is in `winisd_research/archive/WINISD_MODEL.md`).
 
 ### Voice coils
 
@@ -117,26 +117,26 @@ Source: `WINISD_MODEL.md` §"WinISD's sealed-box resonance".
 |--------------------------------------------------------------------------------------------------------------|----------------|
 | The project's `[Box] alfaVC` and the driver's `alfaVC` are independent fields.                              | FINDING-011    |
 | Force flat response showed no boost ceiling up to about 95 dB of implied gain; a higher ceiling is untested. | FINDING-010    |
-| Box-tab Volume and Tuning do not cascade on typing; coupling differs by box type and follows the chamber.   | FINDING-004; `PROBE_FINDINGS.md` §"per-chamber coupling" |
+| Box-tab Volume and Tuning do not cascade on typing; coupling differs by box type and follows the chamber.   | FINDING-004; `winisd_research/archive/PROBE_FINDINGS.md` §"per-chamber coupling" |
 | The Vents tab is the inverse-Helmholtz solver: enter Vb, Fb and diameter, and it returns the length.        | PROBE_FINDINGS |
 | WinISD does not validate entered values; physically impossible values are accepted.                          | PROBE_FINDINGS |
 | The `.wdr` writer emits UTF-8 and stores a newline as the byte `A4`. The reader turns `A4` back into a newline before decoding, so any character whose UTF-8 contains `A4` is destroyed; invalid bytes become `?`. | PROBE_FINDINGS §"Comment field" |
-| Passive radiators have no standalone `.wdr`.                                                                 | WINISD_MODEL §9 |
+| Passive radiators have no standalone `.wdr`.                                                                 | winisd_research/archive/WINISD_MODEL.md §9 |
 | WinISD has no curve export: no menu bar, no data file filter, and the cursor readouts have no window handle. | [parity goldens README](packages/design/test/winisd/fixtures/winisd-parity/README.md) |
 
 ### Further findings
 
 | Finding                                                                                                   | Source |
 |-----------------------------------------------------------------------------------------------------------|--------|
-| Xmax routes: row 19 beats row 20, and a zero row-19 answer falls through to 20. `Hc == Hg` with no `Vd` hangs WinISD. | `WINISD_MODEL.md` §Xmax; `PROBE_METHOD.md` |
-| ParState: 49 slots. No `ParState=` line means all E. A blank driver is N except numVC (E) and c/roo (C). The Xlim value is discarded on save but its mark is kept. | `GHIDRA_FINDINGS.md` §ParState; `PROBE_FINDINGS.md` |
-| Figure-of-merit formulas: Gloss, SPLmaxLF, Mcost (`min`), SPLmax −3 dB, `KLe = Le·√(2π·fLe)`, the four-way DVol relation. | `parity/SOLVER_GAPS.md`; `GHIDRA_FINDINGS.md` |
-| New Project wizard, sealed route: nine fixed Qtc targets, `Vr = Vas/((Qtc/Qts_eff)²−1)`, with an unexplained ×1.0098 on Qts. | `PROBE_FINDINGS.md` §New Project wizard |
-| Passive radiator: Fh is the series-compliance resonance; `prTuning()` and Fs with added mass match exactly. | `PROBE_FINDINGS.md` §Passive radiator |
-| Vents tab: the first port resonance is `c/(2L)` over the bare length, with no end correction. WinISD-saved `.wpr` files carry endcorrection=0.732; the 0.6 in the research corpus is the harness writer's default (`winisd_research/lib/wdr.py`), not a WinISD constant. | `PROBE_FINDINGS.md` §Vents; `GHIDRA_METHOD.md` |
-| Box-loss defaults are Ql 10, Qa 100, Qp 100. Ql shifts Fsc; Qa does not. | `WINISD_PARITY.md` §Losses; `PROBE_FINDINGS.md` |
+| Xmax routes: row 19 beats row 20, and a zero row-19 answer falls through to 20. `Hc == Hg` with no `Vd` hangs WinISD. | `winisd_research/archive/WINISD_MODEL.md` §Xmax; `PROBE_METHOD.md` |
+| ParState: 49 slots. No `ParState=` line means all E. A blank driver is N except numVC (E) and c/roo (C). The Xlim value is discarded on save but its mark is kept. | `winisd_research/archive/GHIDRA_FINDINGS.md` §ParState; `winisd_research/archive/PROBE_FINDINGS.md` |
+| Figure-of-merit formulas: Gloss, SPLmaxLF, Mcost (`min`), SPLmax −3 dB, `KLe = Le·√(2π·fLe)`, the four-way DVol relation. | `parity/SOLVER_GAPS.md`; `winisd_research/archive/GHIDRA_FINDINGS.md` |
+| New Project wizard, sealed route: nine fixed Qtc targets, `Vr = Vas/((Qtc/Qts_eff)²−1)`, with an unexplained ×1.0098 on Qts. | `winisd_research/archive/PROBE_FINDINGS.md` §New Project wizard |
+| Passive radiator: Fh is the series-compliance resonance; `prTuning()` and Fs with added mass match exactly. | `winisd_research/archive/PROBE_FINDINGS.md` §Passive radiator |
+| Vents tab: the first port resonance is `c/(2L)` over the bare length, with no end correction. WinISD-saved `.wpr` files carry endcorrection=0.732; the 0.6 in the research corpus is the harness writer's default (`winisd_research/lib/wdr.py`), not a WinISD constant. | `winisd_research/archive/PROBE_FINDINGS.md` §Vents; `GHIDRA_METHOD.md` |
+| Box-loss defaults are Ql 10, Qa 100, Qp 100. Ql shifts Fsc; Qa does not. | `WINISD_PARITY.md` §Losses; `winisd_research/archive/PROBE_FINDINGS.md` |
 | `.wpr`: `phi` is a fraction; `[SimulatorOptions]` holds VCInd, FlatResponse and TLPorts; box sections store no computed output except sealed `Fr`; `BL=` and `Znom=` are case-sensitive. | `WINISD_MODEL.md` §wpr |
-| BUG-006: WinISD's recomputed Re, Rms and Cms differ from hand calculation by about 1 %. | `PROBE_FINDINGS.md` BUG-006 |
+| BUG-006: WinISD's recomputed Re, Rms and Cms differ from hand calculation by about 1 %. | `winisd_research/archive/PROBE_FINDINGS.md` BUG-006 |
 | Only the last of the `c`/`roo` fallback probes is valid: Options is the source (the earlier runs never committed the OK button). | `runs/c_roo_fallback_ok_vs_escape_20260819.md` |
 
 Paths are in `winisd_research/`.
@@ -217,5 +217,5 @@ Agreement with another open-source tool is a sanity check only.
 ### Method rules
 
 - Never tune a better model until it matches WinISD. Find the formula WinISD uses (DPC first).
-  Air was mis-fitted once; the record is in `PROBE_FINDINGS.md` FINDING-008 §2d.
+  Air was mis-fitted once; the record is in `winisd_research/archive/PROBE_FINDINGS.md` FINDING-008 §2d.
 - OpenISD's TypeScript is not evidence of WinISD's behaviour. Only WinISD captures, its help, and the literature count.

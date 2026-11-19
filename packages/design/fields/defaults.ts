@@ -9,6 +9,14 @@
  *  the bare datasheet Qts would give (`docs/research/VENTED_ALIGNMENT_FORMULAS.md` §1). */
 export const DEFAULT_SOURCE_RESISTANCE_OHM = 0.1;
 
+/** The project's voice-coil temperature coefficient `alfaVC_per_K` (WinISD Driver tab "Advanced options", `.wpr`
+ *  `[Box] alfaVC`): 0.0039 /K, copper's, WinISD's own default (winisd_research/spec/S04_sealed_box.md section 1). */
+export const DEFAULT_ALFAVC_PER_K = 0.0039;
+
+/** The project's voice-coil temperature rise `vcTempRise_K` (`.wpr` `[Box] dTVC`): 0 K, a cold coil, WinISD's own
+ *  default. Folded into Qes on the Box tab with `alfaVC_per_K` (`Engine.heatedSourceLoadedQts`). */
+export const DEFAULT_VC_TEMP_RISE_K = 0;
+
 /** Box leakage `Ql` (`.wpr` `[Box] Qlr`) a new vented box is born with: 10 — WinISD's own
  *  default (Qa 100, Qp 100 alongside it; `domain/boxDefaults.ts` builds the triples from this).
  *  The New Project wizard's vented preview reads this same value, so its design can never

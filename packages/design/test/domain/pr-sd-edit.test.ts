@@ -1,5 +1,5 @@
 /**
- * winisd_research/findings/FINDING_20261003_pr-sd-edit-ignored.md: WinISD ignores a typed passive radiator Sd.
+ * winisd_research/archive/findings/FINDING_20261003_pr-sd-edit-ignored.md: WinISD ignores a typed passive radiator Sd.
  * In OpenISD a typed Sd takes effect: PR excursion and PR velocity scale as 1/Sd, with Fs, Vas and
  * Qms driving the radiator (its stated Mms, Cms and Rms cleared, as a user would to let them follow).
  */

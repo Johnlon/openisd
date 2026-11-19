@@ -30,7 +30,7 @@ function besselDenominator(cm: readonly number[], terms: readonly Complex[]): Co
 }
 
 /**
- * The Bessel pass family, order n — GHIDRA_FINDINGS.md: phase-normalised, k = c0^(1/n). The low-pass
+ * The Bessel pass family, order n — winisd_research/archive/GHIDRA_FINDINGS.md: phase-normalised, k = c0^(1/n). The low-pass
  * is WinISD's. The high-pass is the mirror of that low-pass; `winisdHighpass` selects WinISD's own
  * (non-mirror) form instead.
  */
@@ -49,7 +49,7 @@ export class BesselFamily implements PassFamilyModel {
    * HP. Mirror (default): the LP with s → 1/s, c0/Σ cm·(k/s)^m, evaluated as
    * c0·s^n / Σ cm·k^m·s^(n−m) so it is finite at x = 0. With `winisdHighpass`: WinISD's own,
    * (k·s)^n / Σ cm·(k·s)^m — the LP's denominator with numerator (k·s)^n, NOT the mirror
-   * (WinISD error, GHIDRA_FINDINGS.md "Bessel HP ⚠").
+   * (WinISD error, winisd_research/archive/GHIDRA_FINDINGS.md "Bessel HP ⚠").
    */
   highpass(x: number): Complex {
     const cm = besselCoeffs(this.order);

@@ -82,7 +82,7 @@ function activate(event: Event) {
 /* The shared chip owns its divider and the continuation of a mandatory field's outline. */
 .app-root-mobile .mob-ui-field.ui-field span.unit-label.unit-toggle { border-left: 1px solid #cfcfcf; }
 .app-root-mobile .mob-ui-field.ui-field:has(input.de-input-mandatory) span.unit-label.unit-toggle {
-  border-top-width: 2px; border-bottom-width: 2px; border-color: var(--mob-box-line);
+  border-top-width: 2px; border-bottom-width: 2px; border-color: var(--joined-border-color, var(--mob-box-line));
 }
 .app-root-mobile span.unit-toggle:hover { color: #1868d1; }
 </style>

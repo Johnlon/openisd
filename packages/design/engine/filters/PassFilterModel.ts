@@ -30,7 +30,7 @@ function subtypeOf(family: PassFamily): number {
 }
 
 /** The inverse of `subtypeOf`: `null` for anything other than the four measured codes 0-3 — the
- *  caller decides what an unmapped code means (PROBE_FINDINGS.md: >3 is skipped; a
+ *  caller decides what an unmapped code means (winisd_research/archive/PROBE_FINDINGS.md: >3 is skipped; a
  *  negative/non-integer code is not measured and is treated as malformed instead of guessed). */
 function passFamilyOf(subtype: number): PassFamily | null {
   switch (subtype) {

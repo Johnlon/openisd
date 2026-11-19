@@ -54,7 +54,8 @@ import {
 } from '@openisd/persistence';
 import {DeviceName, cloudSyncReportLines, cloudSyncSummary, isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
 import {createBrowserTimer, createCloudSyncWiring, createDefaultRunLock} from './logic/cloudSyncWiring.js';
-import {followPulledProjects} from './logic/pulledProjects.js';
+import {followPulledProjects, keepAsConflictCopy, type PulledProjectsDeps} from './logic/pulledProjects.js';
+import {startLiveProjectSync, type LiveProjectSync} from './logic/liveProjectSync.js';
 import {provideCloudSync} from './hooks/CloudSync-hooks.js';
 import {handleOAuthBoot} from './logic/boot.js';
 import {createLogging} from './logging/flash.js';
@@ -69,6 +70,7 @@ import {DesignFiles} from './logic/fileImportExport.js';
 import {DriverDrafts} from './logic/driverDraft.js';
 import {createConfirmPort} from './logic/confirmPort.js';
 import {createExportNotice} from './logic/exportNotice.js';
+import {createLoadRepairNotice} from './logic/loadRepairNotice.js';
 import {provideApp} from './logic/app.js';
 import {createAppState, NoFocusedProjectError} from './logic/appState.js';
 import {createPresentationState} from './logic/presentationState.js';
@@ -83,6 +85,7 @@ import {crashHash} from './logic/telemetry/crashHash.js';
 import {LaunchReporter, platformHintOf, platformOf, type LaunchEnvironment} from './logic/telemetry/launch.js';
 import {InstallMarker} from './logic/telemetry/install.js';
 import {browserIdOf} from './logic/telemetry/browserId.js';
+import {PerfReporter, deviceFactsOf, afterPaintOf} from './logic/telemetry/perf.js';
 import {SessionEnd} from './logic/telemetry/sessionEnd.js';
 import {registerServiceWorker} from './logic/telemetry/serviceWorker.js';
 import {installBrowserListeners} from './logic/telemetry/browserListeners.js';
@@ -90,6 +93,9 @@ import {FeatureUse} from './logic/telemetry/featureUse.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
 import {radiatorPickRecorder} from './logic/telemetry/radiatorPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
+import {FeedbackOutbox} from './logic/feedback/feedbackOutbox.js';
+import {FetchFeedbackTransport, OfflineFeedbackTransport} from './logic/feedback/feedbackTransport.js';
+import {provideFeedbackServices} from './hooks/FeedbackDialog-hooks.js';
 import {provideAnnouncementCenter} from './hooks/Announcements-hooks.js';
 import {announcementEndpointsForHostname, createAnnouncementCenter} from './logic/announcementCenter.js';
 import {newUuid} from '@openisd/design';
@@ -101,6 +107,9 @@ import '@fontsource/roboto/latin-400.css';
 import './fonts.css';
 import '@fontsource/jetbrains-mono/latin-400.css';
 import './style.css';
+
+/** Milliseconds from navigation start to this script running: every import has been fetched and evaluated by now. */
+const scriptStartMs = performance.now();
 
 /** The browser's storage under this deployment's prefix: the /test/ build keeps a store of its own. */
 const storagePrefix = createStoragePrefix(location.pathname);
@@ -178,9 +187,12 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     hostname: location.hostname,
     mode: import.meta.env.MODE,
     testOptIn: Reflect.get(globalThis, 'openisdTelemetryOn') === true,
+    automatedBrowser: navigator.webdriver === true,
   });
   const telemetryStorage = localStore;
-  const telemetry: Telemetry = telemetryTarget === null
+  // One id for this visit, shared by the usage events and the feedback answer so the two can be read together.
+  const visitSessionId = newUuid();
+  const usageTelemetry: Telemetry = telemetryTarget === null
     ? new NoTelemetry()
     : new BeaconTelemetry({
         endpoint: telemetryTarget.endpoint,
@@ -189,9 +201,24 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
         beacon: (url, body) => navigator.sendBeacon(url, body),
         online: () => navigator.onLine,
         now: () => Date.now(),
-        sessionId: newUuid(),
+        sessionId: visitSessionId,
         browserId: browserIdOf(telemetryStorage, newUuid),
       });
+  // Feedback is the user's own answer to "Do you like OpenISD?", sent to the same collector with the same
+  // anonymous browser id; it is kept on the device until the collector has it.
+  const telemetry: Telemetry = usageTelemetry;
+  const feedbackOutbox = new FeedbackOutbox({
+    storage: telemetryStorage,
+    transport: telemetryTarget === null
+      ? new OfflineFeedbackTransport()
+      : new FetchFeedbackTransport(telemetryTarget.endpoint, window.fetch.bind(window), () => navigator.onLine),
+    now: () => Date.now(),
+    newId: newUuid,
+    version: appVersionText,
+    sessionId: visitSessionId,
+    browserId: () => browserIdOf(telemetryStorage, newUuid),
+    environment: telemetryTarget === null ? 'test' : telemetryTarget.environment,
+  });
   const installMarker = new InstallMarker(telemetry, telemetryStorage);
   // STORAGE (port): the browser's key-value storage, opened by the load rules in main.ts: stamped with
   // this build's layout, kept in step with the storage log, and with ONE whole-store backup that every
@@ -209,18 +236,24 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   });
   // The two live state objects, built once here and handed to everything that needs them.
   const presentation = createPresentationState();
+  // PERF: how long the key steps take, sent as `perf` events (durations and device facts only).
+  const perf = new PerfReporter({
+    telemetry, now: () => performance.now(), skin: () => presentation.shownSkin(), device: deviceFactsOf(navigator),
+    afterPaint: afterPaintOf(callback => requestAnimationFrame(callback), callback => setTimeout(callback, 0)),
+  });
+  perf.bootDownload(scriptStartMs);
   // The crash reporter needs the app state (open projects, box) for its context, so it is built after it;
   // a fault raised before then is kept and sent once it exists.
   let reportFault: (fault: Error) => void = fault => { earlyFaults.push(fault); };
   const earlyFaults: Error[] = [];
-  const appState = createAppState({ engine, appSettings: appSettingsRepo, presentation, telemetry, reportFault: fault => reportFault(fault) });
+  const appState = createAppState({ engine, appSettings: appSettingsRepo, presentation, telemetry, perf, reportFault: fault => reportFault(fault) });
   const logging = createLogging();
   // The bundled catalogue. Two repos over the same
   // mechanism: an index fetched when a picker opens, one record fetched when a device is picked,
   // both held for CATALOGUE_MAX_AGE_MS and then fetched again, so a long-lived tab picks up a
   // republished catalogue without a reload. Nothing is awaited here — the app mounts first.
   const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
-  const catalogue = createCatalogueSource({ fetch, url: `${import.meta.env.BASE_URL}catalogue.json`, build: import.meta.env.VITE_CATALOGUE_BUILD, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
+  const catalogue = perf.timedCatalogue(createCatalogueSource({ fetch, url: `${import.meta.env.BASE_URL}catalogue.json`, build: import.meta.env.VITE_CATALOGUE_BUILD, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now }));
   const driverRepo = createBundledDriverRepo({ bundle: catalogue, engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
   const myDriverRepo = createMyDriverRepo(storage, engine, storageBackup, saves.notify);
   const prefs = createPrefsRepo(storage, saves.notify);
@@ -243,7 +276,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const upgrade = store.readOnly ? {kind: 'nothingToDo' as const} : createStoredTextCompaction(storage, storageBackup, createLedgerFollowsRewrite(storage, randomBytes)).run();
   // Refused copies replace the old quarantine copy of the session: it is removed once, behind the backup.
   if (!store.readOnly) createQuarantineRetirement(storage, storageBackup).run();
-  const projectRepo = createProjectRepo(engine, fileStorage, storage, new URL('./', window.location.href).href, storageBackup, exportedFiles, report => faultLog.recordRepair(report), saves.notify);
+  const projectRepo = createProjectRepo(engine, fileStorage, storage, new URL('./', window.location.href).href, storageBackup, exportedFiles, report => faultLog.recordRepair(report), saves.notify,
+    createLoadRepairNotice(message => logging.flash(message), show => queueMicrotask(show)));
   const deviceName = DeviceName.ofBrowser(navigator.userAgent, navigator.maxTouchPoints);
   const binMarks = createProjectBinMarks(storage, storageBackup);
   const projectBin = createProjectBin({
@@ -253,7 +287,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const driverDrafts = new DriverDrafts(engine, appState.appContext);
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
-    driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
+    perf, driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
     confirmReset: confirmPort.port, exportNotice: createExportNotice(confirmPort.port), appState, presentation, driverPicked, featureUse,
   });
   const viewStateRepo = createViewStateRepo(storage, storageBackup, forgetCloudSyncRecord);
@@ -358,7 +392,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     telemetry,
     onUncaught: thrown => crashReports.capture(thrown),
     install: installMarker,
-    session: new SessionEnd(telemetry, featureUse, () => Date.now(), Date.now()),
+    session: new SessionEnd(telemetry, featureUse, () => Date.now(), Date.now(), perf),
   });
 
   const cloudUi = createCloudUiStore(localStore);
@@ -395,6 +429,15 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
       location: { assign: (url: string) => window.location.assign(url) },
     });
 
+    // Sends the open projects' unsaved edits with them (QO946.c248); built after the wiring, whose runs flush it first.
+    let liveSync: LiveProjectSync | null = null;
+    const followDeps = (): PulledProjectsDeps => ({
+      appState,
+      projectRepo,
+      keptBoth: (copyId, name, item, otherDevice) => wiring.cloudSync.projectKeptBoth(copyId, name, item, otherDevice),
+      deviceName,
+      now: Date.now,
+    });
     const wiring = createCloudSyncWiring({
       storage,
       projectRepo,
@@ -418,16 +461,19 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
       random: randomBytes,
       now: Date.now,
       deviceName,
-      projectsPulled: pulled => void followPulledProjects({
-        appState,
-        projectRepo,
-        keptBoth: (copyId, name, item, otherDevice) => wiring.cloudSync.projectKeptBoth(copyId, name, item, otherDevice),
-        deviceName,
-        now: Date.now,
-      }, pulled),
+      projectsPulled: pulled => void followPulledProjects(followDeps(), pulled),
+      beforeRun: () => { liveSync?.flush(); },
     });
 
     saves.listen(() => wiring.scheduler.onSave());
+    liveSync = startLiveProjectSync({
+      appState,
+      projectRepo,
+      active: () => wiring.session.grant().kind !== 'none',
+      timer: createBrowserTimer(),
+      push: () => void wiring.scheduler.syncNow(),
+      keepBoth: project => void keepAsConflictCopy(followDeps(), project, ''),
+    });
 
     cloudSync = wiring.cloudSync;
 
@@ -455,7 +501,16 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     window.fetch.bind(window),
     announcementEndpointsForHostname(window.location.hostname),
   ));
-  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions, radiatorPicks: radiatorPickRecorder(telemetry, bundledPRs)});
+  const onlineListeners = new Set<() => void>();
+  window.addEventListener('online', () => { for (const listener of [...onlineListeners]) listener(); });
+  void feedbackOutbox.flush();
+  provideFeedbackServices(app, {
+    outbox: feedbackOutbox,
+    storage: telemetryStorage,
+    onlineAgain: {listen: listener => { onlineListeners.add(listener); return () => { onlineListeners.delete(listener); }; }},
+    screen: () => errorContext.snapshot().screen,
+  });
+  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions, radiatorPicks: radiatorPickRecorder(telemetry, bundledPRs), perf});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,

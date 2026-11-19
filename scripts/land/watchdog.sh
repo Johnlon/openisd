@@ -13,7 +13,7 @@
 #   WATCHDOG_CPU_SLACK_TICKS (= one second of CPU) WATCHDOG_COORDINATOR (fable)
 #   WATCHDOG_SESSIONS (Claude Code's registry, $HOME/.claude/sessions).
 set -uo pipefail
-REPO="${WATCHDOG_REPO:-/home/john/work/winisd/openisd}"
+REPO="${WATCHDOG_REPO:-$HOME/work/winisd/openisd}"
 # The scripts and settings are origin/main's own, never the main checkout's files: that checkout can lag
 # main (17 Oct: 12 commits behind, held by another session's uncommitted files). Each tick runs from a
 # snapshot of origin/main's scripts/ and land.conf (WATCHDOG_TOOLS), removed when the tick ends; REPO is
@@ -35,7 +35,7 @@ ROOT="$WATCHDOG_TOOLS"
 export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 run_start "watchdog"
 
-WORKSPACE="${WORKSPACE:-/home/john/work/winisd}"
+WORKSPACE="${WORKSPACE:-$HOME/work/winisd}"
 LEADER="${WATCHDOG_LEADER:-lots}"
 COORDINATOR="${WATCHDOG_COORDINATOR:-fable}"
 # Live sessions (T476): Claude Code's own registry, one file SESSIONS/<pid>.json per session with "name", "pid" and

@@ -166,6 +166,15 @@ export class WinisdDeviation {
     charts: [],
   });
 
+  static readonly PROJECT_ALFAVC = new WinisdDeviation({
+    title: 'WinISD ignores the driver\'s coil coefficient',
+    winisd: 'WinISD heats the voice coil with the project\'s AlfaVC from the Driver tab only. The AlfaVC stored with the driver is never used, and WinISD\'s Save writes the project\'s value over it.',
+    openisd: 'OpenISD heats the coil with the driver\'s AlfaVC when the driver gives one other than 0, else with the project\'s. AlfaVC belongs to the coil wire\'s metal: copper 0.0039, aluminium about 0.0042.',
+    size: 'Re 3.2 Ω, driver AlfaVC 0.0042, project 0.0039, dTVC 100 K: hot Re 4.544 Ω here, 4.448 Ω in WinISD, about 2 % low. The Box tab\'s Qtc, the charts and the power from a voltage follow.',
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDPROJECTALFAVC, switchOf: s => s.projectAlfaVC},
+    charts: [],
+  });
+
   static readonly CLOSED_BOX_TYPING = new WinisdDeviation({
     title: 'WinISD lets you type only the volume of a closed box',
     winisd: 'On a closed box, WinISD lets you type only the volume. Fsc is greyed out and Qtc is a plain readout, both worked out from the volume.',

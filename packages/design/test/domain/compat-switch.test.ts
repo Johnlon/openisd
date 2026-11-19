@@ -3,7 +3,7 @@
  * A bug switch sits under the "Enable WinISD bugs" heading and is named by the bug ("Re without Rg");
  * an option sits under "Enable WinISD-style" and is named by the calculation ("Phase wrapping").
  * A new project, and a file that does not say, has every bug unticked and every option ticked, except
- * "Chart from Fs, Vas, Qms (WinISD's way)", which starts unticked (John, 11 Nov 2026, QO539: picked B).
+ * "Chart from Fs, Vas, Qms (WinISD's way)" (John, 11 Nov 2026, QO539: picked B) and "Impedance of one driver" (off: QO946.c131).
  */
 import {describe, expect, it} from 'vitest';
 import {CompatSwitch} from '../../domain/project/compatSwitch.js';
@@ -14,7 +14,7 @@ import {CompatSwitchGroup} from '../../fields/compatSwitchGroup.js';
 import {ToggleField} from '../../fields/field.js';
 import {WinisdDeviation} from '../../fields/winisdDeviation.js';
 describe('CompatSwitch', () => {
-  it('lists the eight WinISD bugs and the four options', () => {
+  it('lists the nine WinISD bugs and the five options', () => {
     expect(CompatSwitch.BUGS.map(s => s.field.label)).toEqual([
       'Two-BL driver',
       'Re without Rg',
@@ -24,12 +24,14 @@ describe('CompatSwitch', () => {
       'Sealed picker volume',
       'TL port without end correction',
       'Coil wiring: Re and BL only',
+      'Coil coefficient from project',
     ]);
     expect(CompatSwitch.OPTIONS.map(s => s.field.label)).toEqual([
       'Phase wrapping',
       'Uncapped flat response',
       'Simplified ABC intra-port velocity',
       "Chart from Fs, Vas, Qms (WinISD's way)",
+      'Impedance of one driver',
     ]);
     expect(CompatSwitch.ALL).toEqual([...CompatSwitch.BUGS, ...CompatSwitch.OPTIONS]);
   });
@@ -58,11 +60,10 @@ describe('CompatSwitch', () => {
     expect(WinisdDeviation.VA_MODEL.seenIn).toMatch(/Amplifier apparent load power \(VA\) chart.*System input power readout, 4\.0 W against 3\.91 W/);
   });
 
-  it('a new project has every bug unticked and every option on WinISD\'s side, but "Chart from Fs, Vas, Qms" unticked (QO539)', () => {
+  it('a new project has every bug unticked and every option on WinISD\'s side, but "Chart from Fs, Vas, Qms" (QO539) and "Impedance of one driver" (QO946.c131) unticked', () => {
     const p = sealedProject();
     for (const s of CompatSwitch.BUGS) expect(s.of(p).value, s.field.label).toBe(false);
-    for (const s of CompatSwitch.OPTIONS.filter(o => o !== CompatSwitch.CHART_FROM_FS_VAS_QMS)) expect(s.of(p).value, s.field.label).toBe(true);
-    expect(CompatSwitch.CHART_FROM_FS_VAS_QMS.of(p).value).toBe(false);
+    for (const s of CompatSwitch.OPTIONS) expect(s.of(p).value, s.field.label).toBe(s === CompatSwitch.ONE_DRIVER_IMPEDANCE || s === CompatSwitch.CHART_FROM_FS_VAS_QMS ? false : true);
   });
 
   it('"Chart from Fs, Vas, Qms" is saved with the project', () => {
@@ -72,6 +73,10 @@ describe('CompatSwitch', () => {
     const back = OpenISDProject.fromOwprText(p.toOwprText(), createEngine());
     if (Array.isArray(back)) throw new Error('fromOwprText returned problems: ' + back.join(', '));
     expect(CompatSwitch.CHART_FROM_FS_VAS_QMS.of(back).value).toBe(true);
+  });
+
+  it('"Chart from Fs, Vas, Qms" (John, QO539: picked B) and "Impedance of one driver" (John, QO946.c131; CLAUDE.md carries the allowance) are the two options that are OFF for a new project', () => {
+    expect(CompatSwitch.OPTIONS.filter(s => !s.winisdValue)).toEqual([CompatSwitch.CHART_FROM_FS_VAS_QMS, CompatSwitch.ONE_DRIVER_IMPEDANCE]);
   });
 
   it('a project file that does not say reads the same as a new project', () => {

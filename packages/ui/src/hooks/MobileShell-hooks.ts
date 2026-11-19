@@ -254,6 +254,8 @@ export function useMobileShell(): MobileShellApi {
     unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
     cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });
+  // A sync run writes saved projects (a pull, a conflict copy): the list reads the store again when sync reports what it moved.
+  watch(cloudSyncForProjects.activity, () => binView.refresh());
   const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
   const {query: projectQuery, order: projectOrder, scope: projectScope, orders: projectOrders} = binView;
   function openProjectsPane(): void {

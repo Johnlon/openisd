@@ -21,7 +21,7 @@ A WinISD calculation bug (John, 2026-10-05): copied only behind a yellow error s
 
 ## Cause
 
-Decoded bit for bit (winisd_research commit 864d53a, `GHIDRA_FINDINGS.md` "Group delay of the
+Decoded bit for bit (winisd_research commit 864d53a, `winisd_research/archive/GHIDRA_FINDINGS.md` "Group delay of the
 6th-order bandpass and ABC — chart byte 12 (2026-10-05)"; `scratch/gd_x87.py`, `scratch/gd_bp6_abc.py`;
 runs `abc-w5-gd1`, `abc-w5-gd2`). Case 12 of the ABC routine `0x4591b0` steps the box load
 `0x45a0d0` to f' = f ± δ (δ = 1e-10 Hz), but the output routine `0x459f90` passes the chart

@@ -20,8 +20,11 @@ export interface ProjectDocsDeps {
   readonly binned: (id: string) => boolean;
   /** A pulled edit took project `name` out of the Bin; `editedOn` names the device that edited it. */
   readonly restoredFromBin: (name: string, editedOn: string) => void;
-  /** A pull replaced saved project `id` with what device `from` saved ('' when it did not say). */
-  readonly replaced: (id: string, from: string) => void;
+  /** A pull replaced saved project `id` with what device `from` saved ('' when it did not say); `before` is
+   *  the text this device held for it until then, so an open project can tell whether it held more. */
+  readonly replaced: (id: string, from: string, before: string) => void;
+  /** This device's version of saved project `id` was kept as the conflict copy `copyId`. */
+  readonly keptCopy: (id: string, copyId: string) => void;
 }
 
 export function createProjectDocs(deps: ProjectDocsDeps): LocalDocs {
@@ -42,18 +45,19 @@ export function createProjectDocs(deps: ProjectDocsDeps): LocalDocs {
   function put(doc: LocalDoc, from: string): 'done' | 'refused' {
     if (doc.id.kind !== 'project') return 'refused';
     const wasBinned = deps.binned(doc.id.uuid);
-    const existed = hasStoredDoc(doc.id.uuid);
+    const before = storedBodyOf(doc.id.uuid);
     const res = repo.putStoredDoc(doc.id.uuid, doc.body);
-    if (res === 'done' && existed) deps.replaced(doc.id.uuid, from);
+    if (res === 'done' && before !== null) deps.replaced(doc.id.uuid, from, before);
     if (res === 'done' && wasBinned && !deps.binned(doc.id.uuid)) {
       deps.restoredFromBin(projectNameOfBody(doc.body) ?? 'Project', from);
     }
     return res;
   }
 
-  function hasStoredDoc(id: string): boolean {
+  /** The text the store holds for project `id`, or null when it holds none. */
+  function storedBodyOf(id: string): string | null {
     const res = repo.storedDocs();
-    return res.kind === 'ok' && res.docs.some(d => d.id === id);
+    return res.kind === 'ok' ? res.docs.find(d => d.id === id)?.body ?? null : null;
   }
 
   function remove(id: DocId): 'done' | 'refused' {
@@ -79,6 +83,7 @@ export function createProjectDocs(deps: ProjectDocsDeps): LocalDocs {
     const newId = newUuid();
     const putRes = repo.putStoredDoc(newId, body);
     if (putRes === 'refused') return 'refused';
+    deps.keptCopy(doc.id.uuid, newId);
     return { id: { kind: 'project', uuid: newId }, body, item, name };
   }
 

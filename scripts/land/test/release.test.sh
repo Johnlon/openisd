@@ -121,6 +121,15 @@ echo "$(pwd) $* $(git log -1 --format=%s) $(git status --porcelain | wc -l)" >> 
 cp RELEASES.md "$LEDGER_STORE/RELEASES.md"
 LD
 export RELEASE_NEW_TASK="bash $S/new-task" RELEASE_LAND="bash $S/land"
+# The dependency install release.sh may run in the ledger task's worktree is a stand-in too: never the real npm,
+# so a test run can never reach the network or any live service. It records where it ran and installs fake-dep.
+cat > "$S/install" <<'IN'
+#!/usr/bin/env bash
+echo "$(pwd)" >> "$GH_STATE/install.log"
+[ -z "${INSTALL_FAIL:-}" ] || exit 1
+mkdir -p node_modules/fake-dep
+IN
+export RELEASE_INSTALL="bash $S/install"
 
 # ---- git: an isolated config and a bare remote ----------------------------------------------------
 printf '[user]\n\tname = Test\n\temail = test@example.test\n[init]\n\tdefaultBranch = main\n' > "$S/gitconfig"
@@ -145,7 +154,7 @@ done
 printf 'id: F1\nstatus: closed\n' > tasks/fixes/F1.yml
 mkdir -p cloudflare/announcements/src
 { echo 'export const ANNOUNCEMENTS = ['
-  for n in 7.0.950 7.0.951 7.0.952 7.0.1000 7.0.1001 7.0.1100 7.0.1101 7.0.1102 7.0.1103 7.0.2000 7.0.2001 7.0.2002 7.0.2003; do echo "  {id: 'openisd-$n', title: 'x'},"; done
+  for n in 7.0.950 7.0.951 7.0.952 7.0.1000 7.0.1001 7.0.1100 7.0.1101 7.0.1102 7.0.1103 7.0.2000 7.0.2001 7.0.2002 7.0.2003 7.0.2004 7.0.2100 7.0.2101 7.0.2102 7.0.2103 7.0.2104; do echo "  {id: 'openisd-$n', title: 'x'},"; done
   echo '];'; } > cloudflare/announcements/src/index.js
 git remote add origin "$GH_REMOTE"
 git add -A; git commit -q -m "first change"; git push -q origin main
@@ -417,6 +426,112 @@ add_snap 20260110T0000Z "$FF_SHA" 2026-01-10T00:00:00Z
 echo '[]' > "$GH_STATE/live.json"
 out=$(DEPLOY_STALE=1 bash scripts/release.sh --public 7.0.2003 20260110T0000Z 2>&1); r=$?
 [ $r != 0 ] && grep -q 'live announcements list' <<< "$out" && ok "a live list without the id fails the release" || fail "stale live list: $r $out"
+
+# ---- 6e. by default the ledger row goes out through ship.sh (a pull request), never land.sh (it pushes main) ----------
+# Main moves only by pull request since 10 Nov 2026 (QO481). With RELEASE_LAND unset, release.sh runs the task worktree's
+# own scripts/ship.sh; here that worktree gets ship.sh and land.sh stand-ins that record whether they ran.
+cat > "$S/new-task-ship" <<'NT'
+#!/usr/bin/env bash
+# new-task stand-in that also puts ship.sh and land.sh stand-ins (untracked) into the new worktree.
+out="$(bash "$(dirname "$0")/new-task" "$@")" || exit 1
+d="${out#* }"; mkdir -p "$d/scripts"
+cat > "$d/scripts/ship.sh" <<'SH'
+echo "$(pwd) $* $(git log -1 --format=%s) $(git status --porcelain -- RELEASES.md tasks | wc -l)" >> "$GH_STATE/ship.log"
+cp RELEASES.md "$LEDGER_STORE/RELEASES.md"
+SH
+echo 'echo "$(pwd) $*" >> "$GH_STATE/land-sh.log"; exit 1' > "$d/scripts/land.sh"
+echo "$out" > "$GH_STATE/ship-task.txt"
+echo "$out"
+NT
+add_snap 20260111T0000Z "$FF_SHA" 2026-01-11T00:00:00Z
+out=$(env -u RELEASE_LAND RELEASE_NEW_TASK="bash $S/new-task-ship" bash scripts/release.sh --public 7.0.2004 20260111T0000Z 2>&1); r=$?
+[ $r = 0 ] && ok "a release with the default ledger landing exits 0" || fail "default landing: $r $out"
+ship_id="$(cut -d' ' -f1 "$GH_STATE/ship-task.txt")"; ship_wt="$(cut -d' ' -f2- "$GH_STATE/ship-task.txt")"
+grep -q "^$ship_wt $ship_id (auto) $ship_id: Record OpenISD 7.0.2004 in the release ledger 0\$" "$GH_STATE/ship.log" 2> /dev/null \
+  && ok "by default the ledger row is shipped with ship.sh in its task worktree, on a committed row" || fail "ship.sh call: $(cat "$GH_STATE/ship.log" 2>&1) want $ship_wt $ship_id"
+[ ! -s "$GH_STATE/land-sh.log" ] && ok "by default land.sh (a direct push to main) is never run" || fail "land.sh ran: $(cat "$GH_STATE/land-sh.log")"
+grep -q '^| 7.0.2004 ' "$LEDGER_STORE/RELEASES.md" && ok "the shipped ledger carries the 7.0.2004 row" || fail "ledger after ship: $(cat "$LEDGER_STORE/RELEASES.md")"
+# the task contract ship.sh checks before it pushes (scripts/land/check-task-contract.sh --pr) accepts the generated task
+grep -Fq 'why: "John, 11 Jan 2026: release OpenISD 7.0.2004"' "$ship_wt/tasks/$ship_id.yml" \
+  && ok "the generated task file says why" || fail "task file why: $(cat "$ship_wt/tasks/$ship_id.yml")"
+contract="$(cd "$ship_wt" && GATE_FILES='scripts/land/*' QUESTIONS_FILE=/nonexistent bash "$REPO/scripts/land/check-task-contract.sh" "$ship_id" HEAD~2 HEAD --pr 2>&1)" \
+  && ok "the task contract ship.sh runs accepts the generated ledger task" || fail "task contract: $contract"
+
+# ---- 6f. the ledger task's worktree can pass ship.sh's checks: its dependencies are there ---------------------------------
+# On 17 Nov 2026 the new worktree had no lz-string (the main checkout's node_modules was older than the lockfile), so
+# ship.sh's typecheck failed after the release was out. release.sh now checks that every dependency the worktree's
+# package.json files name resolves, and runs RELEASE_INSTALL (default: npm ci) in the worktree when one does not.
+cat > "$S/new-task-deps" <<'NT'
+#!/usr/bin/env bash
+# new-task stand-in whose worktree names the dependency fake-dep in its package.json; node_modules only if NT_HAVE_DEPS is set.
+out="$(bash "$(dirname "$0")/new-task" "$@")" || exit 1
+d="${out#* }"
+printf '{"name":"x","dependencies":{"fake-dep":"1.0.0"}}\n' > "$d/package.json"
+[ -z "${NT_HAVE_DEPS:-}" ] || { mkdir -p "$d/node_modules/fake-dep"; }
+git -C "$d" add package.json; git -C "$d" commit -q -m "package.json"
+echo "$out"
+NT
+cat > "$S/land-deps" <<'LD'
+#!/usr/bin/env bash
+# ship stand-in: records whether fake-dep resolved in the worktree when ship.sh would have run its typecheck.
+[ -d node_modules/fake-dep ] && echo "ok" >> "$GH_STATE/ship-deps.log" || echo "missing" >> "$GH_STATE/ship-deps.log"
+cp RELEASES.md "$LEDGER_STORE/RELEASES.md"
+LD
+: > "$GH_STATE/install.log"; : > "$GH_STATE/ship-deps.log"
+add_snap 20260112T0000Z "$FF_SHA" 2026-01-12T00:00:00Z
+out=$(RELEASE_NEW_TASK="bash $S/new-task-deps" RELEASE_LAND="bash $S/land-deps" bash scripts/release.sh --public 7.0.2100 20260112T0000Z 2>&1); r=$?
+[ $r = 0 ] && ok "release whose ledger worktree lacks dependencies exits 0" || fail "missing deps release: $r $out"
+[ "$(tail -1 "$GH_STATE/ship-deps.log")" = ok ] && ok "the ledger worktree has its dependencies when ship.sh would run its checks" || fail "ship saw: $(cat "$GH_STATE/ship-deps.log") ($out)"
+grep -q "^$LEDGER_STORE/wt-" "$GH_STATE/install.log" && [ "$(wc -l < "$GH_STATE/install.log")" = 1 ] && ok "the install ran once, inside the ledger task's worktree" || fail "install log: $(cat "$GH_STATE/install.log")"
+add_snap 20260113T0000Z "$FF_SHA" 2026-01-13T00:00:00Z
+: > "$GH_STATE/install.log"
+out=$(NT_HAVE_DEPS=1 RELEASE_NEW_TASK="bash $S/new-task-deps" RELEASE_LAND="bash $S/land-deps" bash scripts/release.sh --public 7.0.2101 20260113T0000Z 2>&1); r=$?
+[ $r = 0 ] && [ ! -s "$GH_STATE/install.log" ] && ok "dependencies already there: no install is run" || fail "needless install: $r $(cat "$GH_STATE/install.log") $out"
+add_snap 20260114T0000Z "$FF_SHA" 2026-01-14T00:00:00Z
+out=$(INSTALL_FAIL=1 RELEASE_NEW_TASK="bash $S/new-task-deps" RELEASE_LAND="bash $S/land-deps" bash scripts/release.sh --public 7.0.2102 20260114T0000Z 2>&1); r=$?
+[ $r = 1 ] && grep -q 'dependencies' <<< "$out" && grep -q 'release is out' <<< "$out" && ok "a failed install refuses, says the release is out and names the dependencies" || fail "install failure: $r $out"
+
+# ---- 6g. approve-prepared passes when the release branch holds a hotfix and nothing changed since preparation -------------
+# The move is a merge commit; its id used to differ on every run (the clock is in it), so approval could never match the
+# prepared id (17 Nov 2026, 7.0.960). It must still refuse a real change: another release tip, snapshot or tree.
+TEST_BUILD_INFO=v20260115T0000Z; PROD_BUILD_INFO=v20260114T0000Z
+hotfix_setup() { # hotfix_setup <stamp> <iso>: a new main commit, its snapshot, and a hotfix only on release
+  echo "$1" > "m-$1.txt"; git add "m-$1.txt"; git commit -q -m "main $1"; git push -q origin main
+  add_snap "$1" "$(git rev-parse HEAD)" "$2"
+  local tip; tip="$(rel_tip)"
+  git push -q origin "$(git commit-tree "$tip^{tree}" -p "$tip" -m "hotfix $1"):refs/heads/release"
+}
+hotfix_setup 20260115T0000Z 2026-01-15T00:00:00Z
+out=$(bash scripts/release.sh --prepare --public 7.0.2103 20260115T0000Z 2>&1); r=$?
+[ $r = 0 ] && ok "prepare with a hotfix only on release exits 0" || fail "hotfix prepare: $r $out"
+m1="build/release-preflight/20260115T0000Z-7.0.2103.json"
+[ "$(jq -r .releasePush "$m1")" != "$(jq -r .snapshotSha "$m1")" ] && ok "the prepared move is a merge, not the snapshot" || fail "prepared move: $(cat "$m1")"
+sleep 1 # a later clock second: the old merge id depended on it
+tip_before="$(rel_tip)"
+jq '.snapshotSha = "0000000000000000000000000000000000000001"' "$m1" > "$S/m-snap.json"
+out=$(bash scripts/release.sh --approve-prepared "$S/m-snap.json" 2>&1); r=$?
+[ $r = 1 ] && grep -q 'snapshot changed since preparation' <<< "$out" && ! remote_has v20260115T0000Z && ok "approval refuses a different snapshot" || fail "different snapshot: $r $out"
+other_tree="$(git commit-tree "$(git rev-parse HEAD~1^{tree})" -p "$tip_before" -p "$(jq -r .snapshotSha "$m1")" -m other)"
+jq --arg p "$other_tree" '.releasePush = $p' "$m1" > "$S/m-tree.json"
+out=$(bash scripts/release.sh --approve-prepared "$S/m-tree.json" 2>&1); r=$?
+[ $r = 1 ] && grep -q 'release-branch move changed since preparation' <<< "$out" && ! remote_has v20260115T0000Z && ok "approval refuses a move with a different tree" || fail "different tree: $r $out"
+other_parent="$(git commit-tree "$(git rev-parse "$(jq -r .snapshotSha "$m1")^{tree}")" -p "$(jq -r .snapshotSha "$m1")" -p "$(jq -r .snapshotSha "$m1")" -m other 2>&1)"
+jq --arg p "$other_parent" '.releasePush = $p' "$m1" > "$S/m-parent.json"
+out=$(bash scripts/release.sh --approve-prepared "$S/m-parent.json" 2>&1); r=$?
+[ $r = 1 ] && grep -q 'release-branch move changed since preparation' <<< "$out" && ! remote_has v20260115T0000Z && ok "approval refuses a move with different parents" || fail "different parents: $r $out"
+out=$(bash scripts/release.sh --approve-prepared "$m1" 2>&1); r=$?
+[ $r = 0 ] && remote_has v20260115T0000Z && ok "approval passes when release holds a hotfix and nothing changed" || fail "approve with hotfix: $r $out"
+merge1="$(rel_tip)"
+[ "$(git rev-parse "$merge1^1")" = "$tip_before" ] && [ "$(git rev-parse "$merge1^2")" = "$(jq -r .snapshotSha "$m1")" ] && ok "the published move has the prepared parents" || fail "published move: $(git rev-list --parents -n1 "$merge1")"
+# a readiness record written by the old script holds a merge id that cannot be rebuilt; the same tree and parents still pass
+TEST_BUILD_INFO=v20260116T0000Z; PROD_BUILD_INFO=v20260115T0000Z
+hotfix_setup 20260116T0000Z 2026-01-16T00:00:00Z
+out=$(bash scripts/release.sh --prepare --public 7.0.2104 20260116T0000Z 2>&1); r=$?
+m2="build/release-preflight/20260116T0000Z-7.0.2104.json"
+legacy="$(GIT_COMMITTER_DATE='2020-01-01T00:00:00Z' GIT_AUTHOR_DATE='2020-01-01T00:00:00Z' git commit-tree "$(git rev-parse "$(jq -r .snapshotSha "$m2")^{tree}")" -p "$(jq -r .releaseTip "$m2")" -p "$(jq -r .snapshotSha "$m2")" -m 'old style merge')"
+jq --arg p "$legacy" '.releasePush = $p' "$m2" > "$S/m-legacy.json"
+out=$(bash scripts/release.sh --approve-prepared "$S/m-legacy.json" 2>&1); r=$?
+[ $r = 0 ] && remote_has v20260116T0000Z && ok "an old record whose merge has the same tree and parents is accepted" || fail "legacy record: $r $out"
 
 # ---- 7. --latest rolls back --------------------------------------------------------------------------
 out=$(bash scripts/release.sh --latest 20260101T0102Z 2>&1); r=$?

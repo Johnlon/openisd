@@ -33,7 +33,7 @@ winisd_research/runs/qts_vas_edit_e150he/, commit dc8bb1c. Driver editor, real k
 - Vas doubled: only Vas changes (pinned E); Cms, Mms kept. Box changes (Qtc 0.467 → 0.526, Fsc 48.53 → 55.39): the sim uses the typed Vas.
 OpenISD matches WinISD on Qts and differs on Vas. What-if is OpenISD's own control, so its Qts row must move the charts whatever WinISD's editor does.
 
-## WinISD decompile (18 Oct 2026, winisd_research 4f05120, GHIDRA_FINDINGS.md)
+## WinISD decompile (18 Oct 2026, winisd_research 4f05120, winisd_research/archive/GHIDRA_FINDINGS.md)
 Static, exe 0.7.0.950. One function builds the sim state (fr_45e090): Cas from Vas, Mas from Fs and Cas, Ras from Qms,
 Rae from Qes (Rg-corrected), plus BL, Sd, Re, Le. It never reads Cms, Mms or Rms; Qts only as a fallback when Qes or
 Qms is not positive. Readouts and every chart use that state. Cms and Mms are display and fill values only, so the

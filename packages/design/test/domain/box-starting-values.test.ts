@@ -5,6 +5,7 @@ import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {createEngine} from '../../engine/Engine.js';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../../fields/defaults.js';
 import {DEFAULT_VENTED_ALIGNMENT} from '../../fields/options.js';
+import {oneDriver} from '../fixtures/driveLoad.js';
 
 function driver(): OpenISDDriver {
   const d = OpenISDDriver.empty(createEngine());
@@ -28,7 +29,7 @@ describe('box starting values on a type switch', () => {
     const p = new ProjectBuilder(driver(), createEngine()).vented().volume_m3(0.03).tuning_goal_hz(35).build();
     p.box.boxType.set('sealed');
     const losses = {Ql: p.box.sealed.losses.Ql.value, Qa: p.box.sealed.losses.Qa.value};
-    expect(p.box.sealed.volume_m3.value).toBe(p.driver.sealedVolumeForQtc(0.707, DEFAULT_SOURCE_RESISTANCE_OHM, losses));
+    expect(p.box.sealed.volume_m3.value).toBe(p.driver.sealedVolumeForQtc(0.707, oneDriver(DEFAULT_SOURCE_RESISTANCE_OHM), losses));
     // The Box tab then shows the flat Qtc the volume was designed for.
     expect(p.box.sealed.q_tc.value).toBeCloseTo(0.707, 3);
   });
@@ -36,7 +37,7 @@ describe('box starting values on a type switch', () => {
   it('vented: the default-alignment (C4) design for the source-loaded Qts, a 50 mm vent', () => {
     const p = sealedProject();
     p.box.boxType.set('vented');
-    const design = p.driver.ventedDesign(DEFAULT_VENTED_ALIGNMENT, DEFAULT_SOURCE_RESISTANCE_OHM, p.box.vented.losses.Ql.value)!;
+    const design = p.driver.ventedDesign(DEFAULT_VENTED_ALIGNMENT, oneDriver(DEFAULT_SOURCE_RESISTANCE_OHM), p.box.vented.losses.Ql.value)!;
     expect(p.box.vented.volume_m3.value).toBe(design.Vb);
     expect(p.box.vented.tuning_goal_hz.value).toBe(design.Fb);
     expect(p.box.vented.vent.diameter_m.value).toBe(0.05);

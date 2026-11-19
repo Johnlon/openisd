@@ -6,7 +6,7 @@
  * SAME `.wpr` this test imports (`../winisd/fixtures/pr-w5-1.wpr`).
  *
  * Model under test: `engine/circuit.ts` `solve`, `box === 'box-passive-radiator'`,
- * `lossMode: 'winisd-lossy'`. Formula: winisd_research/GHIDRA_FINDINGS.md "Passive radiator
+ * `lossMode: 'winisd-lossy'`. Formula: winisd_research/archive/GHIDRA_FINDINGS.md "Passive radiator
  * box — `0x45a960`".
  */
 import {readFileSync} from 'node:fs';

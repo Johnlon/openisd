@@ -32,11 +32,6 @@ const PAGES = MOBILE_SURFACES.filter(surface => surface.route !== MobileRoute.Ma
 
 /** Views whose box cannot show its field's top limit in every unit, with the bug file that says why. Needs John. test.fail: red when fixed, then delete the id. */
 const KNOWN: ReadonlyMap<string, string> = new Map([
-  // Vb top limit in cm3 (100000 L is 100000000 cm3, 76 px; the box holds 68 px beside the 126 px label column): lower the limit, or a narrower label column.
-  ['box-vented', 'BUG_20261110_layout-scan-first-run'],
-  ['box-bandpass4', 'BUG_20261110_layout-scan-first-run'],
-  ['box-bandpass6', 'BUG_20261110_layout-scan-first-run'],
-  ['box-abc', 'BUG_20261110_layout-scan-first-run'],
 ]);
 
 for (const surface of PAGES) {

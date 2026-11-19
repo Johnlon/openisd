@@ -47,13 +47,16 @@ import {formatFixed, formatTrimmedTo} from './format.js';
 import type {FieldLimits} from './filterLimits.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
-  FILTER_T_LIMITS,
+  FILTER_T_LIMITS, PEAK_HIGHPASS_GAIN_LIMITS,
 } from './filterLimits.js';
+import {
+  DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_QICL, DEFAULT_NEW_PROJECT_QP, DEFAULT_NEW_PROJECT_VENTED_QL,
+} from './defaults.js';
 import type {SelectorOption} from './options.js';
 import type {SpinRule} from './spinnerStep.js';
 import {
   BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, FILTER_TYPE_OPTIONS,
-  SEALED_ALIGNMENT_OPTIONS, VC_CONNECTION_OPTIONS, VENT_SHAPE_OPTIONS,
+  DRIVER_WIRING_OPTIONS, SEALED_ALIGNMENT_OPTIONS, VC_CONNECTION_OPTIONS, VENT_SHAPE_OPTIONS,
 } from './options.js';
 
 /** What a field is, for the one place that shows it as text — the diagnostics list. Branching
@@ -70,6 +73,27 @@ export type FieldKind = 'number' | 'enum' | 'text' | 'toggle' | 'date';
  *   so it can be zero or negative; so can a field whose floor nobody has stated.
  */
 export type ValueFloor = 'positive' | 'non-negative' | 'none';
+
+/**
+ * What a value loaded from a file (an OpenISD project, a WinISD `.wpr`, a stored project) is
+ * repaired to on opening when the field cannot hold it — the one load repair pass
+ * (`domain/project/loadRepair.ts`) reads it. Typing such a value is refused with a note instead.
+ * John, 18 Nov 2026: "a repair is ok but it has to be automatic" (QO953.c26); the repair is told in
+ * the opening message only, never as a mark on the box (QO953.c30, c31).
+ *
+ * - `breaks` — which of the field's own rules the loaded value breaks: below `limits.min`, not
+ *   past `floor`, or outside `limits` (`band`: below `min` or above `max`).
+ * - `to` — the value it is set to, or `'empty'`: the box is emptied, as if the file never gave it.
+ *   John, 18 Nov 2026: "a 0 is just the same as clearing the value in a sense" (QO953.c28): a field
+ *   the app can calculate (air density, a port's tuning) is then calculated, an air condition takes
+ *   the app's own value (Options).
+ * - `described` — how the opening message names that value ("the 10 mV minimum").
+ */
+export interface LoadRepair {
+  readonly breaks: 'min' | 'floor' | 'band';
+  readonly to: number | 'empty';
+  readonly described: string;
+}
 
 /**
  * How a spinner press moves a number field (`spinnerStep.ts`).
@@ -130,8 +154,10 @@ interface NumberFieldSpec extends FieldSpec {
   readonly limits: FieldLimits;
   readonly precision: number;
   readonly formula?: string;
+  readonly minimumReason?: string;
   readonly plausible?: FieldLimits;
   readonly floor?: ValueFloor;
+  readonly loadRepair?: LoadRepair;
   readonly spin?: FieldSpin;
   readonly allowedEmpty?: boolean;
 }
@@ -150,6 +176,9 @@ export class NumberField extends Field {
   readonly precision: number;
   /** Closed form derivation, for a quantity the engine calculates. */
   readonly formula: string | undefined;
+  /** Why a typed value below `limits.min` is refused, added to the box's note, for a floor whose
+   *  reason is not plain from the field itself (the Peak HP Gpk stops at 0 dB). */
+  readonly minimumReason: string | undefined;
   /**
    * The band a REAL driver's value falls in — narrower than `limits`, which is only what the
    * input will accept. A value inside `limits` but outside this is enterable and gets a
@@ -159,6 +188,8 @@ export class NumberField extends Field {
   readonly plausible: FieldLimits;
   /** Whether zero and negatives are admissible at all. `'none'` where nobody has stated one. */
   readonly floor: ValueFloor;
+  /** What a loaded value this field cannot hold is repaired to on opening; null where nothing is. */
+  readonly loadRepair: LoadRepair | null;
   /** How a spinner press moves the value. */
   readonly spin: FieldSpin;
   /** Whether this field is allowed to stay empty when cleared (e.g. filter fields). */
@@ -171,8 +202,10 @@ export class NumberField extends Field {
     this.limits = Object.freeze(spec.limits);
     this.precision = spec.precision;
     this.formula = spec.formula;
+    this.minimumReason = spec.minimumReason;
     this.plausible = Object.freeze(spec.plausible ?? spec.limits);
     this.floor = spec.floor ?? 'none';
+    this.loadRepair = spec.loadRepair === undefined ? null : Object.freeze(spec.loadRepair);
     this.spin = spec.spin ?? PROPORTIONAL_SPIN;
     this.allowedEmpty = spec.allowedEmpty ?? false;
   }
@@ -203,7 +236,8 @@ export class NumberField extends Field {
   }
 
   /** Format valueSI or Quantity into display string for this field using unit conversion & precision rules.
-   *  `maxSignificant` (the phone's narrow boxes) trims decimals beyond that many significant digits (never below two, or the field's own precision when that is smaller). */
+   *  `maxSignificant` (the phone's narrow boxes) trims decimals beyond that many significant digits (never below two, or the field's own precision when that is smaller),
+   *  and shows a value below 1 whose fixed form would not fit the phone box in exponent form ("2.857e-5"). */
   format(valueSIOrQuantity: number | Quantity, halfWidthSI?: number | null, token?: string, maxSignificant?: number): string {
     let val: number;
     let hw: number | null | undefined;
@@ -237,7 +271,14 @@ export class NumberField extends Field {
     if (valDisp !== 0) decimals = Math.max(decimals, NumberField.MIN_SIGNIFICANT - (Math.floor(Math.log10(Math.abs(valDisp))) + 1));
     decimals = Math.max(0, Math.min(20, decimals));
     const sanitizedVal = valDisp === 0 ? 0 : valDisp;
-    return formatTrimmedTo(sanitizedVal, decimals, Math.min(keep, decimals));
+    const fixed = formatTrimmedTo(sanitizedVal, decimals, Math.min(keep, decimals));
+    // A phone box holds `maxSignificant + 3` characters ("100000.00"). A value so small that its leading
+    // zeros and four figures run past that (the 0.00002857 W that drives the 10 mV minimum) is shown in
+    // exponent form, still four figures ("2.857e-5"): a value is never cut (rule 11, John, 10 Nov 2026).
+    if (maxSignificant !== undefined && Math.abs(valDisp) < 1 && valDisp !== 0 && fixed.length > maxSignificant + 3) {
+      return valDisp.toExponential(NumberField.MIN_SIGNIFICANT - 1);
+    }
+    return fixed;
   }
 
   /** Parse raw typed string input into a Quantity or Text discriminant for this field. */
@@ -397,7 +438,8 @@ export class NumberField extends Field {
     value: "box_Vb_l",
     label: "Volume",
     display: {kind: 'switchable', group: 'volume', base: 'L'},
-    limits: {min: 0.0001, max: 100},
+    // 10 m3 = 10,000 L: far beyond any speaker box, and it fits the phone Box tab's box in every unit (QO946.c187, lead).
+    limits: {min: 0.0001, max: 10},
     precision: 2,
     description: "Net Enclosure Volume\nThe air volume inside the box. This air acts as a spring the cone pushes against.",
   });
@@ -405,7 +447,7 @@ export class NumberField extends Field {
     value: "box_Vf_l",
     label: "Volume",
     display: {kind: 'switchable', group: 'volume', base: 'L'},
-    limits: {min: 0.0001, max: 100},
+    limits: {min: 0.0001, max: 10},
     precision: 2,
     description: "Front Chamber Volume\nNet air volume of the front, vented chamber in a bandpass enclosure.",
   });
@@ -415,6 +457,7 @@ export class NumberField extends Field {
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 1000},
     floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: 'the tuning worked out from the port'},
     precision: 2,
     description: "Box Tuning Frequency (Fb)\nHelmholtz resonance of the vented enclosure, set by port dimensions and box volume. Enter the tuning frequency to calculate port length, or enter port length to calculate the tuning frequency. An unbuildable port is flagged.",
   });
@@ -425,6 +468,7 @@ export class NumberField extends Field {
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 1000},
     floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: 'the tuning worked out from the port'},
     precision: 2,
     description: "Front Chamber Tuning Frequency (Ffc)\nHelmholtz resonance of the front, vented chamber of a 4th-order bandpass, 6th-order bandpass or ABC box, set by port dimensions and chamber volume. Enter the tuning frequency to calculate port length, or enter port length to calculate the tuning frequency. An unbuildable port is flagged.",
   });
@@ -469,6 +513,8 @@ export class NumberField extends Field {
     label: "Vent length",
     display: {kind: 'switchable', group: 'length', base: 'cm'},
     limits: {min: 0.001, max: 10},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: 'the length worked out from the tuning'},
     precision: 2,
     description: "Vent Length\nPhysical length of the port tube.\nLonger ports lower the tuning frequency for a fixed box volume.",
   });
@@ -526,6 +572,7 @@ export class NumberField extends Field {
     label: "Num. of PRs",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 1, max: 4},
+    loadRepair: {breaks: 'min', to: 1, described: '1, the fewest'},
     spin: INTEGER_SPIN,
     precision: 0,
     description: "Passive Radiator Count\nNumber of identical passive radiators in the enclosure.",
@@ -535,6 +582,7 @@ export class NumberField extends Field {
     label: "Added mass to cone",
     display: {kind: 'switchable', group: 'mass', base: 'g'},
     limits: {min: 0, max: 5000},
+    loadRepair: {breaks: 'min', to: 0, described: '0 g, no added mass'},
     precision: 3,
     description: "PR Added Mass\nBallast mass attached to the passive radiator cone to lower its tuning frequency.",
   });
@@ -589,6 +637,7 @@ export class NumberField extends Field {
     label: "System input power",
     display: {kind: 'fixed', symbol: 'W'},
     limits: {min: 0.01, max: 100000},
+    minimumReason: "The power must drive the amplifier at 10 mV or more.",
     precision: 2,
     description: "System Input Power\nTotal electrical power supplied to the system (P = V² / Re).",
   });
@@ -597,15 +646,18 @@ export class NumberField extends Field {
     label: "Driver input voltage (each)",
     display: {kind: 'fixed', symbol: 'V'},
     limits: {min: 0.01, max: 1000},
+    minimumReason: "The drive level must be at least 10 mV.",
+    loadRepair: {breaks: 'min', to: 0.01, described: 'the 10 mV minimum'},
     precision: 2,
     formula: "driveV = √(Pin · Re)",
-    description: "Driver Terminal Voltage\nRMS voltage across the driver's voice-coil terminals (V = √(P · Re)).",
+    description: "Amplifier Output Voltage\nThe voltage at your amplifier's output. With one driver, or several wired in parallel, each driver gets all of it (V = √(P · Re) for one driver); wired in series each gets its share, the voltage divided by the number of drivers. Power and voltage set each other.",
   });
   static readonly SIGNAL_RS_OHM = new NumberField({
     value: "signal_Rs_ohm",
     label: "Series resistance",
     display: {kind: 'fixed', symbol: 'Ω'},
     limits: {min: 0, max: 1000},
+    loadRepair: {breaks: 'min', to: 0, described: '0 Ω, the least'},
     precision: 3,
     description: "Series Resistance\nCombined amplifier output impedance, wiring and crossover resistance, in series with the driver.",
   });
@@ -641,6 +693,8 @@ export class NumberField extends Field {
     label: "Leakage Ql",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 0.1, max: 1000},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: DEFAULT_NEW_PROJECT_VENTED_QL, described: `${DEFAULT_NEW_PROJECT_VENTED_QL}, WinISD's default`},
     precision: 2,
     description: "Enclosure Leakage Loss Q\nAcoustic energy lost through cabinet seams and gaskets.",
   });
@@ -649,6 +703,8 @@ export class NumberField extends Field {
     label: "Absorption Qa",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 0.1, max: 1000},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: DEFAULT_NEW_PROJECT_QA, described: `${DEFAULT_NEW_PROJECT_QA}, WinISD's default`},
     precision: 2,
     description: "Enclosure Damping Loss Q\nAcoustic energy absorbed by internal damping fill.",
   });
@@ -657,6 +713,8 @@ export class NumberField extends Field {
     label: "Port Qp",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 0.1, max: 1000},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: DEFAULT_NEW_PROJECT_QP, described: `${DEFAULT_NEW_PROJECT_QP}, WinISD's default`},
     precision: 2,
     description: "Port Friction Loss Q\nAir friction and viscous boundary losses inside the vent.",
   });
@@ -665,6 +723,8 @@ export class NumberField extends Field {
     label: "Interchamber Qicl",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 0.1, max: 1000},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: DEFAULT_NEW_PROJECT_QICL, described: `${DEFAULT_NEW_PROJECT_QICL}, WinISD's default`},
     precision: 2,
     description: "Interchamber Loss Q\nAcoustic energy lost through the wall between the two chambers; one value for both.",
   });
@@ -677,7 +737,11 @@ export class NumberField extends Field {
     // The air model's own domain: above 0 K, up to a temperature far past any room (John, 1 Nov
     // 2026: no -100..+100 degC typing band). The solver's temperature search covers this band.
     limits: {min: 0, max: 1000},
+    // WinISD's own band (its Options dialog, 174 to 373 K inclusive, winisd_research/runs/env-limits-20261118):
+    // outside it a typed or loaded temperature is kept with a warning (QO953.c14).
+    plausible: {min: 174, max: 373},
     floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: "the app's temperature (Options)"},
     precision: 2,
     description: "Ambient Temperature\nUsed to calculate the speed of sound and the density of air.",
   });
@@ -686,6 +750,7 @@ export class NumberField extends Field {
     label: "Relative humidity",
     display: {kind: 'fixed', symbol: '%'},
     limits: {min: 0, max: 100},
+    loadRepair: {breaks: 'band', to: 'empty', described: "the app's humidity (Options)"},
     precision: 2,
     description: "Relative Humidity\nAffects the speed of sound and the density of the air.",
   });
@@ -694,6 +759,11 @@ export class NumberField extends Field {
     label: "Air pressure",
     display: {kind: 'switchable', group: 'pressure', base: 'Pa'},
     limits: {min: 1000, max: 200000},
+    // Air on the ground anywhere on Earth: the summit of Everest (about 33 kPa) to below the Dead Sea's
+    // shore (about 107 kPa). Outside it a pressure is kept with a warning (QO953.c14).
+    plausible: {min: 30000, max: 110000},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: "the app's pressure (Options)"},
     precision: 0,
     description: "Air Pressure\nAtmospheric pressure — affects air density and acoustic impedance.",
   });
@@ -702,6 +772,12 @@ export class NumberField extends Field {
     label: "Sound velocity",
     display: {kind: 'fixed', symbol: 'm/s'},
     limits: {min: 0, max: 1000},
+    // The air model's sound velocity over the temperature and pressure bands above at any humidity
+    // (264 m/s at 174 K, 491 m/s at 373 K, 100 % and 30 kPa), rounded outward. Outside it a sound
+    // velocity is kept with a warning (QO953.c14).
+    plausible: {min: 260, max: 500},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: 'the value worked out from the temperature, humidity and pressure'},
     precision: 2,
     formula: "c = √(γ·p/ρ), γ = 1.4",
     description: "Speed of Sound\nHow fast an acoustic wave travels through air, at the stated conditions.",
@@ -711,6 +787,11 @@ export class NumberField extends Field {
     label: "Air density",
     display: {kind: 'fixed', symbol: 'kg/m³'},
     limits: {min: 0, max: 10},
+    // The air model's density over the same bands (0.17 to 2.2 kg/m³), rounded outward. Outside it a
+    // density is kept with a warning (QO953.c14).
+    plausible: {min: 0.15, max: 2.25},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: 'the value worked out from the temperature, humidity and pressure'},
     precision: 5,
     formula: "ρ = p·Ma/(R·T)·[1 − xv(1 − Mv/Ma)]",
     description: "Air Density\nMass density of air, derived from temperature, humidity and pressure.",
@@ -1269,6 +1350,8 @@ export class NumberField extends Field {
     label: "Tuning freq (Frc)",
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 20000},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: 'the tuning worked out from the port'},
     precision: 2,
     description: "Rear Chamber Tuning Frequency (Frc)\nHelmholtz tuning frequency of the vented rear chamber in a 6th-order bandpass or ABC box. Enter the tuning frequency to calculate port length, or enter port length to calculate the tuning frequency. An unbuildable port is flagged.",
   });
@@ -1280,6 +1363,7 @@ export class NumberField extends Field {
     label: "Num. of drivers",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 1, max: 64},
+    loadRepair: {breaks: 'min', to: 1, described: '1, the fewest'},
     spin: INTEGER_SPIN,
     precision: 0,
     description: "Driver Count\nHow many drivers are active in the enclosure.",
@@ -1339,6 +1423,18 @@ export class NumberField extends Field {
     spin: {kind: 'proportionalFloored', finestExp: -1},
     precision: 3,
     description: "Filter Gain\nBoost or cut applied by the filter or equalizer, in dB.",
+    allowedEmpty: true,
+  });
+  /** The Peaking 2nd order highpass peak gain: 0..60 dB when typing (QO951.c9). */
+  static readonly FILTER_PEAK_HIGHPASS_GAIN_DB = new NumberField({
+    value: "filter_Peak_Highpass_Gain_dB",
+    label: "Gpk",
+    display: {kind: 'fixed', symbol: 'dB'},
+    limits: PEAK_HIGHPASS_GAIN_LIMITS,
+    minimumReason: 'A 2nd-order high-pass cannot peak below its flat level.',
+    spin: {kind: 'proportionalFloored', finestExp: -1},
+    precision: 3,
+    description: "Peak Gain (Gpk)\nHow far the peaking highpass rises above its flat level at fpk, in dB.\n0 dB or more: a 2nd-order high-pass cannot peak below its flat level.",
     allowedEmpty: true,
   });
   static readonly FILTER_ORDER = new NumberField({
@@ -1436,6 +1532,13 @@ export class EnumField extends Field {
     label: "Coil wiring",
     options: VC_CONNECTION_OPTIONS,
     description: "Coil wiring: how you wire it in this project\nHow you wire this driver's voice coils in this project. If it differs from how the driver was measured, the calculations use the figures for your wiring (for 2 coils, Series gives Re, Le and nominal impedance ×4 and BL ×2 compared with Parallel; Fs, Q, Vas and Mms do not change). The driver's own figures are never changed. It can be changed only for a driver with 2 or more coils whose measured wiring is stated.",
+  });
+  /** How the project's several drivers are wired to the amplifier (ticket 519; John's approved text, copied exactly after the title line). */
+  static readonly PROJECT_DRIVERWIRING = new EnumField({
+    value: "project_driverWiring",
+    label: "Driver wiring",
+    options: DRIVER_WIRING_OPTIONS,
+    description: "Driver wiring\nHow the drivers are connected to the amplifier. Parallel: each driver gets the full amplifier voltage; the load is one driver's impedance divided by the number of drivers (4 × 8 Ω → 2 Ω). Series: the voltage is split between the drivers; the load is the impedance times the number (4 × 8 Ω → 32 Ω). This changes the impedance chart, the SPL and excursion for a given amplifier voltage, and how Rg acts. Not the same as Coil wiring, which connects the voice coils inside one driver.",
   });
 
   // ── Filters ───────────────────────────────────────────────────────────────────────────────
@@ -1570,7 +1673,7 @@ export class ToggleField extends Field {
   static readonly ADV_WINISDSEALEDPICKER = new ToggleField({
     value: "adv_WinisdSealedPicker",
     label: "Sealed picker volume",
-    description: "Sealed picker volume: WinISD's sealed alignment picker suggests a box volume for the Qtc (total Q) you pick, but it works that out with a fixed Rg of 0.1 Ω and a fixed Qa of 100 and leaves out your own box leakage losses (Ql), Rg and Qa, which its charts do use. So WinISD is inconsistent with itself: its Box tab then shows a different Qtc from the one you picked (W5-1138SMF, Qts 0.49, Vas 4.85 L, Ql 10: picking 0.800 gives 3.13 L, and the Box tab shows 0.787). OpenISD gives the volume at which the Box tab shows the Qtc you picked (2.96 L, and the Box tab shows 0.800), counting the project's Rg and every box loss. Tick this to get WinISD's volume: Qt = 1/(1/Qts′ + 1/100), with Qts′ using Qes·(Re + 0.1)/Re, and Vb = Vas/((Qtc/Qt)² − 1).\nQtc: the picked total Q. Qts′: the driver's Qts with Rg in it. Vas: the driver's equivalent air volume.",
+    description: "Sealed picker volume: WinISD's sealed alignment picker suggests a box volume for the Qtc (total Q) you pick, but it works that out with a fixed Rg of 0.1 Ω and a fixed Qa of 100 and leaves out your own box leakage losses (Ql), Rg and Qa, which its charts do use. So WinISD is inconsistent with itself: its Box tab then shows a different Qtc from the one you picked (W5-1138SMF, Qts 0.49, Vas 4.85 L, Ql 10: picking 0.800 gives 3.13 L, and the Box tab shows 0.787). OpenISD gives the volume at which the Box tab shows the Qtc you picked (2.96 L, and the Box tab shows 0.800), counting the project's Rg and every box loss. Tick this to get WinISD's volume: Qt = 1/(1/Qts′ + 1/100), with Qts′ using Qes·(Re + 0.1)/Re, and Vb = Vas/((Qtc/Qt)² − 1).\nQtc: the picked total Q. Qts′: the driver's Qts with Rg in it. Vas: the equivalent air volume of all the drivers (one driver's Vas times the number of drivers, half that for an isobaric pair), as WinISD's picker uses.",
   }, "the sealed alignment picker in the New Project wizard and on the Box tab. W5-1138SMF (Qts 0.49, Vas 4.85 L), Ql 10: Qtc 0.800 picked gives 3.13 L, and the Box tab shows 0.787. OpenISD gives 2.96 L, and the Box tab shows 0.800.");
   static readonly ADV_WINISDBESSELHIGHPASS = new ToggleField({
     value: "adv_WinisdBesselHighpass",
@@ -1593,6 +1696,11 @@ export class ToggleField extends Field {
     label: "Coil wiring: Re and BL only",
     description: "Coil wiring: Re and BL only: when you change how a multi-coil driver's voice coils are wired, WinISD converts Re and BL but leaves the inductance Le and the nominal impedance Znom as they were. But rewiring changes all three together: with N coils, Re, Le and Znom change by N² and BL by N (for 2 coils, Series gives Re, Le and Znom ×4 and BL ×2 compared with Parallel). So WinISD's high frequencies are wrong after a rewire (Dayton MX6-22, Le 1.5 mH measured in series, set to Parallel: Le should be 0.375 mH and WinISD keeps 1.5 mH). OpenISD converts all of them. Tick this to convert only Re and BL as WinISD does. It shows only with \"Simulate voice coil inductance\" on, in the Impedance, SPL and Transfer function charts at high frequency; Znom feeds no chart. It applies only to a driver with 2 or more coils whose measured wiring is stated.",
   }, "the Impedance, SPL and Transfer function charts at high frequency, with voice coil inductance on, for a multi-coil driver whose project Coil wiring differs from the driver's. Dayton MX6-22 (Le 1.5 mH measured in series) set to Parallel: Le is 0.375 mH here and 1.5 mH with the switch ticked.");
+  static readonly ADV_WINISDPROJECTALFAVC = new ToggleField({
+    value: "adv_WinisdProjectAlfaVC",
+    label: "Coil coefficient from project",
+    description: "Coil coefficient from project: WinISD heats the voice coil (Re rises by Re·AlfaVC·dTVC) with the project's AlfaVC from the Driver tab only and ignores the AlfaVC stored with the driver, but AlfaVC is a property of the coil wire's metal (copper 0.0039 /K, aluminium about 0.0042 /K), so it belongs to the driver. So WinISD heats an aluminium coil as if it were copper (Re 3.2 Ω, driver AlfaVC 0.0042, dTVC 100 K: the hot Re is 4.544 Ω, and WinISD uses 4.448 Ω, about 2 % low); the Box tab's Fsc and Qtc, the charts and the power from a voltage follow. OpenISD heats the coil with the driver's AlfaVC when the driver gives one other than 0, else with the project's (0.0039 unless you change it); every catalogue driver stores 0, so they use the project's. Tick this to use the project's AlfaVC only, as WinISD does. With dTVC 0 nothing changes.",
+  }, "the Box tab's Fsc and Qtc, every chart and the Signal tab's power from a voltage, only when the coil runs hot (dTVC not 0) and the driver states an AlfaVC other than 0 and other than the project's. Re 3.2 Ω, driver AlfaVC 0.0042, project 0.0039, dTVC 100 K: hot Re 4.544 Ω here, 4.448 Ω with the switch ticked.");
 
   // ── WinISD Compatibility: options (under "Enable WinISD-style", named by the calculation; ticked is WinISD's way) ──────
   static readonly ADV_WINISDWRAPPHASE = new ToggleField({
@@ -1610,12 +1718,17 @@ export class ToggleField extends Field {
     label: "Simplified ABC intra-port velocity",
     description: "Simplified ABC intra-port velocity: WinISD works out the air speed in an ABC box's inner port without a small leak term, Zf·jωMai/Ricl, but that term is part of the real current through the port mass. So its chart is slightly off: by up to 1.35 dB and 4.6° near 110 Hz, and under 0.1 dB elsewhere (W5-1138SMF). OpenISD drops the same term by default, so it matches WinISD. Untick this to use the exact port-mass current. It changes the ABC box's Intra port velocity chart only.",
   }, null, 'intra-port');
-  // The one option a new project has unticked (John, 11 Nov 2026, QO539: picked B): the charts use the Mms, Cms and Rms boxes.
+  // Unticked in a new project (John, 11 Nov 2026, QO539: picked B): the charts use the Mms, Cms and Rms boxes.
   static readonly ADV_WINISDCHARTFROMFSVASQMS = new ToggleField({
     value: "adv_WinisdChartFromFsVasQms",
     label: "Chart from Fs, Vas, Qms (WinISD's way)",
     description: "Chart from Fs, Vas, Qms: WinISD draws its charts from Fs, Vas and Qms and works Cms, Mms and Rms out from them, so a Cms, Mms or Rms you type is shown but ignored. But datasheets often state Mms, Cms and Rms that do not agree with their own Fs, Vas and Qms, and then WinISD's charts follow figures that are not the ones on your screen (E150HE-44: up to 6.8 dB apart). So OpenISD draws its charts from the boxes you see — Sd, Mms, Cms, Rms, BL, Re, Le — and marks the ones that disagree. Tick this to draw from Fs, Vas and Qms as WinISD does.",
   }, null, 'Qms');
+  static readonly ADV_WINISDONEDRIVERIMPEDANCE = new ToggleField({
+    value: "adv_WinisdOneDriverImpedance",
+    label: "Impedance of one driver",
+    description: "Impedance of one driver: WinISD works out the sound as if the drivers were wired in parallel (each gets the full voltage), but its impedance chart shows only ONE driver, not the load the amplifier really sees with them in parallel (4 × 8 Ω is 2 Ω). So the two do not match. OpenISD shows the load for the wiring you chose under Driver wiring. Tick this to see one driver's impedance as WinISD does; the sound and every other chart stay the same.",
+  });
 
   static readonly ALL: readonly ToggleField[] =
     Object.freeze(Object.values(ToggleField).filter((v): v is ToggleField => v instanceof ToggleField));

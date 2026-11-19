@@ -5,7 +5,7 @@
  * `*FilterModel` class; this is the one door to them.
  */
 import type {
-  AllpassFilter, AllpassPatch, Filter, FilterSpec, FilterType, LinkwitzFilter, LinkwitzPatch,
+  AllpassFilter, AllpassPatch, Filter, FilterIssue, FilterSpec, FilterType, LinkwitzFilter, LinkwitzPatch,
   ParametricEqFilter, ParametricEqPatch, PassFilter, PassPatch, PeakHighpassFilter, PeakHighpassPatch,
   RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch, StaticGainFilter, StaticGainPatch,
   WinisdFilterErrors, WprFilter, WprFilterImport,
@@ -16,7 +16,7 @@ import {
 } from './index.js';
 import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
-  FILTER_T_LIMITS, LINKWITZ_RILEY_ORDER_LIMITS, type FieldLimits,
+  FILTER_T_LIMITS, LINKWITZ_RILEY_ORDER_LIMITS, PEAK_HIGHPASS_GAIN_LIMITS, type FieldLimits,
 } from '../../fields/filterLimits.js';
 import {integerSpin, type FieldSpin} from '../../fields/field.js';
 import {clamp, roundClamp} from './limits.js';
@@ -49,12 +49,14 @@ const ORDER_SOS: PassOrderEntry = Object.freeze({
 
 export interface FilterEngine {
   /** A fresh, enabled filter of `type` with its starting values — WinISD's own Filter Editor
-   *  "Add" defaults for its 8 types (winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]`
+   *  "Add" defaults for its 8 types (winisd_research/archive/PROBE_FINDINGS.md "`.wpr` `[Filters]`
    *  format", Add defaults column); linkwitz and the two OpenISD-only shelves keep the values
    *  OpenISD already shipped. No list id: the UI mints that. */
   default(type: FilterType): Filter;
   /** WinISD's Filters-list caption for one filter, exact wording. */
   caption(f: Filter): string;
+  /** What is wrong with `f` as entered (it draws no curve), or `null` when nothing is. */
+  issue(f: Filter): FilterIssue | null;
   /** This filter's `.wpr` `[Filters]` `filter<i>type`/`filter<i>params` shape, or `null` for a
    *  type WinISD has no `.wpr` representation for (the OpenISD-only shelves). */
   wpr(f: Filter): WprFilter | null;
@@ -81,7 +83,7 @@ export interface FilterEngine {
 
 /** `fields[1]` is every WinISD `.wpr` filter type's own `enabled` bit — parse it once here;
  *  `fallback` (the type default's own `enabled`, always `true`) covers an absent/non-numeric
- *  line (winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). */
+ *  line (winisd_research/archive/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). */
 function enabledFromWprFields(fields: readonly string[], fallback: boolean): boolean {
   const n = Number(fields[1]);
   return Number.isFinite(n) ? n === 1 : fallback;
@@ -118,6 +120,10 @@ export class FilterEngineImpl implements FilterEngine {
     }
     // No default arm: `type` is `FilterType`, a closed 10-member union, so an unhandled new
     // variant fails to COMPILE ("not all code paths return a value").
+  }
+
+  issue(f: Filter): FilterIssue | null {
+    return f.type === 'peakHighpass' ? new PeakHighpassFilterModel(f).issue() : null;
   }
 
   caption(f: Filter): string {
@@ -211,7 +217,8 @@ export class FilterEngineImpl implements FilterEngine {
     return {
       ...next,
       fpk: clamp(next.fpk, FILTER_FC_LIMITS),
-      gainPk: clamp(next.gainPk, FILTER_GAIN_LIMITS),
+      // A typed Gpk stops at 0 dB; a negative one already held (from a file) is kept (QO951.c9).
+      gainPk: clamp(next.gainPk, patch.gainPk === undefined ? FILTER_GAIN_LIMITS : PEAK_HIGHPASS_GAIN_LIMITS),
     };
   }
 

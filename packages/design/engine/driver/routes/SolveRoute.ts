@@ -22,12 +22,16 @@ export interface DriverRoute {
   value(working: Readonly<DriverWorkingSet>): number | null;
   /** Every quantity this route reads. */
   readonly inputs: readonly RouteQuantity[];
+  /** The formula this route works out, written with the quantities' own names: the text the Driver Editor's formula
+   *  panel shows for it (T902; the panel had its own hand-typed copy, which drifted from these routes). */
+  readonly formulaText: string;
 }
 
 export class SolveRoute<I extends RouteQuantity> implements DriverRoute {
   constructor(
     readonly target: RouteQuantity,
     readonly inputs: readonly I[],
+    readonly formulaText: string,
     private readonly formula: (v: WithInputs<I>) => number | null,
     private readonly guard: (v: WithInputs<I>) => boolean = () => true,
     readonly keepsNonPositive: boolean = false,
@@ -36,7 +40,7 @@ export class SolveRoute<I extends RouteQuantity> implements DriverRoute {
 
   /** This route, solving `relation`. */
   inRelation(relation: Relation): SolveRoute<I> {
-    return new SolveRoute(this.target, this.inputs, this.formula, this.guard, this.keepsNonPositive, relation);
+    return new SolveRoute(this.target, this.inputs, this.formulaText, this.formula, this.guard, this.keepsNonPositive, relation);
   }
 
   private ready(working: Readonly<DriverWorkingSet>): working is WithInputs<I> {

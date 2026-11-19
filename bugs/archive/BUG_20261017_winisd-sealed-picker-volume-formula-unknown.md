@@ -31,7 +31,7 @@ Vb   = Vas / ((Qtc / Qt)^2 - 1)   Qtc 0.707 is 1/sqrt(2)
 - Inputs OpenISD's switch needs: Rg (0.1 fixed in WinISD), Qa (100 fixed), Re, Qes, Qms, Vas. Ql is ignored.
 - The lead was close: Rg is folded in as guessed; the missing piece is the extra 1/Qa term (Qt 0.50119 for the
   W5-1138SMF, not 0.5012 from Rg alone), and Ql plays no part.
-- Evidence: `winisd_research/GHIDRA_FINDINGS.md` section "SEALED (CLOSED) ALIGNMENT PICKER FORMULA FOUND";
+- Evidence: `winisd_research/archive/GHIDRA_FINDINGS.md` section "SEALED (CLOSED) ALIGNMENT PICKER FORMULA FOUND";
   captures `winisd_research/runs/sealed_picker_formula.jsonl` and `runs/closed_alignments.jsonl`; validator
   `winisd_research/toys/validate_sealed_picker_formula.py`; output `runs/sealed_picker_validation.txt`.
 - The picker volume does not give the picked Qtc on WinISD's own Box tab, because the Box tab uses Ql 10 and the

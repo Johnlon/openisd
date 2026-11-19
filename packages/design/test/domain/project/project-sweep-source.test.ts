@@ -13,7 +13,7 @@ const GRID = {fmin: 20, fmax: 2000, N: 20};
 /** The source `OpenISDProject` builds for a sweep, over the project's public fields, with `air` and `engine` as given. */
 function sourceOf(p: OpenISDProject, engine: ReturnType<typeof createEngine>, air: Air = p.air): ProjectSweepSource {
   return {
-    driver: p.driver, box: p.box, nDrivers: p.nDrivers, Rs_ohm: p.Rs_ohm, circuitModel: p.circuitModel,
+    driver: p.driver, box: p.box, nDrivers: p.nDrivers, driverWiring: p.driverWiring, winisdOneDriverImpedance: p.winisdOneDriverImpedance, Rs_ohm: p.Rs_ohm, circuitModel: p.circuitModel,
     winisdDriverModel: p.winisdDriverModel, winisdVaModel: p.winisdVaModel, winisdWrapPhase: p.winisdWrapPhase,
     winisdFlatModel: p.winisdFlatModel, winisdChartFromFsVasQms: p.winisdChartFromFsVasQms,
     winisdAbcIntraPortVelocity: p.winisdAbcIntraPortVelocity, winisdPrNprResonance: p.winisdPrNprResonance,
@@ -21,8 +21,8 @@ function sourceOf(p: OpenISDProject, engine: ReturnType<typeof createEngine>, ai
     winisdTlPortNoEndCorrection: p.winisdTlPortNoEndCorrection, rgAtDriverSide: p.rgAtDriverSide,
     useTransmissionLinePortModel: p.useTransmissionLinePortModel, forceFlatResponse: p.forceFlatResponse,
     filters: p.filters, driverAddedMass_kg: p.driverAddedMass_kg, vcTempRise_K: p.vcTempRise_K, loading: p.loading,
-    alfaVC_per_K: p.alfaVC_per_K, sweepN: p.sweepN, driveVoltage_V: 2.83, air, airIssues: [], engine,
-    ventIssues: [], prIssues: [],
+    coilAlfaVC_per_K: p.driveLoad.alfaVC_per_K, sweepN: p.sweepN, driveVoltage_V: 2.83, air, airIssues: [], engine,
+    ventIssues: [], rearVentIssues: [], prIssues: [],
   };
 }
 

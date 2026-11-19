@@ -32,6 +32,8 @@ export interface ErrorSwitchStates {
     readonly tlPortEndCorrection: ErrorSwitchState;
     /** WinISD coil wiring: only Re and BL change with the wiring, Le and Znom stay as published. */
     readonly coilWiringReBlOnly: ErrorSwitchState;
+    /** WinISD coil coefficient from project: the coil is heated with the project's AlfaVC, never the driver's own. */
+    readonly projectAlfaVC: ErrorSwitchState;
 }
 
 export interface ErrorSwitchInputs {
@@ -54,6 +56,10 @@ export interface ErrorSwitchInputs {
     readonly coilWiringApplies: boolean;
     /** "Use transmission line model for port simulation" is ticked. */
     readonly tlPortModel: boolean;
+    readonly winisdProjectAlfaVC: boolean;
+    /** The coil runs hot (dTVC not 0) and the driver states an AlfaVC other than 0 and other than the project's: the
+     *  two ways of choosing the coil's coefficient give different sums. */
+    readonly coilAlfaVCChoiceMatters: boolean;
 }
 
 export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
@@ -70,5 +76,6 @@ export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
         sealedPicker: {marked: true, applicable: isSealed, inScope: isSealed, reproducesError: i.winisdSealedPicker},
         tlPortEndCorrection: {marked: true, applicable: i.tlPortModel && hasLinePort, inScope: hasLinePort, reproducesError: i.winisdTlPortNoEndCorrection},
         coilWiringReBlOnly: {marked: true, applicable: i.coilWiringApplies, inScope: true, reproducesError: i.winisdCoilWiringReBlOnly},
+        projectAlfaVC: {marked: true, applicable: i.coilAlfaVCChoiceMatters, inScope: i.coilAlfaVCChoiceMatters, reproducesError: i.winisdProjectAlfaVC},
     };
 }

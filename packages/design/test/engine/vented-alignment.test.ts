@@ -2,7 +2,7 @@
  * `ventedAlignment()` — WinISD's five New-Project-wizard vented alignments.
  *
  * Reference: WinISD's own designer function, decompiled from winisd.exe
- * (winisd_research/GHIDRA_FINDINGS.md "VENTED ALIGNMENT MECHANISM FOUND — 0x46afd0") and
+ * (winisd_research/archive/GHIDRA_FINDINGS.md "VENTED ALIGNMENT MECHANISM FOUND — 0x46afd0") and
  * validated there against 60 wizard captures (Qts 0.15–1.0) to 2.3e-14. The engine must
  * reproduce those captures to floating-point noise: a percent-level miss is a wrong input, not
  * rounding. WinISD does not clamp: the polynomials are evaluated as-is at every captured Qts

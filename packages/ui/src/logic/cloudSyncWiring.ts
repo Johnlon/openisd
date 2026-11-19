@@ -1,6 +1,7 @@
-import type {
-  DeviceName,
-  OAuthConfig,
+import {
+  type DeviceName,
+  type OAuthConfig,
+  SYNC_AFTER_EDIT_MS,
 } from '@openisd/design/cloud';
 import {
   OPENISD_MY_DRIVERS_KEY,
@@ -110,12 +111,19 @@ export interface CloudSyncWiringDeps {
   readonly deviceName: DeviceName;
   /** Told after each run of the saved projects its pulls replaced, so open ones can follow. */
   readonly projectsPulled: (pulled: readonly PulledProject[]) => void;
+  /** Called at the start of every scheduled run, before it reads the store: the open projects' unsaved
+   *  edits are written to their saved entries, so the run sends the whole project (QO946.c248). */
+  readonly beforeRun: () => void;
 }
 
 /** A saved project a pull replaced, and the device that saved what replaced it ('' when unknown). */
 export interface PulledProject {
   readonly id: string;
   readonly from: string;
+  /** The text this device's store held for the project until the pull. */
+  readonly before: string;
+  /** The conflict copy the run kept this device's version as, or null when there was no conflict. */
+  readonly copyId: string | null;
 }
 
 export interface CloudSyncWiring {
@@ -164,7 +172,8 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
     now,
     binned: id => deps.projectBin.isBinned(id),
     restoredFromBin: (name, editedOn) => cloudSync?.restoredFromBin(name, editedOn),
-    replaced: (id, from) => { pulled = [...pulled.filter(p => p.id !== id), {id, from}]; },
+    replaced: (id, from, before) => { pulled = [...pulled.filter(p => p.id !== id), {id, from, before, copyId: null}]; },
+    keptCopy: (id, copyId) => { pulled = pulled.map(p => (p.id === id ? {...p, copyId} : p)); },
   });
   const binMarkDocs = createBinMarkDocs({marks: deps.binMarks, rules: deps.rules});
 
@@ -225,8 +234,14 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
     onRefused: (fault) => cloudSync?.accountRefused(fault),
   });
 
+  // Every scheduled run first writes the open projects' unsaved edits to the store, so it sends what is on screen.
+  const scheduledEngine: SyncEngine = {
+    run: () => { deps.beforeRun(); return engine.run(); },
+    pendingLocal: () => engine.pendingLocal(),
+    notOnDrive: () => engine.notOnDrive(),
+  };
   const scheduler = createSyncScheduler({
-    engine,
+    engine: scheduledEngine,
     session,
     namer,
     timer,
@@ -240,7 +255,8 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
       pulled = [];
       deps.projectsPulled(handed);
     },
-    debounce_ms: 3000,
+    // A Save and an edit wait the same few seconds before their run (QO946.c248).
+    debounce_ms: SYNC_AFTER_EDIT_MS,
     focusGap_ms: 30000,
     tick_ms: 60000,
   });

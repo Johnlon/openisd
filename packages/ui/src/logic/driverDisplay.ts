@@ -8,7 +8,7 @@
 import type {OpenISDDriver, OpenISDDriverStandalone, OpenISDPassiveRadiatorStandalone, Readable} from '@openisd/design';
 import type {BundledDriverIndexRow, BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
 import {Chip, DriverType, SizeClass} from '@openisd/design/filter';
-import {NumberField} from '@openisd/design/fields';
+import {isoDay, NumberField} from '@openisd/design/fields';
 import {DriverScope} from '../driverScope.js';
 
 /** One row of the preview pane's spec table. `value` is already formatted for display. */
@@ -131,7 +131,7 @@ export function previewTextOf(driver: OpenISDDriver): {
     sku: s(driver.sku.value),
     manufacturer: s(driver.manufacturer.value),
     providedBy: s(driver.providedBy.value),
-    added: s(driver.added.value),
+    added: s(isoDay(driver.added.value ?? '')),
     description: s(driver.description.value),
     comment: s(driver.comment.value),
   };

@@ -8,7 +8,7 @@ Passive-radiator charts differ from WinISD whenever Ql or Qa are finite (always,
 ## Evidence
 - WinISD: `winisd_research/runs/pr-w5-1` (Ql 7, Qa 30, Qp 15, radiator Fs 30 / Qms 3.3 / Vas 4.8 L /
   Sd 95 cm²), impedance at all 2087 points reproduced to 9.4e-16 by the closed form in
-  winisd_research GHIDRA_FINDINGS.md "Passive radiator box — `0x45a960`".
+  winisd_research/archive/GHIDRA_FINDINGS.md "Passive radiator box — `0x45a960`".
 - OpenISD: `packages/design/engine/circuit.ts` `solve`, `box === 'box-passive-radiator'` branch.
 
 ## Cause

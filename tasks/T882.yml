@@ -1,0 +1,15 @@
+id: T882
+release_note: internal
+repo: openisd
+owner: sonnet-phone-help-fix
+status: done
+goal: Phone Driver help lists the Driver wiring row only when its caption is on screen (2 or more drivers), as desktop does since T879
+why: "Phone twin of T879 (desktop Placement help, which dropped the Driver wiring line on a 1-driver project): PhoneHelp.DRIVER still listed Driver wiring when the control is not drawn. John, 5 Nov 2026: running of the edge is bad why are you asking me (fix defects at once)."
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T882.yml
+  - packages/design/fields/phoneText.ts
+  - packages/design/test/fields/coil-wiring-help.test.ts
+  - packages/ui/src/hooks/MobileDriverTab-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/test/hooks/MobileDriverTab-hooks.test.ts

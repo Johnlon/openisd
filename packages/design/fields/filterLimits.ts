@@ -22,5 +22,10 @@ export const WINISD_MAX_FILTER_ORDER = 10;
 export const FILTER_FC_LIMITS: FieldLimits = Object.freeze({min: 1, max: 20000});
 export const FILTER_Q_LIMITS: FieldLimits = Object.freeze({min: 0.1, max: 100});
 export const FILTER_GAIN_LIMITS: FieldLimits = Object.freeze({min: -60, max: 60});
+/** Peaking 2nd order highpass peak gain (Gpk): typing stops at 0 dB, since a 2nd-order high-pass
+ *  cannot peak below its flat level (John, 18 Nov 2026, QO951.c9: "UI should not allow and maths
+ *  should do what you said anyway"). A negative Gpk from a file is kept; the engine draws no curve
+ *  for it and says so (T913). */
+export const PEAK_HIGHPASS_GAIN_LIMITS: FieldLimits = Object.freeze({min: 0, max: 60});
 export const FILTER_T_LIMITS: FieldLimits = Object.freeze({min: 0, max: 10});
 export const FILTER_BW_LIMITS: FieldLimits = Object.freeze({min: 0.01, max: 10});

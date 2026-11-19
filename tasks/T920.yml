@@ -1,0 +1,13 @@
+id: T920
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+label: fixes
+goal: "Main is red since T916 (input-limits sweep phase 2). An ABC box whose rear tuning the rear port cannot reach shows its reason both in the Vent length field's popup and on the chart's \"Can't plot\" panel, as the front port and the vented box already do. The spec counts the message inside the field's popup only and also checks the chart shows the same reason, on desktop and on the phone's Graph tab, for the ABC rear port, the ABC front port and the vented box. No app behaviour changes."
+why: "John, 19 Nov 2026, board item QO955.c3 (voice-typed; \"chat\"/\"chest\" = chart): \"if a chat cannot be drawn then the chest should show the reason message, and the related fields also, this is particularly important on the mobile where we can't see the chart and fields at the same time\"; he then tapped C (QO955.c4): \"chart shows the reason AND each field causing it shows it too (desktop and phone)\". So the message on both the chart and the field is intended; the spec's page-wide \"once\" count was the stale part. Options A (the rear port draws again) and B (the chart only points to the box) are rejected."
+done_test: bash scripts/test.sh packages/design/test/engine/dq-issue-text.test.ts
+files:
+  - tasks/T920.yml
+  - packages/ui/test/ui/abc-vent-message.browser.spec.ts
+note: "Decided by John in QO955.c3 (19 Nov 2026): chart and field both show the reason. Test-only change; no app code touched."

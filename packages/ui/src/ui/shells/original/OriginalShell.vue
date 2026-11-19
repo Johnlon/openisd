@@ -12,6 +12,7 @@ import UIField from '../../components/UIField.vue';
 import PortShapeToggle from '../../components/PortShapeToggle.vue';
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import DriverCoilWiring from '../../components/DriverCoilWiring.vue';
+import DriverWiring from '../../components/DriverWiring.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
@@ -42,6 +43,7 @@ import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {INSTALL_URL} from '../../siteLinks.js';
 import {useAnnouncementCenter} from '../../../hooks/Announcements-hooks.js';
+import {injectFeedbackDialog} from '../../../hooks/FeedbackDialog-hooks.js';
 
 const {
   cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog,
@@ -49,7 +51,7 @@ const {
   updateOffered, reloadForUpdate, dismissUpdate,
   handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
   handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
-  toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
+  toggleDropdown, openDd, infoMenuRoot, chartMenuRoot, openClick, closeDropdown, presentationState, isModified,
   projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
   projectListRef, duplicateProject, exportProject, cycleProjectColor, setProjectColor, copyProjectCharts, saveProjectRow, renameProject,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
@@ -66,7 +68,7 @@ const {
   showEnclosureTab, enclosureNavLabel,
   helpPanel, closeHelp, openSectionHelp, openTabHelp, tabHelpShown, rearChamberHelp, frontChamberHelp, passiveRadiatorHelp, userOptionsHelp,
   placementHelp, advancedOptionsHelp, listeningPlaceHelp, signalSourceHelp, limitsHelp, ventHelp,
-  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, compatOptions, optionApplies, errorSwitches, chartDeviations, prNprDeviationShown,
+  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, compatOptions, optionApplies, errorSwitches, chartDeviations, prNprDeviationShown, projectAlfaVCDeviationShown,
   boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -85,7 +87,7 @@ const {
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
   envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
   resetAirToAppDefaults,
-  powerLocked, rsOhm,
+  powerLocked, rsOhm, minimumPower,
   projectName, projectCreator, projectCreated, projectModified, projectDateCommits, projectDescription,
   lossesOpen, openLossGroups, resetBoxLosses,
   onFile, fileInput,
@@ -93,6 +95,7 @@ const {
 const winisdDifferences = injectWinisdDifferencesModal();
 const diagnostics = injectDiagnosticsModal();
 const announcements = useAnnouncementCenter();
+const feedback = injectFeedbackDialog();
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
 const { projectChanged } = useApp().appState;
 provideCellScope({ revision: projectChanged, written: () => {} });
@@ -135,7 +138,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         >
           <CloudSyncBadge :display="cloudDisplay" @tap="openCloudDialog" />
         </div>
-        <div class="tb-menu">
+        <div ref="infoMenuRoot" class="tb-menu">
           <button type="button" class="tb-btn has-menu" aria-label="Info" aria-haspopup="menu" :aria-expanded="openDd === 'info-dropdown'" title="Info" @click.stop="toggleDropdown('info-dropdown')">
             <ToolbarIcon name="info" />
             <span class="caret">&#9662;</span>
@@ -143,6 +146,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="dropdown-menu" :class="{ open: openDd === 'info-dropdown' }" @click.stop>
             <div class="menu-item" @click="about(); closeDropdown()">{{ aboutLabel }}</div>
             <div class="menu-item" @click="announcements.showList(); closeDropdown()">Announcements</div>
+            <div class="menu-item" data-testid="menu-send-feedback" @click="feedback.show(); closeDropdown()">{{ feedback.texts.menuLabel }}</div>
             <a class="menu-item" :href="INSTALL_URL" target="_blank" rel="noopener" title="How to add OpenISD to your desktop or dock as an app." @click="closeDropdown()">Add to desktop as an app</a>
             <div
               v-if="cloudAvailable"
@@ -157,7 +161,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           </div>
         </div>
         <div class="tb-sep"></div>
-        <div class="chart-select" @click.stop="toggleDropdown('chart-dropdown')" title="Choose which charts the graph shows — click a name to show it alone, tick boxes to stack several">
+        <div ref="chartMenuRoot" class="chart-select" @click.stop="toggleDropdown('chart-dropdown')" title="Choose which charts the graph shows — click a name to show it alone, tick boxes to stack several">
           <ToolbarIcon name="chart" />
           <span class="chart-name" :title="chartLabel">{{ chartLabel }}</span>
           <span class="caret">&#9662;</span>
@@ -471,6 +475,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <label><input type="radio" name="og-placement" value="standard" v-model="placement"> Standard</label>
                 <label><input type="radio" name="og-placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
               </div>
+              <DriverWiring />
               <DriverCoilWiring />
             </div>
             <div>
@@ -479,7 +484,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div class="driver-advanced-fields">
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_VCTEMPRISE_K" :value="project.vcTempRise_K.value" @update:value="v => project.vcTempRise_K.set(v)" /></div>
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_ADDEDMASS_G" :value="project.driverAddedMass_kg.value" @update:value="v => project.driverAddedMass_kg.set(v)" /></div>
-                  <div class="field-row"><UIFixedField class="field" :field="NumberField.ALFAVC_PER_K" :value="project.alfaVC_per_K.value" @update:value="v => project.alfaVC_per_K.set(v)" /></div>
+                  <div class="field-row"><UIFixedField class="field" :field="NumberField.ALFAVC_PER_K" :value="project.alfaVC_per_K.value" @update:value="v => project.alfaVC_per_K.set(v)" :deviation="projectAlfaVCDeviationShown ? WinisdDeviation.PROJECT_ALFAVC : undefined" /></div>
                 </div>
 
               </div>
@@ -602,7 +607,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             </div>
             <div>
               <DesktopBand :section="signalSourceHelp" @help="openSectionHelp" />
-              <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :readonly="powerLocked" /></div>
+              <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :min="minimumPower" :readonly="powerLocked" /></div>
               <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_DRIVEV_V" :cell="project.driveVoltage_V" /></div>
               <div class="field-row"><UIFixedField class="field" :field="NumberField.SIGNAL_RS_OHM" :value="rsOhm" @update:value="v => project.Rs_ohm.set(v)" /></div>
             </div>
@@ -615,13 +620,13 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div class="adv-left-col">
               <div class="adv-air-fields">
                 <div class="adv-air-col">
-                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range /></div>
-                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range /></div>
-                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-warnings="envTempDq.warnings" :dq-state="envTempDq.dqState" stepper allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-warnings="envHumidityDq.warnings" :dq-state="envHumidityDq.dqState" stepper /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-warnings="envPressureDq.warnings" :dq-state="envPressureDq.dqState" stepper allow-out-of-range /></div>
                 </div>
                 <div class="adv-air-col">
-                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range /></div>
-                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-state="envAirDensityDq.dqState" allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-warnings="envSoundVelocityDq.warnings" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-warnings="envAirDensityDq.warnings" :dq-state="envAirDensityDq.dqState" allow-out-of-range /></div>
                 <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
                 </div>
               </div>
@@ -676,6 +681,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <div>
                     <ErrorSwitch as="label" field-key="winisdCoilWiringReBlOnly" style="font-size: 12px;" :marked="errorSwitches.coilWiringReBlOnly.marked" :applicable="errorSwitches.coilWiringReBlOnly.applicable" :reproduces-error="errorSwitches.coilWiringReBlOnly.reproducesError" :title="ToggleField.ADV_WINISDCOILWIRINGREBLONLY.description">
                       <input type="checkbox" :checked="project.winisdCoilWiringReBlOnly.value" :disabled="!errorSwitches.coilWiringReBlOnly.applicable" @change="e => setCompatSwitch(project.winisdCoilWiringReBlOnly, inputChecked(e))"> {{ ToggleField.ADV_WINISDCOILWIRINGREBLONLY.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdProjectAlfaVC" style="font-size: 12px;" :marked="errorSwitches.projectAlfaVC.marked" :applicable="errorSwitches.projectAlfaVC.applicable" :reproduces-error="errorSwitches.projectAlfaVC.reproducesError" :title="ToggleField.ADV_WINISDPROJECTALFAVC.description">
+                      <input type="checkbox" :checked="project.winisdProjectAlfaVC.value" :disabled="!errorSwitches.projectAlfaVC.applicable" @change="e => setCompatSwitch(project.winisdProjectAlfaVC, inputChecked(e))"> {{ ToggleField.ADV_WINISDPROJECTALFAVC.label }}
                     </ErrorSwitch>
                   </div>
                   <div>

@@ -176,16 +176,30 @@ test.describe('NumInput', () => {
     await vb.focus();
     await vb.press('Escape');
     await expect(vb).toHaveValue(before);
-    // 2. Air fields are DIFFERENT by design (human ruling 2026-09-17): they accept the
-    //    out-of-range entry and signal it with a dq-flag + tooltip rather than clamping
-    //    (OriginalShell.vue :allow-out-of-range="true" — the app's chosen contract).
+    // 2. Relative humidity outside 0-100 % is impossible, so it is refused like every box (John's
+    //    ruling QO953.c14, 18 Nov 2026: "Agree: refuse impossible, warn odd"; replaces the
+    //    2026-09-17 flag-and-keep contract): the box goes red with the refusal as its note, and
+    //    the previous humidity stays in the sums (sound velocity and air density do not move).
     await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
     const rh = page.locator('.tab-section.active .field', { hasText: 'Relative humidity' }).locator('input');
+    const rhMark = page.locator('.tab-section.active .ui-field', { hasText: 'Relative humidity' }).locator('.ui-field-dq-btn');
+    const airVel = page.locator('.tab-section.active .field', { hasText: 'Sound velocity' }).locator('input');
+    const airRho = page.locator('.tab-section.active .field', { hasText: 'Air density' }).locator('input');
+    const rhBefore = await rh.inputValue();
+    const airBefore = [await airVel.inputValue(), await airRho.inputValue()];
     await rh.fill('-20');
-    await expect(rh).toHaveClass(/dq-flag/);           // flagged, not clamped
-    await expect(page.locator('.tab-section.active .ui-field', { hasText: 'Relative humidity' }).locator('.ui-field-dq-btn')).toHaveAttribute('title', /outside the sane range/);
+    await rh.blur();
+    await expect(rh).toHaveClass(/inp-bad/);           // refused, red
+    await expect(rhMark).toHaveAttribute('title', 'Relative humidity is below its minimum — enter a value between 0.00 and 100.00 %.');
+    expect([await airVel.inputValue(), await airRho.inputValue()]).toEqual(airBefore);
     await rh.fill('250');
-    await expect(rh).toHaveClass(/dq-flag/);           // ceiling too, not just the floor
+    await rh.blur();
+    await expect(rh).toHaveClass(/inp-bad/);           // ceiling too, not just the floor
+    await expect(rhMark).toHaveAttribute('title', 'Relative humidity is above its maximum — enter a value between 0.00 and 100.00 %.');
+    expect([await airVel.inputValue(), await airRho.inputValue()]).toEqual(airBefore);
+    await rh.focus();
+    await rh.press('Escape');
+    await expect(rh).toHaveValue(rhBefore);
     // 3. What-if panel (NumInput since T222): Fs typed negative is refused and red-flagged, as in every field.
     await page.locator('.project-nav li', { hasText: 'Driver' }).click();
     await page.locator('.save-rail .what-if-btn').click();

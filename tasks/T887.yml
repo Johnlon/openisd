@@ -1,0 +1,14 @@
+id: T887
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+label: fixes
+goal: Browser specs are not interrupted by the feedback question, which the app offers from the 3rd launch of a tab
+why: 'Main went red on suite run 44235798168 (mobile-box-tab.browser.spec.ts, "alignment and box-loss links stay on one line"): the worker''s shared page launches the app again at each reload any earlier spec makes, so by the 3rd launch the feedback question (T884) covered the page and took the click. The app is right (each reload is a launch); the shared test browser is not a new visitor. Follows QO946.c238 (John, 18 Nov 2026: the feedback question moves to app start).'
+done_test: npx vitest run packages/ui/test/hooks/FeedbackDialog-hooks.test.ts
+files:
+  - tasks/T887.yml
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/ui/feedback.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts

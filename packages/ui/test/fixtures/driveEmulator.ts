@@ -72,6 +72,13 @@ export class DriveEmulator {
     return [...this.files.values()].map(f => ({name: f.name, appProperties: {...f.appProperties}}));
   }
 
+  /** The body of the first file whose name starts with `prefix`, as Drive holds it. */
+  bodyOf(prefix: string): string {
+    const file = [...this.files.values()].find(f => f.name.startsWith(prefix));
+    if (file === undefined) throw new Error(`driveEmulator: no file named ${prefix}…`);
+    return file.body;
+  }
+
   /** Puts a file straight into the app folder, as another build might have written it. */
   seed(name: string, appProperties: Readonly<Record<string, string>>, body: string): void {
     const id = `file-${this.nextFileId++}`;

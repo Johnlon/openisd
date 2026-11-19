@@ -1,10 +1,11 @@
 import {type Engine} from '../../engine/index.js';
-import type { Air, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepPeaks, SweepResult, SweepSolveResult } from '../../engine/index.js';
+import type { Air, BoxParamsIssue, DriveLoad, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepPeaks, SweepResult, SweepSolveResult } from '../../engine/index.js';
+import { driveLoadOf } from './driveLoad.js';
 import { dateStamp, realAppContext } from '../appContext.js';
 import type { AppServices } from '../appContext.js';
 import { defaultedField, focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
-import type { EnvironmentIssue } from '../../engine/index.js';
+import type { AirIssue, EnvironmentIssue } from '../../engine/index.js';
 import { airOf } from './projectAir.js';
 import { DEFAULT_SOURCE_RESISTANCE_OHM } from '../../fields/defaults.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
@@ -33,7 +34,12 @@ import { ProjectCoilWiring } from './projectCoilWiring.js';
 import { ProjectMeta } from './projectMeta.js';
 import { ProjectListeners } from './projectListeners.js';
 import { resolveProject, usableRe } from './projectResolve.js';
+import { PROJECT_DEFAULT_DRIVER_WIRING } from './driverWiringDefault.js';
 import { ProjectSignal } from './projectSignal.js';
+import { repairLoaded } from './loadRepair.js';
+import { projectLoadRepairRules, repairedRecord } from './projectLoadRepairRules.js';
+import { enteredEntry } from '../specEntry.js';
+import type { LoadRepairNote } from './loadRepair.js';
 import { TuneLimits } from './tuneLimits.js';
 import { tuneViewOf } from './tuneView.js';
 import type { TuneView } from './tuneView.js';
@@ -56,6 +62,13 @@ import type { TuneView } from './tuneView.js';
 // call and its enclosure/box-specific parameter building). Each is built fresh over a lens/source
 // this class hands it, never held as a stored collaborator — `cursorF`/`pinnedF`/`cursorLocked`/
 // `dragRange` are the one documented exception, staying as this class's own private fields.
+
+/** A project as it opened, with every value the load repaired (`loadRepair.ts`), one line each for
+ *  the opening message. A repaired value carries no mark on its box (QO953.c30, c31). */
+export interface OpenedProject {
+    readonly project: OpenISDProject;
+    readonly loadRepairs: readonly LoadRepairNote[];
+}
 
 /** The port-velocity limit line where a project does not state one. */
 const DEFAULT_PORT_VELOCITY_LIMIT_M_PER_S = 17;
@@ -101,6 +114,17 @@ export class OpenISDProject {
         this.#resolve();
     }
 
+    /** The one load repair pass (`loadRepair.ts`) over the current layer, written directly like a
+     *  resolve's own writes (opening a project is not an edit), then resolved again. Returns the
+     *  repairs made, for the opening message only: a repaired value is a good value, with no mark on
+     *  its box (QO953.c26, c30, c31). Every door a record enters by runs it. */
+    #repairOnLoad(): readonly LoadRepairNote[] {
+        const root = this.#directRoot();
+        const notes = repairLoaded([...projectLoadRepairRules(root), ...this.#signalOver(root).loadRepairRules()]);
+        if (notes.length > 0) this.#resolve();
+        return notes;
+    }
+
     /** A window onto a driver embedded in `root`'s whole record — `get driver()` below is
      *  `#driverOver(this.#root())`; `#resolve()` calls it with a DIRECT (non-notifying) root of
      *  its own instead. One construction, parameterised by which lens backs it. */
@@ -142,11 +166,10 @@ export class OpenISDProject {
     #boxOver(root: SimpleField<OpenISDProjectJson>): OpenISDBox {
         return OpenISDBox.wrap(
             focus(root, 'box'), this.#driverOver(root), this.#engine,
-            () => root.value.driverEmbedding.Rs_ohm,
+            () => driveLoadOf(root, this.#driverOver(root)),
             () => this.#issues,
             () => this.#issues.ventTuningExtra,
             () => this.#airOver(root),
-            () => root.value.driverEmbedding.nDrivers,
             () => ProjectAdvanced.wrap(focus(root, 'advanced'), focus(root, 'filters')).winisdChartFromFsVasQms.value,
         );
     }
@@ -179,6 +202,16 @@ export class OpenISDProject {
         return defaultedField(focus(this.#slot('driverEmbedding'), 'nDrivers'), 1);
     }
 
+    /** "Driver wiring": how the project's `nDrivers` drivers are wired to the amplifier (QO946.c129). Parallel where a project does
+     *  not say. Saved and loaded only; the engine does not read it yet. Not the coil wiring inside one driver (`coilWiring`). */
+    get driverWiring(): SimpleField<'parallel' | 'series'> {
+        const lens = focus(this.#slot('driverEmbedding'), 'driverWiring');
+        return {
+            get value() { return lens.value ?? PROJECT_DEFAULT_DRIVER_WIRING; },
+            set: (wiring: 'parallel' | 'series') => lens.set(wiring),
+        };
+    }
+
     /** "Coil wiring": how the user wires a multi-coil driver's own coils, beside the wiring it was
      *  measured in. The amplifier-side figures use it; the stored ones stay as published. */
     get coilWiring(): ProjectCoilWiring {
@@ -204,9 +237,18 @@ export class OpenISDProject {
 
     /** This array's own voice-coil resistance temperature coefficient, SI 1/K — independent of
      *  the driver's own datasheet `driver.alfaVC_per_K` (WinISD stores these separately, and
-     *  they can diverge). */
+     *  they can diverge). The sums heat the coil with the driver's own value when it is not 0, and with this one
+     *  otherwise or with "Coil coefficient from project" ticked (QO953.c16; `driveLoad.alfaVC_per_K`). */
     get alfaVC_per_K(): SimpleField<number> {
         return focus(this.#slot('driverEmbedding'), 'alfaVC_per_K');
+    }
+
+    /** What loads this project's driver beyond the driver itself (source resistance, driver count, loading and coil heating): the
+     *  figures the Box tab's sealed readout, the sealed volume a typed Qtc gives, the charts and the Signal tab's power are
+     *  worked out under. */
+    get driveLoad(): DriveLoad {
+        const root = this.#root();
+        return driveLoadOf(root, this.#driverOver(root));
     }
 
     /** WinISD Driver tab "Standard" / "Iso-Barik" radio. */
@@ -336,6 +378,16 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdAbcIntraPortVelocity;
     }
 
+    /** "Driver wiring" says something only with 2 or more drivers; the control is drawn only then (plan 519, 3.1). */
+    get driverWiringApplies(): boolean {
+        return this.nDrivers.value >= 2;
+    }
+
+    /** "Impedance of one driver" changes the impedance chart only with 2 or more drivers (plan 519, 3.2). */
+    get winisdOneDriverImpedanceApplies(): boolean {
+        return this.nDrivers.value >= 2;
+    }
+
     /** "Simplified ABC intra-port velocity" acts on the open box: an ABC box only. */
     get winisdAbcIntraPortVelocityApplies(): boolean {
         return this.box.boxType.value === 'abc';
@@ -384,7 +436,20 @@ export class OpenISDProject {
             winisdCoilWiringReBlOnly: this.winisdCoilWiringReBlOnly.value,
             coilWiringApplies: this.coilWiring.canChoose,
             tlPortModel: this.useTransmissionLinePortModel.value,
+            winisdProjectAlfaVC: this.winisdProjectAlfaVC.value,
+            coilAlfaVCChoiceMatters: this.vcTempRise_K.value !== 0
+                && this.driver.coilAlfaVC_per_K(this.alfaVC_per_K.value, false) !== this.driver.coilAlfaVC_per_K(this.alfaVC_per_K.value, true),
         });
+    }
+
+    /** WinISD Compatibility "Coil coefficient from project" — see `ProjectAdvanced.winisdProjectAlfaVC`. */
+    get winisdProjectAlfaVC(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdProjectAlfaVC;
+    }
+
+    /** WinISD Compatibility "Impedance of one driver" — see `ProjectAdvanced.winisdOneDriverImpedance`. Saved and loaded only. */
+    get winisdOneDriverImpedance(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdOneDriverImpedance;
     }
 
     /** WinISD Compatibility "Uncapped flat response" — see `ProjectAdvanced.winisdFlatModel`. */
@@ -495,19 +560,36 @@ export class OpenISDProject {
      * (the driver precedent, QO81).
      */
     static wrapWithIdentity(json: OpenISDProjectJson, uuid: string, engine: Engine, appContext: AppServices = realAppContext): OpenISDProject {
-        return new OpenISDProject(json, uuid, engine, appContext);
+        const project = new OpenISDProject(repairedRecord(json).record, uuid, engine, appContext);
+        project.#repairOnLoad();
+        return project;
     }
 
     /** Wrap a stored session (saved and edited states) under an adopted identity. */
     static wrapSession(session: OpenISDProjectSessionJson, engine: Engine, appContext: AppServices = realAppContext): OpenISDProject {
-        const project = new OpenISDProject(withNullEmbeddedDriverId(session.saved), session.id, engine, appContext);
+        return OpenISDProject.openSession(session, engine, appContext).project;
+    }
+
+    /** `wrapSession`, with what the load repaired in either layer, one line each for the opening
+     *  message ("Driver input voltage (each) -6 V in the file: set to the 10 mV minimum"). */
+    static openSession(session: OpenISDProjectSessionJson, engine: Engine, appContext: AppServices): OpenedProject {
+        // The record's own values are repaired before the first resolve, which would otherwise work
+        // a port out from a 0 Hz tuning and lose the length the file gave.
+        const saved = repairedRecord(withNullEmbeddedDriverId(session.saved));
+        const project = new OpenISDProject(saved.record, session.id, engine, appContext);
+        const repairs = [...saved.notes, ...project.#repairOnLoad()];
         if (session.edited) {
-            project.#edited = withNullEmbeddedDriverId(session.edited);
+            const edited = repairedRecord(withNullEmbeddedDriverId(session.edited));
+            project.#edited = edited.record;
+            const seenEdited = new Set(repairs.map(n => n.text));
+            repairs.push(...edited.notes.filter(n => !seenEdited.has(n.text)));
             // The constructor's own resolve() only reached `#saved`, set just above — the
             // edited layer just assigned needs its own (S7-d: recompute on load).
             project.#resolve();
+            const seen = new Set(repairs.map(n => n.text));
+            repairs.push(...project.#repairOnLoad().filter(n => !seen.has(n.text)));
         }
-        return project;
+        return {project, loadRepairs: repairs};
     }
 
     /** A project text from before ids as the text this build writes for the same project, carrying
@@ -619,14 +701,19 @@ export class OpenISDProject {
      * passed in as closures rather than let `resolveProject` reach `this`: they are this
      * project's own window-builders, shared with the live getters below (S2-7d2).
      */
-    #resolve(): void {
-        const directRoot = simpleField<OpenISDProjectJson>(
+    /** The current layer, read and written directly: no promotion to `#edited`, no notify. */
+    #directRoot(): SimpleField<OpenISDProjectJson> {
+        return simpleField<OpenISDProjectJson>(
             () => this.#whatif ?? this.#edited ?? this.#saved,
             (json) => {
                 if (this.#whatif) this.#whatif = json;
                 else if (this.#edited) this.#edited = json;
                 else this.#saved = json;
             });
+    }
+
+    #resolve(): void {
+        const directRoot = this.#directRoot();
         this.#issues = resolveProject({
             directRoot,
             engine: this.#engine,
@@ -636,6 +723,8 @@ export class OpenISDProject {
             powerDriveOver: (root) => this.#signalOver(root).powerDrive_W,
             driveVoltageOver: (root) => this.#signalOver(root).driveVoltage_V,
             readoutRsOhmOver: (root) => this.#signalOver(root).readoutRs_ohm,
+            driverWiringOver: () => this.driverWiring.value,
+            rgAtDriverSideOver: () => this.rgAtDriverSide.value,
         });
     }
 
@@ -689,11 +778,11 @@ export class OpenISDProject {
 
     /** Like `fromOwprText`, but a field that fails the schema is removed so its default applies
      *  instead of refusing the project; `repaired` names every field that was reset, for the
-     *  user to be told. Refused only when the text is not a project at all. */
-    static fromOwprTextRepairing(text: string, engine: Engine, appContext: AppServices = realAppContext): { project: OpenISDProject; repaired: readonly FieldPath[] } | string[] {
+     *  user to be told; `loadRepairs` every value the load repair pass set (`openSession`). Refused only when the text is not a project at all. */
+    static fromOwprTextRepairing(text: string, engine: Engine, appContext: AppServices = realAppContext): OpenedProject & { repaired: readonly FieldPath[] } | string[] {
         const parsed = parseOwprSessionRepairing(text, () => appContext.newId());
         if (Array.isArray(parsed)) return parsed;
-        return { project: OpenISDProject.wrapSession(parsed.value, engine, appContext), repaired: parsed.repaired };
+        return { ...OpenISDProject.openSession(parsed.value, engine, appContext), repaired: parsed.repaired };
     }
 
     /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */
@@ -725,6 +814,8 @@ export class OpenISDProject {
             () => this.Rs_ohm.value,
             () => this.winisdVaModel.value,
             () => this.nDrivers.value,
+            () => this.driverWiring.value,
+            () => this.rgAtDriverSide.value,
             () => this.#issues.signal,
         );
     }
@@ -745,6 +836,31 @@ export class OpenISDProject {
      */
     get driveVoltage_V(): Readable<number> & Entered & Precise & Calculated & Writable<number> & Clearable & Calculatable<number> {
         return this.#signalOver(this.#root()).driveVoltage_V;
+    }
+
+    /** The Signal tab's drive level window: what a typed drive level is refused for, and the
+     *  smallest power the System input power box takes. Built fresh on every access. */
+    get signal(): ProjectSignal {
+        return this.#signalOver(this.#root());
+    }
+
+    /** A drive power read from a WinISD `.wpr` (`[SignalSource] P`): stored as the file states it,
+     *  then repaired like every loaded value (a power of 0 W or below, or one driving below 10 mV,
+     *  is set to the power that drives 10 mV). Returns the repairs made. Needs a usable Re. */
+    /** The load repair pass, run by an importer that wrote a file's values through the project's own
+     *  fields (a WinISD `.wpr`) once it has written them all. Returns the repairs made. */
+    repairImported(): readonly LoadRepairNote[] {
+        const repairs = this.#repairOnLoad();
+        if (repairs.length > 0) this.#notify();
+        return repairs;
+    }
+
+    loadPowerDrive_W(v: number): readonly LoadRepairNote[] {
+        const signal = focus(this.#root(), 'signal');
+        signal.set({...signal.value, power_W: enteredEntry(v), voltage_V: undefined});
+        const repairs = this.#repairOnLoad();
+        this.#notify();
+        return repairs;
     }
 
     // ── ENVIRONMENT ───────────────────────────────────────────────────────────────────────────
@@ -803,10 +919,15 @@ export class OpenISDProject {
     // any of the rest back in would let a caller override a fact the project already states about
     // itself, which is the thing John's 2026-09-06 ruling rules out.
 
-    /** What is wrong with the temperature the air runs at: outside the range the air model supports. */
-    #airRangeIssues(root: SimpleField<OpenISDProjectJson>): readonly EnvironmentIssue[] {
-        const stated = [this.#airFieldsOver(root).tempK.value].filter(tempK => tempK !== null);
-        return stated.flatMap(tempK => this.#engine.environment.temperatureIssues(tempK));
+    /** What is wrong with the air the sweep runs in: a temperature outside the range the air model
+     *  supports, or a stated pressure, sound velocity or density at or below zero (QO953). */
+    #airRangeIssues(root: SimpleField<OpenISDProjectJson>): readonly (EnvironmentIssue | AirIssue)[] {
+        const fields = this.#airFieldsOver(root);
+        const stated = [fields.tempK.value].filter(tempK => tempK !== null);
+        const environment = this.#engine.environment;
+        const floors = ([['pressurePa', fields.pressurePa.value], ['c', fields.c.value], ['rho', fields.rho.value]] as const)
+            .flatMap(([name, value]) => value === null ? [] : environment.airFloorIssues(name, value));
+        return [...stated.flatMap(tempK => environment.temperatureIssues(tempK)), ...floors];
     }
 
     /** Everything `projectSweep.ts`'s free functions need to read off this project — built fresh
@@ -819,6 +940,8 @@ export class OpenISDProject {
             driver: this.driver,
             box: this.box,
             nDrivers: this.nDrivers,
+            driverWiring: this.driverWiring,
+            winisdOneDriverImpedance: this.winisdOneDriverImpedance,
             Rs_ohm: this.Rs_ohm,
             circuitModel: this.circuitModel,
             winisdDriverModel: this.winisdDriverModel,
@@ -838,13 +961,14 @@ export class OpenISDProject {
             driverAddedMass_kg: this.driverAddedMass_kg,
             vcTempRise_K: this.vcTempRise_K,
             loading: this.loading,
-            alfaVC_per_K: this.alfaVC_per_K,
+            coilAlfaVC_per_K: this.driveLoad.alfaVC_per_K,
             sweepN: this.sweepN,
             driveVoltage_V: this.#signalOver(root).sweepVoltage_V,
             air: this.#airOver(root),
             airIssues: this.#airRangeIssues(root),
             engine: this.#engine,
             ventIssues: this.#issues.vent,
+            rearVentIssues: this.#issues.rearVent,
             prIssues: this.#issues.pr,
         };
     }

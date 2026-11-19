@@ -4,7 +4,7 @@
  *  validation and reconstruction are entirely `@openisd/design`'s
  *  (`OpenISDProject.fromOwprText()` — QO116: one whole-record `.safeParse()` at the load
  *  boundary). This file supplies no shape of its own and never holds the project's record. */
-import {OpenISDProject, ProjectSummary, withMovedChamberQicl, type FieldPath} from '@openisd/design';
+import {OpenISDProject, ProjectSummary, withMovedChamberQicl, type FieldPath, type OpenedProject} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
@@ -66,6 +66,9 @@ export interface ProjectRepo {
   /** A design parsed from opened file TEXT — File → Open's JSON branch. Project only (QO90);
    *  same validator every other door uses, so a payload another door wrote loads identically. */
   readProjectText(text: string): OpenISDProject | string[];
+  /** `readProjectText`, with every value the load repaired, one line each for the opening message
+   *  (QO953.c31): File → Open of a project file. */
+  openProjectText(text: string): OpenedProject | string[];
   /** Write to the previously-picked file (first save prompts). `naming` carries the
    *  suggested filename and the picker's format bits. */
   saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult>;
@@ -118,7 +121,27 @@ export interface ProjectRepo {
   deleteStoredProject(id: string): 'done' | 'refused';
   /** The saved-list id `project` was loaded from or saved as, or null when it has none yet. */
   storedIdOf(project: OpenISDProject): string | null;
+  /** Cloud sync sends the whole project (John, QO946.c248): the project's saved entry takes its unsaved
+   *  layer too, so a sync run sends both, and Save stays the checkpoint. The entry keeps its `modified`
+   *  stamp, which only a Save, a pull or a conflict copy changes (see `savedStampOf`). `base` is the stamp
+   *  the entry had when this project was opened, shown or last written (null when not known).
+   *  - 'same': the entry holds the project's design already (view state aside).
+   *  - 'idle': neither has unsaved edits: nothing to send, nothing written.
+   *  - 'written': the entry still has stamp `base`, or the same checkpoint with no unsaved edits: it now holds the project.
+   *  - 'moved': the entry holds another version (a pull, another device's Save): nothing is written, so neither is lost.
+   *  - 'notStored' / 'refused': no entry, or the store refused the write. */
+  storeWithUnsavedLayer(project: OpenISDProject, base: string | null): LayerWrite;
+  /** The `modified` stamp of saved entry `id`, or null when there is none. A Save, a pull and a conflict copy
+   *  give it a new one; the unsaved-layer writes keep it, so every tab of this browser shares one lineage. */
+  savedStampOf(id: string): string | null;
+  /** The saved entry `id` without its unsaved layer: what closing a project without saving leaves. */
+  dropUnsavedLayer(id: string): 'written' | 'same' | 'notStored' | 'refused';
 }
+
+/** What writing a saved entry's unsaved layer did; `stamp` is the entry's `modified` stamp afterwards. */
+export type LayerWrite =
+  | { readonly kind: 'written' | 'same'; readonly stamp: string }
+  | { readonly kind: 'idle' | 'moved' | 'notStored' | 'refused' };
 
 export interface StoredProjectDoc {
   readonly id: string;
@@ -138,6 +161,17 @@ export interface ProjectRepairReport {
   readonly repaired: readonly FieldPath[];
   readonly backupKey: string | null;
 }
+
+/** A project whose values the load repaired on opening (a drive level below 10 mV set to 10 mV,
+ *  `OpenISDProject.openSession`): the user is told by a toast, one line per repair (QO953.c31). */
+export interface LoadRepairReport {
+  readonly projectName: string;
+  readonly lines: readonly string[];
+}
+
+/** Who tells the user about a load repair: this repo ('tell'), the caller that shows them itself
+ *  ('caller'), or nobody, for a read that opens nothing ('silent'). */
+type LoadRepairTelling = 'tell' | 'caller' | 'silent';
 
 /** One project saved in browser storage, as the Open project list shows it. An entry whose text
  *  would not read even after repair is `unreadable`: it has a name but no summary. */
@@ -298,6 +332,7 @@ export function createProjectRepo(
   exportedFiles: ExportedFiles,
   onRepaired: (report: ProjectRepairReport) => void,
   onSaved: () => void,
+  onLoadRepaired: (report: LoadRepairReport) => void,
 ): ProjectRepo {
   const upgrade = createProjectSchemaUpgrade(engine);
   let lastSavedAt = 0;
@@ -305,7 +340,16 @@ export function createProjectRepo(
   /** Upgrade and parse `text`, resetting any field the schema refuses. When a field was reset,
    *  the stored record it came from is backed up (before anything can write over it) and the
    *  repair is reported. `source` is null for a file or a link, which still hold the original. */
-  function readRepairing(text: string, source: StoredSource | null): OpenISDProject | string[] {
+  function readRepairing(text: string, source: StoredSource | null, tell: LoadRepairTelling): OpenISDProject | string[] {
+    const opened = openRepairing(text, source, tell);
+    return Array.isArray(opened) ? opened : opened.project;
+  }
+
+  /** `readRepairing`, with every value the load repair pass set (`OpenISDProject.openSession`). With
+   *  `tell` 'tell', those repairs are reported through `onLoadRepaired` (QO953.c31: a repair on opening is
+   *  told by a toast); 'caller' leaves them to the caller, which shows them itself; 'silent' is for a read
+   *  that opens nothing (a listing, an id check). */
+  function openRepairing(text: string, source: StoredSource | null, tell: LoadRepairTelling): OpenedProject | string[] {
     let parsed: unknown;
     try { parsed = JSON.parse(text); } catch { return ['not valid JSON']; }
     // The same upgrade every door applies, so a design saved by an older build opens anywhere.
@@ -322,7 +366,21 @@ export function createProjectRepo(
         backupKey: original === null ? null : source.backupKey,
       });
     }
-    return result.project;
+    if (tell === 'tell' && result.loadRepairs.length > 0) {
+      onLoadRepaired({projectName: result.project.name.value, lines: result.loadRepairs.map(repair => repair.text)});
+    }
+    return result;
+  }
+
+  /** A design read from opened file text (a file, a backup being restored, an archive entry). */
+  function openExportedText(text: string, tell: LoadRepairTelling): OpenedProject | string[] {
+    const opened = exportedFiles.open(text);
+    if (opened.kind === 'newer') {
+      return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads}). The file is unchanged: reload this page to get the latest OpenISD, then open it again`];
+    }
+    const result = openRepairing(opened.text, null, tell);
+    if (!Array.isArray(result)) claimId(result.project);
+    return result;
   }
 
   /** The last session write reached the store; a session read from it is held by definition. */
@@ -533,7 +591,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
   function claimId(project: OpenISDProject): void {
     const held = readStoredEntries().find(entry => entry.id === project.uuid());
     if (held === undefined) return;
-    const stored = readRepairing(held.text, null);
+    const stored = readRepairing(held.text, null, 'silent');
     if (Array.isArray(stored) || designOf(stored) !== designOf(project)) project.assignNewId();
   }
 
@@ -543,11 +601,56 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
     return project;
   }
 
+  /** A stored project text's saved checkpoint and unsaved layer, each as one text (null: no unsaved layer); null when
+   *  it is not a session. Each leaves out `charts` (view state and the trace colour opening stamps), as the project's
+   *  own unsaved-changes test does. */
+  function layersOf(text: string): { readonly saved: string; readonly edited: string | null } | null {
+    const design = (layer: Readonly<Record<string, unknown>>): string => {
+      const {charts: _charts, ...rest} = layer;
+      return JSON.stringify(rest);
+    };
+    try {
+      const parsed: unknown = JSON.parse(text);
+      if (!isRecord(parsed) || !isRecord(parsed.saved)) return null;
+      return {saved: design(parsed.saved), edited: isRecord(parsed.edited) ? design(parsed.edited) : null};
+    } catch {
+      return null;
+    }
+  }
+
+  /** Saved entry `id` replaced by `text`, keeping its place and `modified` time. */
+  function rewriteEntry(id: string, text: string): 'written' | 'refused' | 'notStored' {
+    const entries = readStoredEntries();
+    const index = entries.findIndex(entry => entry.id === id);
+    const held = entries[index];
+    if (held === undefined) return 'notStored';
+    const rewritten = entries.slice();
+    rewritten[index] = {...held, text};
+    try {
+      writeStoredEntries(rewritten);
+    } catch {
+      return 'refused';
+    }
+    return 'written';
+  }
+
+  /** The time a save or a pull stamps an entry with: now, but always after this tab's last stamp and after
+   *  `previous` (the entry's own stamp), so a replaced entry never keeps its stamp. */
+  function nextStamp(previous: string | null): number {
+    const after = previous === null ? 0 : Date.parse(previous) + 1;
+    const now = Math.max(Date.now(), lastSavedAt + 1, Number.isNaN(after) ? 0 : after);
+    lastSavedAt = now;
+    return now;
+  }
+
+  function heldEntry(id: string): StoredProjectEntry | null {
+    return readStoredEntries().find(entry => entry.id === id) ?? null;
+  }
+
   function saveToStorage(project: OpenISDProject): StorageSaveResult {
     const entries = readStoredEntries();
     const id = project.uuid();
-    const now = Math.max(Date.now(), lastSavedAt + 1);
-    lastSavedAt = now;
+    const now = nextStamp(entries.find(candidate => candidate.id === id)?.modified ?? null);
     const entry: StoredProjectEntry = { id, text: project.toStoredText(), modified: new Date(now).toISOString() };
     
     try {
@@ -588,20 +691,19 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const payload = sharePayload(current.payload);
       if (!payload) return ['share link is not a recognised session payload'];
 
-      const result = readRepairing(payload.project, null);
+      const result = readRepairing(payload.project, null, 'tell');
       if (Array.isArray(result)) return result;
       claimId(result);
       return { project: result, view: payload.view };
     },
 
     readProjectText(text: string): OpenISDProject | string[] {
-      const opened = exportedFiles.open(text);
-      if (opened.kind === 'newer') {
-        return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads}). The file is unchanged: reload this page to get the latest OpenISD, then open it again`];
-      }
-      const project = readRepairing(opened.text, null);
-      if (!Array.isArray(project)) claimId(project);
-      return project;
+      const opened = openExportedText(text, 'tell');
+      return Array.isArray(opened) ? opened : opened.project;
+    },
+
+    openProjectText(text: string): OpenedProject | string[] {
+      return openExportedText(text, 'caller');
     },
 
     saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
@@ -659,13 +761,13 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const source = storage.get(PROJECT_STORAGE_KEY) !== null ? AUTOSAVE_SOURCE : LEGACY_AUTOSAVE_SOURCE;
       const text = storage.get(source.key);
       if (text === null) return null;
-      const project = readRepairing(text, source);
+      const project = readRepairing(text, source, 'tell');
       if (Array.isArray(project)) return project;
       return project;
     },
     listStoredProjects(): StoredProjectListing[] {
       return readStoredEntries().map((entry): StoredProjectListing => {
-        const project = readRepairing(entry.text, null);
+        const project = readRepairing(entry.text, null, 'silent');
         return Array.isArray(project)
           ? { kind: 'unreadable', id: entry.id, name: 'Unreadable project', modified: entry.modified, bytes: textBytes(entry.text) }
           : { kind: 'readable', id: entry.id, name: project.name.value, modified: entry.modified, bytes: textBytes(entry.text), summary: ProjectSummary.of(project) };
@@ -674,7 +776,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
     loadStoredProject(id: string): OpenISDProject | string[] {
       const entry = readStoredEntries().find(candidate => candidate.id === id);
       if (entry === undefined) return ['saved project not found'];
-      const project = readRepairing(entry.text, SAVED_PROJECTS_SOURCE);
+      const project = readRepairing(entry.text, SAVED_PROJECTS_SOURCE, 'tell');
       return Array.isArray(project) ? project : asEntry(project, id);
     },
     saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null, traceHidden: ReadonlySet<OpenISDProject>): void {
@@ -704,7 +806,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const traceHidden = new Set<OpenISDProject>();
       let focusedIndex = 0;
       for (const entry of payload.entries) {
-        const project = readRepairing(entry.text, OPEN_SESSION_SOURCE);
+        const project = readRepairing(entry.text, OPEN_SESSION_SOURCE, 'tell');
         if (Array.isArray(project)) {
           refused.push(`entry ${entry.id}: ${project.join('; ')}`);
           refusedEntries.push({ id: entry.id, text: entry.text });
@@ -777,7 +879,8 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
         }
       }
 
-      const nowIso = new Date().toISOString();
+      // A new stamp, never the one the entry had: an open project tells by it that its entry was replaced.
+      const nowIso = new Date(nextStamp(existingIdx >= 0 ? currentEntries[existingIdx]?.modified ?? null : null)).toISOString();
       if (existingIdx >= 0) {
         const guarded = backup.guard('sync', () => {
           const nextEntries = [...currentEntries];
@@ -797,6 +900,36 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
     },
     storedIdOf(project: OpenISDProject): string | null {
       return readStoredEntries().some(entry => entry.id === project.uuid()) ? project.uuid() : null;
+    },
+    storeWithUnsavedLayer(project: OpenISDProject, base: string | null): LayerWrite {
+      const id = project.uuid();
+      const entry = heldEntry(id);
+      if (entry === null) return {kind: 'notStored'};
+      const {text: held, modified: stamp} = entry;
+      const text = project.toStoredText();
+      const heldLayers = layersOf(held);
+      const ours = layersOf(text);
+      // The entry holds this project's design already (it may differ in view state only).
+      if (held === text || (heldLayers !== null && ours !== null && heldLayers.saved === ours.saved && heldLayers.edited === ours.edited)) {
+        return {kind: 'same', stamp};
+      }
+      // Nothing unsaved on either side: the entry is the project's checkpoint, as Save wrote it.
+      if (!project.isModified() && heldLayers !== null && heldLayers.edited === null) return {kind: 'idle'};
+      const sameCheckpoint = heldLayers !== null && ours !== null && heldLayers.saved === ours.saved && heldLayers.edited === null;
+      if (stamp !== base && !sameCheckpoint) return {kind: 'moved'};
+      const written = rewriteEntry(id, text);
+      return written === 'written' ? {kind: 'written', stamp} : {kind: written};
+    },
+    savedStampOf(id: string): string | null {
+      return heldEntry(id)?.modified ?? null;
+    },
+    dropUnsavedLayer(id: string): 'written' | 'same' | 'notStored' | 'refused' {
+      const entry = heldEntry(id);
+      if (entry === null) return 'notStored';
+      let parsed: unknown;
+      try { parsed = JSON.parse(entry.text); } catch { return 'same'; }
+      if (!isRecord(parsed) || !isRecord(parsed.edited)) return 'same';
+      return rewriteEntry(id, JSON.stringify({...parsed, edited: null}));
     },
     deleteStoredProject(id: string): 'done' | 'refused' {
       const entries = readStoredEntries();

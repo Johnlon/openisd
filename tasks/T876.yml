@@ -1,0 +1,28 @@
+id: T876
+release_note: internal
+repo: openisd
+owner: wiring2
+status: done
+goal: Slice 2 of several-driver wiring: schema v6 step, driverWiring and winisdOneDriverImpedance saved and loaded, inert
+why: John decided the several-driver wiring plan (ticket 519): QO946.c129 (Driver wiring, Parallel/Series), c130, c131 ("Impedance of one driver" switch, off by default). Slice 2 of the plan, section 11 item 2: Data, inert.
+ruling: QO946
+done_test: bash scripts/test.sh packages/design/test/domain/driver-wiring-data.test.ts
+files:
+  - tasks/T876.yml
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/schemaVersion.ts
+  - packages/design/domain/project/compatSwitch.ts
+  - packages/design/test/domain/driver-wiring-data.test.ts
+  - build/T876_REPORT.md
+  - packages/design/test/architecture-driver-wiring-has-one-site.test.ts
+  - packages/design/test/domain/schema-version-4-wiring.test.ts
+  - packages/design/test/domain/schema-version-5-wiring.test.ts
+  - packages/design/test/domain/schema-version.test.ts
+  - packages/design/test/domain/slim-model.test.ts
+  - packages/persistence/test/goldens/backup-file/file-layout-6.json
+  - packages/persistence/test/goldens/custom-drivers/dump-layout-6.json
+  - packages/persistence/test/goldens/many-projects/dump-layout-6.json
+  - packages/persistence/test/goldens/one-project/dump-layout-6.json
+  - packages/persistence/test/goldens/open-sessions/dump-layout-6.json
+  - packages/persistence/test/goldens/passive-radiators/dump-layout-6.json
+  - packages/persistence/test/storedTextCompaction.test.ts

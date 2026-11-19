@@ -1,6 +1,6 @@
 /**
  * A closed box's Fsc and Qtc can be typed in OpenISD but not in WinISD, which lets you type only the
- * volume (observed in WinISD's control list, winisd_research PROBE_FINDINGS.md, 17 Oct 2026). Each of
+ * volume (observed in WinISD's control list, winisd_research/archive/PROBE_FINDINGS.md, 17 Oct 2026). Each of
  * the two fields carries a ≠W cue that opens the help page at its entry, on both skins; a vented box
  * has no such cue.
  */

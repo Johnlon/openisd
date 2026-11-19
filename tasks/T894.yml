@@ -1,0 +1,33 @@
+id: T894
+release_note: internal
+repo: openisd
+owner: sonnet-perf-stats
+status: done
+goal: The app reports how long its key steps take (boot download, catalogue, restore, ready, first chart, project open, driver list open, and a per-session recalc summary) as a perf event, with the device's cores and memory, and nothing personal or typed
+why: 'John, 18 Nov 2026, QO946.c252: "collect performance stats please, how long boot is taking (I''ve loading data) and other key transitions, so we know if users have a poor experience and need to offload to a server".'
+done_test: npx vitest run packages/ui/test/logic/perf.test.ts
+files:
+  - packages/ui/test/fixtures/appStateFixture.ts
+  - packages/ui/test/fixtures/recordingTelemetryUi.ts
+  - packages/ui/test/fixtures/silentPerf.ts
+  - packages/ui/test/hooks/MobileSheet-hooks.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/logic/browserListeners.test.ts
+  - packages/ui/test/logic/driverBrowsingState-import.test.ts
+  - packages/ui/test/logic/driverBrowsingState-picks.test.ts
+  - packages/ui/test/logic/driverBrowsingState-selection-failure.test.ts
+  - packages/ui/test/logic/driverFilters.test.ts
+  - packages/ui/test/logic/telemetry.test.ts
+  - packages/ui/test/logic/usageEventsT885.test.ts
+  - tasks/T894.yml
+  - packages/ui/src/logic/telemetry/perf.ts
+  - packages/ui/src/logic/telemetry/events.ts
+  - packages/ui/src/logic/telemetry/sessionEnd.ts
+  - packages/ui/src/hooks/telemetryContext.ts
+  - packages/ui/src/hooks/GraphPanel-hooks.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/test/logic/perf.test.ts
+  - packages/ui/test/ui/telemetry.browser.spec.ts

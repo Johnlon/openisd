@@ -1,0 +1,12 @@
+id: T889
+release_note: internal
+repo: openisd
+owner: sonnet-task-marker
+status: done
+goal: A claimed task worktree shows a clean git status, because the claim marker .task is git-ignored
+why: 'An unexpected issue is a bug fixed at its source, not worked around (John, 17 Oct 2026: "if there is a unexpected data hold over then isn''t that a bug"). Lead finding, 18 Nov 2026: ship.sh refused T886 (the cloud-sync save notice, PR 208) for an untracked .task, which scripts/land/task-gates/claim.sh writes at the clone root and whose header says it is git-ignored, but .gitignore did not list it.'
+done_test: bash scripts/land/test/claim-clean-status.test.sh
+files:
+  - tasks/T889.yml
+  - .gitignore
+  - scripts/land/test/claim-clean-status.test.sh

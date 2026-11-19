@@ -26,6 +26,7 @@ import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
 import {useAnnouncementCenter} from '../../../hooks/Announcements-hooks.js';
+import {injectFeedbackDialog} from '../../../hooks/FeedbackDialog-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {inputChecked} from '../../../logic/domEvents.js';
 import {APP_UPDATE_TEXT, NO_PROJECT_OPEN, PhoneHeaderSizes} from '@openisd/design/fields';
@@ -50,6 +51,7 @@ const { projectChanged } = useApp().appState;
 provideCellScope({ revision: projectChanged, written: () => {} });
 const winisdDifferences = injectWinisdDifferencesModal();
 const announcements = useAnnouncementCenter();
+const feedback = injectFeedbackDialog();
 const diagnostics = injectDiagnosticsModal();
 </script>
 
@@ -68,7 +70,7 @@ const diagnostics = injectDiagnosticsModal();
         <img src="/icon.svg" alt="" aria-hidden="true">
         <span>OpenISD</span>
       </div>
-      <button v-if="projectTitle" type="button" class="mob-project-title" :title="projectTitle" @click="openProjectsPane">{{ projectTitle }}</button>
+      <button v-if="projectTitle" type="button" class="mob-project-title" :title="projectTitle" @click="openProjectsPane"><span class="mob-project-title-text">{{ projectTitle }}</span></button>
       <CloudSyncBadge
         v-if="cloudEnabled"
         class="mob-header-sync"
@@ -220,6 +222,7 @@ const diagnostics = injectDiagnosticsModal();
           <button type="button" class="mob-menu-item" @click="diagnostics.show(); closeMenu()">Diagnostics</button>
           <button type="button" class="mob-menu-item" @click="about(); closeMenu()">{{ aboutLabel }}</button>
           <button type="button" class="mob-menu-item" @click="announcements.showList(); closeMenu()">Announcements</button>
+          <button type="button" class="mob-menu-item" data-testid="menu-send-feedback" @click="feedback.show(); closeMenu()">{{ feedback.texts.menuLabel }}</button>
           <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
           <button v-if="!skinIsAutomatic" type="button" class="mob-menu-item" @click="useAutomaticSkin">Automatic view</button>
         </section>
@@ -367,9 +370,15 @@ const diagnostics = injectDiagnosticsModal();
   flex: 1; min-width: 0; margin-left: 12px; text-align: right;
   max-height: var(--mob-header-control);
   font-size: var(--mob-header-title-px); line-height: var(--mob-header-title-lh); overflow-wrap: anywhere;
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--mob-header-title-lines); overflow: hidden;
+  overflow: hidden;
   cursor: pointer;
   color: inherit;
+}
+/* The clamp sits on the text inside the button: on the button itself it did not apply, and the fourth line was cut off bare. */
+.mob-project-title-text {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--mob-header-title-lines); overflow: hidden;
+  /* Room for the ellipsis: right-aligned, it would be drawn past the edge and cut off. */
+  padding-right: 1em;
 }
 .mob-hamburger span { display: block; width: 20px; height: 2px; background: var(--fg); border-radius: 1px; }
 .mob-header-sync {
@@ -574,6 +583,8 @@ const diagnostics = injectDiagnosticsModal();
 }
 .mob-update-banner { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #e8f1fb; border-top: 1px solid #b8d4f8; color: #224466; font-size: 14px; }
 .mob-update-banner span { flex: 1; }
+/* A message of several lines (an opened project's load repairs, QO953.c31) keeps its line breaks. */
+.mob-flash-banner span { white-space: pre-line; overflow-wrap: anywhere; }
 .mob-update-reload { min-height: 44px; padding: 0 16px; border: 1px solid var(--acc); border-radius: 4px; background: var(--acc); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
 .mob-update-later { min-height: 44px; min-width: 44px; padding: 0 8px; border: none; background: none; color: #224466; font: inherit; cursor: pointer; }
 .mob-cloud-dialog-body { padding: 16px; }

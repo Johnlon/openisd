@@ -30,17 +30,29 @@ export function iPhoneEdit(body: string): string {
 /** Every www.googleapis.com request answered by a Drive emulator, as Google's server would. */
 export async function emulateDriveServer(page: Page): Promise<DriveEmulator> {
   const drive = new DriveEmulator();
+  await answerFrom(page, drive);
+  return drive;
+}
+
+/** Every www.googleapis.com request of `page` answered by `drive`: two pages on one Drive are two devices on one account. */
+async function answerFrom(page: Page, drive: DriveEmulator): Promise<void> {
   await page.route('**/www.googleapis.com/**', async route => {
     const request = route.request();
     const reply = await drive.fetch(request.url(), {method: request.method(), headers: request.headers(), body: request.postData() ?? undefined});
     await route.fulfill({status: reply.status, contentType: reply.headers.get('content-type') ?? 'application/json', body: await reply.text()});
   });
-  return drive;
 }
 
 /** Signed in to Drive, with every Drive request answered by the emulator. */
 export async function connectedToDrive(page: Page): Promise<DriveEmulator> {
-  const drive = await emulateDriveServer(page);
+  const drive = new DriveEmulator();
+  await connectedTo(page, drive);
+  return drive;
+}
+
+/** Signed in to the same account as another page: every Drive request answered by `drive`. */
+export async function connectedTo(page: Page, drive: DriveEmulator): Promise<void> {
+  await answerFrom(page, drive);
   await enableCloudSync(page);
   await page.addInitScript((layout: string) => {
     localStorage.setItem('openisd_storage_layout', layout);
@@ -48,5 +60,4 @@ export async function connectedToDrive(page: Page): Promise<DriveEmulator> {
       kind: 'token', accessToken: 'ya29.stubbed_test_token', expiresAt_ms: Date.now() + 3_600_000, account: 'john@gmail.com',
     }));
   }, CURRENT_STORAGE_LAYOUT);
-  return drive;
 }

@@ -1,0 +1,31 @@
+id: T885
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+goal: Telemetry reports driver-search-no-results, wiring use, values-disagree seen, update popup seen/closed, and one projects_restored at start-up
+why: John, 18 Nov 2026, QO946.c240: "ok are any more things that ought to send Tel we metry / all"
+done_test: npx vitest run packages/ui/test/logic/usageEventsT885.test.ts packages/ui/test/logic/boot.test.ts
+files:
+  - tasks/T885.yml
+  - packages/ui/src/logic/telemetry/events.ts
+  - packages/ui/src/logic/telemetry/featureUse.ts
+  - packages/ui/src/logic/telemetry/errorContext.ts
+  - packages/ui/src/logic/telemetry/projectDriver.ts
+  - packages/ui/src/logic/telemetry/valuesProblem.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/hooks/refusalSeen.ts
+  - packages/ui/src/hooks/NumInput-hooks.ts
+  - packages/ui/src/hooks/DriverWiring-hooks.ts
+  - packages/ui/src/hooks/DriverCoilWiring-hooks.ts
+  - packages/ui/src/hooks/MobileDriverTab-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/Announcements-hooks.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/components/AnnouncementsModal.vue
+  - packages/ui/test/logic/usageEventsT885.test.ts
+  - packages/ui/test/logic/boot.test.ts
+  - packages/ui/test/hooks/NumInput-hooks.test.ts
+  - packages/ui/test/hooks/OriginalShell-hooks.test.ts

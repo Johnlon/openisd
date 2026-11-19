@@ -15,7 +15,7 @@ import type {BoxType, SimulatableBoxType} from '../types.js';
 
 /**
  * WinISD's own chart-menu row order (winisd_research runs/*\/charts.json `popup_row` 0..20;
- * GHIDRA_FINDINGS.md "Passive radiator", "Vented box", "4th-order bandpass", "6th-order
+ * winisd_research/archive/GHIDRA_FINDINGS.md "Passive radiator", "Vented box", "4th-order bandpass", "6th-order
  * bandpass", "ABC (Aperiodic Bi-Chamber)" sections).
  */
 export type ChartId =
@@ -25,7 +25,7 @@ export type ChartId =
 
 /** Every `ChartId`, in WinISD's own chart-menu row order — the ordered superset `chartsFor`
  *  filters down to what a box actually has. `IntraPort` is ABC's own chart-21 row
- *  (winisd_research/GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber)" "Charts" bullet), grouped
+ *  (winisd_research/archive/GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber)" "Charts" bullet), grouped
  *  here with the other port charts rather than at its own high row number. */
 const CHART_ORDER: readonly ChartId[] = Object.freeze([
   'TFMag', 'Phase', 'GD', 'MaxPwr', 'MaxSPL', 'VA', 'SPL', 'Excursion',

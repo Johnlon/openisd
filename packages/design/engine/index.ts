@@ -17,6 +17,7 @@ export { createEngine } from './Engine.js';
 export type { FilterEngine } from './filters/index.js';
 export type { PassOrderEntry } from './filters/FilterEngine.js';
 export type { SealedParams } from './sealedResonance.js';
+export type { DriveLoad } from './types.js';
 export {
   DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA,
   MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K,
@@ -44,13 +45,15 @@ export type {
   EnclosureParams, PrParams, SweepParams, SweepResult, SweepPeaks, WprFilter, WprFilterImport,
 } from './types.js';
 export type { BoxEngine, ChartId } from './box/BoxEngine.js';
-export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
+export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult, SweepSettingName, SweepSettingIssue, SweepSettingsSolveResult } from './params.js';
 export type { SignalEngine, SignalQuantityName, SignalIssue } from './signal/SignalEngine.js';
 export type { SimulationEngine, SweepIssue, SweepSolveResult, MaxCurvesSolveResult } from './simulation/SimulationEngine.js';
 export { createSimulationEngine } from './simulation/SimulationEngine.js';
 export type {DriverEngine, DriverQuantityName, DriverIssue, DriverPrerequisite, RadiatorFigures, RadiatorMechanics} from './driver/DriverEngine.js';
 export type {WhatIfFigure, WhatIfFigures, WhatIfMoves} from './driver/whatIfMoves.js';
 export type {WiredMotor, WiringConversion, WiringConverted, WiringRefused} from './solvers/driverQuantities.js';
+export type {DriverWiring} from './array/driverWiring.js';
+export type {RouteFormula, RouteFormulas} from './driver/routes/index.js';
 export type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
 export type {AirInput, AirInputs, AirIssue, AirQuantityName, AirSolution, AirSolvedValues} from './environment/airSolver.js';
 export type {IssueEngine} from './issues/IssueEngine.js';

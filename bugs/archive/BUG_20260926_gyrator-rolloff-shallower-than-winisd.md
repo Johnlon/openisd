@@ -31,7 +31,7 @@ points at a constant factor in the coil impedance.
 
 ## Cause
 
-Confirmed 2026-09-26 by decompile plus a BL sweep. Details are in `winisd_research/GHIDRA_FINDINGS.md`
+Confirmed 2026-09-26 by decompile plus a BL sweep. Details are in `winisd_research/archive/GHIDRA_FINDINGS.md`
 §"VCInd".
 
 - WinISD turns Le into an acoustic compliance `CLe = Sd²·Le/BL²` (`0x45e3ea`) using the
@@ -61,7 +61,7 @@ That ≤0.067 dB is a trace error, not a model difference:
 - WinISD's own transfer coefficients, read from live memory, give the model's numbers to 4 decimals.
 - The residual follows the slope of the curve, and it drops to ≤0.024 dB when the chart's x-axis is
   zoomed to 1–20 kHz.
-- See `winisd_research/GHIDRA_FINDINGS.md` §"Live values and the leftover offset".
+- See `winisd_research/archive/GHIDRA_FINDINGS.md` §"Live values and the leftover offset".
 
 ## WinISD vs conventional
 

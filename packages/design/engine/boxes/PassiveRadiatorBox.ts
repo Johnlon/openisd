@@ -39,7 +39,7 @@ export class PassiveRadiatorBox implements BoxModel {
         return {Zbox, UD, UP, U0};
       }
       case 'winisd-lossy': {
-        // WinISD's passive-radiator box (winisd_research/GHIDRA_FINDINGS.md "Passive radiator
+        // WinISD's passive-radiator box (winisd_research/archive/GHIDRA_FINDINGS.md "Passive radiator
         // box — `0x45a960`", bugs/archive/BUG_20260927_passive-radiator-losses-not-winisd-form.md).
         // Leak and absorption are FIXED resistances taken at ωr — never the radiator's free-air
         // Fs and never per-frequency:
@@ -49,10 +49,10 @@ export class PassiveRadiatorBox implements BoxModel {
         // Radiated output is the Cab branch's own current — cone MINUS leak MINUS radiator, not
         // cone minus radiator alone. The box's own Qp is never used for a passive radiator (the
         // radiator's own loss Rap above already carries it, as ωp·Map_free/Qms per radiator,
-        // WITHOUT Me — verified for Me ≠ 0 and n_pr > 1, GHIDRA_FINDINGS.md same section).
+        // WITHOUT Me — verified for Me ≠ 0 and n_pr > 1, winisd_research/archive/GHIDRA_FINDINGS.md same section).
         //
         // ωr: with `winisdPrNprResonance` on, WinISD's OWN fixed-loss frequency,
-        // `1/√(Npr·Map·(Cab ∥ Npr·Cap))` (winisd_research/GHIDRA_FINDINGS.md "4th-order bandpass"
+        // `1/√(Npr·Map·(Cab ∥ Npr·Cap))` (winisd_research/archive/GHIDRA_FINDINGS.md "4th-order bandpass"
         // § "Added mass and radiator count" — WinISD's calc bug: the branch mass is multiplied by
         // Npr where the true tuning divides by it, so this ωr is Npr times too low; invisible at
         // Npr = 1). Off (the default), the physical tuning `1/√((Map/Npr)·(Cab ∥ Npr·Cap))`, which

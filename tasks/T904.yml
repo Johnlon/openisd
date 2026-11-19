@@ -1,0 +1,12 @@
+id: T904
+release_note: internal
+repo: openisd
+owner: t904
+status: done
+label: fixes
+goal: A browser journey changes the number of drivers and reads the Box tab, so a sealed readout that ignores the driver count fails the suite on both skins
+why: 'John, 18 Nov 2026, asked why testing missed that the Box tab''s sealed Fsc and Qtc ignored the number of drivers (fixed by T901, bugs/BUG_20261118_sealed-readout-ignores-driver-count.md). His rules: defects are found by journeys that use the app as a person does, and tests act only as a user does. The journey makes a closed-box project with the Tang Band W5-1138SMF through the wizard, types 4.48 L, reads Qtc 0.719 and Fsc 67.23, sets 4 drivers on the Driver tab and reads WinISD''s Qtc 1.085 and Fsc 107.38, then types 17.92 L and reads 0.719 and 67.23 again.'
+done_test: npx vitest run packages/design/test/domain/sealed-readout-counts-drivers.test.ts
+files:
+  - tasks/T904.yml
+  - packages/ui/test/ui/box-tab-driver-count-journey.browser.spec.ts

@@ -5,6 +5,7 @@ import {STEPPER_PIN} from '../../logic/stepperPin.js';
 import {DRAG_CLOCK, REAL_DRAG_CLOCK} from '../../logic/dragClock.js';
 import {FIELD_EDIT_MODE} from '../../logic/fieldEditMode.js';
 import {ENTER_CLOSES_KEYBOARD} from '../../logic/enterClosesKeyboard.js';
+import {useRefusalSeen} from '../../hooks/refusalSeen.js';
 import {useNumInput, type NumInputProps} from '../../hooks/NumInput-hooks.js';
 
 defineOptions({inheritAttrs: false});
@@ -30,6 +31,7 @@ const {inputEl, unitEl, increaseEl, decreaseEl, isReadonly, keyboard, display, c
   fieldEditMode: inject(FIELD_EDIT_MODE, null),
   dragClock: inject(DRAG_CLOCK, REAL_DRAG_CLOCK),
   attrs: useAttrs(),
+  refusalSeen: useRefusalSeen(),
 });
 /** In a phone Graph sheet the keyboard's Done key closes the keyboard (logic/enterClosesKeyboard.ts). */
 const enterCloses = inject(ENTER_CLOSES_KEYBOARD, false);
@@ -79,6 +81,9 @@ input.dq-root {
 input.dq-symptom {
   border-color: color-mix(in srgb, var(--bad) 65%, orange);
 }
+/* A kept value outside its normal band: a warning, not a conflict. Amber like the ⚠ and the
+   app's other kept-with-warning notes, never red: red means refused or in conflict (QO953.c14). */
+input.dq-warn { border-color: var(--acc2); }
 
 /* Side-by-side (▲ then ▼), not stacked: the dense mobile row has spare width — the empty space
    to the right of a short number — which is exactly what a horizontal pair uses (John,

@@ -9,7 +9,7 @@ whether the box has one radiator or several.
 ## Evidence
 W5-1138SMF in 10 L, radiator with 10 g added mass, two radiators: OpenISD shows 34.28 Hz. The
 physical tuning 1/√((Map/Npr)·(Cab ∥ Npr·Cap))/2π is 39.45 Hz. WinISD's own loss frequency for the
-same box is 19.73 Hz (winisd_research runs/pr-w5-me-npr-1, GHIDRA_FINDINGS.md "Added mass and
+same box is 19.73 Hz (winisd_research runs/pr-w5-me-npr-1, winisd_research/archive/GHIDRA_FINDINGS.md "Added mass and
 radiator count").
 
 ## Cause

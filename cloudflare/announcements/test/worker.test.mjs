@@ -59,3 +59,20 @@ test('the review page exposes the short refresh link for its own app host', asyn
   const productionHtml = await productionPage.text();
   assert.match(productionHtml, /href="https:\/\/production-worker\.example\/refresh">Update OpenISD on this device/);
 });
+
+test('the newest announcement is 7.0.961, Tell us what you think, with its four lines whole', () => {
+  const [latest, previous] = ANNOUNCEMENTS;
+  assert.equal(latest.id, 'openisd-7.0.961');
+  assert.equal(latest.version, '7.0.961');
+  assert.equal(latest.published, '2026-11-19');
+  assert.equal(latest.title, 'Tell us what you think');
+  assert.equal(latest.summary, 'Send feedback in one tap, and Cloud sync now carries unsaved edits too.');
+  assert.deepEqual(latest.body, [
+    'Send feedback from the Info menu: one tap on a face, an optional comment.',
+    'Cloud sync sends the whole project, unsaved edits included.',
+    "Number boxes refuse impossible values and say why; charts say why they can't draw.",
+    'The Box tab and the alignment pickers count the number of drivers, as WinISD.',
+  ]);
+  assert.equal(latest.href, 'https://openisd.app/');
+  assert.equal(previous.id, 'openisd-7.0.960');
+});

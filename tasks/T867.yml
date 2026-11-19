@@ -1,0 +1,13 @@
+id: T867
+release_note: internal
+repo: openisd
+owner: lead
+status: done
+goal: The 7.0.960 update popup says what users get (John: 'make this popup stuff users care about')
+why: John, 17 Nov 2026 13:46 UTC on board card topic-1117-084319: 'boring remove', 'make this popup stuff users care about'
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T867.yml
+  - cloudflare/announcements/src/index.js
+  - docs/SDLC_POLICY.md
+  - cloudflare/announcements/README.md

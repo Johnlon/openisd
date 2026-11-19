@@ -124,6 +124,14 @@ const winisdDifferenceEntry = (skin: WalkSkin): OpenStep => ({root: skin === P ?
   }
 }});
 
+/** Send feedback from the Info menu (desktop) or the hamburger menu (phone). */
+const feedbackDialog = (skin: WalkSkin): OpenStep => ({root: '.fb-modal', open: async page => {
+  if (skin === P) await page.locator('.mob-hamburger').click();
+  else await page.locator('.tb-btn[aria-label="Info"]').click();
+  await page.getByTestId('menu-send-feedback').click();
+  await page.locator('.fb-modal').waitFor({state: 'visible'});
+}});
+
 const make = (id: string, build: (skin: WalkSkin) => OpenStep): (readonly [WalkSkin, string, OpenStep])[] => BOTH.map(skin => [skin, id, build(skin)] as const);
 
 /** The step table: skin and view id to its open step. */
@@ -137,4 +145,5 @@ export const SHARED_STEPS: readonly (readonly [WalkSkin, string, OpenStep])[] = 
   ...make('shared/winisd-difference-entry', winisdDifferenceEntry),
   ...make('shared/driver-editor-incomplete-warning', driverEditorIncomplete),
   ...make('shared/driver-type-help', driverTypeHelp),
+  ...make('shared/feedback-dialog', feedbackDialog),
 ];

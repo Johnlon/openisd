@@ -322,6 +322,21 @@ describe('OriginalShell-hooks', () => {
     });
   });
 
+  // T885 reported disagreeing values from an immediate watch that read the focused project, so the
+  // shell threw "no project is focused" on the empty start screen (pr-gate visual job, run 44230142710).
+  it('starts on the empty screen, with no project focused, without reading the focused project', () => {
+    const app = createApp({render: () => null});
+    app.provide(APP_LOGIC, testAppLogic());
+    const noProjectFocused = (): OpenISDProject => { throw new Error('no project is focused'); };
+    app.provide(FOCUSED_PROJECT, computed(() => noProjectFocused()));
+    app.provide(SplashModalKey, {
+      open: computed(() => false), driverCount: ref(null), passiveRadiatorCount: ref(null), versions: ref(null), aboutLabel: computed(() => 'About OpenISD'),
+      dismiss: () => undefined, show: () => undefined,
+    });
+    provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));
+    expect(() => app.runWithContext(() => useOriginalShell())).not.toThrow();
+  });
+
   describe('frequency nudge buttons (startNudge)', () => {
     function shellOn(project: OpenISDProject) {
       const app = createApp({render: () => null});

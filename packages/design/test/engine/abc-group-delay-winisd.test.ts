@@ -5,7 +5,7 @@
  * hands the driver routine the project frequency f, so the driver part stays at f and the group
  * delay is the slope of the box alone. It contradicts WinISD's own plotted phase.
  * Off (the default): −dφ/dω of the plotted phase. On: WinISD's frozen-driver form.
- * Evidence: winisd_research GHIDRA_FINDINGS.md "Group delay of the 6th-order bandpass and ABC —
+ * Evidence: winisd_research/archive/GHIDRA_FINDINGS.md "Group delay of the 6th-order bandpass and ABC —
  * chart byte 12 (2026-10-05)", runs/abc-w5-gd2 (inputs identical to abc-w5-base2), and
  * bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md.
  *

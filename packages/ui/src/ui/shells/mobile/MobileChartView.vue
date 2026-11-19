@@ -11,8 +11,8 @@ import { watch } from 'vue';
 import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
 const emit = defineEmits<{ menu: []; sheetOpen: [open: boolean] }>();
-const { legendItems, sizeVars, helpFor, openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
-  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen, autoY, setAutoY, collectChart, TUNE, WHAT_IF } = useMobileChartView();
+const { legendItems, sizeVars, helpFor, openCharts, chartItems, chartLabel, pickerOpen, pickerButton, pickerList, togglePicker, closePicker, showOnly, toggle,
+  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen, autoY, setAutoY, collectChart, exportAllChartData, TUNE, WHAT_IF } = useMobileChartView();
 // The shell holds its banners back while a sheet is open (QO427 B).
 watch(sheetOpen, open => emit('sheetOpen', open), { immediate: true });
 </script>
@@ -23,7 +23,7 @@ watch(sheetOpen, open => emit('sheetOpen', open), { immediate: true });
       <button type="button" class="mob-chart-menu" title="Menu" aria-label="Menu" @click.stop="emit('menu')">
         <span></span><span></span><span></span>
       </button>
-      <button class="mob-chart-pick" type="button" :aria-expanded="pickerOpen" @click="togglePicker">
+      <button ref="pickerButton" class="mob-chart-pick" type="button" :aria-expanded="pickerOpen" @click="togglePicker">
         <span class="mob-chart-pick-label">{{ chartLabel }}</span>
         <span class="mob-chart-pick-caret">{{ pickerOpen ? '▴' : '▾' }}</span>
       </button>
@@ -41,7 +41,7 @@ watch(sheetOpen, open => emit('sheetOpen', open), { immediate: true });
       </span>
     </div>
     <div v-if="pickerOpen" class="mob-chart-backdrop" @click="closePicker"></div>
-    <ul v-if="pickerOpen" class="mob-chart-list">
+    <ul v-if="pickerOpen" ref="pickerList" class="mob-chart-list">
       <li v-for="item in chartItems" :key="item.tab" class="mob-chart-row" :class="{ sep: item.sep }">
         <input type="checkbox" :checked="item.open" :aria-label="'Stack ' + item.label" @change="toggle(item.tab)">
         <button class="mob-chart-name" type="button" @click="showOnly(item.tab)">{{ item.label }}</button>
@@ -54,6 +54,7 @@ watch(sheetOpen, open => emit('sheetOpen', open), { immediate: true });
           <template #band="{ title, hasData, openData }">
             <PhoneBand :title="title" :section="helpFor(title) ?? undefined">
               <button v-if="hasData" type="button" class="mob-chart-data" title="Show this chart's data as a table, to copy or download as CSV" @click="openData"><span class="mob-chart-data-chip">Data</span></button>
+              <button v-if="hasData" type="button" class="mob-chart-data-all" title="Export all chart data" aria-label="Export every chart" @click="exportAllChartData"><span class="mob-chart-data-chip">All</span></button>
             </PhoneBand>
           </template>
         </GraphPanel>
@@ -139,7 +140,8 @@ watch(sheetOpen, open => emit('sheetOpen', open), { immediate: true });
 .mob-chart-cell :deep(.mob-band) { margin-top: 0; flex: none; }
 /* The Data button is the one phone button's size (--gp-tap, 44 px) so a finger can hit it, but drawn
    only as the small chip inside it; it spills over the 28 px band above and below without moving it. */
-.mob-chart-data {
+.mob-chart-data,
+.mob-chart-data-all {
   display: inline-flex;
   align-items: center;
   justify-content: center;

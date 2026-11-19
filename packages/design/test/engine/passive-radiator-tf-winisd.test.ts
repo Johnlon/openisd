@@ -7,7 +7,7 @@
  * whole point of this chart is that it is NOT run through it.
  *
  * Model under test: `engine/sweep.ts` `prTfMag`/`prTfPhase` — jω·Upr on the `tfMag` reference,
- * no filter chain. Formula: winisd_research/GHIDRA_FINDINGS.md "Passive radiator box —
+ * no filter chain. Formula: winisd_research/archive/GHIDRA_FINDINGS.md "Passive radiator box —
  * `0x45a960`", "Radiator transfer function" bullet.
  */
 import {readFileSync} from 'node:fs';

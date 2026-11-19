@@ -1,0 +1,34 @@
+id: T916
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+label: fixes
+goal: Phase 2 of the input-limits sweep. The plain rows of bugs/BUG_20261118_input-limits-sweep.md are fixed. A box that takes a value no design can use stops at the limit and says why. A value that gets in another way (a loaded file) is flagged, and the charts show one clear message, never NaN. Duplicate project works on a driver with Vas 0.
+why: "John, 18 Nov 2026: 'ok look make the ap robust / and include proper limits on ui' and 'UI should not allow and maths should do what you recommended ... robust error handling' (QO951.c12, c15; 'OK' to the plan, c14). Air, 21:05 UTC: '0 and negust have robust protection as per other crappy user input from UI or files and sq and charts behave xonsisirltly' (QO953.c10)."
+ruling: QO951, QO953
+done_test: bash scripts/test.sh packages/design/test/domain/input-limits-sweep.test.ts packages/design/test/domain/winisd-crash-replay.test.ts
+files:
+  - tasks/T916.yml
+  - bugs/BUG_20261118_input-limits-sweep.md
+  - packages/design/fields/field.ts
+  - packages/design/engine/params.ts
+  - packages/design/engine/index.ts
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/engine/environment/airSolver.ts
+  - packages/design/engine/environment/EnvironmentEngine.ts
+  - packages/design/engine/signal/SignalEngine.ts
+  - packages/design/engine/sealed/SealedEngine.ts
+  - packages/design/engine/vent/VentEngine.ts
+  - packages/design/domain/project/projectSweep.ts
+  - packages/design/domain/project/projectSignal.ts
+  - packages/design/domain/project/projectResolve.ts
+  - packages/design/domain/project/projectIssues.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/test/domain/input-limits-sweep.test.ts
+  - packages/design/test/domain/winisd-crash-replay.test.ts
+  - packages/design/test/domain/project/project-sweep-source.test.ts
+  - packages/ui/test/ui/input-limits-stop.browser.spec.ts
+  - packages/ui/src/hooks/NumInput-hooks.ts
+  - packages/ui/test/fixtures/dependentValues.ts
+note: Ruled QO951 and QO953. The browser journey packages/ui/test/ui/input-limits-stop.browser.spec.ts (desktop and phone) runs in the full suite. NumInput-hooks.ts: a box bound allow-out-of-range (the five air boxes) now honours its field's floor, so pressure, sound velocity, density and temperature at or below 0 are refused while any value above 0 is stored as before. packages/ui/test/fixtures/dependentValues.ts: the phone reading no longer closes and reopens the Advanced pane it is already on, which dropped the refused air entry from the reading (signal-advanced-radiator-dependent-values, phone Advanced, 4 journeys). The 32 System input power / Driver input voltage cases stay it.fails. Turning that throw into an issue makes the existing test project-signal.test.ts ("type V 0.005 ... refused, unchanged", which expects a throw) fail, so it waits for the lead's ruling. The patch is ready.

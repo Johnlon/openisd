@@ -2,6 +2,7 @@ import type {BranchMap} from './types.js';
 /** Desktop-skin scanned branches (shells/original) mapped to the view each one is, or sits inside. */
 export const DESKTOP_BRANCH_MAP:BranchMap={
   'conditional-branch-d3fa53388a19399f':{kind:'view',view:'desktop/difference-cue'},
+  'conditional-branch-d6d9f0346da7530f':{kind:'partOf',view:'desktop/workspace/filters'}, // OriginalFilters.vue:66, the negative-peak message; filter-negative-peak-message.browser.spec.ts
   'conditional-branch-04f25a4ea25c79fb':{kind:'partOf',view:'desktop/workspace/filters'},
   'native-ui-84bbd79965252442':{kind:'partOf',view:'desktop/workspace/filters'},
   'native-ui-6ce6972b44a4efcf':{kind:'partOf',view:'desktop/workspace/filters'},
@@ -71,6 +72,7 @@ export const DESKTOP_BRANCH_MAP:BranchMap={
   'surface-root-bbda5f09185c7376':{kind:'view',view:'desktop/navigation/info-menu'},
   'surface-root-456088162ac76c19':{kind:'partOf',view:'desktop/navigation/info-menu'},
   'surface-root-456088162ac76c19-2':{kind:'partOf',view:'desktop/navigation/info-menu'},
+  'surface-root-456088162ac76c19-3':{kind:'partOf',view:'desktop/navigation/info-menu'}, // Send feedback
   'surface-root-95dea4d1f1a17566':{kind:'partOf',view:'desktop/navigation/info-menu'},
   'surface-root-153fc71b410a2a2a':{kind:'partOf',view:'desktop/navigation/info-menu'},
   'surface-root-d79d62377f9b4f02':{kind:'partOf',view:'desktop/navigation/info-menu'},

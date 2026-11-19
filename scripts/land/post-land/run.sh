@@ -33,7 +33,9 @@ SHA_ARG="${1:?usage: run.sh <sha>}"
 # ROOT is the main checkout (the owner of .git), never the lander's worktree: land.sh starts this run
 # from a task worktree, and the watchdog removes merged worktrees while a run is still going (T060,
 # 12 Oct: the run lost its cwd and reported a bogus red). Everything below works from ROOT.
-ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")" || exit 2
+# shellcheck source=../../lib/main-checkout.sh
+. "$(dirname "${BASH_SOURCE[0]}")/../../lib/main-checkout.sh"
+ROOT="$(main_checkout .)" || exit 2
 cd "$ROOT" || exit 2
 # The scripts and settings are origin/main's own, never the main checkout's files: that checkout can lag
 # main (17 Oct: 12 commits behind, held by another session's uncommitted files, so post-land ran the

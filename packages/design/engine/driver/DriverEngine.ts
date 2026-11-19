@@ -30,14 +30,15 @@ import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue, WiringI
 import {geometryRefusal} from '../dvolRelation.js';
 import {checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
-import {convertWiring, hotRe} from '../solvers/driverQuantities.js';
+import {coilAlfaVC_per_K, convertWiring, hotRe} from '../solvers/driverQuantities.js';
 import type {WiringConversion, WiredMotor} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 import {
-  BL_FROM_QES_CMS_ROUTE, CMS_FROM_VAS_SD_ROUTE, ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, MMS_FROM_FS_CMS_ROUTE,
+  BL_FROM_QES_CMS_ROUTE, CMS_FROM_VAS_SD_ROUTE, ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTE_FORMULAS, DRIVER_ROUTES, EBP_AFTER_FIXED_POINT_ROUTE,
+  efficiencyBandwidthProduct, MMS_FROM_FS_CMS_ROUTE,
   RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
 } from './routes/index.js';
-import type {DriverRoute} from './routes/index.js';
+import type {DriverRoute, RouteFormulas} from './routes/index.js';
 
 /** WinISD's fallback for a driver with a Qts and neither Qes nor Qms (decompile `fr_45e090`: `+0x4c8 = 2*Qts`):
  *  both Q's are twice Qts, which makes the total Q equal Qts. */
@@ -123,12 +124,8 @@ function writeDriverBack(field: SolverField, value: number | undefined, width: n
   if (value != null) field.setCalculated(value, undefined, width); else field.setNotAvailable();
 }
 
-/**
- * Efficiency Bandwidth Product — criterion for enclosure type selection.
- * EBP = Fs / Qes.  EBP < 50 → sealed preferred; EBP > 100 → vented preferred.
- * https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
- */
-function ebp(Fs_hz: number, Qes: number): number { return Fs_hz / Qes; }
+/** Efficiency Bandwidth Product, Fs / Qes (`efficiencyBandwidthProduct`). */
+const ebp = efficiencyBandwidthProduct;
 
 /** The driver area of the engine: the T/S consistency solve over a driver's own handles, the
  *  derived indicators a picker shows (EBP and its verdict, reference efficiency and SPL, the
@@ -179,14 +176,25 @@ export interface DriverEngine {
   /** Qts as the amplifier's source impedance loads it: WinISD folds Rg into Qes before
    *  designing — Qes' = Qes·(Re+Rg)/Re, Qts = 1/(1/Qms + 1/Qes'). Falls back to `fallbackQts`
    *  when Qms/Qes/Re are unavailable (a driver carrying only Qts).
-   *  winisd_research/SEALED_FSC_MODEL.md §5. */
+   *  winisd_research/spec/S04_sealed_box.md §2. */
   sourceLoadedQts(qms: number, qes: number, re: number, rg: number, fallbackQts: number): number;
+  /** `sourceLoadedQts` with the voice coil heated by `dT_K` as well: the hot coil's extra resistance
+   *  `Re·alfaVC·ΔT` is in series with Rg, so Qes' = Qes·(Re + Rg + Re·alfaVC·ΔT)/Re = Qes·(hotRe + Rg)/Re
+   *  (WinISD `fr_45e090`, 0x45e150-0x45e183; winisd_research/spec/S04_sealed_box.md section 2, quirk Q8). The
+   *  chart circuit puts the same hot Re plus Rg in series with the coil (`circuit.ts` `coilRdc`). */
+  heatedSourceLoadedQts(
+    qms: number, qes: number, re: number, rg: number, alfaVC_per_K: number, dT_K: number, fallbackQts: number,
+  ): number;
   /** A multi-coil driver's published Re/BL/Le/Znom, measured in `measured`, as they are in
    *  `target`, for `numVC` identical coils; or why not. Never written over the stored figures. */
   convertWiring(motor: WiredMotor, numVC: number | null, measured: Wiring | null, target: Wiring, reBlOnly?: boolean): WiringConversion;
   /** Re at a voice-coil temperature rise: `Re·(1 + alfaVC·ΔT)`. WinISD drives from it and
    *  states maximum power into it. */
   hotRe(Re_ohm: number, alfaVC_per_K: number, dT_K: number): number;
+  /** The voice-coil temperature coefficient the sums heat Re with: the driver's `alfaVC_per_K` when stated and not 0,
+   *  else the project's; the project's only with `winisdProjectAlfaVC` (WinISD's sum). QO953.c16. The one place that
+   *  chooses: the Box readout, the charts and the Signal tab's power all take it from here (`driveLoadOf`). */
+  coilAlfaVC_per_K(driverAlfaVC_per_K: number | null, projectAlfaVC_per_K: number, winisdProjectAlfaVC: boolean): number;
   /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9
    *  tier 1) — the domain's one door into that table. */
   isPhysicallyPlausible(field: string, value: number): boolean;
@@ -194,6 +202,9 @@ export interface DriverEngine {
   rangeIssue(field: string, value: number): OutOfRangeIssue | undefined;
   /** Sealed resonance and Qtc read off a swept impedance curve, rather than computed. */
   findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null;
+  /** The formulas `solve` works quantities out by: one per route, with its text and inputs, in the order it tries them.
+   *  The Driver Editor's formula panel shows these (T902). */
+  routeFormulas(): RouteFormulas;
 }
 
 const isPositive = (x: number | null | undefined): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
@@ -204,11 +215,16 @@ export class DriverEngineImpl implements DriverEngine {
     private readonly consistency: ConsistencyCheck,
   ) {}
 
+  routeFormulas(): RouteFormulas {
+    return DRIVER_ROUTE_FORMULAS;
+  }
+
   /** Shared with the consistency group and the sweep, so these stay free functions and the
    *  area publishes them as-is. */
   readonly ebp = ebp;
   readonly convertWiring = convertWiring;
   readonly hotRe = hotRe;
+  readonly coilAlfaVC_per_K = coilAlfaVC_per_K;
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
   readonly rangeIssue = rangeIssue;
   readonly whatIfMoves = whatIfMoves;
@@ -360,10 +376,9 @@ export class DriverEngineImpl implements DriverEngine {
 
     // EBP (Fs/Qes) likewise: a real derivable field, computed once every input it needs is
     // available, through the SAME `ebp` formula the area publishes for every other caller —
-    // never recomputed ad hoc downstream.
-    if (r.EBP_hz == null && r.Fs_hz != null && r.Qes != null && r.Qes > 0) {
-      r.EBP_hz = ebp(r.Fs_hz, r.Qes);
-    }
+    // never recomputed ad hoc downstream. Its route also gives the formula panel its text.
+    const ebpValue = EBP_AFTER_FIXED_POINT_ROUTE.value(r);
+    if (ebpValue !== null) r.EBP_hz = ebpValue;
 
     return r;
   }
@@ -457,13 +472,19 @@ export class DriverEngineImpl implements DriverEngine {
    * 6 L box at Ql=10/Qa=100/Rg=0.1 reads 63.22 Hz/0.592 instead of WinISD's 63.18 Hz/0.599).
    *
    * Falls back to `fallbackQts` when Qms/Qes/Re are unavailable (a driver carrying only Qts).
-   * Reference: winisd_research/SEALED_FSC_MODEL.md §5.
+   * Reference: winisd_research/spec/S04_sealed_box.md §2.
    */
   sourceLoadedQts(
     qms: number, qes: number, re: number, rg: number, fallbackQts: number,
   ): number {
+    return this.heatedSourceLoadedQts(qms, qes, re, rg, 0, 0, fallbackQts);
+  }
+
+  heatedSourceLoadedQts(
+    qms: number, qes: number, re: number, rg: number, alfaVC_per_K: number, dT_K: number, fallbackQts: number,
+  ): number {
     if (!(qms > 0) || !(qes > 0) || !(re > 0)) return fallbackQts;
-    const qesLoaded = (qes * (re + Math.max(0, rg))) / re;
+    const qesLoaded = (qes * (hotRe(re, alfaVC_per_K, dT_K) + Math.max(0, rg))) / re;
     return 1 / (1 / qms + 1 / qesLoaded);
   }
 

@@ -53,7 +53,7 @@ Three kinds of WinISD difference, handled differently:
   the affected control (or chart) says what WinISD does. The bug switches sit in one group
   headed "Enable WinISD bugs", and each is a visible, listed WinISD issue: the switches are how OpenISD
   tells users what is wrong in WinISD, and they build trust. Record each as a
-  WinISD finding (a `winisd_research/findings/FINDING_*.md` file in the winisd_research repo, a row in the "fixed by default" section of
+  WinISD finding (a `winisd_research/archive/findings/FINDING_*.md` file in the winisd_research repo, a row in the "fixed by default" section of
   `docs/research/ACCURACY_IMPROVEMENTS.md`, and `docs/research/WINISD_PARITY.md`).
 - **A trigger, linkage or update bug** (an edit that does not recalculate where a load or another
   event does; a crash, hang or data loss) is NEVER copied and gets no switch: there is nothing to
@@ -90,6 +90,13 @@ Three kinds of WinISD difference, handled differently:
 - The panel has only the individual switches: no presets, no reset button (John, 2026-10-05). A
   new project, and a file that does not say, has every bug unticked and every option ticked
   (WinISD's way). Ignored-input bugs have no switch.
+- **One allowance** (John, QO946.c131, driver wiring plan #519): "Impedance of one driver" is an option that is OFF for a new
+  project and a file that does not say, because WinISD's one-driver impedance is not what the amplifier sees. It is
+  `CompatSwitch.ONE_DRIVER_IMPEDANCE` with `winisdValue` false; a test pins it. Every other option stays ticked, but for
+  the allowance below.
+- **A second allowance** (John, 11 Nov 2026, QO539: picked B, "an option 'Chart from Fs, Vas, Qms (WinISD's way)',
+  unticked"): the charts use the Mms, Cms and Rms boxes as shown unless the user ticks it. It is
+  `CompatSwitch.CHART_FROM_FS_VAS_QMS` with `winisdValue` false; the same test pins both.
 
 (John, 2026-09-26; switch titles and no reset 2026-10-05.)
 

@@ -15,7 +15,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {getProvenanceInfo} from '../../src/logic/provenance.js';
+import {createEngine} from '@openisd/design/engine';
+import {getProvenanceInfo, provenanceMap} from '../../src/logic/provenance.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const src = readFileSync(join(here, '..', '..', 'src', 'ui', 'components', 'DriverEditorModal.vue'), 'utf8');
@@ -32,7 +33,7 @@ function feedingBranch(): string {
 
 describe('Inspect Provenance row tint', () => {
   it('the provenance data names Qes as an input to Qts', () => {
-    const info = getProvenanceInfo('Qts');
+    const info = getProvenanceInfo(provenanceMap(createEngine().driver.routeFormulas()), 'Qts');
     assert.ok(info, 'Qts has provenance');
     assert.ok(info.paths.some(p => p.inputs.includes('Qes')), 'Qes feeds Qts');
   });

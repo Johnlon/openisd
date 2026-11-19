@@ -15,7 +15,7 @@ other chart matches to ~1e-13.
   by `winisd_research/toys/chart_plot_compare.py` against the OpenISD sweep of the same `.wpr`.
 - WinISD's plot code `f_46bd30` multiplies the filter response Hf into plot kinds
   1,2,4,5,9,10,11,12,15,21 and never into kind 7 (Maximum power) or 16 (Maximum SPL)
-  (winisd_research `GHIDRA_FINDINGS.md` "EQ/Filter chain").
+  (`winisd_research/archive/GHIDRA_FINDINGS.md` "EQ/Filter chain").
 - `packages/design/engine/sweep.ts` `maxCurves`: sweeps with `P.filters`, so the Pe-limited
   branch carries |Hf| into max SPL and the Xmax-limited branch divides it into max power.
 

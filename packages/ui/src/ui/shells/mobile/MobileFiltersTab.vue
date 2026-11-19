@@ -48,13 +48,13 @@ onBeforeUnmount(() => resize?.disconnect());
   <PhoneClassicPage>
     <PhoneBand :section="PhoneHelp.ADD_FILTER" />
     <div class="mob-fstrip-wrap" :class="{'at-start': atStart, 'at-end': atEnd}">
-      <PhoneButton class="mob-fstrip-nav mob-fstrip-prev" aria-label="Earlier filter types" @click="scrollStrip(-1)">
+      <PhoneButton class="mob-fstrip-nav mob-fstrip-prev" aria-label="Earlier filter types" :disabled="atStart" :aria-disabled="atStart" @click="scrollStrip(-1)">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
       </PhoneButton>
       <div ref="strip" class="mob-fstrip" data-carousel @scroll.passive="readScroll">
         <PhoneButton v-for="c in PHONE_FILTER_CHIPS" :key="c.type" @click="api.add(c.type)">+ {{ c.short }}</PhoneButton>
       </div>
-      <PhoneButton class="mob-fstrip-nav mob-fstrip-next" aria-label="More filter types" @click="scrollStrip(1)">
+      <PhoneButton class="mob-fstrip-nav mob-fstrip-next" aria-label="More filter types" :disabled="atEnd" :aria-disabled="atEnd" @click="scrollStrip(1)">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
       </PhoneButton>
     </div>
@@ -65,7 +65,8 @@ onBeforeUnmount(() => resize?.disconnect());
 </template>
 
 <style scoped>
-/* The arrows sit beside the strip, never over a chip; each goes at the end where there is nothing more to see. */
+/* The arrows sit beside the strip, never over a chip; each is greyed and disabled at the end where there is nothing more to see. It keeps its place
+   (not removed), so the strip never changes width and the chips never jump sideways under a finger that is about to tap one. */
 .mob-fstrip-wrap { display: flex; align-items: center; gap: 4px; padding: 0 8px; }
 .mob-fstrip { flex: 1 1 0; min-width: 0; display: flex; gap: 6px; padding: 6px 4px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
 .mob-fstrip::-webkit-scrollbar { display: none; }
@@ -74,5 +75,5 @@ onBeforeUnmount(() => resize?.disconnect());
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 50%; border-color: #d0d0d0; background: #fff; color: #333; }
 .mob-fstrip-nav svg { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.mob-fstrip-wrap.at-start .mob-fstrip-prev, .mob-fstrip-wrap.at-end .mob-fstrip-next { display: none; }
+.mob-fstrip-nav:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>

@@ -1,0 +1,15 @@
+id: T879
+release_note: internal
+repo: openisd
+owner: sonnet-help-fix
+status: done
+goal: Driver wiring help row appears only when its caption is on screen; main browser(6) green
+why: "Main red after T877 (suite 44209403950): desktop help listed Driver wiring on a 1-driver project where the control is not drawn. John, 5 Nov 2026: running of the edge is bad why are you asking me (fix defects at once); main red is fixed first (QO946)."
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T879.yml
+  - packages/design/fields/desktopHelp.ts
+  - packages/design/test/fields/desktopHelp.test.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/desktopHelp.ts
+  - packages/ui/test/hooks/desktopHelp.test.ts

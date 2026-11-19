@@ -37,6 +37,7 @@ function createWiringHarness() {
     exportedFiles,
     () => undefined,
     () => undefined,
+    () => undefined,
   );
   let onReplacedCalled = false;
   const appSettingsRepo = createAppSettingsRepo(
@@ -78,6 +79,7 @@ function createWiringHarness() {
     now: () => 0,
     deviceName: DeviceName.ofBrowser('', 0),
     projectsPulled: () => undefined,
+    beforeRun: () => undefined,
   });
 
   return {

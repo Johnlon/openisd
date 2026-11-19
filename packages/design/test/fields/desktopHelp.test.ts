@@ -14,10 +14,15 @@ describe('desktop help', () => {
   });
 
   it('Placement and Signal source use the desktop captions with the phone words', () => {
-    expect(labels(DesktopHelp.PLACEMENT.rows)).toEqual([DesktopLabels.NUM_DRIVERS, 'Coil wiring']);
+    expect(labels(DesktopHelp.PLACEMENT.rows)).toEqual([DesktopLabels.NUM_DRIVERS, 'Driver wiring', 'Coil wiring']);
     expect(DesktopHelp.PLACEMENT.rows[0]?.text).toBe(PhoneHelpRows.DRIVERS.text);
     expect(labels(DesktopHelp.SIGNAL_SOURCE.rows)).toEqual([NumberField.SIGNAL_PIN_W.label, NumberField.SIGNAL_DRIVEV_V.label, NumberField.SIGNAL_RS_OHM.label]);
     expect(DesktopHelp.SIGNAL_SOURCE.rows.map(r => r.text)).toEqual(PhoneHelp.SIGNAL.rows.map(r => r.text));
+  });
+
+  it('Placement lists the Driver wiring line only when that control is drawn (2 or more drivers)', () => {
+    expect(labels(DesktopHelp.placement(true).rows)).toEqual([DesktopLabels.NUM_DRIVERS, 'Driver wiring', 'Coil wiring']);
+    expect(labels(DesktopHelp.placement(false).rows)).toEqual([DesktopLabels.NUM_DRIVERS, 'Coil wiring']);
   });
 
   it('Advanced options and Listening place name the rows by the field labels', () => {

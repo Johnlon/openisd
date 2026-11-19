@@ -6,6 +6,22 @@
  */
 
 
+/** What loads a driver in a project's array, beyond the driver itself: the amplifier's source resistance,
+ *  how many drivers share the box and how they are loaded, and how hot the voice coil runs. The Box tab's
+ *  sealed readout and the volume it gives back read all of them. */
+export interface DriveLoad {
+  Rs_ohm: number;
+  nDrivers: number;
+  loading: 'standard' | 'isobaric';
+  /** The voice-coil temperature coefficient the coil is heated with, 1/K: the driver record's own `alfaVC_per_K` (WinISD
+   *  `[Driver] alfaVC`) when it is not 0, else the project's (WinISD `[Box] alfaVC`, the Driver tab "Advanced options"
+   *  field); the project's only with "Coil coefficient from project" ticked, as WinISD (QO953.c16,
+   *  `DriverEngine.coilAlfaVC_per_K`). */
+  alfaVC_per_K: number;
+  /** The project's voice-coil temperature rise, K (WinISD `[Box] dTVC`). */
+  vcTempRise_K: number;
+}
+
 /** A complex number in rectangular form. */
 export interface Complex {
   re: number;
@@ -69,6 +85,7 @@ export type SimulatableBoxType =
 
 import type {SelectorOption} from '../fields/index.js';
 import type {Air} from './air.js';
+import type {DriverWiring} from './array/driverWiring.js';
 
 /** One of WinISD's sealed-box target-Q choices from the New Project wizard: `value` IS the Qtc. */
 export type SealedAlignmentOption = SelectorOption<number>;
@@ -96,8 +113,8 @@ export type CircuitModel = 'winisd' | 'gyrator' | 'winisdGyrator';
  * Signal-chain filter descriptor — one of WinISD's 8 Filter Editor types, plus the two
  * OpenISD-only shelves. A sum type, not a bag of optional fields: each variant carries
  * exactly the parameters WinISD's own `[Filters]` `.wpr` format stores for that type
- * (winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). Formulas and quirks:
- * winisd_research/GHIDRA_FINDINGS.md "EQ/Filter chain — every filter type's response and
+ * (winisd_research/archive/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). Formulas and quirks:
+ * winisd_research/archive/GHIDRA_FINDINGS.md "EQ/Filter chain — every filter type's response and
  * group delay".
  */
 /** WinISD's low/high-pass subtypes, in its Filter Editor "Subtype" order. */
@@ -125,6 +142,11 @@ export interface ChainEntry { id?: string; enabled: boolean }
 export type Filter = ChainEntry & FilterSpec;
 
 /** Which WinISD filter-chain calculation errors the chain reproduces (each an error switch). */
+/** What the engine says about one filter that cannot be drawn as entered. */
+export interface FilterIssue {
+  readonly text: string;
+}
+
 export interface WinisdFilterErrors {
   /** Bessel high-pass: the low-pass's denominator under (k·s)^n, not the mirror of the low-pass. */
   readonly besselHighpass: boolean;
@@ -150,7 +172,7 @@ export type RaisedCosinePatch = Partial<Pick<RaisedCosineSpec, 'fc' | 'bwOct' | 
 export type ShelfPatch = Partial<Pick<ShelfSpec, 'fc' | 'Q' | 'gain'>>;
 
 /** One filter's `.wpr` `[Filters]` on-disk shape: `filter<i>type`/`filter<i>params`
- *  (winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). `type` is WinISD's own
+ *  (winisd_research/archive/PROBE_FINDINGS.md "`.wpr` `[Filters]` format"). `type` is WinISD's own
  *  Filter Editor type number (0-7); `params` is the `;`-separated field list for that type,
  *  enabled included. */
 /** One `.wpr` `[Filters]` entry after decoding: the filter, or `null` where WinISD skips the
@@ -179,7 +201,8 @@ export type EnclosureParams = Partial<Pick<SweepParams, 'Vb' | 'Vf' | 'Sp' | 'pr
 
 export interface SweepParams {
   Vb: number;
-  /** The voltage each driver gets (V); with `nDrivers` N the array takes N times its power. */
+  /** The amplifier's output voltage (V); with one driver, the voltage at it. With N drivers
+   *  `driverWiring` says what each gets (Parallel: all of it, Series: 1/N). */
   eg: number;
   // Frequency grid
   fmin?: number;
@@ -187,6 +210,12 @@ export interface SweepParams {
   N?: number;
   // Multi-driver
   nDrivers?: number;
+  /** How the N drivers are wired to the amplifier (ticket #519); `engine/array/driverWiring.ts` decides what each sees.
+   *  Absent: Parallel, as a project that never chose one. */
+  driverWiring?: DriverWiring;
+  /** WinISD-style "Impedance of one driver" (ticket #519): the impedance chart shows one driver's, whatever the wiring.
+   *  Absent/false: the amplifier's load. */
+  winisdOneDriverImpedance?: boolean;
   Rs?: number;
   circuitModel?: CircuitModel;
   /** WinISD's VA, P·Re·|Hf|²/|Z + Rg| (true/absent), or the amplifier's apparent power,
@@ -240,7 +269,7 @@ export interface SweepParams {
   /** The vent's tuning target, Hz (WinISD `[VentRear]`/`[VentFront]` `Fb`, `VentedBox.tuning_goal_hz`
    *  / `Bandpass4Box.chambers.front.tuning_goal_hz`) — read ONLY by `circuit.ts`'s vented
    *  `winisd-lossy` branch, whose port mass Map = 1/(ωb²·Cab) comes from `Fb` and never from
-   *  `Leff` (winisd_research/GHIDRA_FINDINGS.md "Vented box — `0x456800`"). Absent for any other
+   *  `Leff` (winisd_research/archive/GHIDRA_FINDINGS.md "Vented box — `0x456800`"). Absent for any other
    *  box combination, which never reads it. */
   Fb?: number;
   // Passive radiator
@@ -254,10 +283,10 @@ export interface SweepParams {
   /** WinISD `.wpr` `[Box] Fr`. For a passive-radiator box, the resonance this box and this
    *  radiator actually produce together (`PassiveRadiatorBox.systemTuning_hz`, NOT the
    *  radiator's own free-air Fs) — WinISD's own code computes that resonance itself rather than
-   *  reading this field back (winisd_research/GHIDRA_FINDINGS.md "Passive radiator box —
+   *  reading this field back (winisd_research/archive/GHIDRA_FINDINGS.md "Passive radiator box —
    *  `0x45a960`"). For `bandpass6`/`abc`, the REAR chamber's own vent tuning target, read by
    *  `Bandpass6Box`/`AbcBox`'s `winisd-lossy` branch the same way `Ff` feeds the front chamber —
-   *  Maprear = 1/(ωr²·Cabr) comes from THIS (winisd_research/GHIDRA_FINDINGS.md "6th-order
+   *  Maprear = 1/(ωr²·Cabr) comes from THIS (winisd_research/archive/GHIDRA_FINDINGS.md "6th-order
    *  bandpass — `0x5668c0`", "ABC (Aperiodic Bi-Chamber) — `0x4591b0`"). Absent for `sealed`/
    *  `vented`/`bandpass4`, which never read it. */
   Fr?: number;
@@ -265,7 +294,7 @@ export interface SweepParams {
   // `lossless`, which keeps the shared `Ql`/`Qa`/`Qp` above for the rear
   // chamber and never reads the front chamber's own losses at all). Each is a FIXED resistance
   // at that chamber's own frequency, never per-sweep-frequency, and never shared between
-  // chambers (winisd_research/GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`",
+  // chambers (winisd_research/archive/GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`",
   // bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md). Absent for any other box/loss
   // combination, which never reads them.
   /** Rear (sealed) chamber leakage Q, WinISD `.wpr` `Qlr` — `Bandpass4Box.chambers.rear.losses.Ql`. */
@@ -287,12 +316,12 @@ export interface SweepParams {
   Ff?: number;
   // 6th-order bandpass / ABC — read ONLY by `Bandpass6Box`/`AbcBox`'s `winisd-lossy` branch. The
   // rear chamber's OWN port loss Q: `bandpass4`'s rear chamber is sealed and has no port, so no
-  // prior box type needed this field (winisd_research/GHIDRA_FINDINGS.md "6th-order bandpass —
+  // prior box type needed this field (winisd_research/archive/GHIDRA_FINDINGS.md "6th-order bandpass —
   // `0x5668c0`").
   /** Rear chamber port loss Q, WinISD `.wpr` `Qpr` — `chambers.rear.losses.Qp`. */
   Qpr?: number;
   // ABC's intra-chamber port — read ONLY by `AbcBox`'s `winisd-lossy` branch. Lossless
-  // (Rai = 0, winisd_research/GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber) — `0x4591b0`"), so
+  // (Rai = 0, winisd_research/archive/GHIDRA_FINDINGS.md "ABC (Aperiodic Bi-Chamber) — `0x4591b0`"), so
   // its mass is the only element: Mai = ρ·`LeffIntra`/`SpIntra`, the same
   // end-correction-folded-length/area convention `Leff`/`Sp` use for the front/rear ports.
   /** Intra-chamber vent effective length (physical length + end-correction·diameter), m. */
@@ -398,7 +427,7 @@ export interface SweepResult {
   /**
    * WinISD's "Transfer function magnitude (PR)" — the radiator's own pressure (jω·Upr), on the
    * SAME 0 dB reference as `tfMag`, but — unlike `tfMag` and every other system chart — NOT
-   * multiplied by the filter chain (winisd_research/GHIDRA_FINDINGS.md "Passive radiator box",
+   * multiplied by the filter chain (winisd_research/archive/GHIDRA_FINDINGS.md "Passive radiator box",
    * "Radiator transfer function" bullet). `null` for every box type but
    * `box-passive-radiator`: WinISD itself has no such chart for them, so this is absence, never
    * a fake zero (unlike `excPR` above, which WinISD computes as 0 for every other box).
@@ -411,7 +440,7 @@ export interface SweepResult {
    * WinISD's "Rear port - Gain" (vented box only) — the port's own pressure (K·ω·Up, ω taken
    * as a REAL scalar, same wart as `prTfPhase`), on the SAME `tfMag` 0 dB reference as
    * `prTfMag` — but, unlike `prTfMag`, MULTIPLIED by the filter chain, same as `tfMag` itself
-   * (winisd_research/GHIDRA_FINDINGS.md "Passive radiator box", "Rear port gain" bullet — the
+   * (winisd_research/archive/GHIDRA_FINDINGS.md "Passive radiator box", "Rear port gain" bullet — the
    * formula is box-agnostic, found against a vented capture). `null` for every box type but
    * `vented`: WinISD itself has no such chart for them, so this is absence, never a fake zero.
    */
@@ -419,7 +448,7 @@ export interface SweepResult {
   /**
    * WinISD's "Front port - Gain" (bandpass4 box only) — the SAME computation as `rearPortGain`
    * above (K·jω·Up·Hf, magnitude only, so keeping or dropping the j never shows), against the
-   * front port's own `Up` rather than the rear port's (winisd_research/GHIDRA_FINDINGS.md
+   * front port's own `Up` rather than the rear port's (winisd_research/archive/GHIDRA_FINDINGS.md
    * "4th-order bandpass", "Front port gain" bullet). `null` for every box type but `bandpass4`,
    * same reasoning as `rearPortGain`.
    */

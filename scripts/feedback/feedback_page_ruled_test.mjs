@@ -7,7 +7,7 @@ import { chromium } from 'playwright';
 import { readFileSync } from 'node:fs';
 
 // The pictures page loads the board's one thread module; serve the workspace copy.
-const THREAD_JS = readFileSync('/home/john/work/winisd/_agent_files/board-state/thread.js', 'utf8');
+const THREAD_JS = readFileSync(new URL('../../../_agent_files/board-state/thread.js', import.meta.url), 'utf8');
 
 const page_html = readFileSync(process.argv[2], 'utf8');
 const md = `<table><thead><tr><th>Fix</th><th>Task</th><th>State</th><th>Pictures</th><th>Look at</th></tr></thead><tbody>

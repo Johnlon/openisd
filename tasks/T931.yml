@@ -1,0 +1,12 @@
+id: T931
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+goal: new-task.sh writes goal and why as YAML-safe quoted strings, so a colon or quote in them no longer makes the task file invalid
+why: 'John, 3 Nov 2026: "I approve uncontroversial fixes." Lead, 19 Nov 2026: the T923, T925, T927 and T928 task files were invalid YAML because goal or why held a colon followed by a space.'
+done_test: bash scripts/land/test/new-task.test.sh && bash scripts/land/test/main-checkout.e2e.test.sh
+files:
+  - tasks/T931.yml
+  - scripts/new-task.sh
+  - scripts/land/test/new-task.test.sh

@@ -156,7 +156,6 @@ const EXEMPT_DRIVER_FIELDS: ReadonlyMap<NumericDriverSpecFieldName, string> = ne
   ['SPLmax_dB', 'datasheet maximum SPL'],
   ['SPLmaxLF_dB', 'datasheet maximum SPL'],
   ['USPL_dB', 'datasheet SPL'],
-  ['alfaVC_per_K', 'driver datasheet coefficient; the project has its own alfaVC_per_K'],
   ['Rt_K_per_W', 'thermal model constant the sweep does not read'],
   ['Ct_J_per_K', 'thermal model constant the sweep does not read'],
   ['gamma_m_per_s2_A', 'catalogue figure'],
@@ -198,6 +197,8 @@ const CHANGE_FACTORS: ReadonlyMap<NumericDriverSpecFieldName, number> = new Map(
 const DRIVER_FIELD_PREPARE: ReadonlyMap<NumericDriverSpecFieldName, (project: OpenISDProject) => void> = new Map([
   // WinISD's default circuit leaves the voice-coil inductance out ("Simulate voice coil inductance" off).
   ['Le_H', project => project.circuitModel.set('gyrator')],
+  // The coil heats only with a temperature rise; the driver's own AlfaVC then heats it (QO953.c16, T917).
+  ['alfaVC_per_K', project => project.vcTempRise_K.set(60)],
 ]);
 
 /** What a field with no entered value is set to when a plain 0.01 would be nonsense. */
@@ -240,6 +241,7 @@ const highpass: Filter = {id: 'hp', type: 'highpass', family: 'sos', order: 2, e
 
 const PROJECT_SETTINGS: Readonly<Record<SettingKey, SettingCase>> = {
   nDrivers: moves(p => p.nDrivers.set(2)),
+  driverWiring: moves(p => p.driverWiring.set('series'), 'sealed', p => p.nDrivers.set(2)),
   vcTempRise_K: moves(p => p.vcTempRise_K.set(60)),
   Rs_ohm: moves(p => p.Rs_ohm.set(1)),
   driverAddedMass_kg: moves(p => p.driverAddedMass_kg.set(0.02)),
@@ -267,8 +269,10 @@ const PROJECT_SETTINGS: Readonly<Record<SettingKey, SettingCase>> = {
   winisdBesselHighpass: compat,
   winisdAbcGroupDelay: compat,
   winisdTlPortNoEndCorrection: compat,
+  winisdProjectAlfaVC: compat,
   winisdFlatModel: compat,
   winisdChartFromFsVasQms: compat,
+  winisdOneDriverImpedance: compat,
   graphs: exempt('which charts are open: view state'),
   cursorF: exempt('chart cursor: view state'),
   pinnedF: exempt('chart cursor: view state'),
@@ -313,11 +317,15 @@ const COMPAT_SCENARIOS: ReadonlyMap<CompatSwitch, CompatScenario | string> = new
   [CompatSwitch.TL_PORT_END_CORRECTION, {box: 'vented', prepare: p => p.useTransmissionLinePortModel.set(true)}],
   // A two-coil driver measured in series, set to Parallel, with the voice coil inductance on: Le is what the switch changes.
   [CompatSwitch.COIL_WIRING_RE_BL_ONLY, {box: 'sealed', prepare: p => { p.driver.specField('numVC').set(2); p.driver.specs.VCCon.set(VoiceCoilWiring.Series); p.coilWiring.choose('parallel'); p.circuitModel.set('gyrator'); }}],
+  // A hot coil and a driver AlfaVC other than the project's 0.0039: the switch chooses which heats the coil.
+  [CompatSwitch.PROJECT_ALFAVC, {box: 'sealed', prepare: p => { p.driver.specField('alfaVC_per_K').set(0.0042); p.vcTempRise_K.set(100); }}],
   [CompatSwitch.WRAP_PHASE, {box: 'sealed', prepare: () => undefined}],
   [CompatSwitch.FLAT_MODEL, {box: 'sealed', prepare: p => p.forceFlatResponse.set(true)}],
   [CompatSwitch.ABC_INTRA_PORT_VELOCITY, {box: 'abc', prepare: () => undefined}],
   // A Cms box that disagrees with Vas: the charts follow the box unticked and Vas ticked (QO539).
   [CompatSwitch.CHART_FROM_FS_VAS_QMS, {box: 'sealed', prepare: p => p.driver.specField('Cms_m_per_N').set(0.0005)}],
+  // Two drivers: with one the impedance chart is the one driver's either way.
+  [CompatSwitch.ONE_DRIVER_IMPEDANCE, {box: 'sealed', prepare: p => p.nDrivers.set(2)}],
 ]);
 
 describe('compat switches', () => {

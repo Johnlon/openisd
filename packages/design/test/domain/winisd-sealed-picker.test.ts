@@ -11,6 +11,7 @@ import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {createEngine} from '../../engine/Engine.js';
 import {sealedProject} from '../fixtures/domainBuilders.js';
 import {WinisdDeviation} from '../../fields/winisdDeviation.js';
+import {oneDriver} from '../fixtures/driveLoad.js';
 
 const engine = createEngine();
 
@@ -63,30 +64,30 @@ describe('winisdSealedPicker', () => {
     const d = driverOf(capture);
     // the losses and Rs given are ignored: WinISD uses its own Rg 0.1 and Qa 100
     for (const [Rs, losses] of [[0.1, {Ql: 10, Qa: 100}], [2, {Ql: 3, Qa: 7}]] as const) {
-      const vb = d.sealedPickerVolume(qtc, Rs, losses, true);
+      const vb = d.sealedPickerVolume(qtc, oneDriver(Rs), losses, true);
       expect(Math.abs(vb! / wanted_m3 - 1)).toBeLessThan(1e-9);
     }
   });
 
   it('ticked, W5-1138SMF Qtc 0.800 gives 3.1338 L', () => {
-    expect(driverOf(W5).sealedPickerVolume(0.8, 0.1, {Ql: 10, Qa: 100}, true)! * 1000).toBeCloseTo(3.1338, 4);
+    expect(driverOf(W5).sealedPickerVolume(0.8, oneDriver(0.1), {Ql: 10, Qa: 100}, true)! * 1000).toBeCloseTo(3.1338, 4);
   });
 
   it.each(WINISD_CAPTURES)('unticked, %s Qtc %f is unchanged: the volume at which the Box tab shows the picked Qtc', (_name, capture, qtc) => {
     const d = driverOf(capture);
     const losses = {Ql: 10, Qa: 100};
-    expect(d.sealedPickerVolume(qtc, 0.1, losses, false)).toBe(d.sealedVolumeForQtc(qtc, 0.1, losses));
+    expect(d.sealedPickerVolume(qtc, oneDriver(0.1), losses, false)).toBe(d.sealedVolumeForQtc(qtc, oneDriver(0.1), losses));
   });
 
   it('gives null when a value WinISD\'s formula needs is missing, or no volume reaches the Qtc', () => {
-    expect(OpenISDDriver.empty(engine).sealedPickerVolume(0.8, 0.1, {Ql: 10, Qa: 100}, true)).toBeNull();
-    expect(driverOf(W5).sealedPickerVolume(0.3, 0.1, {Ql: 10, Qa: 100}, true)).toBeNull();
+    expect(OpenISDDriver.empty(engine).sealedPickerVolume(0.8, oneDriver(0.1), {Ql: 10, Qa: 100}, true)).toBeNull();
+    expect(driverOf(W5).sealedPickerVolume(0.3, oneDriver(0.1), {Ql: 10, Qa: 100}, true)).toBeNull();
   });
 
   it('the Box tab then shows a Qtc a little off the picked one (W5 0.800 -> 0.787)', () => {
     const d = driverOf(W5);
-    const vb = d.sealedPickerVolume(0.8, 0.1, {Ql: 10, Qa: 100}, true)!;
-    expect(d.sealedQtc(vb, 0.1, {Ql: 10, Qa: 100})).toBeCloseTo(0.7873, 3);
+    const vb = d.sealedPickerVolume(0.8, oneDriver(0.1), {Ql: 10, Qa: 100}, true)!;
+    expect(d.sealedQtc(vb, oneDriver(0.1), {Ql: 10, Qa: 100})).toBeCloseTo(0.7873, 3);
   });
 
   it('the ≠W cue shows while the switch is off, and not once ticked', () => {

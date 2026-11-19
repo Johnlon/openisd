@@ -10,7 +10,7 @@ import type { VentedChamber } from './ventedChamber.js';
  * volume).
  *
  * The connecting port has no losses of its own here. WinISD's Advanced-> in each chamber panel shows
- * one interchamber Qicl, the `.wpr` `Qiclfr` (probe e7c754c, `winisd_research/PROBE_FINDINGS.md`);
+ * one interchamber Qicl, the `.wpr` `Qiclfr` (probe e7c754c, `winisd_research/archive/PROBE_FINDINGS.md`);
  * it is stored on `Qiclfr`, the value the sweep reads. No WinISD screen shows
  * the `Qiclfc`/`Qiclcr` names, so no field is kept for them.
  */

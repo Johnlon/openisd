@@ -2,6 +2,10 @@ import {expect, test} from '../fixtures.js';
 import {SCREENS} from './screens.js';
 import {chartFontReport, watchChartFonts} from '../fixtures/chartFonts.js';
 
+// Each screen is one launch of a new visitor's browser, so the feedback question never shows; the pictures that print the stored size
+// (Options, Your data) count the bytes of the stored feedback state, which a tab seeded as "answered" would change.
+test.use({feedbackQuestionQuiet: false});
+
 /**
  * One screenshot per screen and skin, compared with its committed baseline. A difference fails the
  * test, named by the screen; the post-land run publishes the before/after pictures.

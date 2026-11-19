@@ -247,7 +247,7 @@ not implemented in OpenISD.
   (WinISD help, "Filter/equalizer behavioral simulator").
 - WinISD (`f_46bd30` kinds 17/18/19): product of each enabled filter's response; group delay is
   the sum of each filter's own 1e-10 Hz central difference. Formulas per type: winisd_research
-  GHIDRA_FINDINGS.md "EQ/Filter chain".
+  winisd_research/archive/GHIDRA_FINDINGS.md "EQ/Filter chain".
 - Evidence: `filters-winisd.test.ts` (33 single-filter captures, ≤ 1e-12); capture
   `filt-chain-sealed-1`: magnitude 2.8e-14, phase 8e-13, group delay 0.00066 ms.
 - The filter chain multiplies every chart except Maximum SPL and Maximum power, which WinISD

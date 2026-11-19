@@ -1,3 +1,4 @@
+import {silentPerf} from '../fixtures/silentPerf.js';
 /**
  * A real `AppLogic`, built the same way `main.ts` builds it — in-memory storage and a fetch
  * that is never called in place of the browser-backed pieces — so a hooks test can `provide()`
@@ -72,6 +73,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const driverDrafts = new DriverDrafts(engine, appState.appContext);
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
+    perf: silentPerf(),
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
     confirmReset: fakeConfirmPort, exportNotice: {exported: () => undefined}, appState, presentation, driverPicked: () => undefined, featureUse: new FeatureUse(new NoTelemetry()),
   });

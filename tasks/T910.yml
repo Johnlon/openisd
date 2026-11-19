@@ -1,0 +1,14 @@
+id: T910
+release_note: internal
+repo: openisd
+owner: t910
+status: done
+label: fixes
+goal: Browser journeys compare what one screen shows with what another screen shows, so the three T902 defects (the wizard rounding the picked sealed volume, the Driver Editor formula panel's own formulas, the passive radiator starting at 1x the displacement) fail the suite
+why: "John, 18 Nov 2026: the suite missed the three defects T902 fixes because each test checked a copy against itself, never against what another screen shows. Journeys, as a person acts: (1) sealed-pick-reads-back-journey picks each sealed alignment in the wizard, on desktop and phone, and the Box tab's Qtc must read the figure picked (0.900 read 0.8999); (2) driver-editor-formula-panel-journey types Hg 10 mm and Xmax 3 mm, lets Hc calculate (4 mm), turns on Inspect Provenance and works the panel's first formula with the figures the editor shows (it gave 16 mm; Mpow gave sqrt(Rme) where the editor shows BL / sqrt(Re)); (3) pr-starting-radiator-journey makes a 2 and a 4 driver project on the phone, chooses the Passive Radiator box, and the placeholder radiator's Vd times the Num. of PRs must reach the displacement the 2x rule line asks for (it asked for 2 of these). The journeys that fail on main are test.fail naming the T902 bug file (the repo's KNOWN map, as filters-dependent-values.browser.spec.ts): when T902 merges they report an unexpected pass, and T902's merge empties each KNOWN map. Checked: raw run with the markers off fails on main and passes on t902. done_test is a unit spec because the gate refuses a browser spec (as T904); the journeys run in the full suite. The desktop has no 2x rule line, so the radiator journey is phone only; the phone formula panel is not driven (its fields sit behind a docked popup)."
+done_test: bash scripts/test.sh packages/design/test/domain/sealed-readout-counts-drivers.test.ts
+files:
+  - tasks/T910.yml
+  - packages/ui/test/ui/sealed-pick-reads-back-journey.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-formula-panel-journey.browser.spec.ts
+  - packages/ui/test/ui/pr-starting-radiator-journey.browser.spec.ts

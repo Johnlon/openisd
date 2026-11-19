@@ -12,7 +12,7 @@ under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1); at a very large Qiclfr the two ag
 An earlier version of this note claimed WinISD contradicts its own box load and called the chart a bug
 (and the default drew V/(Zi + Zf)). That reading was wrong: V/(Zi + Zf) is the total current into the
 intra element, which counts the leak current as port flow, and it is 14 dB off WinISD at 20 kHz. WinISD's
-chart matches the port-mass current to 0.008 dB above 1 kHz. Evidence: winisd_research/PROBE_FINDINGS.md
+chart matches the port-mass current to 0.008 dB above 1 kHz. Evidence: winisd_research/archive/PROBE_FINDINGS.md
 (abc velocity self-consistency, `toys/abc_velocity_self_consistency.py`).
 
 ## Tests

@@ -46,6 +46,8 @@ export interface UIFieldCommon {
   dq?: readonly string[];
   /** Applies an amber information style to the expanded DQ note. */
   noteTone?: 'warning';
+  /** Warnings to display for fixed fields: odd values that are kept, drawn amber, never as a conflict. */
+  dqWarnings?: readonly string[];
   /** Whether the flagged value was entered ('E', the cause) or calculated ('C', a symptom), for `dq`. */
   dqState?: ProvenanceLetter;
   /** Accepts any finite number: the data-quality flag, not the box, says it is out of range. */

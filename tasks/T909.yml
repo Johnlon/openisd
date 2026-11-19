@@ -1,0 +1,15 @@
+id: T909
+release_note: The duplicate-logic check's known-copies list can no longer be changed by a pull request unless John has approved the change on the board.
+repo: openisd
+owner: t909
+status: done
+label: fixes
+gates_approved: QO948
+goal: scripts/dupscan-allow.json, the duplicate-logic check's known-copies list, is a protected gate file, so a pull request that changes it is refused unless its task cites a board item John answered
+why: 'John, 18 Nov 2026, answered "A" on board item QO948 (questions.yml, from QO946.c257): protect the duplicate check''s known-copies list like the other gate files. The list is added to GATE_FILES in land.conf and scripts/land/test/land-gates.test.sh proves a change without gates_approved is refused and with it is accepted.'
+done_test: bash scripts/land/test/land-gates.test.sh
+files:
+  - tasks/T909.yml
+  - land.conf
+  - AGENTS.md
+  - scripts/land/test/land-gates.test.sh

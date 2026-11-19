@@ -47,7 +47,7 @@ Third-party competitor tools (00 Simulator, SpeakerDesign.dev, SpeakerBoxLite, S
 | **Acoustic Inductance ($L_e$)** | Has the same option: **Simulate voice coil inductance** on the Advanced pane (`advanced-tab.png`), stored as `[SimulatorOptions] VCInd` in the `.wpr`, **default off**. Off, $L_e$ is excluded from the acoustic circuit ($Z_{\text{coil,AC}} = R_e + R_s$) and the response is flat above the passband; on, it rolls off — measured 2026-09-26 on the W5-1138SMF ($L_e = 0.34$ mH, $R_e = 3.4\,\Omega$): −1.21 dB at 1 kHz, −10.62 dB at 5 kHz, −22.31 dB at 20 kHz. | Same option, same default: **Simulate voice coil inductance** (`circuitModel`, `'winisd'` off / `'gyrator'` on) in the middle options column of the Advanced tab. Its sub-option **WinISD-compatible inductance** (`'winisdGyrator'`) reproduces WinISD's inductance-on roll-off; unchecked, the roll-off is textbook first-order ([bug record](../../bugs/archive/BUG_20260926_gyrator-rolloff-shallower-than-winisd.md)). | Nothing to match — leave it as it is. |
 | **Rg in the impedance chart** | The impedance chart includes Rg only when **Rg is at driver side** is on: off, Z is the driver alone and Rg changes nothing; on, Z = Z(off) + Rg exactly — measured 2026-09-26 by debugger on the W5-1138SMF at Rg 0 and 10 Ω ([records](http://localhost:8000/winisd/winisd_research/runs/sweep-w5-sealed-impedance-rg10-vcind1-driverside-off.json)). | Same behavior: `Zel` excludes Rg when **Rg is at driver side** is off, includes it when on — [fixed 2026-09-26](../../bugs/archive/BUG_20260926_impedance-includes-rg-when-rg-is-not-at-driver-side.md). | Nothing to match — leave it as it is. |
 | **Sealed Box Losses** | Subtracts leak volume velocity $U_{\text{leak}}$ evaluated at $F_{sc}$ ($R_{al}$ constant). | Same model, always. Ql and Qa control the losses; Ql = Qa = 10⁶ or more gives the lossless result. | Nothing to match — leave it as it is. |
-| **Typing Fsc and Qtc on a closed box** | Only the volume can be typed. Fsc is a disabled edit box and Qtc a plain readout, both worked out from the volume. Observed in the Win32 control list under wine, 17 Oct 2026 (Volume `Edit` enabled, Fsc `Edit` disabled, Qtc not an `Edit`): [`toys/capture_closed_box_tab_editability.py`](http://lap:8000/winisd/winisd_research/toys/capture_closed_box_tab_editability.py), [`runs/closed_box_tab_editability_2026-10-17.json`](http://lap:8000/winisd/winisd_research/runs/closed_box_tab_editability_2026-10-17.json); the earlier human live test says the same ([`PROBE_FINDINGS.md`](http://lap:8000/winisd/winisd_research/PROBE_FINDINGS.md)). | Volume, Fsc and Qtc can all be typed (John, 16 Oct 2026: "f v q should be interdependent"). What is typed is kept as typed; the other two are calculated from it, through the same lossy model the Box tab reads. A ≠W cue by Fsc and Qtc opens the help page entry "WinISD lets you type only the volume of a closed box". | No switch: type the volume to work the way WinISD does. No chart differs. |
+| **Typing Fsc and Qtc on a closed box** | Only the volume can be typed. Fsc is a disabled edit box and Qtc a plain readout, both worked out from the volume. Observed in the Win32 control list under wine, 17 Oct 2026 (Volume `Edit` enabled, Fsc `Edit` disabled, Qtc not an `Edit`): [`toys/capture_closed_box_tab_editability.py`](http://lap:8000/winisd/winisd_research/toys/capture_closed_box_tab_editability.py), [`runs/closed_box_tab_editability_2026-10-17.json`](http://lap:8000/winisd/winisd_research/runs/closed_box_tab_editability_2026-10-17.json); the earlier human live test says the same ([`winisd_research/archive/PROBE_FINDINGS.md`](http://lap:8000/winisd/winisd_research/archive/PROBE_FINDINGS.md)). | Volume, Fsc and Qtc can all be typed (John, 16 Oct 2026: "f v q should be interdependent"). What is typed is kept as typed; the other two are calculated from it, through the same lossy model the Box tab reads. A ≠W cue by Fsc and Qtc opens the help page entry "WinISD lets you type only the volume of a closed box". | No switch: type the volume to work the way WinISD does. No chart differs. |
 | **Typing Fh on a passive radiator Box tab** | Fh is a disabled edit box (greyed, shows the tuning the added mass gives). The tuning is set by typing the added mass on the Passive Radiator tab. Seen in WinISD 0.7.0.950 under wine: [`runs/pr_box_tab2.png`](http://lap:8000/winisd/winisd_research/runs/pr_box_tab2.png). | Fh can be typed on the Box tab. It is the same value as the Fp on the Passive Radiator tab, and the added mass is calculated from it (John, 17 Oct 2026). A ≠W cue by Fh opens the help page entry "WinISD lets you type the passive radiator tuning only on the Passive Radiator tab". | No switch: type the added mass to work the way WinISD does. No chart differs. |
 | **Mms and Cms on the Passive Radiator tab** | Not shown. The tab has Vas, Fs, Qms, Sd, Xmax, Num. of PRs, Added mass and Fs with added mass; Mms and Cms are worked out inside. Seen in WinISD 0.7.0.950 under wine: [`runs/pr_addedmass_tab.png`](http://lap:8000/winisd/winisd_research/runs/pr_addedmass_tab.png). | Mms and Cms are shown and typeable on both skins, as datasheets give them (John, 17 Oct 2026); linked to Vas and Fpr by the clear rule. A ≠W cue by each opens the help page entry "WinISD has no Mms or Cms on the Passive Radiator tab". | No switch: type Vas and Fpr to work the way WinISD does. No chart differs. |
 | **Stated Cms and Mms at the radiator pick** | WinISD works Cms out from Vas and Mms from Fs; it has no stated Cms or Mms to keep. | A stated Cms, Mms or Rms is kept as stated (entered), never replaced by one worked out from Vas, Fs or Qms; a stated set that disagrees keeps every figure, each marked (John, QO451 8 Nov, QO534 11 Nov 2026). P173: Cms 1.01 and Mms 15 g, not 1.0011 and 15.05. ≠W. | No switch: leave Cms and Mms blank on the pick to work the way WinISD does. No chart differs beyond the stated figures' own rounding. |
@@ -967,7 +967,7 @@ Physical dimensions (not currently extracted by scrapers):
 
 ## 11b. Dual voice coils — a DELIBERATE deviation, and why (2026-08-28)
 
-**WinISD's mechanism, decompiled** (`winisd_research/GHIDRA_FINDINGS.md`, `0x461242`): switching
+**WinISD's mechanism, decompiled** (`winisd_research/archive/GHIDRA_FINDINGS.md`, `0x461242`): switching
 the wiring combo REWRITES the driver in place — parallel→series multiplies `BL` by `numVC` and
 `Re` by `numVC²`, series→parallel divides by the same. `numVC`/`VCCon` are **not inputs to any
 calculation**; nothing reads them during a sweep. The combo is a converter, fired once on change.
@@ -1059,7 +1059,7 @@ Tracked as ledger QO96 (the two-field design) and QO97 (this reader rule).
 
 Probe `winisd_research/toys/probe_vccon_save_load.py`, runs in
 `winisd_research/runs/vccon-probe-20261005/`, finding "FINDING 2026-10-05: VCCon save/load" in
-`winisd_research/PROBE_FINDINGS.md`:
+`winisd_research/archive/PROBE_FINDINGS.md`:
 
 | Case                                         | Combo shown | VCCon saved | Reloads as |
 | -------------------------------------------- | ----------- | :---------: | ---------- |
@@ -1081,7 +1081,7 @@ Probe `winisd_research/toys/probe_vccon_save_load.py`, runs in
 OpenISD copies neither editor bug: it stores `Re`/`BL` per coil and derives the terminal values
 from the wiring, so a coil-count edit cannot leave them out of step, and it writes the wiring the
 user chose. OpenISD always marks `VCCon` `E` (John, 2026-10-05). WinISD bug record:
-[FINDING_20261005_vccon-editor-combo](../../winisd_research/findings/FINDING_20261005_vccon-editor-combo.md).
+[FINDING_20261005_vccon-editor-combo](../../winisd_research/archive/findings/FINDING_20261005_vccon-editor-combo.md).
 
 ## 13. Suggested default units — frequency analysis from datasheets
 
@@ -1279,13 +1279,18 @@ The cursor readout (−9.896 dB at 38.01 Hz) is identical in both screenshots, c
 
 ### Lossy Sealed Resonance ($F_{sc}$) and Q ($Q_{tc}$) Shift
 
-In classic WinISD, the system resonance frequency ($F_{sc}$) and system Q ($Q_{tc}$) values displayed in the UI and exported as `Fr` in `.wpr` project files are recalculations derived from the simulated physical model including box losses rather than raw lossless formulas.
+In classic WinISD, the system resonance frequency ($F_{sc}$) and system Q ($Q_{tc}$) values displayed in the UI and exported as `Fr` in `.wpr` project files are the pole of the lossy third-order cubic WinISD solves for the box (`|z|/2π`, `winisd_research/spec/S04_sealed_box.md` §2 and §5b Q5), not a reading of the simulated impedance or SPL curve (`winisd_research/spec/S04_sealed_box.md` §5b Q6) and not a raw lossless formula.
 
-- **The Leakage Loss ($Q_L$) Effect:** While box absorption loss ($Q_a$) has no effect on system resonance, box leakage ($Q_L$) acts as a physical leak (an acoustic mass in parallel with box compliance). This parallel mass increases system stiffness at resonance, shifting the system impedance peak and the actual resonance frequency $F_{sc}$ upward.
+> Corrected 18 Nov 2026: this read "recalculations derived from the simulated physical model". The readout is the cubic's pole, not a reading from the simulation: `winisd_research/spec/S04_sealed_box.md` §5b Q6 (the plotted impedance peaks at 60.19 Hz where the readout says 62.79 Hz at 6 L, QL 10); proof `toys/spec_s04_sealed_fsc.py` reproduces every `[Box] Fr` of `runs/lossy_fsc_campaign.jsonl` to 4.7e-13 Hz (`winisd_research/spec/S04_sealed_box.md` §7).
+
+- **The Leakage Loss ($Q_L$) Effect:** Box leakage ($Q_L$) acts as a resistance, $R_{al} = Q_L/(2\pi f_{seed} C_{ab})$, and absorption ($Q_a$) as a second resistance $R_{ab}$, both in the cubic (`winisd_research/spec/S04_sealed_box.md` §2). A lower $Q_L$ moves $F_{sc}$ upward; absorption moves $F_{sc}$ slightly and lowers $Q_{tc}$ (QA 100 to 5 at QL 10000: Fsc 59.93606 to 59.93523 Hz, Qtc 0.589 to 0.530; `winisd_research/spec/S04_sealed_box.md` §5b Q2, proof `runs/lossy_fsc_campaign.jsonl` lines 16-20).
+
+  > Corrected 18 Nov 2026: this read "absorption has no effect on system resonance" and "box leakage acts as a physical leak (an acoustic mass in parallel with box compliance)". `winisd_research/spec/S04_sealed_box.md` §2 has the leak as a resistance and §5b Q2 has absorption moving Fsc slightly; proof `toys/spec_s04_sealed_fsc.py` against `runs/lossy_fsc_campaign.jsonl` (`winisd_research/spec/S04_sealed_box.md` §7).
 - **Example:** For $Fs = 40\text{ Hz}$, $Vas = 10\text{ L}$, $Vb = 10\text{ L}$:
-  - **Lossless box ($Q_L=10000$):** WinISD calculates $F_{sc} = 56.57\text{ Hz}$, matching the lossless formula $F_s\sqrt{1+Vas/Vb} = 56.57\text{ Hz}$.
+  - **Nearly lossless box ($Q_L=10000$):** WinISD has no lossless setting, so this is only close to the lossless formula $F_s\sqrt{1+Vas/Vb} = 56.57\text{ Hz}$ (at 6 L, QL = QA = 10000 reads 59.93610 Hz against the formula's 59.93330 Hz, a 2.8 mHz gap; `winisd_research/spec/S04_sealed_box.md` §5b Q1).
+    > Corrected 18 Nov 2026: this read "QL 10000 matches lossless". Proof: `runs/lossy_fsc_campaign.jsonl` line 1 (`winisd_research/spec/S04_sealed_box.md` §5b Q1, §7).
   - **Lossy box ($Q_L=10$):** WinISD calculates $F_{sc} = 59.16\text{ Hz}$.
-- **OpenISD Implementation:** To maintain parity, OpenISD implements the sealed-box lossy resonance calculation (`sealedResonance()`, WinISD loss mode) which reproduces WinISD's own algorithm, taking leakage losses into account for both $F_{sc}$ and $Q_{tc}$.
+- **OpenISD Implementation:** To maintain parity, OpenISD implements the sealed-box lossy resonance calculation (`sealedResonanceWinisd`, `packages/design/engine/sealedResonance.ts`) which reproduces WinISD's own algorithm, taking leakage losses into account for both $F_{sc}$ and $Q_{tc}$.
 
 ### Dual Voice Coil (DVC) Connection Calibration
 
@@ -1312,11 +1317,11 @@ A broken link, not a calculation difference. WinISD's Cone excursion (PR) uses S
 with Sd 0.019 draws a different chart from one loaded with 0.0095. But typing a new Sd into the
 Passive radiator pane changes nothing: no chart points recomputed, chart pixel-identical, also
 after a forced redraw (`winisd_research/runs/pr-sd-edit-1`, `-2`, `pr-sd-load-1`;
-`PROBE_FINDINGS.md`). OpenISD does not copy it: the Sd edit takes effect and PR excursion scales as
+`winisd_research/archive/PROBE_FINDINGS.md`). OpenISD does not copy it: the Sd edit takes effect and PR excursion scales as
 1/Sd. Fs and Qms are linked: typing a new value changes the PR charts (`runs/pr-Fs-edit-1`,
 `runs/pr-Qms-edit-1`). Vas: the edit moves the charts straight away (`runs/pr-Vas-ui-drive2`), and the
 file-load route moves both PR charts (`runs/pr-Vas-load-1`); emptying the Vas box crashes WinISD (`runs/pr-Vas-ui-crash1`). Not yet probed: the cut-and-paste
-trigger above. Bug: [FINDING_20261003_pr-sd-edit-ignored.md](../../winisd_research/findings/FINDING_20261003_pr-sd-edit-ignored.md?html).
+trigger above. Bug: [FINDING_20261003_pr-sd-edit-ignored.md](../../winisd_research/archive/findings/FINDING_20261003_pr-sd-edit-ignored.md?html).
 
 ### Emptying the PR Vas box crashes WinISD (probed 2026-10-04)
 
@@ -1325,7 +1330,7 @@ digits until it is empty makes WinISD die with a floating-point divide by zero (
 window vanishes; `winisd_research/runs/pr-Vas-ui-crash1`). The box's change handler runs on every
 keystroke and divides by the value, the same class as the Box Volume field. Real Windows was not
 tested. OpenISD does not copy it: a zero in Fs, Qms, Vas or Sd leaves every derived value finite or
-absent (`pr-spec-resolve.test.ts`). Bug: [FINDING_20261004_pr-vas-box-emptied-crashes.md](../../winisd_research/findings/FINDING_20261004_pr-vas-box-emptied-crashes.md?html).
+absent (`pr-spec-resolve.test.ts`). Bug: [FINDING_20261004_pr-vas-box-emptied-crashes.md](../../winisd_research/archive/findings/FINDING_20261004_pr-vas-box-emptied-crashes.md?html).
 
 ### Loading a driver with Fs and Vas at 0 crashes WinISD (probed 2026-10-05)
 
@@ -1334,7 +1339,7 @@ leaves Fs, Qes, Qts, Rms and Vas to be derived kills WinISD about 1.5 s after lo
 draw: a divide by zero at `0x462636` (`Cas` = 0; `winisd_research/runs/sweep-mms-cms-load-crash.json`).
 Entering the same values in the standalone Driver editor works, and WinISD derives Fs 37.2 and the rest;
 that route made the `solve-from-mms-cms` golden. OpenISD derives the fields and does not crash. Bug:
-[FINDING_20261005_driver-without-fs-vas-crashes-on-load.md](../../winisd_research/findings/FINDING_20261005_driver-without-fs-vas-crashes-on-load.md?html).
+[FINDING_20261005_driver-without-fs-vas-crashes-on-load.md](../../winisd_research/archive/findings/FINDING_20261005_driver-without-fs-vas-crashes-on-load.md?html).
 
 ### Vent end correction edit is not taken (probed 2026-10-19)
 
@@ -1342,11 +1347,11 @@ A linkage bug, not a calculation difference. Typing 0.85 into the Vents tab End 
 picking one of its three named cases, changes no vent length, no saved `endcorrection` and no chart,
 and the project stays clean (`winisd_research/runs/t429-e150-vented-edit-ventendcorr`,
 `t429-w5-vented-edit-ventendcorr`). A loaded `endcorrection` (0.6) is used for the length, and the box
-shows 0.732 regardless (`PROBE_FINDINGS.md` vent geometry probe, `runs/ventshape-*`). The paired
+shows 0.732 regardless (`winisd_research/archive/PROBE_FINDINGS.md` vent geometry probe, `runs/ventshape-*`). The paired
 capture settles it: loaded 0.6, 0.732, 0.85 save vent lengths 0.376838, 0.370238, 0.364338 m,
 each step the end-correction change x the 5 cm diameter (`runs/t429-w5-vented-load-endcorr*`). OpenISD honours the value
 (`project-vent-length.test.ts`). Bug:
-[FINDING_20261019_vent-end-correction-edit-not-taken.md](../../winisd_research/findings/FINDING_20261019_vent-end-correction-edit-not-taken.md?html).
+[FINDING_20261019_vent-end-correction-edit-not-taken.md](../../winisd_research/archive/findings/FINDING_20261019_vent-end-correction-edit-not-taken.md?html).
 
 ## 19. WinISD parameter entry — community best practices (a second source)
 
@@ -1468,13 +1473,14 @@ direct UI observation, community reports, and the annotated 0.7.0.950 screenshot
 
 ## 21. EQ/Filter chain — WinISD bugs (verified 2026-09-27)
 
-Every filter type's formula, measured by debugger: winisd_research `GHIDRA_FINDINGS.md` "EQ/Filter
-chain"; `.wpr` `[Filters]` format: `PROBE_FINDINGS.md`. The bugs, one file each:
+Every filter type's formula, measured by debugger: `winisd_research/archive/GHIDRA_FINDINGS.md` "EQ/Filter
+chain"; `.wpr` `[Filters]` format: `winisd_research/archive/PROBE_FINDINGS.md`. The bugs, one file each:
 
 | WinISD bug | OpenISD | File |
 |---|---|---|
 | Save loses an Allpass and every filter after it | not copied (no data loss); import to follow WinISD | [bugs/archive/BUG_20260927_winisd-save-drops-allpass-and-later-filters.md](../../bugs/archive/BUG_20260927_winisd-save-drops-allpass-and-later-filters.md) |
 | Sealed alignment picker gives a volume whose Qtc on the Box tab is not the picked one (W5-1138SMF, Qts 0.49, Vas 4.85 L, Ql 10: Qtc 0.800 gives 3.13 L, Box tab 0.787); the picker folds in a fixed Rg 0.1 Ω and Qa 100 and leaves out Ql (function 0x45c140, 41 captures to 3.8e-15) | fixed by default (the volume at which the Box tab shows the picked Qtc: 2.96 L); yellow bug switch "Sealed picker volume" brings WinISD's volume back in both pickers (Box tab dialog and New Project wizard); a ≠W cue by the picker | [bugs/archive/BUG_20261017_winisd-sealed-picker-volume-formula-unknown.md](../../bugs/archive/BUG_20261017_winisd-sealed-picker-volume-formula-unknown.md) |
+| Voice-coil heating uses the project's AlfaVC only; the driver's own AlfaVC is ignored and overwritten on Save (Re 3.2 Ω, driver 0.0042, project 0.0039, dTVC 100 K: hot Re 4.448 Ω, the driver's coefficient gives 4.544 Ω) | fixed by default (the driver's AlfaVC when not 0, else the project's; John QO953.c16); yellow bug switch "Coil coefficient from project" brings WinISD's sum back; a ≠W cue by the project's AlfaVC on the Driver tab where the driver's value changes the sums | [bugs/BUG_20261118_winisd-coil-alfavc-project-only.md](../../bugs/BUG_20261118_winisd-coil-alfavc-project-only.md) |
 | "Driver input voltage (each)" does not follow the driver count (1.8 V at 4 drivers, 1 W; really 0.92 V) | a linkage bug, not copied, no switch: OpenISD's readout is each driver's, √(P/N·(Re+Rg)), and follows the driver count; an entered voltage sets P = N·V²/(Re+Rg); the sweep runs at it (SPL +6.02 dB at 1 W, +12.04 dB at the same volts each, 1 → 4 drivers, as WinISD) | [bugs/archive/BUG_20261005_drive-voltage-each-stale-with-driver-count.md](../../bugs/archive/BUG_20261005_drive-voltage-each-stale-with-driver-count.md) |
 | Signal tab power and voltage related through Re alone, P = N·V²/Re (1.85 V each × 4 drivers, Re 3.4 Ω, Rg 0.1 Ω: 4.0 W), while the SPL chart drives that power into Re + Rg | fixed by default (P = N·V²/(Re + Rg): 3.91 W); the yellow bug switch "Re without Rg" (also the VA chart's Re) brings WinISD back: the readout uses Re, the sweep drives the power into Re + Rg. Ticked, 1.85 V each at 4 drivers plays 92.601 dB at 1 kHz against WinISD's 92.573 (WinISD carries the power as shown, 4.0 W); unticked 92.475 | [bugs/archive/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md](../../bugs/archive/BUG_20260927_winisd-va-uses-re-not-re-plus-rg.md) |
 | Bessel high-pass is not the mirror of its low-pass | fixed by default (mirror of the low-pass); yellow bug switch "Bessel high-pass" brings WinISD back; a ≠W cue on the Subtype box explains it | [bugs/archive/BUG_20260927_winisd-bessel-highpass-not-mirror-of-lowpass.md](../../bugs/archive/BUG_20260927_winisd-bessel-highpass-not-mirror-of-lowpass.md) |
@@ -1487,13 +1493,13 @@ chain"; `.wpr` `[Filters]` format: `PROBE_FINDINGS.md`. The bugs, one file each:
 ## 22. Group delay — 6th-order bandpass and ABC (decoded 2026-10-05)
 
 Both step f ± 1e-10 Hz and difference arg H, as for every box. They differ in H (winisd_research
-`GHIDRA_FINDINGS.md` "Group delay of the 6th-order bandpass and ABC — chart byte 12").
+`winisd_research/archive/GHIDRA_FINDINGS.md` "Group delay of the 6th-order bandpass and ABC — chart byte 12").
 
 | Box | WinISD | OpenISD | File |
 |---|---|---|---|
 | ABC | a calculation bug: the box is stepped to f ± δ but the output routine passes the chart frequency f to the driver routine, so the driver part is held at f and the group delay is the box's phase slope alone. It contradicts WinISD's own phase chart (W5-1138SMF, 1.005 Hz: −40.96 ms against −33.86 ms) | fixed by default (−dφ/dω of the plotted phase); yellow error switch "ABC group delay" (ABC only) brings WinISD back, within 1.03e-3 ms; a ≠W cue by the Group delay chart explains it | [bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md](../../bugs/archive/BUG_20261005_winisd-abc-group-delay-driver-not-stepped.md) |
 | BP6 | H is right (equals the plotted transfer); above ~200 Hz the 1e-10 Hz step turns the rounding of two nearly cancelling compliance currents into noise, worst 0.11 ms at 4 kHz | not copied, no switch (John, 2026-10-05): rounding noise cannot be reproduced in doubles; OpenISD's own noise is the same size | [bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md](../../bugs/archive/BUG_20260929_bp6-abc-group-delay-not-winisd.md) |
-| BP4 | H is right; from 200 Hz up, on the W5-1138SMF and the E150HE-44 box alike, the 1e-10 Hz step turns the rounding of the box terms into noise (phase error × \|H\| is 1.1e-16 to 1.7e-16 rad from 128 Hz to 2 kHz), up to 0.03 ms at 1 to 4 kHz | not copied, no switch (same ruling as BP6, John, 2026-10-05): rounding noise cannot be reproduced in doubles | [winisd_research/findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md](../../winisd_research/findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md) |
+| BP4 | H is right; from 200 Hz up, on the W5-1138SMF and the E150HE-44 box alike, the 1e-10 Hz step turns the rounding of the box terms into noise (phase error × \|H\| is 1.1e-16 to 1.7e-16 rad from 128 Hz to 2 kHz), up to 0.03 ms at 1 to 4 kHz | not copied, no switch (same ruling as BP6, John, 2026-10-05): rounding noise cannot be reproduced in doubles | [winisd_research/archive/findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md](../../winisd_research/archive/findings/FINDING_20261019_bp4-group-delay-is-rounding-noise-from-200-hz.md) |
 
 ## 23. Vented box alignment polynomials — provenance, accuracy, and pathologies (verified 2026-10-10)
 

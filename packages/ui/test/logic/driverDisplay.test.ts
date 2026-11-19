@@ -16,6 +16,7 @@ import {
     displayNameOf,
   passiveRadiatorRows,
   previewSpecsOf,
+  previewTextOf,
   PreviewSpecKind,
 } from '../../src/logic/driverDisplay.js';
 import type {BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
@@ -86,6 +87,19 @@ describe('chipsOf — classification chips for one driver', () => {
     const { canonical } = chipsOf(driver);
     // Sd in cm² < 12 resolves to Tweeter by the T/S fallback (Sd = 0.001 m² = 10 cm²).
     assert.equal(canonical, 'Tweeter');
+  });
+});
+
+describe('previewTextOf — Date added in one form', () => {
+  it('shows a dash-less stamp as the dashed day', () => {
+    const driver = driverOf({brand: 'Tang Band', model: 'W5-1138SMF'});
+    driver.added.set('20261116');
+    assert.equal(previewTextOf(driver).added, '2026-11-16');
+  });
+  it('shows a dashed day as it is', () => {
+    const driver = driverOf({brand: 'Tang Band', model: 'W5-1138SMF'});
+    driver.added.set('2026-09-12');
+    assert.equal(previewTextOf(driver).added, '2026-09-12');
   });
 });
 

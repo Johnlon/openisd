@@ -1,0 +1,51 @@
+id: T878
+release_note: "New: tell us what you think. Send feedback in the Info menu: one tap on a face, an optional comment; sent anonymously, kept until you are online."
+repo: openisd
+owner: feedbackbuild
+status: done
+goal: In-app feedback: one-tap face answer from Info menu and an occasional prompt after a save, sent to the openisd-stats feedback event, kept offline
+why: John, 17 Nov 2026: I want a comment feature, ask if do you like it, faces happy etc, comment; needs to popup occasionally; make it super convenient
+visual_note: "The Info menu (desktop) and the App menu (phone) gain Send feedback; new pictures of the Do you like OpenISD? dialog on both."
+ruling: QO946.c235
+done_test: bash scripts/quiet-test.sh npm run typecheck
+visual:
+  - desktop-dialog-navigation-info-menu
+  - mobile-dialog-confirmation
+  - mobile-dialog-exports
+  - mobile-dialog-menu
+  - mobile-menu
+  - desktop-dialog-shared-feedback-dialog
+  - mobile-dialog-shared-feedback-dialog
+files:
+  - tasks/T878.yml
+  - packages/design/fields/feedback.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/feedback.test.ts
+  - packages/ui/src/hooks/FeedbackDialog-hooks.ts
+  - packages/ui/src/logic/feedback/feedbackOutbox.ts
+  - packages/ui/src/logic/feedback/feedbackTransport.ts
+  - packages/ui/src/logic/feedback/saveTappedTelemetry.ts
+  - packages/ui/src/logic/telemetry/events.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/components/FeedbackDialog.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/fixtures/branchMap/desktop.ts
+  - packages/ui/test/fixtures/branchMap/phone.ts
+  - packages/ui/test/fixtures/branchMap/shared.ts
+  - packages/ui/test/fixtures/viewIndex.ts
+  - packages/ui/test/fixtures/viewOpenShared.ts
+  - packages/ui/test/hooks/FeedbackDialog-hooks.test.ts
+  - packages/ui/test/logic/feedback/feedbackOutbox.test.ts
+  - packages/ui/test/logic/feedback/feedbackWiring.test.ts
+  - packages/ui/test/ui/feedback.browser.spec.ts
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts
+  - scripts/ui-gallery/screens.mjs
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-navigation-info-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-confirmation.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-exports.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-feedback-dialog.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-feedback-dialog.png

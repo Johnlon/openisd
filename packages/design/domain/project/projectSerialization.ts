@@ -7,14 +7,26 @@ import { parseRepairing, type Repaired } from '../schemaRepair.js';
 import { withoutDerivedMarks } from '../derivedMarks.js';
 import { retireLossMode } from './retiredLossMode.js';
 import { singleEnteredVentPairs } from './singleEnteredVentPairs.js';
+import { PROJECT_DEFAULT_DRIVER_WIRING } from './driverWiringDefault.js';
+import { CompatSwitch } from './compatSwitch.js';
+
+/** The project with "Driver wiring" and "Impedance of one driver" written out, as every save does (plan 519, 4.1), also at one
+ *  driver, so a later change of the driver count brings back the user's choice. A key the project holds is kept. */
+function withDrivingKeys(project: OpenISDProjectJson): OpenISDProjectJson {
+    return {
+        ...project,
+        driverEmbedding: {...project.driverEmbedding, driverWiring: project.driverEmbedding.driverWiring ?? PROJECT_DEFAULT_DRIVER_WIRING},
+        advanced: {...project.advanced, winisdOneDriverImpedance: project.advanced.winisdOneDriverImpedance ?? CompatSwitch.ONE_DRIVER_IMPEDANCE.winisdValue},
+    };
+}
 
 /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */
 export function sessionOf(id: string, name: string, saved: OpenISDProjectJson, edited: OpenISDProjectJson | null): OpenISDProjectSessionJson {
     return {
         id,
         label: name,
-        saved: structuredClone(saved),
-        edited: edited ? structuredClone(edited) : null,
+        saved: withDrivingKeys(structuredClone(saved)),
+        edited: edited ? withDrivingKeys(structuredClone(edited)) : null,
     };
 }
 
@@ -53,6 +65,13 @@ function withProjectId(parsed: unknown, newId: () => string): unknown {
     return isRecord(parsed) && !('id' in parsed) ? {id: newId(), ...parsed} : parsed;
 }
 
+/** A session text that holds no `edited` key (a hand-made or very old text, or a synced document from a build
+ *  that dropped it) has no unsaved edits: it gets `edited: null`, never a refusal (John: "dont refuse data we
+ *  can fix"). A text that states its unsaved layer keeps it. */
+function withEditedLayer(parsed: unknown): unknown {
+    return isRecord(parsed) && isRecord(parsed.saved) && !('edited' in parsed) ? {...parsed, edited: null} : parsed;
+}
+
 /** A stored or `.owpr` project text as `storedTextOf` writes it; null when the text is not a
  *  project session, which the repo that owns it reports and this leaves untouched. */
 export function compactedStoredText(text: string): string | null {
@@ -79,7 +98,7 @@ export function parseOwprSession(text: string, newId: () => string): { session: 
     } catch {
         return {errors: ['not valid JSON']};
     }
-    const upgraded = upgradeToCurrent(withProjectId(parsed, newId));
+    const upgraded = upgradeToCurrent(withEditedLayer(withProjectId(parsed, newId)));
     if ('refusal' in upgraded) return {errors: [upgraded.refusal]};
     const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(upgraded.value));
     if (!result.success) {
@@ -101,7 +120,7 @@ export function parseOwprSessionRepairing(text: string, newId: () => string): Re
     } catch {
         return ['not valid JSON'];
     }
-    const upgraded = upgradeToCurrent(withProjectId(parsed, newId));
+    const upgraded = upgradeToCurrent(withEditedLayer(withProjectId(parsed, newId)));
     if ('refusal' in upgraded) return [upgraded.refusal];
     const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(upgraded.value));
     if (Array.isArray(repaired)) return repaired;

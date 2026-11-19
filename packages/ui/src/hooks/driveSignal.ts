@@ -22,5 +22,7 @@ export function createDriveSignal({ project, projectChanged: changed }: DriveSig
   });
   /** Rs as a number, re-read when the project changes: the Rs row (`UIFixedField`) takes a number, not the cell. */
   const rsOhm = computed<number>(() => { void changed.value; return project.value.Rs_ohm.value; });
-  return { powerLocked, rsOhm };
+  /** The smallest power the P box takes (the power that drives 10 mV, or the box's own minimum), from the project. */
+  const minimumPower = computed<number>(() => { void changed.value; return project.value.signal.minimumPower_W; });
+  return { powerLocked, rsOhm, minimumPower };
 }

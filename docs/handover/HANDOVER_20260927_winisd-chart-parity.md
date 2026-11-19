@@ -83,7 +83,7 @@ each result before commit (check expected values come from WinISD, not from the 
 
 ## Done: vented (2026-09-27)
 
-WinISD's vented box decoded by debugger (winisd_research GHIDRA_FINDINGS.md "Vented box —
+WinISD's vented box decoded by debugger (winisd_research/archive/GHIDRA_FINDINGS.md "Vented box —
 `0x456800`"): every loss fixed at ωb, port mass from Fb (vent length ignored), output cone − leak
 − port, port air velocity peak √2·|Up|/Sp. OpenISD's `winisd-lossy` vented branch now uses it; the
 `.wpr` import reads losses, vent diameter, end correction and Rg. All 11 vented charts plus the

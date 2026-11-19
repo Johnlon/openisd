@@ -28,6 +28,7 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'surface-root-fffdafa3e7668767':{kind:'view',view:'chart-picker'}, // MobileChartView.vue:40
   'conditional-branch-95c87e63dded118b':{kind:'partOf',view:'chart-picker'}, // MobileChartView.vue:41
   'conditional-branch-e050febbb6e1d727':{kind:'notAView',reason:'Data chip, a trigger for the chart data dialog'}, // MobileChartView.vue:53
+  'conditional-branch-22690dabc3c89a32':{kind:'notAView',reason:'All chip, exports every chart as one ZIP (T856)'}, // MobileChartView.vue:57
   'surface-root-ddbc0e17254ca99a':{kind:'partOf',view:'tab-graph'}, // MobileChartView.vue:60
   'surface-root-f389519938047484':{kind:'view',view:'tune-sealed'}, // MobileChartView.vue:61
   'surface-root-f389519938047484-2':{kind:'view',view:'what-if-sealed'}, // MobileChartView.vue:62
@@ -40,6 +41,7 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'conditional-branch-258660b326ed880e':{kind:'partOf',view:'box-box-passive-radiator'}, // MobileEnclosureTab.vue:57
   'conditional-branch-534f1ce43febe13c':{kind:'view',view:'pr-picker'}, // MobileEnclosureTab.vue:71
   'conditional-branch-4dca507455f940a4':{kind:'partOf',view:'box-vented'}, // MobileEnclosureTab.vue:93
+  'conditional-branch-05dee2e382c5f81a':{kind:'partOf',view:'filter-peakHighpass'}, // MobileFilterCard.vue:45, the negative-peak message; filter-negative-peak-message.browser.spec.ts
   'conditional-branch-248622210b98b3a7':{kind:'view',view:'phone/filter-card-body'}, // MobileFilterCard.vue:45
   'conditional-branch-4e839ac1a285f175':{kind:'view',view:'filter-lowpass'}, // MobileFilterCard.vue:46
   'conditional-branch-2bd74c11583e97d1':{kind:'view',view:'filter-allpass'}, // MobileFilterCard.vue:47
@@ -182,6 +184,7 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'surface-root-27b6d607b0b7e803-12':{kind:'partOf',view:'menu'}, // MobileShell.vue:218
   'surface-root-27b6d607b0b7e803-13':{kind:'partOf',view:'menu'}, // MobileShell.vue:219
   'surface-root-27b6d607b0b7e803-14':{kind:'partOf',view:'menu'}, // MobileShell.vue:220
+  'surface-root-27b6d607b0b7e803-15':{kind:'partOf',view:'menu'}, // MobileShell.vue:226 Send feedback
   'surface-root-42c53930f10ad1ce':{kind:'partOf',view:'menu'}, // MobileShell.vue:221
   'conditional-branch-1eb218e520d0e53c':{kind:'view',view:'menu-projects'}, // MobileShell.vue:227
   'surface-root-600e0121a9217f4e':{kind:'view',view:'options-general'}, // MobileShell.vue:260

@@ -14,10 +14,12 @@ import {WinisdDeviation} from '@openisd/design/fields';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {selectedOption} from '../logic/domEvents.js';
+import {useFeatureUse} from './telemetryContext.js';
 
 export function useDriverCoilWiring(phone: boolean) {
   const {appState} = useApp();
   const project = useFocusedProject();
+  const featureUse = useFeatureUse();
   const coil = computed(() => { void appState.projectChanged.value; return project.value.coilWiring; });
 
   const enabled = computed(() => coil.value.canChoose);
@@ -35,7 +37,7 @@ export function useDriverCoilWiring(phone: boolean) {
 
   watch(() => coil.value.greyedMessage, () => { message.value = null; });
 
-  function choose(wiring: Wiring): void { coil.value.choose(wiring); }
+  function choose(wiring: Wiring): void { coil.value.choose(wiring); featureUse.feature('coil_wiring_changed'); }
   function onSelect(e: Event): void {
     const wiring = selectedOption(e, coil.value.options);
     if (wiring !== null) choose(wiring);

@@ -1,0 +1,17 @@
+id: T905
+release_note: internal
+repo: openisd
+owner: t905
+status: done
+goal: The duplicate-logic scan runs on every pull request (the architecture job, pull request and merge queue) and fails a pull request that adds a new copy of a formula, with the copies present on 18 Nov 2026 listed as the allow-list
+why: 'John, 18 Nov 2026, "yes" to the lead''s recommendation A (questions.yml QO946.c256): the duplicate-logic scan becomes a check on every openisd pull request; the copies in the code when it is added are listed as known, a NEW copy of a formula fails the pull request until it is removed or John allows it; an allow-list entry added later needs a reason quoting a John ruling.'
+done_test: bash scripts/test/dupscan.test.sh
+files:
+  - tasks/T905.yml
+  - .github/workflows/pr.yml
+  - AGENTS.md
+  - package.json
+  - package-lock.json
+  - scripts/dupscan.mjs
+  - scripts/dupscan-allow.json
+  - scripts/test/dupscan.test.sh

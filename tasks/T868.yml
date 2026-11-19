@@ -1,0 +1,18 @@
+id: T868
+release_note: The Driver Editor now keeps and marks an entry it refuses when you switch tabs (and says on OK what was not applied).
+repo: openisd
+owner: refusal-fix-agent
+status: done
+goal: A refused entry is always marked: the Driver Editor marks an out-of-range entry as the other number boxes do instead of silently putting the old value back. Exponent entries (1e9) are not supported: John ruled (18 Nov 2026) "Remove the e: key does nothing, as today"
+why: Found by the dependent-value sweep John asked for (John, 17 Nov 2026, board card topic-1117-084319); John's rule 'every button shows a visible result' / nothing happens silently
+done_test: bash scripts/test.sh packages/ui/test/logic/refusalLedger.test.ts
+files:
+  - tasks/T868.yml
+  - bugs/BUG_20261117_driver-editor-tab-switch-drops-refused-entry.md
+  - bugs/BUG_20261117_exponent-entry-silently-dropped.md
+  - packages/ui/src/logic/refusalLedger.ts
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/test/logic/refusalLedger.test.ts
+  - packages/ui/test/ui/driver-editor-refusal.browser.spec.ts
+  - packages/ui/test/fixtures/branchMap/shared.ts

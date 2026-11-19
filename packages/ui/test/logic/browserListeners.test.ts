@@ -1,3 +1,4 @@
+import {silentPerf} from '../fixtures/silentPerf.js';
 /**
  * `installBrowserListeners` — what the window's uncaught-error and rejection events forward to the
  * crash reporter, including a browser-masked "Script error." that keeps only the place.
@@ -34,7 +35,7 @@ function install(onUncaught: (thrown: unknown) => void): (type: string, e: Fired
     telemetry,
     onUncaught,
     install: new InstallMarker(telemetry, createMemoryStorage()),
-    session: new SessionEnd(telemetry, new FeatureUse(telemetry), () => 0, 0),
+    session: new SessionEnd(telemetry, new FeatureUse(telemetry), () => 0, 0, silentPerf()),
   });
   return (type, e) => target.fire(type, e);
 }

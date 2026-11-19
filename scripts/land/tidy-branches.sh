@@ -30,7 +30,9 @@ only=""
 [ "${1:-}" = --only ] && { only="${2:?--only needs a task id}"; shift 2; }
 repo="${1:-.}"
 common="$(cd "$repo" && cd "$(git rev-parse --git-common-dir)" && pwd)" || { echo "tidy-branches: $repo is not a git checkout" >&2; exit 1; }
-main="$(dirname "$common")"
+# shellcheck source=../lib/main-checkout.sh
+. "$(dirname "${BASH_SOURCE[0]}")/../lib/main-checkout.sh"
+main="$(main_checkout "$repo")" || { echo "tidy-branches: $repo is not a git checkout" >&2; exit 1; }
 name="$(basename "$main")"
 WORKSPACE="${WORKSPACE:-$(dirname "$main")}"
 LOG="${TIDY_LOG:-$main/build/test-logs/tidy-branches.log}"
@@ -107,7 +109,7 @@ while IFS= read -r line; do
     "branch refs/heads/"*) br="${line#branch refs/heads/}" ;;
     "") [ -n "$wt" ] && tidy_worktree "$wt" "$br"; wt="" ;;
   esac
-done < <(g worktree list --porcelain; echo)
+done < <(main_worktree_list "$main"; echo)
 g worktree prune
 
 # --- branches ----------------------------------------------------------------------------------------------------

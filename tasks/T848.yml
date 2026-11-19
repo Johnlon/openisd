@@ -1,0 +1,15 @@
+id: T848
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: Main is green again - a chart redraw that changes nothing leaves the chart's readout elements alone, so the visual fonts check no longer loses a readout element mid-walk
+why: "John, 16 Nov 2026: main is red and blocks his release (BUG_20261116_chart-readout-is-rebuilt-with-the-same-text). Main went red on visual-fonts.browser.spec.ts dialog-shared-graph-context-menu (CSS.getPlatformFontsForNode: Could not find node with given id). The sweep runs a settle run 150 ms after a project change; its redraw rebuilt the readout with innerHTML although the text was the same, replacing the element the check was asking about. It failed 8 of 8 local runs, also on the commit that was green in CI. Fixed in the app, not the check: the readout is written only when its text differs (a user's selection in it also survives)."
+done_test: bash scripts/test.sh packages/ui/test/logic/readout.test.ts
+files:
+  - tasks/T848.yml
+  - bugs/BUG_20261116_chart-readout-is-rebuilt-with-the-same-text.md
+  - packages/ui/src/ui/readout.ts
+  - packages/ui/src/ui/canvas.ts
+  - packages/ui/test/logic/readout.test.ts
+  - packages/ui/test/fixtures/branchMap/shared.ts

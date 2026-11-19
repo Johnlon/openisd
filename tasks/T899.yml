@@ -1,0 +1,15 @@
+id: T899
+release_note: The phone header keeps its height and layout whatever the project is called, and the conflict tag of a copy in the desktop Projects list wraps instead of being cut off.
+repo: openisd
+owner: t899-display-defects
+status: done
+goal: The phone header stays whole for names of any length (wraps to up to three lines inside the bar, ellipsis beyond), and the desktop Projects list conflict tag is readable whole
+why: "John, 18 Nov 2026: \"header is multiple line , looks ok as long as it doesn't cause header to breakmup\" and \"it must be truncated to fit and not damage anything layouts\" (a wrapping name is fine, what does not fit is truncated, the header never breaks; bugs/BUG_20261118_phone-header-name-wraps-though-it-fits.md); the desktop Projects list cuts a conflict tag at 'conflict, 18 Nov 2026,' (bugs/BUG_20261118_desktop-project-list-conflict-tag-clipped.md)."
+done_test: npx vitest run packages/ui/test/hooks/OriginalProjectList-hooks.test.ts packages/ui/test/hooks/MobileShell-hooks.test.ts
+files:
+  - tasks/T899.yml
+  - bugs/BUG_20261118_phone-header-name-wraps-though-it-fits.md
+  - bugs/BUG_20261118_desktop-project-list-conflict-tag-clipped.md
+  - packages/ui/src/ui/shells/original/OriginalProjectList.vue
+  - packages/ui/test/ui/mobile-header-long-name-keeps-layout.browser.spec.ts
+  - packages/ui/test/ui/project-list-conflict-tag-not-clipped.browser.spec.ts

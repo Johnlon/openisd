@@ -12,7 +12,7 @@ The test and production apps use separate Cloudflare Workers built from `src/ind
 
 Every response sends Cache-Control, CDN-Cache-Control, and Cloudflare-CDN-Cache-Control with no-store. App requests also use fetch(..., {cache: 'no-store'}).
 
-Add an announcement by appending an item with a new stable id to `src/index.js`, then deploy the test Worker. The app records dismissal by that ID, so dismissing one announcement does not hide a later one. The review page continues to list dismissed items. The production app selects the production Worker; deploy its config only as part of an explicitly approved production release.
+The text follows `docs/SDLC_POLICY.md` §6 (written for users: no buttons, fonts or internals). Add an announcement by appending an item with a new stable id to `src/index.js`, then deploy the test Worker. The app records dismissal by that ID, so dismissing one announcement does not hide a later one. The review page continues to list dismissed items. The production app selects the production Worker; deploy its config only as part of an explicitly approved production release.
 
 Deploy the test Worker:
 

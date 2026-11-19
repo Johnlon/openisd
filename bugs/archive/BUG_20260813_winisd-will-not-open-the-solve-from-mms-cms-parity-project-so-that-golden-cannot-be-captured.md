@@ -32,7 +32,7 @@ script's generated input crashes the same way with nothing typed). The editor ro
 (it draws no chart), retype `Le` as itself, and WinISD's solver fills in Fs, Qes, Qts, Rms, Vas and
 the advanced fields without faulting. Evidence: `winisd_research/runs/mms_cms_golden/`,
 `runs/sweep-mms-cms-load-crash.json`, `runs/sweep-mms-cms-golden-editor-route.json`, and
-`PROBE_FINDINGS.md` "FINDING 2026-10-05: solve-from-mms-cms".
+`winisd_research/archive/PROBE_FINDINGS.md` "FINDING 2026-10-05: solve-from-mms-cms".
 
 ## Two things that must not be done
 

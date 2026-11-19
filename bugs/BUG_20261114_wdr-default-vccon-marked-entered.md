@@ -13,7 +13,7 @@ Exporting a .wdr writes a defaulted VCCon as `1` marked E (entered). A guess is 
 3. Observed: VCCon = 1, state E. Expected: marked C.
 
 ## Cause
-`/home/johnl/work/winisd/openisd/packages/design/domain/driverRecordConverter.ts:338-347` `wdrVCCon` returns `{value: cell.value === "series" ? "2" : "1", state: "entered"}` always (the 5 Oct "always E" ruling). Same fault John rejected in WinISD: `/home/johnl/work/winisd/winisd_research/findings/FINDING_20260828_silently-rewrites-Re-and-BL-and-still-marks-them-entered.md`.
+`/home/johnl/work/winisd/openisd/packages/design/domain/driverRecordConverter.ts:338-347` `wdrVCCon` returns `{value: cell.value === "series" ? "2" : "1", state: "entered"}` always (the 5 Oct "always E" ruling). Same fault John rejected in WinISD: `/home/johnl/work/winisd/winisd_research/archive/findings/FINDING_20260828_silently-rewrites-Re-and-BL-and-still-marks-them-entered.md`.
 
 ## Fix
 Plan Phase 1 step 2: write VCCon C when the wiring is unknown, E when stated (QO900.c6, overrides the 5 Oct ruling for the unknown case only).

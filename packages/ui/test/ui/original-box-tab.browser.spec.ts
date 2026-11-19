@@ -177,7 +177,7 @@ test.describe('Original Box tab', () => {
 
   test('sealed box WinISD golden: Fs=40 Vas=7.65L Qes=0.45 Qms=2.94 Re=6.6 Rg=0.1 Vb=6L Ql=10 Qa=100 → Fsc=63.1762Hz Qtc=0.5995', async ({ appPage: page }) => {
     // WinISD's own readout for this driver and box (user-supplied ground truth, verified against
-    // the reverse-engineered SEALED_FSC_MODEL.md). The Box tab's Fsc/Qtc must show it, so the
+    // the reverse-engineered cubic of winisd_research/spec/S04_sealed_box.md). The Box tab's Fsc/Qtc must show it, so the
     // source resistance Rg and the Qes/Qms-derived Qts are proven wired in — not just the engine.
     // Tolerances follow the fields' display precision (Fsc 2 dp, Qtc 3 dp) and still fail on the
     // un-fixed no-Rg / stale-Qts value (~63.32 Hz / ~0.575).

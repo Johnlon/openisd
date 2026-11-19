@@ -103,20 +103,16 @@ describe('bootApplication', () => {
     expect(appState.focusedProject()?.name.value).toBe('two');
   });
 
-  it('records restored project details for the browser activity report', async () => {
-    const restored = project('one');
-    restored.driver.providedBy.set('OpenIsd');
-    restored.driver.brand.set('Dayton Audio');
-    restored.driver.model.set('RS225P-8');
-    const session = {projects: [restored], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
+  // John, 18 Nov 2026, QO946.c240: "ok are any more things that ought to send Tel we metry / all". Eight restored projects were eight events.
+  it('reports the projects restored at start-up as one projects_restored with the count, and no project_open', async () => {
+    const session = {projects: [project('one'), project('two'), project('three')], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
     const {deps} = recording({session: () => session});
 
     await bootApplication(deps);
 
-    expect(telemetry.record).toHaveBeenCalledWith({
-      kind: 'project_open', source: 'restore', box: 'sealed',
-      driverName: 'Dayton Audio RS225P-8',
-    });
+    expect(telemetry.record).toHaveBeenCalledWith({kind: 'projects_restored', count: 3});
+    expect(telemetry.record).toHaveBeenCalledTimes(1);
+    expect(telemetry.record).not.toHaveBeenCalledWith(expect.objectContaining({kind: 'project_open'}));
   });
 
   // bugs/BUG_20261005_project-selection-lost-on-reload.md

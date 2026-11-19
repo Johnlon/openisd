@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 /* global document */
 import {describe, expect, it} from 'vitest';
-import {focusLeft} from '../../src/ui/components/focusLeft.js';
+import {focusLeft} from '../../src/hooks/focusLeft.js';
 
 describe('focusLeft', () => {
   const root = document.createElement('div');

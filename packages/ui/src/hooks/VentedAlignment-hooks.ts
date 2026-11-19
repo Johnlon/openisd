@@ -27,7 +27,7 @@ export interface VentedAlignmentEditorAPI {
  * volume→alignment reverse lookup (`VentedEngine` has no `closestAlignment`), so the picked
  * alignment is tracked directly as state rather than derived from the draft volume.
  *
- * `OpenISDDriver.ventedDesign(alignment, Rs_ohm, Ql)` (engine, 2026-09-29) does the
+ * `OpenISDDriver.ventedDesign(alignment, load, Ql)` (engine, 2026-09-29) does the
  * source-loaded-Qts + `VentedEngine.alignment()` work in one call, giving `{Vb, Fb}` — this
  * editor writes both `volume_m3` and `tuning_goal_hz` from it, exactly as agreed.
  */
@@ -89,7 +89,7 @@ export class VentedAlignmentEditor implements VentedAlignmentEditorAPI {
 
   #recalculate(): void {
     const p = this.project.value;
-    const design = p.driver.ventedDesign(this.selectedAlignment.value, p.Rs_ohm.value, p.box.vented.losses.Ql.value);
+    const design = p.driver.ventedDesign(this.selectedAlignment.value, p.driveLoad, p.box.vented.losses.Ql.value);
     if (design) {
       this.#draftVb_m3.value = design.Vb;
       this.#draftFb_hz.value = design.Fb;

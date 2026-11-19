@@ -8,6 +8,8 @@
  * Desktop views: waits for T739's desktop opener (BUG_20261110_layout-gate-misses-screens).
  */
 import {appendFileSync, mkdirSync} from 'node:fs';
+import {join} from 'node:path';
+import {galleryRoot} from '../../../../scripts/ui-gallery/galleryRoot.mjs';
 import {openAMobileProject, test, expect} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {measureFieldLayoutRules, measureLabelGaps} from '../fixtures/fieldLayoutAudit.js';
@@ -16,7 +18,7 @@ import {openMobileSurface} from '../fixtures/mobileSurfaceNavigation.js';
 import {PIXEL_9} from '../fixtures/phoneSizes.js';
 import {PhoneRowColumns} from '@openisd/design/fields';
 
-const RESULTS = '/home/john/work/winisd/ui-gallery/T742-phone-clip';
+const RESULTS = join(galleryRoot(), 'T742-phone-clip');
 /** The first line of a failure, so a view that cannot be opened is one fault line. */
 function firstLine(error: unknown): string {
   return error instanceof Error ? error.message.split('\n')[0] : String(error);

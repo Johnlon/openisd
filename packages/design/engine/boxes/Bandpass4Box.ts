@@ -32,7 +32,7 @@ export class Bandpass4Box implements BoxModel {
         return {Zbox, UD, UP, U0};
       }
       case 'winisd-lossy': {
-        // WinISD's 4th-order bandpass (winisd_research/GHIDRA_FINDINGS.md "4th-order bandpass —
+        // WinISD's 4th-order bandpass (winisd_research/archive/GHIDRA_FINDINGS.md "4th-order bandpass —
         // `0x457a30`", bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md). Each chamber's OWN
         // losses, each a FIXED resistance at that chamber's own frequency — never the sweep
         // frequency, never shared between chambers, unlike the branch above:

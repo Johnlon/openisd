@@ -14,8 +14,10 @@
  * `../logic/tabId.ts`. This file JIT-composes them here with the shell's own `project` /
  * `selectedBox` / `projectChanged`.
  */
+import { useDismissOnOutside } from './dismissOnOutside.js';
 import {compatSwitchSetter} from './compatSwitch.js';
 import type {ComputedRef, Ref} from 'vue';
+import {reportDisagreementsSeen} from '../logic/telemetry/valuesProblem.js';
 import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
 import {createProjectBinView, type ProjectListRow} from './projectBinView.js';
@@ -43,7 +45,7 @@ import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {OriginalFilters} from './OriginalFilters-hooks.js';
 import {CompatSwitch} from '@openisd/design';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, SimpleField, Writable} from '@openisd/design';
-import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
+import {marksOfCell, type FieldMarks} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
@@ -93,10 +95,10 @@ export function createEnvironmentAir({ project, projectChanged: changed }: Envir
   }
   /** The field's own marks and provenance: whatever the air resolve found about it, with its reason. */
   function dqOf(field: () => EnvField) {
-    return computed<DqReadout>(() => {
+    return computed<FieldMarks>(() => {
       void changed.value;
       void project.value;
-      return dqOfCell(field());
+      return marksOfCell(field());
     });
   }
   function entryOf(field: () => EnvField) {
@@ -279,6 +281,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function toggleDropdown(id: string) { openDd.value = openDd.value === id ? null : id; }
   function closeDropdown() { openDd.value = null; }
   function onDocClick() { closeDropdown(); }
+  /** The Info and chart menus' own boxes: a press, Escape or focus outside both closes the open menu (John, 18 Nov 2026, QO946.c253). */
+  const infoMenuRoot = ref<HTMLElement | null>(null);
+  const chartMenuRoot = ref<HTMLElement | null>(null);
+  useDismissOnOutside(computed(() => openDd.value !== null), [infoMenuRoot, chartMenuRoot], closeDropdown);
 
   // Fire the fixup fill the FIRST time a project is available — at mount when one is already
   // open, or when one arrives LATER on a project-less boot (an auto-restored save, a File →
@@ -314,6 +320,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
     cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });
+  // A sync run writes saved projects (a pull, a conflict copy): the list reads the store again when sync reports what it moved.
+  watch(cloudSyncForProjects.activity, () => binView.refresh());
   const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
   const {query: projectQuery, order: projectOrder, scope: projectScope, orders: projectOrders} = binView;
   const projectListRef = ref<{ focusSearchOrList(): void } | null>(null);
@@ -557,7 +565,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     if (tab === 'enclosure') featureUse.feature('vents');
   });
   watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
-  const desktopHelp = createDesktopHelp({ activeTab, selectedBox, featureUse });
+  const desktopHelp = createDesktopHelp({ activeTab, selectedBox, driverWiringApplies: computed(() => { void projectChanged.value; return project.value.driverWiringApplies; }), featureUse });
 
   // ---- Projects list -------------------------------------------------------------
   const projectList = computed(() => openProjects());
@@ -636,6 +644,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   /** The stated values that disagree with each other, as the Driver Editor lists them. */
   const driverConsistencyReasons = computed(() => { void projectChanged.value; return project.value.driver.inconsistentInputReasons(); });
+  // Reads the project only while one is focused: with none (the empty start screen) nothing is read.
+  watch(() => focusedProject() === null ? [] : driverConsistencyReasons.value, reasons => {
+    const focused = focusedProject();
+    if (reasons.length > 0 && focused !== null) reportDisagreementsSeen(featureUse, focused.driver);
+  }, {immediate: true});
 
   // The Project tab's text fields bind here. Each `SimpleField<string>` on `OpenISDProject` is not
   // itself `v-model`-able, so this is a thin get/set bridge onto `.value`/`.set()` — reading
@@ -683,7 +696,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // ---- Signal tab: drive voltage = √(Pin × Re) per driver, plus series resistance ------------
   // Delegated to the unit-tested `createDriveSignal` (`driveSignal.ts`).
-  const { powerLocked, rsOhm } = createDriveSignal({ project, projectChanged });
+  const { powerLocked, rsOhm, minimumPower } = createDriveSignal({ project, projectChanged });
 
   // ---- Advanced tab: environment ------------------------------------------------
   // Delegated to the unit-tested `createEnvironmentAir` above.
@@ -764,7 +777,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     d => openCharts.value.some(id => d.cueShownOnChart(errorSwitches.value, id))) : []);
   /** The passive-radiator Npr cue by the radiator count, at any count (`WinisdDeviation` cue rule). */
   const prNprDeviationShown = computed(() => projectOpen.value && WinisdDeviation.PR_NPR_RESONANCE.cueShown(errorSwitches.value));
-  /** Whether an option switch acts on the open box (the ABC velocity one acts on an ABC box only). */
+  /** The coil coefficient cue by the project's AlfaVC, where the driver's own AlfaVC changes the sums (QO953.c16). */
+  const projectAlfaVCDeviationShown = computed(() => projectOpen.value && WinisdDeviation.PROJECT_ALFAVC.cueShown(errorSwitches.value));
+  /** Whether an option switch acts on the open box (the ABC velocity one acts on an ABC box only; "Impedance of one driver" with 2 or more drivers). */
   const optionApplies = (option: CompatSwitch): boolean => {
     void projectChanged.value;
     return option.appliesTo(project.value);
@@ -810,7 +825,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     updateOffered, reloadForUpdate, dismissUpdate,
     handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
-    toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
+    toggleDropdown, openDd, infoMenuRoot, chartMenuRoot, openClick, closeDropdown, presentationState, isModified,
     openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
     projectListRef, duplicateProject, exportProject, cycleProjectColor, setProjectColor, copyProjectCharts, saveProjectRow, renameProject,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
@@ -825,7 +840,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     genOn, toggleGenerate, genHz, setCompatSwitch: compatSwitchSetter(featureUse),
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel, ...desktopHelp,
-    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, compatOptions: CompatSwitch.OPTIONS, optionApplies, errorSwitches, chartDeviations, prNprDeviationShown,
+    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, compatOptions: CompatSwitch.OPTIONS, optionApplies, errorSwitches, chartDeviations, prNprDeviationShown, projectAlfaVCDeviationShown,
      boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -845,7 +860,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     envTempDq, envHumidityDq, envPressureDq, resetAirToAppDefaults,
     envTempStored, envHumidityStored, envPressureStored,
     envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
-    powerLocked, rsOhm,
+    powerLocked, rsOhm, minimumPower,
     projectName, projectCreator, projectCreated, projectModified, projectDateCommits: dateCommits, projectDescription,
     lossesOpen, openLossGroups, resetBoxLosses,
     onFile, fileInput,

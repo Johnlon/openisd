@@ -70,6 +70,21 @@ export function hotRe(Re: number, alfaVC: number, dT: number): number {
 }
 
 /**
+ * The voice-coil temperature coefficient (/K) the sums heat Re with (John, QO953.c16, T917): the driver's own
+ * `alfaVC_per_K` when it is stated and not 0, else the project's. A negative driver value is no coil metal's (the
+ * field's floor is non-negative) and would drive the hot Re below 0, so it counts as not stated. AlfaVC belongs to the coil wire's metal (copper
+ * 0.00393 /K, aluminium about 0.0041-0.0043 /K); every catalogue driver and held .wdr stores 0, so they heat with
+ * the project's value. `winisdProjectAlfaVC` (the "Coil coefficient from project" WinISD bug switch) gives WinISD's
+ * sum back: the project's value only, whatever the driver says (WinISD 0.7.0 and 0.50a7 read only `[Box] alfaVC`).
+ */
+export function coilAlfaVC_per_K(driverAlfaVC_per_K: number | null, projectAlfaVC_per_K: number, winisdProjectAlfaVC: boolean): number {
+  if (winisdProjectAlfaVC) return projectAlfaVC_per_K;
+  return driverAlfaVC_per_K !== null && Number.isFinite(driverAlfaVC_per_K) && driverAlfaVC_per_K > 0
+    ? driverAlfaVC_per_K
+    : projectAlfaVC_per_K;
+}
+
+/**
  * Return a copy of the driver with `MaddKg` kilograms added to the cone's moving mass
  * (driver-side added mass — the WinISD "Added mass to cone" field, verified used in
  * docs/research/WINISD_PARITY.md). The suspension (Cms, Rms), motor (Bl), Re, Sd and Vas are unchanged by

@@ -34,6 +34,8 @@ const at = (f: number): FrequencyGrid => ({fmin: f, fmax: f * 1.0001, N: 1});
 const four = (): OpenISDProject => {
   const p = w5();
   p.nDrivers.set(4);
+  // These test WinISD's one-driver view: the "Impedance of one driver" option (ticket 519, QO946.c131).
+  p.winisdOneDriverImpedance.set(true);
   return p;
 };
 

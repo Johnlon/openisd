@@ -2,7 +2,7 @@ export {
   type SelectorOption,
   END_CORRECTION_OPTIONS, END_CORRECTION_ONE_FLANGED_END_M, END_CORRECTION_TWO_FREE_ENDS_M,
   VENT_SHAPE_OPTIONS,
-  VC_CONNECTION_OPTIONS, MEASURED_WIRING_NOT_STATED_LABEL,
+  VC_CONNECTION_OPTIONS, DRIVER_WIRING_OPTIONS, MEASURED_WIRING_NOT_STATED_LABEL,
   SEALED_ALIGNMENT_OPTIONS,
   VENTED_ALIGNMENT_OPTIONS,
   DEFAULT_VENTED_ALIGNMENT,
@@ -14,7 +14,7 @@ export {
 export {
   DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_QICL, DEFAULT_NEW_PROJECT_QICLFR, DEFAULT_NEW_PROJECT_QP,
   DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SEALED_QTC, DEFAULT_SEALED_VOLUME_L, DEFAULT_SOURCE_RESISTANCE_OHM,
-  DEFAULT_SWEEP_POINTS,
+  DEFAULT_SWEEP_POINTS, DEFAULT_ALFAVC_PER_K, DEFAULT_VC_TEMP_RISE_K,
 } from './defaults.js';
 
 export {
@@ -53,6 +53,7 @@ export {
 export {
   type FieldKind,
   type ValueFloor,
+  type LoadRepair,
   Field,
   NumberField,
   NumberEditor,
@@ -142,7 +143,7 @@ export {
   type PersistOutcome,
   type StorageEstimate,
 } from './browserStorage.js';
-export { dateStampFrom, formatByteSize, formatCount, formatCountOf, formatDate, formatDateStamp, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc, PHONE_MAX_SIGNIFICANT } from './format.js';
+export { dateStampFrom, formatByteSize, formatCount, formatCountOf, formatDate, formatDateStamp, formatDateTime, formatDay, formatFixed, formatFixedOrDash, isoDay, parseBasicUtc, PHONE_MAX_SIGNIFICANT } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
 export { caretSpin, digitAtCaret, spinStep, tenthsCaret, steppingCaret, caretRepeatDelayMs, CARET_HOLD_START_MS, type CaretSpin, type SteppedPlace, type StepAt } from './caretSpin.js';
@@ -158,6 +159,7 @@ export { SheetSizes } from './sheetSizes.js';
 export { ChartPageSizes, type ChartPageSizesValues } from './chartPageSizes.js';
 export { ChartPageHelp } from './chartPageText.js';
 export { CHART_HELP } from './chartHelpText.js';
+export { blockedChartFixLine, type FieldPlace } from './chartBlockText.js';
 export { PhoneRowColumns, PhoneRowSizes } from './phoneRowSizes.js';
 export { PhoneHeaderSizes } from './phoneHeaderSizes.js';
 export { AppFont, SkinFonts } from './appFonts.js';
@@ -173,3 +175,9 @@ export { TuneText } from './tuneText.js';
 export { PhoneDialogHelp, ImportChoiceText, AboutText } from './phoneDialogText.js';
 
 export {FIELD_APPEARANCE_SAMPLES, FIELD_APPEARANCES, FieldEditor, FieldAccess, FieldUnits, FieldCue, appearanceFor, type FieldAppearance} from './fieldAppearance.js';
+
+export {
+  FeedbackFace, FEEDBACK_TEXTS, FEEDBACK_ASK_NEVER, FEEDBACK_DAY_MS, MAX_FEEDBACK_COMMENT,
+  feedbackAskAfter, feedbackAskDue, parseFeedbackAskState,
+  type FeedbackAskEvent, type FeedbackAskState, type FeedbackTexts, type FeedbackTone,
+} from './feedback.js';

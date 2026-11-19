@@ -268,10 +268,20 @@ test.describe('Original Advanced tab', () => {
       expect(parseFloat(await vel.inputValue())).toBeGreaterThan(velAt301_30);
       expect(parseFloat(await density.inputValue())).toBeLessThan(rhoAt301_30);
 
-      // Out-of-range entry is data, not an error to clamp: 153 % stays readable and raises the DQ flag.
+      // 153 % is impossible air, so it is refused like every box (John's ruling QO953.c14, 18 Nov
+      // 2026: "Agree: refuse impossible, warn odd"): red with the refusal note, and 80 % stays in
+      // the sums, so sound velocity and density do not move.
+      const velAt80 = await vel.inputValue();
+      const rhoAt80 = await density.inputValue();
       await fillAndBlur(hum, '153');
-      await expect(hum).toHaveValue(/153/);
-      await expect(hum).toHaveClass(/dq-flag/);
+      await expect(hum).toHaveClass(/inp-bad/);
+      await expect(page.locator('.ui-field', { hasText: 'Relative humidity' }).locator('.ui-field-dq-btn'))
+        .toHaveAttribute('title', 'Relative humidity is above its maximum — enter a value between 0.00 and 100.00 %.');
+      await expect(vel).toHaveValue(velAt80);
+      await expect(density).toHaveValue(rhoAt80);
+      await hum.focus();
+      await hum.press('Escape');
+      await expect(hum).toHaveValue(/80/);
     });
 
     test('moves density with pressure while sound velocity stays flat', async ({ appPage: page }) => {
@@ -324,7 +334,7 @@ test.describe('Original Advanced tab', () => {
     test('WinISD Compatibility labels say "optional" or "bug" and are unclipped', async ({ appPage: page }) => {
       const panel = page.locator('.sim-options-box');
       const labels = panel.locator('label[data-field-key]');
-      await expect(labels).toHaveText([/Phase wrapping/, /Uncapped flat response/, /Simplified ABC intra-port velocity/, /Chart from Fs, Vas, Qms \(WinISD's way\)/, /Two-BL driver/, /Re without Rg/, /PR Npr resonance/, /Bessel high-pass/, /ABC group delay/, /Sealed picker volume/, /Coil wiring: Re and BL only/, /TL port without end correction/]);
+      await expect(labels).toHaveText([/Phase wrapping/, /Uncapped flat response/, /Simplified ABC intra-port velocity/, /Chart from Fs, Vas, Qms \(WinISD's way\)/, /Impedance of one driver/, /Two-BL driver/, /Re without Rg/, /PR Npr resonance/, /Bessel high-pass/, /ABC group delay/, /Sealed picker volume/, /Coil wiring: Re and BL only/, /Coil coefficient from project/, /TL port without end correction/]);
       // A pane too narrow for every column scrolls sideways: scrolled to its right end, nothing is clipped.
       await page.locator('.tab-section.active').evaluate(el => { el.scrollLeft = el.scrollWidth; });
       const panelBox = (await panel.boundingBox())!;
@@ -484,7 +494,7 @@ test.describe('Original Advanced tab', () => {
         await page.setViewportSize({width, height});
         await showAdvancedOn(page, 'abc');
         const labels = page.locator('.sim-switches label[data-field-key]');
-        await expect(labels).toHaveCount(12);
+        await expect(labels).toHaveCount(14);
         for (const label of await labels.all()) {
           const m = await label.evaluate(el => {
             const r = document.createRange(); r.selectNodeContents(el);
@@ -609,11 +619,11 @@ test.describe('Original Advanced tab', () => {
   });
 
   test.describe('WinISD bugs group', () => {
-    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdSealedPicker', 'winisdCoilWiringReBlOnly', 'winisdTlPortNoEndCorrection'];
+    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdSealedPicker', 'winisdCoilWiringReBlOnly', 'winisdTlPortNoEndCorrection', 'winisdProjectAlfaVC'];
     /** The box type each error switch acts on; a switch that applies everywhere is shown on an ABC box. */
     const BOX_FOR: Record<string, BoxTypeName> = {winisdPrNprResonance: 'box-passive-radiator', winisdSealedPicker: 'sealed'};
     /** The Bessel switch acts only on a project with a Bessel high-pass filter, so it cannot be ticked here. */
-    const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass' && key !== 'winisdTlPortNoEndCorrection' && key !== 'winisdCoilWiringReBlOnly');
+    const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass' && key !== 'winisdTlPortNoEndCorrection' && key !== 'winisdCoilWiringReBlOnly' && key !== 'winisdProjectAlfaVC');
     const DESIGN_KEYS = ['winisdWrapPhase', 'winisdFlatModel', 'winisdAbcIntraPortVelocity'];
 
     test('the error switches carry the warning class, unticked and ticked', async ({ appPage: page }) => {
@@ -643,6 +653,14 @@ test.describe('Original Advanced tab', () => {
       await expect(label.locator('input')).toBeEnabled();
       await label.locator('input').setChecked(true);
       await expect(label).toHaveClass(/error-switch-on/);
+    });
+
+    test('Coil coefficient from project is greyed with a cold coil and a catalogue driver (AlfaVC 0): it changes no sum', async ({ appPage: page }) => {
+      await showAdvancedOn(page, 'sealed');
+      const label = page.locator('label[data-field-key="winisdProjectAlfaVC"]');
+      await expect(label).toHaveClass(/error-switch-marked/);
+      await expect(label.locator('input')).toBeDisabled();
+      await expect(label.locator('input')).not.toBeChecked();
     });
 
     test('the design-choice switches do not carry it', async ({ appPage: page }) => {

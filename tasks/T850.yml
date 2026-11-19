@@ -1,0 +1,18 @@
+id: T850
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Phone Box tab: Vb top limit 10,000 L so its longest value fits the box
+# QO946.c187 (lead): Vb and Vf top limit 10,000 L
+why: Lead decision QO946.c187 under John's "Clipping is a bug: fix it, don't ask" (5 Nov 2026) and "I approve uncontroversial fixes": the Vb top limit in cm3 (100000000) is 76 px wide and the phone Box tab's box text area is 68 px
+done_test: bash scripts/test.sh packages/design/test/fields/box-volume-limit.test.ts
+files:
+  - tasks/T850.yml
+  - bugs/BUG_20261110_layout-scan-first-run.md
+  - packages/design/fields/field.ts
+  - packages/design/engine/appSettings.ts
+  - packages/design/test/fields/box-volume-limit.test.ts
+  - packages/ui/test/ui/layout-long-values.browser.spec.ts
+  - packages/design/test/fields/app-defaults-agree.test.ts
+# app-defaults-agree.test.ts:44 units bug: limits are SI; dropping the double toSI() reviewed by the lead under John, 16 Nov 2026: "replacing a test with a better test ... is expected but still needs review" (QO946.c186).

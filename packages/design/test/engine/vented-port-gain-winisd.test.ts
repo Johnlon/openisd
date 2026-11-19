@@ -8,7 +8,7 @@
  *
  * Model under test: `engine/sweep.ts` `rearPortGain` — the port's own pressure (K·ω·Up·Hf, ω
  * real, no j) on the SAME `tfMag` reference as `tfMag`/`prTfMag`. Formula:
- * winisd_research/GHIDRA_FINDINGS.md "Passive radiator box — `0x45a960`", "Rear port gain"
+ * winisd_research/archive/GHIDRA_FINDINGS.md "Passive radiator box — `0x45a960`", "Rear port gain"
  * bullet (found against this vented capture — the formula is box-agnostic).
  */
 import {readFileSync} from 'node:fs';

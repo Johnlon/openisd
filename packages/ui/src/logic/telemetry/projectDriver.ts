@@ -7,3 +7,8 @@ export function projectDriverTelemetry(driver: OpenISDDriver): {readonly driverI
     driverName: `${driver.brand.value} ${driver.model.value}`.trim(),
   };
 }
+
+/** What a usage event may say of a driver: a bundled (catalogue) driver's catalogue name (a project's embedded driver has no id of its own); 'own' for any other, whose identity stays private. */
+export function driverTelemetryId(driver: OpenISDDriver): string {
+  return driver.providedBy.value === 'OpenIsd' ? `${driver.brand.value} ${driver.model.value}`.trim() : 'own';
+}

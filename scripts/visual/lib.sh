@@ -4,7 +4,7 @@
 #   VISUAL_PAGES_DIR     where before/after pages are written; it is served by the httpd on lap:8000
 #   VISUAL_PAGES_URL     the URL of VISUAL_PAGES_DIR
 VISUAL_SNAPSHOT_DIR="${VISUAL_SNAPSHOT_DIR:-packages/ui/test/visual/visual.browser.spec.ts-snapshots}"
-VISUAL_PAGES_DIR="${VISUAL_PAGES_DIR:-/home/john/work/winisd/visual-pages}"
+VISUAL_PAGES_DIR="${VISUAL_PAGES_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/visual-pages}"
 VISUAL_PAGES_URL="${VISUAL_PAGES_URL:-http://lap:8000/winisd/visual-pages}"
 VISUAL_SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

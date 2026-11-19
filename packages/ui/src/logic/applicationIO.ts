@@ -1,6 +1,6 @@
 
 import type { Engine } from '@openisd/design/engine';
-import type { ChartData } from '@openisd/design/chart';
+import { AllChartData, DPAL, referenceLineColors, type ChartData, type Design } from '@openisd/design/chart';
 import { buildProjectsArchive, parseProjectsArchive, type OpenISDProject } from '@openisd/design';
 import { savedNotice } from '@openisd/design/fields';
 import { createExportNotice } from './exportNotice.js';
@@ -93,6 +93,8 @@ export interface DesignIO {
   exportBackup(): void;
   /** A chart's data table as a CSV file named after the focused project and the chart; a popup says what was saved. */
   downloadChartData(data: ChartData): void;
+  /** Every chart the focused project can draw, as CSV files plus the project file, in one ZIP named after the project; a popup says what was saved. */
+  downloadAllChartData(): void;
   /** A chart's data table onto the clipboard, tab separated; a message says it was copied or why not. */
   copyChartData(data: ChartData): Promise<void>;
   /** Save a stored backup (`StorageHistory.exportFile`) as a file. */
@@ -221,8 +223,9 @@ export function createApplicationIO(deps: {
     deps.actions?.record('save-project');
     if (project === focusedProject()) endWhatIfBeforeIO();
     else project.cancelWhatIf();
-    // Storage first: a refused write must leave the project showing its unsaved changes.
-    const result = deps.projectRepo.saveToStorage(project);
+    // Storage first: a refused write must leave the project showing its unsaved changes. What is stored is the
+    // project as saved (no unsaved layer): Cloud sync sends that checkpoint, and Revert returns to it (QO946.c248).
+    const result = deps.projectRepo.saveToStorage(project.committedSnapshot());
     if (result.kind === 'failed') {
       await handleSaveFailure();
       return false;
@@ -241,7 +244,7 @@ export function createApplicationIO(deps: {
     let savedCount = 0;
     for (const project of dirty) {
       project.cancelWhatIf();
-      const result = deps.projectRepo.saveToStorage(project);
+      const result = deps.projectRepo.saveToStorage(project.committedSnapshot());
       if (result.kind === 'failed') {
         await handleSaveFailure();
         return savedCount; // stop saving on failure; this project still shows its unsaved changes
@@ -333,6 +336,8 @@ export function createApplicationIO(deps: {
     return readDriverFileText(f).then(({ text }) => {
       try {
         const format = formatOf(f.name) ?? sniff(new TextEncoder().encode(text));
+        /** What the load repaired in the opened project, one line each under the opening message (QO953.c31). */
+        let repairs: readonly string[] = [];
 
         if (format === DriverFileFormat.Wdr || format === DriverFileFormat.Owdr) {
           const { value: driver, errors } = deps.files.driverFromText(text, format);
@@ -353,7 +358,7 @@ export function createApplicationIO(deps: {
           flash(`Driver imported from ${f.name}: ${displayNameOf(driver)}`);
           return;
         } else if (format === ProjectFileFormat.Wpr) {
-          const { value: project, errors } = deps.files.projectFromText(text, ProjectFileFormat.Wpr);
+          const { value: project, errors, loadRepairs } = deps.files.projectFromText(text, ProjectFileFormat.Wpr);
           if (!project) throw new Error(errors[0]?.message ?? 'could not read .wpr');
           project.name.set(projectNameFromFilename(f.name));
           // Naming it after the file it came from is part of LOADING it, not a user edit: the
@@ -365,6 +370,7 @@ export function createApplicationIO(deps: {
           // the SAME file again switches to the tab already holding it instead of adding a second
           // (BUG_20261009_same-project-opens-many-times).
           openProjectOnce(project, {kind: 'file', name: f.name, content: text});
+          repairs = loadRepairs.map(repair => repair.text);
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
           
           let isArchive = false;
@@ -384,7 +390,7 @@ export function createApplicationIO(deps: {
             return;
           }
 
-          const { value: project, errors } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
+          const { value: project, errors, loadRepairs } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
           if (!project) {
             // `errors[0]` alone is what the message shows — one line is all a toast has room for —
             // but a schema mismatch commonly raises several field-level issues at once (QO152),
@@ -397,11 +403,12 @@ export function createApplicationIO(deps: {
           project.name.set(projectNameFromFilename(f.name));
           project.save();   // the loaded design is the ground state — see the .wpr branch above
           openProjectOnce(project, {kind: 'file', name: f.name, content: text});
+          repairs = loadRepairs.map(repair => repair.text);
         } else {
           throw new Error('it is not an OpenISD or WinISD file');
         }
         deps.fileStorage.forget();
-        flash(`Project imported from ${f.name}`);
+        flash([`Project imported from ${f.name}`, ...repairs].join('\n'));
       } catch (err) { failed(err instanceof Error ? err.message : String(err)); }
     }, (err: Error) => { failed(err.message); });
   }
@@ -429,6 +436,26 @@ export function createApplicationIO(deps: {
     exportNotice.exported({kind: 'chartData', chart: data.chartName}, fileName);
   }
 
+  function downloadAllChartData(): void {
+    featureUse.feature('chart_data');
+    const project = requireFocusedProject();
+    const p = deps.appState.syncedP.value;
+    const design: Design = {
+      driver: project.driver.specs.sweepDriver(),
+      box: project.box.boxType.value,
+      P: p,
+      curves: deps.appState.curvesData.value,
+      maxCurves: deps.appState.maxData.value ?? undefined,
+      name: project.name.value || driverName.value,
+      color: DPAL[0],
+      sortIndex: openProjects().indexOf(project),
+    };
+    const all = AllChartData.of(project.name.value, project.charts, deps.engine, p.fmin, p.fmax, design,
+      deps.appState.allIssues.value, referenceLineColors(deps.presentation.ui.chartColors), deps.files.projectToOwprText(project));
+    download(all.zipName, all.zip(), 'application/zip');
+    exportNotice.exported({kind: 'allChartData', charts: all.chartCount}, all.zipName);
+  }
+
   async function copyChartData(data: ChartData): Promise<void> {
     featureUse.feature('chart_data');
     try {
@@ -452,6 +479,6 @@ export function createApplicationIO(deps: {
 
   return {
     reportStorageFull, saveProject, saveProjectRecord, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
-    exportBackup, downloadChartData, copyChartData, saveStoredBackup, importBackup,
+    exportBackup, downloadChartData, downloadAllChartData, copyChartData, saveStoredBackup, importBackup,
   };
 }

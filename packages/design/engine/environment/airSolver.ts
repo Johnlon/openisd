@@ -24,13 +24,14 @@
  * width moves the prediction.
  */
 import {NumberField} from '../../fields/field.js';
+import type {ValueFloor} from '../../fields/field.js';
 import {GAMMA, soundSpeedAt, temperatureIssues} from '../air.js';
 import type {AppAir} from '../air.js';
-import {inconsistentInputs, missingDependencies} from '../consistency.js';
-import type {CalculationIssue} from '../consistency.js';
+import {inconsistentInputs, missingDependencies, outsideNormalBand} from '../consistency.js';
+import type {CalculationIssue, NormalBandIssue} from '../consistency.js';
 
 export type AirQuantityName = 'tempK' | 'humidityPct' | 'pressurePa' | 'c' | 'rho';
-export type AirIssue = CalculationIssue<AirQuantityName>;
+export type AirIssue = CalculationIssue<AirQuantityName> | NormalBandIssue<AirQuantityName>;
 
 /** One air quantity as the caller states it: typed, with the half-width (SI) that typing states,
  *  or open to be calculated. */
@@ -94,6 +95,16 @@ const LIMITS: Readonly<Record<AirQuantityName, {readonly min: number; readonly m
   pressurePa: NumberField.ADV_PRESSURE_KPA.limits,
   c: NumberField.ADV_SOUNDVELOCITY_M_PER_S.limits,
   rho: NumberField.ADV_AIRDENSITY_KG_PER_M3.limits,
+});
+
+/** Whether zero and below are possible at all: the Advanced-pane fields' own floors. Air with no
+ *  pressure, no density or no sound velocity is not air. */
+const AIR_FLOORS: Readonly<Record<AirQuantityName, ValueFloor>> = Object.freeze<Record<AirQuantityName, ValueFloor>>({
+  tempK: NumberField.ADV_TEMP_K.floor,
+  humidityPct: NumberField.ADV_HUMIDITY_PCT.floor,
+  pressurePa: NumberField.ADV_PRESSURE_KPA.floor,
+  c: NumberField.ADV_SOUNDVELOCITY_M_PER_S.floor,
+  rho: NumberField.ADV_AIRDENSITY_KG_PER_M3.floor,
 });
 
 function solved(value: number): Outcome { return {kind: 'solved', value}; }
@@ -275,6 +286,40 @@ function unavailable(target: AirQuantityName, relation: AirRelation, why: string
   };
 }
 
+/** A stated air quantity at or below zero where its field's floor is positive (pressure, sound
+ *  velocity, density): air with none of it is not air, so no sweep runs while one is stated
+ *  (QO953). Empty when the value clears its floor. */
+export function airFloorIssues(name: AirQuantityName, value: number): readonly AirIssue[] {
+  const floor = AIR_FLOORS[name];
+  if (floor !== 'positive' || value > 0) return [];
+  const said = `${SAYS[name][0]?.toUpperCase() ?? ''}${SAYS[name].slice(1)}`;
+  const base = missingDependencies(name, [{formula: `${SAYS[name]} greater than 0`, required: [name], missing: [name]}]);
+  return [{...base, fields: [name], text: `${said} must be greater than 0: air with no ${SAYS[name]} carries no sound, so the charts are not drawn.`}];
+}
+
+/** The Advanced-pane field of each air quantity. */
+const AIR_FIELDS: Readonly<Record<AirQuantityName, NumberField>> = Object.freeze<Record<AirQuantityName, NumberField>>({
+  tempK: NumberField.ADV_TEMP_K,
+  humidityPct: NumberField.ADV_HUMIDITY_PCT,
+  pressurePa: NumberField.ADV_PRESSURE_KPA,
+  c: NumberField.ADV_SOUNDVELOCITY_M_PER_S,
+  rho: NumberField.ADV_AIRDENSITY_KG_PER_M3,
+});
+
+/** A stated air quantity inside its field's limits but outside its normal band
+ *  (`NumberField.plausible`): kept and used, with a warning that names the band (QO953.c14, "refuse
+ *  impossible, warn odd"). Empty inside the band, and outside the limits, where the solver's own
+ *  range issue or the temperature issue already speaks. */
+export function airBandIssues(name: AirQuantityName, value: number): readonly AirIssue[] {
+  const field = AIR_FIELDS[name];
+  const {min, max} = field.plausible;
+  if (!Number.isFinite(value) || (value >= min && value <= max)) return [];
+  if (value < field.limits.min || value > field.limits.max || airFloorIssues(name, value).length > 0) return [];
+  const unit = field.unitLabel();
+  const said = (v: number): string => `${field.format(v)} ${unit}`;
+  return [outsideNormalBand(name, `${field.label} ${said(value)} is outside the sane range for air (${said(min)} to ${said(max)}). It is kept and used; check it.`)];
+}
+
 /** The app's value of one of the three conditions the app holds. */
 function appValue(appAir: AppAir, name: AppQuantityName): number {
   switch (name) {
@@ -393,6 +438,11 @@ export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
     const typed = inputs[name];
     if (name === 'tempK' || typed.kind !== 'entered') continue;
     const {min, max} = LIMITS[name];
+    const belowFloor = airFloorIssues(name, typed.value);
+    if (belowFloor.length > 0) {
+      issues.push(...belowFloor);
+      continue;
+    }
     if (Number.isFinite(typed.value) && typed.value >= min && typed.value <= max) continue;
     const base = missingDependencies(name, [{formula: `${SAYS[name]} between ${min} and ${max}`, required: [name], missing: [name]}]);
     issues.push({...base, fields: [name], text: `${SAYS[name][0]?.toUpperCase() ?? ''}${SAYS[name].slice(1)} is outside the sane range (${min}–${max}).`});

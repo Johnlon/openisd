@@ -46,7 +46,7 @@ function deviceOn(drive: DriveEmulator, fill: number, userAgent = 'Windows') {
   const storage = createMemoryStorage();
   const backup = createStorageBackup(storage, () => NOW);
   const rules: LayoutRules = {layout: STORAGE_LAYOUT, steps: createLayoutSteps(createEngine(), () => 'test-project-id')};
-  const projectRepo = createProjectRepo(engine, noFiles, storage, 'http://localhost/', backup, createExportedFiles(rules), () => undefined, () => undefined);
+  const projectRepo = createProjectRepo(engine, noFiles, storage, 'http://localhost/', backup, createExportedFiles(rules), () => undefined, () => undefined, () => undefined);
   const appSettingsRepo = createAppSettingsRepo(storage, backup, () => undefined, () => undefined, () => undefined);
   const deviceName = DeviceName.ofBrowser(userAgent, 0);
   const binMarks = createProjectBinMarks(storage, backup);
@@ -76,6 +76,7 @@ function deviceOn(drive: DriveEmulator, fill: number, userAgent = 'Windows') {
       now: () => NOW,
       deviceName,
       projectsPulled: p => { pulled.push(...p); },
+      beforeRun: () => undefined,
     });
   }
 
@@ -131,8 +132,10 @@ describe('cloud sync first connect', () => {
     expect(phone.projectRepo.saveToStorage(project).kind).toBe('saved');
     await phoneSync.scheduler.syncNow();
 
+    const desktopDocs = desktop.projectRepo.storedDocs();
+    const desktopBefore = desktopDocs.kind === 'ok' ? desktopDocs.docs.find(d => d.id === id)?.body : undefined;
     await desktopSync.scheduler.syncNow();
-    expect(desktop.pulled).toEqual([{id, from: DeviceName.ofBrowser(phoneUa, 0).text}]);
+    expect(desktop.pulled).toEqual([{id, from: DeviceName.ofBrowser(phoneUa, 0).text, before: desktopBefore, copyId: null}]);
   });
 
   it('Delete on one device removes the project from the other device after both sync', async () => {

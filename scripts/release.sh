@@ -25,7 +25,9 @@
 # RELEASE_ANNOUNCE_URL override the command and the list URL). A failure there exits non-zero but
 # the release is already out: rerun the command it prints.
 # The RELEASES.md row lands itself: a new task (scripts/new-task.sh, RELEASE_NEW_TASK), the row in
-# that task's worktree, a commit, scripts/land.sh (RELEASE_LAND). The starting folder is never written.
+# that task's worktree, a commit, scripts/ship.sh (RELEASE_LAND), which opens a pull request that merges
+# itself when its checks pass. Before that the worktree must have its dependencies (RELEASE_INSTALL, default npm ci,
+# runs when one is missing: ship.sh typechecks there). The starting folder is never written.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
@@ -166,7 +168,12 @@ else
   elif git merge-base --is-ancestor "$RELEASE_TIP" "$SHA"; then
     RELEASE_PUSH="$SHA"
   else
-    RELEASE_PUSH="$(git commit-tree "$SHA^{tree}" -p "$RELEASE_TIP" -p "$SHA" -m "Release $PUBLIC: $STAMP onto release (keeps hotfix history)")"
+    # Deterministic: the same release tip, snapshot, number and stamp always give the same commit id, so the id
+    # --prepare records is the id --approve-prepared rebuilds (a clock in the commit made every approval refuse, 17 Nov 2026).
+    MERGE_DATE="$(git log -1 --format=%cI "$SHA")"
+    RELEASE_PUSH="$(GIT_AUTHOR_NAME='OpenISD release' GIT_AUTHOR_EMAIL='release@openisd.invalid' GIT_AUTHOR_DATE="$MERGE_DATE" \
+      GIT_COMMITTER_NAME='OpenISD release' GIT_COMMITTER_EMAIL='release@openisd.invalid' GIT_COMMITTER_DATE="$MERGE_DATE" \
+      git commit-tree "$SHA^{tree}" -p "$RELEASE_TIP" -p "$SHA" -m "Release $PUBLIC: $STAMP onto release (keeps hotfix history)")"
     echo "release: branch release holds commits not in $SHA; moving it with merge $RELEASE_PUSH"
   fi
 fi
@@ -181,7 +188,14 @@ if [ "$MODE" = approve ]; then
   [ "$MAIN_SHA" = "$PREPARED_MAIN_SHA" ] || refuse "main changed since preparation; prepare again"
   [ "$LATEST_TAG" = "$PREPARED_LATEST_TAG" ] || refuse "Latest release changed since preparation"
   [ "$RELEASE_TIP" = "$PREPARED_RELEASE_TIP" ] || refuse "release branch changed since preparation"
-  [ "$RELEASE_PUSH" = "$PREPARED_RELEASE_PUSH" ] || refuse "release-branch move changed since preparation"
+  # The move must be the prepared one. A record written before the commit was deterministic holds an id that cannot be
+  # rebuilt; it still counts when its commit (if this clone has it) has exactly the same tree and parents.
+  if [ "$RELEASE_PUSH" != "$PREPARED_RELEASE_PUSH" ]; then
+    [ -n "$RELEASE_PUSH" ] && git cat-file -e "$PREPARED_RELEASE_PUSH^{commit}" 2> /dev/null \
+      && [ "$(git rev-parse "$PREPARED_RELEASE_PUSH^{tree}")" = "$(git rev-parse "$RELEASE_PUSH^{tree}")" ] \
+      && [ "$(git rev-list --parents -n1 "$PREPARED_RELEASE_PUSH" | cut -d' ' -f2-)" = "$(git rev-list --parents -n1 "$RELEASE_PUSH" | cut -d' ' -f2-)" ] \
+      || refuse "release-branch move changed since preparation"
+  fi
   [ "$TEST_VERSION" = "$PREPARED_TEST_VERSION" ] && [ "$PRODUCTION_VERSION" = "$PREPARED_PROD_VERSION" ] \
     || refuse "a hosted build changed since preparation"
   [ -z "$NOTES_FILE" ] || { [ -f "$NOTES_FILE" ] && [ "$(sha256sum "$NOTES_FILE" | cut -d' ' -f1)" = "$PREPARED_NOTES_SHA" ]; } \
@@ -273,9 +287,11 @@ else
 fi
 rm -rf "$ANNOUNCE_ROOT"; git worktree prune
 
-# RELEASES.md: one row per release, newest first. Written in its own task worktree and landed with
-# land.sh, never in the folder this script started in (main moves only through land.sh).
+# RELEASES.md: one row per release, newest first. Written in its own task worktree and shipped with
+# ship.sh as a pull request, never in the folder this script started in: main moves only by pull request
+# (QO481, John, 10 Nov 2026), so land.sh, which pushes main, is refused there.
 DATE="$(date -u -d "${STAMP:0:8} ${STAMP:9:2}:${STAMP:11:2}" '+%-d %b %Y, %H:%M')"
+DAY="$(date -u -d "${STAMP:0:8}" '+%-d %b %Y')"   # the release's own day, for the ledger task's why
 if [ -n "$NOTES_FILE" ]; then NOTE_TEXT="$(cat "$NOTES_FILE")"; else NOTE_TEXT="$(gh release view "$REL" --json body --jq .body)"; fi
 SUBJECT="$(printf '%s\n' "$NOTE_TEXT" | node scripts/hosting/releaseNotes.mjs headline | tr '|' '/')"
 ROW="| $PUBLIC | $STAMP | $DATE | \`${SHA:0:9}\` | [v/$STAMP](https://snapshots.openisd.app/v/$STAMP/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/$REL) | $SUBJECT |"
@@ -285,15 +301,36 @@ TASK_ID="${NEW_TASK_OUT%% *}"; TASK_DIR="${NEW_TASK_OUT#* }"
 [[ "$TASK_ID" =~ ^T[0-9]+$ ]] && [ -d "$TASK_DIR" ] || refuse "new-task gave no task and worktree ('$NEW_TASK_OUT'); the release is out, record $PUBLIC in RELEASES.md by hand"
 (
   cd "$TASK_DIR"
+  # ship.sh typechecks in this worktree. new-task.sh hardlinks node_modules from the main checkout, which can be older than
+  # the lockfile (7.0.960: "Cannot find module 'lz-string'"), so check that every dependency named by a package.json here
+  # resolves, and install from the lockfile (RELEASE_INSTALL, default npm ci) when one does not. Never skip the typecheck.
+  missing="$(node --input-type=module -e '
+import fs from "node:fs";
+const pkgs = ["package.json", ...(fs.existsSync("packages") ? fs.readdirSync("packages").map((d) => `packages/${d}/package.json`) : [])].filter((f) => fs.existsSync(f));
+const gone = [];
+for (const f of pkgs) {
+  const dir = f.replace(/package\.json$/, "");
+  const {dependencies = {}, devDependencies = {}} = JSON.parse(fs.readFileSync(f, "utf8"));
+  for (const name of Object.keys({...dependencies, ...devDependencies})) {
+    if (!fs.existsSync(`${dir}node_modules/${name}`) && !fs.existsSync(`node_modules/${name}`)) gone.push(name);
+  }
+}
+console.log([...new Set(gone)].join(" "));
+')" || exit 1
+  if [ -n "$missing" ]; then
+    echo "release: the ledger worktree lacks dependencies ($missing); installing them"
+    ${RELEASE_INSTALL:-npm ci --no-audit --no-fund} || { echo "release: the dependency install in $TASK_DIR failed ($missing), so ship.sh would fail its typecheck" >&2; exit 1; }
+  fi
   if [ ! -f RELEASES.md ]; then
     printf '# Releases\n\nNewest first. `scripts/release.sh` adds a row when it promotes a snapshot. Dates are UTC.\n\n| Version | Stamp | Date | Commit | Hosted | GitHub | Notes |\n|---|---|---|---|---|---|---|\n' > RELEASES.md
   fi
   awk -v row="$ROW" '{print} /^\|---/ && !done {print row; done=1}' RELEASES.md > RELEASES.md.new && mv RELEASES.md.new RELEASES.md
-  printf 'id: %s\nrelease_note: internal\nrepo: openisd\nowner: release\nstatus: open\ngoal: %s\ndone_test: grep -Fq "| %s | %s |" RELEASES.md\nfiles:\n  - RELEASES.md\n  - tasks/%s.yml\n' \
-    "$TASK_ID" "$GOAL" "$PUBLIC" "$STAMP" "$TASK_ID" > "tasks/$TASK_ID.yml"
+  # why: the pull request's task check asks every new task file who decided and when (T767)
+  printf 'id: %s\nrelease_note: internal\nrepo: openisd\nowner: release\nstatus: open\ngoal: %s\nwhy: "John, %s: release OpenISD %s"\ndone_test: grep -Fq "| %s | %s |" RELEASES.md\nfiles:\n  - RELEASES.md\n  - tasks/%s.yml\n' \
+    "$TASK_ID" "$GOAL" "$DAY" "$PUBLIC" "$PUBLIC" "$STAMP" "$TASK_ID" > "tasks/$TASK_ID.yml"
   git add RELEASES.md "tasks/$TASK_ID.yml"
   git commit --quiet -m "(auto) $TASK_ID: $GOAL"
-  ${RELEASE_LAND:-bash scripts/land.sh} "$TASK_ID"
+  ${RELEASE_LAND:-bash scripts/ship.sh} "$TASK_ID"
 ) || refuse "landing the ledger row ($TASK_ID in $TASK_DIR) failed; the release is out, finish that landing by hand"
-echo "release: $REL is Latest at $SHA; ledger row landed as $TASK_ID"
+echo "release: $REL is Latest at $SHA; ledger row shipped as $TASK_ID (a pull request that merges itself)"
 [ -z "$ANNOUNCE_FAILED" ] || { echo "release: $REL is out, but $ANNOUNCE_FAILED; rerun: $ANNOUNCE_CMD (from a checkout of $SHA, ANNOUNCE_DIR set to it)" >&2; exit 1; }

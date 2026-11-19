@@ -8,7 +8,7 @@
  *
  * Model under test: `engine/sweep.ts` `frontPortGain` — the front port's own pressure
  * (K·jω·Up·Hf) on the SAME `tfMag` reference as `tfMag`/`prTfMag`/`rearPortGain`. Formula:
- * winisd_research/GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`", "Front port gain"
+ * winisd_research/archive/GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`", "Front port gain"
  * bullet — the j is kept there (unlike the vented sibling's kind 11), but the chart plots
  * magnitude only, so |jω·Up·Hf| = |ω·Up·Hf|: the same computation as `rearPortGain` reused,
  * never a second copy.

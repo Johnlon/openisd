@@ -1,0 +1,15 @@
+id: T903
+release_note: The Impedance chart's Auto Y range now goes below 1 ohm, so a curve with lower values (four drivers in a small box) is no longer cut off at the bottom.
+repo: openisd
+owner: t903
+status: done
+goal: Auto Y on the Impedance chart always contains the whole impedance curve, and a log level axis spanning under two decades labels every tick instead of a lone 1.0
+why: "John, 18 Nov 2026 (rule: clipping is a bug, fix it, no question): on test.openisd.app v20261118T1807Z the Tang Band W5-1138SMF in a closed 4.48 L box with 4 drivers falls below 1 ohm under ~45 Hz and over ~200 Hz and ran off the bottom of the chart (bugs/BUG_20261118_impedance-auto-y-floor-at-1-ohm.md)."
+done_test: npx vitest run packages/design/test/chart/auto-y-contains-the-curve.test.ts
+files:
+  - tasks/T903.yml
+  - bugs/BUG_20261118_impedance-auto-y-floor-at-1-ohm.md
+  - packages/design/chart/series.ts
+  - packages/design/chart/axis.ts
+  - packages/design/test/chart/auto-y-contains-the-curve.test.ts
+  - packages/design/test/chart/level-axis.test.ts

@@ -85,6 +85,15 @@ export function dateStampFrom(text: string, previous: string): string {
   return d ? `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}` : previous;
 }
 
+/** "2026-11-16" for a Date added held as WinISD's stamp "20261116" or already as an ISO day; any other
+ *  text is returned as stored. Catalogue records hold the dashed form, new records the stamp, and
+ *  every Date added box shows the dashed one. */
+export function isoDay(stored: string): string {
+  const m = STAMP.exec(stored) ?? ISO_DAY.exec(stored);
+  const d = m ? realDay(Number(m[1]), Number(m[2]), Number(m[3])) : null;
+  return d ? `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}` : stored;
+}
+
 const BASIC_UTC = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/;
 
 /** The instant an ISO 8601 basic UTC stamp names — "20260101T0102Z", "20260101T010203Z", a leading

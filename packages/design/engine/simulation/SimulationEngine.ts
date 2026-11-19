@@ -27,10 +27,12 @@ import type {VentIssue} from '../vent/VentEngine.js';
 import {hotRe, isobarikPair, withAddedMass} from '../solvers/driverQuantities.js';
 import {applyFilters} from '../filters.js';
 import {driveFromVoltage} from '../signal/SignalEngine.js';
+import type {DriverDrive} from '../array/driverWiring.js';
+import {DEFAULT_DRIVER_WIRING, driverDrive} from '../array/driverWiring.js';
 import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepPeaks, SweepResult, WinisdFilterErrors} from '../types.js';
 import type {DriverValues, SweepDriver} from '../solverTypes.js';
-import type {BoxParamsIssue, BoxParamsQuantityName, BoxParamsSolveResult} from '../params.js';
-import {requiredParamsFor} from '../params.js';
+import type {BoxParamsIssue, BoxParamsQuantityName, BoxParamsSolveResult, SweepSettingIssue, SweepSettingsSolveResult} from '../params.js';
+import {requiredParamsFor, sweepSettingRules} from '../params.js';
 import type {SolveRoute} from '../consistency.js';
 import type {SignalIssue} from '../signal/SignalEngine.js';
 import {DEFAULT_SWEEP_POINTS} from '../../fields/defaults.js';
@@ -50,7 +52,7 @@ import {NumberField} from '../../fields/field.js';
  *  instead). Never a sweep-own quantity: `sweep()` computes nothing a caller enters, so it has
  *  no target of its own to report an issue about. */
 export type SweepIssue =
-  | DriverIssue | AirIssue | BoxParamsIssue
+  | DriverIssue | AirIssue | BoxParamsIssue | SweepSettingIssue
   | VentIssue | PrIssue | SignalIssue;
 
 /** The unified sweep result: the curves (or null if nothing could be derived), and why. */
@@ -219,6 +221,16 @@ function oneBoxOfN(P: SweepParams, n: number): SweepParams {
     ...(P.Spr !== undefined ? { Spr: P.Spr / n } : {}), ...(P.SpIntra !== undefined ? { SpIntra: P.SpIntra / n } : {}) };
 }
 
+/** What each of the N drivers sees. An absent `driverWiring` is Parallel, what a project that never chose one is (saved default). */
+function arrayDrive(P: SweepParams, n: number): DriverDrive {
+  return driverDrive(n, P.driverWiring ?? DEFAULT_DRIVER_WIRING, P.eg, P.Rs || 0, P.rgAtDriverSide !== false);
+}
+
+/** One driver's share of the array, driven as the wiring says: its share of the box, the voltage and the series resistance it sees. */
+function oneDriverOfArray(P: SweepParams, n: number, drive: DriverDrive): SweepParams {
+  return {...oneBoxOfN(P, n), eg: drive.eg_V, Rs: drive.Rg_ohm};
+}
+
 function circuitQuantities(q: ReturnType<typeof withAddedMass>, Le_H: number | undefined, BL_typed_Tm: number | null): { value: CircuitQuantities | null; issues: DriverIssue[] } {
   const issues: DriverIssue[] = [];
   for (const field of CIRCUIT_REQUIRED_FIELDS) {
@@ -344,6 +356,10 @@ export interface SimulationEngine {
    *  circuit divides by is present for `box`'s topology, else `null`, with `issues` naming what
    *  is missing. */
   solveBoxParams(box: BoxType, P: EnclosureParams): BoxParamsSolveResult;
+  /** The sweep-setting precondition: `values` is `P` unchanged when the air, drive level, counts,
+   *  series resistance, frequency grid and the losses and tunings `box` reads are usable, else
+   *  `null`, with `issues` naming each value broken and what it must be. */
+  solveSweepSettings(box: BoxType, P: SweepParams): SweepSettingsSolveResult;
   /** The passband reference level a response is measured against. */
   passbandRef(spl: number[]): number;
   /** The real levels of a dB curve: finite, and not the silence sentinel. A real level may sit
@@ -456,20 +472,38 @@ export class SimulationEngineImpl implements SimulationEngine {
     return { values: issues.length === 0 ? P : null, issues };
   }
 
+  /** The sweep-setting rules (`engine/params.ts` `sweepSettingRules`) that `box` reads, each value
+   *  that breaks one reported with what it must be. Like `solveBoxParams`, a precondition the domain
+   *  checks before it builds a sweep: `sweep` itself stays the raw circuit. */
+  solveSweepSettings(box: BoxType, P: SweepParams): SweepSettingsSolveResult {
+    const issues: SweepSettingIssue[] = [];
+    for (const rule of sweepSettingRules()) {
+      if (!rule.boxes.includes(box)) continue;
+      const v = rule.read(P);
+      if (v === null ? !rule.required : rule.usable(v)) continue;
+      issues.push({kind: 'result-refused', target: rule.field, fields: [rule.field], text: rule.text});
+    }
+    return {values: issues.length === 0 ? P : null, issues};
+  }
+
   sweep(drv: SweepDriver, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult {
     const n = P.nDrivers || 1;
     if (winisdCountsDrivers(P)) {
       // WinISD: one driver in Vb/N at eg, the voltage each driver gets (P/N each); N of them sum to +20·log10(N) on its SPL and
       // N times its VA (WinISD's VA chart is the array's: 0.968 VA at 1 and 4 drivers, W5 sealed 1 W).
-      const one = this.sweep(drv, Le_H, box, oneBoxOfN(P, n));
+      const drive = arrayDrive(P, n);
+      const one = this.sweep(drv, Le_H, box, oneDriverOfArray(P, n, drive));
       if (one.values === null) return one;
       // The impedance chart is one driver's, as WinISD's (winisd_research FINDING_20261115: the routine
       // computes Nd·BL²/(Nd·Sd)²/(Za+Zload) + Re + jωLe, so Re is never scaled by Nd). The array's
       // impedance is ticket Johnlon/openisd#519; it replaced the "Per-driver impedance" switch (QO941).
+      // The chart is the amplifier's load, one driver's x loadScale, unless "Impedance of one driver" is ticked (absent: unticked).
+      const zScale = P.winisdOneDriverImpedance === true ? 1 : drive.loadScale;
       const gain = 20 * Math.log10(n);
       return { ...one, values: { ...one.values,
         spl: one.values.spl.map((v) => isSilence(v) ? v : v + gain),
-        va: one.values.va.map((v) => v * n) } };
+        va: one.values.va.map((v) => v * n),
+        zmag: one.values.zmag.map((v) => v * zScale) } };
     }
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
@@ -545,7 +579,7 @@ export class SimulationEngineImpl implements SimulationEngine {
       spl.push(pm === 0 ? SILENCE_DB : 20 * Math.log10(pm / P0));
       phase.push(cArg(Hc));
       // The radiator's OWN pressure, jω·Upr, on the same 0 dB reference as `Hc` above — but,
-      // unlike `Hc`, NOT multiplied by `Hf` (winisd_research/GHIDRA_FINDINGS.md "Passive
+      // unlike `Hc`, NOT multiplied by `Hf` (winisd_research/archive/GHIDRA_FINDINGS.md "Passive
       // radiator box", "Radiator transfer function" bullet). `s.UP` here is the raw box-solve
       // output, before the loop's own filtered `UP` local shadows it.
       const Hpr = cScale(cMul(cx(0, w), s.UP), rho / (2 * Math.PI * r));
@@ -603,7 +637,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     const pressure = (f: number): Complex =>
       cMul(cMul(cx(0, 2 * Math.PI * f), solve(f, cq, box, P).U0), applyFilters(f, P.filters, filterErrors));
     const filterChain = (f: number): Complex => applyFilters(f, P.filters, filterErrors);
-    // WinISD's ABC group delay (winisd_research GHIDRA_FINDINGS.md "Group delay of the 6th-order
+    // WinISD's ABC group delay (winisd_research/archive/GHIDRA_FINDINGS.md "Group delay of the 6th-order
     // bandpass and ABC"): the box at the stepped f', the driver part and jω held at the chart f.
     const winisdAbcGd = box === 'abc' && P.winisdAbcGroupDelay === true;
     const pressureDriverAt = (fd: number) => (f: number): Complex =>
@@ -704,7 +738,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     const n = P.nDrivers || 1;
     if (winisdCountsDrivers(P)) {
       // WinISD: N times one driver's limits in Vb/N — max power ×N; max SPL +20·log10(N) (⚠ unverified).
-      const one = this.maxCurves(drv, Le_H, box, oneBoxOfN(P, n));
+      const one = this.maxCurves(drv, Le_H, box, oneDriverOfArray(P, n, arrayDrive(P, n)));
       if (one.values === null) return one;
       const gain = 20 * Math.log10(n);
       return { ...one, values: { ...one.values, maxpwr: one.values.maxpwr.map((v) => v * n), maxspl: one.values.maxspl.map((v) => v + gain) } };

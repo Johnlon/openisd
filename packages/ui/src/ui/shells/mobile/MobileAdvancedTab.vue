@@ -29,11 +29,11 @@ const {
 <template>
   <PhoneClassicPage>
     <PhoneBand :section="PhoneHelp.ADVANCED_ENVIRONMENT" />
-    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range />
-    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range />
-    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range />
-    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range />
-    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-state="envAirDensityDq.dqState" allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-warnings="envTempDq.warnings" :dq-state="envTempDq.dqState" stepper allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-warnings="envHumidityDq.warnings" :dq-state="envHumidityDq.dqState" stepper />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-warnings="envPressureDq.warnings" :dq-state="envPressureDq.dqState" stepper allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-warnings="envSoundVelocityDq.warnings" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-warnings="envAirDensityDq.warnings" :dq-state="envAirDensityDq.dqState" allow-out-of-range />
     <div class="mob-adv-btns">
       <PhoneButton @click="resetAirToAppDefaults">Reset to app levels</PhoneButton>
     </div>
@@ -71,6 +71,9 @@ const {
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdCoilWiringReBlOnly" :marked="errorSwitches.coilWiringReBlOnly.marked" :applicable="errorSwitches.coilWiringReBlOnly.applicable" :reproduces-error="errorSwitches.coilWiringReBlOnly.reproducesError" :title="ToggleField.ADV_WINISDCOILWIRINGREBLONLY.description">
         <input type="checkbox" :checked="project.winisdCoilWiringReBlOnly.value" :disabled="!errorSwitches.coilWiringReBlOnly.applicable" @change="e => setCompatSwitch(project.winisdCoilWiringReBlOnly, inputChecked(e))"> {{ ToggleField.ADV_WINISDCOILWIRINGREBLONLY.label }}
+      </ErrorSwitch>
+      <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdProjectAlfaVC" :marked="errorSwitches.projectAlfaVC.marked" :applicable="errorSwitches.projectAlfaVC.applicable" :reproduces-error="errorSwitches.projectAlfaVC.reproducesError" :title="ToggleField.ADV_WINISDPROJECTALFAVC.description">
+        <input type="checkbox" :checked="project.winisdProjectAlfaVC.value" :disabled="!errorSwitches.projectAlfaVC.applicable" @change="e => setCompatSwitch(project.winisdProjectAlfaVC, inputChecked(e))"> {{ ToggleField.ADV_WINISDPROJECTALFAVC.label }}
       </ErrorSwitch>
       <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdTlPortNoEndCorrection" :marked="errorSwitches.tlPortEndCorrection.marked" :applicable="errorSwitches.tlPortEndCorrection.applicable" :reproduces-error="errorSwitches.tlPortEndCorrection.reproducesError" :title="ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.description">
         <input type="checkbox" :checked="project.winisdTlPortNoEndCorrection.value" :disabled="!errorSwitches.tlPortEndCorrection.applicable" @change="e => setCompatSwitch(project.winisdTlPortNoEndCorrection, inputChecked(e))"> {{ ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.label }}

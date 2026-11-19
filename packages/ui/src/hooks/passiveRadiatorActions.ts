@@ -5,7 +5,7 @@
  * Skin-neutral: shared by every shell's PR page (one implementation, two presentations).
  */
 import {ref} from 'vue';
-import {NumberField} from '@openisd/design/fields';
+import {isoDay, NumberField} from '@openisd/design/fields';
 import type {ComputedRef} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 import type {BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo} from '@openisd/persistence';
@@ -59,7 +59,7 @@ export function createPassiveRadiatorActions({ project, myPassiveRadiators, bund
   // ---- The passive-radiator editor (John, 16 Nov 2026, QO946.c115) -----------------------------------------------
   // Edits a copy of the radiator; OK puts it in the project's box as edited (nothing stated is dropped), Cancel keeps
   // nothing. The project's count, added mass and tuning are not the radiator's and are not touched (QO946.c38).
-  const prEditor = createPassiveRadiatorEditor({ myPassiveRadiators, resolve: resolveInAppAir(engine), files });
+  const prEditor = createPassiveRadiatorEditor({ myPassiveRadiators, resolve: resolveInAppAir(engine), radiatorFormulas: engine.pr.routeFormulas(), files });
   const useRadiator = (pr: OpenISDPassiveRadiatorStandalone): void => { project.value.box.passiveRadiator.holdEditedPR(pr); };
   function startEditPR(): void {
     prEditor.open(project.value.box.passiveRadiator.radiator.detach(), "Edit Project's Passive Radiator", useRadiator);
@@ -97,7 +97,7 @@ export function createPassiveRadiatorActions({ project, myPassiveRadiators, bund
       lines: [
         { label: 'Brand', value: r.brand.value }, { label: 'Model', value: r.model.value },
         { label: 'Manufacturer', value: r.manufacturer.value }, { label: 'Measured by', value: r.providedBy.value ?? '' },
-        { label: 'Date added', value: r.added.value ?? '' }, { label: 'Description', value: r.comment.value ?? '' },
+        { label: 'Date added', value: isoDay(r.added.value ?? '') }, { label: 'Description', value: r.comment.value ?? '' },
       ].filter(l => l.value !== ''),
     };
   }

@@ -162,10 +162,12 @@ export class PhoneHelpRows {
   static readonly PR_RESONANCE_WITH_MASS: PhoneHelpRow = {label: 'Resonance with mass', text: 'the frequency at which the passive radiator vibrates most freely, with the added mass.'};
   static readonly VELOCITY_LIMIT: PhoneHelpRow = {label: 'Velocity limit', text: 'the air speed above which the charts mark the vent as likely to be noisy.'};
   static readonly DRIVERS: PhoneHelpRow = {label: 'Drivers', text: 'the number of drivers in the box.'};
+  /** The project's Driver wiring: John's approved help (`EnumField.PROJECT_DRIVERWIRING`), the body of the text after its title line; a test keeps them one text. */
+  static readonly DRIVER_WIRING: PhoneHelpRow = {label: 'Driver wiring', text: 'how the drivers are connected to the amplifier. Parallel: each driver gets the full amplifier voltage; the load is one driver\'s impedance divided by the number of drivers (4 × 8 Ω → 2 Ω). Series: the voltage is split between the drivers; the load is the impedance times the number (4 × 8 Ω → 32 Ω). This changes the impedance chart, the SPL and excursion for a given amplifier voltage, and how Rg acts. Not the same as Coil wiring, which connects the voice coils inside one driver.'};
   /** The project's Coil wiring: the same words as `EnumField.PROJECT_VCCON`'s help (the test coil-wiring-help.test.ts keeps them one text). */
   static readonly COIL_WIRING: PhoneHelpRow = {label: 'Coil wiring', text: 'how you wire this driver\'s voice coils in this project. If it differs from how the driver was measured, the calculations use the figures for your wiring (for 2 coils, Series gives Re, Le and nominal impedance ×4 and BL ×2 compared with Parallel; Fs, Q, Vas and Mms do not change). The driver\'s own figures are never changed. It can be changed only for a driver with 2 or more coils whose measured wiring is stated.'};
   static readonly POWER: PhoneHelpRow = {label: 'Power', text: 'the amplifier power, measured into the driver\'s rated load in ohms.'};
-  static readonly VOLTS: PhoneHelpRow = {label: 'Volts', text: 'the amplifier output voltage. Power and Volts set each other.'};
+  static readonly VOLTS: PhoneHelpRow = {label: 'Volts', text: 'the voltage at your amplifier\'s output. Power and Volts set each other.'};
   static readonly RS: PhoneHelpRow = {label: 'Rs', text: 'the resistance of the cable and amplifier between the amplifier and the driver.'};
   static readonly FSC: PhoneHelpRow = {label: 'Fsc (frequency, sealed chamber)', text: 'the frequency at which the driver vibrates most freely in the sealed box. Below it the bass falls away.'};
   static readonly QTC: PhoneHelpRow = {label: 'Qtc (Q, total, sealed box)', text: 'how sharply the driver resonates in the sealed box. Lower values give a smooth, gradual bass roll-off; higher values give a peak before it.'};
@@ -239,8 +241,18 @@ export class PhoneHelp {
     {label: 'Select driver', text: 'picks a driver from the library.'},
     {label: 'Edit', text: 'opens the driver\'s parameters.'},
     PhoneHelpRows.DRIVERS,
+    PhoneHelpRows.DRIVER_WIRING,
     PhoneHelpRows.COIL_WIRING,
   ]);
+
+  /**
+   * The Driver tab's help for the project as it is on screen: "Driver wiring" is drawn only with 2 or more drivers,
+   * so its line is listed only then (help lists what the user can see, T882; desktop twin: DesktopHelp.placement).
+   */
+  static driver(driverWiringApplies: boolean): PhoneHelpSection {
+    const rows = driverWiringApplies ? PhoneHelp.DRIVER.rows : PhoneHelp.DRIVER.rows.filter(r => r !== PhoneHelpRows.DRIVER_WIRING);
+    return new PhoneHelpSection(PhoneHelp.DRIVER.title, PhoneHelp.DRIVER.intro, rows);
+  }
   static readonly KEY_FIGURES = new PhoneHelpSection('Key figures', 'The driver\'s main parameters, for reference. Tap one to edit the driver.', [
     {label: 'Fs', text: 'the frequency at which the driver vibrates most freely, out of a box. Lower Fs can reach lower bass.'},
     {label: 'Qts', text: 'how sharply the driver resonates, from its motor and suspension together. It shows which box type suits the driver.'},
@@ -355,6 +367,7 @@ export class PhoneHelp {
     styleLine(WinisdOption.FLAT_MODEL, 'WinISD\'s Force flat response cuts and boosts without limit, so the boost can be huge. OpenISD does the same by default. Untick for boost only, 20 dB at most.'),
     styleLine(WinisdOption.ABC_INTRA_PORT_VELOCITY, 'WinISD drops a small leak term from the ABC intra-port velocity, so it is slightly off (up to 1.35 dB). OpenISD drops it too by default. Untick for the exact velocity.'),
     styleLine(WinisdOption.CHART_FROM_FS_VAS_QMS, 'WinISD draws its charts from Fs, Vas and Qms and works Cms, Mms and Rms out from them, so a Cms, Mms or Rms you type is shown but ignored. But datasheets often state Mms, Cms and Rms that do not agree with their own Fs, Vas and Qms, and then WinISD\'s charts follow figures that are not the ones on your screen (E150HE-44: up to 6.8 dB apart). So OpenISD draws its charts from the boxes you see — Sd, Mms, Cms, Rms, BL, Re, Le — and marks the ones that disagree. Tick this to draw from Fs, Vas and Qms as WinISD does.'),
+    styleLine(WinisdOption.ONE_DRIVER_IMPEDANCE, 'WinISD sizes the sound for drivers in parallel but draws only ONE driver\'s impedance, not the load the amplifier sees (4 × 8 Ω is 2 Ω). OpenISD draws the load for your Driver wiring. Tick for one driver\'s, as WinISD.'),
   ]);
   static readonly ADVANCED_WINISD_BUGS = new PhoneHelpSection('Enable WinISD bugs', 'Mistakes in WinISD\'s maths. OpenISD gets them right. A yellow switch brings WinISD\'s result back. A switch greyed out does nothing for this box.', [
     bugLine(ToggleField.ADV_WINISDDRIVERMODEL, 'WinISD uses two BLs for one driver, so its charts show a driver that cannot exist. OpenISD uses one. Tick for WinISD\'s.', WinisdDeviation.DRIVER_MODEL),
@@ -364,6 +377,7 @@ export class PhoneHelp {
     bugLine(ToggleField.ADV_WINISDABCGROUPDELAY, 'WinISD\'s ABC group delay leaves the driver out, so it disagrees with its own phase chart. OpenISD includes it. Tick for WinISD\'s.', WinisdDeviation.ABC_GROUP_DELAY),
     bugLine(ToggleField.ADV_WINISDSEALEDPICKER, 'WinISD\'s sealed picker gives a volume for your Qtc, but the Box tab then shows a different one (0.800 picked, 0.787 shown). OpenISD\'s picker matches the Box tab. Tick for WinISD\'s.', WinisdDeviation.SEALED_PICKER),
     bugLine(ToggleField.ADV_WINISDCOILWIRINGREBLONLY, 'WinISD converts only Re and BL when you rewire a multi-coil driver, so Le stays wrong (1.5 mH, should be 0.375 mH). OpenISD converts all. Tick for WinISD\'s.', WinisdDeviation.COIL_WIRING_RE_BL_ONLY),
+    bugLine(ToggleField.ADV_WINISDPROJECTALFAVC, 'WinISD heats the coil with the project\'s AlfaVC only and ignores the driver\'s, so an aluminium coil (0.0042) is heated as copper (hot Re 4.448 Ω, should be 4.544 Ω). OpenISD uses the driver\'s when it gives one. Tick for WinISD\'s.', WinisdDeviation.PROJECT_ALFAVC),
     bugLine(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'with the transmission line model on, WinISD leaves out the port end correction and tunes the box higher (40.3 Hz for Fb 38 Hz). OpenISD tunes where the Box tab says. Tick for WinISD\'s.', WinisdDeviation.TL_PORT_END_CORRECTION),
   ]);
   static readonly ADVANCED_SECTIONS: readonly PhoneHelpSection[] = [

@@ -10,7 +10,7 @@
  * messages; this module owns the format conversion. Nothing here touches app state or the
  * DOM.
  */
-import {OpenISDDriver, type OpenISDDriverStandalone, OpenISDPassiveRadiatorStandalone, OpenISDProject, DriverRecordConverter, WinIsdProjectConverter} from '@openisd/design';
+import {OpenISDDriver, type OpenISDDriverStandalone, OpenISDPassiveRadiatorStandalone, OpenISDProject, DriverRecordConverter, WinIsdProjectConverter, type LoadRepairNote} from '@openisd/design';
 import {DriverFileFormat, ProjectFileFormat} from '../fileFormat.js';
 import type {DriverError, Engine} from '@openisd/design/engine';
 import type {ExportedFiles, ProjectRepo} from '@openisd/persistence';
@@ -62,6 +62,11 @@ export class DesignFiles {
     return OpenISDPassiveRadiatorStandalone.fromOwdrText(opened.text);
   }
 
+  /** The project as the app saves it to a `.owpr` file (JSON text, stamped with the storage layout). */
+  projectToOwprText(project: OpenISDProject): string {
+    return this.exportedFiles.stamp(project.toOwprText());
+  }
+
   /** The whole project as WinISD `.wpr` bytes. `value` is null when the project cannot be
    *  expressed in WinISD's format. */
   projectToWprBytes(project: OpenISDProject): Bytes {
@@ -87,13 +92,13 @@ export class DesignFiles {
 
   /** Project file text → a project, or the reasons it could not be read. A `.wpr` goes
    *  through the WinISD converter; an `.owpr` is brought up to the current schema by the
-   *  persistence layer. */
-  projectFromText(text: string, format: ProjectFileFormat): { value: OpenISDProject | null; errors: DriverError[] } {
+   *  persistence layer. `loadRepairs` is every value the load repaired, for the opening message. */
+  projectFromText(text: string, format: ProjectFileFormat): { value: OpenISDProject | null; errors: DriverError[]; loadRepairs: readonly LoadRepairNote[] } {
     if (format === ProjectFileFormat.Wpr) return this.#projects.winIsdProjectToOpenIsdProject(text);
-    const result = this.projectRepo.readProjectText(text);
+    const result = this.projectRepo.openProjectText(text);
     if (Array.isArray(result)) {
-      return { value: null, errors: result.map(message => ({ level: 'error', field: 'project', message })) };
+      return { value: null, errors: result.map(message => ({ level: 'error', field: 'project', message })), loadRepairs: [] };
     }
-    return { value: result, errors: [] };
+    return { value: result.project, errors: [], loadRepairs: result.loadRepairs };
   }
 }

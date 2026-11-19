@@ -3,9 +3,25 @@
  * rows, a one-line chip carousel, filter frequencies in whole hertz. The filter chain itself is the
  * desktop's logic (OriginalFilters); its own spec files cover how it behaves.
  */
+import type {Locator} from '@playwright/test';
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 import {PHONE_FILTER_CHIPS, PhoneRowSizes} from '@openisd/design/fields';
+
+/** Where the chip strip sits on the screen. */
+async function chipFrame(strip: Locator): Promise<{left: number; width: number}> {
+  return strip.evaluate(el => { const r = el.getBoundingClientRect(); return {left: r.left, width: r.width}; });
+}
+
+/** Taps the next arrow while it shows, waiting for each scroll to come to rest, and calls `after` with the tap number. */
+async function tapUntilEnd(next: Locator, strip: Locator, after: (tap: number) => Promise<void>): Promise<void> {
+  for (let tap = 1; tap <= 12 && await next.isEnabled(); tap++) {
+    await next.click();
+    let last = -1;
+    await expect.poll(async () => { const now = await strip.evaluate(el => el.scrollLeft); const rested = now === last; last = now; return rested; }, {message: 'the strip has stopped scrolling'}).toBe(true);
+    await after(tap);
+  }
+}
 
 test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
@@ -77,9 +93,9 @@ for (const [width, height] of [[374, 705], [360, 740]] as const) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'the page does not scroll sideways').toBe(true);
     const next = page.getByRole('button', { name: 'More filter types' });
     await expect(next).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Earlier filter types' })).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Earlier filter types' }), 'at the start the earlier arrow is greyed out').toBeDisabled();
     await next.click();
-    await expect(page.getByRole('button', { name: 'Earlier filter types' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Earlier filter types' })).toBeEnabled();
     // No arrow sits on a chip, at the start or after scrolling.
     const overlap = () => page.locator('.mob-fstrip-wrap').evaluate(wrap => {
       const arrows = [...wrap.querySelectorAll('.mob-fstrip-nav')].filter(a => a.checkVisibility());
@@ -92,6 +108,24 @@ for (const [width, height] of [[374, 705], [360, 740]] as const) {
   });
 }
 
+for (const [width, height] of [[374, 705], [360, 740]] as const) {
+  test(`scrolling the chips sideways does not move them: the strip keeps its place and width from the start to the end at ${width}x${height} (BUG_20261118_phone-chip-strip-shifts-when-scrolled)`, async ({ appPage: page }) => {
+    await page.setViewportSize({width, height});
+    const strip = page.locator('.mob-fstrip');
+    const next = page.getByRole('button', { name: 'More filter types' });
+    const earlier = page.getByRole('button', { name: 'Earlier filter types' });
+    const atStart = await chipFrame(strip);
+    await expect(earlier, 'at the start the earlier arrow shows, greyed out').toBeVisible();
+    await expect(earlier).toBeDisabled();
+    await expect(next).toBeEnabled();
+    // A person taps the next arrow until the last chip is in view; the arrow with nothing more to show goes away each time.
+    await tapUntilEnd(next, strip, async tap => expect(await chipFrame(strip), `the strip after tap ${tap} sits where it did at the start`).toEqual(atStart));
+    await expect(next, 'at the end the next arrow shows, greyed out').toBeVisible();
+    await expect(next).toBeDisabled();
+    await expect(earlier).toBeEnabled();
+  });
+}
+
 test('the chip text is a little smaller than the 15 px of the other phone buttons, and still readable', async ({ appPage: page }) => {
   const sizes = await page.locator('.mob-fstrip .mob-btn').evaluateAll(els => els.map(e => parseFloat(getComputedStyle(e).fontSize)));
   for (const px of sizes) { expect(px).toBeLessThan(15); expect(px).toBeGreaterThanOrEqual(12); }
@@ -99,7 +133,7 @@ test('the chip text is a little smaller than the 15 px of the other phone button
 
 test('the chips and the arrows are the one phone button, PhoneRowSizes.BUTTON_PX tall', async ({ appPage: page }) => {
   const buttons = page.locator('.mob-fstrip-wrap .phone-btn:visible');
-  await expect(buttons).toHaveCount(PHONE_FILTER_CHIPS.length + 1);   // the ‹ hides at the start
+  await expect(buttons).toHaveCount(PHONE_FILTER_CHIPS.length + 2);   // both arrows always show; the one with nothing more to show is greyed out
   const heights = await buttons.evaluateAll(els => els.map(e => e.getBoundingClientRect().height));
   for (const h of heights) expect(h).toBeCloseTo(PhoneRowSizes.BUTTON_PX, 0);
 });

@@ -1,0 +1,14 @@
+id: T911
+release_note: internal
+repo: openisd
+owner: t911
+status: done
+goal: The duplicate-logic check keeps a consolidated copy in its allow-list marked resolved, resolved to the engine function and the task that did it; a resolved copy that reappears fails naming the function to call, and an allowed entry whose copy is gone fails until it is marked resolved
+why: "John, board 19:46 UTC 18 Nov 2026, answer C on card bug-dup-formula-rounding (questions.yml QO949): \"C: your way: old entries stay, marked 'resolved, resolved to <engine function> by T902'; a resolved copy that reappears fails; T902 and future consolidations recorded so\". Until now an allow-list entry whose copy was gone passed as 'stale' and was to be deleted, losing the record of where the formula went."
+done_test: bash scripts/test/dupscan.test.sh
+gates_approved: QO949
+files:
+  - tasks/T911.yml
+  - AGENTS.md
+  - scripts/dupscan.mjs
+  - scripts/test/dupscan.test.sh

@@ -3,7 +3,7 @@
  * tab's quick-add buttons ask the engine; no UI file carries a defaults table of its own.
  *
  * WinISD's own Filter Editor "Add" defaults for its 8 types:
- * winisd_research/PROBE_FINDINGS.md "`.wpr` `[Filters]` format", Add defaults column.
+ * winisd_research/archive/PROBE_FINDINGS.md "`.wpr` `[Filters]` format", Add defaults column.
  * Linkwitz transform and the two OpenISD-only shelves keep the values OpenISD already shipped.
  */
 import {describe, expect, it} from 'vitest';

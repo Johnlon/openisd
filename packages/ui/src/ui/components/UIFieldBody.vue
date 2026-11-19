@@ -24,8 +24,9 @@ import WinisdDeviationCue from './WinisdDeviationCue.vue';
 import {useCellScope} from './cellScope.js';
 import type {UIBinding, UIFieldCommon} from './uiFieldBinding.js';
 import {CellClass, cellClassOf} from '../../logic/driverCells.js';
-import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
+import {dqOfCell, marksReason, warningsOfCell} from '../../logic/cellDataQuality.js';
 import {useFieldNotePlacement} from '../../hooks/useFieldNotePlacement.js';
+import {tabOf, useRefusalLedger} from '../../logic/refusalLedger.js';
 
 const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), {
   required: false,
@@ -39,6 +40,7 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
   label: undefined,
   deviation: undefined,
   dq: undefined,
+  dqWarnings: undefined,
   noteTone: undefined,
   dqState: undefined,
   allowOutOfRange: false,
@@ -64,28 +66,33 @@ const view = computed(() => {
     case 'fixed':
     case 'settling': {
       const dq = props.dq ?? [];
+      const warnings = props.dqWarnings ?? [];
       const hasDq = dq.length > 0;
       return {
         value: binding.cell.value, precision: null, provenanceClass: props.defaulted === true ? CellClass.Calculated : CellClass.Entered, mandatory: false,
-        reason: hasDq ? dqReason({dq, dqState: props.dqState ?? 'N'}) : '',
-        dqClasses: {'dq-flag': hasDq, 'dq-root': hasDq && props.dqState === 'E', 'dq-symptom': hasDq && props.dqState === 'C'},
+        reason: marksReason({dq, warnings, dqState: props.dqState ?? 'N'}),
+        warnedOnly: !hasDq && warnings.length > 0,
+        dqClasses: {'dq-flag': hasDq, 'dq-root': hasDq && props.dqState === 'E', 'dq-symptom': hasDq && props.dqState === 'C', 'dq-warn': !hasDq && warnings.length > 0},
       };
     }
     case 'clearable': {
       const cell = binding.cell;
       const readout = dqOfCell(cell);
       const dq = [...readout.dq, ...(props.dq ?? [])];
+      const warnings = [...warningsOfCell(cell), ...(props.dqWarnings ?? [])];
       const dqState = props.dqState ?? readout.dqState;
       return {
         value: cell.value,
         precision: cell.precision,
         provenanceClass: cellClassOf(cell),
         mandatory: props.required || cell.mandatoryAndUnsatisfied,
-        reason: dqReason({dq, dqState}),
+        reason: marksReason({dq, warnings, dqState}),
+        warnedOnly: dq.length === 0 && warnings.length > 0,
         dqClasses: {
           'dq-flag': dq.length > 0,
           'dq-root': dq.length > 0 && dqState === 'E',
           'dq-symptom': dq.length > 0 && dqState === 'C',
+          'dq-warn': dq.length === 0 && warnings.length > 0,
         },
       };
     }
@@ -106,7 +113,12 @@ const refusal = ref('');
 /** The ⚠ sentence: a refused entry first, since it is what the person is looking at. */
 const reason = computed(() => refusal.value !== '' ? refusal.value : view.value.reason);
 
-watch(refusal, text => { reasonOpen.value = text !== ''; });
+const ledger = useRefusalLedger();
+const ledgerOwner = Symbol('UIFieldBody');
+watch(refusal, text => {
+  reasonOpen.value = text !== '';
+  ledger?.report(ledgerOwner, tabOf(root.value), text);
+});
 
 function closeOnOutsideClick(event: MouseEvent): void {
   if (event.target instanceof Node && root.value?.contains(event.target) === true) return;
@@ -133,6 +145,7 @@ watch(reasonOpen, open => {
   }
 });
 onBeforeUnmount(() => {
+  ledger?.clear(ledgerOwner);
   document.removeEventListener('click', closeOnOutsideClick, true);
   document.removeEventListener('keydown', closeOnEscape, true);
 });
@@ -181,7 +194,7 @@ function write(v: number | null, precision?: number): void {
     <span v-if="deviation" class="ui-field-dev">
       <WinisdDeviationCue :deviation="deviation" />
     </span>
-    <span v-if="reasonOpen && reason" ref="noteEl" :style="noteStyle" :class="['ui-field-note', {'ui-field-note-warning': noteTone === 'warning'}]" role="note">{{ reason }}</span>
+    <span v-if="reasonOpen && reason" ref="noteEl" :style="noteStyle" :class="['ui-field-note', {'ui-field-note-warning': noteTone === 'warning' || (view.warnedOnly && refusal === '')}]" role="note">{{ reason }}</span>
   </div>
 </template>
 

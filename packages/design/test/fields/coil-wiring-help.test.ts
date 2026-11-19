@@ -47,3 +47,19 @@ describe('the two Coil wiring helps', () => {
     expect(body(project).length).toBeGreaterThan(40);
   });
 });
+
+describe('the Driver wiring help (ticket 519)', () => {
+  it('the ? sheets (phone and desktop) carry the approved registry text, word for word', () => {
+    const body = EnumField.PROJECT_DRIVERWIRING.description.slice(EnumField.PROJECT_DRIVERWIRING.description.indexOf('\n') + 1);
+    expect(PhoneHelpRows.DRIVER_WIRING.text.toLowerCase()).toBe(body.toLowerCase());
+    expect(PhoneHelp.DRIVER.rows).toContain(PhoneHelpRows.DRIVER_WIRING);
+    expect(DesktopHelp.PLACEMENT.rows).toContain(PhoneHelpRows.DRIVER_WIRING);
+  });
+});
+
+describe('the phone Driver help lists Driver wiring only when its caption is on screen (T882)', () => {
+  it('a single-coil/1-driver project drops the Driver wiring row; 2 or more drivers keep it', () => {
+    expect(PhoneHelp.driver(true).rows.map(r => r.label)).toEqual(['Select driver', 'Edit', 'Drivers', 'Driver wiring', 'Coil wiring']);
+    expect(PhoneHelp.driver(false).rows.map(r => r.label)).toEqual(['Select driver', 'Edit', 'Drivers', 'Coil wiring']);
+  });
+});

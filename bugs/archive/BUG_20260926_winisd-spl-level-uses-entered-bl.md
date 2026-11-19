@@ -25,7 +25,7 @@ option of `toys/w5_chart_refresh.py`).
 - 20·log10(5/7.17) = −3.1310. WinISD's level scales exactly with the entered BL, at every
   frequency; the shape does not change.
 - The shape (damping) comes from Qes, Fs and Vas: `Rae = 1/(2πFs·Qes'·Cas)`
-  (`winisd_research/GHIDRA_FINDINGS.md` §VCInd). The level comes from the entered BL.
+  (`winisd_research/archive/GHIDRA_FINDINGS.md` §VCInd). The level comes from the entered BL.
 - OpenISD's HF level equals the textbook ρ·Sd·BL·e/((Re+Rg)·Mms·2π·r) with the BL implied by
   Fs/Qes/Vas/Re (7.384) and e = √(P·(Re+Rg)), to 0.001 dB.
 - 20·log10(7.384/7.17) = 0.256 dB of the 0.272 dB gap. ⚠ The remaining 0.016 dB is not

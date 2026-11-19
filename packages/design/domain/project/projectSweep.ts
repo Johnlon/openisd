@@ -1,5 +1,5 @@
 import type {
-    Air, AirValues, BoxParamsIssue, EnvironmentIssue, Engine, MaxCurvesSolveResult, PrIssue, SimulatableBoxType,
+    Air, AirIssue, AirValues, BoxParamsIssue, EnvironmentIssue, Engine, MaxCurvesSolveResult, PrIssue, SimulatableBoxType,
     SimulationEngine, SweepDriver, SweepIssue, SweepParams, SweepSolveResult, VentIssue,
 } from '../../engine/index.js';
 import { FixedAir } from '../../engine/index.js';
@@ -27,6 +27,8 @@ export interface ProjectSweepSource {
     readonly driver: OpenISDDriverEmbedded;
     readonly box: Box;
     readonly nDrivers: SimpleField<number>;
+    readonly driverWiring: SimpleField<'parallel' | 'series'>;
+    readonly winisdOneDriverImpedance: SimpleField<boolean>;
     readonly Rs_ohm: SimpleField<number>;
     readonly circuitModel: SimpleField<'winisd' | 'gyrator' | 'winisdGyrator'>;
     readonly winisdDriverModel: SimpleField<boolean>;
@@ -46,16 +48,21 @@ export interface ProjectSweepSource {
     readonly driverAddedMass_kg: SimpleField<number>;
     readonly vcTempRise_K: SimpleField<number>;
     readonly loading: SimpleField<'standard' | 'isobaric'>;
-    readonly alfaVC_per_K: SimpleField<number>;
+    /** The coefficient the coil is heated with, already chosen between the driver's and the project's
+     *  (`OpenISDProject.driveLoad`, `Engine.driver.coilAlfaVC_per_K`). A value, read once, like `driveVoltage_V`. */
+    readonly coilAlfaVC_per_K: number;
     readonly sweepN: SimpleField<number | null>;
     readonly driveVoltage_V: number;
     /** The project's air. */
     readonly air: Air;
     /** What is wrong with the conditions the air runs in (an entered temperature the air model
-     *  does not support); a sweep does not run while any is. */
-    readonly airIssues: readonly EnvironmentIssue[];
+     *  does not support, a stated pressure, sound velocity or density at or below zero); a sweep
+     *  does not run while any is. */
+    readonly airIssues: readonly (EnvironmentIssue | AirIssue)[];
     readonly engine: Engine;
     readonly ventIssues: readonly VentIssue[];
+    /** The rear port's own vent issues: `bandpass6`/`abc` only (their rear chamber is vented). */
+    readonly rearVentIssues: readonly VentIssue[];
     readonly prIssues: readonly PrIssue[];
 }
 
@@ -97,6 +104,8 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         fmax: P.fmax,
         N: P.N ?? undefinedIfNull(source.sweepN.value),
         nDrivers: source.nDrivers.value,
+        driverWiring: source.driverWiring.value,
+        winisdOneDriverImpedance: source.winisdOneDriverImpedance.value,
         Rs: source.Rs_ohm.value,
         circuitModel: engineCircuitModel(source.circuitModel.value, source.winisdDriverModel.value),
         winisdVaModel: source.winisdVaModel.value,
@@ -113,7 +122,7 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         driverAddedMass: source.driverAddedMass_kg.value,
         vcTempRise: source.vcTempRise_K.value,
         loading: source.loading.value,
-        alfaVC: source.alfaVC_per_K.value,
+        alfaVC: source.coilAlfaVC_per_K,
         rgAtDriverSide: source.rgAtDriverSide.value,
         tlPortModel: source.useTransmissionLinePortModel.value,
         forceFlatResponse: source.forceFlatResponse.value,
@@ -267,7 +276,8 @@ function portTuningIssuesOf(
  *  `vented`'s single port, `bandpass4`'s front, or BOTH of `bandpass6`/`abc`'s (their rear port is
  *  vented too, unlike `bandpass4`'s sealed rear chamber). */
 function ventSweepIssuesOf(source: ProjectSweepSource, box: 'vented' | 'bandpass4' | 'bandpass6' | 'abc'): readonly VentIssue[] {
-    if (source.ventIssues.length) return source.ventIssues;
+    const solved = box === 'bandpass6' || box === 'abc' ? [...source.rearVentIssues, ...source.ventIssues] : source.ventIssues;
+    if (solved.length) return solved;
     const b = source.box;
     switch (box) {
         case 'vented':
@@ -309,7 +319,7 @@ function boxSweepIssuesOf(source: ProjectSweepSource, box: SimulatableBoxType): 
 }
 
 /** A sweep's settings without its air: the job carries the air once, as plain numbers. */
-export type SweepJobParams = Omit<SweepParams, 'air'>;
+export type SweepJobParams = Omit<SweepParams, 'air' | 'driverWiring' | 'winisdOneDriverImpedance'> & Required<Pick<SweepParams, 'driverWiring' | 'winisdOneDriverImpedance'>>;
 
 /** A sweep the engine runs through `runSweepJob` and `runMaxCurvesJob`. Plain data, so it crosses
  *  a Worker boundary: the air is its c and ρ as numbers, since a structured clone drops an `Air`'s
@@ -353,15 +363,21 @@ export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): Sweep
     const air = source.air;
     const boxIssues = boxSweepIssuesOf(source, box);
     if (boxIssues.length) return {kind: 'blocked', issues: boxIssues};
-    // A blank box volume: the engine's own "Box volume (Vb) must be greater than zero" names it.
+    // A blank or non-positive box volume, front volume, vent area, radiator or intra port: the
+    // engine's own precondition names it ("Box volume (Vb) must be greater than zero").
+    const paramIssues = boxParamsIssuesOf(source);
     const Vb = boxVolume_m3Of(source, box);
-    if (Vb === null) return {kind: 'blocked', issues: boxParamsIssuesOf(source)};
+    if (paramIssues.length || Vb === null) return {kind: 'blocked', issues: paramIssues};
+    const sweep = sweepParamsOf(source, P, source.driveVoltage_V, box, Vb);
+    // The air, counts, series resistance, grid, losses and tunings: the engine's own rules.
+    const settings = source.engine.simulation.solveSweepSettings(box, {...sweep, air});
+    if (settings.issues.length) return {kind: 'blocked', issues: settings.issues};
     return {kind: 'ready', job: {
         driver: sweepDriverOf(source, air),
         Le_H: undefinedIfNull(source.driver.specs.terminalMotor().Le_H),
         box,
         air: {c: air.c(), rho: air.rho()},
-        sweep: sweepParamsOf(source, P, source.driveVoltage_V, box, Vb),
+        sweep,
         maxCurves: sweepParamsOf(source, P, 2.83, box, Vb),
     }};
 }

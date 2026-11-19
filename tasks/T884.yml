@@ -1,0 +1,29 @@
+id: T884
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+goal: Feedback question is offered at app start after the splash closes, from the 3rd launch, not on Save
+why: 'John, 18 Nov 2026 02:47 UTC, QO946.c238 (the feedback prompt trigger): "relying on save is useless, it needs to be around the splasfy screen opening somewhere there"'
+visual_note: "Only the stored-size figures (KB or bytes) in Options, Your data and the shared-storage restore picker change, because OpenISD now stores a launch count at each start."
+visual:
+  - desktop-dialog-settings-options-your-data
+  - desktop-dialog-shared-storage-restore-picker
+  - mobile-dialog-options-your-data
+  - mobile-dialog-shared-storage-restore-picker
+done_test: npx vitest run packages/design/test/fields/feedback.test.ts packages/ui/test/hooks/FeedbackDialog-hooks.test.ts
+files:
+  - tasks/T884.yml
+  - packages/design/fields/feedback.ts
+  - packages/design/test/fields/feedback.test.ts
+  - packages/ui/src/hooks/FeedbackDialog-hooks.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/main.ts
+  - packages/ui/src/logic/feedback/saveTappedTelemetry.ts
+  - packages/ui/test/hooks/FeedbackDialog-hooks.test.ts
+  - packages/ui/test/logic/feedback/feedbackWiring.test.ts
+  - packages/ui/test/ui/feedback.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-settings-options-your-data.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-storage-restore-picker.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-options-your-data.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-storage-restore-picker.png

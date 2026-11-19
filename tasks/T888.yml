@@ -1,0 +1,17 @@
+id: T888
+release_note: internal
+repo: openisd
+owner: sonnet-feedback-outcome
+status: done
+goal: The app reports what became of the feedback question it offers at start (shown, Not now, closed unanswered) as a feedback_prompt event, and sends nothing personal or typed
+why: 'John, 18 Nov 2026, QO946.c240 ("all"), item 4: report the feedback question outcome: shown, Not now, closed unanswered (an answer is already sent as feedback). The stats Worker already accepts a feedback_prompt event whose fields.outcome is shown, not_now or closed.'
+done_test: npx vitest run packages/ui/test/hooks/FeedbackDialog-hooks.test.ts packages/ui/test/logic/usageEventsT885.test.ts
+files:
+  - tasks/T888.yml
+  - packages/ui/src/logic/telemetry/events.ts
+  - packages/ui/src/logic/telemetry/featureUse.ts
+  - packages/ui/src/hooks/FeedbackDialog-hooks.ts
+  - packages/ui/src/ui/components/FeedbackDialog.vue
+  - packages/ui/src/ui/App.vue
+  - packages/ui/test/hooks/FeedbackDialog-hooks.test.ts
+  - packages/ui/test/logic/usageEventsT885.test.ts

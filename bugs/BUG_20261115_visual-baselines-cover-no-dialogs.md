@@ -58,7 +58,7 @@ then reached the document listener, which closed it again. The clock now starts 
 | Part                                                         | How                                                             | Why                                                        |
 | ------------------------------------------------------------ | --------------------------------------------------------------- | ---------------------------------------------------------- |
 | "This site uses … of the … this browser allows"              | not masked: `VisualSkin.start` fixes `navigator.storage.estimate` | The browser works the quota out from the disk; the screen gets a fixed answer. |
-| "Projects saved in this browser at http://localhost:<port>/" | not masked                                                      | The suite and the re-take serve on port 4300 (`OPENISD_TEST_PORT`); only a local pooled port differs, and a local run cannot match CI's pictures anyway. |
+| "Projects saved in this browser at http://localhost:<port>/" | not masked                                                      | The pictures are taken at `https://openisd.app/` (served from the test build; BUG_20261118_visual-baselines-show-the-test-servers-address), so the line reads as a user sees it. |
 | Phone About "Build · <date>" (`[data-testid="about-version-line"]`) | masked                                                   | The build's own date; it belongs to the build. |
 
 The build stamp in the toolbar was masked before T793 and still is.

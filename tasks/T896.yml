@@ -1,0 +1,25 @@
+id: T896
+release_note: internal
+repo: openisd
+owner: lead
+status: done
+goal: The visual baseline pictures show the address a user sees (https://openisd.app/), never the test server's http://localhost:4300/
+why: 'The phone footer in the CI-drawn baselines read "Projects saved in this browser at http://localhost:4300/". The app is right to name the page address; the pictures were taken at the test server. They are now taken at the release address, served by a stand-in. Bug: BUG_20261118_visual-baselines-show-the-test-servers-address.'
+done_test: npx vitest run packages/persistence/test/projectRepo.test.ts
+files:
+  - tasks/T896.yml
+  - bugs/BUG_20261118_visual-baselines-show-the-test-servers-address.md
+  - packages/ui/test/visual/screens.ts
+  - packages/ui/test/fixtures/releaseSite.ts
+  - packages/persistence/test/projectRepo.test.ts
+  - docs/design/VISUAL_BASELINES.md
+  - bugs/BUG_20261115_visual-baselines-cover-no-dialogs.md
+  - scripts/visual/compare-local.sh
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-bin.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-empty.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-menu-projects.png
+  - packages/ui/test/fixtures/viewOpenSavedState.ts
+visual:
+  - mobile-dialog-bin
+  - mobile-dialog-empty
+  - mobile-dialog-menu-projects

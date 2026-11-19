@@ -1,0 +1,18 @@
+id: T915
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+label: fixes
+goal: Phase 1 of the input-limits sweep. Every number box a person can type, set to its band's edges and to mistyped values on real WinISD projects, is swept through the engine, and every NaN, throw or slow call is recorded with its cause line and a proposed limit. The WinISD crash list D1-D12 is replayed on OpenISD. No limit or app code changes in this phase.
+why: "John, 18 Nov 2026: 'ok look make the ap robust / and include proper limits on ui'"
+ruling: QO951
+done_test: bash scripts/test.sh packages/design/test/domain/input-limits-sweep.test.ts packages/design/test/domain/winisd-crash-replay.test.ts
+files:
+  - bugs/BUG_20261118_input-limits-sweep.md
+  - tasks/T915.yml
+  - packages/design/test/fixtures/inputLimitsSweep.ts
+  - packages/design/test/domain/input-limits-sweep.test.ts
+  - packages/design/test/domain/input-limits-sweep-report.ts
+  - packages/design/test/domain/winisd-crash-replay.test.ts
+note: Finding only. The report is bugs/BUG_20261118_input-limits-sweep.md; its generated table is the output of npx vite-node packages/design/test/domain/input-limits-sweep-report.ts. Breaking cases run as it.fails naming that bug file. The six Peaking 2nd order highpass Gpk cases and replay D1 are plain tests: T913 (draw no curve for a negative peak gain) fixed them on main during the sweep.

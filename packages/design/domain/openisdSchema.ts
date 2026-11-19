@@ -857,7 +857,7 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // writes it.
     lossMode: z.enum(['lossless', 'conventional-lossy', 'winisd-lossy']).optional(),
     // The WinISD bug and option switches below are optional: absent parses to
-    // `CompatSwitch.startValue`, so an absent bug switch is OFF (bug fixed) and an absent option
+    // `CompatSwitch.winisdValue`, so an absent bug switch is OFF (bug fixed) and an absent option
     // is ON (WinISD's way), but for "Chart from Fs, Vas, Qms", which is OFF.
     // Bug switch "Two-BL driver": the simulation mixes the entered BL with the BL implied
     // by Fs, Qes and Vas, as WinISD does. Absent parses to OFF.
@@ -884,6 +884,9 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // Bug switch "Coil wiring: Re and BL only" (QO942.c62): a coil wiring other than the driver's converts Re and BL only, as WinISD's
     // routine does; Le and Znom stay as published. Absent parses to OFF (they convert too).
     winisdCoilWiringReBlOnly: z.boolean().optional(),
+    // Bug switch "Coil coefficient from project" (QO953.c16, T917): the voice coil is heated with the project's AlfaVC only,
+    // as WinISD does, not the driver's own AlfaVC where it states one other than 0. Absent parses to OFF.
+    winisdProjectAlfaVC: z.boolean().optional(),
     // "Phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
     winisdWrapPhase: z.boolean().optional(),
     // Retired (QO941) switch "Per-driver impedance": the impedance chart is always one driver's, as WinISD's. Old files carry it; it is read and ignored.
@@ -898,6 +901,9 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // from Fs, that Mms and Qms, as WinISD does; off, they use the Mms, Cms and Rms boxes. Absent parses to OFF, unlike the other
     // options (John, 11 Nov 2026, QO539: picked B).
     winisdChartFromFsVasQms: z.boolean().optional(),
+    // Option "Impedance of one driver" (QO946.c131, plan 4.1): the impedance chart shows one driver as WinISD's does, not the
+    // amplifier's load for the project's Driver wiring. The first option that is OFF where a file does not say. Absent parses to OFF.
+    winisdOneDriverImpedance: z.boolean().optional(),
 }));
 export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
 
@@ -932,6 +938,9 @@ const openISDDriverEmbeddingJsonSchema = z.strictObject({
     // driver"): how this project wires the driver's own voice coils, named as the driver's `VCCon`; WinISD's project VCCon. Absent means
     // the driver's own VCCon (the wiring the maker measured in). Data version 5 renamed the old `wiring` key to `VCCon`, value kept (QO946.c18).
     VCCon: z.enum(['series', 'parallel']).optional(),
+    // "Driver wiring" (QO946.c129, plan 4.1): how the project's `nDrivers` drivers are wired to the amplifier, not the coils inside one
+    // driver (that is `VCCon`). Absent means parallel, so a file from before this key opens as it always meant.
+    driverWiring: z.enum(['parallel', 'series']).optional(),
     // WinISD Driver tab: "Voice coil temp rise".
     vcTempRise_K: z.number(),
     Rs_ohm: z.number(),

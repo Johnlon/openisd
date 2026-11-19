@@ -5,7 +5,7 @@
  * `.wpr` this test imports (`../winisd/fixtures/vented-w5-2.wpr`).
  *
  * Model under test: `engine/circuit.ts` `solve`, `box === 'vented'`, `lossMode: 'winisd-lossy'`.
- * Formula: winisd_research/GHIDRA_FINDINGS.md "Vented box — `0x456800`".
+ * Formula: winisd_research/archive/GHIDRA_FINDINGS.md "Vented box — `0x456800`".
  */
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';

@@ -10,7 +10,7 @@ holds every capture below to 1e-12.
 ✅ sourced from WinISD itself · 🟡 third-party derivation, named/citable · ❌ not found.
 
 **Status 2026-09-22: all 5 are ✅.** The designer function was decompiled from `winisd.exe`
-(`winisd_research/GHIDRA_FINDINGS.md`, "VENTED ALIGNMENT MECHANISM FOUND — `0x46afd0`") and
+(`winisd_research/archive/GHIDRA_FINDINGS.md`, "VENTED ALIGNMENT MECHANISM FOUND — `0x46afd0`") and
 reproduces all 60 captured wizard runs (Qts 0.15–1.0) to ≤ 2.3e-14 relative error
 (`winisd_research/toys/validate_vented_alignment_formulas.py`,
 output `winisd_research/runs/vented_alignment_validation.md`).

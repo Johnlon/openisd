@@ -70,7 +70,7 @@ export class ProjectAdvanced {
     get winisdDriverModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdDriverModel');
         return {
-            get value() { return lens.value ?? CompatSwitch.DRIVER_MODEL.startValue; },
+            get value() { return lens.value ?? CompatSwitch.DRIVER_MODEL.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -83,7 +83,7 @@ export class ProjectAdvanced {
     get winisdVaModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdVaModel');
         return {
-            get value() { return lens.value ?? CompatSwitch.VA_MODEL.startValue; },
+            get value() { return lens.value ?? CompatSwitch.VA_MODEL.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -95,7 +95,7 @@ export class ProjectAdvanced {
     get winisdAbcIntraPortVelocity(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdAbcIntraPortVelocity');
         return {
-            get value() { return lens.value ?? CompatSwitch.ABC_INTRA_PORT_VELOCITY.startValue; },
+            get value() { return lens.value ?? CompatSwitch.ABC_INTRA_PORT_VELOCITY.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -106,7 +106,7 @@ export class ProjectAdvanced {
     get winisdPrNprResonance(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdPrNprResonance');
         return {
-            get value() { return lens.value ?? CompatSwitch.PR_NPR_RESONANCE.startValue; },
+            get value() { return lens.value ?? CompatSwitch.PR_NPR_RESONANCE.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -117,7 +117,7 @@ export class ProjectAdvanced {
     get winisdBesselHighpass(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdBesselHighpass');
         return {
-            get value() { return lens.value ?? CompatSwitch.BESSEL_HIGHPASS.startValue; },
+            get value() { return lens.value ?? CompatSwitch.BESSEL_HIGHPASS.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -128,7 +128,7 @@ export class ProjectAdvanced {
     get winisdAbcGroupDelay(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdAbcGroupDelay');
         return {
-            get value() { return lens.value ?? CompatSwitch.ABC_GROUP_DELAY.startValue; },
+            get value() { return lens.value ?? CompatSwitch.ABC_GROUP_DELAY.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -138,7 +138,7 @@ export class ProjectAdvanced {
     get winisdCoilWiringReBlOnly(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdCoilWiringReBlOnly');
         return {
-            get value() { return lens.value ?? CompatSwitch.COIL_WIRING_RE_BL_ONLY.startValue; },
+            get value() { return lens.value ?? CompatSwitch.COIL_WIRING_RE_BL_ONLY.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -149,7 +149,18 @@ export class ProjectAdvanced {
     get winisdTlPortNoEndCorrection(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdTlPortNoEndCorrection');
         return {
-            get value() { return lens.value ?? CompatSwitch.TL_PORT_END_CORRECTION.startValue; },
+            get value() { return lens.value ?? CompatSwitch.TL_PORT_END_CORRECTION.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "Coil coefficient from project" (QO953.c16): the voice coil is heated with the project's
+     *  AlfaVC only, as WinISD does, whatever the driver states. Off: the driver's own AlfaVC when it is not 0, else the
+     *  project's. Off where a project does not say. */
+    get winisdProjectAlfaVC(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdProjectAlfaVC');
+        return {
+            get value() { return lens.value ?? CompatSwitch.PROJECT_ALFAVC.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -159,7 +170,7 @@ export class ProjectAdvanced {
     get winisdWrapPhase(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdWrapPhase');
         return {
-            get value() { return lens.value ?? CompatSwitch.WRAP_PHASE.startValue; },
+            get value() { return lens.value ?? CompatSwitch.WRAP_PHASE.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -170,7 +181,7 @@ export class ProjectAdvanced {
     get winisdSealedPicker(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdSealedPicker');
         return {
-            get value() { return lens.value ?? CompatSwitch.SEALED_PICKER.startValue; },
+            get value() { return lens.value ?? CompatSwitch.SEALED_PICKER.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -181,7 +192,7 @@ export class ProjectAdvanced {
     get winisdFlatModel(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdFlatModel');
         return {
-            get value() { return lens.value ?? CompatSwitch.FLAT_MODEL.startValue; },
+            get value() { return lens.value ?? CompatSwitch.FLAT_MODEL.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }
@@ -192,7 +203,17 @@ export class ProjectAdvanced {
     get winisdChartFromFsVasQms(): SimpleField<boolean> {
         const lens = focus(this.#advanced, 'winisdChartFromFsVasQms');
         return {
-            get value() { return lens.value ?? CompatSwitch.CHART_FROM_FS_VAS_QMS.startValue; },
+            get value() { return lens.value ?? CompatSwitch.CHART_FROM_FS_VAS_QMS.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "Impedance of one driver": the impedance chart shows one driver, as WinISD's does. Off: the load the
+     *  amplifier sees for the project's Driver wiring. Off where a project does not say (QO946.c131). Saved and loaded only. */
+    get winisdOneDriverImpedance(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdOneDriverImpedance');
+        return {
+            get value() { return lens.value ?? CompatSwitch.ONE_DRIVER_IMPEDANCE.winisdValue; },
             set: (on: boolean) => lens.set(on),
         };
     }

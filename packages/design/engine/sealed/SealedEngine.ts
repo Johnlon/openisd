@@ -6,7 +6,7 @@
 import {SEALED_ALIGNMENT_OPTIONS} from '../../fields/options.js';
 import type {SealedAlignmentOption} from '../types.js';
 import type {SealedParams} from '../sealedResonance.js';
-import {sealedResonanceLossless, sealedResonanceWinisd} from '../sealedResonance.js';
+import {arrayVas, sealedResonanceLossless, sealedResonanceWinisd} from '../sealedResonance.js';
 import type {SealedAlignmentSolverParams} from '../solverTypes.js';
 import {missingDependencies} from '../consistency.js';
 import type {CalculationIssue} from '../consistency.js';
@@ -23,6 +23,9 @@ export interface SealedEngine {
   /** System resonance Fsc and Q Qtc under WinISD's lossy model — the Box tab readout. Takes
    *  `Vas` directly. Ql and Qa at or above the lossless limit give the lossless figure. */
   resonance(p: SealedParams): { Fsc: number; Qtc: number };
+  /** The Vas the sealed readout takes for `nDrivers` identical drivers in one box: N·Vas, half that when isobaric.
+   *  Fs and Qts do not change. The same rule as the chart sweep's one driver in Vb/N. */
+  arrayVas(vas_m3: number, nDrivers: number, loading: 'standard' | 'isobaric'): number;
   /** The lossless textbook Fsc and Qtc, whatever Ql and Qa are. Only for a chamber WinISD itself
    *  reports lossless (the bandpass4 rear). */
   losslessResonance(p: SealedParams): { Fsc: number; Qtc: number };
@@ -39,7 +42,8 @@ export interface SealedEngine {
   /** The volume WinISD's sealed alignment picker (winisd.exe 0x45c140) gives for system Q `Qtc`: a fixed
    *  Rg of 0.1 Ω folded into Qes, a fixed Qa of 100 folded into Qt, box losses Ql left out.
    *  `Qes' = Qes·(Re + 0.1)/Re`, `Qts' = 1/(1/Qes' + 1/Qms)`, `Qt = 1/(1/Qts' + 1/100)`,
-   *  `Vb = Vas/((Qtc/Qt)² − 1)`. Null when `Qtc ≤ Qt`, or an input is not positive. */
+   *  `Vb = Vas/((Qtc/Qt)² − 1)`, where `Vas` is the array Vas (`arrayVas`: N·Vas, halved for Iso-barik), as WinISD's
+   *  picker divides its design object's Nd·Vas. Null when `Qtc ≤ Qt`, or an input is not positive. */
   winisdPickerVolume(p: {Vas: number; Qes: number; Qms: number; Re: number}, Qtc: number): number | null;
   /** The lossless textbook Qtc a volume gives — the inverse of `volumeForQtc`. Null when any
    *  input is not positive. */
@@ -110,6 +114,8 @@ export class SealedEngineImpl implements SealedEngine {
 
   readonly losslessResonance = sealedResonanceLossless;
 
+  readonly arrayVas = arrayVas;
+
   volumeForQtc(Qts: number, Vas_m3: number, Qtc: number): number | null {
     const ratio = (Qtc / Qts) ** 2 - 1;
     return ratio <= 0 ? null : Vas_m3 / ratio;
@@ -156,7 +162,7 @@ export class SealedEngineImpl implements SealedEngine {
     if (Qtc != null && !params.Vb_m3.entered) {
       if (Qts != null && Vas != null) {
         const v = this.volumeForQtc(Qts, Vas, Qtc);
-        if (v != null) {
+        if (v != null && Number.isFinite(v)) {
           params.Vb_m3.setCalculated(v);
         } else {
           params.Vb_m3.setNotAvailable();
@@ -174,7 +180,8 @@ export class SealedEngineImpl implements SealedEngine {
               Fs, Vas, Qts, Vb, Ql: params.Ql.value ?? Infinity, Qa: params.Qa.value ?? Infinity,
             }).Qtc
           : this.qtcFromVolume(Qts, Vas, Vb);
-        if (v != null) {
+        // A Vas of 0 gives no finite Qtc: not available, never a NaN the saved text writes as null.
+        if (v != null && Number.isFinite(v)) {
           params.Qtc.setCalculated(v);
         } else {
           params.Qtc.setNotAvailable();
@@ -182,6 +189,10 @@ export class SealedEngineImpl implements SealedEngine {
       } else {
         params.Qtc.setNotAvailable();
       }
+    } else if (!params.Qtc.entered) {
+      // No volume to read Qtc from (a tiny Fsc typed, so no box reaches it): drop the Qtc an earlier solve
+      // left, so it is blank as in a project where only that Fsc was typed.
+      params.Qtc.setNotAvailable();
     }
 
     const solved: SealedAlignmentWorkingSet = {

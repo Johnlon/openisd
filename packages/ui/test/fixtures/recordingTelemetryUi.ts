@@ -1,3 +1,4 @@
+import {silentPerf} from './silentPerf.js';
 /** A TelemetryUi whose usage events land in `events`, for hook tests that check what is counted. */
 import {createMemoryStorage} from '@openisd/persistence';
 import type {TelemetryUi} from '../../src/hooks/telemetryContext.js';
@@ -28,6 +29,7 @@ export function recordingTelemetryUi(): RecordingTelemetryUi {
     events,
     telemetryUi: {
       featureUse: new FeatureUse(telemetry, actions),
+      perf: silentPerf(),
       crashReports: new CrashReports(telemetry, errorContext, async () => ''),
       launch: new LaunchReporter(telemetry, () => LAUNCH_ENV, work => work(), new InstallMarker(new NoTelemetry(), createMemoryStorage())),
       actions,

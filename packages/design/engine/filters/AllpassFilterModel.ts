@@ -19,7 +19,7 @@ function reverseBessel(n: number, x: number): Complex {
 /**
  * Allpass, order n, delay t.
  * Order 1: (1 − jωt/2)/(1 + jωt/2), delay t. Order 2: WinISD's 2nd-order allpass, ω0 = 2/t and Q,
- * delay t/Q. Above order 2 WinISD ignores the order and draws order 2 (GHIDRA_FINDINGS.md
+ * delay t/Q. Above order 2 WinISD ignores the order and draws order 2 (winisd_research/archive/GHIDRA_FINDINGS.md
  * "Allpass n ≥ 2 ⚠"); OpenISD honours it: the order-n Bessel (maximally flat delay) allpass
  * θn(−s·t/2)/θn(s·t/2), delay t, flat to a higher frequency as the order rises; Q is not used
  * (bugs/archive/BUG_20260927_winisd-allpass-t-not-delay-order-above-2-ignored.md).

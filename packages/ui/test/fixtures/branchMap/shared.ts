@@ -13,8 +13,7 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'surface-root-5403400e1fdb361a':{kind:'partOf',view:'menu-splashmodal'}, // App.vue:176
   'surface-root-a321f3e72f81713f':{kind:'partOf',view:'menu-announcementsmodal'}, // App.vue:178
   'surface-root-bd4d79550017fe67':{kind:'partOf',view:'menu-winisddifferencesmodal'}, // App.vue:180
-  'imperative-ui-891ef337091a37f4':{kind:'view',view:'shared/chart-readout'}, // canvas.ts:209
-  'imperative-ui-05d81ad62246950f':{kind:'partOf',view:'shared/chart-readout'}, // canvas.ts:237
+  'imperative-ui-7d3d48c1c13b20be':{kind:'view',view:'shared/chart-readout'}, // ui/readout.ts:14
   'conditional-branch-e0e0b1b011c77c89':{kind:'partOf',view:'phone/difference-cue'}, // components/AdvancedOptions.vue:30
   'surface-root-6720ff0276e2bf27':{kind:'view',view:'menu-announcementsmodal'}, // components/AnnouncementsModal.vue:13
   'surface-root-01b2ab0599cd59bf':{kind:'view',view:'menu-announcementsmodal'}, // components/AnnouncementsModal.vue:14
@@ -99,19 +98,24 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-86a74738b0c40fb4':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:32
   'conditional-branch-265d98b1829da319':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:35
   'conditional-branch-ad20275eedeb4b3a':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:34 (the catcher over the greyed control)
+  'conditional-branch-587ab05924db500c':{kind:'partOf',view:'tab-driver'}, // components/DriverWiring.vue:15 (the phone row)
+  'conditional-branch-eb847ee4b5bc2de2':{kind:'partOf',view:'tab-driver'}, // components/DriverWiring.vue:23 (the desktop row)
   'conditional-branch-b989dd12d68f1ae3':{kind:'notAView',reason:'summary button that opens the driver disagreements list'}, // components/DriverConsistencyList.vue:12
+  'conditional-branch-1b1597ea6d643d49':{kind:'view',view:'editor-general'}, // components/DriverEditorModal.vue:747
+  'conditional-branch-8f4547819e788ef8':{kind:'view',view:'editor-parameters'}, // components/DriverEditorModal.vue:769
+  'conditional-branch-9eadd3d4c6c45bc6':{kind:'view',view:'editor-advanced'}, // components/DriverEditorModal.vue:835
+  'conditional-branch-2c60497fd0fa53a0':{kind:'view',view:'editor-dimensions'}, // components/DriverEditorModal.vue:874
   'surface-root-45df5e0dad260e9f':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:703
   'surface-root-f94135dc62e865bf':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:704
   'native-ui-2bba9f9bd34d1c4b':{kind:'notAView',reason:'help or close button of the driver editor'}, // components/DriverEditorModal.vue:705
   'native-ui-bcf0cdec26b357a9':{kind:'notAView',reason:'help or close button of the driver editor'}, // components/DriverEditorModal.vue:705
   'surface-root-ad2db4b2ed16ed50':{kind:'partOf',view:'section-help'}, // components/DriverEditorModal.vue:707
   'conditional-branch-b6327ad21082a5d6':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:713
-  'conditional-branch-a9cdd6b114605fb9':{kind:'view',view:'editor-general'}, // components/DriverEditorModal.vue:720
   'conditional-branch-64da68131a3d95fc':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:723
   'conditional-branch-ab106a8dc4990e67':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:726
   'conditional-branch-ff14eac5c4729225':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:732
   'conditional-branch-38a18ddd3fdbd7ea':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:735
-  'conditional-branch-6503627ecc201f62':{kind:'view',view:'editor-parameters'}, // components/DriverEditorModal.vue:742
+  'conditional-branch-7f2d63a62de41f1f':{kind:'partOf',view:'editor-general'}, // components/DriverEditorModal.vue:738 (the warning sign on a tab that holds a refused entry; the tab bar is part of the editor frame)
   'conditional-branch-c390ed4038fc77d6':{kind:'partOf',view:'editor-parameters'}, // components/DriverEditorModal.vue:744
   'conditional-branch-8b38f9a3d547aa83':{kind:'partOf',view:'editor-parameters'}, // components/DriverEditorModal.vue:745
   'conditional-branch-c390ed4038fc77d6-2':{kind:'partOf',view:'editor-parameters'}, // components/DriverEditorModal.vue:756
@@ -120,7 +124,6 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-8b38f9a3d547aa83-3':{kind:'partOf',view:'editor-parameters'}, // components/DriverEditorModal.vue:777
   'conditional-branch-c390ed4038fc77d6-4':{kind:'partOf',view:'editor-parameters'}, // components/DriverEditorModal.vue:790
   'conditional-branch-8b38f9a3d547aa83-4':{kind:'partOf',view:'editor-parameters'}, // components/DriverEditorModal.vue:791
-  'conditional-branch-c85a259ff4d30814':{kind:'view',view:'editor-advanced'}, // components/DriverEditorModal.vue:807
   'conditional-branch-82c9e21f9a102e7c':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:809
   'conditional-branch-9221a8bbab297f6a':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:810
   'conditional-branch-40ec34687539d44d':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:819
@@ -128,7 +131,6 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-9221a8bbab297f6a-2':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:820
   'conditional-branch-82c9e21f9a102e7c-3':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:836
   'conditional-branch-9221a8bbab297f6a-3':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:837
-  'conditional-branch-f82c94a56585319e':{kind:'view',view:'editor-dimensions'}, // components/DriverEditorModal.vue:846
   'conditional-branch-63d5e9a0ebc63177':{kind:'partOf',view:'editor-dimensions'}, // components/DriverEditorModal.vue:848
   'conditional-branch-7586f29f27db56aa':{kind:'partOf',view:'editor-dimensions'}, // components/DriverEditorModal.vue:849
   'native-ui-2fe0596dca458293':{kind:'partOf',view:'editor-dimensions'}, // components/DriverEditorModal.vue:864
@@ -275,6 +277,7 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-25e889c8e13af122':{kind:'partOf',view:'tab-graph'}, // components/GraphPanel.vue:363
   'conditional-branch-9b749fa968a8436f':{kind:'partOf',view:'tab-graph'}, // components/GraphPanel.vue:363
   'conditional-branch-4a401fc089b35504':{kind:'partOf',view:'tab-graph'}, // components/GraphPanel.vue:365
+  'conditional-branch-350fc27fc9c9d875':{kind:'partOf',view:'tab-graph'}, // components/GraphPanel.vue:364 (the All button, T856)
   'conditional-branch-ae26af162f30b769':{kind:'partOf',view:'chart-data'}, // components/GraphPanel.vue:371
   'conditional-branch-a5f4f45eade96e0b':{kind:'view',view:'shared/graph-warning-pill'}, // components/GraphPanel.vue:372
   'native-ui-5600554eae49bd62':{kind:'notAView',reason:'dismiss button of the graph warning pill'}, // components/GraphPanel.vue:375
@@ -345,6 +348,14 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'surface-root-7186c42dd3d5161b':{kind:'partOf',view:'driver-save'}, // components/SaveToLibraryDialog.vue:29
   'conditional-branch-e4ac024f188e8234':{kind:'partOf',view:'menu-splashmodal'}, // components/SplashContent.vue:32
   'conditional-branch-f78a330b3f38f0cc':{kind:'partOf',view:'menu-splashmodal'}, // components/SplashContent.vue:70
+  'surface-root-3a4f91d5ea44ea07':{kind:'view',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:15
+  'surface-root-3f3169dfb76a0fef':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:16
+  'conditional-branch-66d72d9d46e2df8c':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:34
+  'conditional-branch-876965ab9ec8f203':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:35
+  'conditional-branch-5653a07d2c094356':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:43
+  'conditional-branch-296b21159bf6114c':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:44
+  'conditional-branch-750a2f1965043dc5':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:48
+  'conditional-branch-2a131b7ceb603c38':{kind:'partOf',view:'shared/feedback-dialog'}, // components/FeedbackDialog.vue:17
   'surface-root-3a49fc4183d494b6':{kind:'view',view:'menu-splashmodal'}, // components/SplashModal.vue:20
   'surface-root-6d74195cbdff9526':{kind:'partOf',view:'menu-splashmodal'}, // components/SplashModal.vue:21
   'native-ui-ec34de8a28e3133f':{kind:'notAView',reason:'close button of the About dialog'}, // components/SplashModal.vue:24

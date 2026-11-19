@@ -1,0 +1,24 @@
+id: T913
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+label: fixes
+goal: A Peaking 2nd order highpass filter with a negative peak magnitude draws no curve and says so in the Filters list (desktop and phone), as ruled.
+why: QO951 (John, 18 Nov 2026, "Yes" to the fix of BUG_20261118_peak-highpass-negative-gain-nan.md: keep the value, draw no curve, say so on screen).
+ruling: QO951
+done_test: bash scripts/test.sh packages/design/test/engine/filter-peak-highpass-negative-gain.test.ts
+files:
+  - bugs/BUG_20261118_peak-highpass-negative-gain-nan.md
+  - tasks/T913.yml
+  - packages/design/test/engine/filter-peak-highpass-negative-gain.test.ts
+  - packages/design/engine/types.ts
+  - packages/ui/test/ui/filter-negative-peak-message.browser.spec.ts
+  - packages/ui/src/hooks/OriginalFilters-hooks.ts
+  - packages/ui/src/ui/shells/original/OriginalFilters.vue
+  - packages/ui/src/ui/shells/mobile/MobileFilterCard.vue
+  - packages/ui/test/fixtures/branchMap/desktop.ts
+  - packages/ui/test/fixtures/branchMap/phone.ts
+  - packages/design/engine/filters/FilterEngine.ts
+  - packages/design/engine/filters/PeakHighpassFilterModel.ts
+note: Ruled QO951. The browser journey packages/ui/test/ui/filter-negative-peak-message.browser.spec.ts runs in the full suite. WinISD dies on Add at Gpk -6 dB (winisd_research/runs/peakhp-negative-20261118/), so there is no WinISD curve to copy.

@@ -6,7 +6,7 @@
 # of origin/main's scripts (T291).
 #   WATCHDOG_REPO  the repo whose origin/main is read (default the main checkout; only git is used)
 set -uo pipefail
-REPO="${WATCHDOG_REPO:-/home/john/work/winisd/openisd}"
+REPO="${WATCHDOG_REPO:-$HOME/work/winisd/openisd}"
 timeout 60 git -C "$REPO" fetch -q origin main 2> /dev/null || echo "watchdog-boot: cannot fetch origin/main; using the local origin/main" >&2
 src="$(git -C "$REPO" show origin/main:scripts/land/watchdog.sh)" || { echo "watchdog-boot: cannot read origin/main's scripts/land/watchdog.sh" >&2; exit 2; }
 WATCHDOG_REPO="$REPO" exec bash -c "$src" watchdog "$@"

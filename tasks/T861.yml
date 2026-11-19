@@ -1,0 +1,11 @@
+id: T861
+release_note: internal
+repo: openisd
+owner: fixer
+status: done
+goal: The in-app update popup for 7.0.960 says John's approved text (coil wiring, radiator editor, export All).
+why: John, 17 Nov 2026 08:24 UTC, board card 'Release OpenISD 7.0.960 to production now?': 'make it all sound like new features since last prod release'
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T861.yml
+  - cloudflare/announcements/src/index.js

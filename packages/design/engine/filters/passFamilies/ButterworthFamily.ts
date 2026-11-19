@@ -2,7 +2,7 @@ import {cInv, cMul, cSub, cx} from '../../complex.js';
 import type {Complex} from '../../types.js';
 import type {PassFamilyModel} from './PassFamilyModel.js';
 
-/** GHIDRA_FINDINGS.md "EQ/Filter chain": Bn = Π(s − pk), pk = exp(jπ(2k+n+1)/(2n)). */
+/** winisd_research/archive/GHIDRA_FINDINGS.md "EQ/Filter chain": Bn = Π(s − pk), pk = exp(jπ(2k+n+1)/(2n)). */
 function butterworthPoles(n: number): Complex[] {
   const poles: Complex[] = [];
   for (let k = 0; k < n; k++) {
