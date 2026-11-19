@@ -385,7 +385,7 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
     <div v-if="blocked" class="gmsg">
       <div class="gmsg-title">Can’t plot {{ meta.name }}</div>
       <div v-for="e in blockErrors" :key="e.field" class="gmsg-line">{{ e.message }}</div>
-       <div class="gmsg-foot">Fix the listed inputs to restore this chart.</div>
+       <div class="gmsg-foot">{{ graph.blockFixLine(classic === true) }}</div>
     </div>
   </div>
 
