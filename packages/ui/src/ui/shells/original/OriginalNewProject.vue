@@ -189,7 +189,7 @@ function handleCreate() {
           </div>
 
           <div class="box-diagram-container">
-            <BoxTypeDiagram :box-type="boxType" variant="single" id-suffix="" />
+            <BoxTypeDiagram :box-type="boxType" />
           </div>
         </div>
 

@@ -7,26 +7,27 @@
 import type {BoxType} from '@openisd/design/engine';
 import {PhoneWizardText} from '@openisd/design/fields';
 import BoxTypeDiagram from './BoxTypeDiagram.vue';
+import BoxPairDrawing from './BoxPairDrawing.vue';
 
 defineProps<{ boxType: BoxType; loading: 'standard' | 'isobaric' }>();
 </script>
 
 <template>
-  <BoxTypeDiagram v-if="loading === 'standard'" :box-type="boxType" variant="single" id-suffix="" />
+  <BoxTypeDiagram v-if="loading === 'standard'" :box-type="boxType" />
   <div v-else class="bpd-pair" data-testid="box-placement-pair">
     <figure class="bpd-fig" data-testid="box-clamshell">
-      <BoxTypeDiagram :box-type="boxType" variant="clamshell" id-suffix="" />
+      <BoxPairDrawing :box-type="boxType" variant="clamshell" id-suffix="" />
       <figcaption>{{ PhoneWizardText.ISOBARIK_CLAMSHELL }}</figcaption>
     </figure>
     <figure class="bpd-fig" data-testid="box-tandem">
-      <BoxTypeDiagram :box-type="boxType" variant="tandem" id-suffix="-tandem" />
+      <BoxPairDrawing :box-type="boxType" variant="tandem" id-suffix="-tandem" />
       <figcaption>{{ PhoneWizardText.ISOBARIK_TANDEM }}</figcaption>
     </figure>
   </div>
 </template>
 
 <style scoped>
-.bpd-pair { display: flex; justify-content: center; gap: 4px; }
+.bpd-pair { display: flex; justify-content: center; gap: 2px; }
 .bpd-fig { display: flex; flex-direction: column; align-items: center; margin: 0; gap: 2px; }
 .bpd-fig :deep(svg) { height: var(--bpd-h); width: auto; }
 .bpd-fig figcaption { font-size: 10px; line-height: 11px; color: #444; text-align: center; max-width: 80px; }

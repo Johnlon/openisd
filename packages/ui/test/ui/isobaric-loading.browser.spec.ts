@@ -16,7 +16,7 @@ const PICTURES = process.env['ISOBARIC_PICTURES'];
 async function picture(page: Page, name: string): Promise<void> {
   // Nothing in the way and nothing mid-fade: the "Project imported" toast gone, the desktop nav's 0.2 s highlight fade finished
   // (a picture taken inside that fade shows the old tab lit beside the new tab's content).
-  await expect(page.locator('.flash')).toHaveCount(0, {timeout: 20000});
+  await expect(page.locator('.flash, [data-testid=flash-strip]')).toHaveCount(0, {timeout: 20000});
   const nav = page.locator('.project-nav li.active');
   if (await nav.count() > 0) {
     await expect(nav).toHaveCSS('background-color', 'rgb(207, 228, 247)');
@@ -162,6 +162,13 @@ for (const shell of [DESKTOP, PHONE]) {
       // The Box tab draws the box with the pair in it, both ways.
       await expect(page.getByTestId('box-clamshell')).toBeVisible();
       await expect(page.getByTestId('box-tandem')).toBeVisible();
+      // Two drawings of the same box never repeat an id in the page.
+      const repeated = await page.evaluate(() => {
+        const seen = new Set<string>(); const dup: string[] = [];
+        for (const el of document.querySelectorAll('[id]')) { if (seen.has(el.id)) dup.push(el.id); seen.add(el.id); }
+        return dup;
+      });
+      expect(repeated).toEqual([]);
       // The same box volume now reads a lower Qtc (the pair has half the Vas) ...
       expect(Number(await field(page, 'Qtc').inputValue())).toBeLessThan(Number(standardQtc));
       await picture(page, `${shell.name}-4-after-box-isobaric-same-volume`);

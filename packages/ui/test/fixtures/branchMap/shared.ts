@@ -1,24 +1,14 @@
 import type {BranchMap} from './types.js';
 /** Shared (neither shell) scanned branches, drawn on both skins, mapped to the view each one is, or sits inside. Phone view ids are used where a view exists per skin. */
 export const SHARED_BRANCH_MAP:BranchMap={
-  'conditional-branch-09a5ecaf37ab2624':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:22
-  'conditional-branch-cd66175048d64d4b':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:15
+  'conditional-branch-cd66175048d64d4b':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:16
+  'conditional-branch-09a5ecaf37ab2624':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:23
+  'conditional-branch-b8a825f4f5ced54d':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:14
+  'conditional-branch-34f60700bc70d590':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:15
   'conditional-branch-04178604c72209a3':{kind:'partOf',view:'wizard-placement'}, // components/PlacementDiagram.vue:21
   'conditional-branch-5d536870a349e211':{kind:'partOf',view:'wizard-placement'}, // components/PlacementDiagram.vue:15
   'conditional-branch-85b6a5b55ae43844':{kind:'partOf',view:'box-sealed'}, // components/BoxPlacementDiagram.vue:16 (the Iso-Barik pair, the Box tab)
   'conditional-branch-4435d1e551ad777b':{kind:'partOf',view:'box-sealed'}, // components/BoxPlacementDiagram.vue:15 (one driver, the Box tab)
-  'conditional-branch-8015926528a39d9d':{kind:'partOf',view:'wizard-abc-3'}, // components/BoxTypeDiagram.vue:94
-  'conditional-branch-fb0ff1409c2d6e65':{kind:'partOf',view:'wizard-abc-3'}, // components/BoxTypeDiagram.vue:89
-  'conditional-branch-8b9a3af6ed7785d0':{kind:'partOf',view:'wizard-bandpass6-3'}, // components/BoxTypeDiagram.vue:80
-  'conditional-branch-c21bd762ed9dc54b':{kind:'partOf',view:'wizard-bandpass6-3'}, // components/BoxTypeDiagram.vue:76
-  'conditional-branch-8afbc85d30241530':{kind:'partOf',view:'wizard-bandpass4-3'}, // components/BoxTypeDiagram.vue:61
-  'conditional-branch-fca87a0c473f0c10':{kind:'partOf',view:'wizard-bandpass4-3'}, // components/BoxTypeDiagram.vue:57
-  'conditional-branch-dd7e659a3269bcdd':{kind:'partOf',view:'wizard-box-passive-radiator-3'}, // components/BoxTypeDiagram.vue:48
-  'conditional-branch-d3ec4db28b3b102c':{kind:'partOf',view:'wizard-box-passive-radiator-3'}, // components/BoxTypeDiagram.vue:44
-  'conditional-branch-d666c1cf01d3a4fe':{kind:'partOf',view:'wizard-vented-3'}, // components/BoxTypeDiagram.vue:37
-  'conditional-branch-43737da682e927b3':{kind:'partOf',view:'wizard-vented-3'}, // components/BoxTypeDiagram.vue:33
-  'conditional-branch-12cf125c83599a1a':{kind:'partOf',view:'wizard-sealed-3'}, // components/BoxTypeDiagram.vue:24
-  'conditional-branch-71a0a8ade8888ea2':{kind:'partOf',view:'wizard-sealed-3'}, // components/BoxTypeDiagram.vue:20
   'conditional-branch-c30b881777091cc0':{kind:'view',view:'shared/field-catalogue'}, // App.vue:157
   'conditional-branch-f00473ae100ea10b':{kind:'notAView',reason:'skin switch that mounts the phone shell'}, // App.vue:158
   'conditional-branch-1cd7b2da45fdd08a':{kind:'notAView',reason:'skin switch that mounts the desktop shell'}, // App.vue:159
