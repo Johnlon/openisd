@@ -26,7 +26,9 @@ export class PhoneWizardText {
   static readonly PLACEMENT_STANDARD = 'Standard';
   static readonly PLACEMENT_ISOBARIK = 'Iso-Barik';
 
-  static readonly ISOBARIK_CAPTION = 'Two drivers face to face: the pair acts as one driver with half the Vas, so the same Qtc needs half the box volume.';
+  static readonly ISOBARIK_CAPTION = 'Either arrangement: the pair acts as one driver with half the Vas, so the same Qtc needs half the box volume.';
+  static readonly ISOBARIK_CLAMSHELL = 'Clamshell (face to face)';
+  static readonly ISOBARIK_TANDEM = 'Back to front';
 
   static readonly BOX_TYPE_LABEL = 'Box type';
   static readonly EBP_LABEL = 'EBP';

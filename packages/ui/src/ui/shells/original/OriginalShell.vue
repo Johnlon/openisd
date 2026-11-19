@@ -13,6 +13,7 @@ import PortShapeToggle from '../../components/PortShapeToggle.vue';
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import DriverCoilWiring from '../../components/DriverCoilWiring.vue';
 import DriverPlacement from '../../components/DriverPlacement.vue';
+import DriverPlacementPicture from '../../components/DriverPlacementPicture.vue';
 import DriverWiring from '../../components/DriverWiring.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
@@ -36,7 +37,7 @@ import DesktopBand from '../../components/DesktopBand.vue';
 import DesktopHelpPanel from '../../components/DesktopHelpPanel.vue';
 import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
 import {injectDiagnosticsModal} from '../../../hooks/DiagnosticsModal-hooks.js';
-import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
+import BoxPlacementDiagram from '../../components/BoxPlacementDiagram.vue';
 import CloudSyncBadge from '../../components/CloudSyncBadge.vue';
 import CloudSyncDialog from '../../components/CloudSyncDialog.vue';
 import OriginalProjectList from './OriginalProjectList.vue';
@@ -439,7 +440,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           </div>
           </div>
           <div class="box-diagram-col">
-              <BoxTypeDiagram :box-type="selectedBox" />
+              <BoxPlacementDiagram :box-type="selectedBox" :loading="project.loading.value" />
             </div>
             <!-- Notes sit BESIDE the diagram, not under the row: stacked below, they grew the
                  pane (and so the whole bottom track, which is auto-sized) whenever a box type
@@ -486,6 +487,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 </div>
 
               </div>
+              <DriverPlacementPicture />
             </div>
           </div>
           <div class="driver-hint-row">
@@ -1296,7 +1298,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }
 /* Width tracks the diagrams' own scale (each SVG height is 0.7 of its drawn size), so the
    column stays snug around the widest cut-through rather than padding it with slack. */
-.box-diagram-col { flex:none; width:119px; display:flex; align-items:flex-start; justify-content:center; }
+.box-diagram-col { --bpd-h: 66px; flex:none; width:119px; display:flex; align-items:flex-start; justify-content:center; }
 /* Third span, right of the diagram. Text WRAPS rather than overflowing, so unlike the
    fixed-width control columns this one may shrink without reintroducing the overlap. */
 /* The fields column sets the row height; this column follows it (size containment keeps its text

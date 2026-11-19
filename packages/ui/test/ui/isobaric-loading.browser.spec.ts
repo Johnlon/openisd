@@ -60,8 +60,10 @@ const DESKTOP: Shell = {
     const next = overlay.locator('.modal-footer').getByRole('button', {name: 'Next', exact: true});
     await next.click();
     await expect(overlay.locator('input[name=placement][value=isobaric]')).toBeEnabled();
+    await picture(page, 'desktop-6a-new-project-standard');
     await overlay.locator('input[name=placement][value=isobaric]').check();
-    await expect(DESKTOP.wizardDiagram(page).locator('svg')).toBeVisible();
+    await expect(DESKTOP.wizardDiagram(page).getByTestId('placement-clamshell')).toBeVisible();
+    await expect(DESKTOP.wizardDiagram(page).getByTestId('placement-tandem')).toBeVisible();
     await expect(DESKTOP.wizardDiagram(page)).toContainText('half the box volume');
     await picture(page, 'desktop-6-new-project-isobaric');
     await next.click();
@@ -102,8 +104,10 @@ const PHONE: Shell = {
     const next = page.locator('.mob-np-footer').getByText('Next ▸', {exact: true});
     await next.click();
     await expect(page.locator('#np-placement')).toBeEnabled();
+    await picture(page, 'phone-6a-new-project-standard');
     await page.locator('#np-placement').selectOption('isobaric');
-    await expect(PHONE.wizardDiagram(page).locator('svg')).toBeVisible();
+    await expect(PHONE.wizardDiagram(page).getByTestId('placement-clamshell')).toBeVisible();
+    await expect(PHONE.wizardDiagram(page).getByTestId('placement-tandem')).toBeVisible();
     await expect(PHONE.wizardDiagram(page)).toContainText('half the box volume');
     await picture(page, 'phone-6-new-project-isobaric');
     await next.click();
@@ -121,13 +125,18 @@ for (const shell of [DESKTOP, PHONE]) {
       await shell.open(page);
       await setFocusedBoxType(page, 'sealed');
       const vb = Number(await field(page, shell.volume).inputValue());
+      await expect(page.getByTestId('box-placement-pair')).toHaveCount(0);
       const standardQtc = await field(page, 'Qtc').inputValue();
       await picture(page, `${shell.name}-1-before-box-standard`);
+      await setFocusedBoxType(page, 'vented');
+      await picture(page, `${shell.name}-1b-before-box-vented-standard`);
+      await setFocusedBoxType(page, 'sealed');
 
       await openTab(page, 'Driver');
       await shell.expectStandardOffered(page);
       await expect(diagram(page)).toBeVisible();
       await expect(diagram(page)).toHaveAttribute('data-placement', 'standard');
+      await expect(diagram(page).getByTestId('placement-clamshell')).toHaveCount(0);
       await expect(shell.placementArea(page)).not.toContainText('not modelled');
       await picture(page, `${shell.name}-2-before-driver-standard`);
 
@@ -136,10 +145,14 @@ for (const shell of [DESKTOP, PHONE]) {
       // The clamshell pair is drawn beside the choice (WinISD's Box tab drawing does not change, so the Box tab's stays one driver).
       await expect(diagram(page)).toBeVisible();
       await expect(diagram(page)).toHaveAttribute('data-placement', 'isobaric');
-      await expect(diagram(page).locator('svg path')).toHaveCount(4);
+      await expect(diagram(page).getByTestId('placement-clamshell')).toBeVisible();
+      await expect(diagram(page).getByTestId('placement-tandem')).toBeVisible();
       await picture(page, `${shell.name}-3-after-driver-isobaric`);
 
       await openTab(page, 'Box');
+      // The Box tab draws the box with the pair in it, both ways.
+      await expect(page.getByTestId('box-clamshell')).toBeVisible();
+      await expect(page.getByTestId('box-tandem')).toBeVisible();
       // The same box volume now reads a lower Qtc (the pair has half the Vas) ...
       expect(Number(await field(page, 'Qtc').inputValue())).toBeLessThan(Number(standardQtc));
       await picture(page, `${shell.name}-4-after-box-isobaric-same-volume`);
@@ -150,6 +163,10 @@ for (const shell of [DESKTOP, PHONE]) {
       await shell.openChart(page);
       await expectChartDrawn(page);
       await picture(page, `${shell.name}-5b-chart-isobaric`);
+      await openTab(page, 'Box');
+      await setFocusedBoxType(page, 'vented');
+      await expect(page.getByTestId('box-tandem')).toBeVisible();
+      await picture(page, `${shell.name}-5c-box-vented-isobaric`);
     });
 
     test('New project: Iso-Barik chosen on the count step is what the new project has', async ({appPage: page}) => {

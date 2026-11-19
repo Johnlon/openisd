@@ -22,5 +22,7 @@ export function useDriverPlacement() {
     if (loading !== null) choose(loading);
   }
 
-  return {mine, options, choose, onSelect};
+  const mineLabel = computed(() => options.find((o) => o.value === mine.value)?.label ?? '');
+
+  return {mine, mineLabel, options, choose, onSelect};
 }
