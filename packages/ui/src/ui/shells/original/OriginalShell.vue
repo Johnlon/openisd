@@ -87,7 +87,7 @@ const {
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
   envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
   resetAirToAppDefaults,
-  powerLocked, rsOhm,
+  powerLocked, rsOhm, minimumPower,
   projectName, projectCreator, projectCreated, projectModified, projectDateCommits, projectDescription,
   lossesOpen, openLossGroups, resetBoxLosses,
   onFile, fileInput,
@@ -607,7 +607,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             </div>
             <div>
               <DesktopBand :section="signalSourceHelp" @help="openSectionHelp" />
-              <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :readonly="powerLocked" /></div>
+              <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :min="minimumPower" :readonly="powerLocked" /></div>
               <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_DRIVEV_V" :cell="project.driveVoltage_V" /></div>
               <div class="field-row"><UIFixedField class="field" :field="NumberField.SIGNAL_RS_OHM" :value="rsOhm" @update:value="v => project.Rs_ohm.set(v)" /></div>
             </div>

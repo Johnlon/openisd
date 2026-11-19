@@ -8,13 +8,13 @@ import PhoneBand from './PhoneBand.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
 import { useMobileSignalTab } from '../../../hooks/MobileSignalTab-hooks.js';
 
-const { project, powerLocked, rsOhm } = useMobileSignalTab();
+const { project, powerLocked, rsOhm, minimumPower } = useMobileSignalTab();
 </script>
 
 <template>
   <PhoneClassicPage class="mob-signal">
     <PhoneBand :section="PhoneHelp.SIGNAL" />
-    <UIField class="mob-ui-field" :field="NumberField.SIGNAL_PIN_W" :label="PhoneLabels.POWER" :cell="project.powerDrive_W" :readonly="powerLocked" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.SIGNAL_PIN_W" :label="PhoneLabels.POWER" :cell="project.powerDrive_W" :min="minimumPower" :readonly="powerLocked" stepper />
     <UIField class="mob-ui-field" :field="NumberField.SIGNAL_DRIVEV_V" :label="PhoneLabels.VOLTS" :cell="project.driveVoltage_V" stepper />
     <UIFixedField class="mob-ui-field" :field="NumberField.SIGNAL_RS_OHM" :label="PhoneLabels.RS" :value="rsOhm" stepper @update:value="v => project.Rs_ohm.set(v)" />
   </PhoneClassicPage>

@@ -74,7 +74,7 @@ export {
 
 export {
   type ViewSnapshot,
-  type ProjectRepo, type LayerWrite, type StoredProjectListing, type OpenProjectSession, type RefusedEntry, type FileNaming, type ProjectRepairReport,
+  type ProjectRepo, type LayerWrite, type StoredProjectListing, type OpenProjectSession, type RefusedEntry, type FileNaming, type ProjectRepairReport, type LoadRepairReport,
   createProjectRepo,
 
   PROJECT_EXT, projectNameFromFilename, projectFilename, copyOfName, uniqueName,

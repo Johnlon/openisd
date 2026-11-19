@@ -1,6 +1,6 @@
 import type {
     Air, AirIssue, AirValues, BoxParamsIssue, EnvironmentIssue, Engine, MaxCurvesSolveResult, PrIssue, SimulatableBoxType,
-    SignalIssue, SimulationEngine, SweepDriver, SweepIssue, SweepParams, SweepSolveResult, VentIssue,
+    SimulationEngine, SweepDriver, SweepIssue, SweepParams, SweepSolveResult, VentIssue,
 } from '../../engine/index.js';
 import { FixedAir } from '../../engine/index.js';
 import type { Filter, EnclosureParams } from '../../engine/index.js';
@@ -61,8 +61,6 @@ export interface ProjectSweepSource {
     /** The rear port's own vent issues: `bandpass6`/`abc` only (their rear chamber is vented). */
     readonly rearVentIssues: readonly VentIssue[];
     readonly prIssues: readonly PrIssue[];
-    /** A drive level the signal solve refused (below 10 mV, or no power); a sweep does not run while any is. */
-    readonly driveLevelIssues: readonly SignalIssue[];
 }
 
 /** A stated value as the engine's optional parameter takes it: absent where nothing is stated. */
@@ -356,7 +354,6 @@ function sweepDriverOf(source: ProjectSweepSource, air: Air): SweepDriver {
 export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): SweepPlan {
     const box = engineBoxTypeOf(source);
     if (source.airIssues.length) return {kind: 'blocked', issues: source.airIssues};
-    if (source.driveLevelIssues.length) return {kind: 'blocked', issues: source.driveLevelIssues};
     const air = source.air;
     const boxIssues = boxSweepIssuesOf(source, box);
     if (boxIssues.length) return {kind: 'blocked', issues: boxIssues};

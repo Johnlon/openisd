@@ -138,15 +138,25 @@ describe('OpenISDProject signal', () => {
       expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8.1), 12);
     });
 
-    it('pre: Re 8, P 1 E, V 2.83 C | trigger: type V 0.005 or a P driving below 10 mV | post: refused, unchanged', () => {
+    // John, 18 Nov 2026 (QO953.c26): "a repair is ok but it has to be automatic" — a typed drive level
+    // below 10 mV is refused with a note and the previous value stays; it no longer throws.
+    it('pre: Re 8, P 1 E, V 2.83 C | trigger: type V 0.005, 0 or -6, or a P of 0, -6 or one driving below 10 mV | post: refused with a note naming 10 mV, unchanged, no throw', () => {
       const engine = createEngine();
       const p = projectOf(engine, withRe(engine));
-      expect(() => p.driveVoltage_V.set(0.005)).toThrow(/10 mV/);
-      expect(() => p.driveVoltage_V.set(0)).toThrow(/10 mV/);
-      expect(() => p.powerDrive_W.set(0)).toThrow(/10 mV/);
-      expect(() => p.powerDrive_W.set(0.00001)).toThrow(/10 mV/);
-      expect(p.powerDrive_W.value).toBe(1);
+      for (const v of [0.005, 0, -6]) {
+        expect(p.signal.driveVoltageRefusal(v)).toMatch(/10 mV/);
+        expect(() => p.driveVoltage_V.set(v)).not.toThrow();
+        expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8.1), 12);
+        expect(p.driveVoltage_V.calculated).toBe(true);
+      }
+      for (const w of [0, 0.00001, -6]) {
+        expect(p.signal.powerDriveRefusal(w)).toMatch(/10 mV/);
+        expect(() => p.powerDrive_W.set(w)).not.toThrow();
+        expect(p.powerDrive_W.value).toBe(1);
+        expect(p.powerDrive_W.entered).toBe(true);
+      }
       expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8.1), 12);
+      expect(p.signal.driveVoltageRefusal(0.01)).toBe('');
       p.driveVoltage_V.set(0.01);
       expect(p.driveVoltage_V.value).toBe(0.01);
     });

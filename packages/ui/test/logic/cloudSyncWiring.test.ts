@@ -37,6 +37,7 @@ function createWiringHarness() {
     exportedFiles,
     () => undefined,
     () => undefined,
+    () => undefined,
   );
   let onReplacedCalled = false;
   const appSettingsRepo = createAppSettingsRepo(

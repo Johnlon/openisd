@@ -33,7 +33,7 @@ export const projectRepoOn = (
   engine: Engine, files: FileStorage, storage: ListableStorage, address: string,
   onRepaired: (report: ProjectRepairReport) => void = () => undefined,
   onSaved: () => void = () => undefined,
-) => createProjectRepo(engine, files, storage, address, backupOn(storage), exportedFilesOn(), onRepaired, onSaved);
+) => createProjectRepo(engine, files, storage, address, backupOn(storage), exportedFilesOn(), onRepaired, onSaved, () => undefined);
 
 export const myDriverRepoOn = (storage: ListableStorage, engine: Engine, onSaved: () => void = () => undefined) =>
   createMyDriverRepo(storage, engine, backupOn(storage), onSaved);

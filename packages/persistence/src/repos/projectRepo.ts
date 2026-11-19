@@ -4,7 +4,7 @@
  *  validation and reconstruction are entirely `@openisd/design`'s
  *  (`OpenISDProject.fromOwprText()` — QO116: one whole-record `.safeParse()` at the load
  *  boundary). This file supplies no shape of its own and never holds the project's record. */
-import {OpenISDProject, ProjectSummary, withMovedChamberQicl, type FieldPath} from '@openisd/design';
+import {OpenISDProject, ProjectSummary, withMovedChamberQicl, type FieldPath, type OpenedProject} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
@@ -66,6 +66,9 @@ export interface ProjectRepo {
   /** A design parsed from opened file TEXT — File → Open's JSON branch. Project only (QO90);
    *  same validator every other door uses, so a payload another door wrote loads identically. */
   readProjectText(text: string): OpenISDProject | string[];
+  /** `readProjectText`, with every value the load repaired, one line each for the opening message
+   *  (QO953.c31): File → Open of a project file. */
+  openProjectText(text: string): OpenedProject | string[];
   /** Write to the previously-picked file (first save prompts). `naming` carries the
    *  suggested filename and the picker's format bits. */
   saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult>;
@@ -158,6 +161,17 @@ export interface ProjectRepairReport {
   readonly repaired: readonly FieldPath[];
   readonly backupKey: string | null;
 }
+
+/** A project whose values the load repaired on opening (a drive level below 10 mV set to 10 mV,
+ *  `OpenISDProject.openSession`): the user is told by a toast, one line per repair (QO953.c31). */
+export interface LoadRepairReport {
+  readonly projectName: string;
+  readonly lines: readonly string[];
+}
+
+/** Who tells the user about a load repair: this repo ('tell'), the caller that shows them itself
+ *  ('caller'), or nobody, for a read that opens nothing ('silent'). */
+type LoadRepairTelling = 'tell' | 'caller' | 'silent';
 
 /** One project saved in browser storage, as the Open project list shows it. An entry whose text
  *  would not read even after repair is `unreadable`: it has a name but no summary. */
@@ -318,6 +332,7 @@ export function createProjectRepo(
   exportedFiles: ExportedFiles,
   onRepaired: (report: ProjectRepairReport) => void,
   onSaved: () => void,
+  onLoadRepaired: (report: LoadRepairReport) => void,
 ): ProjectRepo {
   const upgrade = createProjectSchemaUpgrade(engine);
   let lastSavedAt = 0;
@@ -325,7 +340,16 @@ export function createProjectRepo(
   /** Upgrade and parse `text`, resetting any field the schema refuses. When a field was reset,
    *  the stored record it came from is backed up (before anything can write over it) and the
    *  repair is reported. `source` is null for a file or a link, which still hold the original. */
-  function readRepairing(text: string, source: StoredSource | null): OpenISDProject | string[] {
+  function readRepairing(text: string, source: StoredSource | null, tell: LoadRepairTelling): OpenISDProject | string[] {
+    const opened = openRepairing(text, source, tell);
+    return Array.isArray(opened) ? opened : opened.project;
+  }
+
+  /** `readRepairing`, with every value the load repair pass set (`OpenISDProject.openSession`). With
+   *  `tell` 'tell', those repairs are reported through `onLoadRepaired` (QO953.c31: a repair on opening is
+   *  told by a toast); 'caller' leaves them to the caller, which shows them itself; 'silent' is for a read
+   *  that opens nothing (a listing, an id check). */
+  function openRepairing(text: string, source: StoredSource | null, tell: LoadRepairTelling): OpenedProject | string[] {
     let parsed: unknown;
     try { parsed = JSON.parse(text); } catch { return ['not valid JSON']; }
     // The same upgrade every door applies, so a design saved by an older build opens anywhere.
@@ -342,7 +366,21 @@ export function createProjectRepo(
         backupKey: original === null ? null : source.backupKey,
       });
     }
-    return result.project;
+    if (tell === 'tell' && result.loadRepairs.length > 0) {
+      onLoadRepaired({projectName: result.project.name.value, lines: result.loadRepairs.map(repair => repair.text)});
+    }
+    return result;
+  }
+
+  /** A design read from opened file text (a file, a backup being restored, an archive entry). */
+  function openExportedText(text: string, tell: LoadRepairTelling): OpenedProject | string[] {
+    const opened = exportedFiles.open(text);
+    if (opened.kind === 'newer') {
+      return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads}). The file is unchanged: reload this page to get the latest OpenISD, then open it again`];
+    }
+    const result = openRepairing(opened.text, null, tell);
+    if (!Array.isArray(result)) claimId(result.project);
+    return result;
   }
 
   /** The last session write reached the store; a session read from it is held by definition. */
@@ -553,7 +591,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
   function claimId(project: OpenISDProject): void {
     const held = readStoredEntries().find(entry => entry.id === project.uuid());
     if (held === undefined) return;
-    const stored = readRepairing(held.text, null);
+    const stored = readRepairing(held.text, null, 'silent');
     if (Array.isArray(stored) || designOf(stored) !== designOf(project)) project.assignNewId();
   }
 
@@ -653,20 +691,19 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const payload = sharePayload(current.payload);
       if (!payload) return ['share link is not a recognised session payload'];
 
-      const result = readRepairing(payload.project, null);
+      const result = readRepairing(payload.project, null, 'tell');
       if (Array.isArray(result)) return result;
       claimId(result);
       return { project: result, view: payload.view };
     },
 
     readProjectText(text: string): OpenISDProject | string[] {
-      const opened = exportedFiles.open(text);
-      if (opened.kind === 'newer') {
-        return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads}). The file is unchanged: reload this page to get the latest OpenISD, then open it again`];
-      }
-      const project = readRepairing(opened.text, null);
-      if (!Array.isArray(project)) claimId(project);
-      return project;
+      const opened = openExportedText(text, 'tell');
+      return Array.isArray(opened) ? opened : opened.project;
+    },
+
+    openProjectText(text: string): OpenedProject | string[] {
+      return openExportedText(text, 'caller');
     },
 
     saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
@@ -724,13 +761,13 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const source = storage.get(PROJECT_STORAGE_KEY) !== null ? AUTOSAVE_SOURCE : LEGACY_AUTOSAVE_SOURCE;
       const text = storage.get(source.key);
       if (text === null) return null;
-      const project = readRepairing(text, source);
+      const project = readRepairing(text, source, 'tell');
       if (Array.isArray(project)) return project;
       return project;
     },
     listStoredProjects(): StoredProjectListing[] {
       return readStoredEntries().map((entry): StoredProjectListing => {
-        const project = readRepairing(entry.text, null);
+        const project = readRepairing(entry.text, null, 'silent');
         return Array.isArray(project)
           ? { kind: 'unreadable', id: entry.id, name: 'Unreadable project', modified: entry.modified, bytes: textBytes(entry.text) }
           : { kind: 'readable', id: entry.id, name: project.name.value, modified: entry.modified, bytes: textBytes(entry.text), summary: ProjectSummary.of(project) };
@@ -739,7 +776,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
     loadStoredProject(id: string): OpenISDProject | string[] {
       const entry = readStoredEntries().find(candidate => candidate.id === id);
       if (entry === undefined) return ['saved project not found'];
-      const project = readRepairing(entry.text, SAVED_PROJECTS_SOURCE);
+      const project = readRepairing(entry.text, SAVED_PROJECTS_SOURCE, 'tell');
       return Array.isArray(project) ? project : asEntry(project, id);
     },
     saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null, traceHidden: ReadonlySet<OpenISDProject>): void {
@@ -769,7 +806,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const traceHidden = new Set<OpenISDProject>();
       let focusedIndex = 0;
       for (const entry of payload.entries) {
-        const project = readRepairing(entry.text, OPEN_SESSION_SOURCE);
+        const project = readRepairing(entry.text, OPEN_SESSION_SOURCE, 'tell');
         if (Array.isArray(project)) {
           refused.push(`entry ${entry.id}: ${project.join('; ')}`);
           refusedEntries.push({ id: entry.id, text: entry.text });

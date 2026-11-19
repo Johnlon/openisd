@@ -46,7 +46,7 @@ function deviceOn(drive: DriveEmulator, fill: number, userAgent = 'Windows') {
   const storage = createMemoryStorage();
   const backup = createStorageBackup(storage, () => NOW);
   const rules: LayoutRules = {layout: STORAGE_LAYOUT, steps: createLayoutSteps(createEngine(), () => 'test-project-id')};
-  const projectRepo = createProjectRepo(engine, noFiles, storage, 'http://localhost/', backup, createExportedFiles(rules), () => undefined, () => undefined);
+  const projectRepo = createProjectRepo(engine, noFiles, storage, 'http://localhost/', backup, createExportedFiles(rules), () => undefined, () => undefined, () => undefined);
   const appSettingsRepo = createAppSettingsRepo(storage, backup, () => undefined, () => undefined, () => undefined);
   const deviceName = DeviceName.ofBrowser(userAgent, 0);
   const binMarks = createProjectBinMarks(storage, backup);

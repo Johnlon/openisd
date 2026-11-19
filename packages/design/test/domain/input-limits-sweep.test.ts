@@ -16,40 +16,7 @@ import {allCases, runCase, sweptInputs, NOT_SWEPT} from '../fixtures/inputLimits
 import {NumberField} from '../../fields/field.js';
 
 /** The cases that break today, `input id | trial | project` (bugs/BUG_20261118_input-limits-sweep.md). */
-const BREAKING_TODAY: ReadonlySet<string> = new Set([
-  'signal.power | 0 | sealed',
-  'signal.power | 0 | vented',
-  'signal.power | 0 | passive radiator',
-  'signal.power | 0 | bandpass4',
-  'signal.power | -1 | sealed',
-  'signal.power | -1 | vented',
-  'signal.power | -1 | passive radiator',
-  'signal.power | -1 | bandpass4',
-  'signal.power | -100 | sealed',
-  'signal.power | -100 | vented',
-  'signal.power | -100 | passive radiator',
-  'signal.power | -100 | bandpass4',
-  'signal.power | 1e-9 | sealed',
-  'signal.power | 1e-9 | vented',
-  'signal.power | 1e-9 | passive radiator',
-  'signal.power | 1e-9 | bandpass4',
-  'signal.voltage | 0 | sealed',
-  'signal.voltage | 0 | vented',
-  'signal.voltage | 0 | passive radiator',
-  'signal.voltage | 0 | bandpass4',
-  'signal.voltage | -1 | sealed',
-  'signal.voltage | -1 | vented',
-  'signal.voltage | -1 | passive radiator',
-  'signal.voltage | -1 | bandpass4',
-  'signal.voltage | -100 | sealed',
-  'signal.voltage | -100 | vented',
-  'signal.voltage | -100 | passive radiator',
-  'signal.voltage | -100 | bandpass4',
-  'signal.voltage | 1e-9 | sealed',
-  'signal.voltage | 1e-9 | vented',
-  'signal.voltage | 1e-9 | passive radiator',
-  'signal.voltage | 1e-9 | bandpass4',
-]);
+const BREAKING_TODAY: ReadonlySet<string> = new Set<string>([]);
 
 const cases = allCases();
 

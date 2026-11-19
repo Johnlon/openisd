@@ -69,7 +69,7 @@ function deviceOn(drive: DriveEmulator, fill: number, userAgent: string) {
   const {appState} = createAppStateFixture(storage);
   const backup = createStorageBackup(storage, () => NOW);
   const rules: LayoutRules = {layout: STORAGE_LAYOUT, steps: createLayoutSteps(createEngine(), () => 'test-project-id')};
-  const projectRepo = createProjectRepo(appState.engine, noFiles, storage, 'http://localhost/', backup, createExportedFiles(rules), () => undefined, () => undefined);
+  const projectRepo = createProjectRepo(appState.engine, noFiles, storage, 'http://localhost/', backup, createExportedFiles(rules), () => undefined, () => undefined, () => undefined);
   const appSettingsRepo = createAppSettingsRepo(storage, backup, () => undefined, () => undefined, () => undefined);
   const deviceName = DeviceName.ofBrowser(userAgent, 0);
   const binMarks = createProjectBinMarks(storage, backup);
@@ -326,7 +326,7 @@ describe('two tabs of one browser', () => {
   function tabOn(storage: ReturnType<typeof createMemoryStorage>) {
     const {appState} = createAppStateFixture(storage);
     const rules: LayoutRules = {layout: STORAGE_LAYOUT, steps: createLayoutSteps(createEngine(), () => 'test-project-id')};
-    const projectRepo = createProjectRepo(appState.engine, noFiles, storage, 'http://localhost/', createStorageBackup(storage, () => NOW), createExportedFiles(rules), () => undefined, () => undefined);
+    const projectRepo = createProjectRepo(appState.engine, noFiles, storage, 'http://localhost/', createStorageBackup(storage, () => NOW), createExportedFiles(rules), () => undefined, () => undefined, () => undefined);
     const timer = manualTimer();
     const keepBoth = vi.fn<(project: OpenISDProject) => void>();
     startLiveProjectSync({appState, projectRepo, timer, active: () => true, push: () => undefined, keepBoth});

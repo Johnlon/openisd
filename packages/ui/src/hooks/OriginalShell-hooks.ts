@@ -695,7 +695,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // ---- Signal tab: drive voltage = √(Pin × Re) per driver, plus series resistance ------------
   // Delegated to the unit-tested `createDriveSignal` (`driveSignal.ts`).
-  const { powerLocked, rsOhm } = createDriveSignal({ project, projectChanged });
+  const { powerLocked, rsOhm, minimumPower } = createDriveSignal({ project, projectChanged });
 
   // ---- Advanced tab: environment ------------------------------------------------
   // Delegated to the unit-tested `createEnvironmentAir` above.
@@ -862,7 +862,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     envTempDq, envHumidityDq, envPressureDq, resetAirToAppDefaults,
     envTempStored, envHumidityStored, envPressureStored,
     envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
-    powerLocked, rsOhm,
+    powerLocked, rsOhm, minimumPower,
     projectName, projectCreator, projectCreated, projectModified, projectDateCommits: dateCommits, projectDescription,
     lossesOpen, openLossGroups, resetBoxLosses,
     onFile, fileInput,

@@ -72,6 +72,24 @@ export type FieldKind = 'number' | 'enum' | 'text' | 'toggle' | 'date';
 export type ValueFloor = 'positive' | 'non-negative' | 'none';
 
 /**
+ * What a value loaded from a file (an OpenISD project, a WinISD `.wpr`, a stored project) is
+ * repaired to on opening when the field cannot hold it — the one load repair pass
+ * (`domain/project/loadRepair.ts`) reads it. Typing such a value is refused with a note instead.
+ * John, 18 Nov 2026: "a repair is ok but it has to be automatic" (QO953.c26); the repair is told in
+ * the opening message only, never as a mark on the box (QO953.c30, c31).
+ *
+ * - `breaks` — which of the field's own rules the loaded value breaks: below `limits.min`, or not
+ *   past `floor`.
+ * - `to` — the value it is set to.
+ * - `described` — how the opening message names that value ("the 10 mV minimum").
+ */
+export interface LoadRepair {
+  readonly breaks: 'min' | 'floor';
+  readonly to: number;
+  readonly described: string;
+}
+
+/**
  * How a spinner press moves a number field (`spinnerStep.ts`).
  *
  * - `proportional` — steps that scale with the value (`spinnerStep.ts`), down to one unit of the
@@ -133,6 +151,7 @@ interface NumberFieldSpec extends FieldSpec {
   readonly minimumReason?: string;
   readonly plausible?: FieldLimits;
   readonly floor?: ValueFloor;
+  readonly loadRepair?: LoadRepair;
   readonly spin?: FieldSpin;
   readonly allowedEmpty?: boolean;
 }
@@ -163,6 +182,8 @@ export class NumberField extends Field {
   readonly plausible: FieldLimits;
   /** Whether zero and negatives are admissible at all. `'none'` where nobody has stated one. */
   readonly floor: ValueFloor;
+  /** What a loaded value this field cannot hold is repaired to on opening; null where nothing is. */
+  readonly loadRepair: LoadRepair | null;
   /** How a spinner press moves the value. */
   readonly spin: FieldSpin;
   /** Whether this field is allowed to stay empty when cleared (e.g. filter fields). */
@@ -178,6 +199,7 @@ export class NumberField extends Field {
     this.minimumReason = spec.minimumReason;
     this.plausible = Object.freeze(spec.plausible ?? spec.limits);
     this.floor = spec.floor ?? 'none';
+    this.loadRepair = spec.loadRepair === undefined ? null : Object.freeze(spec.loadRepair);
     this.spin = spec.spin ?? PROPORTIONAL_SPIN;
     this.allowedEmpty = spec.allowedEmpty ?? false;
   }
@@ -208,7 +230,8 @@ export class NumberField extends Field {
   }
 
   /** Format valueSI or Quantity into display string for this field using unit conversion & precision rules.
-   *  `maxSignificant` (the phone's narrow boxes) trims decimals beyond that many significant digits (never below two, or the field's own precision when that is smaller). */
+   *  `maxSignificant` (the phone's narrow boxes) trims decimals beyond that many significant digits (never below two, or the field's own precision when that is smaller),
+   *  and shows a value below 1 whose fixed form would not fit the phone box in exponent form ("2.857e-5"). */
   format(valueSIOrQuantity: number | Quantity, halfWidthSI?: number | null, token?: string, maxSignificant?: number): string {
     let val: number;
     let hw: number | null | undefined;
@@ -242,7 +265,14 @@ export class NumberField extends Field {
     if (valDisp !== 0) decimals = Math.max(decimals, NumberField.MIN_SIGNIFICANT - (Math.floor(Math.log10(Math.abs(valDisp))) + 1));
     decimals = Math.max(0, Math.min(20, decimals));
     const sanitizedVal = valDisp === 0 ? 0 : valDisp;
-    return formatTrimmedTo(sanitizedVal, decimals, Math.min(keep, decimals));
+    const fixed = formatTrimmedTo(sanitizedVal, decimals, Math.min(keep, decimals));
+    // A phone box holds `maxSignificant + 3` characters ("100000.00"). A value so small that its leading
+    // zeros and four figures run past that (the 0.00002857 W that drives the 10 mV minimum) is shown in
+    // exponent form, still four figures ("2.857e-5"): a value is never cut (rule 11, John, 10 Nov 2026).
+    if (maxSignificant !== undefined && Math.abs(valDisp) < 1 && valDisp !== 0 && fixed.length > maxSignificant + 3) {
+      return valDisp.toExponential(NumberField.MIN_SIGNIFICANT - 1);
+    }
+    return fixed;
   }
 
   /** Parse raw typed string input into a Quantity or Text discriminant for this field. */
@@ -595,6 +625,7 @@ export class NumberField extends Field {
     label: "System input power",
     display: {kind: 'fixed', symbol: 'W'},
     limits: {min: 0.01, max: 100000},
+    minimumReason: "The power must drive the amplifier at 10 mV or more.",
     precision: 2,
     description: "System Input Power\nTotal electrical power supplied to the system (P = V² / Re).",
   });
@@ -603,6 +634,8 @@ export class NumberField extends Field {
     label: "Driver input voltage (each)",
     display: {kind: 'fixed', symbol: 'V'},
     limits: {min: 0.01, max: 1000},
+    minimumReason: "The drive level must be at least 10 mV.",
+    loadRepair: {breaks: 'min', to: 0.01, described: 'the 10 mV minimum'},
     precision: 2,
     formula: "driveV = √(Pin · Re)",
     description: "Amplifier Output Voltage\nThe voltage at your amplifier's output. With one driver, or several wired in parallel, each driver gets all of it (V = √(P · Re) for one driver); wired in series each gets its share, the voltage divided by the number of drivers. Power and voltage set each other.",
