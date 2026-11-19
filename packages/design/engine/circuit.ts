@@ -178,12 +178,13 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const Ral = cx(Ql / (w * Cab), 0);
   const Raa = cx(Qa / (w * Cab), 0);
 
-  // WinISD uses one fixed-resistance port form with or without losses, so a vented box with the
-  // transmission-line port model takes the 'winisd-lossy' form even at Ql = Qa = 1e6
-  // (runs/vented-w5-tlports-lossless, 1e-11; bugs/BUG_20261018_tl-port-lossless-branch-not-winisd-form.md).
-  // The other port boxes' lossless branches have no TL capture: they keep today's path.
+  // WinISD uses one fixed-resistance vented form with or without losses, so a vented box takes the
+  // 'winisd-lossy' form even at Ql = Qa = 1e6, TL port model on (runs/vented-w5-tlports-lossless, 1e-11;
+  // bugs/archive/BUG_20261018_tl-port-lossless-branch-not-winisd-form.md) or off (runs/vented-w5-tl0-ql1e6-qp15
+  // and -qp100, 3e-14; bugs/BUG_20261119_vented-lossless-branch-not-winisd-form.md).
+  // The other boxes' lossless branches have no capture at 1e6: they keep today's path.
   const noLosses = Ql >= LOSSLESS_LIMIT && Qa >= LOSSLESS_LIMIT;
-  const loss: BoxLoss = (noLosses && !(box === 'vented' && P.tlPortModel)) ? 'lossless' : 'winisd-lossy';
+  const loss: BoxLoss = (noLosses && box !== 'vented') ? 'lossless' : 'winisd-lossy';
 
   // The one place a `BoxType` becomes a topology's own circuit (`./boxes/`, mirroring
   // `../filters/index.ts`'s `filterModel()`).

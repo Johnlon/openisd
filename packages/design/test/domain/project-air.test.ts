@@ -221,6 +221,41 @@ describe('clearing', () => {
   });
 });
 
+// BUG_20261119_air-fill-order-gives-false-conflict: after the air reset, a typed temperature and
+// density are two values that cannot conflict; the result must not depend on whether the humidity
+// the app already shows was typed too.
+describe('air reset, then temperature and density typed', () => {
+  const AIR_DQ = (p: OpenISDProject) => [p.envTempK, p.envHumidityPct, p.envPressurePa, p.envC_m_per_s, p.envRoo_kg_per_m3]
+    .flatMap(f => f.dq.filter(i => i.kind === 'inconsistent-inputs'));
+
+  it('T 293.15 K and density 1.1 kg/m3 give p about 92830 Pa, c about 343.73 m/s and no disagreement', () => {
+    const p = sealed(createEngine());
+    p.clearAir();
+    p.envTempK.set(293.15);
+    p.envRoo_kg_per_m3.set(1.1);
+    expect(AIR_DQ(p)).toEqual([]);
+    expect(p.envPressurePa.value).toBeGreaterThan(92780);
+    expect(p.envPressurePa.value).toBeLessThan(92880);
+    expect(p.envC_m_per_s.value).toBeCloseTo(343.73, 1);
+    expect(p.air.c()).toBeCloseTo(343.73, 1);
+  });
+
+  it('typing the humidity the app already shows (30 %) changes nothing', () => {
+    const blank = sealed(createEngine());
+    blank.clearAir();
+    blank.envTempK.set(293.15);
+    blank.envRoo_kg_per_m3.set(1.1);
+    const typed = sealed(createEngine());
+    typed.clearAir();
+    typed.envTempK.set(293.15);
+    typed.envHumidityPct.set(30);
+    typed.envRoo_kg_per_m3.set(1.1);
+    expect(AIR_DQ(typed)).toEqual([]);
+    expect(blank.envPressurePa.value).toBeCloseTo(typed.envPressurePa.value!, 6);
+    expect(blank.envC_m_per_s.value).toBeCloseTo(typed.envC_m_per_s.value!, 9);
+  });
+});
+
 describe('conflicts and round trips', () => {
   it('all five entered with c 1 m/s off: dq on c, T, RH, p; the air takes the typed c (test 13)', () => {
     const p = sealed(createEngine());

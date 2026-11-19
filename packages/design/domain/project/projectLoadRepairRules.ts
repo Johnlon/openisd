@@ -17,7 +17,7 @@ import type {SimpleField} from '../cell.js';
 import type {
     ChamberJson, OpenISDBoxJson, OpenISDProjectJson, SealedLossesJson, SpecEntryJson, VentedLossesJson, VentJson,
 } from '../openisdSchema.js';
-import {fieldLoadRule, repairLoaded} from './loadRepair.js';
+import {fieldLoadRule, loadEmptiedText, repairLoaded} from './loadRepair.js';
 import type {LoadRepairNote, LoadRepairRule} from './loadRepair.js';
 
 /** A rule over a plain number slot: the field's repair always sets a number there. */
@@ -78,6 +78,36 @@ function ventedChamberRules(chamber: SimpleField<ChamberJson>, vent: SimpleField
 
 function ventRules(vent: SimpleField<VentJson>): LoadRepairRule[] {
     return [entryRule(NumberField.VENT_L_CM, focus(vent, 'length_m'))];
+}
+
+/** The radiator figures a record states, each with the field that names it (T930). */
+const RADIATOR_FIGURES = [
+    ['Fs_hz', NumberField.PR_FS_HZ], ['Qms', NumberField.PR_QMS], ['Vas_m3', NumberField.PR_VAS_L],
+    ['Sd_m2', NumberField.PR_SD_CM2], ['Mms_kg', NumberField.MMS_KG], ['Cms_m_per_N', NumberField.CMS_M_PER_N],
+    ['Rms_kg_per_s', NumberField.RMS_KG_PER_S],
+] as const;
+
+/** The passive radiator the box holds, whichever box type is active: an entered figure of 0 or
+ *  below is no radiator figure, so it counts as an empty box: calculated from the radiator's other
+ *  figures when they give it, else left empty (a box the datasheet never states stays empty). */
+function radiatorFigureRules(box: SimpleField<OpenISDBoxJson>): LoadRepairRule[] {
+    const component = focus(focus(focus(box, 'passiveRadiator'), 'component'), 'specs');
+    const section = focus(component, 'passive-radiator');
+    return RADIATOR_FIGURES.map(([key, field]): LoadRepairRule => {
+        return {
+            field,
+            loaded: () => {
+                const entry = section.value[key];
+                return entry?.state === 'E' ? entry.value : null;
+            },
+            breaks: v => !Number.isFinite(v) || v <= 0,
+            fix: v => ({value: null, text: `Passive radiator ${loadEmptiedText(field, v, "the value worked out from the radiator's other figures, or empty when they do not give it")}`}),
+            write: () => {
+                const {[key]: _removed, ...rest} = section.value;
+                section.set(rest);
+            },
+        };
+    });
 }
 
 /** The rules of the box type the project is set to; the other types' records are not shown. */
@@ -143,6 +173,7 @@ export function projectLoadRepairRules(root: SimpleField<OpenISDProjectJson>): r
         entryRule(NumberField.ADV_SOUNDVELOCITY_M_PER_S, focus(environment, 'c_m_per_s')),
         entryRule(NumberField.ADV_AIRDENSITY_KG_PER_M3, focus(environment, 'roo_kg_per_m3')),
         ...boxRules(focus(root, 'box')),
+        ...radiatorFigureRules(focus(root, 'box')),
     ];
 }
 

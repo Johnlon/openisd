@@ -10,7 +10,7 @@
 # The mkdir command is not the claim: uutils coreutils mkdir (Ubuntu's default from 25.10, and the CI
 # runner's) exits 0 when another process creates the directory between its own existence check and
 # its mkdir call, so two claims could both "make" one directory (T854, PR 163).
-# Then the worktree is added into that directory (node_modules hardlinked as new-worktree.sh does),
+# Then the worktree is added into that directory (node_modules hardlinked, and refreshed with npm ci when it does not match package-lock.json),
 # tasks/T<n>.yml is written with the owner and goal and committed, and the only line on stdout is
 #   T<n> <worktree path>
 # Agents take the id this prints; they never type one. Any failure after the claim leaves the
@@ -80,6 +80,24 @@ for dir in $deps; do
   mkdir -p "$dest/$(dirname "$dir")"
   cp -al "$src/$dir" "$dest/$dir"
 done
+# The main checkout's node_modules can be older than this worktree's package-lock.json (19 Nov 2026: built from the
+# 15 Nov lockfile, so lz-string was missing and typecheck failed; agents ran npm ci by hand in five worktrees). Compare the
+# lockfile with the hidden lockfile npm leaves in node_modules; on any difference run npm ci here. npm ci first deletes
+# node_modules, which only unlinks the hard links: the main checkout's copy is untouched.
+node_modules_matches_lock() {
+  [ -f "$1/package-lock.json" ] && [ -f "$1/node_modules/.package-lock.json" ] || return 1
+  node -e '
+    const [lock, installed] = process.argv.slice(1).map((f) => require(f).packages);
+    for (const [k, v] of Object.entries(lock)) {
+      if (k === "" || v.link) continue;
+      const got = installed[k];
+      if (got ? got.version !== v.version : !v.optional) { console.error("new-task: stale node_modules: " + k); process.exit(1); }
+    }' "$1/package-lock.json" "$1/node_modules/.package-lock.json" 2> /dev/null
+}
+if [ -f "$dest/package-lock.json" ] && ! node_modules_matches_lock "$dest"; then
+  echo "new-task: node_modules does not match package-lock.json: running npm ci in $dest" >&2
+  (cd "$dest" && npm ci --no-audit --no-fund >&2) || { echo "new-task: claimed $id at $dest but npm ci failed" >&2; exit 1; }
+fi
 
 # Free text goes in as a single-quoted YAML scalar (' doubled, newlines folded to spaces), so ': ', '#', a leading
 # quote or '-' and words like true cannot break the file (T931: T923, T925, T927, T928 were hand-fixed).

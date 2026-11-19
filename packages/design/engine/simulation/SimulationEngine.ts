@@ -641,9 +641,9 @@ export class SimulationEngineImpl implements SimulationEngine {
 
     // Force flat response (WinISD Advanced) — the inverse filter that lifts every point to the
     // passband reference, applied as a REAL line-level gain: SPL flattens and the excursion /
-    // port-velocity / max-SPL curves show what that costs. Real gain ⇒ phase and group delay
-    // are untouched, and Zel never sees it (the EQ is upstream of the amplifier), exactly as
-    // applyFilters treats the filter chain.
+    // port-velocity curves show what that costs (Maximum SPL and power leave it out, as WinISD
+    // does: `maxCurves`). Real gain ⇒ phase and group delay are untouched, and Zel never sees
+    // it (the EQ is upstream of the amplifier), exactly as applyFilters treats the filter chain.
     // Transfer-function 0 dB: the lossless circuit's own HF asymptote (BUG_20260926_winisd-tf-reference).
     const splRefLimit = 20 * Math.log10(hfAsymptotePressure_Pa(cq, P, r) / P0);
     let flatClamped: number | null = null;
@@ -728,7 +728,12 @@ export class SimulationEngineImpl implements SimulationEngine {
    * Power limit:   v_Pe   = √(Pe · Re)  — Pe is thermal power into Re, per T/S definition.
    *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
    */
-  maxCurves(drv: SweepDriver, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
+  maxCurves(drv: SweepDriver, Le_H: number | undefined, box: BoxType, stated: SweepParams): MaxCurvesSolveResult {
+    // Force flat response is left out: WinISD's sealed chart routine f_4618f0 never reads
+    // FlatResponse for chart bytes 11 (Maximum power) and 14 (Maximum SPL)
+    // (winisd_research/re_ghidra/dumps/chart_point_4619e0.out); the EQ sits before the amplifier
+    // and cannot change what the driver can take. BUG_20261119_max-curves-include-force-flat-gain.
+    const P: SweepParams = Object.assign({}, stated, { forceFlatResponse: false });
     const n = P.nDrivers || 1;
     if (winisdCountsDrivers(P)) {
       // WinISD: N times one driver's limits in Vb/N — max power ×N; max SPL +20·log10(N) (⚠ unverified).

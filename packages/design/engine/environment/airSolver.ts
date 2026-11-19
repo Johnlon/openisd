@@ -329,9 +329,11 @@ function appValue(appAir: AppAir, name: AppQuantityName): number {
   }
 }
 
-/** The three the app holds, in the order they are filled: T last, so a typed c can solve it. */
+/** The three the app holds, in the order they are filled: T last, so a typed c can solve it;
+ *  humidity before pressure, so a typed T and ρ reach the coupled solve for p and c
+ *  (BUG_20261119_air-fill-order-gives-false-conflict). */
 type AppQuantityName = 'pressurePa' | 'humidityPct' | 'tempK';
-const APP_FILL_ORDER: readonly AppQuantityName[] = Object.freeze<AppQuantityName[]>(['pressurePa', 'humidityPct', 'tempK']);
+const APP_FILL_ORDER: readonly AppQuantityName[] = Object.freeze<AppQuantityName[]>(['humidityPct', 'pressurePa', 'tempK']);
 
 export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
   const known = new Map<AirQuantityName, Quantity>();
@@ -358,6 +360,8 @@ export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
         if (outcome.kind === 'failed' || !withinLimits(target, outcome.value)) {
           gaveUp.add(target);
           issues.push(unavailable(target, rel, outcome.kind === 'failed' ? outcome.why : 'the answer is outside its limits', known));
+          // A failed step does not stop the pass: the next relation may still solve another quantity (T930).
+          continue;
         } else {
           const others = rel.fields.filter(f => f !== target);
           record(target, outcome.value, propagatedWidth(others, snapshotOf(known), k => {

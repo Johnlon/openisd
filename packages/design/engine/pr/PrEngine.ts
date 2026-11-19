@@ -10,7 +10,7 @@ import {RADIATOR_ROUTE_FORMULAS} from '../driver/routes/index.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import type {PrParams} from '../types.js';
 import type {PrSolverParams} from '../solverTypes.js';
-import {inconsistentInputs, missingDependencies, targetUnreachable} from '../consistency.js';
+import {isPositiveGeometry, missingDependencies, targetUnreachable, tuningGoalIssue} from '../consistency.js';
 import type {CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
 
 export type PrQuantityName = keyof PrSolverParams | AirWorkingName;
@@ -46,6 +46,8 @@ export interface PrEngine {
   /** Moving mass per radiator that tunes the box to `fp` — the inverse of `tuning`:
    *  `Map = N/((2π·fp)²·Cpar)`, `Mmp = Map·prSd²`. */
   massForFp(p: PrParams, fp: number, air: Air): number;
+  /** Whether a geometry figure (Vb, Mmd, Sd, Cms) is a number above 0, the only kind the solves can use. */
+  readonly isPositiveGeometry: (value: number | null) => value is number;
   /** Compliance-equivalent volume, cubic metres: `Vas = Cms·Sd²·ρ·c²`. */
   vas(prCms: number, prSd: number, air: Air): number;
   /** Compliance from Vas (cubic metres) and Sd — the inverse of `vas`. 0 when Sd ≤ 0. */
@@ -143,6 +145,8 @@ export class PrEngineImpl implements PrEngine {
     return 1 / (2 * Math.PI * Math.sqrt(Map / p.prNum * Cpar));
   }
 
+  readonly isPositiveGeometry = isPositiveGeometry;
+
   massForFp(p: PrParams, fp: number, air: Air): number {
     const Cab  = p.Vb / (air.rho() * air.c() * air.c());
     const Cap  = p.prNum * p.prCms * p.prSd * p.prSd;
@@ -239,13 +243,13 @@ export class PrEngineImpl implements PrEngine {
 
     const issues: PrIssue[] = [];
 
-    if (tuning != null && tuning <= 0) {
-      issues.push(inconsistentInputs('tuning_goal_hz', ['tuning_goal_hz'],
-        'Tuning frequency must be greater than zero', 0, tuning, 1));
-    }
+    const goalIssue = tuningGoalIssue(tuning);
+    if (goalIssue !== null) issues.push(goalIssue);
 
-    const geometryComplete = Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null;
-    const missingGeometry = PR_GEOMETRY.filter(f => { const v = params[f].value; return !(typeof v === 'number' && v > 0); });
+    // The geometry needs Vb, Mmd, Sd and Cms all above 0 (T930): a zero Sd or Cms is not geometry,
+    // and tuning from it is NaN or Infinity, the same rule PR_GEOMETRY's own filter applies below.
+    const geometryComplete = isPositiveGeometry(Vb) && isPositiveGeometry(prMmd) && isPositiveGeometry(prSd) && isPositiveGeometry(prCms);
+    const missingGeometry = PR_GEOMETRY.filter(f => !isPositiveGeometry(params[f].value));
 
     if (addedMass != null && !params.tuning_goal_hz.entered) {
       if (geometryComplete) {
@@ -279,12 +283,12 @@ export class PrEngineImpl implements PrEngine {
     }
 
     const resolvedMass = params.addedMass_kg.value;
-    if (resolvedMass != null && prMmd != null && prCms != null) {
+    if (resolvedMass != null && isPositiveGeometry(prMmd) && isPositiveGeometry(prCms)) {
       params.resonanceWithAddedMass_hz.setCalculated(this.fsWithMass(prMmd, resolvedMass, prCms));
     } else {
       params.resonanceWithAddedMass_hz.setNotAvailable();
     }
-    if (resolvedMass != null && Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null) {
+    if (resolvedMass != null && geometryComplete) {
       params.systemTuning_hz.setCalculated(this.tuning({ Vb, prMmd, prMadd: resolvedMass, prSd, prCms, prNum }, air));
     } else {
       params.systemTuning_hz.setNotAvailable();

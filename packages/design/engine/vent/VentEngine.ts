@@ -7,7 +7,7 @@
 import type {Air, AirWorkingName} from '../air.js';
 import {END_CORRECTION} from '../air.js';
 import type {VentSolverParams} from '../solverTypes.js';
-import {inconsistentInputs, missingDependencies, targetUnreachable} from '../consistency.js';
+import {isPositiveGeometry, missingDependencies, targetUnreachable, tuningGoalIssue} from '../consistency.js';
 import type {CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
 
 export type VentQuantityName = keyof VentSolverParams | AirWorkingName;
@@ -96,13 +96,11 @@ export class VentEngineImpl implements VentEngine {
 
     const issues: VentIssue[] = [];
 
-    if (tuning != null && tuning <= 0) {
-      issues.push(inconsistentInputs('tuning_goal_hz', ['tuning_goal_hz'],
-        'Tuning frequency must be greater than zero', 0, tuning, 1));
-    }
+    const goalIssue = tuningGoalIssue(tuning);
+    if (goalIssue !== null) issues.push(goalIssue);
 
-    const geometryComplete = Vb != null && Vb > 0 && area != null && area > 0;
-    const missingGeometry = VENT_GEOMETRY.filter(f => { const v = params[f].value; return !(typeof v === 'number' && v > 0); });
+    const geometryComplete = isPositiveGeometry(Vb) && isPositiveGeometry(area);
+    const missingGeometry = VENT_GEOMETRY.filter(f => !isPositiveGeometry(params[f].value));
 
     if (tuning != null && !params.length_m.entered) {
       if (geometryComplete && tuning > 0) {

@@ -1,0 +1,22 @@
+id: T930
+release_note: "A passive radiator with a 0 for Sd, Cms or Mms no longer shows NaN: opening a project or .wpr treats the 0 as an empty box and the opening message lists it; a typed sound velocity that is very low now solves the temperature."
+repo: openisd
+owner: agent
+status: done
+goal: "Engine: passive radiator geometry needs Mmd, Sd and Cms above 0 (no NaN or Infinity readouts), radiator zeros repaired on load, and the air solver tries the next relation after a failed step (a typed sound velocity solves temperature)"
+why: 'John, 3 Nov 2026: "I approve uncontroversial fixes." Loaded impossible values are repaired automatically (John, 18 Nov 2026, QO953.c10-c26). Ultra review 1 findings 8 and 10 (lead, 19 Nov 2026), each proved by a probe; _agent_files/reference/ULTRA_REVIEW_20261119_engine_findings.md'
+# gates: John, 18 Nov 2026 (QO949.c1): old entries stay, marked resolved, resolved to the engine function; T930 only marks one consolidated copy resolved and adds no entry.
+gates_approved: QO949
+done_test: bash scripts/test.sh packages/design/test/engine/pr-zero-geometry.test.ts packages/design/test/engine/air-solver-failed-step.test.ts packages/design/test/domain/radiator-zero-load-repair.test.ts
+files:
+  - tasks/T930.yml
+  - packages/design/engine/pr/PrEngine.ts
+  - packages/design/engine/environment/airSolver.ts
+  - packages/design/domain/project/projectLoadRepairRules.ts
+  - packages/design/test/engine/pr-zero-geometry.test.ts
+  - packages/design/test/engine/air-solver-failed-step.test.ts
+  - packages/design/test/domain/radiator-zero-load-repair.test.ts
+  - packages/design/engine/consistency.ts
+  - packages/design/engine/vent/VentEngine.ts
+  - packages/design/test/engine/consistency.test.ts
+  - scripts/dupscan-allow.json
