@@ -29,15 +29,25 @@ mkdir "$SCRATCH/openisd-t007"        # a directory someone made
 out="$(bash scripts/new-task.sh fable "Say what is done." 2>&1)"
 [ "$out" = "T008 $SCRATCH/openisd-t008" ] && ok "skips T005 (task file), t006 (branch), t007 (dir): $out" || fail "first claim: $out"
 [ -f "$SCRATCH/openisd-t008/tasks/T008.yml" ] && ok "task file written in the worktree" || fail "no task file"
-grep -q '^owner: fable$' "$SCRATCH/openisd-t008/tasks/T008.yml" && ok "owner recorded" || fail "owner missing"
-grep -q '^goal: Say what is done.$' "$SCRATCH/openisd-t008/tasks/T008.yml" && ok "goal recorded" || fail "goal missing"
+yget() { python3 -c 'import sys,yaml; print(yaml.safe_load(open(sys.argv[1]))[sys.argv[2]], end="")' "$1" "$2"; }
+[ "$(yget "$SCRATCH/openisd-t008/tasks/T008.yml" owner)" = "fable" ] && ok "owner recorded" || fail "owner missing"
+[ "$(yget "$SCRATCH/openisd-t008/tasks/T008.yml" goal)" = "Say what is done." ] && ok "goal recorded" || fail "goal missing"
 [ "$(git -C "$SCRATCH/openisd-t008" log -1 --format=%s)" = "(auto) T008: task file" ] && ok "task file committed on t008" || fail "commit: $(git -C "$SCRATCH/openisd-t008" log -1 --format=%s)"
 
 out2="$(bash scripts/new-task.sh bob 2>&1)"
 [ "$out2" = "T009 $SCRATCH/openisd-t009" ] && ok "second claim is the next id: $out2" || fail "second claim: $out2"
 
 out3="$(bash scripts/new-task.sh carol "G." "Because John said so (John, 10 Nov 2026)" 2>&1)"; id3="${out3%% *}"
-grep -q '^why: Because John said so (John, 10 Nov 2026)$' "${out3#* }/tasks/$id3.yml" && ok "why recorded from the third argument" || fail "why missing: $out3"
+[ "$(yget "${out3#* }/tasks/$id3.yml" why)" = "Because John said so (John, 10 Nov 2026)" ] && ok "why recorded from the third argument" || fail "why missing: $out3"
+
+# T931: free text with ': ', quotes, '#' must survive as valid YAML and come back exactly
+g="Engine: a: b 'quoted' # not a comment"; w="lead 19 Nov 2026: x"
+out6="$(bash scripts/new-task.sh zed "$g" "$w" 2>&1)"; f6="${out6#* }/tasks/${out6%% *}.yml"
+[ "$(yget "$f6" goal 2>&1)" = "$g" ] && [ "$(yget "$f6" why 2>&1)" = "$w" ] && ok "goal and why with colon, quotes and # parse back exactly" || fail "yaml-unsafe text: $out6 / $(yget "$f6" goal 2>&1)"
+for lead in '#x' '- x' '"x' '@x' '%x' '[x]' '{x}' '&x' '*x' '!x' '|x' '>x' '? x' 'true' '123' '~'; do
+  o="$(bash scripts/new-task.sh zed "$lead" "$lead" 2>&1)"; f="${o#* }/tasks/${o%% *}.yml"
+  [ "$(yget "$f" goal 2>&1)" = "$lead" ] && [ "$(yget "$f" why 2>&1)" = "$lead" ] && ok "value '$lead' round-trips" || fail "value '$lead': $o"
+done
 
 # two claims at once never share an id
 bash scripts/new-task.sh a > "$SCRATCH/a.out" 2>&1 & bash scripts/new-task.sh b > "$SCRATCH/b.out" 2>&1 & wait

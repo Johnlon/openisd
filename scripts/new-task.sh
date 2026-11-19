@@ -81,14 +81,17 @@ for dir in $deps; do
   cp -al "$src/$dir" "$dest/$dir"
 done
 
+# Free text goes in as a single-quoted YAML scalar (' doubled, newlines folded to spaces), so ': ', '#', a leading
+# quote or '-' and words like true cannot break the file (T931: T923, T925, T927, T928 were hand-fixed).
+yq() { printf "'%s'" "$(printf '%s' "$1" | tr '\n' ' ' | sed "s/'/''/g")"; }
 cat > "$dest/tasks/$id.yml" <<YAML
 id: $id
 release_note: internal
 repo: $repo
 owner: $OWNER
 status: open
-goal: $GOAL
-why: $WHY
+goal: $(yq "$GOAL")
+why: $(yq "$WHY")
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/$id.yml
