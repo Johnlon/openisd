@@ -15,7 +15,7 @@ const {mine, mineLabel} = useDriverPlacement();
 </template>
 
 <style scoped>
-.placement-picture { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 8px; }
+.placement-picture { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 0; }
 .placement-picture-title { font-size: 12px; color: #444; }
 .placement-picture :deep(svg) { height: 64px; width: auto; }
 .placement-picture :deep(figcaption) { font-size: 10px; line-height: 11px; max-width: 90px; }

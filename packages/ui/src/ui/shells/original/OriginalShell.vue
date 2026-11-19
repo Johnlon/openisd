@@ -485,9 +485,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_ADDEDMASS_G" :value="project.driverAddedMass_kg.value" @update:value="v => project.driverAddedMass_kg.set(v)" /></div>
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.ALFAVC_PER_K" :value="project.alfaVC_per_K.value" @update:value="v => project.alfaVC_per_K.set(v)" /></div>
                 </div>
-
+                <DriverPlacementPicture />
               </div>
-              <DriverPlacementPicture />
             </div>
           </div>
           <div class="driver-hint-row">
