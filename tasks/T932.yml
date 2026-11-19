@@ -1,0 +1,12 @@
+id: T932
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: new-task.sh runs npm ci in a new worktree whose hard-linked node_modules does not match the worktree's package-lock.json, so a stale main checkout no longer leaves lz-string missing and typecheck failing.
+why: John, 3 Nov 2026: 'I approve uncontroversial fixes.' Agents ran npm ci by hand in five worktrees on 19 Nov 2026 because main's node_modules was built from the 15 Nov lockfile.
+done_test: bash scripts/land/test/new-task.test.sh
+files:
+  - tasks/T932.yml
+  - scripts/new-task.sh
+  - scripts/land/test/new-task.test.sh
