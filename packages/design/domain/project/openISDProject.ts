@@ -164,14 +164,15 @@ export class OpenISDProject {
      *  `#boxOver(this.#root())`; `#resolve()` calls it with a DIRECT (non-notifying) root of its
      *  own instead. Mirrors `#driverOver` exactly (S2-7d2). */
     #boxOver(root: SimpleField<OpenISDProjectJson>): OpenISDBox {
-        return OpenISDBox.wrap(
-            focus(root, 'box'), this.#driverOver(root), this.#engine,
-            () => driveLoadOf(root, this.#driverOver(root)),
-            () => this.#issues,
-            () => this.#issues.ventTuningExtra,
-            () => this.#airOver(root),
-            () => ProjectAdvanced.wrap(focus(root, 'advanced'), focus(root, 'filters')).winisdChartFromFsVasQms.value,
-        );
+        return OpenISDBox.wrap(focus(root, 'box'), {
+            driver: this.#driverOver(root),
+            engine: this.#engine,
+            load: () => driveLoadOf(root, this.#driverOver(root)),
+            issues: () => this.#issues,
+            ventTuningExtra: () => this.#issues.ventTuningExtra,
+            air: () => this.#airOver(root),
+            chartFromFsVasQms: () => ProjectAdvanced.wrap(focus(root, 'advanced'), focus(root, 'filters')).winisdChartFromFsVasQms.value,
+        });
     }
 
     /** Replace the embedded driver's whole record with `source`'s — the project adopting a

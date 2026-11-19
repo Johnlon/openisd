@@ -123,6 +123,22 @@ function chamberLossGroups(
     ];
 }
 
+/** What the project builds its box with, besides the lens onto its `box` slot: each is resolved at CALL time where it is a
+ *  closure, because it lives on the project, not the box. */
+export interface OpenISDBoxParts {
+    readonly driver: OpenISDDriverEmbedded;
+    readonly engine: Engine;
+    /** The amplifier's source impedance `Rg`, which loads the driver's Qts the way WinISD's readout does, and the driver
+     *  count and loading that scale its Vas. */
+    readonly load: () => DriveLoad;
+    readonly issues: () => ProjectIssues;
+    readonly ventTuningExtra: () => DqIssue | null;
+    /** The project's own resolved air. */
+    readonly air: () => Air;
+    /** Whether "Chart from Fs, Vas, Qms (WinISD's way)" is ticked on the project (QO539). */
+    readonly chartFromFsVasQms: () => boolean;
+}
+
 export class OpenISDBox implements Box {
     readonly boxType: SimpleField<BoxType>;
 
@@ -147,16 +163,8 @@ export class OpenISDBox implements Box {
     /** Whether "Chart from Fs, Vas, Qms (WinISD's way)" is ticked on the project (QO539). */
     readonly #chartFromFsVasQms: () => boolean;
 
-    private constructor(
-        lens: SimpleField<OpenISDBoxJson>,
-        driver: OpenISDDriverEmbedded,
-        engine: Engine,
-        load: () => DriveLoad,
-        issues: () => ProjectIssues,
-        ventTuningExtra: () => DqIssue | null,
-        air: () => Air,
-        chartFromFsVasQms: () => boolean,
-    ) {
+    private constructor(lens: SimpleField<OpenISDBoxJson>, parts: OpenISDBoxParts) {
+        const {driver, engine, load, issues, ventTuningExtra, air, chartFromFsVasQms} = parts;
         this.#chartFromFsVasQms = chartFromFsVasQms;
         this.#driver = driver;
         this.#engine = engine;
@@ -755,19 +763,10 @@ export class OpenISDBox implements Box {
         }
     }
 
-/** Takes the lens onto the project's `box` slot. The project owns that slot and builds the
+    /** Takes the lens onto the project's `box` slot. The project owns that slot and builds the
      *  lens, so the box needs no reference back to the project. */
-    static wrap(
-        slot: SimpleField<OpenISDBoxJson>,
-        driver: OpenISDDriverEmbedded,
-        engine: Engine,
-        load: () => DriveLoad,
-        issues: () => ProjectIssues,
-        ventTuningExtra: () => DqIssue | null,
-        air: () => Air,
-        chartFromFsVasQms: () => boolean,
-    ): OpenISDBox {
-        return new OpenISDBox(slot, driver, engine, load, issues, ventTuningExtra, air, chartFromFsVasQms);
+    static wrap(slot: SimpleField<OpenISDBoxJson>, parts: OpenISDBoxParts): OpenISDBox {
+        return new OpenISDBox(slot, parts);
     }
 
     /** The Vas of the starting radiator's compliance on `sd`, in `air`: the engine's solve works it out (the Vas-from-Cms route). */
