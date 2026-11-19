@@ -46,6 +46,8 @@ export interface PrEngine {
   /** Moving mass per radiator that tunes the box to `fp` — the inverse of `tuning`:
    *  `Map = N/((2π·fp)²·Cpar)`, `Mmp = Map·prSd²`. */
   massForFp(p: PrParams, fp: number, air: Air): number;
+  /** Whether a geometry figure (Vb, Mmd, Sd, Cms) is a number above 0, the only kind the solves can use. */
+  readonly isPositiveGeometry: (value: number | null) => value is number;
   /** Compliance-equivalent volume, cubic metres: `Vas = Cms·Sd²·ρ·c²`. */
   vas(prCms: number, prSd: number, air: Air): number;
   /** Compliance from Vas (cubic metres) and Sd — the inverse of `vas`. 0 when Sd ≤ 0. */
@@ -142,6 +144,8 @@ export class PrEngineImpl implements PrEngine {
     const Cpar = (Cab * Cap) / (Cab + Cap);
     return 1 / (2 * Math.PI * Math.sqrt(Map / p.prNum * Cpar));
   }
+
+  readonly isPositiveGeometry = isPositiveGeometry;
 
   massForFp(p: PrParams, fp: number, air: Air): number {
     const Cab  = p.Vb / (air.rho() * air.c() * air.c());

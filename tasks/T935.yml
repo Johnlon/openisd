@@ -1,0 +1,13 @@
+id: T935
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: 'Added mass for tuning readout is absent (never NaN) when a passive radiator has Sd 0 or Cms 0'
+why: 'John, 3 Nov 2026: "I approve uncontroversial fixes."; John 18 Nov 2026 QO953: "charts never go blank or NaN"'
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T935.yml
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/engine/pr/PrEngine.ts
+  - packages/design/test/domain/box-passive-radiator.test.ts
