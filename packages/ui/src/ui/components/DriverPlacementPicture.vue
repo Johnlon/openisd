@@ -4,19 +4,17 @@
 import {useDriverPlacement} from '../../hooks/DriverPlacement-hooks.js';
 import PlacementDiagram from './PlacementDiagram.vue';
 
-const {mine, mineLabel} = useDriverPlacement();
+const {mine} = useDriverPlacement();
 </script>
 
 <template>
   <div class="placement-picture" data-testid="placement-diagram" :data-placement="mine">
-    <div class="placement-picture-title">Placement: {{ mineLabel }}</div>
     <PlacementDiagram :placement="mine" />
   </div>
 </template>
 
 <style scoped>
 .placement-picture { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 0; }
-.placement-picture-title { font-size: 12px; color: #444; }
 .placement-picture :deep(svg) { height: 64px; width: auto; }
 .placement-picture :deep(figcaption) { font-size: 10px; line-height: 11px; max-width: 90px; }
 .placement-picture :deep(.pd-pair) { gap: 8px; }

@@ -37,6 +37,6 @@ defineProps<{ boxType: BoxType; loading: 'standard' | 'isobaric' }>();
 <style scoped>
 .bpd-pair { display: flex; justify-content: center; gap: 4px; }
 .bpd-fig { display: flex; flex-direction: column; align-items: center; margin: 0; gap: 2px; }
-.bpd-fig :deep(svg) { height: 126px; width: auto; flex: none; }
+.bpd-fig :deep(svg) { height: var(--bpd-h, 126px); width: auto; flex: none; }
 .bpd-fig figcaption { font-size: 10px; line-height: 12px; height: 24px; color: #444; text-align: center; max-width: 100px; }
 </style>

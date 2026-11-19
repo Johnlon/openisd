@@ -8,7 +8,7 @@ import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
-import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
+import BoxPlacementDiagram from '../../components/BoxPlacementDiagram.vue';
 import PhoneButton from './PhoneButton.vue';
 import PlacementDiagram from '../../components/PlacementDiagram.vue';
 import WizardHelpSheet from '../../components/WizardHelpSheet.vue';
@@ -203,7 +203,7 @@ function handleCreate() {
             </div>
             <WizardInfoButton label="About EBP" @click="openEbpInfo" />
           </div>
-          <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
+          <div class="mob-np-pic"><BoxPlacementDiagram :box-type="boxType" :loading="placement" /></div>
         </template>
 
         <!-- Step 4: Sealed Alignment -->
@@ -219,7 +219,7 @@ function handleCreate() {
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_KEY_FIGURES }}</span></div>
           <UIFixedField class="mob-ui-field" :label="PhoneWizardText.CALCULATED_QTC_LABEL" :field="NumberField.BOX_QTC_VALUE" :value="qtc" :deviation="sealedPickerDeviationShown ? WinisdDeviation.SEALED_PICKER : undefined" readonly plain />
           <UIFixedField class="mob-ui-field" :label="PhoneWizardText.BOX_RESONANCE_LABEL" :field="NumberField.BOX_FSC_HZ" :value="sealedFsc_hz" readonly plain />
-          <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
+          <div class="mob-np-pic"><BoxPlacementDiagram :box-type="boxType" :loading="placement" /></div>
         </template>
 
         <!-- Step 4: Vented Alignment -->
@@ -235,7 +235,7 @@ function handleCreate() {
           <div v-if="ventedVolumeWarning" class="mob-chint mob-chint-warn" role="alert" aria-live="polite" data-testid="np-vented-volume-warning">{{ ventedVolumeWarning }}</div>
           <UIFixedField class="mob-ui-field" input-id="np-vented-tuning" :label="PhoneWizardText.TUNING_FREQUENCY_LABEL" :field="NumberField.BOX_FB_HZ" :value="ventedTuning_hz" @update:value="setVentedTuning_hz" />
           <div v-if="ventedTuningWarning" class="mob-chint mob-chint-warn" role="alert" aria-live="polite" data-testid="np-vented-tuning-warning">{{ ventedTuningWarning }}</div>
-          <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
+          <div class="mob-np-pic"><BoxPlacementDiagram :box-type="boxType" :loading="placement" /></div>
         </template>
 
         <!-- Step 4: Passive Radiator (WinISD's own wizard step: the radiator and its Vas / Qms / Fs / Sd / Xmax) -->
@@ -247,7 +247,7 @@ function handleCreate() {
               @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
             @rename="setPassiveRadiatorName" @load-saved="loadSavedPassiveRadiator" @load-bundled="loadBundledPassiveRadiator" :editor="passiveRadiatorEditor" @define="startDefinePassiveRadiator" />
           <div v-if="passiveRadiatorPickError" class="mob-chint mob-chint-warn np-pr-error" role="alert" aria-live="polite">{{ passiveRadiatorPickError }}</div>
-          <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
+          <div class="mob-np-pic"><BoxPlacementDiagram :box-type="boxType" :loading="placement" /></div>
         </template>
 
         <!-- Step 4: Chambers (4th and 6th order bandpass, ABC): each chamber's volume and tuning together -->
@@ -258,7 +258,7 @@ function handleCreate() {
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_FRONT_CHAMBER }}</span></div>
           <UIFixedField class="mob-ui-field" input-id="np-front-volume" :label="PhoneWizardText.VOLUME_LABEL" :field="NumberField.BOX_VF_L" :value="frontVolume_m3" @update:value="v => frontVolume_m3 = v" />
           <UIFixedField class="mob-ui-field" input-id="np-front-tuning" :label="PhoneWizardText.TUNING_LABEL" :field="NumberField.BOX_FFC_HZ" :value="frontTuning_hz" @update:value="v => frontTuning_hz = v" />
-          <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
+          <div class="mob-np-pic"><BoxPlacementDiagram :box-type="boxType" :loading="placement" /></div>
         </template>
 
         <!-- Step 5: Project Information -->

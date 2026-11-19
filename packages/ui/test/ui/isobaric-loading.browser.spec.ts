@@ -294,8 +294,15 @@ for (const shell of [DESKTOP, PHONE]) {
       await page.getByText(TEST_DRIVER).click();
       await page.locator('.mob-np-footer').getByText('Next ▸', {exact: true}).click();
       await picture(page, 'pair-phone-new-project-standard');
+      await page.locator('.mob-np-footer').getByText('Next ▸', {exact: true}).click();
+      await page.locator('#np-box-type').selectOption({label: 'Closed'});
+      await picture(page, 'pair-phone-new-project-box-step-standard');
+      await page.locator('.mob-np-footer').getByRole('button', {name: /Back/}).click();
       await page.locator('#np-placement').selectOption('isobaric');
       await picture(page, 'pair-phone-new-project-isobarik');
+      await page.locator('.mob-np-footer').getByText('Next ▸', {exact: true}).click();
+      await page.locator('#np-box-type').selectOption({label: 'Closed'});
+      await picture(page, 'pair-phone-new-project-box-step-isobarik');
     } else {
       await page.goto('/');
       await page.locator('.tb-btn[title*="New project"]').click();
@@ -305,7 +312,71 @@ for (const shell of [DESKTOP, PHONE]) {
       await picture(page, 'pair-desktop-new-project-standard');
       await overlay.locator('input[name=placement][value=isobaric]').check();
       await picture(page, 'pair-desktop-new-project-isobarik');
+      const next = overlay.locator('.modal-footer').getByRole('button', {name: 'Next', exact: true});
+      await next.click();
+      await page.locator('#np-box-type').selectOption({label: 'Closed'});
+      await picture(page, 'pair-desktop-new-project-step3-isobarik');
+      await next.click();
+      await picture(page, 'pair-desktop-new-project-step4-isobarik');
+      await next.click();
+      await picture(page, 'pair-desktop-new-project-step5-isobarik');
     }
     await expect(page.locator('.overlay.open, .mob-np-overlay').first()).toBeVisible();
   });
+}
+
+/** John: "dlg changing size for a workflow is anti pattern". The desktop New Project dialog is one size on every step and in both placements. */
+for (const boxType of ['Closed', 'Vented'] as const) {
+  for (const placement of ['standard', 'isobaric'] as const) {
+    test(`desktop New Project: one dialog height on all 5 steps (${boxType}, ${placement})`, async ({appPage: page}) => {
+      await page.goto('/');
+      await page.locator('.tb-btn[title*="New project"]').click();
+      const overlay = page.locator('.overlay.open');
+      const modal = overlay.locator('.modal');
+      const heights: number[] = [];
+      const measure = async (): Promise<void> => { heights.push(Math.round((await modal.boundingBox())!.height)); };
+      await measure();
+      await overlay.locator('.dlist .ditem', {hasText: 'W5-1138SMF'}).first().click();
+      const next = overlay.locator('.modal-footer').getByRole('button', {name: 'Next', exact: true});
+      await next.click();
+      await overlay.locator(`input[name=placement][value=${placement}]`).check();
+      await measure();
+      await next.click();
+      await page.locator('#np-box-type').selectOption({label: boxType});
+      await measure();
+      await next.click();
+      await measure();
+      await next.click();
+      await measure();
+      console.log(`DIALOG ${boxType} ${placement} ${JSON.stringify(heights)}`);
+      expect(new Set(heights).size, `dialog heights per step ${JSON.stringify(heights)}`).toBe(1);
+    });
+  }
+}
+
+/** The two-chamber Box tabs at the default window: the Rear chamber's controls keep a gap before the Front chamber's labels, and each header bar spans its controls. */
+for (const boxType of ['abc', 'bandpass4', 'bandpass6'] as const) {
+  for (const loadingChoice of ['standard', 'isobaric'] as const) {
+    test(`desktop 1280: ${boxType} (${loadingChoice}) keeps the gap between the chambers and its header bars span their controls`, async ({appPage: page}) => {
+      await page.setViewportSize({width: 1280, height: 720});
+      await DESKTOP.open(page);
+      await openTab(page, 'Driver');
+      if (loadingChoice === 'isobaric') await DESKTOP.chooseIsobaric(page);
+      await setFocusedBoxType(page, boxType);
+      await openTab(page, 'Box');
+      const cols = page.locator('.box-tab-row .box-fields-col');
+      await expect(cols).toHaveCount(2);
+      const rects = await cols.evaluateAll((els) => els.map((col) => {
+        const controls = [...col.querySelectorAll('button, input, select')].filter((e) => e.getClientRects().length > 0).map((e) => e.getBoundingClientRect());
+        const header = col.querySelector('.section-header')!.getBoundingClientRect();
+        const labels = [...col.querySelectorAll('label')].filter((e) => e.getClientRects().length > 0).map((e) => e.getBoundingClientRect());
+        return {controlsRight: Math.max(...controls.map((r) => r.right)), headerRight: header.right, headerLeft: header.left, labelsLeft: Math.min(...labels.map((r) => r.left))};
+      }));
+      const gap = rects[1].labelsLeft - rects[0].controlsRight;
+      await picture(page, `two-chamber-${boxType}-${loadingChoice}`);
+      console.log(`GAP ${boxType} ${loadingChoice} gap ${gap} headers ${rects.map((r) => `${r.headerRight}>=${r.controlsRight}`).join(' ')}`);
+      expect(gap, `${boxType}: gap between the Rear chamber's controls and the Front chamber's labels`).toBeGreaterThanOrEqual(16);
+      for (const r of rects) expect(r.headerRight, `${boxType}: header bar spans its controls`).toBeGreaterThanOrEqual(r.controlsRight);
+    });
+  }
 }

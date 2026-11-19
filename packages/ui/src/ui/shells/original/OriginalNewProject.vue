@@ -9,7 +9,7 @@ import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
-import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
+import BoxPlacementDiagram from '../../components/BoxPlacementDiagram.vue';
 import PlacementDiagram from '../../components/PlacementDiagram.vue';
 import UIPickField from '../../components/UIPickField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
@@ -189,7 +189,7 @@ function handleCreate() {
           </div>
 
           <div class="box-diagram-container">
-            <BoxTypeDiagram :box-type="boxType" />
+            <BoxPlacementDiagram :box-type="boxType" :loading="placement" />
           </div>
         </div>
 
@@ -299,13 +299,14 @@ function handleCreate() {
 .np-chamber h4 { margin: 0 0 8px; font-weight: 600; }
 .np-chamber .field { margin-bottom: 6px; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.18); z-index: 100; display: flex; align-items: flex-start; justify-content: center; }
-.modal { margin-top: 6vh; background: #f7f7f7; border: 1px solid #888; box-shadow: 3px 6px 18px rgba(0,0,0,.35); width: 800px; max-width: 92vw; }
+.modal { margin-top: 6vh; background: #f7f7f7; border: 1px solid #888; box-shadow: 3px 6px 18px rgba(0,0,0,.35); width: 800px; max-width: 92vw; display: flex; flex-direction: column; height: 586px; max-height: 92vh; }
+/* One size on every step and in both placements (John: "dlg changing size for a workflow is anti pattern"): the tallest step, the driver library, sets it. */
 .modal-titlebar { display: flex; align-items: center; justify-content: space-between; background: #e9e9e9; border-bottom: 1px solid #bbb; padding: 8px 12px; font-size: 15px; }
 .modal-titlebar .tb-left { display: flex; align-items: center; gap: 8px; }
 .modal-titlebar .app-icon { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #888, #333 70%); }
 .modal-titlebar .close-btn { cursor: pointer; padding: 1px 6px; color: #555; }
 .modal-titlebar .close-btn:hover { background: #e64545; color: #fff; }
-.modal-body { padding: 16px 20px; }
+.modal-body { padding: 16px 20px; flex: 1 1 auto; overflow-y: auto; }
 .np-step { color: #666; margin-bottom: 10px; font-weight: 500; }
 .step-content { margin-top: 10px; }
 .selected-driver-banner { background: #eef4fc; border: 1px solid #b8d4f8; padding: 6px 10px; border-radius: 3px; margin-bottom: 12px; font-size: 13px; color: #224466; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
