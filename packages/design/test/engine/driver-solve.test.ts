@@ -479,6 +479,34 @@ describe('Engine.solveDriver', () => {
       expect(refusals(issues)).toEqual([]);
       expect(p.Magnet_m.value).toBeCloseTo(0.020, 9);
   });
+
+    // BUG_20261119_magdepth-refused-for-a-wide-magnet: WinISD guards the MagDepth direction only on
+    // "target blank, the other five > 0" (winisd_research/archive/GHIDRA_FINDINGS.md "The DVol
+    // geometry relation"). A 170 mm magnet on a 220 mm cone is wider than sqrt(S/3) = 149 mm, so
+    // S - 3*Magnet^2 is negative, and so is the numerator: the answer is an ordinary 70 mm.
+    it('a magnet wider than sqrt(S/3) still gives MagDepth (Dd 220, Vcd 65, Depth 150, Magnet 170 mm, DVol 2.991 L -> 70 mm)', () => {
+      const p = driverParams({Dd_m: 0.220, Vcd_m: 0.065, Depth_m: 0.150, Magnet_m: 0.170, DVol_m3: 0.002991});
+      const issues = engine.driver.solve(p, AIR_E);
+      expect(refusals(issues)).toEqual([]);
+      expect(p.MagDepth_m.calculated).toBe(true);
+      expect(p.MagDepth_m.value).toBeCloseTo(0.0700, 3);
+    });
+
+    it('the same wide magnet with DVol from MagDepth 70 mm exactly gives 70 mm back', () => {
+      const p = driverParams({Dd_m: 0.220, Vcd_m: 0.065, Depth_m: 0.150, Magnet_m: 0.170, DVol_m3: 0.0029905344068296845});
+      const issues = engine.driver.solve(p, AIR_E);
+      expect(refusals(issues)).toEqual([]);
+      expect(p.MagDepth_m.value).toBeCloseTo(0.070, 9);
+    });
+
+    it('a magnet of exactly sqrt(S/3) (zero denominator) is still refused, and says why', () => {
+      const Dd = 0.220, Vcd = 0.065;
+      const Magnet = Math.sqrt((Dd * Dd + Dd * Vcd + Vcd * Vcd) / 3);
+      const p = driverParams({Dd_m: Dd, Vcd_m: Vcd, Depth_m: 0.150, Magnet_m: Magnet, DVol_m3: 0.002991});
+      const issues = engine.driver.solve(p, AIR_E);
+      expect(p.MagDepth_m.value).toBeNull();
+      expect(refusals(issues)).toMatchObject([{target: 'MagDepth_m'}]);
+    });
   });
 
   // A calculated value's half-width is the guaranteed first-order bound its entered inputs give
