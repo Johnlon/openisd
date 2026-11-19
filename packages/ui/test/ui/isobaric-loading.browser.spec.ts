@@ -9,6 +9,8 @@ import {expect, expectChartDrawn, openAMobileProject, openAProject, openTab, set
 import {fillAndBlur} from '../fixtures/numField.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {PIXEL_9} from '../fixtures/phoneSizes.js';
+import {REJECTED_INPUT_STEPS} from '../fixtures/viewOpenRejected.js';
+import {openPhoneWizardStep} from '../fixtures/viewOpenNavigation.js';
 
 const TEST_DRIVER = 'Tang Band W5-1138SMF';
 const PICTURES = process.env['ISOBARIC_PICTURES'];
@@ -399,4 +401,49 @@ for (const boxType of ['abc', 'bandpass4', 'bandpass6'] as const) {
       for (const r of rects) expect(r.headerRight, `${boxType}: header bar spans its controls`).toBeGreaterThanOrEqual(r.controlsRight);
     });
   }
+}
+
+/** The passive radiator step of New Project (desktop: two columns of rows), with the pick error showing and without; nothing clipped. */
+const PR_STEP = {
+  desktop: {root: '.overlay.open .modal', prepare: async (): Promise<void> => undefined, error: 'desktop/projects/new/passive-radiator-pick-error', plain: async (page: Page): Promise<void> => {
+    await page.goto('/');
+    await page.locator('.tb-btn[title*="New project"]').click();
+    const modal = page.locator('.overlay.open');
+    await modal.locator('.dlist .ditem').first().click();
+    await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
+    await modal.locator('button', {hasText: 'Next'}).click();
+    await modal.getByLabel('Box type').selectOption('box-passive-radiator');
+    await modal.locator('button', {hasText: 'Next'}).click();
+  }},
+  phone: {root: '.mob-np-overlay', prepare: async (page: Page): Promise<void> => { await page.setViewportSize(PIXEL_9); await forceMobileSkin(page); }, error: 'phone/wizard-passive-radiator-pick-error', plain: async (page: Page): Promise<void> => {
+    await page.setViewportSize(PIXEL_9);
+    await forceMobileSkin(page);
+    await page.goto('/');
+    await openPhoneWizardStep(page, 'box-passive-radiator', 4);
+  }},
+};
+
+for (const name of ['desktop', 'phone'] as const) {
+  const step = PR_STEP[name];
+  // The phone's wizard body scrolls by design (a phone is shorter than the step); the desktop dialog must not scroll or clip.
+  const allowedScroll = {desktop: 0, phone: Number.MAX_SAFE_INTEGER}[name];
+  const clipped = (page: Page): Promise<number> => page.locator(step.root).first().evaluate((el) => { const body = el.querySelector('.modal-body, .mob-np-body') ?? el; return body.scrollHeight - body.clientHeight; });
+
+  test(`${name}: New Project passive radiator step, plain, nothing clipped`, async ({appPage: page}) => {
+    await step.plain(page);
+    await expect(page.locator('#np-pr-select')).toBeVisible();
+    await picture(page, `pr-step-${name}-plain`);
+    expect(await clipped(page), `${name}: plain step scrolls or clips`).toBeLessThanOrEqual(allowedScroll);
+  });
+
+  test(`${name}: New Project passive radiator step with the pick error, nothing clipped`, async ({page}) => {
+    const entry = REJECTED_INPUT_STEPS.find(([, id]) => id === step.error);
+    expect(entry, step.error).toBeDefined();
+    await step.prepare(page);
+    await entry![2].open(page);
+    await page.locator('.np-pr-error').scrollIntoViewIfNeeded();
+    await expect(page.locator('.np-pr-error')).toBeInViewport({ratio: 1});
+    await picture(page, `pr-step-${name}-error`);
+    expect(await clipped(page), `${name}: step with the error scrolls or clips`).toBeLessThanOrEqual(allowedScroll);
+  });
 }

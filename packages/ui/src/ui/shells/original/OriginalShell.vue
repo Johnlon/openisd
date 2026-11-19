@@ -438,13 +438,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             </template>
 
           </div>
-          </div>
-          <div class="box-diagram-col">
-              <BoxPlacementDiagram :box-type="selectedBox" :loading="project.loading.value" />
-            </div>
-            <!-- Notes sit BESIDE the diagram, not under the row: stacked below, they grew the
-                 pane (and so the whole bottom track, which is auto-sized) whenever a box type
-                 with notes was picked, shifting the chart above. -->
+            <!-- Notes sit under the fields, in the width of the two field columns (the drawings own the column to the right),
+                 so every hint fits at the default window without a scrollbar. -->
             <div class="box-notes-col">
               <p class="hint"><b>Rear chamber</b> is the chamber behind the driver, <b>front chamber</b> the one in front of it. Closed, vented and passive radiator boxes have a rear chamber only.</p>
               <p v-if="selectedBox === 'sealed'" class="hint"><b>Sealed (Fsc):</b> System resonance frequency where the speaker impedance peaks and below which the response rolls off at 12 dB/octave. Volume, Fsc and Qtc fix each other: type any one and the other two follow.</p>
@@ -454,6 +449,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <p v-if="selectedBox === 'bandpass6'" class="hint"><b>Bandpass 6th order:</b> Dual-tuned bandpass filter. Front and rear chambers are both tuned to separate port frequencies to shape the passband.</p>
               <p v-if="selectedBox === 'abc'" class="hint">ABC's driver mounts on the outer baffle, firing straight into the room — unlike 4th/6th order bandpass, where the driver is fully enclosed and fires only into the two internal chambers.</p>
               <p v-if="pending" class="hint pending-note"><b>Response model pending.</b> The engine doesn't model this enclosure type yet — the diagram and chamber volumes are editable, but no curve is computed.</p>
+            </div>
+          </div>
+          <div class="box-diagram-col">
+              <BoxPlacementDiagram :box-type="selectedBox" :loading="project.loading.value" />
             </div>
           </div>
         </section>
@@ -1308,9 +1307,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* The fields column sets the row height; this column follows it (size containment keeps its text
    out of the row's height) and scrolls inside when its text is taller, so the bottom panel never
    grows per box type. */
-.box-notes-col { flex:1 1 240px; min-width:100px; max-width:260px; display:flex; flex-direction:column; gap:8px; align-self:stretch; min-height:0; contain:size; overflow-y:auto; overflow-x:hidden; }
-.box-notes-col > * { flex:none; }
-.box-notes-col .hint { margin:0; }
+.box-notes-col { columns:2; column-gap:24px; }
+.box-notes-col > .hint { break-inside:avoid; margin:0 0 2px; }
 .pending-note { color:#7a5b1a; }
 .vent-groups { display:flex; gap:20px; }
 .vent-port-row { display:flex; gap:12px; margin-bottom:2px; }
