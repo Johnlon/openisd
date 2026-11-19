@@ -29,7 +29,7 @@ const {mine, options, choose, onSelect} = useDriverPlacement();
 
 <style scoped>
 .placement-pic { display: flex; justify-content: center; align-items: center; }
-.placement-pic-phone { padding: 8px 0; border-bottom: 1px solid #e6e6e6; }
+.placement-pic-phone { padding: 16px 0 12px; border-bottom: 1px solid #e6e6e6; }
 .placement-pic-phone :deep(svg) { height: 80px; width: auto; }
 .placement-pic-phone :deep(figcaption) { font-size: 10px; line-height: 11px; max-width: 90px; }
 </style>

@@ -162,7 +162,7 @@ function handleCreate() {
           </div>
           <div class="np-placement-pic">
             <PlacementDiagram :placement="placement" />
-            <div v-if="placement === 'isobaric'" class="np-placement-caption">{{ PhoneWizardText.ISOBARIK_CAPTION }}</div>
+            <div class="np-placement-caption" :class="{'np-placement-caption-off': placement !== 'isobaric'}" :aria-hidden="placement !== 'isobaric'">{{ PhoneWizardText.ISOBARIK_CAPTION }}</div>
           </div>
         </div>
 
@@ -320,8 +320,11 @@ function handleCreate() {
 .field input { width: 140px; }
 .field .unit { color: #555; }
 .radio-group { display: grid; align-items: center; margin-bottom: 12px; }
-.np-placement-pic { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 12px; }
-.np-placement-caption { font-size: 13px; color: #666; }
+.np-placement-pic { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 16px; }
+/* The note starts where the labels above it start. */
+.np-placement-caption { align-self: flex-start; font-size: 13px; color: #666; }
+/* The note's row stays for Standard so the dialog keeps its size when Placement changes. */
+.np-placement-caption-off { visibility: hidden; }
 .placement-label { color: #333; white-space: nowrap; }
 .placement-choices { display: inline-flex; align-items: center; gap: 16px; }
 /* The first radio circle starts at the column edge, where the boxes above and below start. */

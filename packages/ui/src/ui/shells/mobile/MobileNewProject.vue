@@ -183,7 +183,7 @@ function handleCreate() {
           </div>
           <div class="mob-np-pic mob-np-pic-note">
             <PlacementDiagram :placement="placement" />
-            <div v-if="placement === 'isobaric'" class="mob-np-pic-caption">{{ PhoneWizardText.ISOBARIK_CAPTION }}</div>
+            <div class="mob-np-pic-caption" :class="{'mob-np-pic-caption-off': placement !== 'isobaric'}" :aria-hidden="placement !== 'isobaric'">{{ PhoneWizardText.ISOBARIK_CAPTION }}</div>
           </div>
         </template>
 
@@ -321,9 +321,11 @@ function handleCreate() {
 /* Placement: the select keeps its width; the ⓘ sits in the 90 px stepper area (46 + 44) */
 .mob-classic .mob-cselect.mob-cselect-info { margin-right: 46px; }
 .mob-np-info { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: none; background: none; color: var(--acc); padding: 0; cursor: pointer; }
-.mob-np-pic { display: flex; justify-content: center; align-items: center; padding: 12px 0; border-bottom: 1px solid #e6e6e6; }
-.mob-np-pic-note { flex-direction: column; gap: 4px; }
-.mob-np-pic-caption { font-size: 13px; color: #666; }
+.mob-np-pic { display: flex; justify-content: center; align-items: center; padding: 16px 0 12px; border-bottom: 1px solid #e6e6e6; }
+.mob-np-pic-note { flex-direction: column; gap: 8px; }
+/* The note starts where the labels above it start (the row edge), not at the screen edge. */
+.mob-np-pic-caption-off { visibility: hidden; }
+.mob-np-pic-caption { align-self: stretch; box-sizing: border-box; padding: 0 var(--mob-edge); font-size: 13px; color: #666; }
 
 /* Alignment: prod's option names are long, so the label sits above a full-width select */
 .mob-classic .mob-crow-stack { flex-direction: column; align-items: stretch; height: auto; padding: 0 var(--mob-edge) 8px; }

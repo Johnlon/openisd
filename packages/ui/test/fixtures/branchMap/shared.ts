@@ -1,14 +1,14 @@
 import type {BranchMap} from './types.js';
 /** Shared (neither shell) scanned branches, drawn on both skins, mapped to the view each one is, or sits inside. Phone view ids are used where a view exists per skin. */
 export const SHARED_BRANCH_MAP:BranchMap={
+  'conditional-branch-894ed0a436a112ca':{kind:'partOf',view:'box-sealed'}, // components/BoxPlacementDiagram.vue:18 (one driver, the Box tab)
+  'conditional-branch-4a06f994d1e6ee49':{kind:'partOf',view:'box-sealed'}, // components/BoxPlacementDiagram.vue:24 (the Iso-Barik pair, the Box tab)
+  'conditional-branch-3fc6dc87e6d864b5':{kind:'partOf',view:'wizard-placement'}, // components/PlacementDiagram.vue:15
   'conditional-branch-cd66175048d64d4b':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:16
   'conditional-branch-09a5ecaf37ab2624':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:23
   'conditional-branch-b8a825f4f5ced54d':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:14
   'conditional-branch-34f60700bc70d590':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:15
   'conditional-branch-04178604c72209a3':{kind:'partOf',view:'wizard-placement'}, // components/PlacementDiagram.vue:21
-  'conditional-branch-5d536870a349e211':{kind:'partOf',view:'wizard-placement'}, // components/PlacementDiagram.vue:15
-  'conditional-branch-85b6a5b55ae43844':{kind:'partOf',view:'box-sealed'}, // components/BoxPlacementDiagram.vue:16 (the Iso-Barik pair, the Box tab)
-  'conditional-branch-4435d1e551ad777b':{kind:'partOf',view:'box-sealed'}, // components/BoxPlacementDiagram.vue:15 (one driver, the Box tab)
   'conditional-branch-c30b881777091cc0':{kind:'view',view:'shared/field-catalogue'}, // App.vue:157
   'conditional-branch-f00473ae100ea10b':{kind:'notAView',reason:'skin switch that mounts the phone shell'}, // App.vue:158
   'conditional-branch-1cd7b2da45fdd08a':{kind:'notAView',reason:'skin switch that mounts the desktop shell'}, // App.vue:159
