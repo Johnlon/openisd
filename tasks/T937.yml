@@ -1,0 +1,17 @@
+id: T937
+release_note: 'A vented box with no losses (Ql and Qa at 1e6) now draws the same SPL and impedance as WinISD with the transmission-line port model off, as it already did with it on.'
+repo: openisd
+owner: agent
+status: done
+goal: Vented box with Ql = Qa at 1e6 or above uses WinISD's one fixed-loss form (the lossless branch is removed for the TL port model off, as it was for on)
+why: 'WinISD capture 19 Nov 2026, winisd_research 780edb1; card agy-bugs-4. bugs/BUG_20261119_vented-lossless-branch-not-winisd-form.md. Changed existing test input: boxModel.test.ts vented case gets Fb 38 Hz (no expected value changed), for the lead to review.'
+done_test: bash scripts/test.sh packages/design/test/engine/vented-lossless-winisd.test.ts packages/design/test/engine/boxModel.test.ts
+files:
+  - tasks/T937.yml
+  - bugs/BUG_20261119_vented-lossless-branch-not-winisd-form.md
+  - packages/design/engine/circuit.ts
+  - packages/design/test/engine/vented-lossless-winisd.test.ts
+  - packages/design/test/engine/boxModel.test.ts
+  - packages/design/test/fixtures/winisdVentedTl0LosslessCapture.ts
+  - packages/design/test/winisd/fixtures/vented-w5-tl0-ql1e6-qp15.wpr
+  - packages/design/test/winisd/fixtures/vented-w5-tl0-ql1e6-qp100.wpr
