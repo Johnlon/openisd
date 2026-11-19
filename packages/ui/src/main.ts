@@ -70,6 +70,7 @@ import {DesignFiles} from './logic/fileImportExport.js';
 import {DriverDrafts} from './logic/driverDraft.js';
 import {createConfirmPort} from './logic/confirmPort.js';
 import {createExportNotice} from './logic/exportNotice.js';
+import {createLoadRepairNotice} from './logic/loadRepairNotice.js';
 import {provideApp} from './logic/app.js';
 import {createAppState, NoFocusedProjectError} from './logic/appState.js';
 import {createPresentationState} from './logic/presentationState.js';
@@ -275,7 +276,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const upgrade = store.readOnly ? {kind: 'nothingToDo' as const} : createStoredTextCompaction(storage, storageBackup, createLedgerFollowsRewrite(storage, randomBytes)).run();
   // Refused copies replace the old quarantine copy of the session: it is removed once, behind the backup.
   if (!store.readOnly) createQuarantineRetirement(storage, storageBackup).run();
-  const projectRepo = createProjectRepo(engine, fileStorage, storage, new URL('./', window.location.href).href, storageBackup, exportedFiles, report => faultLog.recordRepair(report), saves.notify);
+  const projectRepo = createProjectRepo(engine, fileStorage, storage, new URL('./', window.location.href).href, storageBackup, exportedFiles, report => faultLog.recordRepair(report), saves.notify,
+    createLoadRepairNotice(message => logging.flash(message), show => queueMicrotask(show)));
   const deviceName = DeviceName.ofBrowser(navigator.userAgent, navigator.maxTouchPoints);
   const binMarks = createProjectBinMarks(storage, storageBackup);
   const projectBin = createProjectBin({

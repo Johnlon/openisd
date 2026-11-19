@@ -4,11 +4,21 @@ import type { SimpleField } from '../cell.js';
 import { calculatedEntry, enteredEntry } from '../specEntry.js';
 import type { OpenISDProjectJson } from '../openisdSchema.js';
 import { NumberField } from '../../fields/field.js';
+import { fieldLoadRule, loadRepairText } from './loadRepair.js';
+import type { LoadRepairRule } from './loadRepair.js';
 
 /** The voltage a sweep runs at before anything is known. */
 const DEFAULT_DRIVE_VOLTAGE_V = 1;
 /** The lowest drive voltage a project may hold: 10 mV, the Driver input voltage box's own minimum. */
 const MIN_DRIVE_VOLTAGE_V = NumberField.SIGNAL_DRIVEV_V.limits.min;
+/** "the 10 mV minimum": how a message names that minimum (the field's own load repair). */
+const MIN_DRIVE_DESCRIBED = describedMinimum();
+
+function describedMinimum(): string {
+    const repair = NumberField.SIGNAL_DRIVEV_V.loadRepair;
+    if (repair === null) throw new Error(`${NumberField.SIGNAL_DRIVEV_V.value} must state its load repair`);
+    return repair.described;
+}
 
 /** A project's own signal window (drive power/voltage), built fresh on every access — same
  *  reasoning as `driver`/`box`/`ProjectMeta`/`ProjectEnvironment`.
@@ -64,13 +74,11 @@ export class ProjectSignal {
             },
             {
                 entered: (v: number) => {
-                    const Re_ohm = this.#usableRe();
-                    if (Re_ohm === null) {
+                    if (this.#usableRe() === null) {
                         throw new Error('powerDrive_W cannot be entered: the driver has no usable Re_ohm yet.');
                     }
-                    if (!(v > 0 && this.#amplifierVoltageFor(v, Re_ohm, this.readoutRs_ohm) >= MIN_DRIVE_VOLTAGE_V)) {
-                        throw new RangeError(`powerDrive_W ${v} W drives below the 10 mV minimum voltage.`);
-                    }
+                    // Refused, the previous value kept: the box's own bounds (`minimumPower_W`) say why.
+                    if (this.powerDriveRefusal(v) !== '') return;
                     signal.set({...signal.value, power_W: enteredEntry(v), voltage_V: undefined});
                 },
                 // With Re known, the voltage stays as it reads and becomes the entered one.
@@ -91,6 +99,68 @@ export class ProjectSignal {
         return this.#winisdReWithoutRg() ? 0 : this.#rsOhm();
     }
 
+    /** Why a typed drive voltage is refused (below the 10 mV minimum, QO953.c21, c26); '' when it is taken. */
+    driveVoltageRefusal(v: number): string {
+        if (v >= MIN_DRIVE_VOLTAGE_V) return '';
+        return `${NumberField.SIGNAL_DRIVEV_V.label} ${v} ${NumberField.SIGNAL_DRIVEV_V.unitLabel()} is below ${MIN_DRIVE_DESCRIBED}, so the previous value stays.`;
+    }
+
+    /** Why a typed drive power is refused (0 W or below, or a power that drives the amplifier below
+     *  10 mV, QO953.c21, c26); '' when it is taken. Without a usable Re no power can be entered at all. */
+    powerDriveRefusal(v: number): string {
+        const Re_ohm = this.#usableRe();
+        if (Re_ohm === null) return `${NumberField.SIGNAL_PIN_W.label} cannot be entered: the driver has no usable Re yet.`;
+        if (v > 0 && this.#amplifierVoltageFor(v, Re_ohm, this.readoutRs_ohm) >= MIN_DRIVE_VOLTAGE_V) return '';
+        return `${NumberField.SIGNAL_PIN_W.label} ${v} ${NumberField.SIGNAL_PIN_W.unitLabel()} drives below ${MIN_DRIVE_DESCRIBED}, so the previous value stays.`;
+    }
+
+    /** The smallest power the System input power box takes: its own minimum, or the power that drives
+     *  10 mV when that is more. The box's minimum alone without a usable Re (the box is locked then). */
+    get minimumPower_W(): number {
+        const Re_ohm = this.#usableRe();
+        if (Re_ohm === null) return NumberField.SIGNAL_PIN_W.limits.min;
+        return Math.max(NumberField.SIGNAL_PIN_W.limits.min, this.#powerFor(MIN_DRIVE_VOLTAGE_V, Re_ohm));
+    }
+
+    /** The load repair rules of the drive level (`loadRepair.ts`), run once when a project opens:
+     *  a voltage below 10 mV is set to 10 mV; an entered power of 0 W or below, or one driving below
+     *  10 mV, is set to the power that drives 10 mV. The voltage is checked when it is the one
+     *  entered, or when no power is entered to recalculate it from. */
+    loadRepairRules(): readonly LoadRepairRule[] {
+        const signal = this.#lens;
+        const voltage = fieldLoadRule(NumberField.SIGNAL_DRIVEV_V,
+            () => {
+                const {voltage_V, power_W} = signal.value;
+                if (voltage_V === undefined) return null;
+                return voltage_V.state === 'E' || power_W?.state !== 'E' ? voltage_V.value : null;
+            },
+            v => {
+                const {voltage_V} = signal.value;
+                signal.set({...signal.value, voltage_V: voltage_V?.state === 'C' ? calculatedEntry(v) : enteredEntry(v)});
+            });
+        const power: LoadRepairRule = {
+            field: NumberField.SIGNAL_PIN_W,
+            loaded: () => {
+                const {power_W} = signal.value;
+                return power_W?.state === 'E' && this.#usableRe() !== null ? power_W.value : null;
+            },
+            breaks: v => this.powerDriveRefusal(v) !== '',
+            fix: v => {
+                const Re_ohm = this.#usableRe();
+                if (Re_ohm === null) throw new Error('a power is repaired only against a usable Re');
+                const P = this.#powerFor(MIN_DRIVE_VOLTAGE_V, Re_ohm);
+                return {value: P, text: loadRepairText(NumberField.SIGNAL_PIN_W, v, `${NumberField.SIGNAL_PIN_W.format(P)} ${NumberField.SIGNAL_PIN_W.unitLabel()}, the power that drives ${MIN_DRIVE_DESCRIBED}`)};
+            },
+            write: v => signal.set({...signal.value, power_W: enteredEntry(v)}),
+        };
+        return [voltage, power];
+    }
+
+    /** The power this project's drivers draw at amplifier voltage `voltage_V` (the inverse of `#amplifierVoltageFor`). */
+    #powerFor(voltage_V: number, Re_ohm: number): number {
+        return this.#engine.powerFor(voltage_V, this.#nDrivers(), this.#driverWiring(), Re_ohm, this.readoutRs_ohm, this.#rgAtDriverSide());
+    }
+
     /** The amplifier voltage that delivers `power_W` into this project's drivers, wired as chosen. */
     #amplifierVoltageFor(power_W: number, Re_ohm: number, rs_ohm: number): number {
         return this.#engine.amplifierVoltageFor(power_W, this.#nDrivers(), this.#driverWiring(), Re_ohm, rs_ohm, this.#rgAtDriverSide());
@@ -109,7 +179,8 @@ export class ProjectSignal {
 
     /**
      * The drive voltage each driver gets — the `eg` every sweep runs at (see `sweepVoltage_V`). Never absent: an empty slot reads
-     * `DEFAULT_DRIVE_VOLTAGE_V` as calculated, and it is never below 10 mV. Entering it needs no
+     * `DEFAULT_DRIVE_VOLTAGE_V` as calculated, and it is never below 10 mV: a typed one is refused,
+     * a loaded one repaired on opening (`loadRepairRules`). Entering it needs no
      * Re. `.clear()` empties the pair; the resolve then fills it back from its defaults.
      */
     get driveVoltage_V(): DefaultingFieldImpl<number> {
@@ -124,7 +195,8 @@ export class ProjectSignal {
             },
             {
                 entered: (v: number) => {
-                    if (!(v >= MIN_DRIVE_VOLTAGE_V)) throw new RangeError(`driveVoltage_V ${v} V is below the 10 mV minimum.`);
+                    // Refused, the previous value kept: the box's own bounds say why.
+                    if (this.driveVoltageRefusal(v) !== '') return;
                     signal.set({...signal.value, voltage_V: enteredEntry(v), power_W: undefined});
                 },
                 // With Re known, the power stays as it reads and becomes the entered one.

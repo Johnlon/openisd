@@ -1,0 +1,75 @@
+id: T918
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+label: fixes
+goal: The Signal tab's drive level follows John's rulings. A typed Driver input voltage below 10 mV (0.005, 0, -6), or a System input power of 0 W, negative or driving below 10 mV, is refused with a note and the previous value stays; nothing throws. A drive level loaded from a file (OpenISD project, WinISD .wpr, stored project) below that is repaired automatically on opening to 10 mV (power, the power that drives 10 mV), shown with no data-quality mark, and the opening message names the repair one line each. The charts draw.
+why: "John, 18 Nov 2026, card signal-low-drive-test: 'ok 10mv min, what if someone tpyoes 0 or -6' (QO953.c21); 'no dq must match value shown' (QO953.c25); 'a repair is ok but it has to be automatic' (QO953.c26); general chat: 'there won't be a dqnflag on a repair as the dq always relate to the value the user can see - this is a hard rule surely' (QO953.c30); 'all you can do is show a toast' (QO953.c31)."
+ruling: QO953
+done_test: bash scripts/test.sh packages/design/test/domain/drive-level-load-repair.test.ts packages/design/test/domain/project-signal.test.ts packages/design/test/domain/input-limits-sweep.test.ts
+files:
+  - tasks/T918.yml
+  - bugs/BUG_20261118_input-limits-sweep.md
+  - packages/design/fields/field.ts
+  - packages/design/fields/index.ts
+  - packages/design/engine/signal/SignalEngine.ts
+  - packages/design/domain/index.ts
+  - packages/design/domain/project/loadRepair.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectIssues.ts
+  - packages/design/domain/project/projectResolve.ts
+  - packages/design/domain/project/projectSignal.ts
+  - packages/design/domain/project/projectSweep.ts
+  - packages/design/domain/winIsdProjectConverter.ts
+  - packages/design/test/domain/drive-level-load-repair.test.ts
+  - packages/design/test/domain/input-limits-sweep.test.ts
+  - packages/design/test/domain/project-signal.test.ts
+  - packages/design/test/domain/project/project-sweep-source.test.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/ui/src/hooks/MobileSignalTab-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/driveSignal.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/fileImportExport.ts
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileSignalTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/design/test/fields/phone-tiny-value-fits.test.ts
+  - packages/persistence/src/index.ts
+  - packages/persistence/test/load-repair-report.test.ts
+  - packages/persistence/test/fixtures/repoOn.ts
+  - packages/persistence/test/projectBin.test.ts
+  - packages/persistence/test/projectRepo.test.ts
+  - packages/persistence/test/storageHistory.test.ts
+  - packages/ui/src/logging/flash.ts
+  - packages/ui/src/logic/loadRepairNotice.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/fixtures/repoOn.ts
+  - packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts
+  - packages/ui/test/logic/cloudSyncWiring.test.ts
+  - packages/ui/test/logic/liveProjectSync.test.ts
+  - packages/ui/test/logic/loadRepairNotice.test.ts
+  - packages/ui/test/ui/drive-level-limits.browser.spec.ts
+note: >-
+  Ruled QO953.c21-c31. Test changed with John's approval (QO953.c26, "a repair is ok but it has to be automatic", which
+  covers rewriting the throw to a refusal): project-signal.test.ts "type V 0.005 or a P driving below 10 mV | post: refused,
+  unchanged" expected toThrow(/10 mV/); it now expects no throw, the value unchanged and a note naming 10 mV, for 0.005 V,
+  0 V, -6 V, 0 W, 1e-5 W and -6 W. The 32 System input power / Driver input voltage cases of the input-limits sweep run as
+  plain tests (removed from BREAKING_TODAY). project-sweep-source.test.ts drops the driveLevelIssues key of its source
+  fixture: T916's sweep block on a loaded drive level is replaced by the repair. The load repair is one pass
+  (domain/project/loadRepair.ts) driven by the field definitions (NumberField.loadRepair: which rule a loaded value breaks
+  and what it is set to), run at every door a record enters by (OpenISDProject.wrapWithIdentity, openSession/wrapSession,
+  the .wpr power); only the signal fields state one in T918, the air and Frc follow in a later task. The repairs are
+  returned by the load (OpenedProject.loadRepairs, ImportedWinIsdProject.loadRepairs, ProjectRepo.openProjectText) and
+  shown once in the "Project imported from X" message, one line each, never as a mark on the box (QO953.c30, c31). The
+  desktop toast and the phone message strip keep line breaks and fit the screen width. The browser journey
+  packages/ui/test/ui/drive-level-limits.browser.spec.ts (desktop and phone) runs in the full suite.
+  Restoring a stored project (the open projects at start-up, a saved project, the autosave, a backup or archive entry, a
+  share link) reports its repairs through createProjectRepo's onLoadRepaired to one toast, "Project opened: <name>" and a
+  line per repair; a listing reports nothing. Duplicate, What-if and snapshots copy a project the opening already repaired,
+  so nothing is left to repair (tested). A toast stays 2 s plus 4 s per line after the first, so a plain one-line toast
+  is unchanged. The power that drives 10 mV (about 0.00002857 W) ran past the phone's Power box: a phone box shows a value
+  below 1 whose fixed form is longer than the box in exponent form, four figures ("2.857e-5"); the desktop keeps the fixed
+  form. The other createProjectRepo callers in tests pass a no-op for the new callback; no expectation changed.

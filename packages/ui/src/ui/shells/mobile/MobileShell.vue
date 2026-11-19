@@ -583,6 +583,8 @@ const diagnostics = injectDiagnosticsModal();
 }
 .mob-update-banner { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #e8f1fb; border-top: 1px solid #b8d4f8; color: #224466; font-size: 14px; }
 .mob-update-banner span { flex: 1; }
+/* A message of several lines (an opened project's load repairs, QO953.c31) keeps its line breaks. */
+.mob-flash-banner span { white-space: pre-line; overflow-wrap: anywhere; }
 .mob-update-reload { min-height: 44px; padding: 0 16px; border: 1px solid var(--acc); border-radius: 4px; background: var(--acc); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
 .mob-update-later { min-height: 44px; min-width: 44px; padding: 0 8px; border: none; background: none; color: #224466; font: inherit; cursor: pointer; }
 .mob-cloud-dialog-body { padding: 16px; }

@@ -53,6 +53,7 @@ export {
 export {
   type FieldKind,
   type ValueFloor,
+  type LoadRepair,
   Field,
   NumberField,
   NumberEditor,

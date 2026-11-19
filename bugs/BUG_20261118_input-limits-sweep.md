@@ -2,7 +2,8 @@
 
 Status: OPEN. Phase 1 (T915, the input-limits sweep, `tasks/T915.yml`) found the cases; phase 2 (T916, the fixes,
 `tasks/T916.yml`, ruled QO951 and QO953) fixed every **plain** row but one: System input power / Driver input voltage (32
-cases, see "Phase 2" below).
+cases, see "Phase 2" below), fixed by T918 (`tasks/T918.yml`, ruled QO953.c21-c31): a typed drive level below 10 mV is
+refused with a note, a loaded one is repaired to 10 mV on opening and named in the opening message.
 Asked by John, 18 Nov 2026 (board general chat, 20:17 UTC): "ok look make the ap robust / and include proper limits on ui",
 after the Peaking 2nd order highpass with a negative peak gain turned the charts to NaN (that one is fixed separately by T913,
 the change that draws no curve for a negative peak gain, ruled QO951, which reached main during this sweep; the sweep
@@ -100,7 +101,7 @@ carried it. A NaN the project already had before the edit is not counted. No AI 
 | Vent length below 0 | screen unchanged | the vent solve refuses it: the tuning is not available and the issue says "a port has length" | plain |
 | Losses Q 0, PR count, PR added mass, driver count, series resistance, chart range | screen unchanged | the engine's sweep-setting precondition (`SimulationEngine.solveSweepSettings`, rules in `engine/params.ts`) refuses each with a sentence; the domain's sweep plan blocks on it | plain |
 | Duplicate project, Vas 0 | - | the sealed solve no longer writes a NaN Qtc (which the saved text wrote as null), so the strict reader takes the project's own text | plain |
-| System input power / Driver input voltage below 10 mV | screen unchanged | NOT DONE: making the setter keep the value and report an issue instead of throwing turns the existing test `project-signal.test.ts` "type V 0.005 or a P driving below 10 mV / post: refused, unchanged" (which expects the throw) red. Waiting for a ruling. What is in: a loaded file's voltage below 10 mV, or power at or below 0 W, is refused by the signal solve (`driveLevelIssues`) and blocks the sweep with its message | 32 `it.fails` |
+| System input power / Driver input voltage below 10 mV | the Driver input voltage box's note names the 10 mV minimum; the System input power box's minimum is the power that drives 10 mV | T918 (QO953.c26 "a repair is ok but it has to be automatic", c30, c31): the domain refuses a typed drive level below 10 mV (or a power of 0 W or below, or one driving below 10 mV) without a throw, the previous value stays. A loaded one is repaired on opening to 10 mV (power: the power that drives 10 mV), with no data-quality mark; the opening message lists the repair. `driveLevelIssues` (T916's sweep block) is gone | 32 plain tests |
 
 ## Proposed limits
 

@@ -34,6 +34,9 @@ import { ProjectListeners } from './projectListeners.js';
 import { resolveProject, usableRe } from './projectResolve.js';
 import { PROJECT_DEFAULT_DRIVER_WIRING } from './driverWiringDefault.js';
 import { ProjectSignal } from './projectSignal.js';
+import { repairLoaded } from './loadRepair.js';
+import { enteredEntry } from '../specEntry.js';
+import type { LoadRepairNote } from './loadRepair.js';
 import { TuneLimits } from './tuneLimits.js';
 import { tuneViewOf } from './tuneView.js';
 import type { TuneView } from './tuneView.js';
@@ -56,6 +59,13 @@ import type { TuneView } from './tuneView.js';
 // call and its enclosure/box-specific parameter building). Each is built fresh over a lens/source
 // this class hands it, never held as a stored collaborator — `cursorF`/`pinnedF`/`cursorLocked`/
 // `dragRange` are the one documented exception, staying as this class's own private fields.
+
+/** A project as it opened, with every value the load repaired (`loadRepair.ts`), one line each for
+ *  the opening message. A repaired value carries no mark on its box (QO953.c30, c31). */
+export interface OpenedProject {
+    readonly project: OpenISDProject;
+    readonly loadRepairs: readonly LoadRepairNote[];
+}
 
 /** The port-velocity limit line where a project does not state one. */
 const DEFAULT_PORT_VELOCITY_LIMIT_M_PER_S = 17;
@@ -91,7 +101,7 @@ export class OpenISDProject {
     readonly #appContext: AppContext;
 
     /** The current layer's cached issues — see the class doc comment's "ONE EXCEPTION". */
-    #issues: ProjectIssues = { driver: [], signal: [], driveLevel: [], vent: [], rearVent: [], pr: [], radiator: [], sealed: [], ventTuningExtra: null, air: [] };
+    #issues: ProjectIssues = { driver: [], signal: [], vent: [], rearVent: [], pr: [], radiator: [], sealed: [], ventTuningExtra: null, air: [] };
 
     private constructor(saved: OpenISDProjectJson, uuid: string, engine: Engine, appContext: AppContext) {
         this.#saved = saved;
@@ -99,6 +109,16 @@ export class OpenISDProject {
         this.#engine = engine;
         this.#appContext = appContext;
         this.#resolve();
+    }
+
+    /** The one load repair pass (`loadRepair.ts`) over the current layer, written directly like a
+     *  resolve's own writes (opening a project is not an edit), then resolved again. Returns the
+     *  repairs made, for the opening message only: a repaired value is a good value, with no mark on
+     *  its box (QO953.c26, c30, c31). Every door a record enters by runs it. */
+    #repairOnLoad(): readonly LoadRepairNote[] {
+        const notes = repairLoaded(this.#signalOver(this.#directRoot()).loadRepairRules());
+        if (notes.length > 0) this.#resolve();
+        return notes;
     }
 
     /** A window onto a driver embedded in `root`'s whole record — `get driver()` below is
@@ -519,19 +539,30 @@ export class OpenISDProject {
      * (the driver precedent, QO81).
      */
     static wrapWithIdentity(json: OpenISDProjectJson, uuid: string, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
-        return new OpenISDProject(json, uuid, engine, appContext);
+        const project = new OpenISDProject(json, uuid, engine, appContext);
+        project.#repairOnLoad();
+        return project;
     }
 
     /** Wrap a stored session (saved and edited states) under an adopted identity. */
     static wrapSession(session: OpenISDProjectSessionJson, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
+        return OpenISDProject.openSession(session, engine, appContext).project;
+    }
+
+    /** `wrapSession`, with what the load repaired in either layer, one line each for the opening
+     *  message ("Driver input voltage (each) -6 V in the file: set to the 10 mV minimum"). */
+    static openSession(session: OpenISDProjectSessionJson, engine: Engine, appContext: AppContext): OpenedProject {
         const project = new OpenISDProject(withNullEmbeddedDriverId(session.saved), session.id, engine, appContext);
+        const repairs = [...project.#repairOnLoad()];
         if (session.edited) {
             project.#edited = withNullEmbeddedDriverId(session.edited);
             // The constructor's own resolve() only reached `#saved`, set just above — the
             // edited layer just assigned needs its own (S7-d: recompute on load).
             project.#resolve();
+            const seen = new Set(repairs.map(n => n.text));
+            repairs.push(...project.#repairOnLoad().filter(n => !seen.has(n.text)));
         }
-        return project;
+        return {project, loadRepairs: repairs};
     }
 
     /** A project text from before ids as the text this build writes for the same project, carrying
@@ -643,14 +674,19 @@ export class OpenISDProject {
      * passed in as closures rather than let `resolveProject` reach `this`: they are this
      * project's own window-builders, shared with the live getters below (S2-7d2).
      */
-    #resolve(): void {
-        const directRoot = simpleField<OpenISDProjectJson>(
+    /** The current layer, read and written directly: no promotion to `#edited`, no notify. */
+    #directRoot(): SimpleField<OpenISDProjectJson> {
+        return simpleField<OpenISDProjectJson>(
             () => this.#whatif ?? this.#edited ?? this.#saved,
             (json) => {
                 if (this.#whatif) this.#whatif = json;
                 else if (this.#edited) this.#edited = json;
                 else this.#saved = json;
             });
+    }
+
+    #resolve(): void {
+        const directRoot = this.#directRoot();
         this.#issues = resolveProject({
             directRoot,
             engine: this.#engine,
@@ -715,11 +751,11 @@ export class OpenISDProject {
 
     /** Like `fromOwprText`, but a field that fails the schema is removed so its default applies
      *  instead of refusing the project; `repaired` names every field that was reset, for the
-     *  user to be told. Refused only when the text is not a project at all. */
-    static fromOwprTextRepairing(text: string, engine: Engine, appContext: AppContext = realAppContext): { project: OpenISDProject; repaired: readonly FieldPath[] } | string[] {
+     *  user to be told; `loadRepairs` every value the load repair pass set (`openSession`). Refused only when the text is not a project at all. */
+    static fromOwprTextRepairing(text: string, engine: Engine, appContext: AppContext = realAppContext): OpenedProject & { repaired: readonly FieldPath[] } | string[] {
         const parsed = parseOwprSessionRepairing(text, () => appContext.newId());
         if (Array.isArray(parsed)) return parsed;
-        return { project: OpenISDProject.wrapSession(parsed.value, engine, appContext), repaired: parsed.repaired };
+        return { ...OpenISDProject.openSession(parsed.value, engine, appContext), repaired: parsed.repaired };
     }
 
     /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */
@@ -773,6 +809,23 @@ export class OpenISDProject {
      */
     get driveVoltage_V(): Readable<number> & Entered & Precise & Calculated & Writable<number> & Clearable & Calculatable<number> {
         return this.#signalOver(this.#root()).driveVoltage_V;
+    }
+
+    /** The Signal tab's drive level window: what a typed drive level is refused for, and the
+     *  smallest power the System input power box takes. Built fresh on every access. */
+    get signal(): ProjectSignal {
+        return this.#signalOver(this.#root());
+    }
+
+    /** A drive power read from a WinISD `.wpr` (`[SignalSource] P`): stored as the file states it,
+     *  then repaired like every loaded value (a power of 0 W or below, or one driving below 10 mV,
+     *  is set to the power that drives 10 mV). Returns the repairs made. Needs a usable Re. */
+    loadPowerDrive_W(v: number): readonly LoadRepairNote[] {
+        const signal = focus(this.#root(), 'signal');
+        signal.set({...signal.value, power_W: enteredEntry(v), voltage_V: undefined});
+        const repairs = this.#repairOnLoad();
+        this.#notify();
+        return repairs;
     }
 
     // ── ENVIRONMENT ───────────────────────────────────────────────────────────────────────────
@@ -881,7 +934,6 @@ export class OpenISDProject {
             ventIssues: this.#issues.vent,
             rearVentIssues: this.#issues.rearVent,
             prIssues: this.#issues.pr,
-            driveLevelIssues: this.#issues.driveLevel,
         };
     }
 

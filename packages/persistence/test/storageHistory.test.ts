@@ -26,7 +26,7 @@ const noFiles: FileStorage = {
   forget: () => { throw new Error('no test writes files'); },
 };
 const projectsOn = (storage: ListableStorage) =>
-  createProjectRepo(engine, noFiles, storage, 'http://localhost', createStorageBackup(storage, () => FIXED_NOW_MS), exportedFilesOn(), () => undefined, () => undefined);
+  createProjectRepo(engine, noFiles, storage, 'http://localhost', createStorageBackup(storage, () => FIXED_NOW_MS), exportedFilesOn(), () => undefined, () => undefined, () => undefined);
 
 const KEY_OLD = `${OPENISD_BACKUP_PREFIX}v20250101T0000Z_20250102T030405Z`;
 const KEY_NEW = `${OPENISD_BACKUP_PREFIX}v20251231T2359Z_20260101T000000Z`;

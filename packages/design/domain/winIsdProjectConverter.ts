@@ -26,6 +26,7 @@ import {OpenISDDriver} from './driver/openISDDriver.js';
 import {type DriverFromRecord} from './driverRoundTripDiffs.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';
+import type {LoadRepairNote} from './project/loadRepair.js';
 import {ProjectBuilder} from './openisdTransforms.js';
 import {type DriverError, type Engine, type Filter} from '../engine/index.js';
 import {WINISD_MAX_FILTER_ORDER} from '../fields/filterLimits.js';
@@ -247,6 +248,14 @@ function importVentGeometry(
   if (endcorrection != null) vent.endCorrection_m.set(endcorrection);
 }
 
+/** A `.wpr` imported: the project (null when it could not be read), what was wrong with the file,
+ *  and every value the load repaired, one line each for the opening message (QO953.c31). */
+export interface ImportedWinIsdProject {
+  readonly value: OpenISDProject | null;
+  readonly errors: DriverError[];
+  readonly loadRepairs: readonly LoadRepairNote[];
+}
+
 /** Project file conversion — a project to WinISD's `.wpr` model and `.wpr` text back to a
  *  project — holding the one engine every project it builds is given. */
 export class WinIsdProjectConverter {
@@ -356,7 +365,7 @@ export class WinIsdProjectConverter {
    */
   winIsdProjectToOpenIsdProject(
     text: string
-  ): { value: OpenISDProject | null; errors: DriverError[] } {
+  ): ImportedWinIsdProject {
     const errors: DriverError[] = [];
     const wpr = WinISDProject.fromWprIni(text);
 
@@ -367,7 +376,7 @@ export class WinIsdProjectConverter {
     const driverOrErrors = this.driverFromRecord(record, this.engine);
     if (Array.isArray(driverOrErrors)) {
       for (const problem of driverOrErrors) errors.push({level: 'error', field: 'driver', message: problem});
-      return {value: null, errors};
+      return {value: null, errors, loadRepairs: []};
     }
     const driver: OpenISDDriver = driverOrErrors;
 
@@ -380,14 +389,14 @@ export class WinIsdProjectConverter {
     // read yet.
     if (bTypeRaw == null) {
       errors.push({level: 'error', field: 'BType', message: unsupportedBType(bTypeRaw)});
-      return {value: null, errors};
+      return {value: null, errors, loadRepairs: []};
     }
     switch (bTypeRaw) {
       case 0: {
         const Vr = wpr.number('Box', 'Vr');
         if (Vr == null) {
           errors.push({level: 'error', field: 'Vr', message: 'Closed box: [Box] Vr is missing or not numeric'});
-          return {value: null, errors};
+          return {value: null, errors, loadRepairs: []};
         }
         project = builder.sealed().volume_m3(Vr).build();
         const Qlr = wpr.number('Box', 'Qlr');
@@ -404,7 +413,7 @@ export class WinIsdProjectConverter {
             level: 'error', field: 'Vr/Fr',
             message: 'Vented box: [Box] Vr and/or Fr is missing or not numeric',
           });
-          return {value: null, errors};
+          return {value: null, errors, loadRepairs: []};
         }
         project = builder.vented().volume_m3(Vr).tuning_goal_hz(Fr).build();
         const Qlr = wpr.number('Box', 'Qlr');
@@ -429,7 +438,7 @@ export class WinIsdProjectConverter {
             level: 'error', field: 'Vr/Vf/Ff',
             message: '4th Order Bandpass box: [Box] Vr, Vf and/or Ff is missing or not numeric',
           });
-          return {value: null, errors};
+          return {value: null, errors, loadRepairs: []};
         }
         project = builder.bandpass4().rearVolume_m3(Vr).frontVolume_m3(Vf).frontTuning_hz(Ff).build();
         const rearLosses = project.box.bandpass4.chambers.rear.losses;
@@ -466,7 +475,7 @@ export class WinIsdProjectConverter {
             level: 'error', field: 'Vr/Fr',
             message: 'Passive Radiator box: [Box] Vr and/or Fr is missing or not numeric',
           });
-          return {value: null, errors};
+          return {value: null, errors, loadRepairs: []};
         }
         const manual = (v: number): SpecEntryJson => ({state: 'E', value: v});
         // The .wpr states only Vas/Qms/Fs/Sd/Xmax; the project's resolve derives Mms, Cms and Rms.
@@ -514,7 +523,7 @@ export class WinIsdProjectConverter {
             level: 'error', field: 'Vr/Fr/Vf/Ff',
             message: '6th Order Bandpass box: [Box] Vr, Fr, Vf and/or Ff is missing or not numeric',
           });
-          return {value: null, errors};
+          return {value: null, errors, loadRepairs: []};
         }
         project = builder.bandpass6()
           .rearVolume_m3(Vr).rearTuning_hz(Fr).frontVolume_m3(Vf).frontTuning_hz(Ff).build();
@@ -544,7 +553,7 @@ export class WinIsdProjectConverter {
             level: 'error', field: 'Vr/Fr/Vf/Ff',
             message: 'ABC box: [Box] Vr, Fr, Vf and/or Ff is missing or not numeric',
           });
-          return {value: null, errors};
+          return {value: null, errors, loadRepairs: []};
         }
         project = builder.abc()
           .rearVolume_m3(Vr).rearTuning_hz(Fr).frontVolume_m3(Vf).frontTuning_hz(Ff).build();
@@ -576,7 +585,7 @@ export class WinIsdProjectConverter {
       }
       default: {
         errors.push({level: 'error', field: 'BType', message: unsupportedBType(bTypeRaw)});
-        return {value: null, errors};
+        return {value: null, errors, loadRepairs: []};
       }
     }
 
@@ -612,9 +621,7 @@ export class WinIsdProjectConverter {
     const P = wpr.number('SignalSource', 'P');
     // P can be stated only against a usable Re; without one the voltage stands alone.
     const Re_ohm = project.driver.specs.Re_ohm.value;
-    if (P != null && Re_ohm !== null && Re_ohm > 0) {
-      project.powerDrive_W.set(P);
-    }
+    const loadRepairs = P != null && Re_ohm !== null && Re_ohm > 0 ? project.loadPowerDrive_W(P) : [];
     const description = wpr.value('ProjectInfo', 'Description');
     const creator = wpr.value('ProjectInfo', 'Creator');
     const created = wpr.value('ProjectInfo', 'CreateDate');
@@ -626,7 +633,7 @@ export class WinIsdProjectConverter {
 
     project.filters.set(this.#importFilters(wpr,  errors));
 
-    return {value: project, errors};
+    return {value: project, errors, loadRepairs};
   }
 
   /** `[Filters]` values: `Count`, plus `filter<i>type`/`filter<i>params` renumbered sequentially

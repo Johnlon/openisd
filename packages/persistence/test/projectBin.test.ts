@@ -22,7 +22,7 @@ function binWith(...names: string[]) {
   const storage = createMemoryStorage();
   // One backup for every store, as the app has: a guard inside a guard then takes no second backup.
   const backup = backupOn(storage);
-  const projects = createProjectRepo(engine, noFiles, storage, 'http://localhost', backup, exportedFilesOn(), () => undefined, () => undefined);
+  const projects = createProjectRepo(engine, noFiles, storage, 'http://localhost', backup, exportedFilesOn(), () => undefined, () => undefined, () => undefined);
   for (const name of names) {
     const p = ProjectBuilder.empty(engine);
     p.name.set(name);

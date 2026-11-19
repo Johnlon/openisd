@@ -1,0 +1,15 @@
+id: T922
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+label: fixes
+goal: "Every browser test starts with empty My Drivers, empty My Passive Radiators and no favourite stars. A driver or radiator one test imports or saves through the app, or a star it sets, is gone before the next test on the same worker, whichever spec made it and without the spec registering it."
+why: "John, 17 Oct 2026: 'if there is a unexpected data hold over then isn't that a bug' (16-17 Oct; BUG_20261118_browser-tests-leak-my-drivers.md), and 'no backdoor in UI testing': the reset acts as a user does. Found by T921: the new-project wizard spec's imported Tang Band W5-1138SMF stayed in My Drivers and a later spec picked it instead of the catalogue driver."
+done_test: npm run typecheck:ui
+files:
+  - tasks/T922.yml
+  - bugs/BUG_20261118_browser-tests-leak-my-drivers.md
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/ui/reset-between-tests.browser.spec.ts
+note: "resetApp reads storage and opens a library only when it holds something, then removes through the library's own crosses and stars. Added about 0.16 s per test over 20 specs (173 tests, 1 worker: 234 s before, 261 s after). The proof spec reset-between-tests.browser.spec.ts runs in the full suite (a browser spec cannot be the done_test); it fails on the old reset and on a drivers-only reset."

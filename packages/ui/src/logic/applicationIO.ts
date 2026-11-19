@@ -336,6 +336,8 @@ export function createApplicationIO(deps: {
     return readDriverFileText(f).then(({ text }) => {
       try {
         const format = formatOf(f.name) ?? sniff(new TextEncoder().encode(text));
+        /** What the load repaired in the opened project, one line each under the opening message (QO953.c31). */
+        let repairs: readonly string[] = [];
 
         if (format === DriverFileFormat.Wdr || format === DriverFileFormat.Owdr) {
           const { value: driver, errors } = deps.files.driverFromText(text, format);
@@ -356,7 +358,7 @@ export function createApplicationIO(deps: {
           flash(`Driver imported from ${f.name}: ${displayNameOf(driver)}`);
           return;
         } else if (format === ProjectFileFormat.Wpr) {
-          const { value: project, errors } = deps.files.projectFromText(text, ProjectFileFormat.Wpr);
+          const { value: project, errors, loadRepairs } = deps.files.projectFromText(text, ProjectFileFormat.Wpr);
           if (!project) throw new Error(errors[0]?.message ?? 'could not read .wpr');
           project.name.set(projectNameFromFilename(f.name));
           // Naming it after the file it came from is part of LOADING it, not a user edit: the
@@ -368,6 +370,7 @@ export function createApplicationIO(deps: {
           // the SAME file again switches to the tab already holding it instead of adding a second
           // (BUG_20261009_same-project-opens-many-times).
           openProjectOnce(project, {kind: 'file', name: f.name, content: text});
+          repairs = loadRepairs.map(repair => repair.text);
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
           
           let isArchive = false;
@@ -387,7 +390,7 @@ export function createApplicationIO(deps: {
             return;
           }
 
-          const { value: project, errors } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
+          const { value: project, errors, loadRepairs } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
           if (!project) {
             // `errors[0]` alone is what the message shows — one line is all a toast has room for —
             // but a schema mismatch commonly raises several field-level issues at once (QO152),
@@ -400,11 +403,12 @@ export function createApplicationIO(deps: {
           project.name.set(projectNameFromFilename(f.name));
           project.save();   // the loaded design is the ground state — see the .wpr branch above
           openProjectOnce(project, {kind: 'file', name: f.name, content: text});
+          repairs = loadRepairs.map(repair => repair.text);
         } else {
           throw new Error('it is not an OpenISD or WinISD file');
         }
         deps.fileStorage.forget();
-        flash(`Project imported from ${f.name}`);
+        flash([`Project imported from ${f.name}`, ...repairs].join('\n'));
       } catch (err) { failed(err instanceof Error ? err.message : String(err)); }
     }, (err: Error) => { failed(err.message); });
   }

@@ -76,7 +76,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     // `#issues.signal` at read time, so no `projectGroupDq` here.
     const Re_ohm = usableRe(directRoot, driverOver);
     settleSignal(focus(directRoot, 'signal'), Re_ohm);
-    const signalParams = {
+    const signal = engine.signal.solve({
         power_W: powerDriveOver(directRoot),
         Re_ohm: inputOf(() => Re_ohm),
         voltage_V: driveVoltageOver(directRoot),
@@ -84,10 +84,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         nDrivers: inputOf(() => directRoot.value.driverEmbedding.nDrivers),
         driverWiring: driverWiringOver(directRoot),
         rgAtDriverSide: rgAtDriverSideOver(directRoot),
-    };
-    // Read before the solve writes the other side of the pair: the entered value is what is refused.
-    const driveLevel = engine.signal.driveLevelIssues(signalParams);
-    const signal = [...driveLevel, ...engine.signal.solve(signalParams)];
+    });
 
     const box = boxOver(directRoot);
     // GEOMETRY IS IN, ACOUSTICS IS OUT (John, 2026-08-26): every port's area ↔ dims relation
@@ -186,7 +183,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     }
     })();
 
-    return { driver: driverIssues, signal, driveLevel, ...solved, air: airIssues };
+    return { driver: driverIssues, signal, ...solved, air: airIssues };
 }
 
 /** The driver's Re at the project's coil temperature rise, or null when Re is unusable — read

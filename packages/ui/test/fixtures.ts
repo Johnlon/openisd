@@ -104,6 +104,7 @@ export class TestAdditions {
  * - clears storage back to splashSeen / persist_warning_dismissed baseline
  * - closes all open projects and resets focused project to null
  * - resets application settings (difference cues, vented limits, env defaults)
+ * - empties the user libraries (My Drivers, My Passive Radiators, favourite stars), opening them only when storage holds something
  * - closes all dialogs / modals and clears presentation state (unit tokens, skin override, zoom)
  */
 export async function resetApp(page: Page, additions: TestAdditions): Promise<void> {
@@ -118,6 +119,7 @@ export async function resetApp(page: Page, additions: TestAdditions): Promise<vo
   await restoreAutomaticSkin(page);
   await closeAllProjects(page);
   await restoreOptions(page);
+  await emptyLibraries(page);
   await restoreSidebarWidth(page);
   await clearHash(page);
 }
@@ -205,6 +207,91 @@ async function emptyBin(page: Page): Promise<void> {
     await page.locator('.confirm-dialog-confirm').click();
   }
   await page.getByRole('button', { name: 'Back to projects' }).click();
+}
+
+/** What the browser's storage holds in the four user libraries: saved drivers, saved passive radiators and the
+ *  starred ids of each. Read only to decide whether the libraries need opening (the removal is the user's path). */
+const LIBRARY_KEYS = {
+  drivers: 'openisd_my_drivers',
+  radiators: 'openisd_my_passive_radiators',
+  starredDrivers: 'openisd_favourite_drivers',
+  starredRadiators: 'openisd_favourite_passive_radiators',
+} as const;
+const STORED_COUNT = z.union([
+  z.array(z.unknown()).transform(a => a.length),
+  z.looseObject({ entries: z.array(z.unknown()) }).transform(o => o.entries.length),
+]);
+
+async function libraryContents(page: Page): Promise<Record<keyof typeof LIBRARY_KEYS, number>> {
+  const raw = await page.evaluate(keys => keys.map(k => globalThis.localStorage.getItem(k)), Object.values(LIBRARY_KEYS));
+  const count = (text: string | null): number => {
+    if (text === null) return 0;
+    const parsed = STORED_COUNT.safeParse(JSON.parse(text));
+    // A shape this does not know is treated as holding something, so the libraries are opened and looked at.
+    return parsed.success ? parsed.data : 1;
+  };
+  return { drivers: count(raw[0]), radiators: count(raw[1]), starredDrivers: count(raw[2]), starredRadiators: count(raw[3]) };
+}
+
+/** Puts the user libraries back to empty the way a user does, and opens a library only when storage shows
+ *  something in it: stars are un-starred, saved drivers and saved passive radiators are removed with their own
+ *  crosses. The libraries live in the browser's storage, which the worker's shared page keeps from one test to
+ *  the next, so whatever a test imported, saved or starred would otherwise be in the next test's lists. This
+ *  does not depend on the test having registered what it made (T922). */
+async function emptyLibraries(page: Page): Promise<void> {
+  const held = await libraryContents(page);
+  if (held.drivers > 0 || held.starredDrivers > 0) await emptyDriverLibrary(page, held.starredDrivers);
+  if (held.radiators > 0 || held.starredRadiators > 0) await emptyRadiatorLibrary(page, held.starredRadiators);
+  const after = await libraryContents(page);
+  const left = Object.entries(after).filter(([, n]) => n > 0).map(([k, n]) => `${k}: ${n}`);
+  if (left.length > 0) throw new Error(`resetApp: the libraries still hold ${left.join(', ')} after emptying them`);
+}
+
+async function emptyDriverLibrary(page: Page, starred: number): Promise<void> {
+  await page.locator('.tb-btn[title^="Manage Drivers"]').click();
+  const library = page.locator('.driver-library');
+  await library.locator('.dlist').waitFor({ state: 'visible' });
+  if (starred > 0) {
+    // Show only the starred drivers, then un-star each, as a user does.
+    const filter = library.locator('.fav-filter');
+    if (!/active/.test(await filter.getAttribute('class') ?? '')) await filter.click();
+    const stars = library.locator('.dlist .fav-btn.on');
+    for (let guard = 0; guard < 500 && await stars.count() > 0; guard++) await stars.first().click();
+    if (/active/.test(await filter.getAttribute('class') ?? '')) await filter.click();
+  }
+  const rows = library.locator('.my-ditem');
+  for (let guard = 0; guard < 500 && await rows.count() > 0; guard++) {
+    await rows.first().locator('.my-del').click();
+  }
+  await dismissOverlays(page);
+}
+
+/** The passive radiator library opens from the New Project wizard's radiator step: pick any driver, a passive
+ *  radiator box, then Select. Un-stars each starred radiator and removes each saved one with its cross. */
+async function emptyRadiatorLibrary(page: Page, starred: number): Promise<void> {
+  await page.locator('.tb-btn[title*="New project"]').click();
+  const modal = page.locator('.overlay.open');
+  const next = modal.locator('.modal-footer').getByRole('button', { name: 'Next', exact: true });
+  await modal.locator('.dlist .ditem').first().click();
+  await next.click();
+  await next.click();
+  await modal.getByLabel('Box type').selectOption('box-passive-radiator');
+  await next.click();
+  await modal.locator('#np-pr-select').click();
+  const library = page.locator('.pr-lib');
+  await library.waitFor({ state: 'visible' });
+  if (starred > 0) {
+    const filter = page.locator('.pr-overlay-desktop .fav-filter, .pr-phone .fav-filter').first();
+    if (!/active/.test(await filter.getAttribute('class') ?? '')) await filter.click();
+    const stars = library.locator('.fav-btn.on');
+    for (let guard = 0; guard < 500 && await stars.count() > 0; guard++) await stars.first().click();
+    if (/active/.test(await filter.getAttribute('class') ?? '')) await filter.click();
+  }
+  const saved = library.locator('.pr-lib-del');
+  for (let guard = 0; guard < 500 && await saved.count() > 0; guard++) await saved.first().click();
+  await page.getByRole('button', { name: 'Done' }).click();
+  await modal.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await dismissOverlays(page);
 }
 
 /** Puts Options back to the app's defaults through the Options dialog's own controls. */

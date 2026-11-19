@@ -9,6 +9,6 @@ import {createDriveSignal} from './driveSignal.js';
 export function useMobileSignalTab() {
   const {projectChanged} = useApp().appState;
   const project = useFocusedProject();
-  const { powerLocked, rsOhm } = createDriveSignal({ project, projectChanged });
-  return { project, powerLocked, rsOhm };
+  const { powerLocked, rsOhm, minimumPower } = createDriveSignal({ project, projectChanged });
+  return { project, powerLocked, rsOhm, minimumPower };
 }

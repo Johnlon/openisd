@@ -864,7 +864,7 @@ describe('projectRepo', () => {
         [OPENISD_QUARANTINE_SESSION_KEY]: sessionOf('p-1', 'p-3'),
       });
       let saves = 0;
-      const r = createProjectRepo(engine, noFiles, storage, 'http://localhost', backupOn(storage), exportedFilesOn(), () => undefined, () => { saves++; });
+      const r = createProjectRepo(engine, noFiles, storage, 'http://localhost', backupOn(storage), exportedFilesOn(), () => undefined, () => { saves++; }, () => undefined);
       expect(r.deleteStoredProject('p-1')).toBe('done');
       expect(r.listStoredProjects().map(p => p.id)).toEqual(['p-2']);
       const ids = (key: string): unknown => {
@@ -919,6 +919,7 @@ describe('projectRepo', () => {
         engine, noFiles, storage, 'http://localhost', backupOn(storage), exportedFilesOn(),
         () => undefined,
         () => { savedCount++; },
+        () => undefined,
       );
       repo.saveToStorage(project('My Saved Project'));
       assert.equal(savedCount, 1);
@@ -931,6 +932,7 @@ describe('projectRepo', () => {
         engine, noFiles, storage, 'http://localhost', backupOn(storage), exportedFilesOn(),
         () => undefined,
         () => { savedCount++; },
+        () => undefined,
       );
       const docBody = project('Synced Project').toOwprText();
       repo.putStoredDoc('proj-1', docBody);
@@ -947,6 +949,7 @@ describe('projectRepo', () => {
         engine, noFiles, storage, 'http://localhost', backupOn(storage), exportedFilesOn(),
         () => undefined,
         () => { savedCount++; },
+        () => undefined,
       );
       const p = project('Session Project');
       repo.saveOpenProjects([p], p, new Set());
