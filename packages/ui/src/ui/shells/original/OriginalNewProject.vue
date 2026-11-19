@@ -10,6 +10,7 @@ import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
+import PlacementDiagram from '../../components/PlacementDiagram.vue';
 import UIPickField from '../../components/UIPickField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
@@ -158,6 +159,10 @@ function handleCreate() {
                 <WizardInfoButton question label="About driver placement" @click="openPlacementInfo" />
               </span>
             </div>
+          </div>
+          <div class="np-placement-pic">
+            <PlacementDiagram :placement="placement" />
+            <div v-if="placement === 'isobaric'" class="np-placement-caption">{{ PhoneWizardText.ISOBARIK_CAPTION }}</div>
           </div>
         </div>
 
@@ -315,6 +320,8 @@ function handleCreate() {
 .field input { width: 140px; }
 .field .unit { color: #555; }
 .radio-group { display: grid; align-items: center; margin-bottom: 12px; }
+.np-placement-pic { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 12px; }
+.np-placement-caption { font-size: 13px; color: #666; }
 .placement-label { color: #333; white-space: nowrap; }
 .placement-choices { display: inline-flex; align-items: center; gap: 16px; }
 /* The first radio circle starts at the column edge, where the boxes above and below start. */

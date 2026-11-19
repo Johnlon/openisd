@@ -17,6 +17,8 @@ async function picture(page: Page, name: string): Promise<void> {
   if (PICTURES !== undefined) await page.screenshot({path: `${PICTURES}/${name}.png`, fullPage: false});
 }
 
+const diagram = (page: Page): Locator => page.getByTestId('placement-diagram');
+
 const field = (page: Page, label: string): Locator => page.locator('.ui-field', {has: page.locator('label', {hasText: new RegExp(`^${label}$`)})}).locator('input').first();
 
 /** What differs between the shells: where the Placement choice is and how a new project is made. */
@@ -30,6 +32,8 @@ interface Shell {
   readonly chooseIsobaric: (page: Page) => Promise<void>;
   readonly expectIsobaricChosen: (page: Page) => Promise<void>;
   readonly openChart: (page: Page) => Promise<void>;
+  /** The clamshell drawing in the wizard's count step. */
+  readonly wizardDiagram: (page: Page) => Locator;
   readonly newProjectChoosingIsobaric: (page: Page) => Promise<void>;
 }
 
@@ -47,6 +51,7 @@ const DESKTOP: Shell = {
   chooseIsobaric: async (page) => { await radios(page).nth(1).check(); },
   expectIsobaricChosen: async (page) => { await expect(radios(page).nth(1)).toBeChecked(); },
   openChart: async () => undefined,
+  wizardDiagram: (page) => page.locator('.overlay.open .np-placement-pic'),
   newProjectChoosingIsobaric: async (page) => {
     await page.goto('/');
     await page.locator('.tb-btn[title*="New project"]').click();
@@ -56,6 +61,8 @@ const DESKTOP: Shell = {
     await next.click();
     await expect(overlay.locator('input[name=placement][value=isobaric]')).toBeEnabled();
     await overlay.locator('input[name=placement][value=isobaric]').check();
+    await expect(DESKTOP.wizardDiagram(page).locator('svg')).toBeVisible();
+    await expect(DESKTOP.wizardDiagram(page)).toContainText('half the box volume');
     await picture(page, 'desktop-6-new-project-isobaric');
     await next.click();
     await next.click();
@@ -84,6 +91,7 @@ const PHONE: Shell = {
   chooseIsobaric: async (page) => { await select(page).selectOption('isobaric'); },
   expectIsobaricChosen: async (page) => { await expect(select(page)).toHaveValue('isobaric'); },
   openChart: async (page) => { await page.locator('.mob-tab', {hasText: 'Graph'}).click(); },
+  wizardDiagram: (page) => page.locator('.mob-np-pic'),
   newProjectChoosingIsobaric: async (page) => {
     await page.setViewportSize(PIXEL_9);
     await forceMobileSkin(page);
@@ -95,6 +103,8 @@ const PHONE: Shell = {
     await next.click();
     await expect(page.locator('#np-placement')).toBeEnabled();
     await page.locator('#np-placement').selectOption('isobaric');
+    await expect(PHONE.wizardDiagram(page).locator('svg')).toBeVisible();
+    await expect(PHONE.wizardDiagram(page)).toContainText('half the box volume');
     await picture(page, 'phone-6-new-project-isobaric');
     await next.click();
     await page.locator('#np-box-type').selectOption({label: 'Closed'});
@@ -116,11 +126,17 @@ for (const shell of [DESKTOP, PHONE]) {
 
       await openTab(page, 'Driver');
       await shell.expectStandardOffered(page);
+      await expect(diagram(page)).toBeVisible();
+      await expect(diagram(page)).toHaveAttribute('data-placement', 'standard');
       await expect(shell.placementArea(page)).not.toContainText('not modelled');
       await picture(page, `${shell.name}-2-before-driver-standard`);
 
       await shell.chooseIsobaric(page);
       await shell.expectIsobaricChosen(page);
+      // The clamshell pair is drawn beside the choice (WinISD's Box tab drawing does not change, so the Box tab's stays one driver).
+      await expect(diagram(page)).toBeVisible();
+      await expect(diagram(page)).toHaveAttribute('data-placement', 'isobaric');
+      await expect(diagram(page).locator('svg path')).toHaveCount(4);
       await picture(page, `${shell.name}-3-after-driver-isobaric`);
 
       await openTab(page, 'Box');
