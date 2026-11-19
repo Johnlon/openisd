@@ -1301,7 +1301,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }
 /* Width tracks the diagrams' own scale (each SVG height is 0.7 of its drawn size), so the
    column stays snug around the widest cut-through rather than padding it with slack. */
-.box-diagram-col { --bpd-h: 112px; flex:none; width:192px; display:flex; align-items:flex-start; justify-content:center; }
+/* 33 px = the Box Type row above the chamber title bars, so the drawings start level with the title bars (John, 19 Nov 2026). */
+.box-diagram-col { --bpd-h: 112px; margin-top:33px; flex:none; width:192px; display:flex; align-items:flex-start; justify-content:center; }
 /* Third span, right of the diagram. Text WRAPS rather than overflowing, so unlike the
    fixed-width control columns this one may shrink without reintroducing the overlap. */
 /* The fields column sets the row height; this column follows it (size containment keeps its text

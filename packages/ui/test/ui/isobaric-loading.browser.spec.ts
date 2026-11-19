@@ -447,3 +447,23 @@ for (const name of ['desktop', 'phone'] as const) {
     expect(await clipped(page), `${name}: step with the error scrolls or clips`).toBeLessThanOrEqual(allowedScroll);
   });
 }
+
+/** John: the drawings line up with the top of the chamber title bars, not the top of the panel. */
+for (const boxType of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const) {
+  for (const loadingChoice of ['standard', 'isobaric'] as const) {
+    test(`desktop 1280x720: ${boxType} (${loadingChoice}) drawings start at the top of the chamber title bar`, async ({appPage: page}) => {
+      await page.setViewportSize({width: 1280, height: 720});
+      await DESKTOP.open(page);
+      await openTab(page, 'Driver');
+      await CHOOSE[loadingChoice](page);
+      await setFocusedBoxType(page, boxType);
+      await openTab(page, 'Box');
+      const header = (await page.locator('.box-tab-row .box-fields-col .section-header').first().boundingBox())!;
+      const area = (await page.locator('.box-diagram-col svg:visible').first().boundingBox())!;
+      const col = (await page.locator('.box-diagram-col').boundingBox())!;
+      console.log(`TOPS ${boxType} ${loadingChoice} header ${header.y} area ${col.y} drawing ${area.y}`);
+      expect(Math.abs(col.y - header.y), `${boxType}: drawing area top against the chamber title bar top`).toBeLessThanOrEqual(1);
+      expect(Math.abs(area.y - header.y), `${boxType}: drawing top against the chamber title bar top`).toBeLessThanOrEqual(1);
+    });
+  }
+}
