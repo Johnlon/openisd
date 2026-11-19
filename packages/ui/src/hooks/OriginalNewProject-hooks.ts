@@ -392,7 +392,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const ventedAlignmentResult = computed(() => {
     const driver = selectedDriver.value;
     if (!driver) return null;
-    return driver.ventedDesign(selectedVentedAlignment.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_VENTED_QL);
+    return driver.ventedDesign(selectedVentedAlignment.value, newProjectLoad(), NEW_PROJECT_VENTED_QL);
   });
 
   const ventedVolume_m3 = computed(() => ventedVolumeTyped_m3.value ?? ventedAlignmentResult.value?.Vb ?? 0);

@@ -267,7 +267,7 @@ class VentedProjectBuilder extends BoxProjectBuilder {
 
     protected override afterWrap(project: OpenISDProject): void {
         if (this.#alignment === null || this.#volume !== null) return;
-        const design = project.driver.ventedDesign(this.#alignment, project.Rs_ohm.value, project.box.vented.losses.Ql.value);
+        const design = project.driver.ventedDesign(this.#alignment, project.driveLoad, project.box.vented.losses.Ql.value);
         if (!design) return;
         project.box.vented.volume_m3.set(design.Vb);
         project.box.vented.tuning_goal_hz.set(design.Fb, displayedHalfWidth(NumberField.BOX_FB_HZ));

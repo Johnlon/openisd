@@ -13,8 +13,10 @@ export interface DriveLoad {
   Rs_ohm: number;
   nDrivers: number;
   loading: 'standard' | 'isobaric';
-  /** The project's voice-coil temperature coefficient, 1/K (WinISD `[Box] alfaVC`, the Driver tab "Advanced options"
-   *  field) — not the driver record's own `alfaVC_per_K` (WinISD `[Driver] alfaVC`), which WinISD's Box tab ignores. */
+  /** The voice-coil temperature coefficient the coil is heated with, 1/K: the driver record's own `alfaVC_per_K` (WinISD
+   *  `[Driver] alfaVC`) when it is not 0, else the project's (WinISD `[Box] alfaVC`, the Driver tab "Advanced options"
+   *  field); the project's only with "Coil coefficient from project" ticked, as WinISD (QO953.c16,
+   *  `DriverEngine.coilAlfaVC_per_K`). */
   alfaVC_per_K: number;
   /** The project's voice-coil temperature rise, K (WinISD `[Box] dTVC`). */
   vcTempRise_K: number;

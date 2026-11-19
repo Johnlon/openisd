@@ -1,0 +1,52 @@
+id: T917
+visual:
+  - desktop-dialog-difference-cue
+  - desktop-tab-advanced
+  - mobile-dialog-menu-winisddifferencesmodal
+visual_note: "The Advanced tab (desktop) and the WinISD differences list (desktop cue dialog and phone menu) gain the yellow switch 'Coil coefficient from project'."
+release_note: A driver that states its own voice-coil temperature coefficient (AlfaVC) now heats its coil with it, as its wire's metal does, instead of the project's copper default; a new yellow switch "Coil coefficient from project" under "Enable WinISD bugs" gives WinISD's project-only sum back. Every catalogue driver states 0 and is unchanged.
+repo: openisd
+owner: t917
+status: done
+label: fixes
+goal: The voice-coil temperature coefficient the sums use comes from the driver when the driver's value is not 0, else from the project's AlfaVC (default 0.0039), chosen by one engine function that every reader uses; a new WinISD bug switch, ticked, gives WinISD's behaviour (project value only).
+why: 'John, QO953.c16 (18 Nov 2026, "a"): option A, the sums use the driver''s AlfaVC when it is not 0, else the project''s; a WinISD-bug tick-box gives WinISD''s project-only sum. AlfaVC belongs to the coil wire''s metal (copper 0.00393/K, aluminium about 0.0041-0.0043/K), the temperature rise dTVC stays the project''s (QO953.c15). WinISD 0.7.0 and 0.50a7 both use only the project value and Save copies it over the driver''s (winisd_research 9ac0941, 0.50a7/runs/050a7/coil-alfavc-20261118/, runs/s04-dtvc-20261118/). QO953.c17: .wdr import and export of alfaVC stay exactly as they are.'
+ruling: QO953
+done_test: bash scripts/test.sh packages/design/test/domain/coil-alfavc-driver-first.test.ts
+files:
+  - tasks/T917.yml
+  - bugs/BUG_20261118_winisd-coil-alfavc-project-only.md
+  - docs/research/ACCURACY_IMPROVEMENTS.md
+  - docs/research/WINISD_PARITY.md
+  - packages/design/engine/solvers/driverQuantities.ts
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/engine/types.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/driver/openISDDriverEmbedded.ts
+  - packages/design/domain/project/driveLoad.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectResolve.ts
+  - packages/design/domain/project/projectSweep.ts
+  - packages/design/domain/project/projectAdvanced.ts
+  - packages/design/domain/project/compatSwitch.ts
+  - packages/design/domain/project/errorSwitches.ts
+  - packages/design/fields/field.ts
+  - packages/design/fields/phoneText.ts
+  - packages/design/fields/winisdDeviation.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/design/test/domain/coil-alfavc-driver-first.test.ts
+  - packages/design/test/domain/sealed-readout-heats-coil.test.ts
+  - packages/design/test/domain/every-input-recalculates.test.ts
+  - packages/design/test/domain/compat-switch.test.ts
+  - packages/design/test/domain/error-switches.test.ts
+  - packages/design/test/domain/project/project-sweep-source.test.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/coil-alfavc-switch.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-difference-cue.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-menu-winisddifferencesmodal.png
+note: 'The only data-model change is the switch: advanced.winisdProjectAlfaVC, z.boolean().optional(), absent parses to OFF (OpenISD''s sum), as every other bug switch. The driver record shape and .wdr/.wpr import and export are unchanged (QO953.c17). A negative driver AlfaVC (no coil metal''s; the field floor is non-negative) counts as not stated, so the input-limits sweep stays finite. The existing WinISD reading "dTVC 100, only the driver''s alfaVC set: Qtc 0.719" (sealed-readout-heats-coil.test.ts) is WinISD''s sum and now runs with the switch ticked; unticked the same project reads 0.920.'

@@ -137,7 +137,7 @@ test('four grey bands, each with a ?, name the groups', async ({ page }) => {
 
 test('the bug switches carry the warning class under the "Enable WinISD bugs" band', async ({ page }) => {
   const group = page.locator('.error-switch-group');
-  for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdSealedPicker', 'winisdCoilWiringReBlOnly', 'winisdTlPortNoEndCorrection']) {
+  for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdSealedPicker', 'winisdCoilWiringReBlOnly', 'winisdTlPortNoEndCorrection', 'winisdProjectAlfaVC']) {
     const label = group.locator(`label[data-field-key="${key}"]`);
     await expect(label, key).toHaveClass(/error-switch-marked/);
     await expect(label, key).toHaveAttribute('title', /^Ticking brings back a WinISD bug\.\n/);
@@ -145,6 +145,8 @@ test('the bug switches carry the warning class under the "Enable WinISD bugs" ba
   await expect(group.locator('label[data-field-key="winisdAbcIntraPortVelocity"]')).toHaveCount(0);
   await expect(page.locator('label[data-field-key="winisdAbcIntraPortVelocity"] input')).toBeDisabled();
   await expect(group.locator('label[data-field-key="winisdPrNprResonance"] input')).toBeDisabled();
+  // A cold coil and a catalogue driver (AlfaVC 0): the coil coefficient switch changes no sum, so it is greyed (T917).
+  await expect(group.locator('label[data-field-key="winisdProjectAlfaVC"] input')).toBeDisabled();
   // QO941: the Per-driver impedance switch is gone (the impedance chart is one driver's, as WinISD's).
   await expect(group.locator('label[data-field-key="winisdDriverCountModel"]')).toHaveCount(0);
 });

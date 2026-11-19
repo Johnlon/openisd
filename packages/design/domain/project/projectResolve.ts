@@ -164,12 +164,12 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
     case 'sealed': {
         const ts = driver.specs;
         // The Rg-loaded, coil-heated Qts of the direct-root driver: the same feed the Box tab's readout uses.
-        const rgLoadedQts = (): number | null => driver.heatedSourceLoadedQts(driveLoadOf(directRoot.value.driverEmbedding));
+        const rgLoadedQts = (): number | null => driver.heatedSourceLoadedQts(driveLoadOf(directRoot, driver));
         const sealed = engine.sealed.solve({
             Qts: inputOf(rgLoadedQts),
             Vas_m3: inputOf(() => {
                 const Vas = ts.Vas_m3.value;
-                const load = driveLoadOf(directRoot.value.driverEmbedding);
+                const load = driveLoadOf(directRoot, driver);
                 return Vas === null ? null : engine.sealed.arrayVas(Vas, load.nDrivers, load.loading);
             }),
             Fs_hz: inputOf(() => ts.Fs_hz.value),
@@ -190,8 +190,9 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
  *  off `driverOver`, the permanent facade collaborator every caller of `resolveProject` already supplies. Exported: also
  *  used by the facade's own `#signalOver` to build the `usableRe` callback `ProjectSignal` needs */
 export function usableRe(root: SimpleField<OpenISDProjectJson>, driverOver: ProjectResolveContext['driverOver']): number | null {
-    const {alfaVC_per_K, vcTempRise_K} = root.value.driverEmbedding;
-    return driverOver(root).hotRe_ohm(alfaVC_per_K, vcTempRise_K);
+    const driver = driverOver(root);
+    const {alfaVC_per_K, vcTempRise_K} = driveLoadOf(root, driver);
+    return driver.hotRe_ohm(alfaVC_per_K, vcTempRise_K);
 }
 
 /**

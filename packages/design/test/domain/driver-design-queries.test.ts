@@ -63,10 +63,10 @@ describe('OpenISDDriver design queries', () => {
     expect(OpenISDDriver.empty(createEngine()).sealedVolumeForQtc(0.707, oneDriver(0.1), losses)).toBeNull();
   });
 
-  it('ventedDesign(alignment, Rs, Ql) designs for the source-loaded Qts', () => {
+  it('ventedDesign(alignment, load, Ql) designs for the source-loaded Qts', () => {
     const d = driver();
     const loaded = d.sourceLoadedQts(2)!;
-    expect(d.ventedDesign('bb4', 2, 10)).toEqual(engine.vented.alignment('bb4', 40, loaded, 0.02, 10));
-    expect(OpenISDDriver.empty(createEngine()).ventedDesign('bb4', 2, 10)).toBeNull();
+    expect(d.ventedDesign('bb4', oneDriver(2), 10)).toEqual(engine.vented.alignment('bb4', 40, loaded, 0.02, 10));
+    expect(OpenISDDriver.empty(createEngine()).ventedDesign('bb4', oneDriver(2), 10)).toBeNull();
   });
 });

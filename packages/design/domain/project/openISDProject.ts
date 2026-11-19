@@ -162,7 +162,7 @@ export class OpenISDProject {
     #boxOver(root: SimpleField<OpenISDProjectJson>): OpenISDBox {
         return OpenISDBox.wrap(
             focus(root, 'box'), this.#driverOver(root), this.#engine,
-            () => driveLoadOf(root.value.driverEmbedding),
+            () => driveLoadOf(root, this.#driverOver(root)),
             () => this.#issues,
             () => this.#issues.ventTuningExtra,
             () => this.#airOver(root),
@@ -232,15 +232,18 @@ export class OpenISDProject {
 
     /** This array's own voice-coil resistance temperature coefficient, SI 1/K — independent of
      *  the driver's own datasheet `driver.alfaVC_per_K` (WinISD stores these separately, and
-     *  they can diverge). */
+     *  they can diverge). The sums heat the coil with the driver's own value when it is not 0, and with this one
+     *  otherwise or with "Coil coefficient from project" ticked (QO953.c16; `driveLoad.alfaVC_per_K`). */
     get alfaVC_per_K(): SimpleField<number> {
         return focus(this.#slot('driverEmbedding'), 'alfaVC_per_K');
     }
 
     /** What loads this project's driver beyond the driver itself (source resistance, driver count, loading and coil heating): the
-     *  figures the Box tab's sealed readout, and the sealed volume a typed Qtc gives, are worked out under. */
+     *  figures the Box tab's sealed readout, the sealed volume a typed Qtc gives, the charts and the Signal tab's power are
+     *  worked out under. */
     get driveLoad(): DriveLoad {
-        return driveLoadOf(this.#root().value.driverEmbedding);
+        const root = this.#root();
+        return driveLoadOf(root, this.#driverOver(root));
     }
 
     /** WinISD Driver tab "Standard" / "Iso-Barik" radio. */
@@ -428,7 +431,15 @@ export class OpenISDProject {
             winisdCoilWiringReBlOnly: this.winisdCoilWiringReBlOnly.value,
             coilWiringApplies: this.coilWiring.canChoose,
             tlPortModel: this.useTransmissionLinePortModel.value,
+            winisdProjectAlfaVC: this.winisdProjectAlfaVC.value,
+            coilAlfaVCChoiceMatters: this.vcTempRise_K.value !== 0
+                && this.driver.coilAlfaVC_per_K(this.alfaVC_per_K.value, false) !== this.driver.coilAlfaVC_per_K(this.alfaVC_per_K.value, true),
         });
+    }
+
+    /** WinISD Compatibility "Coil coefficient from project" — see `ProjectAdvanced.winisdProjectAlfaVC`. */
+    get winisdProjectAlfaVC(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdProjectAlfaVC;
     }
 
     /** WinISD Compatibility "Impedance of one driver" — see `ProjectAdvanced.winisdOneDriverImpedance`. Saved and loaded only. */
@@ -925,7 +936,7 @@ export class OpenISDProject {
             driverAddedMass_kg: this.driverAddedMass_kg,
             vcTempRise_K: this.vcTempRise_K,
             loading: this.loading,
-            alfaVC_per_K: this.alfaVC_per_K,
+            coilAlfaVC_per_K: this.driveLoad.alfaVC_per_K,
             sweepN: this.sweepN,
             driveVoltage_V: this.#signalOver(root).sweepVoltage_V,
             air: this.#airOver(root),

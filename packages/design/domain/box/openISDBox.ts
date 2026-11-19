@@ -652,13 +652,7 @@ export class OpenISDBox implements Box {
                 return;
             }
             case 'vented': {
-                if (!isStated(this.vented.volume_m3.value)) {
-                    const design = this.#driver.ventedDesign(STARTING.ventedAlignment, this.#load().Rs_ohm, this.vented.losses.Ql.value);
-                    if (design) {
-                        this.vented.volume_m3.set(design.Vb);
-                        this.vented.tuning_goal_hz.set(design.Fb, displayedHalfWidth(NumberField.BOX_FB_HZ));
-                    }
-                }
+                if (!isStated(this.vented.volume_m3.value)) this.resetVentedAlignment(STARTING.ventedAlignment);
                 startVentGeometry(this.vented.vent, this.#driver.specs.Dd_m.value);
                 return;
             }
@@ -724,14 +718,14 @@ export class OpenISDBox implements Box {
      *  settles to (John, 2026-10-16), the same figure `resetVentedAlignment` writes. Null when
      *  the driver has no design to give, where a clear leaves the box blank as before. */
     #ventedAlignmentVolume(): number | null {
-        const design = this.#driver.ventedDesign(STARTING.ventedAlignment, this.#load().Rs_ohm, this.vented.losses.Ql.value);
+        const design = this.#driver.ventedDesign(STARTING.ventedAlignment, this.#load(), this.vented.losses.Ql.value);
         return design?.Vb ?? null;
     }
 
     /** See `Box.resetVentedAlignment` (box.ts) for why this exists separately from
      *  `applyStartingValues`: it must overwrite, not merely fill a gap. */
     resetVentedAlignment(alignment: VentedAlignment = STARTING.ventedAlignment): void {
-        const design = this.#driver.ventedDesign(alignment, this.#load().Rs_ohm, this.vented.losses.Ql.value);
+        const design = this.#driver.ventedDesign(alignment, this.#load(), this.vented.losses.Ql.value);
         if (design) {
             this.vented.volume_m3.set(design.Vb);
             this.vented.tuning_goal_hz.set(design.Fb, displayedHalfWidth(NumberField.BOX_FB_HZ));

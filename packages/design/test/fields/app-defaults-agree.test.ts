@@ -27,7 +27,7 @@ describe('app defaults agree', () => {
     const p = new ProjectBuilder(driverFromSpec(createEngine(), driver), createEngine())
       .vented().volume_m3(0.03).tuning_goal_hz(30).build();
     p.box.vented.volume_m3.clear();
-    const design = p.driver.ventedDesign(DEFAULT_VENTED_ALIGNMENT, p.Rs_ohm.value, p.box.vented.losses.Ql.value)!;
+    const design = p.driver.ventedDesign(DEFAULT_VENTED_ALIGNMENT, p.driveLoad, p.box.vented.losses.Ql.value)!;
     expect(p.box.vented.volume_m3.value).toBe(design.Vb);
   });
 
