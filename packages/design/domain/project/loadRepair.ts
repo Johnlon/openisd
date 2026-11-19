@@ -11,18 +11,19 @@
  */
 import type {NumberField} from '../../fields/field.js';
 
-/** One repair the load made: the field, what the file held, what it holds now, and the line the
- *  opening message shows ("Driver input voltage (each) -6 V in the file: set to the 10 mV minimum"). */
+/** One repair the load made: the field, what the file held, what it holds now (null: the box was
+ *  emptied, so the app calculates it or takes its own value), and the line the opening message
+ *  shows ("Driver input voltage (each) -6 V in the file: set to the 10 mV minimum"). */
 export interface LoadRepairNote {
   readonly field: NumberField;
   readonly loaded: number;
-  readonly repaired: number;
+  readonly repaired: number | null;
   readonly text: string;
 }
 
-/** What a broken loaded value is set to, and the line saying so. */
+/** What a broken loaded value is set to (null: emptied), and the line saying so. */
 export interface LoadRepairFix {
-  readonly value: number;
+  readonly value: number | null;
   readonly text: string;
 }
 
@@ -35,23 +36,38 @@ export interface LoadRepairRule {
   readonly breaks: (v: number) => boolean;
   /** What `v` is set to, and the line telling the person. */
   readonly fix: (v: number) => LoadRepairFix;
-  /** Writes the repaired value to the record, without counting as an edit. */
-  readonly write: (v: number) => void;
+  /** Writes the repaired value to the record (null: empties the box), without counting as an edit. */
+  readonly write: (v: number | null) => void;
 }
 
 /** The line the opening message shows for a value repaired to `fixedTo` (a phrase such as "the
  *  10 mV minimum"). The file's number is quoted exactly as it was read. */
 export function loadRepairText(field: NumberField, loaded: number, fixedTo: string): string {
-  return `${field.label} ${loaded} ${field.unitLabel()} in the file: set to ${fixedTo}`;
+  return `${loadedSays(field, loaded)} in the file: set to ${fixedTo}`;
 }
 
-/** Whether `field`'s own load repair rule says `v` cannot be held: below `limits.min`, or not past
- *  `floor`. A non-finite number is never held. False for a field that states no load repair. */
+/** The line for a value whose box was emptied: "Air density 0 kg/m³ in the file: emptied, so the
+ *  box shows the value worked out from the temperature, humidity and pressure". */
+export function loadEmptiedText(field: NumberField, loaded: number, shows: string): string {
+  return `${loadedSays(field, loaded)} in the file: emptied, so the box shows ${shows}`;
+}
+
+/** "Volume 0 L": the field's label and the file's number in the unit the box shows first. */
+function loadedSays(field: NumberField, loaded: number): string {
+  const unit = field.unitLabel();
+  const shown = Number.isFinite(loaded) ? field.toDisplay(loaded) : loaded;
+  return unit === '' ? `${field.label} ${shown}` : `${field.label} ${shown} ${unit}`;
+}
+
+/** Whether `field`'s own load repair rule says `v` cannot be held: below `limits.min`, outside
+ *  `limits`, or not past `floor`. A non-finite number is never held. False for a field that states
+ *  no load repair. */
 export function fieldRefusesLoaded(field: NumberField, v: number): boolean {
   const repair = field.loadRepair;
   if (repair === null) return false;
   if (!Number.isFinite(v)) return true;
   if (repair.breaks === 'min') return v < field.limits.min;
+  if (repair.breaks === 'band') return v < field.limits.min || v > field.limits.max;
   switch (field.floor) {
     case 'positive': return v <= 0;
     case 'non-negative': return v < 0;
@@ -59,14 +75,18 @@ export function fieldRefusesLoaded(field: NumberField, v: number): boolean {
   }
 }
 
-/** The rule a field's own `loadRepair` states: a loaded value it refuses is set to `loadRepair.to`. */
-export function fieldLoadRule(field: NumberField, loaded: () => number | null, write: (v: number) => void): LoadRepairRule {
+/** The rule a field's own `loadRepair` states: a loaded value it refuses is set to `loadRepair.to`,
+ *  or its box emptied. */
+export function fieldLoadRule(field: NumberField, loaded: () => number | null, write: (v: number | null) => void): LoadRepairRule {
   const repair = field.loadRepair;
   if (repair === null) throw new Error(`${field.value} states no load repair`);
+  const to = repair.to;
   return {
     field, loaded, write,
     breaks: v => fieldRefusesLoaded(field, v),
-    fix: v => ({value: repair.to, text: loadRepairText(field, v, repair.described)}),
+    fix: v => to === 'empty'
+      ? {value: null, text: loadEmptiedText(field, v, repair.described)}
+      : {value: to, text: loadRepairText(field, v, repair.described)},
   };
 }
 

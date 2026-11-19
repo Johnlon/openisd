@@ -29,11 +29,11 @@ const {
 <template>
   <PhoneClassicPage>
     <PhoneBand :section="PhoneHelp.ADVANCED_ENVIRONMENT" />
-    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range />
-    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range />
-    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range />
-    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range />
-    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-state="envAirDensityDq.dqState" allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-warnings="envTempDq.warnings" :dq-state="envTempDq.dqState" stepper allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-warnings="envHumidityDq.warnings" :dq-state="envHumidityDq.dqState" stepper />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-warnings="envPressureDq.warnings" :dq-state="envPressureDq.dqState" stepper allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-warnings="envSoundVelocityDq.warnings" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-warnings="envAirDensityDq.warnings" :dq-state="envAirDensityDq.dqState" allow-out-of-range />
     <div class="mob-adv-btns">
       <PhoneButton @click="resetAirToAppDefaults">Reset to app levels</PhoneButton>
     </div>

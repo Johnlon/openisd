@@ -268,10 +268,20 @@ test.describe('Original Advanced tab', () => {
       expect(parseFloat(await vel.inputValue())).toBeGreaterThan(velAt301_30);
       expect(parseFloat(await density.inputValue())).toBeLessThan(rhoAt301_30);
 
-      // Out-of-range entry is data, not an error to clamp: 153 % stays readable and raises the DQ flag.
+      // 153 % is impossible air, so it is refused like every box (John's ruling QO953.c14, 18 Nov
+      // 2026: "Agree: refuse impossible, warn odd"): red with the refusal note, and 80 % stays in
+      // the sums, so sound velocity and density do not move.
+      const velAt80 = await vel.inputValue();
+      const rhoAt80 = await density.inputValue();
       await fillAndBlur(hum, '153');
-      await expect(hum).toHaveValue(/153/);
-      await expect(hum).toHaveClass(/dq-flag/);
+      await expect(hum).toHaveClass(/inp-bad/);
+      await expect(page.locator('.ui-field', { hasText: 'Relative humidity' }).locator('.ui-field-dq-btn'))
+        .toHaveAttribute('title', 'Relative humidity is above its maximum — enter a value between 0.00 and 100.00 %.');
+      await expect(vel).toHaveValue(velAt80);
+      await expect(density).toHaveValue(rhoAt80);
+      await hum.focus();
+      await hum.press('Escape');
+      await expect(hum).toHaveValue(/80/);
     });
 
     test('moves density with pressure while sound velocity stays flat', async ({ appPage: page }) => {

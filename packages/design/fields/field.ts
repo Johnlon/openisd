@@ -49,6 +49,9 @@ import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
   FILTER_T_LIMITS, PEAK_HIGHPASS_GAIN_LIMITS,
 } from './filterLimits.js';
+import {
+  DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_QICL, DEFAULT_NEW_PROJECT_QP, DEFAULT_NEW_PROJECT_VENTED_QL,
+} from './defaults.js';
 import type {SelectorOption} from './options.js';
 import type {SpinRule} from './spinnerStep.js';
 import {
@@ -78,14 +81,17 @@ export type ValueFloor = 'positive' | 'non-negative' | 'none';
  * John, 18 Nov 2026: "a repair is ok but it has to be automatic" (QO953.c26); the repair is told in
  * the opening message only, never as a mark on the box (QO953.c30, c31).
  *
- * - `breaks` — which of the field's own rules the loaded value breaks: below `limits.min`, or not
- *   past `floor`.
- * - `to` — the value it is set to.
+ * - `breaks` — which of the field's own rules the loaded value breaks: below `limits.min`, not
+ *   past `floor`, or outside `limits` (`band`: below `min` or above `max`).
+ * - `to` — the value it is set to, or `'empty'`: the box is emptied, as if the file never gave it.
+ *   John, 18 Nov 2026: "a 0 is just the same as clearing the value in a sense" (QO953.c28): a field
+ *   the app can calculate (air density, a port's tuning) is then calculated, an air condition takes
+ *   the app's own value (Options).
  * - `described` — how the opening message names that value ("the 10 mV minimum").
  */
 export interface LoadRepair {
-  readonly breaks: 'min' | 'floor';
-  readonly to: number;
+  readonly breaks: 'min' | 'floor' | 'band';
+  readonly to: number | 'empty';
   readonly described: string;
 }
 
@@ -451,6 +457,7 @@ export class NumberField extends Field {
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 1000},
     floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: 'the tuning worked out from the port'},
     precision: 2,
     description: "Box Tuning Frequency (Fb)\nHelmholtz resonance of the vented enclosure, set by port dimensions and box volume. Enter the tuning frequency to calculate port length, or enter port length to calculate the tuning frequency. An unbuildable port is flagged.",
   });
@@ -461,6 +468,7 @@ export class NumberField extends Field {
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 1000},
     floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: 'the tuning worked out from the port'},
     precision: 2,
     description: "Front Chamber Tuning Frequency (Ffc)\nHelmholtz resonance of the front, vented chamber of a 4th-order bandpass, 6th-order bandpass or ABC box, set by port dimensions and chamber volume. Enter the tuning frequency to calculate port length, or enter port length to calculate the tuning frequency. An unbuildable port is flagged.",
   });
@@ -505,6 +513,8 @@ export class NumberField extends Field {
     label: "Vent length",
     display: {kind: 'switchable', group: 'length', base: 'cm'},
     limits: {min: 0.001, max: 10},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: 'the length worked out from the tuning'},
     precision: 2,
     description: "Vent Length\nPhysical length of the port tube.\nLonger ports lower the tuning frequency for a fixed box volume.",
   });
@@ -562,6 +572,7 @@ export class NumberField extends Field {
     label: "Num. of PRs",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 1, max: 4},
+    loadRepair: {breaks: 'min', to: 1, described: '1, the fewest'},
     spin: INTEGER_SPIN,
     precision: 0,
     description: "Passive Radiator Count\nNumber of identical passive radiators in the enclosure.",
@@ -571,6 +582,7 @@ export class NumberField extends Field {
     label: "Added mass to cone",
     display: {kind: 'switchable', group: 'mass', base: 'g'},
     limits: {min: 0, max: 5000},
+    loadRepair: {breaks: 'min', to: 0, described: '0 g, no added mass'},
     precision: 3,
     description: "PR Added Mass\nBallast mass attached to the passive radiator cone to lower its tuning frequency.",
   });
@@ -645,6 +657,7 @@ export class NumberField extends Field {
     label: "Series resistance",
     display: {kind: 'fixed', symbol: 'Ω'},
     limits: {min: 0, max: 1000},
+    loadRepair: {breaks: 'min', to: 0, described: '0 Ω, the least'},
     precision: 3,
     description: "Series Resistance\nCombined amplifier output impedance, wiring and crossover resistance, in series with the driver.",
   });
@@ -680,6 +693,8 @@ export class NumberField extends Field {
     label: "Leakage Ql",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 0.1, max: 1000},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: DEFAULT_NEW_PROJECT_VENTED_QL, described: `${DEFAULT_NEW_PROJECT_VENTED_QL}, WinISD's default`},
     precision: 2,
     description: "Enclosure Leakage Loss Q\nAcoustic energy lost through cabinet seams and gaskets.",
   });
@@ -688,6 +703,8 @@ export class NumberField extends Field {
     label: "Absorption Qa",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 0.1, max: 1000},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: DEFAULT_NEW_PROJECT_QA, described: `${DEFAULT_NEW_PROJECT_QA}, WinISD's default`},
     precision: 2,
     description: "Enclosure Damping Loss Q\nAcoustic energy absorbed by internal damping fill.",
   });
@@ -696,6 +713,8 @@ export class NumberField extends Field {
     label: "Port Qp",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 0.1, max: 1000},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: DEFAULT_NEW_PROJECT_QP, described: `${DEFAULT_NEW_PROJECT_QP}, WinISD's default`},
     precision: 2,
     description: "Port Friction Loss Q\nAir friction and viscous boundary losses inside the vent.",
   });
@@ -704,6 +723,8 @@ export class NumberField extends Field {
     label: "Interchamber Qicl",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 0.1, max: 1000},
+    floor: "positive",
+    loadRepair: {breaks: 'floor', to: DEFAULT_NEW_PROJECT_QICL, described: `${DEFAULT_NEW_PROJECT_QICL}, WinISD's default`},
     precision: 2,
     description: "Interchamber Loss Q\nAcoustic energy lost through the wall between the two chambers; one value for both.",
   });
@@ -716,7 +737,11 @@ export class NumberField extends Field {
     // The air model's own domain: above 0 K, up to a temperature far past any room (John, 1 Nov
     // 2026: no -100..+100 degC typing band). The solver's temperature search covers this band.
     limits: {min: 0, max: 1000},
+    // WinISD's own band (its Options dialog, 174 to 373 K inclusive, winisd_research/runs/env-limits-20261118):
+    // outside it a typed or loaded temperature is kept with a warning (QO953.c14).
+    plausible: {min: 174, max: 373},
     floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: "the app's temperature (Options)"},
     precision: 2,
     description: "Ambient Temperature\nUsed to calculate the speed of sound and the density of air.",
   });
@@ -725,6 +750,7 @@ export class NumberField extends Field {
     label: "Relative humidity",
     display: {kind: 'fixed', symbol: '%'},
     limits: {min: 0, max: 100},
+    loadRepair: {breaks: 'band', to: 'empty', described: "the app's humidity (Options)"},
     precision: 2,
     description: "Relative Humidity\nAffects the speed of sound and the density of the air.",
   });
@@ -733,7 +759,11 @@ export class NumberField extends Field {
     label: "Air pressure",
     display: {kind: 'switchable', group: 'pressure', base: 'Pa'},
     limits: {min: 1000, max: 200000},
+    // Air on the ground anywhere on Earth: the summit of Everest (about 33 kPa) to below the Dead Sea's
+    // shore (about 107 kPa). Outside it a pressure is kept with a warning (QO953.c14).
+    plausible: {min: 30000, max: 110000},
     floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: "the app's pressure (Options)"},
     precision: 0,
     description: "Air Pressure\nAtmospheric pressure — affects air density and acoustic impedance.",
   });
@@ -742,7 +772,12 @@ export class NumberField extends Field {
     label: "Sound velocity",
     display: {kind: 'fixed', symbol: 'm/s'},
     limits: {min: 0, max: 1000},
+    // The air model's sound velocity over the temperature and pressure bands above at any humidity
+    // (264 m/s at 174 K, 491 m/s at 373 K, 100 % and 30 kPa), rounded outward. Outside it a sound
+    // velocity is kept with a warning (QO953.c14).
+    plausible: {min: 260, max: 500},
     floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: 'the value worked out from the temperature, humidity and pressure'},
     precision: 2,
     formula: "c = √(γ·p/ρ), γ = 1.4",
     description: "Speed of Sound\nHow fast an acoustic wave travels through air, at the stated conditions.",
@@ -752,7 +787,11 @@ export class NumberField extends Field {
     label: "Air density",
     display: {kind: 'fixed', symbol: 'kg/m³'},
     limits: {min: 0, max: 10},
+    // The air model's density over the same bands (0.17 to 2.2 kg/m³), rounded outward. Outside it a
+    // density is kept with a warning (QO953.c14).
+    plausible: {min: 0.15, max: 2.25},
     floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: 'the value worked out from the temperature, humidity and pressure'},
     precision: 5,
     formula: "ρ = p·Ma/(R·T)·[1 − xv(1 − Mv/Ma)]",
     description: "Air Density\nMass density of air, derived from temperature, humidity and pressure.",
@@ -1311,6 +1350,7 @@ export class NumberField extends Field {
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 20000},
     floor: "positive",
+    loadRepair: {breaks: 'floor', to: 'empty', described: 'the tuning worked out from the port'},
     precision: 2,
     description: "Rear Chamber Tuning Frequency (Frc)\nHelmholtz tuning frequency of the vented rear chamber in a 6th-order bandpass or ABC box. Enter the tuning frequency to calculate port length, or enter port length to calculate the tuning frequency. An unbuildable port is flagged.",
   });
@@ -1322,6 +1362,7 @@ export class NumberField extends Field {
     label: "Num. of drivers",
     display: {kind: 'fixed', symbol: ''},
     limits: {min: 1, max: 64},
+    loadRepair: {breaks: 'min', to: 1, described: '1, the fewest'},
     spin: INTEGER_SPIN,
     precision: 0,
     description: "Driver Count\nHow many drivers are active in the enclosure.",
