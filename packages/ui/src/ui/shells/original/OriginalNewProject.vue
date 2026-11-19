@@ -171,7 +171,7 @@ function handleCreate() {
                 </span>
               </div>
             </div>
-            <div class="np-placement-caption" :class="{'np-placement-caption-off': placement !== 'isobaric'}" :aria-hidden="placement !== 'isobaric'">{{ PhoneWizardText.ISOBARIK_CAPTION }}</div>
+            <div class="np-placement-caption" :class="{'np-placement-caption-off': placementChoice.caption === null}" :aria-hidden="placementChoice.caption === null">{{ placementChoice.caption }}</div>
           </div>
         </div>
 
@@ -379,7 +379,8 @@ function handleCreate() {
 .np-place-drawing.np-place-on { border-color: #2e7d32; background: #f0f7f0; }
 .np-place-drawing :deep(svg) { height: 88px; width: auto; }
 /* The note starts where the labels above it start. */
-.np-placement-caption { align-self: flex-start; font-size: 13px; color: #666; }
+/* One line kept whether or not there is a note (Standard has none), so nothing moves when the choice changes. */
+.np-placement-caption { align-self: flex-start; font-size: 13px; color: #666; min-height: 1lh; }
 /* The note's row stays for Standard so the dialog keeps its size when Placement changes. */
 .np-placement-caption-off { visibility: hidden; }
 .placement-label { color: #333; white-space: nowrap; }

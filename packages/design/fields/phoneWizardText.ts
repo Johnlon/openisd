@@ -14,6 +14,9 @@ export interface WizardInfoCard {
   readonly note: string | null;
 }
 
+/** What either Iso-Barik arrangement does to the box, the same for both. */
+const ISOBARIK_EFFECT = 'the pair acts as one driver with half the Vas, so the same Qtc needs half the box volume.';
+
 /**
  * The three placement drawings the New Project dialog offers on step 2 (John, 19 Nov 2026: "click the images to select the active
  * one of the 3 ... both iso have same effect but it's nice for the user to select their intent even if maths the same").
@@ -21,9 +24,9 @@ export interface WizardInfoCard {
  * The clamshell/back-to-front choice is the dialog's only: no project field holds it until John decides to save it.
  */
 export class PlacementChoice {
-  static readonly STANDARD = new PlacementChoice('standard', 'standard', 'single', 'Standard');
-  static readonly CLAMSHELL = new PlacementChoice('isobaric', 'isobaric', 'clamshell', 'Iso-Barik clamshell');
-  static readonly TANDEM = new PlacementChoice('isobaric-tandem', 'isobaric', 'tandem', 'Iso-Barik back to front');
+  static readonly STANDARD = new PlacementChoice('standard', 'standard', 'single', 'Standard', null);
+  static readonly CLAMSHELL = new PlacementChoice('isobaric', 'isobaric', 'clamshell', 'Iso-Barik clamshell', ISOBARIK_EFFECT);
+  static readonly TANDEM = new PlacementChoice('isobaric-tandem', 'isobaric', 'tandem', 'Iso-Barik back to front', ISOBARIK_EFFECT);
   static readonly ALL: readonly PlacementChoice[] = Object.freeze([PlacementChoice.STANDARD, PlacementChoice.CLAMSHELL, PlacementChoice.TANDEM]);
 
   private constructor(
@@ -32,7 +35,15 @@ export class PlacementChoice {
     readonly art: 'single' | 'clamshell' | 'tandem',
     /** The words of the desktop radio and of the phone's dropdown row (short enough for the phone's dropdown). */
     readonly label: string,
+    /** What the arrangement does, said under the drawings after its name; null for Standard, which has no note. */
+    private readonly effect: string | null,
   ) {}
+
+  /** The note under the drawings: the picked arrangement by the drawing's own name, then what it does (John, 19 Nov 2026, on the
+   * New Project step 2 picture: "the either arrangement comment is out of place now"). Null when the choice has no note. */
+  get caption(): string | null {
+    return this.effect === null ? null : `${this.label}: ${this.effect}`;
+  }
 
   /** The choice a radio or dropdown value names. */
   static of(value: string): PlacementChoice {
@@ -54,7 +65,6 @@ export class PhoneWizardText {
   static readonly PLACEMENT_STANDARD = 'Standard';
   static readonly PLACEMENT_ISOBARIK = 'Iso-Barik';
 
-  static readonly ISOBARIK_CAPTION = 'Either arrangement: the pair acts as one driver with half the Vas, so the same Qtc needs half the box volume.';
   static readonly ISOBARIK_CLAMSHELL = 'Clamshell (face to face)';
   static readonly ISOBARIK_TANDEM = 'Back to front';
 

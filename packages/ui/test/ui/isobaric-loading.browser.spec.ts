@@ -427,6 +427,59 @@ for (const [art, value, loading] of [['single', 'standard', 'standard'], ['clams
   });
 }
 
+/** John, 19 Nov 2026, on the New Project step 2 picture: "the either arrangement comment is out of place now". With one of three drawings
+ * picked, the note under them names the picked arrangement in the drawing's own words; Standard has no note. */
+const CAPTIONS = [['single', null], ['clamshell', 'Iso-Barik clamshell'], ['tandem', 'Iso-Barik back to front'], ['clamshell', 'Iso-Barik clamshell']] as const;
+const EFFECT = 'the pair acts as one driver with half the Vas, so the same Qtc needs half the box volume.';
+
+test('desktop New Project: the note under the drawings names the drawing clicked', async ({appPage: page}) => {
+  await page.goto('/');
+  await page.locator('.tb-btn[title*="New project"]').click();
+  const overlay = page.locator('.overlay.open');
+  await overlay.locator('.dlist .ditem', {hasText: 'W5-1138SMF'}).first().click();
+  await overlay.locator('.modal-footer').getByRole('button', {name: 'Next', exact: true}).click();
+  const note = overlay.locator('.np-placement-caption');
+  const footer = (await overlay.locator('.modal-footer').boundingBox())!;
+  const heights: number[] = [];
+  for (const [art, name] of CAPTIONS) {
+    await overlay.getByTestId(`placement-${art}`).click();
+    await expect(overlay.getByTestId(`placement-${art}`)).toHaveClass(/np-place-on/);
+    if (name === null) await expect(note).toBeHidden();
+    else {
+      await expect(note).toBeVisible();
+      await expect(note).toHaveText(`${name}: ${EFFECT}`);
+      await expect(overlay.getByTestId(`placement-${art}`)).toHaveAttribute('title', name);
+    }
+    expect((await overlay.locator('.modal-footer').boundingBox())!.y, 'footer does not move').toBe(footer.y);
+    heights.push((await note.boundingBox())!.height);
+  }
+  // The note keeps its room when Standard has none, so nothing below it moves.
+  expect(new Set(heights).size, `note heights ${JSON.stringify(heights)}`).toBe(1);
+});
+
+test('phone New Project: the note under the drawings names the arrangement chosen', async ({appPage: page}) => {
+  await page.setViewportSize(PIXEL_9);
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await page.locator('.mob-hamburger').click();
+  await page.locator('.mob-menu-item', {hasText: 'New project'}).click();
+  await page.getByText(TEST_DRIVER).click();
+  await page.locator('.mob-np-footer').getByText('Next ▸', {exact: true}).click();
+  const note = page.locator('.mob-np-pic-caption');
+  const heights: number[] = [];
+  for (const [value, name] of [['standard', null], ['isobaric', 'Iso-Barik clamshell'], ['isobaric-tandem', 'Iso-Barik back to front']] as const) {
+    await page.locator('#np-placement').selectOption(value);
+    if (name === null) await expect(note).toBeHidden();
+    else {
+      await expect(note).toBeVisible();
+      await expect(note).toHaveText(`${name}: ${EFFECT}`);
+      await expect(page.locator('#np-placement option:checked')).toHaveText(name);
+    }
+    heights.push((await note.boundingBox())!.height);
+  }
+  expect(new Set(heights).size, `note heights ${JSON.stringify(heights)}`).toBe(1);
+});
+
 test('desktop New Project: arrow keys move between the three placement choices', async ({appPage: page}) => {
   await page.goto('/');
   await page.locator('.tb-btn[title*="New project"]').click();

@@ -41,6 +41,7 @@ const {
 
   nDrivers,
   placement,
+  placementChoice,
   placementValue,
 
   boxType,
@@ -184,7 +185,7 @@ function handleCreate() {
           </div>
           <div class="mob-np-pic mob-np-pic-note">
             <PlacementDiagram :placement="placement" />
-            <div class="mob-np-pic-caption" :class="{'mob-np-pic-caption-off': placement !== 'isobaric'}" :aria-hidden="placement !== 'isobaric'">{{ PhoneWizardText.ISOBARIK_CAPTION }}</div>
+            <div class="mob-np-pic-caption" :class="{'mob-np-pic-caption-off': placementChoice.caption === null}" :aria-hidden="placementChoice.caption === null">{{ placementChoice.caption }}</div>
           </div>
         </template>
 
@@ -323,7 +324,8 @@ function handleCreate() {
 .mob-np-pic-note { flex-direction: column; gap: 8px; }
 /* The note starts where the labels above it start (the row edge), not at the screen edge. */
 .mob-np-pic-caption-off { visibility: hidden; }
-.mob-np-pic-caption { align-self: stretch; box-sizing: border-box; padding: 0 var(--mob-edge); font-size: 13px; color: #666; }
+/* Two lines kept whether or not there is a note (Standard has none), so nothing moves when the choice changes. */
+.mob-np-pic-caption { align-self: stretch; box-sizing: border-box; padding: 0 var(--mob-edge); font-size: 13px; color: #666; min-height: 2lh; }
 
 /* Alignment: prod's option names are long, so the label sits above a full-width select */
 .mob-classic .mob-crow-stack { flex-direction: column; align-items: stretch; height: auto; padding: 0 var(--mob-edge) 8px; }
