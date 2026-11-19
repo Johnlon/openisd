@@ -299,7 +299,7 @@ function handleCreate() {
 .np-chamber h4 { margin: 0 0 8px; font-weight: 600; }
 .np-chamber .field { margin-bottom: 6px; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.18); z-index: 100; display: flex; align-items: flex-start; justify-content: center; }
-.modal { margin-top: 6vh; background: #f7f7f7; border: 1px solid #888; box-shadow: 3px 6px 18px rgba(0,0,0,.35); width: 800px; max-width: 92vw; display: flex; flex-direction: column; height: 586px; max-height: 92vh; }
+.modal { margin-top: 6vh; background: #f7f7f7; border: 1px solid #888; box-shadow: 3px 6px 18px rgba(0,0,0,.35); width: 800px; max-width: 92vw; display: flex; flex-direction: column; height: 624px; max-height: calc(100vh - 6vh - 8px); }
 /* One size on every step and in both placements (John: "dlg changing size for a workflow is anti pattern"): the tallest step, the driver library, sets it. */
 .modal-titlebar { display: flex; align-items: center; justify-content: space-between; background: #e9e9e9; border-bottom: 1px solid #bbb; padding: 8px 12px; font-size: 15px; }
 .modal-titlebar .tb-left { display: flex; align-items: center; gap: 8px; }
@@ -315,6 +315,11 @@ function handleCreate() {
 .np-library { height: 420px; }
 .field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .step-content :deep(.ui-field) { margin-bottom: 10px; }
+/* The passive radiator step is the tallest: tighter rows keep the one fixed dialog size within a normal window. */
+/* Eight number rows in two columns keep the passive radiator step inside the one fixed dialog size. */
+.np-pr-fields :deep(.np-pr-step) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; align-items: center; }
+.np-pr-fields :deep(.np-pr-step > :not(.ui-field)) { grid-column: 1 / -1; }
+.np-pr-fields :deep(.np-pr-step > .ui-pick-field) { grid-column: 1 / -1; }
 .field { display: flex; align-items: center; gap: 6px; }
 .field label { color: #333; display: inline-block; min-width: 150px; }
 .field input, .field select { border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff; }

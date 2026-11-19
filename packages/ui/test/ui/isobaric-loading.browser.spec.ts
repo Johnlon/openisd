@@ -48,6 +48,7 @@ interface Shell {
   /** The Placement control's text must not call Iso-Barik "not modelled". */
   readonly placementArea: (page: Page) => Locator;
   readonly expectStandardOffered: (page: Page) => Promise<void>;
+  readonly chooseStandard: (page: Page) => Promise<void>;
   readonly chooseIsobaric: (page: Page) => Promise<void>;
   readonly expectIsobaricChosen: (page: Page) => Promise<void>;
   readonly openChart: (page: Page) => Promise<void>;
@@ -67,6 +68,7 @@ const DESKTOP: Shell = {
     await expect(radios(page).nth(1)).toBeEnabled();
     await expect(radios(page).nth(0)).toBeChecked();
   },
+  chooseStandard: async (page) => { await radios(page).nth(0).check(); },
   chooseIsobaric: async (page) => { await radios(page).nth(1).check(); },
   expectIsobaricChosen: async (page) => { await expect(radios(page).nth(1)).toBeChecked(); },
   openChart: async () => undefined,
@@ -113,6 +115,7 @@ const PHONE: Shell = {
     await expect(select(page)).toBeEnabled();
     await expect(select(page)).toHaveValue('standard');
   },
+  chooseStandard: async (page) => { await select(page).selectOption('standard'); },
   chooseIsobaric: async (page) => { await select(page).selectOption('isobaric'); },
   expectIsobaricChosen: async (page) => { await expect(select(page)).toHaveValue('isobaric'); },
   openChart: async (page) => { await page.locator('.mob-tab', {hasText: 'Graph'}).click(); },
@@ -228,64 +231,54 @@ async function drawingSizes(page: Page, area: string): Promise<{svgs: {w: number
   return {svgs, area: {w: Math.round(a.width), h: Math.round(a.height)}};
 }
 
-for (const [shell, area, widths] of [[DESKTOP, '.box-diagram-col', [1280]], [PHONE, '.mob-cpic', [360, 412]]] as const) {
-  for (const width of widths) {
-    test(`${shell.name} ${width} px: every Box tab drawing is the same size in Standard and Iso-Barik, in the same area, nothing clipped`, async ({appPage: page}) => {
-      await shell.open(page);
-      if (shell === PHONE) await page.setViewportSize({width, height: 780});
-      for (const boxType of BOX_TYPES) {
-        await setFocusedBoxType(page, boxType);
-        await openTab(page, 'Driver');
-        await shell.expectStandardOffered(page);
-        await openTab(page, 'Box');
-        await expect(page.getByTestId('box-standard')).toBeVisible();
-        const standard = await drawingSizes(page, area);
-        expect(standard.svgs, `${boxType} standard: one drawing`).toHaveLength(1);
-        await openTab(page, 'Driver');
-        await shell.chooseIsobaric(page);
-        await openTab(page, 'Box');
-        await expect(page.getByTestId('box-tandem')).toBeVisible();
-        const iso = await drawingSizes(page, area);
-        expect(iso.svgs, `${boxType} iso: two drawings`).toHaveLength(2);
-        for (const d of iso.svgs) expect(d, `${boxType}: each Iso-Barik drawing is the Standard drawing's size`).toEqual(standard.svgs[0]);
-        expect(iso.area.h, `${boxType}: the drawing area keeps its height`).toBe(standard.area.h);
-        if (shell === PHONE) {
-          expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `${boxType} at ${width}: no sideways scroll`).toBe(true);
-          for (const svg of await page.locator(`${area} figure svg:visible`).all()) {
-            const b = (await svg.boundingBox())!;
-            expect(b.x, `${boxType}: inside the left edge`).toBeGreaterThanOrEqual(0);
-            expect(b.x + b.width, `${boxType}: inside the right edge`).toBeLessThanOrEqual(width);
-          }
-        }
-        console.log(`SIZES ${shell.name} ${width} ${boxType} standard ${JSON.stringify(standard.svgs[0])} area ${JSON.stringify(standard.area)} | iso ${JSON.stringify(iso.svgs)} area ${JSON.stringify(iso.area)}`);
-        if (boxType === 'sealed' || boxType === 'vented') await picture(page, `${shell.name}-${width}-same-size-${boxType}-iso`);
-        await openTab(page, 'Driver');
-        if (shell === PHONE) await select(page).selectOption('standard'); else await radios(page).nth(0).check();
-      }
-    });
+/** Phone only: no sideways scroll and every drawing inside the screen. Desktop has nothing to add. */
+async function expectPhoneFits(page: Page, area: string, width: number, boxType: string): Promise<void> {
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `${boxType} at ${width}: no sideways scroll`).toBe(true);
+  for (const svg of await page.locator(`${area} figure svg:visible`).all()) {
+    const b = (await svg.boundingBox())!;
+    expect(b.x, `${boxType}: inside the left edge`).toBeGreaterThanOrEqual(0);
+    expect(b.x + b.width, `${boxType}: inside the right edge`).toBeLessThanOrEqual(width);
   }
 }
+const noExtraChecks = async (): Promise<void> => undefined;
 
-/** Paired pictures: every view in both placements, same project, same size, same scroll position, names that pair up. */
-for (const shell of [DESKTOP, PHONE]) {
-  test(`${shell.name}: pictures of every view in both placements, paired`, async ({appPage: page}) => {
+const SIZE_CASES = [
+  {shell: DESKTOP, area: '.box-diagram-col', width: 1280, fits: noExtraChecks},
+  {shell: PHONE, area: '.mob-cpic', width: 360, fits: expectPhoneFits},
+  {shell: PHONE, area: '.mob-cpic', width: 412, fits: expectPhoneFits},
+];
+
+for (const {shell, area, width, fits} of SIZE_CASES) {
+  test(`${shell.name} ${width} px: every Box tab drawing is the same size in Standard and Iso-Barik, in the same area, nothing clipped`, async ({appPage: page}) => {
     await shell.open(page);
-    const top = async (): Promise<void> => { await page.locator('.mob-content, .tab-section.active').first().evaluate((el) => { el.scrollTop = 0; }); };
-    for (const [placement, choose] of [['standard', async () => { await openTab(page, 'Driver'); if (shell === PHONE) await select(page).selectOption('standard'); else await radios(page).nth(0).check(); }], ['isobarik', async () => { await openTab(page, 'Driver'); await shell.chooseIsobaric(page); }]] as const) {
-      await choose();
-      await top();
-      await picture(page, `pair-${shell.name}-driver-tab-${placement}`);
-      await setFocusedBoxType(page, 'sealed');
-      await top();
-      await picture(page, `pair-${shell.name}-box-closed-${placement}`);
-      await setFocusedBoxType(page, 'vented');
-      await top();
-      await picture(page, `pair-${shell.name}-box-vented-${placement}`);
+    await page.setViewportSize({width, height: 780});
+    for (const boxType of BOX_TYPES) {
+      await setFocusedBoxType(page, boxType);
+      await openTab(page, 'Driver');
+      await shell.expectStandardOffered(page);
+      await openTab(page, 'Box');
+      await expect(page.getByTestId('box-standard')).toBeVisible();
+      const standard = await drawingSizes(page, area);
+      expect(standard.svgs, `${boxType} standard: one drawing`).toHaveLength(1);
+      await openTab(page, 'Driver');
+      await shell.chooseIsobaric(page);
+      await openTab(page, 'Box');
+      await expect(page.getByTestId('box-tandem')).toBeVisible();
+      const iso = await drawingSizes(page, area);
+      expect(iso.svgs, `${boxType} iso: two drawings`).toHaveLength(2);
+      for (const d of iso.svgs) expect(d, `${boxType}: each Iso-Barik drawing is the Standard drawing's size`).toEqual(standard.svgs[0]);
+      expect(iso.area.h, `${boxType}: the drawing area keeps its height`).toBe(standard.area.h);
+      await fits(page, area, width, boxType);
+      console.log(`SIZES ${shell.name} ${width} ${boxType} standard ${JSON.stringify(standard.svgs[0])} area ${JSON.stringify(standard.area)} | iso ${JSON.stringify(iso.svgs)} area ${JSON.stringify(iso.area)}`);
+      await picture(page, `${shell.name}-${width}-same-size-${boxType}-iso`);
+      await openTab(page, 'Driver');
+      await shell.chooseStandard(page);
     }
   });
+}
 
-  test(`${shell.name}: New Project step 2 pictures in both placements, paired`, async ({appPage: page}) => {
-    if (shell === PHONE) {
+const NEW_PROJECT_PICTURES: Record<string, (page: Page) => Promise<void>> = {
+  phone: async (page) => {
       await page.setViewportSize(PIXEL_9);
       await forceMobileSkin(page);
       await page.goto('/');
@@ -303,7 +296,8 @@ for (const shell of [DESKTOP, PHONE]) {
       await page.locator('.mob-np-footer').getByText('Next ▸', {exact: true}).click();
       await page.locator('#np-box-type').selectOption({label: 'Closed'});
       await picture(page, 'pair-phone-new-project-box-step-isobarik');
-    } else {
+  },
+  desktop: async (page) => {
       await page.goto('/');
       await page.locator('.tb-btn[title*="New project"]').click();
       const overlay = page.locator('.overlay.open');
@@ -320,7 +314,31 @@ for (const shell of [DESKTOP, PHONE]) {
       await picture(page, 'pair-desktop-new-project-step4-isobarik');
       await next.click();
       await picture(page, 'pair-desktop-new-project-step5-isobarik');
+  },
+};
+
+/** Paired pictures: every view in both placements, same project, same size, same scroll position, names that pair up. */
+for (const shell of [DESKTOP, PHONE]) {
+  test(`${shell.name}: pictures of every view in both placements, paired`, async ({appPage: page}) => {
+    await shell.open(page);
+    const top = async (): Promise<void> => { await page.locator('.mob-content, .tab-section.active').first().evaluate((el) => { el.scrollTop = 0; }); };
+    for (const [placement, choose] of [['standard', shell.chooseStandard], ['isobarik', shell.chooseIsobaric]] as const) {
+      await openTab(page, 'Driver');
+      await choose(page);
+      await top();
+      await picture(page, `pair-${shell.name}-driver-tab-${placement}`);
+      await setFocusedBoxType(page, 'sealed');
+      await top();
+      await picture(page, `pair-${shell.name}-box-closed-${placement}`);
+      await setFocusedBoxType(page, 'vented');
+      await top();
+      await picture(page, `pair-${shell.name}-box-vented-${placement}`);
     }
+    await expect(page.getByTestId('box-tandem')).toBeVisible();
+  });
+
+  test(`${shell.name}: New Project step 2 pictures in both placements, paired`, async ({appPage: page}) => {
+    await NEW_PROJECT_PICTURES[shell.name](page);
     await expect(page.locator('.overlay.open, .mob-np-overlay').first()).toBeVisible();
   });
 }
@@ -355,13 +373,15 @@ for (const boxType of ['Closed', 'Vented'] as const) {
 }
 
 /** The two-chamber Box tabs at the default window: the Rear chamber's controls keep a gap before the Front chamber's labels, and each header bar spans its controls. */
+const CHOOSE = {standard: DESKTOP.chooseStandard, isobaric: DESKTOP.chooseIsobaric};
+
 for (const boxType of ['abc', 'bandpass4', 'bandpass6'] as const) {
   for (const loadingChoice of ['standard', 'isobaric'] as const) {
     test(`desktop 1280: ${boxType} (${loadingChoice}) keeps the gap between the chambers and its header bars span their controls`, async ({appPage: page}) => {
       await page.setViewportSize({width: 1280, height: 720});
       await DESKTOP.open(page);
       await openTab(page, 'Driver');
-      if (loadingChoice === 'isobaric') await DESKTOP.chooseIsobaric(page);
+      await CHOOSE[loadingChoice](page);
       await setFocusedBoxType(page, boxType);
       await openTab(page, 'Box');
       const cols = page.locator('.box-tab-row .box-fields-col');
