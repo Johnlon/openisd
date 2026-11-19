@@ -17,7 +17,11 @@
  "copy|packages/ui/src/ui/shells/mobile/MobileNewProject.vue|packages/ui/src/ui/shells/mobile/MobileNewProject.vue|31dfecad5920": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/ui/src/ui/shells/mobile/MobileNewProject.vue:222-229 = packages/ui/src/ui/shells/mobile/MobileNewProject.vue:206-213",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/ui/src/ui/shells/mobile/MobileNewProject.vue: the box drawing is written once after the step templates",
+  "resolved_by": "T919",
+  "ruling": "QO949"
  },
  "copy|packages/ui/src/ui/shells/mobile/MobileNewProject.vue|packages/ui/src/ui/shells/original/OriginalNewProject.vue|ec909d30f262": {
   "reason": "baseline 2026-11-18 (QO946.c256)",

@@ -65,6 +65,7 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'conditional-branch-a50ee3fc71418490':{kind:'view',view:'wizard-vented-4'}, // MobileNewProject.vue:233
   'conditional-branch-012fdc01742c9450':{kind:'view',view:'phone/wizard-vented-volume-warning'}, // MobileNewProject.vue:242
   'conditional-branch-e4f09d4debae5f04':{kind:'view',view:'phone/wizard-vented-tuning-warning'}, // MobileNewProject.vue:244
+  'conditional-branch-eedce5283142bd4d':{kind:'partOf',view:'wizard-sealed-3'}, // MobileNewProject.vue:269 (the box drawing under the Box type and Box steps)
   'conditional-branch-7f264eb2e75c906b':{kind:'view',view:'wizard-box-passive-radiator-4'}, // MobileNewProject.vue:249
   'conditional-branch-1c761deb93e32b9c':{kind:'view',view:'phone/wizard-passive-radiator-pick-error'}, // MobileNewProject.vue:256
   'conditional-branch-602a5987ee9e20ac':{kind:'partOf',view:'wizard-sealed-4'}, // MobileNewProject.vue:261
