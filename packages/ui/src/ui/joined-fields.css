@@ -67,6 +67,8 @@
 .joined-fields:not(.app-root-mobile) .ui-field:is([data-field],.joined-field):has(input.de-input-mandatory:not(.de-input-empty,.inp-bad,.dq-flag)) {--joined-border-color:#767676;--joined-border-style:inset;}
 .joined-fields .ui-field:is([data-field],.joined-field):has(input.dq-flag) {--joined-border-color:var(--bad);}
 .joined-fields .ui-field:is([data-field],.joined-field):has(input.dq-symptom) {--joined-border-color:color-mix(in srgb,var(--bad) 65%,orange);}
+/* A kept value outside its normal band is a warning, not a conflict: amber like its ⚠, never red (QO953.c14). */
+.joined-fields .ui-field.ui-field:is([data-field],.joined-field):has(input.dq-warn) {--joined-border-color:var(--acc2);}
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field):has(input:is(.de-input-empty,.inp-bad)) {--joined-border-color:var(--bad);}
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field) input:is(.de-input-empty,.inp-bad) {border-color:var(--joined-border-color) !important;}
 /* Reserve one cue track for the whole phone page, keeping all value and spinner edges aligned. */

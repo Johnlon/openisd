@@ -7,8 +7,32 @@ export interface DqReadout {
   readonly dqState: ProvenanceLetter;
 }
 
+/** A field's marks with its warnings apart: `dq` the conflicts and flags, `warnings` the odd but
+ *  kept values (an air pressure outside the normal band). A warning conflicts with nothing, so it
+ *  is never said as a conflict and never drawn red (QO953.c14: "refuse impossible, warn odd"). */
+export interface FieldMarks extends DqReadout {
+  readonly warnings: readonly string[];
+}
+
+/** The field's flags, without its warnings (`warningsOfCell`). */
 export function dqOfCell(field: Readable<unknown>): DqReadout {
-  return { dq: field.dq.map(issue => issue.text), dqState: field.provenance };
+  return { dq: field.dq.filter(issue => issue.kind !== 'outside-normal-band').map(issue => issue.text), dqState: field.provenance };
+}
+
+/** The field's warnings: each stated value outside its normal band, kept and used. */
+export function warningsOfCell(field: Readable<unknown>): readonly string[] {
+  return field.dq.filter(issue => issue.kind === 'outside-normal-band').map(issue => issue.text);
+}
+
+/** `dqOfCell` and `warningsOfCell` in one readout. */
+export function marksOfCell(field: Readable<unknown>): FieldMarks {
+  return { ...dqOfCell(field), warnings: warningsOfCell(field) };
+}
+
+/** The sentence a field's ⚠ shows for its flags and warnings together: the flags as `dqReason`
+ *  says them, then each warning as it is, with no conflict prefix. '' when there is neither. */
+export function marksReason(marks: FieldMarks): string {
+  return [dqReason(marks), ...marks.warnings].filter(part => part !== '').join('; ');
 }
 
 /** The sentence a field's ⚠ shows. An entered value is one of the values in conflict, never "the"

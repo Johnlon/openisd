@@ -621,7 +621,7 @@ export class WinIsdProjectConverter {
     const P = wpr.number('SignalSource', 'P');
     // P can be stated only against a usable Re; without one the voltage stands alone.
     const Re_ohm = project.driver.specs.Re_ohm.value;
-    const loadRepairs = P != null && Re_ohm !== null && Re_ohm > 0 ? project.loadPowerDrive_W(P) : [];
+    const powerRepairs = P != null && Re_ohm !== null && Re_ohm > 0 ? project.loadPowerDrive_W(P) : [];
     const description = wpr.value('ProjectInfo', 'Description');
     const creator = wpr.value('ProjectInfo', 'Creator');
     const created = wpr.value('ProjectInfo', 'CreateDate');
@@ -632,6 +632,9 @@ export class WinIsdProjectConverter {
     if (modified != null) project.modified.set(modified);
 
     project.filters.set(this.#importFilters(wpr,  errors));
+    // Every value the file gave that a field cannot hold (an air pressure of 0, a driver count of 0)
+    // is repaired as any opened project's is, and named in the opening message.
+    const loadRepairs = [...powerRepairs, ...project.repairImported()];
 
     return {value: project, errors, loadRepairs};
   }

@@ -22,6 +22,13 @@ describe('entryRefusal — may this be stored, and if not, what to enter', () =>
     expect(entryRefusal(le, { kind: 'number', si: -0.001 })).toBe('Le is below its minimum — enter a value between 0.00 and 1000.00 L.');
   });
 
+  it('a temperature shown in °C is refused at or below absolute zero, said in °C (QO953.c14)', () => {
+    const celsius = { label: 'Temperature', unit: '°C', floor: 'positive' as const, min: 0, max: 1000, minimumReason: undefined, show: (si: number) => (si - 273.15).toFixed(2) };
+    expect(entryRefusal(celsius, { kind: 'number', si: 0 }))
+      .toBe('Temperature must be greater than -273.15 °C — enter a value above -273.15, up to 726.85 °C.');
+    expect(entryRefusal(celsius, { kind: 'number', si: 0.01 })).toBe('');
+  });
+
   it('refuses above the maximum, naming the range', () => {
     const box = litres({ label: 'Box volume', min: 0.0001, max: 0.1, floor: 'none' });
     expect(entryRefusal(box, { kind: 'number', si: 0.2 })).toBe('Box volume is above its maximum — enter a value between 0.10 and 100.00 L.');

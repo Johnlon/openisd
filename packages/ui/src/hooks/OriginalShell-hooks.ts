@@ -44,7 +44,7 @@ import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {OriginalFilters} from './OriginalFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, SimpleField, Writable} from '@openisd/design';
-import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
+import {marksOfCell, type FieldMarks} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
@@ -94,10 +94,10 @@ export function createEnvironmentAir({ project, projectChanged: changed }: Envir
   }
   /** The field's own marks and provenance: whatever the air resolve found about it, with its reason. */
   function dqOf(field: () => EnvField) {
-    return computed<DqReadout>(() => {
+    return computed<FieldMarks>(() => {
       void changed.value;
       void project.value;
-      return dqOfCell(field());
+      return marksOfCell(field());
     });
   }
   function entryOf(field: () => EnvField) {

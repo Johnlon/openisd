@@ -5,7 +5,7 @@
  */
 import type {AirEnvironment, AppAir, EnvironmentIssue, EnvironmentSolveResult} from '../air.js';
 import {appAirOf, solveEnvironment, temperatureIssues} from '../air.js';
-import {airFloorIssues, solveAir} from './airSolver.js';
+import {airBandIssues, airFloorIssues, solveAir} from './airSolver.js';
 import type {AirInputs, AirIssue, AirQuantityName, AirSolution} from './airSolver.js';
 import type {AppSettings, EnvDefaults} from '../appSettings.js';
 
@@ -21,6 +21,9 @@ export interface EnvironmentEngine {
   /** What is wrong with a stated pressure, sound velocity or density at or below zero: air with
    *  none of it is not air. Empty when the value is above zero, and for temperature and humidity. */
   airFloorIssues(name: AirQuantityName, value: number): readonly AirIssue[];
+  /** A warning for a stated air quantity outside its normal band (still inside its limits): the
+   *  value is kept and used. Empty inside the band. */
+  airBandIssues(name: AirQuantityName, value: number): readonly AirIssue[];
   /** The app's air: the Options constants, which a quantity no calculation gives falls back to
    *  (as calculated), and which a new project copies in as its T, RH and p (as entered). */
   readonly appAir: AppAir;
@@ -37,6 +40,8 @@ export class EnvironmentEngineImpl implements EnvironmentEngine {
   readonly temperatureIssues = temperatureIssues;
   /** `airSolver.ts`'s floor check, published as-is. */
   readonly airFloorIssues = airFloorIssues;
+  /** `airSolver.ts`'s normal-band warning, published as-is. */
+  readonly airBandIssues = airBandIssues;
   readonly appAir: AppAir;
   /** The settings' own `envDefaults`, published as-is — `AppSettings` is a bag of arrows, so it
    *  needs no receiver. */

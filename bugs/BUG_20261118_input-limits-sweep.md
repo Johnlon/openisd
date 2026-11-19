@@ -103,6 +103,39 @@ carried it. A NaN the project already had before the edit is not counted. No AI 
 | Duplicate project, Vas 0 | - | the sealed solve no longer writes a NaN Qtc (which the saved text wrote as null), so the strict reader takes the project's own text | plain |
 | System input power / Driver input voltage below 10 mV | the Driver input voltage box's note names the 10 mV minimum; the System input power box's minimum is the power that drives 10 mV | T918 (QO953.c26 "a repair is ok but it has to be automatic", c30, c31): the domain refuses a typed drive level below 10 mV (or a power of 0 W or below, or one driving below 10 mV) without a throw, the previous value stays. A loaded one is repaired on opening to 10 mV (power: the power that drives 10 mV), with no data-quality mark; the opening message lists the repair. `driveLevelIssues` (T916's sweep block) is gone | 32 plain tests |
 
+## Phase 3 (T924): loaded impossible values repaired, air warnings
+
+John, 18 Nov 2026: "Agree: refuse impossible, warn odd" (QO953.c14); "a 0 is just the same as clearing the value in a
+sense" (QO953.c28); "there won't be a dq flag on a repair as the dq always relate to the value the user can see" (QO953.c30);
+"all you can do is show a toast" (QO953.c31). A value a project file holds that no design can use is repaired when the
+project opens (an OpenISD project file, a WinISD `.wpr`, a stored project), by the same pass T918 built for the drive level:
+each field states its own repair (`NumberField.loadRepair`), the rules say where it sits in the record
+(`domain/project/projectLoadRepairRules.ts`), the box shows the repaired value with no ⚠, and the opening message lists each
+repair, one line.
+
+| box | loaded value repaired | repaired to | rule |
+|---|---|---|---|
+| Air pressure, Sound velocity, Air density | 0 or below | box emptied: pressure takes the app's (Options), c and ρ are worked out from T, RH and p | a 0 is an empty box (c28); c and ρ can be calculated |
+| Relative humidity | below 0 or above 100 % | box emptied: the app's humidity | as above |
+| Temperature | 0 K or below | box emptied: the app's temperature | as above |
+| Tuning freq Fb, Ffc, Frc | 0 Hz or below | box emptied: the tuning is worked out from the port length the file gave (that length becomes the entered side) | can be calculated |
+| Vent length (every port) | 0 or below | box emptied: worked out from the tuning | can be calculated |
+| Leakage Ql, Absorption Qa, Port Qp, Interchamber Qicl | 0 or below | WinISD's defaults: 10, 100, 100, 100 | the field's default |
+| Num. of drivers, Num. of PRs | below 1 | 1 | the field's minimum |
+| Series resistance | below 0 Ω | 0 Ω | the field's minimum |
+| PR added mass | below 0 | 0 g | the field's minimum |
+
+Not repaired: a box Volume of 0 (a built project holds 0 for a chamber nothing has designed yet, `ProjectBuilder.empty()`;
+it stays an empty box with its ⚠, as T916 left it). The chart range is an app setting, not a project value.
+
+Typed: Relative humidity now refuses below 0 and above 100 % with the box's note (the box honours its 0-100 band); a
+temperature at or below 0 K is refused (since T916) and the note says "above -273.15" when the box shows °C. An air value
+inside its limits but outside its normal band is kept and used with a ⚠ warning naming the band
+(`NumberField.plausible`): temperature 174-373 K (WinISD's Options band, `winisd_research/runs/env-limits-20261118`),
+pressure 30-110 kPa (Everest's summit to the Dead Sea's shore), sound velocity 260-500 m/s and density 0.15-2.25 kg/m³ (the air
+model over those bands). Tests: `packages/design/test/domain/air-and-box-load-repair.test.ts`,
+`packages/ui/test/ui/air-limits.browser.spec.ts` (desktop and phone).
+
 ## Proposed limits
 
 - plain: 14 rows above (air density, air pressure, sound velocity, Frc, intra port, volume, vent length, losses, PR count, PR

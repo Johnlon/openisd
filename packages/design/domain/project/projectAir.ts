@@ -67,7 +67,14 @@ export function airOf(fields: AirFields, environment: EnvironmentEngine): Air {
  *  calculated entry (or emptied when nothing gives it), every one carries the solver's marks.
  *  Writes only to `fields`' own entries. */
 export function resolveAir(fields: AirFields, environment: EnvironmentEngine): AirResolution {
-    const {values, widths, issues} = solveFields(fields, environment);
+    const solution = solveFields(fields, environment);
+    const {values, widths} = solution;
+    // A stated value outside its box's normal band is kept and used, with a warning (QO953.c14).
+    const stated: readonly (readonly [AirQuantityName, SolverAirField])[] = [
+        ['tempK', fields.tempK], ['humidityPct', fields.humidityPct], ['pressurePa', fields.pressurePa], ['c', fields.c], ['rho', fields.rho],
+    ];
+    const issues = [...solution.issues, ...stated.flatMap(([name, field]) =>
+        field.entered && field.value !== null ? environment.airBandIssues(name, field.value) : [])];
     const write = (name: AirQuantityName, field: SolverAirField): void => {
         if (!field.entered) field.setCalculated(values[name], undefined, widths[name] > 0 ? widths[name] : undefined);
         // Marks are written only where there are some to record or an earlier resolve's to replace:

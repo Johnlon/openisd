@@ -136,7 +136,8 @@ export class ProjectSignal {
             },
             v => {
                 const {voltage_V} = signal.value;
-                signal.set({...signal.value, voltage_V: voltage_V?.state === 'C' ? calculatedEntry(v) : enteredEntry(v)});
+                if (v === null) signal.set({...signal.value, voltage_V: undefined});
+                else signal.set({...signal.value, voltage_V: voltage_V?.state === 'C' ? calculatedEntry(v) : enteredEntry(v)});
             });
         const power: LoadRepairRule = {
             field: NumberField.SIGNAL_PIN_W,
@@ -151,7 +152,7 @@ export class ProjectSignal {
                 const P = this.#powerFor(MIN_DRIVE_VOLTAGE_V, Re_ohm);
                 return {value: P, text: loadRepairText(NumberField.SIGNAL_PIN_W, v, `${NumberField.SIGNAL_PIN_W.format(P)} ${NumberField.SIGNAL_PIN_W.unitLabel()}, the power that drives ${MIN_DRIVE_DESCRIBED}`)};
             },
-            write: v => signal.set({...signal.value, power_W: enteredEntry(v)}),
+            write: v => signal.set({...signal.value, power_W: v === null ? undefined : enteredEntry(v)}),
         };
         return [voltage, power];
     }

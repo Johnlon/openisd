@@ -1,0 +1,41 @@
+id: T924
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+label: fixes
+goal: "A value a project file holds that no design can use is repaired automatically when the project opens (OpenISD file, WinISD .wpr, stored project) and named once in the opening message, with no warning mark on its box: air pressure, sound velocity or density at or below 0, humidity outside 0-100 % and temperature at or below 0 K are emptied (the app's air, or worked out from it); a port tuning at or below 0 Hz is worked out from the port length the file gave; a negative port length is worked out from the tuning; a loss Q at or below 0 takes WinISD's default; a driver or radiator count below 1 becomes 1; a negative series resistance or added mass becomes 0. Typed humidity outside 0-100 % and typed temperature at or below 0 K are refused with a note; an air value outside its normal band is kept and used with a warning naming the band."
+why: "John, 18 Nov 2026, card air-box-limits: 'Agree: refuse impossible, warn odd, as above' (QO953.c14); general chat: 'yeas a 0 bs and jsrhe same as clearing the vale in a sense' (QO953.c28, a 0 is the same as clearing the value); 'there won't be a dqnflag on a repair as the dq always relate to the value the user can see - this is a hard rule surely' (QO953.c30); 'all you can do is show a toast' (QO953.c31); 'ok decided' (QO953.c32)."
+ruling: QO953
+done_test: bash scripts/test.sh packages/design/test/domain/air-and-box-load-repair.test.ts packages/design/test/domain/drive-level-load-repair.test.ts packages/ui/test/logic/entryRefusal.test.ts packages/ui/test/logic/cellDataQuality.test.ts
+files:
+  - tasks/T924.yml
+  - bugs/BUG_20261118_input-limits-sweep.md
+  - packages/design/domain/project/loadRepair.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectAir.ts
+  - packages/design/domain/project/projectLoadRepairRules.ts
+  - packages/design/domain/project/projectSignal.ts
+  - packages/design/domain/winIsdProjectConverter.ts
+  - packages/design/engine/environment/EnvironmentEngine.ts
+  - packages/design/engine/environment/airSolver.ts
+  - packages/design/fields/field.ts
+  - packages/design/test/domain/air-and-box-load-repair.test.ts
+  - packages/ui/src/logic/entryRefusal.ts
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/logic/entryRefusal.test.ts
+  - packages/ui/test/ui/air-limits.browser.spec.ts
+  - packages/design/engine/consistency.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/logic/cellDataQuality.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/UIFixedField.vue
+  - packages/ui/src/ui/components/UISettlingField.vue
+  - packages/ui/src/ui/components/uiFieldBinding.ts
+  - packages/ui/src/ui/joined-fields.css
+  - packages/ui/test/logic/cellDataQuality.test.ts
+  - packages/ui/test/ui/num-input.browser.spec.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+note: "Reuses T918's load repair pass, field-driven (NumberField.loadRepair, new 'band' break and 'empty' target); the record rules (projectLoadRepairRules.ts) run on the record before the first resolve. A box volume of 0 is not repaired: a built project holds 0 for an undesigned chamber (ProjectBuilder.empty()). Normal bands live on the fields (NumberField.plausible): T 174-373 K (WinISD Options), p 30-110 kPa, c 260-500 m/s, rho 0.15-2.25 kg/m3. The pressure band 30-110 kPa (and the c and rho bands) are the agent's choice, not a ruling: John can change them on NumberField.plausible. The band warning is its own issue kind ('outside-normal-band', consistency.ts NormalBandIssue): its note has no 'Conflicts with other values:' prefix, the box is amber (dq-warn, var(--acc2)) not red, and the note is the amber warning note; flags and conflicts keep their prefix and red look. The warning is added by the domain air resolve, the air solver's own issues are unchanged. tests_changed (approved by the lead under John's ruling QO953.c14, 18 Nov 2026: 'Agree: refuse impossible, warn odd' - refuse humidity outside 0-100 %): num-input.browser.spec.ts humidity -20 and 250 (was: accepted with a dq-flag, the 17 Sep 2026 contract) now refused, box red, the exact refusal note, sound velocity and density unchanged, Esc restores; original-advanced-tab.browser.spec.ts humidity 153 (was: kept with a dq-flag) now refused with the exact note, 80 % stays in the sums. Every other expectation in those tests is kept. air-limits.browser.spec.ts (desktop and phone) checks the warning text without the prefix and the amber, not red, box."

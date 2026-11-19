@@ -81,6 +81,9 @@ input.dq-root {
 input.dq-symptom {
   border-color: color-mix(in srgb, var(--bad) 65%, orange);
 }
+/* A kept value outside its normal band: a warning, not a conflict. Amber like the ⚠ and the
+   app's other kept-with-warning notes, never red: red means refused or in conflict (QO953.c14). */
+input.dq-warn { border-color: var(--acc2); }
 
 /* Side-by-side (▲ then ▼), not stacked: the dense mobile row has spare width — the empty space
    to the right of a short number — which is exactly what a horizontal pair uses (John,
