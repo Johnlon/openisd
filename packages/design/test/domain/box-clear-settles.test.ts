@@ -31,7 +31,7 @@ describe('clearing a box volume settles it to the alignment volume', () => {
 
   it('a cleared vented volume is entered, at the default (C4) alignment volume', () => {
     const p = vented();
-    const design = p.driver.ventedDesign(DEFAULT_VENTED_ALIGNMENT, p.Rs_ohm.value, p.box.vented.losses.Ql.value)!;
+    const design = p.driver.ventedDesign(DEFAULT_VENTED_ALIGNMENT, p.driveLoad, p.box.vented.losses.Ql.value)!;
 
     p.box.vented.volume_m3.clear();
 

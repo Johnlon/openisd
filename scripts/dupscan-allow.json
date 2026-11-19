@@ -262,7 +262,11 @@
  "copy|packages/design/domain/box/openISDBox.ts|packages/design/domain/box/openISDBox.ts|09d2a7da1fe0": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/domain/box/openISDBox.ts:736-743 = packages/design/domain/box/openISDBox.ts:658-664",
-  "count": 1
+  "count": 1,
+  "resolved": true,
+  "resolved_to": "packages/design/domain/box/openISDBox.ts:resetVentedAlignment",
+  "resolved_by": "T921",
+  "ruling": "QO949"
  },
  "copy|packages/design/domain/driver/openIsdDriverSpec.ts|packages/design/engine/physicalRange.ts|f45079f8a209": {
   "reason": "baseline 2026-11-18 (QO946.c256)",

@@ -37,7 +37,7 @@ describe('box starting values on a type switch', () => {
   it('vented: the default-alignment (C4) design for the source-loaded Qts, a 50 mm vent', () => {
     const p = sealedProject();
     p.box.boxType.set('vented');
-    const design = p.driver.ventedDesign(DEFAULT_VENTED_ALIGNMENT, DEFAULT_SOURCE_RESISTANCE_OHM, p.box.vented.losses.Ql.value)!;
+    const design = p.driver.ventedDesign(DEFAULT_VENTED_ALIGNMENT, oneDriver(DEFAULT_SOURCE_RESISTANCE_OHM), p.box.vented.losses.Ql.value)!;
     expect(p.box.vented.volume_m3.value).toBe(design.Vb);
     expect(p.box.vented.tuning_goal_hz.value).toBe(design.Fb);
     expect(p.box.vented.vent.diameter_m.value).toBe(0.05);

@@ -280,14 +280,16 @@ export abstract class OpenISDDriver extends OpenISDDevice {
             : {Fs, Vas: this.engine.sealed.arrayVas(Vas, load.nDrivers, load.loading), Qts, Ql: losses.Ql, Qa: losses.Qa};
     }
 
-    /** The vented box `alignment` designs for this driver as driven as `load` says (source, coil heating, driver count) with box
-     *  losses `Ql` — WinISD designs for the source-loaded Qts, not the datasheet Qts. Null
-     *  without Fs/Qts/Vas. */
-    ventedDesign(alignment: VentedAlignment, Rs_ohm: number, Ql: number): VentedDesign | null {
+    /** The vented box `alignment` designs for this driver as `load` drives it (source resistance, driver count, placement) with box
+     *  losses `Ql` — WinISD designs for the source-loaded Qts, not the datasheet Qts, and for all the project's drivers:
+     *  the proposed volume scales with the array Vas (N·Vas, halved for Iso-barik, the engine's `arrayVas`) while the tuning
+     *  stays the same (winisd_research/runs/vented-picker-ndrivers-20261118/RESULT.md). Null without Fs/Qts/Vas. */
+    ventedDesign(alignment: VentedAlignment, load: DriveLoad, Ql: number): VentedDesign | null {
         const Fs_hz = this.specs.Fs_hz.value, Vas_m3 = this.specs.Vas_m3.value;
-        const QtsLoaded = this.sourceLoadedQts(Rs_ohm);
+        const QtsLoaded = this.sourceLoadedQts(load.Rs_ohm);
         if (Fs_hz === null || Vas_m3 === null || QtsLoaded === null) return null;
-        return this.engine.vented.alignment(alignment, Fs_hz, QtsLoaded, Vas_m3, Ql);
+        return this.engine.vented.alignment(
+            alignment, Fs_hz, QtsLoaded, this.engine.sealed.arrayVas(Vas_m3, load.nDrivers, load.loading), Ql);
     }
 
     /** Stated values that contradict each other, each stated against what the other stated
