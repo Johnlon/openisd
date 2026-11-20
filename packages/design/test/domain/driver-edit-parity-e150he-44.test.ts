@@ -88,13 +88,11 @@ for (const {run, field, spec} of DRIVER_EDITS) {
     if (spec === 'Mms_kg' || spec === 'Cms_m_per_N' || spec === 'Rms_kg_per_s') {
       // WinISD's charts ignore a typed Mms, Cms or Rms (bugs/BUG_20261108_driver-typed-cms-mms-rms-ignored-by-charts.md). OpenISD's
       // follow it (QO534) unless "Chart from Fs, Vas, Qms (WinISD's way)" is ticked (QO539); loadBase ticks it.
-      chartCases(capture, swept, FULL_CHARTS);
       const chartFromFsVasQms = CompatSwitch.CHART_FROM_FS_VAS_QMS.of(project);
       chartFromFsVasQms.set(false);
       const shown = sweepAfterEdit(project, capture);
       chartFromFsVasQms.set(true);
       it(`"Chart from Fs, Vas, Qms" unticked: the typed ${field} is kept and moves the charts, which WinISD ignores`, () => assertTypedPartStands(project, capture, shown, rules, spec));
-      return;
     }
     chartCases(capture, swept, FULL_CHARTS);
 

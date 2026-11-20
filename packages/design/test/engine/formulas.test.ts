@@ -53,3 +53,41 @@ describe('formulas — passive radiator derivations', () => {
     assert.equal(engine.pr.qms(Mmd, Cms, 0), 0);
   });
 });
+
+describe('formulas — passive radiator inverse routes', () => {
+  const Cms = 111111e-8, Sd = 222222e-6, Mmd = 333333e-6, Rms = 444444e-4;
+  const blank = {Fs_hz: null, Qms: null, Vas_m3: null, Sd_m2: null, Mms_kg: null, Cms_m_per_N: null, Rms_kg_per_s: null};
+
+  it('solveSpec recovers Cms from Vas and Sd', () => {
+    const {Vas_m3} = engine.pr.solveSpec({...blank, Sd_m2: Sd, Cms_m_per_N: Cms}, air);
+    assert.ok(Vas_m3 !== null);
+    const solved = engine.pr.solveSpec({...blank, Sd_m2: Sd, Vas_m3}, air);
+    assert.ok(solved.Cms_m_per_N !== null && Math.abs(solved.Cms_m_per_N - Cms) / Cms < 1e-9);
+  });
+
+  it('solveSpec leaves Cms unsolved when Sd is zero', () => {
+    const {Cms_m_per_N} = engine.pr.solveSpec({...blank, Vas_m3: 999999, Sd_m2: 0}, air);
+    assert.equal(Cms_m_per_N, null);
+  });
+
+  it('solveSpec recovers moving mass from free-air Fs and Cms', () => {
+    const {Mms_kg} = engine.pr.solveSpec({...blank, Fs_hz: prFs(Mmd, Cms), Cms_m_per_N: Cms}, air);
+    assert.ok(Mms_kg !== null && Math.abs(Mms_kg - Mmd) / Mmd < 1e-9);
+  });
+
+  it('solveSpec leaves moving mass unsolved when Fs or Cms is zero', () => {
+    assert.equal(engine.pr.solveSpec({...blank, Fs_hz: 0, Cms_m_per_N: Cms}, air).Mms_kg, null);
+    assert.equal(engine.pr.solveSpec({...blank, Fs_hz: 999999, Cms_m_per_N: 0}, air).Mms_kg, null);
+  });
+
+  it('solveSpec recovers Rms from Qms, Cms and moving mass', () => {
+    const Qms = engine.pr.qms(Mmd, Cms, Rms);
+    const {Rms_kg_per_s} = engine.pr.solveSpec({...blank, Qms, Cms_m_per_N: Cms, Mms_kg: Mmd}, air);
+    assert.ok(Rms_kg_per_s !== null && Math.abs(Rms_kg_per_s - Rms) / Rms < 1e-9);
+  });
+
+  it('solveSpec leaves Rms unsolved when Qms is zero', () => {
+    const {Rms_kg_per_s} = engine.pr.solveSpec({...blank, Qms: 0, Cms_m_per_N: Cms, Mms_kg: Mmd}, air);
+    assert.equal(Rms_kg_per_s, null);
+  });
+});
