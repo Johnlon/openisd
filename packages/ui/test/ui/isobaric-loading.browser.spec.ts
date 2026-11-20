@@ -72,8 +72,9 @@ interface Shell {
   readonly chooseIsobaric: (page: Page) => Promise<void>;
   readonly expectIsobaricChosen: (page: Page) => Promise<void>;
   readonly openChart: (page: Page) => Promise<void>;
-  /** The clamshell drawing in the wizard's count step. */
-  readonly wizardDiagram: (page: Page) => Locator;
+  /** The drawings on the wizard's count step (main's layout: none on the desktop, the one placement drawing on the phone). */
+  readonly wizardDrawings: (page: Page) => Locator;
+  readonly wizardDrawingCount: number;
   readonly newProjectChoosingIsobaric: (page: Page) => Promise<void>;
 }
 
@@ -103,7 +104,8 @@ const DESKTOP: Shell = {
   chooseIsobaric: async (page) => { await radios(page).nth(1).check(); },
   expectIsobaricChosen: async (page) => { await expect(radios(page).nth(1)).toBeChecked(); },
   openChart: async () => undefined,
-  wizardDiagram: (page) => page.locator('.overlay.open .np-placement-pic'),
+  wizardDrawings: (page) => page.locator('.overlay.open .modal-body svg:visible:not(button svg)'),
+  wizardDrawingCount: 0,
   newProjectChoosingIsobaric: async (page) => {
     await page.goto('/');
     await page.locator('.tb-btn[title*="New project"]').click();
@@ -115,13 +117,12 @@ const DESKTOP: Shell = {
     const footerStandard = (await overlay.locator('.modal-footer').boundingBox())!;
     await picture(page, 'desktop-6a-new-project-standard');
     await overlay.locator('input[name=placement][value=isobaric]').check();
-    await expect(DESKTOP.wizardDiagram(page).getByTestId('placement-clamshell')).toBeVisible();
-    await expect(DESKTOP.wizardDiagram(page).getByTestId('placement-tandem')).toBeVisible();
-    await expect(DESKTOP.wizardDiagram(page)).toContainText('half the box volume');
-    // The dialog keeps its size when Placement changes.
+    await page.locator('#np-ndrivers').selectOption('3');
+    await expect(page.getByTestId('np-pair-note')).toHaveText('3 pairs = 6 drivers');
+    // Main's step 2 layout (John, 20 Nov 2026: "why are we making any changes at all"): no drawing on the desktop, as on main.
+    await expect(DESKTOP.wizardDrawings(page)).toHaveCount(DESKTOP.wizardDrawingCount);
+    // The step keeps its size when Placement changes.
     expect((await overlay.locator('.modal-footer').boundingBox())!.y, 'footer does not move').toBe(footerStandard.y);
-    // The drawings sit under the line of radios (each drawing is its radio's click target).
-    await expectWizardMargins(page, page.locator('#np-placement-label'), page.locator('.overlay.open .np-place-radio').first(), DESKTOP.wizardDiagram(page), page.locator('.np-placement-caption'));
     await picture(page, 'desktop-6-new-project-isobaric');
     await next.click();
     await next.click();
@@ -159,7 +160,8 @@ const PHONE: Shell = {
   chooseIsobaric: async (page) => { await select(page).selectOption('isobaric'); },
   expectIsobaricChosen: async (page) => { await expect(select(page)).toHaveValue('isobaric'); },
   openChart: async (page) => { await page.locator('.mob-tab', {hasText: 'Graph'}).click(); },
-  wizardDiagram: (page) => page.locator('.mob-np-pic'),
+  wizardDrawings: (page) => page.locator('.mob-np-pic svg:visible'),
+  wizardDrawingCount: 1,
   newProjectChoosingIsobaric: async (page) => {
     await page.setViewportSize(PIXEL_9);
     await forceMobileSkin(page);
@@ -172,10 +174,12 @@ const PHONE: Shell = {
     await expect(page.locator('#np-placement')).toBeEnabled();
     await picture(page, 'phone-6a-new-project-standard');
     await page.locator('#np-placement').selectOption('isobaric');
-    await expect(PHONE.wizardDiagram(page).getByTestId('placement-clamshell')).toBeVisible();
-    await expect(PHONE.wizardDiagram(page).getByTestId('placement-tandem')).toBeVisible();
-    await expect(PHONE.wizardDiagram(page)).toContainText('half the box volume');
-    await expectWizardMargins(page, page.locator('label[for=np-placement]'), page.locator('#np-placement').locator('xpath=ancestor::div[contains(@class,"mob-crow")]'), PHONE.wizardDiagram(page), page.locator('.mob-np-pic-caption'));
+    await page.locator('#np-ndrivers').selectOption('3');
+    await expect(page.getByTestId('np-pair-note')).toHaveText('3 pairs = 6 drivers');
+    // Main's one placement drawing (the pair, for Iso-Barik), with what Iso-Barik does under it.
+    await expect(PHONE.wizardDrawings(page)).toHaveCount(PHONE.wizardDrawingCount);
+    await expect(page.locator('.mob-np-pic-caption')).toContainText('half the box volume');
+    await expectWizardMargins(page, page.locator('label[for=np-placement]'), page.locator('#np-placement').locator('xpath=ancestor::div[contains(@class,"mob-crow")]'), page.locator('.mob-np-pic').first(), page.locator('.mob-np-pic-caption'));
     await picture(page, 'phone-6-new-project-isobaric');
     await next.click();
     await page.locator('#np-box-type').selectOption({label: 'Closed'});
@@ -250,6 +254,10 @@ for (const shell of [DESKTOP, PHONE]) {
       await openTab(page, 'Driver');
       await expect(shell.placementArea(page)).toContainText('Iso-Barik');
       await shell.expectIsobaricChosen(page);
+      await expectPicked(page, 'clamshell');
+      // The project has the three pairs chosen in the wizard.
+      await expect(page.locator(shell.nDriversInput)).toHaveValue('3');
+      await expect(page.getByTestId('driver-pair-note')).toHaveText('3 pairs = 6 drivers');
       await picture(page, `${shell.name}-7-new-project-driver-tab`);
     });
   });
@@ -325,6 +333,11 @@ for (const shell of [DESKTOP, PHONE]) {
     await openTab(page, 'Driver');
     await shell.expectStandardOffered(page);
     await expectPicked(page, 'single');
+    // Each picture names its arrangement (moved from New Project step 2's note, 20 Nov 2026: the pictures are on the Driver tab now).
+    for (const [art, name] of [['single', 'Standard'], ['clamshell', 'Iso-Barik clamshell'], ['tandem', 'Iso-Barik back to front']] as const) {
+      await expect(diagram(page).getByTestId(`placement-${art}`)).toHaveText(name);
+      await expect(diagram(page).getByTestId(`placement-${art}`)).toHaveAttribute('title', name);
+    }
     // Beside the choice: on desktop to its right, level with it; on the phone straight under its row.
     shell.expectPicturesBeside((await shell.placementArea(page).boundingBox())!, (await diagram(page).boundingBox())!);
     const note = page.getByTestId('driver-pair-note');
@@ -415,118 +428,89 @@ for (const shell of [DESKTOP, PHONE]) {
   });
 }
 
-/** John: "dlg changing size for a workflow is anti pattern". The desktop New Project dialog is one size on every step and in both placements. */
-for (const boxType of ['Closed', 'Vented'] as const) {
-  for (const placement of ['standard', 'isobaric'] as const) {
-    test(`desktop New Project: one dialog height on all 5 steps (${boxType}, ${placement})`, async ({appPage: page}) => {
-      await page.goto('/');
-      await page.locator('.tb-btn[title*="New project"]').click();
-      const overlay = page.locator('.overlay.open');
-      const modal = overlay.locator('.modal');
-      const heights: number[] = [];
-      const spills: {vertical: number; horizontal: number; outside: number; footerInWindow: boolean}[] = [];
-      const measure = async (): Promise<void> => {
-        heights.push(Math.round((await modal.boundingBox())!.height));
-        const spill = await modal.evaluate((el) => {
-          const body = el.querySelector('.modal-body')!;
-          const footer = el.querySelector('.modal-footer')!.getBoundingClientRect();
-          const box = el.getBoundingClientRect();
-          // Everything in the dialog drawn inside its edges (a popup or overlay fixed over the page aside, and rows scrolled out of
-          // a list that scrolls inside itself).
-          const scrolledAway = (e: Element): boolean => {
-            for (let a = e.parentElement; a !== null && a !== el; a = a.parentElement) if (/auto|scroll/.test(getComputedStyle(a).overflowY) && a.scrollHeight > a.clientHeight) return true;
-            return false;
-          };
-          const outside = [...el.querySelectorAll('*')].filter((e) => {
-            const r = e.getBoundingClientRect();
-            return r.width > 0 && r.height > 0 && getComputedStyle(e).position !== 'fixed' && !scrolledAway(e) && (r.right > box.right + 0.5 || r.bottom > box.bottom + 0.5 || r.left < box.left - 0.5);
-          }).length;
-          return {vertical: body.scrollHeight - body.clientHeight, horizontal: body.scrollWidth - body.clientWidth, outside, footerInWindow: footer.bottom <= window.innerHeight};
-        });
-        spills.push(spill);
-      };
-      await measure();
-      await overlay.locator('.dlist .ditem', {hasText: 'W5-1138SMF'}).first().click();
-      const next = overlay.locator('.modal-footer').getByRole('button', {name: 'Next', exact: true});
-      await next.click();
-      await overlay.locator(`input[name=placement][value=${placement}]`).check();
-      await measure();
-      await next.click();
-      await page.locator('#np-box-type').selectOption({label: boxType});
-      await measure();
-      await next.click();
-      await measure();
-      await next.click();
-      await measure();
-      console.log(`DIALOG ${boxType} ${placement} ${JSON.stringify(heights)} ${JSON.stringify(spills)}`);
-      expect(new Set(heights).size, `dialog heights per step ${JSON.stringify(heights)}`).toBe(1);
-      // Compact (John: "that MASSIVE popup is terrible!!!!"): at most 520 px at the default 1280x720 window ...
-      expect(heights[0], 'dialog height').toBeLessThanOrEqual(520);
-      // ... and no step's content scrolls or is cut off inside it, the footer whole in the window.
-      expect(spills, 'each step: content scrolled, cut off or outside the dialog, footer in the window').toEqual(heights.map(() => ({vertical: 0, horizontal: 0, outside: 0, footerInWindow: true})));
-    });
-  }
-}
-
-/** John, 19 Nov 2026: "click the images to select the active one of the 3 ... both iso have same effect but it's nice for the user to
- * select their intent even if maths the same". A click on a drawing ticks its radio and frames it; the project gets its placement. */
-for (const [art, value, loading] of [['single', 'standard', 'standard'], ['clamshell', 'isobaric', 'isobaric'], ['tandem', 'isobaric-tandem', 'isobaric']] as const) {
-  test(`desktop New Project: a click on the ${art} drawing chooses it and the project is ${loading}`, async ({appPage: page}) => {
+/** Every step's Back and Next (Create on the last) stay in the window on a short one: the desktop's top and bottom rows at
+ * 1280x600, the phone's footer at 360x640. (Replaces "one dialog height on all 5 steps": John, 20 Nov 2026, 00:57 UTC, "definitely not one size".)
+ * The passive radiator step, the tallest, is checked at 720 and 520 px in new-project-dialog-frame (its Next waits for a radiator). */
+const DESKTOP_STEPS = [['Closed', 'standard'], ['Vented', 'isobaric']] as const;
+for (const [boxType, placement] of DESKTOP_STEPS) {
+  test(`desktop 1280x600 New Project (${boxType}, ${placement}): each step's top and bottom Back / Next are in the window`, async ({appPage: page}) => {
+    await page.setViewportSize({width: 1280, height: 600});
     await page.goto('/');
     await page.locator('.tb-btn[title*="New project"]').click();
     const overlay = page.locator('.overlay.open');
+    const rows = [page.getByTestId('np-nav-top'), overlay.locator('.modal-footer')];
+    const inWindow = async (step: string): Promise<void> => {
+      await expect(overlay.locator('.np-step')).toContainText(step);
+      for (const row of rows) {
+        await expect(row.getByRole('button', {name: 'Back', exact: true}), `${step}: Back`).toBeInViewport({ratio: 1});
+        await expect(row.getByRole('button', {name: step.startsWith('Step 5') ? 'Create' : 'Next', exact: true}), `${step}: Next / Create`).toBeInViewport({ratio: 1});
+      }
+    };
+    await inWindow('Step 1 of 5');
     await overlay.locator('.dlist .ditem', {hasText: 'W5-1138SMF'}).first().click();
     const next = overlay.locator('.modal-footer').getByRole('button', {name: 'Next', exact: true});
     await next.click();
-    // Start from another choice, so the click has something to change.
-    await overlay.getByTestId(art === 'tandem' ? 'placement-single' : 'placement-tandem').click();
-    await overlay.getByTestId(`placement-${art}`).click();
-    await expect(overlay.locator(`input[name=placement][value=${value}]`)).toBeChecked();
-    await expect(overlay.locator('.np-place-on')).toHaveCount(1);
-    await expect(overlay.getByTestId(`placement-${art}`)).toHaveClass(/np-place-on/);
-    // The radios are one group a keyboard and a screen reader can use: the chosen radio has its name.
-    await expect(overlay.getByRole('radio', {checked: true})).toHaveAttribute('value', value);
+    await overlay.locator(`input[name=placement][value=${placement}]`).check();
+    await inWindow('Step 2 of 5');
     await next.click();
+    await page.locator('#np-box-type').selectOption({label: boxType});
+    await inWindow('Step 3 of 5');
     await next.click();
+    await inWindow('Step 4 of 5');
     await next.click();
-    await overlay.locator('.modal-footer').getByRole('button', {name: 'Create', exact: true}).click();
-    await expect(overlay).toBeHidden();
-    await openTab(page, 'Driver');
-    await expect(radios(page).nth(loading === 'standard' ? 0 : 1)).toBeChecked();
+    await inWindow('Step 5 of 5');
   });
 }
 
-/** John, 19 Nov 2026, on the New Project step 2 picture: "the either arrangement comment is out of place now". With one of three drawings
- * picked, the note under them names the picked arrangement in the drawing's own words; Standard has no note. */
-const CAPTIONS = [['single', null], ['clamshell', 'Iso-Barik clamshell'], ['tandem', 'Iso-Barik back to front'], ['clamshell', 'Iso-Barik clamshell']] as const;
-const EFFECT = 'the pair acts as one driver with half the Vas, so the same Qtc needs half the box volume.';
-
-test('desktop New Project: the note under the drawings names the drawing clicked', async ({appPage: page}) => {
+test('phone 360x640 New Project: each step\'s Back and Next are in the window', async ({appPage: page}) => {
+  await page.setViewportSize({width: 360, height: 640});
+  await forceMobileSkin(page);
   await page.goto('/');
-  await page.locator('.tb-btn[title*="New project"]').click();
-  const overlay = page.locator('.overlay.open');
-  await overlay.locator('.dlist .ditem', {hasText: 'W5-1138SMF'}).first().click();
-  await overlay.locator('.modal-footer').getByRole('button', {name: 'Next', exact: true}).click();
-  const note = overlay.locator('.np-placement-caption');
-  const footer = (await overlay.locator('.modal-footer').boundingBox())!;
-  const heights: number[] = [];
-  for (const [art, name] of CAPTIONS) {
-    await overlay.getByTestId(`placement-${art}`).click();
-    await expect(overlay.getByTestId(`placement-${art}`)).toHaveClass(/np-place-on/);
-    if (name === null) await expect(note).toBeHidden();
-    else {
-      await expect(note).toBeVisible();
-      await expect(note).toHaveText(`${name}: ${EFFECT}`);
-      await expect(overlay.getByTestId(`placement-${art}`)).toHaveAttribute('title', name);
-    }
-    expect((await overlay.locator('.modal-footer').boundingBox())!.y, 'footer does not move').toBe(footer.y);
-    heights.push((await note.boundingBox())!.height);
-  }
-  // The note keeps its room when Standard has none, so nothing below it moves.
-  expect(new Set(heights).size, `note heights ${JSON.stringify(heights)}`).toBe(1);
+  await page.locator('.mob-hamburger').click();
+  await page.locator('.mob-menu-item', {hasText: 'New project'}).click();
+  const footer = page.locator('.mob-np-footer');
+  const inWindow = async (where: string, nextName: string): Promise<void> => {
+    await expect(footer.getByText('Cancel', {exact: true}), `${where}: Cancel`).toBeInViewport({ratio: 1});
+    await expect(footer.getByText(nextName, {exact: true}), `${where}: ${nextName}`).toBeInViewport({ratio: 1});
+  };
+  await page.getByText(TEST_DRIVER).click();
+  await inWindow('step 1', 'Next ▸');
+  const next = footer.getByText('Next ▸', {exact: true});
+  await next.click();
+  await page.locator('#np-placement').selectOption('isobaric');
+  await inWindow('step 2', 'Next ▸');
+  await expect(footer.getByText('◀ Back', {exact: true})).toBeInViewport({ratio: 1});
+  await next.click();
+  await page.locator('#np-box-type').selectOption({label: 'Closed'});
+  await inWindow('step 3', 'Next ▸');
+  await next.click();
+  await inWindow('step 4', 'Next ▸');
+  await next.click();
+  await inWindow('step 5', 'Create Project');
 });
 
-test('phone New Project: the note under the drawings names the arrangement chosen', async ({appPage: page}) => {
+test('phone 360x640 New Project passive radiator step (the tallest): Back and Next are in the window', async ({appPage: page}) => {
+  await page.setViewportSize({width: 360, height: 640});
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await openPhoneWizardStep(page, 'box-passive-radiator', 4);
+  await expect(page.locator('#np-pr-select')).toBeVisible();
+  const footer = page.locator('.mob-np-footer');
+  for (const name of ['Cancel', '◀ Back', 'Next ▸']) await expect(footer.getByText(name, {exact: true}), name).toBeInViewport({ratio: 1});
+});
+
+/** Step 2 is main's (John, 20 Nov 2026, 00:56 UTC: "why are we making any changes at all"), plus his pairs line: the desktop draws
+ * nothing, the phone the one placement drawing; with Iso-Barik the pairs line shows. */
+for (const shell of [DESKTOP, PHONE]) {
+  test(`${shell.name} New Project step 2: ${shell.wizardDrawingCount === 1 ? 'one drawing' : 'no drawing, as on main'}, and the pairs line with Iso-Barik`, async ({appPage: page}) => {
+    await shell.newProjectChoosingIsobaric(page);
+    await expect(page.locator('.overlay.open, .mob-np-overlay')).toHaveCount(0);
+  });
+}
+
+const EFFECT = 'the pair acts as one driver with half the Vas, so the same Qtc needs half the box volume.';
+
+test('phone New Project: the note under the drawing says what Iso-Barik does; Standard has none', async ({appPage: page}) => {
   await page.setViewportSize(PIXEL_9);
   await forceMobileSkin(page);
   await page.goto('/');
@@ -535,21 +519,39 @@ test('phone New Project: the note under the drawings names the arrangement chose
   await page.getByText(TEST_DRIVER).click();
   await page.locator('.mob-np-footer').getByText('Next ▸', {exact: true}).click();
   const note = page.locator('.mob-np-pic-caption');
-  const heights: number[] = [];
-  for (const [value, name] of [['standard', null], ['isobaric', 'Iso-Barik clamshell'], ['isobaric-tandem', 'Iso-Barik back to front']] as const) {
-    await page.locator('#np-placement').selectOption(value);
-    if (name === null) await expect(note).toBeHidden();
-    else {
-      await expect(note).toBeVisible();
-      await expect(note).toHaveText(`${name}: ${EFFECT}`);
-      await expect(page.locator('#np-placement option:checked')).toHaveText(name);
-    }
-    heights.push((await note.boundingBox())!.height);
-  }
-  expect(new Set(heights).size, `note heights ${JSON.stringify(heights)}`).toBe(1);
+  await page.locator('#np-placement').selectOption('standard');
+  await expect(note).toBeHidden();
+  await page.locator('#np-placement').selectOption('isobaric');
+  await expect(note).toHaveText(`Iso-Barik clamshell: ${EFFECT}`);
 });
 
-test('desktop New Project: arrow keys move between the three placement choices', async ({appPage: page}) => {
+/** The note under the step 2 drawing wraps inside its panel on every phone width, never cut at either edge (John: "running of the edge is bad"). */
+for (const width of [320, 360, 390]) {
+  test(`phone ${width} px New Project step 2: the Iso-Barik note sits inside its panel`, async ({appPage: page}) => {
+    await page.setViewportSize({width, height: 780});
+    await forceMobileSkin(page);
+    await page.goto('/');
+    await page.locator('.mob-hamburger').click();
+    await page.locator('.mob-menu-item', {hasText: 'New project'}).click();
+    await page.getByText(TEST_DRIVER).click();
+    await page.locator('.mob-np-footer').getByText('Next ▸', {exact: true}).click();
+    await page.locator('#np-placement').selectOption('isobaric');
+    const note = page.locator('.mob-np-pic-caption');
+    await expect(note).toBeVisible();
+    // The text's own box (a box wider than its container is what was cut) against the panel's box less its padding.
+    const r = await note.evaluate((el) => {
+      const range = document.createRange(); range.selectNodeContents(el);
+      const t = range.getBoundingClientRect(), panel = el.parentElement!, p = panel.getBoundingClientRect(), cs = getComputedStyle(panel);
+      return {textLeft: t.left, textRight: t.right, innerLeft: p.left + parseFloat(cs.paddingLeft), innerRight: p.right - parseFloat(cs.paddingRight), noteWidth: el.scrollWidth, noteClient: el.clientWidth};
+    });
+    expect(r.textLeft, `text left ${r.textLeft} inside the panel's padding ${r.innerLeft}`).toBeGreaterThanOrEqual(r.innerLeft - 0.5);
+    expect(r.textRight, `text right ${r.textRight} inside the panel's padding ${r.innerRight}`).toBeLessThanOrEqual(r.innerRight + 0.5);
+    expect(r.noteWidth, 'the note does not overflow its own box').toBeLessThanOrEqual(r.noteClient);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), 'no sideways scroll').toBe(true);
+  });
+}
+
+test('desktop New Project: arrow keys move between the two placement choices', async ({appPage: page}) => {
   await page.goto('/');
   await page.locator('.tb-btn[title*="New project"]').click();
   const overlay = page.locator('.overlay.open');
@@ -558,31 +560,8 @@ test('desktop New Project: arrow keys move between the three placement choices',
   await overlay.locator('input[name=placement][value=standard]').focus();
   await page.keyboard.press('ArrowRight');
   await expect(overlay.locator('input[name=placement][value=isobaric]')).toBeChecked();
-  await page.keyboard.press('ArrowRight');
-  await expect(overlay.locator('input[name=placement][value=isobaric-tandem]')).toBeChecked();
-  await expect(overlay.getByTestId('placement-tandem')).toHaveClass(/np-place-on/);
-});
-
-test('phone New Project: Iso-Barik back to front is offered and gives an Iso-Barik project', async ({appPage: page}) => {
-  await page.setViewportSize(PIXEL_9);
-  await forceMobileSkin(page);
-  await page.goto('/');
-  await page.locator('.mob-hamburger').click();
-  await page.locator('.mob-menu-item', {hasText: 'New project'}).click();
-  await page.getByText(TEST_DRIVER).click();
-  const next = page.locator('.mob-np-footer').getByText('Next ▸', {exact: true});
-  await next.click();
-  await page.locator('#np-placement').selectOption('isobaric-tandem');
-  await expect(page.locator('#np-placement')).toHaveValue('isobaric-tandem');
-  await expect(PHONE.wizardDiagram(page).getByTestId('placement-tandem')).toBeVisible();
-  await next.click();
-  await page.locator('#np-box-type').selectOption({label: 'Closed'});
-  await next.click();
-  await next.click();
-  await page.locator('.mob-np-footer').getByText('Create Project', {exact: true}).click();
-  await expect(page.locator('.mob-np-overlay')).toBeHidden();
-  await openTab(page, 'Driver');
-  await PHONE.expectIsobaricChosen(page);
+  await page.keyboard.press('ArrowLeft');
+  await expect(overlay.locator('input[name=placement][value=standard]')).toBeChecked();
 });
 
 /** Step 1 at 1280x720: every driver name in the list reads whole, none cut short with "..." (John: "running of the edge is bad"). */

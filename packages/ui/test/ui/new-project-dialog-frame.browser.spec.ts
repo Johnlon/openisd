@@ -7,7 +7,7 @@ import {PIXEL_9} from '../fixtures/phoneSizes.js';
  * The desktop New Project dialog's frame (T919; John, 19 Nov 2026, on the dialog's pictures: "I hate all the white space", "all the
  * blank space looks terrible", "maybe try putting the next button at the top too"; and his question what Number of drivers means
  * with Iso-Barik on):
- * - one size on every step (a dialog changing size is an anti-pattern), and no step leaves more than a quarter of the body empty;
+ * - no step leaves more than a quarter of the body empty (not one size: John, 20 Nov 2026, 00:57 UTC, "definitely not one size");
  * - Back and Next (Create on the last step) at the top as well as the bottom, the same buttons acting the same;
  * - with Iso-Barik, a line under the driver count says the count is of pairs ("3 pairs = 6 drivers"); none for Standard;
  * - on a short window the body scrolls inside the dialog and both rows of buttons stay in view.
@@ -43,12 +43,10 @@ async function frame(page: Page): Promise<{modal: number; body: number; empty: n
 }
 
 test.describe('Desktop New Project dialog frame', () => {
-  test('every step, every box type: one dialog height, and no step leaves more than a quarter of the body empty', async ({page}) => {
+  test('every step, every box type: no step leaves more than a quarter of the body empty', async ({page}) => {
     await open(page);
-    const heights = new Set<number>();
     const check = async (where: string) => {
       const f = await frame(page);
-      heights.add(f.modal);
       expect(f.empty, `${where}: empty ${Math.round(f.empty)} px of a ${Math.round(f.body)} px body`).toBeLessThanOrEqual(f.body / 4);
     };
     const next = bottom(page).getByRole('button', {name: 'Next', exact: true});
@@ -58,7 +56,7 @@ test.describe('Desktop New Project dialog frame', () => {
     await next.click();
     await expect(page.locator('.np-step')).toContainText('Step 2 of 5');
     await check('step 2, Standard');
-    await page.locator('#np-place-isobaric').check();
+    await page.locator('.overlay.open input[name=placement][value=isobaric]').check();
     await check('step 2, Iso-Barik');
     await next.click();
     // Every box type's step 3 and step 4; the sealed box (the last) goes on to step 5.
@@ -76,7 +74,6 @@ test.describe('Desktop New Project dialog frame', () => {
     await next.click();
     await expect(page.locator('.np-step')).toContainText('Step 5 of 5');
     await check('step 5');
-    expect([...heights], 'the dialog keeps one height on every step').toHaveLength(1);
   });
 
   test('Back and Next are at the top and the bottom, enabled alike, and the top ones move the wizard as the bottom ones do', async ({page}) => {
@@ -123,14 +120,13 @@ test.describe('Desktop New Project dialog frame', () => {
     await bottom(page).getByRole('button', {name: 'Next', exact: true}).click();
     const note = page.getByTestId('np-pair-note');
     await expect(note).toBeHidden();
-    await page.locator('#np-place-isobaric').check();
+    const radio = (value: string) => page.locator(`.overlay.open input[name=placement][value=${value}]`);
+    await radio('isobaric').check();
     await expect(note).toBeVisible();
     await expect(note).toHaveText('1 pair = 2 drivers');
     await page.locator('#np-ndrivers').selectOption('3');
     await expect(note).toHaveText('3 pairs = 6 drivers');
-    await page.locator('#np-place-isobaric-tandem').check();
-    await expect(note).toHaveText('3 pairs = 6 drivers');
-    await page.locator('#np-place-standard').check();
+    await radio('standard').check();
     await expect(note).toBeHidden();
   });
 
@@ -160,29 +156,28 @@ test.describe('Desktop New Project dialog frame', () => {
   });
 });
 
-/** Steps 3 and 4 draw the box with the ONE arrangement picked on step 2, never both Iso-Barik ones (the lead, 20 Nov 2026, on the
- * step 4 picture: John objected to the Box tab drawing an arrangement that was chosen elsewhere). */
-const ARRANGEMENTS = [['standard', 'single'], ['isobaric', 'clamshell'], ['isobaric-tandem', 'tandem']] as const;
+/** Steps 3 and 4 draw main's one box drawing whatever the placement (John, 20 Nov 2026, 00:56 UTC, on New Project: "why are we making
+ * any changes at all"; and on the Box tab: "keep the box tab as the classic simple box view"). Replaces the per-arrangement box drawings. */
+const PLACEMENTS = ['standard', 'isobaric'] as const;
 
 test.describe('Desktop New Project box drawing', () => {
-  for (const [value, art] of ARRANGEMENTS) {
-    test(`${art} picked: step 3 draws only the ${art} box`, async ({page}) => {
+  test('step 3 draws main\'s one closed box, the same for Standard and Iso-Barik', async ({page}) => {
+    const drawn: string[] = [];
+    for (const placement of PLACEMENTS) {
       await open(page);
       await page.locator('.overlay.open .modal-body').getByText(TEST_DRIVER).first().click();
       const next = bottom(page).getByRole('button', {name: 'Next', exact: true});
       await next.click();
-      await page.locator(`#np-place-${value}`).check();
-      // Model B (the dialog's height follows its step): only step 3 draws the box on the desktop, as on main.
-      for (const step of ['Step 3 of 5']) {
-        await next.click();
-        await expect(page.locator('.np-step')).toContainText(step);
-        const drawings = page.locator('.overlay.open .modal-body').getByTestId('box-arrangement-drawing');
-        await expect(drawings, `${step}: one box drawing`).toHaveCount(1);
-        await expect(drawings).toHaveAttribute('data-art', art);
-        await expect(drawings.locator('svg:visible'), `${step}: one box drawn`).toHaveCount(1);
-      }
-    });
-  }
+      await page.locator(`.overlay.open input[name=placement][value=${placement}]`).check();
+      await next.click();
+      await page.locator('#np-box-type').selectOption('sealed');
+      const svgs = page.locator('.overlay.open .modal-body .box-diagram-container svg:visible');
+      await expect(svgs, `${placement}: one box drawn`).toHaveCount(1);
+      await expect(svgs).toHaveAttribute('id', 'og-box-diagram-sealed');
+      drawn.push(await svgs.evaluate((el) => el.outerHTML));
+    }
+    expect(drawn[1], 'Iso-Barik draws the same box as Standard').toBe(drawn[0]);
+  });
 });
 
 test.describe('Phone New project wizard', () => {
@@ -204,22 +199,28 @@ test.describe('Phone New project wizard', () => {
     await expect(note).toHaveCount(0);
   });
 
-  for (const [value, art] of ARRANGEMENTS) {
-    test(`${art} picked: steps 3 and 4 draw only the ${art} box`, async ({page}) => {
+  test('steps 3 and 4 draw main\'s one box, the same for Standard and Iso-Barik', async ({page}) => {
+    const drawn: string[][] = [];
+    for (const placement of PLACEMENTS) {
       await forceMobileSkin(page);
       await page.goto('/');
       await page.getByText('New project').first().click();
       await page.locator('.mob-np-body').getByText(TEST_DRIVER).first().click();
       const next = page.locator('.mob-np-footer').getByText('Next ▸', {exact: true});
       await next.click();
-      await page.locator('#np-placement').selectOption(value);
-      for (let i = 0; i < 2; i++) {
-        await next.click();
-        const drawings = page.locator('.mob-np-body').getByTestId('box-arrangement-drawing');
-        await expect(drawings).toHaveCount(1);
-        await expect(drawings).toHaveAttribute('data-art', art);
-        await expect(drawings.locator('svg:visible')).toHaveCount(1);
-      }
-    });
-  }
+      await page.locator('#np-placement').selectOption(placement);
+      const svgs = page.locator('.mob-np-body .mob-np-pic svg:visible');
+      const oneBox = async (step: number): Promise<string> => {
+        await expect(svgs, `${placement}, step ${step}: one box drawn`).toHaveCount(1);
+        await expect(svgs).toHaveAttribute('id', 'og-box-diagram-sealed');
+        return svgs.evaluate((el) => el.outerHTML);
+      };
+      await next.click();
+      await page.locator('#np-box-type').selectOption('sealed');
+      const step3 = await oneBox(3);
+      await next.click();
+      drawn.push([step3, await oneBox(4)]);
+    }
+    expect(drawn[1], 'Iso-Barik draws the same box as Standard').toEqual(drawn[0]);
+  });
 });

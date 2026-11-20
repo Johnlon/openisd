@@ -323,8 +323,9 @@ function handleCreate() {
 .mob-classic .mob-cselect.mob-cselect-info { margin-right: 46px; }
 .mob-np-info { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: none; background: none; color: var(--acc); padding: 0; cursor: pointer; }
 .mob-np-pic { display: flex; justify-content: center; align-items: center; padding: 12px 0; border-bottom: 1px solid #e6e6e6; }
-.mob-np-pic-note { flex-direction: column; gap: 4px; }
-.mob-np-pic-caption { font-size: 13px; color: #666; }
+/* The note under the drawing wraps inside the rows' 16 px side padding: centred in a column it was as wide as its text and ran off both edges. */
+.mob-np-pic-note { flex-direction: column; gap: 4px; padding-left: 16px; padding-right: 16px; }
+.mob-np-pic-caption { font-size: 13px; color: #666; align-self: stretch; min-width: 0; overflow-wrap: anywhere; }
 
 /* Alignment: prod's option names are long, so the label sits above a full-width select */
 .mob-classic .mob-crow-stack { flex-direction: column; align-items: stretch; height: auto; padding: 0 var(--mob-edge) 8px; }
