@@ -299,8 +299,12 @@ function handleCreate() {
 
 <style scoped>
 .modal { position: relative; }
-/* The popup is a 400px card over the middle of the dialog, as on the phone but not bottom-anchored. */
-.modal :deep(.mob-np-icard) { left: 50%; right: auto; bottom: auto; top: 110px; width: 400px; margin-left: -200px; box-sizing: border-box; }
+/* Center the card within the dialog's visible area and scroll inside it if the dialog is short. */
+.modal :deep(.mob-np-icard) {
+  left: 50%; right: auto; top: 50%; bottom: auto; transform: translate(-50%, -50%);
+  width: 400px; max-width: calc(100% - 24px); max-height: calc(100% - 24px); box-sizing: border-box;
+  overflow-y: auto; overscroll-behavior: contain;
+}
 .ebp-row, .readout-item { display: flex; align-items: center; gap: 6px; }
 .np-chambers { display: flex; gap: 32px; align-items: flex-start; }
 .np-chamber h4 { margin: 0 0 8px; font-weight: 600; }

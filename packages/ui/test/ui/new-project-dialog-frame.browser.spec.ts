@@ -170,6 +170,21 @@ test.describe('Desktop New Project dialog frame', () => {
     await expect(note).toBeHidden();
   });
 
+  test('the Driver placement popup shows the whole last paragraph', async ({page}) => {
+    await open(page);
+    await page.setViewportSize({width: 1880, height: 1000});
+    await modal(page).getByText(TEST_DRIVER).first().click();
+    await bottom(page).getByRole('button', {name: 'Next', exact: true}).click();
+    await page.getByRole('button', {name: 'About driver placement'}).click();
+
+    const popup = page.getByRole('dialog', {name: 'Driver placement'});
+    const lastParagraph = popup.getByText(/^The pair gives the same Qtc/);
+    await expect(lastParagraph).toBeInViewport({ratio: 1});
+    const box = (await popup.boundingBox())!;
+    const paragraph = (await lastParagraph.boundingBox())!;
+    expect(paragraph.y + paragraph.height, 'the last paragraph ends inside the popup').toBeLessThanOrEqual(box.y + box.height);
+  });
+
   test('720 px and 520 px windows: the passive radiator step scrolls inside the dialog and both rows of buttons stay in view', async ({page}) => {
     await open(page);
     await page.setViewportSize({width: 1280, height: 720});
