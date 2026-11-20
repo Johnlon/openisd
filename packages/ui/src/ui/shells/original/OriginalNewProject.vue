@@ -127,17 +127,15 @@ function handleCreate() {
     <div class="modal">
       <div class="modal-titlebar">
         <div class="tb-left"><span class="app-icon"></span><span>New Project</span></div>
-        <div class="win-controls"><span class="close-btn" role="button" tabindex="0" title="Cancel" @click="handleCancel" @keydown.enter="handleCancel">✕</span></div>
-      </div>
-
-      <!-- Back and Next (Create on the last step) at the top as well as the bottom (John, 19 Nov 2026: "maybe try putting the next
-           button at the top too"): the same buttons, the same rules for when they work. -->
-      <div class="modal-topnav" data-testid="np-nav-top">
-        <div class="footer-buttons">
+        <!-- Back and Next (Create on the last step) at the top as well as the bottom (John, 19 Nov 2026: "maybe try putting the next
+             button at the top too"): the same buttons, the same rules for when they work. In the title bar, sized to its row, so
+             every step keeps main's height. -->
+        <div class="tb-nav footer-buttons" data-testid="np-nav-top">
           <button class="back-btn" :disabled="!canBack" title="Back to the previous step" @click="back">Back</button>
           <button v-if="!leadIsCreate" class="ok-btn" :disabled="!canGoNext" @click="goNext">Next</button>
           <button v-else class="ok-btn" :disabled="!canCreate" @click="handleCreate">Create</button>
         </div>
+        <div class="win-controls"><span class="close-btn" role="button" tabindex="0" title="Cancel" @click="handleCancel" @keydown.enter="handleCancel">✕</span></div>
       </div>
 
       <div class="modal-body">
@@ -318,7 +316,6 @@ function handleCreate() {
 /* On a window too short for the step the body scrolls inside, so both rows of buttons stay in view; otherwise the size is main's. */
 .modal { display: flex; flex-direction: column; max-height: calc(100vh - 6vh - 6px); }
 .modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-.modal-topnav { display: flex; flex: none; justify-content: flex-end; border-bottom: 1px solid #ccc; padding: 8px 20px; background: #eee; }
 .np-pair-note { font-size: 13px; color: #666; }
 .np-step { color: #666; margin-bottom: 10px; font-weight: 500; }
 .step-content { margin-top: 10px; }
@@ -359,6 +356,9 @@ function handleCreate() {
 .footer-buttons button.cancel-btn { color: #b02a2a; }
 .footer-buttons button.ok-btn { background: #2e7d32; border-color: #2e7d32; color: #fff; font-weight: 600; }
 .footer-buttons button.ok-btn:hover:not(:disabled) { background: #256b29; border-color: #256b29; }
+/* The title bar's Back / Next: no taller than the title's own line, so the bar keeps main's height. */
+.modal-titlebar .tb-nav { margin-left: auto; margin-right: 10px; gap: 6px; }
+.modal-titlebar .tb-nav button { padding: 0 12px; font-size: 13px; line-height: 16px; }
 .action-btn { border: 1px solid #999; background: #f5f5f5; border-radius: 3px; padding: 4px 10px; cursor: pointer; font-size: 12.5px; }
 .action-btn:hover { background: #e8e8e8; }
 </style>
