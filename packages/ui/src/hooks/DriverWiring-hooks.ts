@@ -1,14 +1,14 @@
 /**
  * `DriverWiring.vue`'s hook: the project's "Driver wiring", how its several drivers are wired to the amplifier (ticket 519, plan
- * section 3.1). Drawn only with 2 or more drivers; the choice is the project's own and is kept when the count drops to 1.
+ * section 3.1) and the placement and compatibility controls for Iso-Barik.
  * The words, the options and the physics come from `@openisd/design`.
  */
 import {computed} from 'vue';
 import type {DriverWiring} from '@openisd/design/engine';
-import {DRIVER_WIRING_OPTIONS} from '@openisd/design/fields';
+import {DRIVER_WIRING_OPTIONS, EnumField} from '@openisd/design/fields';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
-import {selectedOption} from '../logic/domEvents.js';
+import {inputChecked, selectedOption} from '../logic/domEvents.js';
 import {useFeatureUse} from './telemetryContext.js';
 
 export function useDriverWiring() {
@@ -26,5 +26,16 @@ export function useDriverWiring() {
     if (wiring !== null) choose(wiring);
   }
 
-  return {shown, mine, options, choose, onSelect};
+  const loading = computed(() => { void appState.projectChanged.value; return project.value.loading.value; });
+  const winisdIsobarik = computed(() => { void appState.projectChanged.value; return project.value.winisdIsobarik.value; });
+
+  function selectLoading(value: string | number): void {
+    if (value === 'standard' || value === 'isobaric') project.value.loading.set(value);
+  }
+
+  function selectWinisdIsobarik(e: Event): void {
+    project.value.winisdIsobarik.set(inputChecked(e));
+  }
+
+  return {shown, mine, options, choose, onSelect, loading, winisdIsobarik, selectLoading, selectWinisdIsobarik, loadingField: EnumField.PROJECT_LOADING};
 }

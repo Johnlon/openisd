@@ -944,6 +944,8 @@ const openISDDriverEmbeddingJsonSchema = z.strictObject({
     driverAddedMass_kg: z.number(),
     // WinISD Driver tab: "Standard" / "Iso-Barik" radio.
     loading: z.enum(['standard', 'isobaric']),
+    // Pre-flag projects keep WinISD's numbers. New projects explicitly store false.
+    winisdIsobarik: z.boolean().optional(),
     // WinISD Driver tab: "Voice coil resistance TC" — a project-level value independent of the
     // driver's own datasheet `alfaVC_per_K` (WinISD stores these as two separate fields,
     // `[Box] alfaVC` vs `[Driver] alfaVC`, that can and do diverge).

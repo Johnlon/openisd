@@ -199,8 +199,7 @@ export class OpenISDProject {
         return defaultedField(focus(this.#slot('driverEmbedding'), 'nDrivers'), 1);
     }
 
-    /** "Driver wiring": how the project's `nDrivers` drivers are wired to the amplifier (QO946.c129). Parallel where a project does
-     *  not say. Saved and loaded only; the engine does not read it yet. Not the coil wiring inside one driver (`coilWiring`). */
+    /** Driver wiring connects the array members and, in the physical Iso-Barik model, the two drivers in each pair. */
     get driverWiring(): SimpleField<'parallel' | 'series'> {
         const lens = focus(this.#slot('driverEmbedding'), 'driverWiring');
         return {
@@ -251,6 +250,15 @@ export class OpenISDProject {
     /** WinISD Driver tab "Standard" / "Iso-Barik" radio. */
     get loading(): SimpleField<'standard' | 'isobaric'> {
         return focus(this.#slot('driverEmbedding'), 'loading');
+    }
+
+    /** Missing in pre-flag saves, which keep their existing numbers. */
+    get winisdIsobarik(): SimpleField<boolean> {
+        const lens = focus(this.#slot('driverEmbedding'), 'winisdIsobarik');
+        return {
+            get value() { return lens.value !== false; },
+            set: (value: boolean) => lens.set(value),
+        };
     }
 
     /** The box — handed the DRIVER and the ENGINE: a chamber's resonance depends on the driver it
@@ -375,14 +383,14 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdAbcIntraPortVelocity;
     }
 
-    /** "Driver wiring" says something only with 2 or more drivers; the control is drawn only then (plan 519, 3.1). */
+    /** Wiring applies to an array or to the two motors of a physical Iso-Barik pair. */
     get driverWiringApplies(): boolean {
-        return this.nDrivers.value >= 2;
+        return this.nDrivers.value >= 2 || (this.loading.value === 'isobaric' && !this.winisdIsobarik.value);
     }
 
-    /** "Impedance of one driver" changes the impedance chart only with 2 or more drivers (plan 519, 3.2). */
+    /** The physical Iso-Barik model already shows the impedance of one pair. */
     get winisdOneDriverImpedanceApplies(): boolean {
-        return this.nDrivers.value >= 2;
+        return this.nDrivers.value >= 2 && (this.loading.value === 'standard' || this.winisdIsobarik.value);
     }
 
     /** "Simplified ABC intra-port velocity" acts on the open box: an ABC box only. */
@@ -802,7 +810,7 @@ export class OpenISDProject {
         return new ProjectSignal(
             focus(root, 'signal'),
             this.#engine.signal,
-            () => usableRe(root, (r) => this.#driverOver(r)),
+            () => usableRe(root, (r) => this.#driverOver(r), this.#engine.signal),
             () => this.Rs_ohm.value,
             () => this.winisdVaModel.value,
             () => this.nDrivers.value,
@@ -952,6 +960,7 @@ export class OpenISDProject {
             driverAddedMass_kg: this.driverAddedMass_kg,
             vcTempRise_K: this.vcTempRise_K,
             loading: this.loading,
+            winisdIsobarik: this.winisdIsobarik,
             coilAlfaVC_per_K: this.driveLoad.alfaVC_per_K,
             sweepN: this.sweepN,
             driveVoltage_V: this.#signalOver(root).sweepVoltage_V,

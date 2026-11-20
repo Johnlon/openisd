@@ -21,6 +21,7 @@ function setUpProject(): OpenISDProject {
   project.winisdDriverModel.set(true);
   project.rgAtDriverSide.set(false);
   project.loading.set('isobaric');
+  project.winisdIsobarik.set(true);
   return project;
 }
 

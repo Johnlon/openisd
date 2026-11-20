@@ -47,6 +47,7 @@ export interface ProjectSweepSource {
     readonly driverAddedMass_kg: SimpleField<number>;
     readonly vcTempRise_K: SimpleField<number>;
     readonly loading: SimpleField<'standard' | 'isobaric'>;
+    readonly winisdIsobarik?: SimpleField<boolean>;
     /** The coefficient the coil is heated with, already chosen between the driver's and the project's
      *  (`OpenISDProject.driveLoad`, `Engine.driver.coilAlfaVC_per_K`). A value, read once, like `driveVoltage_V`. */
     readonly coilAlfaVC_per_K: number;
@@ -120,6 +121,7 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         driverAddedMass: source.driverAddedMass_kg.value,
         vcTempRise: source.vcTempRise_K.value,
         loading: source.loading.value,
+        winisdIsobarik: source.winisdIsobarik?.value,
         alfaVC: source.coilAlfaVC_per_K,
         rgAtDriverSide: source.rgAtDriverSide.value,
         tlPortModel: source.useTransmissionLinePortModel.value,
