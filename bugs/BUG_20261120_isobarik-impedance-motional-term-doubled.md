@@ -1,6 +1,6 @@
 # BUG_20261120_isobarik-impedance-motional-term-doubled
 
-**Status:** OPEN
+**Status:** FIXED (T928, "Engine: Iso-Barik push BL taken from one driver")
 
 ## Symptom
 With Iso-Barik loading and "Two-BL driver" unticked (the default), the impedance chart's peak is about twice as high above Re as
@@ -26,5 +26,13 @@ with "Two-BL driver" ticked), where the motional term uses `BlPush`. With the sw
 driver, so the x 2 makes it the pair's (sqrt 2 BL)^2. With it unticked `BlPush` is already the pair's sqrt 2 x BL, and the x 2
 counts the pair twice. Same family as review finding 1 (Iso-Barik +3.01 dB with BL blank).
 
+## Fix
+T928 takes the Iso-Barik push BL from one driver whether BL is typed or not, so the motional term's x 2 now makes the pair's
+(sqrt 2 BL)^2 in both switch states.
+
 ## Tests
-`packages/design/test/engine/driver-array-physics-rules.test.ts`: the "(impedance)" part of R4 runs as `it.fails` naming this file.
+`packages/design/test/engine/driver-array-physics-rules.test.ts`: after main with T928 was merged into T939 (20 Nov 2026,
+01:35 UTC), every "(impedance)" case of R4 that named only this file passes at 1e-9 relative (impedance) and 1e-9 rad
+(impedance phase) and now runs as a plain test: all 57 combinations for sealed, vented, both bandpasses and ABC, and the 3
+passive-radiator combinations with "PR Npr resonance" ticked. The other passive-radiator impedance cases still miss by about
+6 % and stay `it.fails` under BUG_20261120_passive-radiator-box-losses-not-scaled-with-radiator-count.

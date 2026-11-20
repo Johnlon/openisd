@@ -322,17 +322,14 @@ const CASES: readonly Case[] = BOXES.flatMap((box) => RULES.flatMap((rule) => gr
 
 /** The faults the rules found on main (20 Nov 2026), each a bug file in bugs/, and the cases each one breaks. A case a fault
  *  breaks runs as `it.fails`: when the fault is fixed the case passes, `it.fails` goes red, and the fault comes out of here. */
-const ARRAY_PRESSURE = 'BUG_20261120_array-pressure-and-xmax-limited-spl-not-scaled-by-driver-count';
-const ISOBARIK_IMPEDANCE = 'BUG_20261120_isobarik-impedance-motional-term-doubled';
 const ISOBARIK_TWO_BL = 'BUG_20261120_isobarik-pair-with-two-bl-driver-6db-below-one-driver';
 const PR_LOSSES = 'BUG_20261120_passive-radiator-box-losses-not-scaled-with-radiator-count';
 
 function faultsOf(c: Case): readonly string[] {
   const twoBl = c.row.on.has('twoBlDriver');
   const prLosses = c.box.wpr.startsWith('pr-') && !c.row.on.has('winisdPrNprResonance');
-  if ((c.rule === 'R1 parallel array' || c.rule === 'R2 series array') && c.group === 'pressure') return [ARRAY_PRESSURE];
   if (c.rule !== 'R4 Iso-Barik pair') return [];
-  const pairFault = c.group === 'impedance' ? (twoBl ? [] : [ISOBARIK_IMPEDANCE]) : (twoBl ? [ISOBARIK_TWO_BL] : []);
+  const pairFault = c.group === 'response' && twoBl ? [ISOBARIK_TWO_BL] : [];
   return [...pairFault, ...(prLosses ? [PR_LOSSES] : [])];
 }
 
@@ -357,7 +354,7 @@ describe('the driver array obeys physics rules over every box, driver count, wir
     if (faults.length === 0) {
       it(titleOf(c), () => expect(caseMisses(c)).toEqual([]));
     } else {
-      // BUG_ files: named in the title, from ARRAY_PRESSURE, ISOBARIK_IMPEDANCE, ISOBARIK_TWO_BL and PR_LOSSES above.
+      // BUG_ files: named in the title, from ISOBARIK_TWO_BL and PR_LOSSES above.
       it.fails(`${titleOf(c)}: ${faults.join(', ')}`, () => expect(caseMisses(c)).toEqual([]));
     }
   }

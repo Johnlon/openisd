@@ -5,6 +5,7 @@ owner: guardrails-b
 status: open
 goal: A combination test over box type x number of drivers x Iso-Barik x wiring x the Advanced switches checks the engine against physics rules that always hold (array scaling, Iso-Barik equivalence, series = parallel at N x voltage, every curve finite).
 why: 'John, 20 Nov 2026 00:52, board card test-guardrails: "All of A-G: build every guardrail on the card, the physics-law combination test (B) first, plus the Finite number type and the four lint rules as ratchets"; plan docs/plans/PLAN_20261119_TEST_STRATEGY.md option B. The card says each guardrail "refuses a pull request, and removing one needs your OK", so the test file joins GATE_FILES in land.conf (protected gate files) on this branch.' 
+gates_approved: QO961
 done_test: bash scripts/test.sh packages/design/test/engine/driver-array-physics-rules.test.ts
 files:
   - tasks/T939.yml
@@ -50,4 +51,13 @@ notes: |
   so the sealed box also passes Xmax (the R3 non-vacuity check); R4 checks radiator excursion x sqrt 2 and leaves out the
   passive-radiator box's `pv`, which is no chart (SweepResult.pv: none for a box without a port).
   Mutation check: VA x N changed to x 1.0001 N in the driver-count branch turned 1368 cases red.
-  Open: the gate-file change to land.conf needs gates_approved: QO<n> naming T939 before ship.sh or pr-gate accepts it.
+  Gate-file change approved: QO961 (John, 20 Nov 2026 00:52, recorded by the lead).
+  Re-run after main with T928 (Iso-Barik push BL from one driver; driver-count gain on Xmax-limited SPL and H) and T929 was
+  merged, 20 Nov 2026 01:35 UTC: 4789 cases, 4396 pass, 135 it.fails, 258 red.
+  - BUG_20261120_array-pressure-and-xmax-limited-spl-not-scaled-by-driver-count: fixed by T928; its 1368 cases are plain tests.
+  - BUG_20261120_isobarik-impedance-motional-term-doubled: fixed by T928; its cases are plain tests (the passive-radiator ones
+    still fail under the radiator-losses bug alone).
+  - BUG_20261120_isobarik-pair-with-two-bl-driver-6db-below-one-driver: 36 it.fails, unchanged; T928 made the unticked default
+    do the same, so 258 R4 response cases with the switch unticked are red. WinISD's own captures put the pair 6.03 dB below
+    one driver at 2 kHz: R4's -3.01 dB is waiting for John's decision, not changed by an agent.
+  - BUG_20261120_passive-radiator-box-losses-not-scaled-with-radiator-count: 102 it.fails, unchanged.
