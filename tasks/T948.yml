@@ -1,0 +1,10 @@
+id: T948
+release_note: internal
+repo: openisd
+owner: lead
+status: open
+goal: A typed or loaded basket diameter of 2.38 m is refused or repaired (limits 10-1000 mm, warning above 610 mm), like every other number box
+why: Release 7.0.961 is held: the app accepts a 2.38 m basket and the bundled Dayton DSA115-8 stores 2.37744 m (John's number-box rule, 18 Nov)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T948.yml
