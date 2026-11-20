@@ -37,7 +37,7 @@ import DesktopBand from '../../components/DesktopBand.vue';
 import DesktopHelpPanel from '../../components/DesktopHelpPanel.vue';
 import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
 import {injectDiagnosticsModal} from '../../../hooks/DiagnosticsModal-hooks.js';
-import BoxPlacementDiagram from '../../components/BoxPlacementDiagram.vue';
+import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import CloudSyncBadge from '../../components/CloudSyncBadge.vue';
 import CloudSyncDialog from '../../components/CloudSyncDialog.vue';
 import OriginalProjectList from './OriginalProjectList.vue';
@@ -452,7 +452,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             </div>
           </div>
           <div class="box-diagram-col">
-              <BoxPlacementDiagram :box-type="selectedBox" :loading="project.loading.value" />
+              <BoxTypeDiagram :box-type="selectedBox" />
             </div>
           </div>
         </section>
@@ -469,12 +469,18 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="two-col driver-columns" style="margin-top:6px;">
             <div class="short-pick-fields">
               <DesktopBand :section="placementHelp" style="margin-bottom:4px;" @help="openSectionHelp" />
-              <div class="field-row" style="margin-bottom:4px;">
-                <UIFixedField class="field" input-id="og-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="DesktopLabels.NUM_DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" />
+              <!-- The three arrangement pictures sit beside the rows, next to the Standard / Iso-Barik choice (John, 20 Nov 2026). -->
+              <div class="placement-beside">
+                <div>
+                  <div class="field-row" style="margin-bottom:4px;">
+                    <UIFixedField class="field" input-id="og-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="DesktopLabels.NUM_DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" />
+                  </div>
+                  <DriverPlacement />
+                  <DriverWiring />
+                  <DriverCoilWiring />
+                </div>
+                <DriverPlacementPicture />
               </div>
-              <DriverPlacement />
-              <DriverWiring />
-              <DriverCoilWiring />
             </div>
             <div>
               <DesktopBand :section="advancedOptionsHelp" @help="openSectionHelp" />
@@ -484,7 +490,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_ADDEDMASS_G" :value="project.driverAddedMass_kg.value" @update:value="v => project.driverAddedMass_kg.set(v)" /></div>
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.ALFAVC_PER_K" :value="project.alfaVC_per_K.value" @update:value="v => project.alfaVC_per_K.set(v)" :deviation="projectAlfaVCDeviationShown ? WinisdDeviation.PROJECT_ALFAVC : undefined" /></div>
                 </div>
-                <DriverPlacementPicture />
+
               </div>
             </div>
           </div>
@@ -1295,14 +1301,14 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* The field span is fixed at the WIDEST box layout (the dual-chamber types: two field
    columns + the gap), so the diagram column starts at the same x for every box type
    instead of being pushed to the far right whenever the fields need less room. */
-.box-tab-row { display:flex; gap:10px; align-items:flex-start; min-height:100%; --box-col-w:302px; --box-col-gap:24px; }
+.box-tab-row { display:flex; gap:24px; align-items:flex-start; min-height:100%; --box-col-w:302px; --box-col-gap:24px; }
 .box-tab-row .field-row { margin-bottom: 4px; }
 .box-tab-row .section-header { margin-bottom: 4px; padding: 2px 8px; }
 .box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }
 /* Width tracks the diagrams' own scale (each SVG height is 0.7 of its drawn size), so the
    column stays snug around the widest cut-through rather than padding it with slack. */
-/* 33 px = the Box Type row above the chamber title bars, so the drawings start level with the title bars (John, 19 Nov 2026). */
-.box-diagram-col { --bpd-h: 112px; margin-top:33px; flex:none; width:192px; display:flex; align-items:flex-start; justify-content:center; }
+/* 33 px = the Box Type row above the chamber title bars, so the drawing starts level with the title bars (John, 19 Nov 2026). */
+.box-diagram-col { margin-top:33px; flex:none; width:119px; display:flex; align-items:flex-start; justify-content:center; }
 /* Third span, right of the diagram. Text WRAPS rather than overflowing, so unlike the
    fixed-width control columns this one may shrink without reintroducing the overlap. */
 /* The fields column sets the row height; this column follows it (size containment keeps its text
@@ -1311,6 +1317,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .box-notes-col { columns:2; column-gap:24px; }
 .box-notes-col > .hint { break-inside:avoid; margin:0 0 2px; }
 .pending-note { color:#7a5b1a; }
+.placement-beside { display:flex; align-items:flex-start; gap:12px; }
 .vent-groups { display:flex; gap:20px; }
 .vent-port-row { display:flex; gap:12px; margin-bottom:2px; }
 .vent-pane-tight .vent-col-band { margin-bottom:2px; }

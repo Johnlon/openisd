@@ -1,9 +1,9 @@
 <script setup lang="ts">
 /**
  * The New Project dialog's box drawing for the ONE arrangement picked on step 2 (T919): Standard draws the box with one driver,
- * Iso-Barik clamshell or back to front draws the box with that pair only. The Box tab's BoxPlacementDiagram draws both Iso-Barik
- * arrangements because the project does not record which one; the dialog knows, so it draws only the user's choice (the lead,
- * 20 Nov 2026, on the step 4 picture: John objected to a drawing of an arrangement chosen elsewhere). Display only.
+ * Iso-Barik clamshell or back to front draws the box with that pair only (the lead, 20 Nov 2026, on the step 4 picture: John
+ * objected to a drawing of an arrangement chosen elsewhere). The Box tab keeps WinISD's classic one-driver drawing (John, 20 Nov
+ * 2026: "keep the box tab as the classic simple box view"). Display only.
  */
 import type {BoxType} from '@openisd/design/engine';
 import type {PlacementChoice} from '@openisd/design/fields';

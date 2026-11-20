@@ -40,12 +40,28 @@ async function expectWizardMargins(page: Page, label: Locator, row: Locator, dra
 
 const diagram = (page: Page): Locator => page.getByTestId('placement-diagram');
 
+const ARTS = ['single', 'clamshell', 'tandem'] as const;
+
+/** The Driver tab's three arrangement pictures are all shown and only `art` is marked picked. */
+async function expectPicked(page: Page, art: typeof ARTS[number]): Promise<void> {
+  for (const a of ARTS) {
+    await expect(diagram(page).getByTestId(`placement-${a}`)).toBeVisible();
+    await expect(diagram(page).getByTestId(`placement-${a}`), `${a} picture marked ${a === art ? '' : 'not '}picked`).toHaveAttribute('aria-pressed', String(a === art));
+  }
+}
+
 const field = (page: Page, label: string): Locator => page.locator('.ui-field', {has: page.locator('label', {hasText: new RegExp(`^${label}$`)})}).locator('input').first();
 
 /** What differs between the shells: where the Placement choice is and how a new project is made. */
 interface Shell {
   readonly name: string;
   readonly volume: string;
+  /** Where the Box tab draws the box. */
+  readonly boxDrawingArea: string;
+  /** The Driver tab's driver count box. */
+  readonly nDriversInput: string;
+  /** The Driver tab's arrangement pictures sit beside the Placement choice. */
+  readonly expectPicturesBeside: (choice: Box, pictures: Box) => void;
   readonly open: (page: Page) => Promise<void>;
   /** The Placement control's text must not call Iso-Barik "not modelled". */
   readonly placementArea: (page: Page) => Locator;
@@ -59,11 +75,21 @@ interface Shell {
   readonly newProjectChoosingIsobaric: (page: Page) => Promise<void>;
 }
 
+interface Box { readonly x: number; readonly y: number; readonly width: number; readonly height: number }
+
 const radios = (page: Page): Locator => page.locator('input[name=og-placement][type=radio]');
 
 const DESKTOP: Shell = {
   name: 'desktop',
   volume: 'Volume',
+  boxDrawingArea: '.box-diagram-col',
+  nDriversInput: '#og-ndrivers',
+  // To the right of the radios, level with them.
+  expectPicturesBeside: (choice, pics) => {
+    expect(pics.x, 'pictures right of the choice').toBeGreaterThanOrEqual(choice.x + choice.width);
+    expect(pics.y, 'pictures start above the choice\'s bottom').toBeLessThan(choice.y + choice.height);
+    expect(pics.y + pics.height, 'pictures end below the choice\'s top').toBeGreaterThan(choice.y);
+  },
   open: async (page) => { await page.goto('/'); await openAProject(page); },
   placementArea: (page) => page.locator('.radio-group').filter({hasText: 'Iso-Barik'}),
   expectStandardOffered: async (page) => {
@@ -107,6 +133,13 @@ const select = (page: Page): Locator => page.locator('#mob-driver-placement');
 const PHONE: Shell = {
   name: 'phone',
   volume: 'Vb',
+  boxDrawingArea: '.mob-cpic',
+  nDriversInput: '#mob-n-drivers',
+  // Straight under the Placement row (the pairs line between them).
+  expectPicturesBeside: (choice, pics) => {
+    expect(pics.y, 'pictures under the choice').toBeGreaterThanOrEqual(choice.y + choice.height - 1);
+    expect(pics.y - (choice.y + choice.height), 'pictures straight under the choice').toBeLessThanOrEqual(30);
+  },
   open: async (page) => {
     await page.setViewportSize(PIXEL_9);
     await forceMobileSkin(page);
@@ -166,29 +199,26 @@ for (const shell of [DESKTOP, PHONE]) {
       await expect(diagram(page)).toBeVisible();
       await expect(diagram(page)).toHaveAttribute('data-placement', 'standard');
       const standardArea = (await diagram(page).boundingBox())!;
-      const standardSvg = (await diagram(page).locator('svg').first().boundingBox())!;
-      await expect(diagram(page).getByTestId('placement-clamshell')).toHaveCount(0);
+      // The three arrangement pictures are always there; the Standard one is the one picked.
+      await expectPicked(page, 'single');
       await expect(shell.placementArea(page)).not.toContainText('not modelled');
       await picture(page, `${shell.name}-2-before-driver-standard`);
 
       await shell.chooseIsobaric(page);
       await shell.expectIsobaricChosen(page);
-      // The clamshell pair is drawn beside the choice (WinISD's Box tab drawing does not change, so the Box tab's stays one driver).
-      await expect(diagram(page)).toBeVisible();
+      // Iso-Barik picks the clamshell picture (WinISD's Box tab drawing does not change, so the Box tab's stays one driver).
       await expect(diagram(page)).toHaveAttribute('data-placement', 'isobaric');
-      // Nothing jumps or shrinks when Placement changes: the drawing area and each drawing keep their size.
+      await expectPicked(page, 'clamshell');
+      // Nothing jumps or shrinks when Placement changes: the picture area keeps its size.
       expect((await diagram(page).boundingBox())!.height, 'Driver tab drawing area height').toBe(standardArea.height);
-      for (const svg of await diagram(page).locator('svg').all()) expect(await svg.boundingBox(), 'each pair drawing is the Standard drawing size').toMatchObject({width: standardSvg.width, height: standardSvg.height});
-      await expect(diagram(page).getByTestId('placement-clamshell')).toBeVisible();
-      await expect(diagram(page).getByTestId('placement-tandem')).toBeVisible();
       await picture(page, `${shell.name}-3-after-driver-isobaric`);
 
       await openTab(page, 'Box');
       await expect(page.locator('.project-nav li.active, .mob-tab.active')).toHaveText('Box');
-      // The Box tab draws the box with the pair in it, both ways.
-      await expect(page.getByTestId('box-clamshell')).toBeVisible();
-      await expect(page.getByTestId('box-tandem')).toBeVisible();
-      // Two drawings of the same box never repeat an id in the page.
+      // The Box tab keeps the classic one-driver box drawing (John, 20 Nov 2026: "keep the box tab as the classic simple box view").
+      await expect(page.getByTestId('box-clamshell')).toHaveCount(0);
+      await expect(page.getByTestId('box-tandem')).toHaveCount(0);
+      // No id is repeated in the page.
       const repeated = await page.evaluate(() => {
         const seen = new Set<string>(); const dup: string[] = [];
         for (const el of document.querySelectorAll('[id]')) { if (seen.has(el.id)) dup.push(el.id); seen.add(el.id); }
@@ -207,7 +237,7 @@ for (const shell of [DESKTOP, PHONE]) {
       await picture(page, `${shell.name}-5b-chart-isobaric`);
       await openTab(page, 'Box');
       await setFocusedBoxType(page, 'vented');
-      await expect(page.getByTestId('box-tandem')).toBeVisible();
+      await expect(page.locator(`${shell.boxDrawingArea} svg:visible`)).toHaveCount(1);
       await picture(page, `${shell.name}-5c-box-vented-isobaric`);
     });
 
@@ -223,21 +253,26 @@ for (const shell of [DESKTOP, PHONE]) {
 
 const BOX_TYPES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const;
 
-/** The size of every drawing on the Box tab and of the area that holds them. */
-async function drawingSizes(page: Page, area: string): Promise<{svgs: {w: number; h: number}[]; area: {w: number; h: number}}> {
-  const svgs: {w: number; h: number}[] = [];
-  for (const svg of await page.locator(`${area} figure svg:visible`).all()) {
+/** Each box type's classic drawing (BoxTypeDiagram.vue, as on main). */
+const BOX_DRAWING_ID: Record<typeof BOX_TYPES[number], string> = {
+  'sealed': 'og-box-diagram-sealed', 'vented': 'og-box-diagram-vented', 'box-passive-radiator': 'og-box-diagram-passive-radiator',
+  'bandpass4': 'og-box-diagram-bandpass4', 'bandpass6': 'og-box-diagram-bandpass6', 'abc': 'og-box-diagram-abc',
+};
+
+/** The visible drawings in the Box tab's drawing area: id, markup and size. */
+async function boxDrawings(page: Page, area: string): Promise<{id: string; html: string; w: number; h: number}[]> {
+  const out: {id: string; html: string; w: number; h: number}[] = [];
+  for (const svg of await page.locator(`${area} svg:visible`).all()) {
     const b = (await svg.boundingBox())!;
-    svgs.push({w: Math.round(b.width * 10) / 10, h: Math.round(b.height * 10) / 10});
+    out.push({id: await svg.getAttribute('id') ?? '', html: await svg.evaluate((el) => el.outerHTML), w: Math.round(b.width * 10) / 10, h: Math.round(b.height * 10) / 10});
   }
-  const a = (await page.locator(area).boundingBox())!;
-  return {svgs, area: {w: Math.round(a.width), h: Math.round(a.height)}};
+  return out;
 }
 
 /** Phone only: no sideways scroll and every drawing inside the screen. Desktop has nothing to add. */
 async function expectPhoneFits(page: Page, area: string, width: number, boxType: string): Promise<void> {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `${boxType} at ${width}: no sideways scroll`).toBe(true);
-  for (const svg of await page.locator(`${area} figure svg:visible`).all()) {
+  for (const svg of await page.locator(`${area} svg:visible`).all()) {
     const b = (await svg.boundingBox())!;
     expect(b.x, `${boxType}: inside the left edge`).toBeGreaterThanOrEqual(0);
     expect(b.x + b.width, `${boxType}: inside the right edge`).toBeLessThanOrEqual(width);
@@ -246,13 +281,15 @@ async function expectPhoneFits(page: Page, area: string, width: number, boxType:
 const noExtraChecks = async (): Promise<void> => undefined;
 
 const SIZE_CASES = [
-  {shell: DESKTOP, area: '.box-diagram-col', width: 1280, fits: noExtraChecks},
-  {shell: PHONE, area: '.mob-cpic', width: 360, fits: expectPhoneFits},
-  {shell: PHONE, area: '.mob-cpic', width: 412, fits: expectPhoneFits},
+  {shell: DESKTOP, width: 1280, fits: noExtraChecks},
+  {shell: PHONE, width: 360, fits: expectPhoneFits},
+  {shell: PHONE, width: 412, fits: expectPhoneFits},
 ];
 
-for (const {shell, area, width, fits} of SIZE_CASES) {
-  test(`${shell.name} ${width} px: every Box tab drawing is the same size in Standard and Iso-Barik, in the same area, nothing clipped`, async ({appPage: page}) => {
+/** John, 20 Nov 2026, on the Box tab before/after pictures: "keep the box tab as the classic simple box view". */
+for (const {shell, width, fits} of SIZE_CASES) {
+  test(`${shell.name} ${width} px: the Box tab draws main's classic one-driver box whatever the placement, nothing clipped`, async ({appPage: page}) => {
+    const area = shell.boxDrawingArea;
     await shell.open(page);
     await page.setViewportSize({width, height: 780});
     for (const boxType of BOX_TYPES) {
@@ -260,23 +297,51 @@ for (const {shell, area, width, fits} of SIZE_CASES) {
       await openTab(page, 'Driver');
       await shell.expectStandardOffered(page);
       await openTab(page, 'Box');
-      await expect(page.getByTestId('box-standard')).toBeVisible();
-      const standard = await drawingSizes(page, area);
-      expect(standard.svgs, `${boxType} standard: one drawing`).toHaveLength(1);
+      const standard = await boxDrawings(page, area);
+      expect(standard.map((d) => d.id), `${boxType} standard: the one classic drawing`).toEqual([BOX_DRAWING_ID[boxType]]);
+      expect(standard[0].h, `${boxType}: the classic drawing's height`).toBe(126);
       await openTab(page, 'Driver');
       await shell.chooseIsobaric(page);
       await openTab(page, 'Box');
-      await expect(page.getByTestId('box-tandem')).toBeVisible();
-      const iso = await drawingSizes(page, area);
-      expect(iso.svgs, `${boxType} iso: two drawings`).toHaveLength(2);
-      for (const d of iso.svgs) expect(d, `${boxType}: each Iso-Barik drawing is the Standard drawing's size`).toEqual(standard.svgs[0]);
-      expect(iso.area.h, `${boxType}: the drawing area keeps its height`).toBe(standard.area.h);
+      const iso = await boxDrawings(page, area);
+      expect(iso, `${boxType} Iso-Barik: the same one drawing, same markup and size, as Standard`).toEqual(standard);
+      await expect(page.locator(`${area} figure, ${area} figcaption`), `${boxType}: no captioned pair drawings`).toHaveCount(0);
       await fits(page, area, width, boxType);
-      console.log(`SIZES ${shell.name} ${width} ${boxType} standard ${JSON.stringify(standard.svgs[0])} area ${JSON.stringify(standard.area)} | iso ${JSON.stringify(iso.svgs)} area ${JSON.stringify(iso.area)}`);
-      await picture(page, `${shell.name}-${width}-same-size-${boxType}-iso`);
+      await picture(page, `${shell.name}-${width}-classic-${boxType}-iso`);
       await openTab(page, 'Driver');
       await shell.chooseStandard(page);
     }
+  });
+}
+
+/** Clicking a picture on the Driver tab picks that arrangement; the choice beside it follows, and with Iso-Barik the pairs line says how many drivers. */
+for (const shell of [DESKTOP, PHONE]) {
+  test(`${shell.name}: Driver tab shows the three arrangement pictures beside the Standard / Iso-Barik choice, and a click picks one`, async ({appPage: page}) => {
+    await shell.open(page);
+    await openTab(page, 'Driver');
+    await shell.expectStandardOffered(page);
+    await expectPicked(page, 'single');
+    // Beside the choice: on desktop to its right, level with it; on the phone straight under its row.
+    shell.expectPicturesBeside((await shell.placementArea(page).boundingBox())!, (await diagram(page).boundingBox())!);
+    const note = page.getByTestId('driver-pair-note');
+    await expect(note).toBeHidden();
+
+    await diagram(page).getByTestId('placement-tandem').click();
+    await shell.expectIsobaricChosen(page);
+    await expectPicked(page, 'tandem');
+    await expect(note).toBeVisible();
+    const pairs = Number(await page.locator(shell.nDriversInput).inputValue());
+    await expect(note).toHaveText(pairs === 1 ? '1 pair = 2 drivers' : `${pairs} pairs = ${2 * pairs} drivers`);
+    await picture(page, `${shell.name}-driver-tab-tandem-picked`);
+
+    await diagram(page).getByTestId('placement-clamshell').click();
+    await shell.expectIsobaricChosen(page);
+    await expectPicked(page, 'clamshell');
+
+    await diagram(page).getByTestId('placement-single').click();
+    await shell.expectStandardOffered(page);
+    await expectPicked(page, 'single');
+    await expect(note).toBeHidden();
   });
 }
 
@@ -337,7 +402,7 @@ for (const shell of [DESKTOP, PHONE]) {
       await top();
       await picture(page, `pair-${shell.name}-box-vented-${placement}`);
     }
-    await expect(page.getByTestId('box-tandem')).toBeVisible();
+    await expect(page.locator(`${shell.boxDrawingArea} svg:visible`)).toHaveCount(1);
   });
 
   test(`${shell.name}: New Project step 2 pictures in both placements, paired`, async ({appPage: page}) => {

@@ -5,7 +5,7 @@
 import {NumberField, PhoneBoxText, PhoneHelp, PhoneLabels, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
 import {selectedOption} from '../../../logic/domEvents.js';
 import {useEscToClose} from '../../../logic/useEscToClose.js';
-import BoxPlacementDiagram from '../../components/BoxPlacementDiagram.vue';
+import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
@@ -20,7 +20,7 @@ import { createPhoneLabelColumnDirective } from '../../../hooks/phoneLabelColumn
 const vPhoneLabelColumn = createPhoneLabelColumnDirective();
 
 const {
-  project, selectedBox, pending, isDual, frontVolumeCell, boxLabel,
+  selectedBox, pending, isDual, frontVolumeCell, boxLabel,
   boxResonance, prNaturalFh, boxVolumeCell, sealedFscCell, sealedQtcCell,
   FH_TARGET_TIP,
   selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
@@ -51,7 +51,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
     <p v-if="pending" class="mob-chint mob-chint-warn">
       Response model pending — {{ boxLabel }} isn't simulated by the engine yet, so no curve is drawn.
     </p>
-    <div class="mob-cpic"><BoxPlacementDiagram :box-type="selectedBox" :loading="project.loading.value" /></div>
+    <div class="mob-cpic"><BoxTypeDiagram :box-type="selectedBox" /></div>
     </section>
 
     <section class="mob-csection">

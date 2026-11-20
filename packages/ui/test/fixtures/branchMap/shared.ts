@@ -5,8 +5,6 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-6dea12ee5dcce015':{kind:'partOf',view:'wizard-sealed-3'}, // components/BoxArrangementDiagram.vue:20
   'conditional-branch-86d15a99910deefd':{kind:'partOf',view:'wizard-placement'}, // components/PlacementArt.vue:14
   'conditional-branch-d75023e5737f711e':{kind:'partOf',view:'wizard-placement'}, // components/PlacementArt.vue:19
-  'conditional-branch-894ed0a436a112ca':{kind:'partOf',view:'box-sealed'}, // components/BoxPlacementDiagram.vue:18 (one driver, the Box tab)
-  'conditional-branch-4a06f994d1e6ee49':{kind:'partOf',view:'box-sealed'}, // components/BoxPlacementDiagram.vue:24 (the Iso-Barik pair, the Box tab)
   'conditional-branch-3fc6dc87e6d864b5':{kind:'partOf',view:'wizard-placement'}, // components/PlacementDiagram.vue:15
   'conditional-branch-cd66175048d64d4b':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:16
   'conditional-branch-09a5ecaf37ab2624':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:23
@@ -110,8 +108,8 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-86a74738b0c40fb4':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:32
   'conditional-branch-265d98b1829da319':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:35
   'conditional-branch-ad20275eedeb4b3a':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:34 (the catcher over the greyed control)
-  'conditional-branch-03be5454148157d1':{kind:'partOf',view:'tab-driver'}, // components/DriverPlacement.vue:14 (the phone row)
-  'conditional-branch-3f6f0f6f5c62bf1f':{kind:'partOf',view:'tab-driver'}, // components/DriverPlacement.vue:23 (the desktop row)
+  'conditional-branch-c358f2fc1b9e0781':{kind:'partOf',view:'tab-driver'}, // components/DriverPlacement.vue:13 (the phone row)
+  'conditional-branch-3f6f0f6f5c62bf1f':{kind:'partOf',view:'tab-driver'}, // components/DriverPlacement.vue:19 (the desktop row)
   'conditional-branch-587ab05924db500c':{kind:'partOf',view:'tab-driver'}, // components/DriverWiring.vue:15 (the phone row)
   'conditional-branch-eb847ee4b5bc2de2':{kind:'partOf',view:'tab-driver'}, // components/DriverWiring.vue:23 (the desktop row)
   'conditional-branch-b989dd12d68f1ae3':{kind:'notAView',reason:'summary button that opens the driver disagreements list'}, // components/DriverConsistencyList.vue:12
