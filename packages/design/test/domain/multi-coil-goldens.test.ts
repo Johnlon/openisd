@@ -398,7 +398,10 @@ describe('Bliesma W137A-854-4 (3 independent coils, configuration as published, 
 
   it('inconsistent-inputs: only the Rms/Qms disagreement above, nothing about Qes or the motor', () => {
     const texts = inconsistencies(project(W137).driver);
-    expect(texts.filter(t => !/Rms|Qms/.test(t))).toEqual([]);
+    // The USPL line is the sensitivity check of QO962 (20 Nov 2026): 88 dB at 2.83 V/1 m into Re 3.4 is 84.3 dB at 1 W,
+    // and Fs/Vas/Qes imply 87.0 dB; it is about the sensitivity, not Qes or the motor.
+    expect(texts.filter(t => !/Rms|Qms/.test(t) && !t.startsWith('USPL_dB'))).toEqual([]);
+    expect(texts.filter(t => t.startsWith('USPL_dB'))).toHaveLength(1);
     expect(texts.length).toBeGreaterThan(0);
   });
 

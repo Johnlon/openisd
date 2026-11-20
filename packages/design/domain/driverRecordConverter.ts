@@ -42,6 +42,7 @@ import {wdrVCConCode, winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImpor
 import {asCurrentRecord} from "./schemaVersion.js";
 import {sortKeysDeep} from "./openIsdDeviceJsonIo.js";
 import {slimmedDevice} from "./slimModel.js";
+import {MeasurementNote} from "./measurementNote.js";
 import {dqMarks} from "./specEntry.js";
 import {MANUAL_CANDIDATES_KEY, chooseFieldValue, selectOrigin, selectWiringOrigin} from "./selectOrigin.js";
 import {sourceRank} from "./sourceRank.js";
@@ -221,6 +222,20 @@ function withPerCoilFiguresForWiring(fields: Record<string, unknown>, driver: Dr
     };
   }
   return out;
+}
+
+/** A sensitivity whose winning reading the source printed at 2.83 V / 1 m is the USPL, entered as printed, not the 1 W SPL;
+ *  the engine works the SPL out from it and Re (John, QO962, 20 Nov 2026: "B: keep the printed 2.83 V figure; the engine
+ *  works out the 1 W one (changes how drivers are stored)"). A figure printed at 1 W / 1 m, or with no condition, stays
+ *  the SPL. A section that already holds a USPL keeps both as they are. Returns `fields` itself when nothing applies. */
+function withSensitivityByCondition(fields: Record<string, unknown>): Record<string, unknown> {
+  const { SPL_dB: spl, ...others } = fields;
+  if (!isKeyedObject(spl) || spl.state !== "E" || typeof spl.origin !== "string" || "USPL_dB" in fields) return fields;
+  const readings = spl.readings;
+  const winner = isKeyedObject(readings) ? readings[spl.origin] : undefined;
+  if (!isKeyedObject(winner) || typeof winner.note !== "string") return fields;
+  if (MeasurementNote.parse(winner.note) !== MeasurementNote.At283V1m) return fields;
+  return { ...others, USPL_dB: spl };
 }
 
 /** One spec entry without the app-only key (`APP_ONLY_SPEC_ENTRY_KEY`). Rebuilt, not deleted
@@ -863,7 +878,7 @@ export class DriverRecordConverter {
         const projected = this.#projectScraperEntry(entry, sectionKey, field, maker, warnings);
         fields[field] = entryWithoutAppOnlyKeys(projected);
       }
-      sections[sectionKey] = withPerCoilFiguresForWiring(fields, this.engine.driver);
+      sections[sectionKey] = withPerCoilFiguresForWiring(withSensitivityByCondition(fields), this.engine.driver);
     }
     return sections;
   }

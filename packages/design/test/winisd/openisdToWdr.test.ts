@@ -228,7 +228,11 @@ describe('openisd.json → winisd.wdr — format conformance (oracle: drivers/my
     //   slot 46 `VCCon` C — this record (numVC 2) does not state its wiring, so the wiring is
     //                  unknown and written 1 marked C (QO900 R1; was E under the 5 Oct 2026
     //                  "always E" ruling). The reader reads a C row as unknown, so it round-trips.
-    assert.equal(f.ParState, 'EEEEEENNEENEEEECEECENCCENNCCCNNNCCCCNCNNNNNNENCCC');
+    //   slot 3 `SPL`   C, was E; slot 28 `USPL` E, was C — the record prints its sensitivity at 2.83 V/1 m
+    //                  ("83.3 dB @ 2.83V/1m"), which is the USPL as printed; the engine works the 1 W SPL out from it
+    //                  and Re (John, QO962, 20 Nov 2026: "B: keep the printed 2.83 V figure; the engine works out the
+    //                  1 W one (changes how drivers are stored)").
+    assert.equal(f.ParState, 'EEECEENNEENEEEECEECENCCENNCCENNNCCCCNCNNNNNNENCCC');
   });
 });
 

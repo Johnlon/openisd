@@ -14,6 +14,8 @@ import type {SignalSolverParams} from '../solverTypes.js';
 import type {DriverWiring} from '../array/driverWiring.js';
 import {DEFAULT_DRIVER_WIRING, amplifierVoltage, driverDrive, eachOfN} from '../array/driverWiring.js';
 
+import {isobarikDriveResistance, type IsobarikSettings} from '../solvers/isobarikWiring.js';
+
 export type SignalQuantityName = keyof SignalSolverParams;
 export type SignalIssue = CalculationIssue<SignalQuantityName>;
 
@@ -43,6 +45,7 @@ export function driveFromVoltage(eg: number, re: number, rs: number = 0): number
 /** The signal area of the engine: the drive voltage and drive power, related through the
  *  driver's DC resistance, and the handle solve between them. */
 export interface SignalEngine {
+  isobarikDriveResistance(re: number | null, settings: IsobarikSettings): number | null;
   /** The voltage that delivers `pin` watts into `re` (+ `rs`) ohms. */
   driveVoltage(pin: number, re: number, rs?: number): number;
   /** The amplifier's output voltage that delivers `pin_W` into `n` drivers of `re` ohms wired `wiring` through source resistance `rs`
@@ -58,6 +61,7 @@ export interface SignalEngine {
 
 export class SignalEngineImpl implements SignalEngine {
   readonly driveVoltage = driveVoltage;
+  readonly isobarikDriveResistance = isobarikDriveResistance;
 
   amplifierVoltageFor(pin_W: number, n: number, wiring: DriverWiring, re: number, rs: number, rgAtDriverSide: boolean): number {
     const drive = driverDrive(n, wiring, 1, rs, rgAtDriverSide);

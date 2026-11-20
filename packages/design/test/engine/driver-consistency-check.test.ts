@@ -135,6 +135,34 @@ describe('Engine.checkConsistency', () => {
       expect(issues.filter(i => i.kind === 'inconsistent-inputs')).toMatchObject([{ target: 'no' }]);
     });
 
+    // A stated sensitivity against the one the T/S figures imply (QO962, 20 Nov 2026). SB Acoustics SB23NRXS45-4: Fs 27,
+    // Vas 87.5 l, Qes 0.32 imply about 89.3 dB at 1 W/1 m. Its printed 92 dB is at 2.83 V/1 m (88.15 dB at 1 W, Re 3.3).
+    const SB23 = { Fs_hz: 27, Vas_m3: 0.0875, Qes: 0.32, Re_ohm: 3.3 };
+    const atReferenceAir = (p: DriverSolverParams) =>
+      engine.driver.solve(p, REFERENCE_AIR).filter(i => i.kind === 'inconsistent-inputs');
+    const SB23_PRECISION = { Fs_hz: 0.5, Vas_m3: 0.00005, Qes: 0.005, Re_ohm: 0.05, SPL_dB: 0.5, USPL_dB: 0.5 };
+
+    it('the 2.83 V figure stored as the 1 W SPL (92 dB against 89.3 implied) is reported against SPL', () => {
+      const p = driverParams({ ...SB23, SPL_dB: 92 }, SB23_PRECISION);
+      expect(atReferenceAir(p)).toMatchObject([{ target: 'SPL_dB' }]);
+    });
+
+    it('the same 92 dB stated as the 2.83 V USPL (88.15 dB at 1 W, 1.1 dB from 89.3) is not reported', () => {
+      const p = driverParams({ ...SB23, USPL_dB: 92 }, SB23_PRECISION);
+      expect(atReferenceAir(p)).toEqual([]);
+    });
+
+    it('a stated 1 W SPL that agrees with the T/S figures within the allowance is not reported', () => {
+      const p = driverParams({ ...SB23, SPL_dB: 88 }, SB23_PRECISION);
+      expect(atReferenceAir(p)).toEqual([]);
+    });
+
+    it('a stated USPL far from the one the T/S figures imply is reported against USPL', () => {
+      // 1 W implied 89.3 dB is 93.1 dB at 2.83 V into Re 3.3; a printed 98 dB is 4.9 dB above it.
+      const p = driverParams({ ...SB23, USPL_dB: 98 }, SB23_PRECISION);
+      expect(atReferenceAir(p)).toMatchObject([{ target: 'USPL_dB' }]);
+    });
+
     it('a stated η₀ that Fs/Vas/Qes imply to its printed precision is not reported', () => {
       const p = driverParams({ no: 0.0048, Fs_hz: 30, Vas_m3: 0.068, Qes: 0.37 });
       const issues = engine.driver.solve(p, REFERENCE_AIR);

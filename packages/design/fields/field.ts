@@ -1533,7 +1533,17 @@ export class EnumField extends Field {
     options: VC_CONNECTION_OPTIONS,
     description: "Coil wiring: how you wire it in this project\nHow you wire this driver's voice coils in this project. If it differs from how the driver was measured, the calculations use the figures for your wiring (for 2 coils, Series gives Re, Le and nominal impedance ×4 and BL ×2 compared with Parallel; Fs, Q, Vas and Mms do not change). The driver's own figures are never changed. It can be changed only for a driver with 2 or more coils whose measured wiring is stated.",
   });
-  /** How the project's several drivers are wired to the amplifier (ticket 519; John's approved text, copied exactly after the title line). */
+  static readonly PROJECT_LOADING = new EnumField({
+    value: "project_loading",
+    label: "Placement",
+    options: [
+      {value: 'standard', label: 'Standard'},
+      {value: 'isobaric', label: 'Iso-Barik'},
+    ],
+    description: "Iso-Barik uses two coupled drivers moving together. One cone radiates sound, and the pair needs half the box volume of a single driver for the same alignment.",
+  });
+
+  /** How the project's several drivers are wired to the amplifier (ticket 519). */
   static readonly PROJECT_DRIVERWIRING = new EnumField({
     value: "project_driverWiring",
     label: "Driver wiring",
@@ -1724,6 +1734,12 @@ export class ToggleField extends Field {
     label: "Chart from Fs, Vas, Qms (WinISD's way)",
     description: "Chart from Fs, Vas, Qms: WinISD draws its charts from Fs, Vas and Qms and works Cms, Mms and Rms out from them, so a Cms, Mms or Rms you type is shown but ignored. But datasheets often state Mms, Cms and Rms that do not agree with their own Fs, Vas and Qms, and then WinISD's charts follow figures that are not the ones on your screen (E150HE-44: up to 6.8 dB apart). So OpenISD draws its charts from the boxes you see — Sd, Mms, Cms, Rms, BL, Re, Le — and marks the ones that disagree. Tick this to draw from Fs, Vas and Qms as WinISD does.",
   }, null, 'Qms');
+  static readonly PROJECT_WINISDISOBARIK = new ToggleField({
+    value: "project_winisdIsobarik",
+    label: "WinISD's Iso-Barik numbers",
+    description: "WinISD shows a sealed W5-1138SMF Iso-Barik pair at 2,830 mV and 2 kHz as 6 dB quieter than one driver, with the same 3.4 Ω impedance. But the pair's wiring changes the load and how much voltage each driver gets, so these numbers can misstate both loudness and amplifier load. OpenISD uses Driver wiring by default. In parallel the pair is as loud as one driver and shows 1.7 Ω. In series it is 6 dB quieter and shows 6.8 Ω. (Tick this to use WinISD's numbers.)",
+  });
+
   static readonly ADV_WINISDONEDRIVERIMPEDANCE = new ToggleField({
     value: "adv_WinisdOneDriverImpedance",
     label: "Impedance of one driver",
