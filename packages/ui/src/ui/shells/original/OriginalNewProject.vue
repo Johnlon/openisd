@@ -9,7 +9,7 @@ import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
-import BoxPlacementDiagram from '../../components/BoxPlacementDiagram.vue';
+import BoxArrangementDiagram from '../../components/BoxArrangementDiagram.vue';
 import PlacementArt from '../../components/PlacementArt.vue';
 import UIPickField from '../../components/UIPickField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
@@ -41,7 +41,6 @@ const {
   selectDriver,
 
   nDrivers,
-  placement,
   placementChoice,
   placementValue,
   driverCountNote,
@@ -212,7 +211,7 @@ function handleCreate() {
           </div>
 
           <div class="box-diagram-container np-box-diagram-big">
-            <BoxPlacementDiagram :box-type="boxType" :loading="placement" />
+            <BoxArrangementDiagram :box-type="boxType" :choice="placementChoice" />
           </div>
         </div>
 
@@ -283,7 +282,7 @@ function handleCreate() {
         </div>
 
         <!-- Every Box step ends with the drawing of the box, as on the phone, so the step does not leave half the dialog empty. -->
-        <div v-if="isBoxDetailsStep" class="box-diagram-container" :class="isPassiveRadiator ? 'np-box-diagram-small' : 'np-box-diagram-mid'"><BoxPlacementDiagram :box-type="boxType" :loading="placement" /></div>
+        <div v-if="isBoxDetailsStep" class="box-diagram-container" :class="isPassiveRadiator ? 'np-box-diagram-small' : 'np-box-diagram-mid'"><BoxArrangementDiagram :box-type="boxType" :choice="placementChoice" /></div>
 
         <!-- Step 5: Project Information -->
         <div v-else-if="isProjectInfoStep" class="step-content">
@@ -401,9 +400,9 @@ function handleCreate() {
 .suitability-badge.either { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
 .box-diagram-container { display: flex; justify-content: center; margin: 10px 0; }
 /* Step 3 has room for a larger drawing: it fills the fixed dialog instead of leaving its lower part empty. */
-.np-box-diagram-big { --bpd-h: 160px; }
+.np-box-diagram-big { --bpd-h: 180px; }
 /* Step 4's fields take more room than step 3's, the passive radiator's most of all: smaller drawings, so every step 4 fits the dialog. */
-.np-box-diagram-mid { --bpd-h: 150px; }
+.np-box-diagram-mid { --bpd-h: 162px; }
 .np-box-diagram-small { --bpd-h: 80px; }
 .volume-fields { margin-top: 10px; }
 .readout-box { background: #fafafa; border: 1px solid #ddd; padding: 10px 14px; border-radius: 4px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }

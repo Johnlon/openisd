@@ -1,6 +1,8 @@
 import type {BranchMap} from './types.js';
 /** Shared (neither shell) scanned branches, drawn on both skins, mapped to the view each one is, or sits inside. Phone view ids are used where a view exists per skin. */
 export const SHARED_BRANCH_MAP:BranchMap={
+  'conditional-branch-f072f6aa74ba9d5f':{kind:'partOf',view:'wizard-sealed-3'}, // components/BoxArrangementDiagram.vue:18, T919: the box with the one arrangement picked
+  'conditional-branch-6dea12ee5dcce015':{kind:'partOf',view:'wizard-sealed-3'}, // components/BoxArrangementDiagram.vue:20
   'conditional-branch-86d15a99910deefd':{kind:'partOf',view:'wizard-placement'}, // components/PlacementArt.vue:14
   'conditional-branch-d75023e5737f711e':{kind:'partOf',view:'wizard-placement'}, // components/PlacementArt.vue:19
   'conditional-branch-894ed0a436a112ca':{kind:'partOf',view:'box-sealed'}, // components/BoxPlacementDiagram.vue:18 (one driver, the Box tab)

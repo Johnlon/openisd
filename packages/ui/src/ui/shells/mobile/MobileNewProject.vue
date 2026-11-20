@@ -8,7 +8,7 @@ import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
-import BoxPlacementDiagram from '../../components/BoxPlacementDiagram.vue';
+import BoxArrangementDiagram from '../../components/BoxArrangementDiagram.vue';
 import PhoneButton from './PhoneButton.vue';
 import PlacementDiagram from '../../components/PlacementDiagram.vue';
 import WizardHelpSheet from '../../components/WizardHelpSheet.vue';
@@ -271,7 +271,7 @@ function handleCreate() {
           <p class="mob-np-hint">{{ PhoneWizardText.PROJECT_HINT }}</p>
         </template>
         <!-- The Box type and every Box step end with the drawing of the box, one drawing for Standard and the pair for Iso-Barik, as on the Box tab. -->
-        <div v-if="isBoxTypeStep || isBoxDetailsStep" class="mob-np-pic"><BoxPlacementDiagram :box-type="boxType" :loading="placement" /></div>
+        <div v-if="isBoxTypeStep || isBoxDetailsStep" class="mob-np-pic"><BoxArrangementDiagram :box-type="boxType" :choice="placementChoice" /></div>
       </PhoneClassicPage>
     </div>
 

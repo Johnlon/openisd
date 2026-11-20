@@ -160,6 +160,30 @@ test.describe('Desktop New Project dialog frame', () => {
   });
 });
 
+/** Steps 3 and 4 draw the box with the ONE arrangement picked on step 2, never both Iso-Barik ones (the lead, 20 Nov 2026, on the
+ * step 4 picture: John objected to the Box tab drawing an arrangement that was chosen elsewhere). */
+const ARRANGEMENTS = [['standard', 'single'], ['isobaric', 'clamshell'], ['isobaric-tandem', 'tandem']] as const;
+
+test.describe('Desktop New Project box drawing', () => {
+  for (const [value, art] of ARRANGEMENTS) {
+    test(`${art} picked: steps 3 and 4 draw only the ${art} box`, async ({page}) => {
+      await open(page);
+      await page.locator('.overlay.open .modal-body').getByText(TEST_DRIVER).first().click();
+      const next = bottom(page).getByRole('button', {name: 'Next', exact: true});
+      await next.click();
+      await page.locator(`#np-place-${value}`).check();
+      for (const step of ['Step 3 of 5', 'Step 4 of 5']) {
+        await next.click();
+        await expect(page.locator('.np-step')).toContainText(step);
+        const drawings = page.locator('.overlay.open .modal-body').getByTestId('box-arrangement-drawing');
+        await expect(drawings, `${step}: one box drawing`).toHaveCount(1);
+        await expect(drawings).toHaveAttribute('data-art', art);
+        await expect(drawings.locator('svg:visible'), `${step}: one box drawn`).toHaveCount(1);
+      }
+    });
+  }
+});
+
 test.describe('Phone New project wizard', () => {
   test.use({viewport: PIXEL_9});
 
@@ -178,4 +202,23 @@ test.describe('Phone New project wizard', () => {
     await page.locator('#np-placement').selectOption('standard');
     await expect(note).toHaveCount(0);
   });
+
+  for (const [value, art] of ARRANGEMENTS) {
+    test(`${art} picked: steps 3 and 4 draw only the ${art} box`, async ({page}) => {
+      await forceMobileSkin(page);
+      await page.goto('/');
+      await page.getByText('New project').first().click();
+      await page.locator('.mob-np-body').getByText(TEST_DRIVER).first().click();
+      const next = page.locator('.mob-np-footer').getByText('Next ▸', {exact: true});
+      await next.click();
+      await page.locator('#np-placement').selectOption(value);
+      for (let i = 0; i < 2; i++) {
+        await next.click();
+        const drawings = page.locator('.mob-np-body').getByTestId('box-arrangement-drawing');
+        await expect(drawings).toHaveCount(1);
+        await expect(drawings).toHaveAttribute('data-art', art);
+        await expect(drawings.locator('svg:visible')).toHaveCount(1);
+      }
+    });
+  }
 });
