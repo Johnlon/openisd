@@ -1,7 +1,6 @@
 /**
- * A radiator's stated figures that disagree with the ones they imply are marked on every field in
- * the relation, as a driver's are, and the mark clears when one is corrected or cleared. A typed
- * figure works out the ones it moves (QO463), so a conflict comes from a datasheet stating both.
+ * A radiator's figures can disagree after picking it or editing it. Every field in a disagreeing
+ * relation is marked, and the mark clears when the conflicting entry is cleared.
  */
 import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
@@ -29,6 +28,32 @@ describe('radiator figure conflicts reach the fields', () => {
     for (const f of [spec.Fs_hz, spec.Qms, spec.Vas_m3, spec.Sd_m2, spec.Mms_kg, spec.Cms_m_per_N, spec.Rms_kg_per_s]) {
       expect(f.dq).toEqual([]);
     }
+  });
+
+  it('typing a conflicting Mms marks Mms, Fs and Cms while leaving Qms unmarked', () => {
+    const spec = prProject(createEngine(), four).box.passiveRadiator.radiator.spec;
+    const affected = [spec.Mms_kg, spec.Fs_hz, spec.Cms_m_per_N];
+    expect(affected.map(marked)).toEqual([false, false, false]);
+
+    spec.Mms_kg.set(0.12);
+
+    expect(affected.map(marked)).toEqual([true, true, true]);
+    expect(marked(spec.Qms)).toBe(false);
+  });
+
+  it('clearing a typed Mms removes all three conflict marks and restores calculated Mms', () => {
+    const spec = prProject(createEngine(), four).box.passiveRadiator.radiator.spec;
+    const originalMms = spec.Mms_kg.value;
+    expect(originalMms).toBeGreaterThan(0);
+    spec.Mms_kg.set(0.12);
+    const affected = [spec.Mms_kg, spec.Fs_hz, spec.Cms_m_per_N];
+    expect(affected.map(marked)).toEqual([true, true, true]);
+
+    spec.Mms_kg.clear();
+
+    expect(affected.map(marked)).toEqual([false, false, false]);
+    expect(spec.Mms_kg.calculated).toBe(true);
+    expect(spec.Mms_kg.value).toBe(originalMms);
   });
 
   const offMms = (engine: Engine) => ({...four, Mms_kg: prProject(engine, four).box.passiveRadiator.radiator.spec.Mms_kg.value! * 1.5});
