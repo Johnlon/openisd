@@ -40,6 +40,7 @@ files:
   - bugs/BUG_20261108_driver-typed-cms-mms-rms-ignored-by-charts.md
   - bugs/BUG_20261108_radiator-pick-replaces-stated-cms-mms.md
   - bugs/BUG_20261110_driver-editor-consistency-note-shows-raw-identifiers.md
+  - bugs/BUG_20261120_negative-fs-derives-radiator-mass.md
   - bugs/archive/BUG_20261031_phone-pr-p173-cms-display.md
   - docs/design/FIELD_CLEAR_RULE.md
   - docs/research/ACCURACY_IMPROVEMENTS.md
@@ -63,6 +64,8 @@ files:
   - packages/design/domain/project/projectSweep.ts
   - packages/design/engine/driver/DriverEngine.ts
   - packages/design/engine/driver/routes/index.ts
+  - packages/design/engine/driver/routes/DriverRoutes.ts
+  - packages/design/engine/driver/routes/RadiatorRoutes.ts
   - packages/design/engine/driver/routes/smallSignalRoutes.ts
   - packages/design/engine/driver/whatIfMoves.ts
   - packages/design/engine/index.ts
