@@ -504,7 +504,11 @@ export class WinIsdProjectConverter {
         // true answer is exactly Me = 0). Entering `Me` directly — never negative, no boundary
         // check involved — lets `systemTuning_hz` recompute Fr as the OUTPUT it already is, self-
         // consistently, instead of fighting the pair the other way.
-        project = builder.passiveRadiator().volume_m3(Vr).tuning_goal_hz(Fr).count(Npr).radiator(radiator).build();
+        project = builder.passiveRadiator().volume_m3(Vr).tuning_goal_hz(Fr).radiator(radiator).build();
+        // The file's count is written after the build, like the other loaded values, so the repair
+        // pass at the end (`repairImported`) names a count it repairs; the builder's own repair is
+        // silent (T928).
+        project.box.passiveRadiator.count.set(Npr);
         const me = wpr.number('PassiveRadiator', 'Me');
         if (me != null) project.box.passiveRadiator.addedMass_kg.set(me);
         const Qlr = wpr.number('Box', 'Qlr');

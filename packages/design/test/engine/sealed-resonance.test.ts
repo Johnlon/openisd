@@ -61,12 +61,13 @@ describe('Sealed-Box Resonance', () => {
   // internal branches (complex pole pair vs the overdamped real-root fallback) are exercised
   // head-on.
   describe('the WinISD-lossy pole solver, direct', () => {
-    it('short-circuits to the lossless closed form when there is no leakage', () => {
-      // Ql ≥ 1e6 (or non-positive) means "no leak", and the answer is then the textbook
-      // Fc = Fs·√(1+Vas/Vb), Qtc = Qts·√(1+Vas/Vb) with no root-finding at all.
+    it('short-circuits to the lossless closed form when there is no leakage and no absorption', () => {
+      // Ql ≥ 1e6 (or non-positive) means "no leak", Qa ≥ 1e6 "no absorption", and the answer is then the
+      // textbook Fc = Fs·√(1+Vas/Vb), Qtc = Qts·√(1+Vas/Vb) with no root-finding at all. A real Qa with no
+      // leak is not lossless (T929): the next test.
       const ratio = Math.sqrt(1 + 0.00747 / 0.006);
       for (const Ql of [1e6, 1e9, 0, -5]) {
-        const r = winisdLossy(p(0.006, Ql));
+        const r = winisdLossy(p(0.006, Ql, 1e6));
         closeTo(r.Fsc, 40 * ratio, 9, `Fsc for Ql=${Ql}`);
         closeTo(r.Qtc, 0.395643 * ratio, 9, `Qtc for Ql=${Ql}`);
       }
@@ -190,3 +191,18 @@ describe('Sealed-Box Resonance', () => {
   });
 });
 
+describe('Sealed-box readout at the lossless limit (T929)', () => {
+  const W5 = { Fs: 45, Vas: 0.00485, Qts: 0.4, Vb: 0.00448 };
+  it('Ql at the limit keeps a real Qa: Ql = 1e6, Qa = 5 reads as Ql = 999999, Qa = 5', () => {
+    const atLimit = winisdLossy({ ...W5, Ql: 1e6, Qa: 5 });
+    const under = winisdLossy({ ...W5, Ql: 999999, Qa: 5 });
+    closeTo(atLimit.Qtc, under.Qtc, 6, 'Qtc');
+    closeTo(atLimit.Fsc, under.Fsc, 4, 'Fsc');
+  });
+  it('Ql and Qa both at the limit read as both just under it', () => {
+    const atLimit = winisdLossy({ ...W5, Ql: 1e6, Qa: 1e6 });
+    const under = winisdLossy({ ...W5, Ql: 999999, Qa: 999999 });
+    closeTo(atLimit.Qtc, under.Qtc, 4, 'Qtc');
+    closeTo(atLimit.Fsc, under.Fsc, 3, 'Fsc');
+  });
+});

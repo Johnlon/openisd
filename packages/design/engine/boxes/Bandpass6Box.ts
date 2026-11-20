@@ -16,22 +16,24 @@ export class Bandpass6Box implements BoxModel {
 
     switch (loss) {
       case 'lossless': {
-        // OpenISD's own simple model (not WinISD-captured): each chamber an ordinary vented
-        // compliance with the SHARED Ql/Qa/Qp, port mass from its own tuning target (no separate
+        // OpenISD's own simple model (not WinISD-captured), taken only when every loss Q is at the
+        // lossless limit (circuit.ts `boxLoss`): each chamber an ordinary vented compliance with the
+        // SHARED Ql/Qa and its own port's Qpr/Qpf, port mass from its own tuning target (no separate
         // geometry field for a second port) — no inter-chamber leak (Ricl dropped).
         const Qp = P.Qp || DEFAULT_NEW_PROJECT_QP;
 
-        const {Cab: Cabr, Zport: Zportr} = tunedChamber(P.Vb, P.Fr ?? NaN, rho, c, w, Qp);
+        const {Cab: Cabr, Zport: Zportr} = tunedChamber(P.Vb, P.Fr ?? NaN, rho, c, w, P.Qpr ?? Qp);
         const Zr = cPar(cInv(cx(0, w * Cabr)), cx(Ql / (w * Cabr), 0), cx(Qa / (w * Cabr), 0), Zportr);
 
-        const {Cab: Cabf, Zport: Zportf} = tunedChamber(P.Vf ?? NaN, P.Ff ?? NaN, rho, c, w, Qp);
+        const {Cab: Cabf, Zport: Zportf} = tunedChamber(P.Vf ?? NaN, P.Ff ?? NaN, rho, c, w, P.Qpf ?? Qp);
         const Zf = cPar(cInv(cx(0, w * Cabf)), cx(Ql / (w * Cabf), 0), cx(Qa / (w * Cabf), 0), Zportf);
 
         const Zbox = cAdd(Zr, Zf);
         const UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
         const UP = cMul(UD, cDiv(Zf, Zportf));
         const UPr = cMul(UD, cDiv(Zr, Zportr));
-        const U0 = cAdd(UP, UPr);
+        // Front port minus rear port: the rear compliance current minus the front one, as the lossy branch.
+        const U0 = cSub(UP, UPr);
         return {Zbox, UD, UP, U0, UPr};
       }
       case 'winisd-lossy': {

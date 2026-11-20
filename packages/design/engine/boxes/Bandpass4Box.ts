@@ -16,15 +16,16 @@ export class Bandpass4Box implements BoxModel {
 
     switch (loss) {
       case 'lossless': {
-        // Shared per-frequency Ql/Qa/(ω·Cab) for BOTH chambers (the rear chamber's own, never
-        // the front's).
+        // Taken only when every loss Q is at the lossless limit (circuit.ts `boxLoss`). Shared
+        // per-frequency Ql/Qa/(ω·Cab) for BOTH chambers (the rear chamber's own, never the front's);
+        // the front port's loss from its own Qpf (the shared Qp only where a caller states no Qpf).
         // Output is the front port's own current alone.
         const Cabr   = airCompliance(P.Vb, rho, c);
         const Zr     = cPar(cInv(cx(0, w * Cabr)), cx(Ql / (w * Cabr), 0), cx(Qa / (w * Cabr), 0));
         // The domain guarantees Vf present before a sweep (engine/params.ts `solveBoxParams`);
         // `?? NaN` narrows without a throw, matching the vented box's `P.Fb` treatment.
         const Cabf   = airCompliance(P.Vf ?? NaN, rho, c);
-        const Zportf = portImpedance(w, P);
+        const Zportf = portImpedance(w, {...P, Qp: P.Qpf ?? P.Qp});
         const Zf     = cPar(cInv(cx(0, w * Cabf)), cx(Ql / (w * Cabf), 0), cx(Qa / (w * Cabf), 0), Zportf);
         const Zbox = cAdd(Zr, Zf);
         const UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));

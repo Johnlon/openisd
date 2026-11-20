@@ -1,0 +1,43 @@
+id: T938
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+goal: Driver info screen shows every field the driver record holds, sensitivity included
+why: John, 20 Nov 2026 00:01: the driver info screen has many known params missing (SB Acoustics SB23NRXS45-4 8 inch woofer), sensitivity for instance, many
+done_test: bash scripts/test.sh packages/design/test/domain/driver-info-rows.test.ts
+files:
+  - tasks/T938.yml
+  - packages/design/domain/driver/driverInfoRows.ts
+  - packages/design/domain/index.ts
+  - packages/design/test/domain/driver-info-rows.test.ts
+  - packages/ui/src/logic/driverCells.ts
+  - packages/ui/src/logic/driverDisplay.ts
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/test/fixtures/test-bundle-paths.json
+  - packages/ui/test/logic/driverDisplay.test.ts
+  - packages/ui/test/ui/driver-info-all-fields.browser.spec.ts
+  - packages/ui/test/ui/new-project-pick-fills-journey.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard-walk.browser.spec.ts
+  - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/*.png
+visual:
+  - desktop-dialog-diagnostic-repairs
+  - desktop-dialog-driver-current-info
+  - desktop-dialog-driver-library-overview
+  - desktop-dialog-driver-project-select
+  - desktop-dialog-help-about
+  - desktop-dialog-shared-driver-delete-challenge-warning
+  - desktop-dialog-shared-driver-library-broken-entry
+  - desktop-dialog-shared-driver-type-help
+  - desktop-wizard-sealed-step1
+  - mobile-dialog-driver-info
+  - mobile-dialog-driver-picker
+  - mobile-dialog-driver-search-filters
+  - mobile-dialog-driver-storage-error
+  - mobile-dialog-driver-summary-manage
+  - mobile-dialog-driver-summary-pick
+  - mobile-dialog-menu-manage-drivers
+  - mobile-dialog-shared-driver-delete-challenge-warning
+  - mobile-dialog-shared-driver-library-broken-entry
+  - mobile-wizard-sealed-step1

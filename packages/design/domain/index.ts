@@ -54,6 +54,8 @@ export { buildProjectsArchive, parseProjectsArchive, type ArchiveParseResult } f
 export type { CompatSwitchKind } from './project/compatSwitch.js';
 // We export these strictly as types to ensure encapsulation. Consumers can annotate variables with these types, but must construct them via factory functions instead of calling the class constructors directly.
 export { OpenISDDriver, OpenISDDriverStandalone } from './driver/openISDDriver.js';
+export { driverInfoRows } from './driver/driverInfoRows.js';
+export type { DriverInfoRow } from './driver/driverInfoRows.js';
 export type { SealedBoxLosses } from './driver/openISDDriver.js';
 export type { DqReason } from './driver/openISDDriver.js';
 
