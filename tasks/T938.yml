@@ -2,9 +2,20 @@ id: T938
 release_note: internal
 repo: openisd
 owner: agent
-status: open
+status: claimed
 goal: Driver info screen shows every field the driver record holds, sensitivity included
 why: John, 20 Nov 2026 00:01: the driver info screen has many known params missing (SB Acoustics SB23NRXS45-4 8 inch woofer), sensitivity for instance, many
-done_test: bash scripts/quiet-test.sh npm run typecheck
+done_test: bash scripts/test.sh packages/design/test/domain/driver-info-rows.test.ts
 files:
   - tasks/T938.yml
+  - packages/design/domain/driver/driverInfoRows.ts
+  - packages/design/domain/index.ts
+  - packages/design/test/domain/driver-info-rows.test.ts
+  - packages/ui/src/logic/driverCells.ts
+  - packages/ui/src/logic/driverDisplay.ts
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/test/fixtures/test-bundle-paths.json
+  - packages/ui/test/logic/driverDisplay.test.ts
+  - packages/ui/test/ui/driver-info-all-fields.browser.spec.ts
+  - packages/ui/test/ui/new-project-pick-fills-journey.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/*.png

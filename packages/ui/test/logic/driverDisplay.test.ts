@@ -10,6 +10,7 @@ import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 import {Chip, DriverType} from '@openisd/design/filter';
 import {DRIVER_TYPES} from '../../src/logic/driverBrowsingState.js';
 import {createEngine} from '@openisd/design/engine';
+import {NumberField} from '@openisd/design/fields';
 import {
     bundledPassiveRadiatorRows,
     chipsOf,
@@ -113,8 +114,8 @@ describe('previewSpecsOf — reported readings with no usable simulation value',
 
     const specs = previewSpecsOf(driver);
     assert.deepEqual(specs.filter(spec => spec.label === 'Re' || spec.label === 'BL'), [
-      {kind: PreviewSpecKind.Number, label: 'Re', value: '3.40', unit: 'Ω'},
-      {kind: PreviewSpecKind.Number, label: 'BL', value: '7.17', unit: 'Tm'},
+      {kind: PreviewSpecKind.Number, label: 'Re', value: '3.40', unit: 'Ω', provenance: 'E', title: NumberField.RE_OHM.description},
+      {kind: PreviewSpecKind.Number, label: 'BL', value: '7.17', unit: 'Tm', provenance: 'E', title: NumberField.BL_TM.description},
     ]);
   });
 
