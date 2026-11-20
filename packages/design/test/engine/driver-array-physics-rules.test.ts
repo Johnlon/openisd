@@ -229,21 +229,21 @@ function ruleMisses(rule: RuleId, s: Setup, loading: 'standard' | 'isobaric'): M
   switch (rule) {
     case 'R1 parallel array':
       return [2, 3].flatMap((n) => {
-        const array = {...boxTimes(P, n), nDrivers: n, driverWiring: 'parallel' as const};
-        const one = {...P, Rs: rgEach(P, n, 'parallel')};
+        const array: SweepParams = {...boxTimes(P, n), nDrivers: n, driverWiring: 'parallel'};
+        const one: SweepParams = {...P, Rs: rgEach(P, n, 'parallel')};
         return [...misses(arrayAgainstOne(n, sweep(s, array), sweep(s, one), oneDriverImpedance, 1 / n)),
           ...misses(maxAgainstOne(n, maxCurves(s, array), maxCurves(s, one)))].map(prefixed(`N ${n}`));
       });
     case 'R2 series array':
       return [2, 3].flatMap((n) => {
         // Series at n x V: each driver gets V, as one driver at V with its share of Rg.
-        const series = {...boxTimes(P, n), nDrivers: n, driverWiring: 'series' as const, eg: P.eg * n};
-        const one = {...P, Rs: rgEach(P, n, 'series')};
+        const series: SweepParams = {...boxTimes(P, n), nDrivers: n, driverWiring: 'series', eg: P.eg * n};
+        const one: SweepParams = {...P, Rs: rgEach(P, n, 'series')};
         const found = [...misses(arrayAgainstOne(n, sweep(s, series), sweep(s, one), oneDriverImpedance, n)),
           ...misses(maxAgainstOne(n, maxCurves(s, series), maxCurves(s, one)))];
         // Where each driver sees the same Rg either way, series at n x V is the parallel array at V, impedance n^2 x.
         if (rgEach(P, n, 'series') === rgEach(P, n, 'parallel')) {
-          const parallel = {...boxTimes(P, n), nDrivers: n, driverWiring: 'parallel' as const};
+          const parallel: SweepParams = {...boxTimes(P, n), nDrivers: n, driverWiring: 'parallel'};
           const sw = sweep(s, series), pw = sweep(s, parallel);
           found.push(...misses([
             {name: 'series against parallel: SPL', group: 'response', got: sw.spl, want: pw.spl, check: levelPlus(0)},
@@ -285,7 +285,7 @@ function ruleMisses(rule: RuleId, s: Setup, loading: 'standard' | 'isobaric'): M
     case 'R9 every curve finite': {
       const found: Miss[] = [];
       for (const n of [1, 2, 3]) for (const wiring of ['parallel', 'series'] as const) {
-        const Pn = {...boxTimes(P, n), nDrivers: n, driverWiring: wiring};
+        const Pn: SweepParams = {...boxTimes(P, n), nDrivers: n, driverWiring: wiring};
         const sw = sweep(s, Pn), mx = maxCurves(s, Pn);
         const curves: Record<string, readonly number[] | null> = {spl: sw.spl, splXlim: sw.splXlimCurve, phase: sw.phase, exc: sw.exc,
           excPR: sw.excPR, pv: sw.pv, pvRear: sw.pvRear, pvIntra: sw.pvIntra, zmag: sw.zmag, zph: sw.zph, gd: sw.gd, tfMag: sw.tfMag,
