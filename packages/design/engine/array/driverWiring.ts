@@ -55,3 +55,14 @@ export function oneBoxOfN(P: SweepParams, n: number): SweepParams {
   return { ...P, nDrivers: 1, Vb: P.Vb / n, ...(P.Vf !== undefined ? { Vf: P.Vf / n } : {}), ...(P.Sp !== undefined ? { Sp: P.Sp / n } : {}), ...(P.prNum !== undefined ? { prNum: P.prNum / n } : {}),
     ...(P.Spr !== undefined ? { Spr: P.Spr / n } : {}), ...(P.SpIntra !== undefined ? { SpIntra: P.SpIntra / n } : {}) };
 }
+
+/**
+ * The power the array can take: Pe x Nd, x 2 for an Iso-Barik pair, which is two drivers per position, each rated Pe.
+ * WinISD's Maximum power does the same: 40 / 80 / 80 / 160 W for the W5-1138SMF (Pe 40 W) at Nd 1, Nd 1 Iso-Barik,
+ * Nd 2, Nd 2 Iso-Barik (winisd_research runs/isobarik-more-20261119). Built on `combinedOfN`, the one home for adding up
+ * a figure over the drivers.
+ */
+export function arrayPowerHandling(pe_W: number, nDrivers: number, loading: 'standard' | 'isobaric'): number {
+  const driversPerPosition = loading === 'isobaric' ? 2 : 1;
+  return combinedOfN(pe_W, combinedOfN(driversPerPosition, nDrivers));
+}
