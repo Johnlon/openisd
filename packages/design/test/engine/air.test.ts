@@ -16,7 +16,7 @@ import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
-import {MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K} from '../../engine/air.js';
+import {MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K, airCompliance} from '../../engine/air.js';
 import {createEngine} from '../../engine/Engine.js';
 import {FixedAir} from '../../engine/index.js';
 import type {AirValues} from '../../engine/index.js';
@@ -212,5 +212,15 @@ describe('environmentIssues — out-of-range entered air inputs', () => {
     const engine = createEngine();
     assert.deepEqual(engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 150 }).issues, []);
     assert.deepEqual(engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 400 }).issues, []);
+  });
+});
+
+// T934: the engine's one home for the acoustic compliance of a volume of air, C = V / (rho c^2).
+describe('airCompliance', () => {
+  it('30 L of air at rho 1.2, c 343 is 0.030 / (1.2 x 343 x 343)', () => {
+    assert.equal(airCompliance(0.030, 1.2, 343), 0.030 / (1.2 * 343 * 343));
+  });
+  it('doubles with the volume', () => {
+    assert.equal(airCompliance(0.060, 1.2, 343), 2 * airCompliance(0.030, 1.2, 343));
   });
 });

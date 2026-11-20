@@ -1,0 +1,23 @@
+id: T927
+release_note: 'Iso-Barik: maximum power and maximum SPL count the pair as two drivers, as WinISD does (were half the power, 3 dB low).'
+repo: openisd
+owner: agent
+status: done
+goal: Iso-Barik power handling = Pe x Nd x 2, and OpenISD's Iso-Barik charts (Nd 1 and 2) checked against WinISD's own values
+why: 'lead 19 Nov 2026: WinISD probe winisd_research runs/isobarik-more-20261119 (c4274802) shows max power Pe x Nd x (Iso ? 2 : 1); OpenISD SimulationEngine.ts:747 uses Pe x Nd; card isobaric-built (QO953.c49 ''is it implemented everywhere?'')'
+done_test: bash scripts/test.sh packages/design/test/engine/isobarik-power-winisd.test.ts
+files:
+  - scripts/dupscan-allow.json
+  - packages/design/test/engine/array-power-handling.test.ts
+  - packages/design/engine/array/driverWiring.ts
+  - tasks/T927.yml
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/test/engine/isobarik-power-winisd.test.ts
+  - packages/design/test/fixtures/winisdIsobarikNd1StdCapture.ts
+  - packages/design/test/fixtures/winisdIsobarikNd1IsoCapture.ts
+  - packages/design/test/fixtures/winisdIsobarikNd2StdCapture.ts
+  - packages/design/test/fixtures/winisdIsobarikNd2IsoCapture.ts
+  - packages/design/test/fixtures/winisdIsobarikP100StdCapture.ts
+  - packages/design/test/fixtures/winisdIsobarikP100StdXmaxCapture.ts
+  - packages/design/test/fixtures/winisdIsobarikP100IsoCapture.ts
+  - packages/design/test/fixtures/winisdIsobarikP100IsoXmaxCapture.ts

@@ -5,7 +5,7 @@
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
 import type {Air, AirWorkingName} from '../air.js';
-import {END_CORRECTION} from '../air.js';
+import {END_CORRECTION, airCompliance} from '../air.js';
 import type {VentSolverParams} from '../solverTypes.js';
 import {isPositiveGeometry, missingDependencies, targetUnreachable, tuningGoalIssue} from '../consistency.js';
 import type {CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
@@ -62,7 +62,7 @@ const VENT_GEOMETRY: readonly (keyof VentSolverParams)[] = Object.freeze(['Vb_m3
 
 export class VentEngineImpl implements VentEngine {
   lengthForTuning(Vb: number, fb: number, Sp: number, count: number, air: Air, endCorrection: number = END_CORRECTION): number {
-    const Cab = Vb / (air.rho() * air.c() * air.c());
+    const Cab = airCompliance(Vb, air.rho(), air.c());
     const wb  = 2 * Math.PI * fb;
     const Map = 1 / (wb * wb * Cab);
     const d   = 2 * Math.sqrt(Sp / Math.PI);
@@ -72,7 +72,7 @@ export class VentEngineImpl implements VentEngine {
   tuningFromLength(Vb: number, L: number, Sp: number, count: number, air: Air, endCorrection: number = END_CORRECTION): number {
     const d    = 2 * Math.sqrt(Sp / Math.PI);
     const Leff = L + endCorrection * d;
-    const Cab  = Vb / (air.rho() * air.c() * air.c());
+    const Cab  = airCompliance(Vb, air.rho(), air.c());
     const Map  = air.rho() * Leff / (count * Sp);
     return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
   }

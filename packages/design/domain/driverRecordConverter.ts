@@ -28,7 +28,7 @@ import {z} from "zod";
 import type {Calculated, Entered, Readable} from "./cell.js";
 import {OpenISDDriver, type OpenISDDriverStandalone} from "./driver/openISDDriver.js";
 import {OpenISDPassiveRadiatorStandalone} from "./passiveRadiator/openISDPassiveRadiatorStandalone.js";
-import {type DriverError, type Engine} from "../engine/index.js";
+import {type DriverEngine, type DriverError, type Engine} from "../engine/index.js";
 
 import {type WdrCell, type WdrHeader, WinISDDriver,} from "../winisd/winisdDriver.js";
 import {winisdSafeText} from "../winisd/winisdSafeText.js";
@@ -192,7 +192,7 @@ function perCoilCount(quote: string): number | null {
  *  precision scaled the same way. Needs the section's numVC of 2 or more and its VCCon naming the wiring; with the wiring
  *  unstated the figure stays as printed, and the engine's "measured wiring not stated" warning stands.
  *  Returns `fields` itself when nothing applies. */
-function withPerCoilFiguresForWiring(fields: Record<string, unknown>): Record<string, unknown> {
+function withPerCoilFiguresForWiring(fields: Record<string, unknown>, driver: DriverEngine): Record<string, unknown> {
   const numVC = fields.numVC;
   const wiring = fields.VCCon;
   if (!isKeyedObject(numVC) || numVC.state !== "E" || typeof numVC.value !== "number" || numVC.value < 2) return fields;
@@ -207,7 +207,7 @@ function withPerCoilFiguresForWiring(fields: Record<string, unknown>): Record<st
     if (!isKeyedObject(winner) || typeof winner.actual_reading !== "string") continue;
     const coils = perCoilCount(winner.actual_reading);
     if (coils === null || coils < 2) continue;
-    const factor = wiring.value === "series" ? coils : 1 / coils;
+    const factor = driver.perCoilResistanceFactor(coils, wiring.value);
     const scaledWinner = typeof winner.read_precision === "number"
       ? { ...winner, read_precision: winner.read_precision * factor }
       : winner;
@@ -863,7 +863,7 @@ export class DriverRecordConverter {
         const projected = this.#projectScraperEntry(entry, sectionKey, field, maker, warnings);
         fields[field] = entryWithoutAppOnlyKeys(projected);
       }
-      sections[sectionKey] = withPerCoilFiguresForWiring(fields);
+      sections[sectionKey] = withPerCoilFiguresForWiring(fields, this.engine.driver);
     }
     return sections;
   }
