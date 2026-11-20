@@ -166,13 +166,14 @@ const ARRANGEMENTS = [['standard', 'single'], ['isobaric', 'clamshell'], ['isoba
 
 test.describe('Desktop New Project box drawing', () => {
   for (const [value, art] of ARRANGEMENTS) {
-    test(`${art} picked: steps 3 and 4 draw only the ${art} box`, async ({page}) => {
+    test(`${art} picked: step 3 draws only the ${art} box`, async ({page}) => {
       await open(page);
       await page.locator('.overlay.open .modal-body').getByText(TEST_DRIVER).first().click();
       const next = bottom(page).getByRole('button', {name: 'Next', exact: true});
       await next.click();
       await page.locator(`#np-place-${value}`).check();
-      for (const step of ['Step 3 of 5', 'Step 4 of 5']) {
+      // Model B (the dialog's height follows its step): only step 3 draws the box on the desktop, as on main.
+      for (const step of ['Step 3 of 5']) {
         await next.click();
         await expect(page.locator('.np-step')).toContainText(step);
         const drawings = page.locator('.overlay.open .modal-body').getByTestId('box-arrangement-drawing');

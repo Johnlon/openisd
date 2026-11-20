@@ -6,8 +6,6 @@ export const DESKTOP_BRANCH_MAP:BranchMap={
   'native-ui-eda3c1def1bcf8ca':{kind:'partOf',view:'desktop/projects/new/closed-box/choose-driver'}, // OriginalNewProject.vue:140
   'conditional-branch-49b9cc0c40e86e6b':{kind:'partOf',view:'desktop/projects/new/closed-box/choose-driver'}, // OriginalNewProject.vue:141
   'conditional-branch-8521a6aa336c788d':{kind:'partOf',view:'desktop/projects/new/closed-box/choose-driver'}, // OriginalNewProject.vue:142
-  // T919: the box drawing under every step 4.
-  'conditional-branch-7c4e18af9e9ca7e7':{kind:'partOf',view:'desktop/projects/new/closed-box/enclosure-details'}, // OriginalNewProject.vue:286
   'conditional-branch-d3fa53388a19399f':{kind:'view',view:'desktop/difference-cue'},
   'conditional-branch-d6d9f0346da7530f':{kind:'partOf',view:'desktop/workspace/filters'}, // OriginalFilters.vue:66, the negative-peak message; filter-negative-peak-message.browser.spec.ts
   'conditional-branch-04f25a4ea25c79fb':{kind:'partOf',view:'desktop/workspace/filters'},

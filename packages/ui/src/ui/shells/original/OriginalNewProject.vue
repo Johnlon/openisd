@@ -210,7 +210,7 @@ function handleCreate() {
             </div>
           </div>
 
-          <div class="box-diagram-container np-box-diagram-big">
+          <div class="box-diagram-container">
             <BoxArrangementDiagram :box-type="boxType" :choice="placementChoice" />
           </div>
         </div>
@@ -281,9 +281,6 @@ function handleCreate() {
           </div>
         </div>
 
-        <!-- Every Box step ends with the drawing of the box, as on the phone, so the step does not leave half the dialog empty. -->
-        <div v-if="isBoxDetailsStep" class="box-diagram-container" :class="isPassiveRadiator ? 'np-box-diagram-small' : 'np-box-diagram-mid'"><BoxArrangementDiagram :box-type="boxType" :choice="placementChoice" /></div>
-
         <!-- Step 5: Project Information -->
         <div v-else-if="isProjectInfoStep" class="step-content">
           <div class="field-row">
@@ -293,7 +290,7 @@ function handleCreate() {
           </div>
           <div class="field-row" style="margin-top:10px; align-items:flex-start;">
             <div class="field" style="align-items:flex-start;"><label style="margin-top:4px;">Description</label>
-              <textarea style="width:280px; height:250px; border:1px solid #999; padding:4px 6px; border-radius:2px;" placeholder="Optional description..." v-model="projDescription"></textarea>
+              <textarea style="width:280px; height:80px; border:1px solid #999; padding:4px 6px; border-radius:2px;" placeholder="Optional description..." v-model="projDescription"></textarea>
             </div>
           </div>
           <p class="hint">Optional label and notes for this design; you can refine them later on the Project tab.</p>
@@ -325,10 +322,9 @@ function handleCreate() {
 .np-chamber .field { margin-bottom: 6px; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.18); z-index: 100; display: flex; align-items: flex-start; justify-content: center; }
 .modal { margin-top: 6vh; background: #f7f7f7; border: 1px solid #888; box-shadow: 3px 6px 18px rgba(0,0,0,.35); width: 800px; max-width: 92vw; }
-/* One size on every step (John: "dlg changing size for a workflow is anti pattern"): the height of the tallest step, the driver
-   library, so no step is cut and no step grows the dialog. On a window too short for it the body scrolls inside and both rows of
-   buttons stay in view. */
-.modal { display: flex; flex-direction: column; height: var(--np-h); max-height: calc(100vh - 6vh - 6px); --np-h: 656px; }
+/* Model B: the dialog is as tall as the step's content, as on main. On a window too short for it the body scrolls inside and both
+   rows of buttons stay in view. */
+.modal { display: flex; flex-direction: column; max-height: calc(100vh - 6vh - 6px); }
 .modal-topnav { display: flex; flex: none; justify-content: flex-end; border-bottom: 1px solid #ccc; padding: 8px 20px; background: #eee; }
 .modal-titlebar { display: flex; align-items: center; justify-content: space-between; background: #e9e9e9; border-bottom: 1px solid #bbb; padding: 8px 12px; font-size: 15px; }
 .modal-titlebar .tb-left { display: flex; align-items: center; gap: 8px; }
@@ -380,8 +376,7 @@ function handleCreate() {
 .np-place-drawing:hover { border-color: #b8d4f8; }
 .np-place-drawing.np-place-on { border-color: #2e7d32; background: #f0f7f0; }
 .np-place-drawing :deep(svg) { height: var(--np-place-h); width: auto; }
-/* The drawings fill the step's height in the fixed dialog. */
-.np-placement-pic { --np-place-h: 150px; }
+.np-placement-pic { --np-place-h: 88px; }
 /* One line kept whether or not there is a note (Standard has none), so nothing moves when the choice changes. */
 .np-placement-caption { align-self: flex-start; font-size: 13px; color: #666; min-height: 1lh; }
 .np-placement-caption-off { visibility: hidden; }
@@ -399,11 +394,6 @@ function handleCreate() {
 .suitability-badge.vented { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
 .suitability-badge.either { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
 .box-diagram-container { display: flex; justify-content: center; margin: 10px 0; }
-/* Step 3 has room for a larger drawing: it fills the fixed dialog instead of leaving its lower part empty. */
-.np-box-diagram-big { --bpd-h: 180px; }
-/* Step 4's fields take more room than step 3's, the passive radiator's most of all: smaller drawings, so every step 4 fits the dialog. */
-.np-box-diagram-mid { --bpd-h: 162px; }
-.np-box-diagram-small { --bpd-h: 80px; }
 .volume-fields { margin-top: 10px; }
 .readout-box { background: #fafafa; border: 1px solid #ddd; padding: 10px 14px; border-radius: 4px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
 .readout-item { display: flex; gap: 12px; white-space: nowrap; }
