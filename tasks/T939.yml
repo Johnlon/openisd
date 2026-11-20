@@ -15,6 +15,7 @@ files:
   - bugs/BUG_20261120_isobarik-impedance-motional-term-doubled.md
   - bugs/BUG_20261120_isobarik-pair-with-two-bl-driver-6db-below-one-driver.md
   - bugs/BUG_20261120_passive-radiator-box-losses-not-scaled-with-radiator-count.md
+  - bugs/BUG_20261120_gate-approval-check-skipped-when-questions-file-missing.md
 notes: |
   Guardrail B of John's test-guardrails decision (20 Nov 2026 00:52, "All of A-G ... the physics-law combination test (B)
   first"), plan docs/plans/PLAN_20261119_TEST_STRATEGY.md option B (rules R1, R2, R3, R4, R9 there).
