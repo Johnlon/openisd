@@ -28,3 +28,8 @@ const CELL_CLASS: Record<ProvenanceLetter, CellClass> = {
 export function cellClassOf(cell: Readable<unknown>): CellClass {
   return CELL_CLASS[cell.provenance];
 }
+
+/** The CSS class for a value shown as text rather than in a cell (the driver summary's rows). */
+export function provenanceClassOf(letter: ProvenanceLetter): CellClass {
+  return CELL_CLASS[letter];
+}

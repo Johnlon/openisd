@@ -287,9 +287,9 @@ export interface SweepParams {
    *  bandpass — `0x5668c0`", "ABC (Aperiodic Bi-Chamber) — `0x4591b0`"). Absent for `sealed`/
    *  `vented`/`bandpass4`, which never read it. */
   Fr?: number;
-  // 4th-order bandpass — read ONLY by `Bandpass4Box`'s `winisd-lossy` branch (never
-  // `lossless`, which keeps the shared `Ql`/`Qa`/`Qp` above for the rear
-  // chamber and never reads the front chamber's own losses at all). Each is a FIXED resistance
+  // 4th-order bandpass — read by `Bandpass4Box`'s `winisd-lossy` branch, and by circuit.ts
+  // `boxLoss`, which takes the `lossless` branch only when every one of them is at the lossless
+  // limit (that branch reads only `Qpf` of them, for the front port). Each is a FIXED resistance
   // at that chamber's own frequency, never per-sweep-frequency, and never shared between
   // chambers (winisd_research/archive/GHIDRA_FINDINGS.md "4th-order bandpass — `0x457a30`",
   // bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md). Absent for any other box/loss
