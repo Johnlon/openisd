@@ -68,12 +68,17 @@ onBeforeUnmount(() => resize?.disconnect());
 /* The arrows sit beside the strip, never over a chip; each is greyed and disabled at the end where there is nothing more to see. It keeps its place
    (not removed), so the strip never changes width and the chips never jump sideways under a finger that is about to tap one. */
 .mob-fstrip-wrap { display: flex; align-items: center; gap: 4px; padding: 0 8px; }
-.mob-fstrip { flex: 1 1 0; min-width: 0; display: flex; gap: 6px; padding: 6px 4px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+.mob-fstrip { flex: 1 1 0; min-width: 0; display: flex; gap: 4px; padding: 6px 4px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
 .mob-fstrip::-webkit-scrollbar { display: none; }
-.mob-fstrip .mob-btn { flex: none; padding: 0 12px; white-space: nowrap; font-size: 13px; }
+.mob-fstrip .mob-btn { flex: none; min-width: var(--mob-button-h); padding: 0 6px; white-space: nowrap; font-size: 13px; }
 .mob-fstrip-nav { flex: none; width: var(--mob-button-h); padding: 0;
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 50%; border-color: #d0d0d0; background: #fff; color: #333; }
 .mob-fstrip-nav svg { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .mob-fstrip-nav:disabled { opacity: 0.4; cursor: not-allowed; }
+@media (max-width: 359px) {
+  .mob-fstrip-wrap { gap: 0; padding-inline: 2px; }
+  .mob-fstrip { gap: 1px; padding-inline: 0; }
+  .mob-fstrip .mob-btn { padding-inline: 4px; }
+}
 </style>

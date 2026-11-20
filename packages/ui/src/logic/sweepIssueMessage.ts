@@ -15,6 +15,7 @@ export function sweepIssueMessage(issue: SweepIssue): DriverError {
     // target several fields feed.
     field: 'field' in issue ? issue.field : issue.target,
     message: issue.text,
+    ...(issue.kind === 'required-value' ? {chartFix: issue.chartFix} : {}),
   };
 }
 

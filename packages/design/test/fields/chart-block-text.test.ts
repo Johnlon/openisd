@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {blockedChartFixLine} from '../../fields/chartBlockText.js';
+import type {DriverError} from '../../engine/types.js';
+import {blockedChartFixLine, blockedChartText} from '../../fields/chartBlockText.js';
 
 // QO955.c3/c4 (John, 19 Nov 2026): a chart that cannot be drawn names the field that causes it, on the phone
 // with its tab too; it never points at "the listed inputs" when nothing is listed.
@@ -32,5 +33,25 @@ describe('the line under a blocked chart', () => {
       expect(line).not.toMatch(/listed/);
     }
     expect(blockedChartFixLine([], false)).not.toMatch(/listed/);
+  });
+});
+
+describe('the driver repair action under a blocked chart', () => {
+  const ventError: DriverError = {level: 'error', field: 'length_m', message: 'Vent length is missing.'};
+  const driverError: DriverError = {
+    level: 'error', field: 'Sd_m2', message: 'Type Sd (cone area) in Parameters.',
+    chartFix: {
+      desktop: 'Enter Sd in Driver > Edit > Parameters.',
+      phone: 'Enter Sd in Driver tab > Edit > Parameters.',
+      summary: 'The missing driver figure is cone area (Sd).',
+    },
+  };
+
+  it('offers the editor when driver figures are missing alongside another issue', () => {
+    expect(blockedChartText([driverError, ventError], true)).toHaveProperty('canEditDriverParameters', true);
+  });
+
+  it('does not offer the editor for a vent issue by itself', () => {
+    expect(blockedChartText([ventError], false)).toHaveProperty('canEditDriverParameters', false);
   });
 });

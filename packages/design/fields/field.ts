@@ -1173,7 +1173,7 @@ export class NumberField extends Field {
   });
   static readonly THICK_M = new NumberField({
     value: "Thick_m",
-    label: "Basket Plate Thickness (Thick)",
+    label: "Basket Plate Thickness",
     display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 0.3},
     floor: "positive",
@@ -1182,7 +1182,7 @@ export class NumberField extends Field {
   });
   static readonly DEPTH_M = new NumberField({
     value: "Depth_m",
-    label: "Driver Depth (Depth)",
+    label: "Driver Depth",
     display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 5},
     floor: "positive",
@@ -1200,7 +1200,7 @@ export class NumberField extends Field {
   });
   static readonly MAGNET_M = new NumberField({
     value: "Magnet_m",
-    label: "Magnet Diameter (Magnet)",
+    label: "Magnet Diameter",
     display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 5},
     floor: "positive",
@@ -1209,7 +1209,7 @@ export class NumberField extends Field {
   });
   static readonly BASKET_M = new NumberField({
     value: "Basket_m",
-    label: "Basket Diameter (Basket)",
+    label: "Basket Diameter",
     display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 5},
     floor: "positive",
@@ -1218,7 +1218,7 @@ export class NumberField extends Field {
   });
   static readonly OUTER_M = new NumberField({
     value: "Outer_m",
-    label: "Outer Diameter (Outer)",
+    label: "Outer Diameter",
     display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 5},
     floor: "positive",
@@ -1245,7 +1245,7 @@ export class NumberField extends Field {
   });
   static readonly WEIGHT_KG = new NumberField({
     value: "weight_kg",
-    label: "Driver Weight (Weight)",
+    label: "Driver Weight",
     display: {kind: 'switchable', group: 'mass', base: 'kg'},
     limits: {min: 0, max: 500},
     floor: "positive",
