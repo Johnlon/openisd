@@ -57,6 +57,17 @@ export const QES_FROM_NO_ROUTES: readonly DriverRoute[] = Object.freeze([
     v => v.no > 0),
 ]);
 
+/**
+ * Block 11a: the 1 W SPL from a stated 2.83 V USPL and Re, ahead of the SPL from `no`: the sensitivity the maker states is
+ * the base, the efficiency the T/S figures imply is not (John, QO962, 20 Nov 2026: "keep the printed 2.83 V figure; the
+ * engine works out the 1 W one"). WinISD has no such site (it only works USPL out from SPL); a record whose sheet prints
+ * its sensitivity at 2.83 V / 1 m stores it as USPL, so this is where its SPL, SPLmax and efficiency come from.
+ */
+export const SPL_FROM_USPL_ROUTES: readonly DriverRoute[] = Object.freeze([
+  new SolveRoute('SPL_dB', ['USPL_dB', 'Re_ohm'], 'SPL_dB = USPL_dB − 10 × log₁₀(2.83² / Re_ohm)',
+    v => spl1WFromSplAt283V(v.USPL_dB, v.Re_ohm), v => v.Re_ohm > 0),
+]);
+
 /** Block 11: SPLref and SPL from `no`. The no-from-SPL routes (rel 18) run with the `no` routes in block 4b. */
 export const SPL_FROM_NO_ROUTES: readonly DriverRoute[] = Object.freeze([
   new SolveRoute('SPLref_dB', ['no', 'roo_kg_per_m3', 'c_m_per_s'], 'SPLref_dB = K + 10 × log₁₀(η₀),  K = 10 × log₁₀(ρ × c / (2π × p_ref²))', v => splFromEfficiency(v.no, v.roo_kg_per_m3, v.c_m_per_s), v => v.no > 0),
