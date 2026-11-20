@@ -30,6 +30,37 @@ files:
   - packages/ui/test/ui/isobaric-loading.browser.spec.ts
   - packages/ui/test/ui/new-project-step4-alignment.browser.spec.ts
   - packages/ui/test/ui/new-project-dialog-frame.browser.spec.ts
+  - packages/design/test/fields/phoneWizardText.test.ts
+  - packages/design/test/fixtures/winisdIsobarikAbcCapture.ts
+  - packages/design/test/fixtures/winisdIsobarikBp4Capture.ts
+  - packages/design/test/fixtures/winisdIsobarikBp6Capture.ts
+  - packages/design/test/fixtures/winisdIsobarikPrCapture.ts
+  - packages/design/test/fixtures/winisdIsobarikVentedCapture.ts
+  - packages/design/test/winisd/fixtures/abc-w5-isobarik.wpr
+  - packages/design/test/winisd/fixtures/bp4-w5-isobarik.wpr
+  - packages/design/test/winisd/fixtures/bp6-w5-isobarik.wpr
+  - packages/design/test/winisd/fixtures/pr-w5-isobarik.wpr
+  - packages/design/test/winisd/fixtures/vented-w5-isobarik.wpr
+  - packages/ui/test/fixtures/branchMap/desktop.ts
+  - packages/ui/test/fixtures/branchMap/phone.ts
+  - packages/ui/test/fixtures/branchMap/shared.ts
+  - packages/ui/test/fixtures/viewIndex.ts
+  - packages/ui/test/fixtures/viewOpenDesktop.ts
+  - packages/ui/test/fixtures/viewOpenPhoneNotes.ts
+  - packages/ui/test/fixtures/viewOpenRejected.ts
+  - packages/ui/test/ui/desktop-control-sizes.browser.spec.ts
+  - packages/ui/test/ui/driver-type-help-per-library.browser.spec.ts
+  - packages/ui/test/ui/new-project-pick-fills-journey.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard-radiator-pick.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard-walk.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - packages/ui/test/ui/options-dialog.browser.spec.ts
+  - packages/ui/test/ui/original-shell-layout.browser.spec.ts
+  - packages/ui/test/ui/phone-classic-rows.browser.spec.ts
+  - packages/ui/test/ui/pr-define.browser.spec.ts
+  - packages/ui/test/ui/sample-project-fixture.browser.spec.ts
+  - packages/ui/test/ui/winisd-sealed-picker.browser.spec.ts
+  - scripts/dupscan-allow.json
   - packages/ui/src/ui/components/PlacementDiagram.vue
   - packages/ui/src/ui/components/PlacementArt.vue
   - packages/ui/src/ui/components/DriverPairArt.vue
