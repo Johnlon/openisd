@@ -3,6 +3,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {P0} from '../../engine/constants.js';
 import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -73,6 +74,21 @@ describe('Xmax-limited SPL', () => {
       }
       assert.ok(clamped > 0, 'the 40 V drive should exceed Xmax somewhere in the sweep');
     });
+
+    // T928 (ultra review 1 finding 3): the array gain +20·log10(N) reached `spl` alone, so the
+    // Xmax-limited curve and the complex pressure H stayed one driver's: 6.02 dB low at N=2.
+    for (const nDrivers of [2, 4]) {
+      it(`equals the plain SPL below Xmax with ${nDrivers} drivers, and |H| is the same pressure`, () => {
+        const quiet = engine.simulation.sweep(DRV, LE_H, 'vented', { ...VENTED, eg: 0.01, nDrivers }).values!;
+        for (let i = 0; i < quiet.fs.length; i++) {
+          assert.equal(quiet.xlimited[i], false, `xlimited[${i}] must be false below Xmax`);
+          assert.ok(Math.abs(quiet.splXlimCurve[i] - quiet.spl[i]) < 1e-9,
+            `at ${quiet.fs[i].toFixed(1)} Hz: splXlim ${quiet.splXlimCurve[i]} must equal spl ${quiet.spl[i]} below Xmax`);
+          const hDb = 20 * Math.log10(Math.hypot(quiet.H[i].re, quiet.H[i].im) / P0);
+          assert.ok(Math.abs(hDb - quiet.spl[i]) < 1e-9, `at ${quiet.fs[i].toFixed(1)} Hz: |H| ${hDb} dB must be the SPL ${quiet.spl[i]} dB`);
+        }
+      });
+    }
 
     it('never limits a driver with no Xmax — an unknown limit is not a zero limit', () => {
       const noXmax = { ...RAW }; delete noXmax.Xmax;

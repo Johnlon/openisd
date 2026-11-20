@@ -1,0 +1,17 @@
+id: T928
+release_note: 'Iso-Barik at default settings drew SPL 3 dB too high and excursion 41% too big; with 2 or more drivers the Xmax-limited SPL chart was 6 dB low. Both fixed.'
+repo: openisd
+owner: agent
+status: done
+goal: 'Engine: Iso-Barik push BL taken from one driver (default SPL was 3.01 dB high), and the multi-driver gain applied to the Xmax-limited SPL curve and complex pressure H'
+why: 'John, 3 Nov 2026: "I approve uncontroversial fixes." Ultra review 1 findings 1, 3 and 7 (lead, 19 Nov 2026), each proved by a probe; _agent_files/reference/ULTRA_REVIEW_20261119_engine_findings.md'
+done_test: bash scripts/test.sh packages/design/test/engine/isobarik-push-bl.test.ts packages/design/test/engine/xmax-limited-spl.test.ts packages/design/test/engine/multi-driver-passive-radiator.test.ts packages/design/test/domain/pr-count-load-repair.test.ts
+files:
+  - tasks/T928.yml
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/test/engine/isobarik-push-bl.test.ts
+  - packages/design/test/engine/xmax-limited-spl.test.ts
+  - packages/design/test/engine/multi-driver-passive-radiator.test.ts
+  - packages/design/test/domain/pr-count-load-repair.test.ts
+  - packages/design/domain/winIsdProjectConverter.ts
+  - packages/design/engine/array/driverWiring.ts
