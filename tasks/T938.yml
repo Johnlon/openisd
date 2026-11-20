@@ -1,0 +1,10 @@
+id: T938
+release_note: internal
+repo: openisd
+owner: agent
+status: open
+goal: Driver info screen shows every field the driver record holds, sensitivity included
+why: John, 20 Nov 2026 00:01: the driver info screen has many known params missing (SB Acoustics SB23NRXS45-4 8 inch woofer), sensitivity for instance, many
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T938.yml
