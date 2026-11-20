@@ -1,6 +1,7 @@
 import type {BranchMap} from './types.js';
 /** Phone-skin scanned branches (shells/mobile) mapped to the view each one is, or sits inside. */
 export const PHONE_BRANCH_MAP:BranchMap={
+  'conditional-branch-eedce5283142bd4d':{kind:'partOf',view:'wizard-sealed-3'}, // MobileNewProject.vue:273 (the box drawing under the Box type and Box steps, written once)
   'conditional-branch-8f54956408279694':{kind:'view',view:'phone/wizard-isobarik-note'}, // MobileNewProject.vue:190 (the Iso-Barik caption)
   'conditional-branch-f7da03292bbbd5bd':{kind:'partOf',view:'wizard-sealed-2'}, // MobileNewProject.vue:180, T919: the pairs line under the driver count
   'conditional-branch-db6071f90df19925':{kind:'view',view:'phone/difference-cue'}, // PassFields.vue:26
