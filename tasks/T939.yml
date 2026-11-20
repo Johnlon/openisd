@@ -1,0 +1,10 @@
+id: T939
+release_note: internal
+repo: openisd
+owner: guardrails-b
+status: open
+goal: A combination test over box type x number of drivers x Iso-Barik x wiring x the Advanced switches checks the engine against physics rules that always hold (array scaling, Iso-Barik equivalence, series = parallel at N x voltage, every curve finite).
+why: John, board card test-guardrails, 20 Nov 2026 00:52: "All of A-G: build every guardrail on the card, the physics-law combination test (B) first"; plan docs/plans/PLAN_20261119_TEST_STRATEGY.md option B.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T939.yml
