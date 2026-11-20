@@ -3,10 +3,9 @@ import type {BranchMap} from './types.js';
 export const DESKTOP_BRANCH_MAP:BranchMap={
   'conditional-branch-cf6b84b180540fad':{kind:'partOf',view:'wizard-sealed-2'}, // OriginalNewProject.vue:163, T919: the pairs line beside the driver count
   // T919: Back and Next (Create on the last step) at the top of the New Project dialog, on every step (John, 19 Nov 2026).
-  'surface-root-ee815ff1351dbc72':{kind:'partOf',view:'desktop/projects/new/closed-box/choose-driver'}, // OriginalNewProject.vue:138
-  'native-ui-eda3c1def1bcf8ca':{kind:'partOf',view:'desktop/projects/new/closed-box/choose-driver'}, // OriginalNewProject.vue:140
-  'conditional-branch-49b9cc0c40e86e6b':{kind:'partOf',view:'desktop/projects/new/closed-box/choose-driver'}, // OriginalNewProject.vue:141
-  'conditional-branch-8521a6aa336c788d':{kind:'partOf',view:'desktop/projects/new/closed-box/choose-driver'}, // OriginalNewProject.vue:142
+  'native-ui-f537d4bf00090a0d':{kind:'partOf',view:'desktop/projects/new/closed-box/choose-driver'}, // OriginalNewProject.vue:134 (the title bar's Back)
+  'conditional-branch-b2b80cbe7edc3481':{kind:'partOf',view:'desktop/projects/new/closed-box/choose-driver'}, // OriginalNewProject.vue:135 (the title bar's Next)
+  'conditional-branch-eb588718f0787bc6':{kind:'partOf',view:'desktop/projects/new/closed-box/choose-driver'}, // OriginalNewProject.vue:136 (the title bar's Create)
   'conditional-branch-d3fa53388a19399f':{kind:'view',view:'desktop/difference-cue'},
   'conditional-branch-d6d9f0346da7530f':{kind:'partOf',view:'desktop/workspace/filters'}, // OriginalFilters.vue:66, the negative-peak message; filter-negative-peak-message.browser.spec.ts
   'conditional-branch-04f25a4ea25c79fb':{kind:'partOf',view:'desktop/workspace/filters'},
