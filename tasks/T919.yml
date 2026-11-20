@@ -7,6 +7,9 @@ label: fixes
 goal: The Iso-Barik (isobaric, clamshell) choice on the Driver tab and in New Project, desktop and phone, is no longer greyed as "not modelled". It writes the project's loading; the engine's isobaric rule (half the Vas, the pair's impedance) drives every readout and chart; each box type matches WinISD's own Iso-Barik curves.
 why: "John, 18 Nov 2026, QO953.c38: 'A: turn on isobaric (about 1 day)'. Context QO953.c33: the clamshell diagram is right; no distortion work (QO953.c34-c37)."
 ruling: QO953
+# John, 20 Nov 2026, 01:40 UTC, on scripts/dupscan-allow.json (marking the phone wizard's removed box-drawing copy resolved):
+# "A: accept it, and let the check accept removed copies by itself from now on".
+gates_approved: QO963
 done_test: bash scripts/test.sh packages/design/test/engine/isobarik-loading-winisd-all-boxes.test.ts packages/design/test/engine/isobarik-loading-winisd.test.ts
 files:
   - tasks/T919.yml
