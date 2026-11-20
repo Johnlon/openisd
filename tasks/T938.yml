@@ -18,4 +18,6 @@ files:
   - packages/ui/test/logic/driverDisplay.test.ts
   - packages/ui/test/ui/driver-info-all-fields.browser.spec.ts
   - packages/ui/test/ui/new-project-pick-fills-journey.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard-walk.browser.spec.ts
+  - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/*.png
