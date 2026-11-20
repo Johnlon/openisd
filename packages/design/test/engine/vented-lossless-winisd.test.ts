@@ -33,6 +33,7 @@ function loadProject(wpr: string): OpenISDProject {
   const {value: project, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(readFileSync(join(FIXTURES, `${wpr}.wpr`), 'utf8'));
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   project.winisdDriverModel.set(true);
+  project.winisdChartFromFsVasQms.set(true);
   project.rgAtDriverSide.set(false);
   return project;
 }

@@ -85,6 +85,7 @@ describe('a driver that states its own AlfaVC heats with it', () => {
   it('the sealed Box readout heats with the driver\'s value: driver 0.0039, project 0, dTVC 100 reads WinISD\'s hot Qtc 0.920', () => {
     // WinISD (runs/s04-dtvc-20261118): this project reads the cold 0.719 there, because WinISD reads the project's 0 only.
     const p = sealedProjectOf(w5(0.0039, 3.4), 0, 100);
+    p.winisdChartFromFsVasQms.set(true);
     expect(p.box.sealed.q_tc.value!).toBeCloseTo(0.920, 3);
     expect(p.box.sealed.resonance_hz.value!).toBeCloseTo(66.64, 2);
     p.winisdProjectAlfaVC.set(true);

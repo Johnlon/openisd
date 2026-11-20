@@ -31,35 +31,43 @@ function sealedW5(nDrivers: number, volume_m3: number, Ql: number, Qa: number) {
   return p;
 }
 
+/** The W5-1138SMF as WinISD's Box tab reads it: "Chart from Fs, Vas, Qms" ticked, so the readout runs on the stated Fs, Vas and Qts. */
+function winisdSealedW5(nDrivers: number, volume_m3: number, Ql: number, Qa: number) {
+  const p = sealedW5(nDrivers, volume_m3, Ql, Qa);
+  p.winisdChartFromFsVasQms.set(true);
+  return p;
+}
+
 describe('the sealed Box readout counts the drivers (WinISD numbers)', () => {
   it('1 driver in 4.48 L reads Qtc 0.719', () => {
-    expect(sealedW5(1, 0.00448, 10, 100).box.sealed.q_tc.value!).toBeCloseTo(0.719, 3);
+    expect(winisdSealedW5(1, 0.00448, 10, 100).box.sealed.q_tc.value!).toBeCloseTo(0.719, 3);
   });
 
   it('4 drivers in 4.48 L read Qtc 1.085', () => {
-    expect(sealedW5(4, 0.00448, 10, 100).box.sealed.q_tc.value!).toBeCloseTo(1.085, 3);
+    expect(winisdSealedW5(4, 0.00448, 10, 100).box.sealed.q_tc.value!).toBeCloseTo(1.085, 3);
   });
 
   it('4 drivers in 17.92 L read Qtc 0.719 and Fsc 67.23 Hz', () => {
-    const p = sealedW5(4, 0.01792, 10, 100);
+    const p = winisdSealedW5(4, 0.01792, 10, 100);
     expect(p.box.sealed.q_tc.value!).toBeCloseTo(0.719, 3);
     expect(p.box.sealed.resonance_hz.value!).toBeCloseTo(67.23, 2);
   });
 
   it('an isobaric pair reads as one driver with half the Vas', () => {
-    const pair = sealedW5(1, 0.00448, 10, 100);
+    const pair = winisdSealedW5(1, 0.00448, 10, 100);
     pair.loading.set('isobaric');
     const half = new ProjectBuilder(driverFromSpec(engine, {
       Fs_hz: 45, Qes: 0.57, Qms: 3.56, Qts: 0.49, Re_ohm: 3.4, Vas_m3: 0.00485 / 2, Sd_m2: 0.0094,
     }), engine).sealed().volume_m3(0.00448).build();
     half.Rs_ohm.set(0.1);
+    half.winisdChartFromFsVasQms.set(true);
     expect(pair.box.sealed.q_tc.value!).toBeCloseTo(half.box.sealed.q_tc.value!, 9);
   });
 
   it('a Qtc typed with 4 drivers gives the volume that reads it back, 4 times a single driver\'s', () => {
-    const four = sealedW5(4, 0.00448, 10, 100);
+    const four = winisdSealedW5(4, 0.00448, 10, 100);
     four.box.sealed.q_tc.set(0.8);
-    const one = sealedW5(1, 0.00448, 10, 100);
+    const one = winisdSealedW5(1, 0.00448, 10, 100);
     one.box.sealed.q_tc.set(0.8);
     expect(four.box.sealed.volume_m3.value!).toBeCloseTo(4 * one.box.sealed.volume_m3.value!, 9);
     const vb = four.box.sealed.volume_m3.value!;
@@ -81,6 +89,27 @@ describe('the sealed readout agrees with the chart model for 1, 2 and 4 drivers'
       expect(Math.abs(p.box.sealed.resonance_hz.value! - chartFsc) / chartFsc).toBeLessThan(0.001);
     });
   }
+
+  // QO960 (John, 20 Nov 2026): the readout follows the chart's boxes whichever way the chart is told to run, so with
+  // "Chart from Fs, Vas, Qms" ticked it sits at the ticked chart's peak too.
+  for (const n of [1, 2, 4]) {
+    it(`${n} driver(s), "Chart from Fs, Vas, Qms" ticked: readout Fsc is the chart's impedance peak, to the chart's grid`, () => {
+      const p = winisdSealedW5(n, 0.00448 * n, 1e9, 1e9);
+      const swept = p.sweep(GRID).values;
+      expect(swept).not.toBeNull();
+      const top = swept!.zmag.indexOf(Math.max(...swept!.zmag));
+      const chartFsc = swept!.fs[top]!;
+      expect(Math.abs(p.box.sealed.resonance_hz.value! - chartFsc) / chartFsc).toBeLessThan(0.001);
+    });
+  }
+
+  it('unticked, a Qtc typed gives the volume whose chart readout reads it back (the readout and the volume take the chart\'s boxes)', () => {
+    const p = sealedW5(1, 0.00448, 10, 100);
+    p.box.sealed.q_tc.set(0.8);
+    const vb = p.box.sealed.volume_m3.value!;
+    p.box.sealed.volume_m3.set(vb);
+    expect(p.box.sealed.q_tc.value!).toBeCloseTo(0.8, 3);
+  });
 
   it('the same box gives the same readout whatever the count when each driver has its own 4.48 L', () => {
     const f1 = sealedW5(1, 0.00448, 10, 100).box.sealed;

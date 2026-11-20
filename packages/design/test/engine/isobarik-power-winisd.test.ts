@@ -47,6 +47,7 @@ function setUpProject(drive: Drive, setting: Setting): OpenISDProject {
   const {value: project, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(readFileSync(WPR_PATH, 'utf8'));
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   project.winisdDriverModel.set(true);
+  project.winisdChartFromFsVasQms.set(true);
   project.rgAtDriverSide.set(setting.rgAtDriver);
   project.winisdOneDriverImpedance.set(setting.oneDriverImpedance);
   project.winisdVaModel.set(setting.winisdVa);

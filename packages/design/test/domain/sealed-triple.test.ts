@@ -21,7 +21,9 @@ const letter = (c: Cell): 'E' | 'C' | 'N' => (c.value === null ? 'N' : c.entered
 const SPEC = {Fs_hz: 30, Qes: 0.4, Qms: 4, Qts: 1 / (1 / 4 + 1 / 0.4), Re_ohm: 6.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Vas_m3: 0.05, BL_Tm: 8, Mms_kg: 0.05};
 const sealed = () => {
   const engine = createEngine();
-  return new ProjectBuilder(driverFromSpec(engine, SPEC), engine).sealed().volume_m3(0.03).build().box.sealed;
+  const p = new ProjectBuilder(driverFromSpec(engine, SPEC), engine).sealed().volume_m3(0.03).build();
+  p.winisdChartFromFsVasQms.set(true);
+  return p.box.sealed;
 };
 
 describe('sealed Vb, Fsc and Qtc', () => {
@@ -102,7 +104,9 @@ describe('sealed Vb, Fsc and Qtc', () => {
 describe('a sealed box built from a target Qtc', () => {
   it('has Qtc E at the target, and the volume and Fsc calculated from it', () => {
     const engine = createEngine();
-    const s = new ProjectBuilder(driverFromSpec(engine, SPEC), engine).sealed().qtc(0.8).build().box.sealed;
+    const p = new ProjectBuilder(driverFromSpec(engine, SPEC), engine).sealed().qtc(0.8).build();
+    p.winisdChartFromFsVasQms.set(true);
+    const s = p.box.sealed;
     expect([letter(s.volume_m3), letter(s.resonance_hz), letter(s.q_tc)]).toEqual(['C', 'C', 'E']);
     expect(s.q_tc.value).toBe(0.8);
     expect(s.volume_m3.value).toBeGreaterThan(0);

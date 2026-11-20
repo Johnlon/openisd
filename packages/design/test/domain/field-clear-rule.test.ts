@@ -114,6 +114,7 @@ describe('clear rule: step 2, swap with the equation partner', () => {
 
   it('sealed Qtc cleared: Qtc C, volume E at its value', () => {
     const p = builder().sealed().volume_m3(0.03).build();
+    p.winisdChartFromFsVasQms.set(true);
     p.box.sealed.q_tc.set(0.8);
     const vb = p.box.sealed.volume_m3.value;
     p.box.sealed.q_tc.clear();

@@ -26,6 +26,7 @@ function sealedW5(driverAlfaVC_per_K: number, projectAlfaVC_per_K: number, vcTem
     alfaVC_per_K: driverAlfaVC_per_K,
   });
   const p = new ProjectBuilder(driver, engine).sealed().volume_m3(0.00448).build();
+  p.winisdChartFromFsVasQms.set(true);
   p.Rs_ohm.set(Rs_ohm);
   p.box.sealed.losses.Ql.set(10);
   p.box.sealed.losses.Qa.set(100);

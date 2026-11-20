@@ -24,8 +24,16 @@ goal_detail:
   - "QO539 option: \"Chart from Fs, Vas, Qms (WinISD's way)\" under \"Enable WinISD-style\", unticked in a new project and in a file that does not say; ticked, the charts work Cms, Mms and Rms out from Vas, Fs and Qms as WinISD does (DriverEngine.winisdCircuitValues); the boxes and their warning marks stay either way. Tests: compat-switch.test.ts, driver-circuit-values.test.ts, driver-edit-parity-e150he-44.test.ts (E150HE-44 as its file states). The switch covers the passive radiator too (DriverEngine.winisdRadiatorMechanics, the driver's routes): pr-chart-from-fs-vas-qms.test.ts."
   - "Removed from the earlier T744 build (older rule): the 'Cms from Vas' option, the typed-last memory (TypedFigure), the 'shown' chain that replaced a stated Cms/Mms/Rms on screen, and the typed-last-wins pairs."
   - "Done when: the tests above are green; typecheck green; before/after page under ui-gallery/T744-rules passes check-answerable."
+tests_changed: "QO960 (John, 20 Nov 2026): \"if you open a wpr then it gets converted immediately to OpenISD model and the app is unaware of provenance, if the user wants some legacy behave we have flags for that\". The tests that compare with numbers read off WinISD now tick 'Chart from Fs, Vas, Qms' in their own setup, because they test WinISD behaviour now that the sealed Box readout follows the chart's boxes (QO959). The only change in each is that one line (no expected value, tolerance or assertion changed): vented-lossless-winisd.test.ts and isobarik-power-winisd.test.ts (loader), sealed-readout-heats-coil.test.ts (sealedW5), coil-alfavc-driver-first.test.ts (the hot Qtc 0.920 test), sealed-triple.test.ts (sealed() and the Qtc-built box), field-clear-rule.test.ts (sealed Qtc cleared), sealed-readout-counts-drivers.test.ts (the WinISD-number tests call winisdSealedW5, which ticks it). New: the ticked chart-peak tests, an unticked Qtc round trip, and wpr-opens-unticked.test.ts (a .wpr opens with the switch unticked)."
 done_test: bash scripts/test.sh packages/design/test/domain/on-screen-values.test.ts
 files:
+  - packages/design/test/domain/coil-alfavc-driver-first.test.ts
+  - packages/design/test/domain/sealed-readout-counts-drivers.test.ts
+  - packages/design/test/domain/sealed-readout-heats-coil.test.ts
+  - packages/design/test/domain/sealed-triple.test.ts
+  - packages/design/test/engine/isobarik-power-winisd.test.ts
+  - packages/design/test/engine/vented-lossless-winisd.test.ts
+  - packages/design/test/winisd/wpr-opens-unticked.test.ts
   - BACKLOG.md
   - bugs/BUG_20261108_driver-typed-cms-mms-rms-ignored-by-charts.md
   - bugs/BUG_20261108_radiator-pick-replaces-stated-cms-mms.md
