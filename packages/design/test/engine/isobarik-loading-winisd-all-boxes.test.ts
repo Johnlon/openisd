@@ -50,6 +50,8 @@ function setUpProject(c: Case): OpenISDProject {
   const {value: project, errors} = new WinIsdProjectConverter(createEngine()).winIsdProjectToOpenIsdProject(readFileSync(join(FIXTURES, `${c.wpr}.wpr`), 'utf8'));
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   project.winisdDriverModel.set(true);
+  // QO964 option A defaults to real physics. These captures use WinISD's Iso-Barik numbers.
+  project.winisdIsobarik.set(true);
   project.rgAtDriverSide.set(false);
   c.configure(project);
   return project;
