@@ -21,9 +21,12 @@ describe('phone wizard text', () => {
     expect([PhoneWizardText.CANCEL, PhoneWizardText.BACK, PhoneWizardText.NEXT, PhoneWizardText.CREATE]).toEqual(['Cancel', '◀ Back', 'Next ▸', 'Create Project']);
   });
 
-  it('the ⓘ popups carry the driver\'s EBP and say Iso-Barik is worked out as WinISD does', () => {
+  // Iso-Barik is real physics from Driver wiring by default, not WinISD's numbers (John, 20 Nov 2026, QO964 option A).
+  it('the ⓘ popups carry the driver\'s EBP and say Iso-Barik loudness and load follow Driver wiring', () => {
     expect(PhoneWizardText.ebpInfo('84.9').note).toBe('Your driver: EBP 84.9.');
-    expect(PhoneWizardText.PLACEMENT_INFO.note).toContain('as WinISD does');
+    expect(PhoneWizardText.PLACEMENT_INFO.note).toContain('half the volume');
+    expect(PhoneWizardText.PLACEMENT_INFO.note).toContain('Driver wiring');
+    expect(PhoneWizardText.PLACEMENT_INFO.note).not.toContain('as WinISD does');
     expect(PhoneWizardText.PLACEMENT_INFO.note).not.toContain('not modelled');
   });
 
