@@ -68,6 +68,15 @@ function oneVersionWins(id: DocId): boolean {
   return id.kind === 'settings' || id.kind === 'favourites' || id.kind === 'projectBin';
 }
 
+/** A doc where one version wins (`oneVersionWins`): the remote when it is later in Lamport order than this device's
+ *  version stamped `seq`, else this device's version, pushed over the remote's revision. */
+function lamportWinner(remote: CloudMeta, seq: number, deviceId: string): SyncRuleAction {
+  if (compareLamport(remote, { seq, writer: deviceId }) === 'remote') {
+    return { kind: 'applyRemote', remote };
+  }
+  return { kind: 'pushUpdate', expectedRevision: remote.revision };
+}
+
 export function decideDocSync(inputs: DecideSyncInputs): SyncRuleAction {
   const { id, local, ledger, remote, appLayout, deviceId, prospectiveSeq } = inputs;
 
@@ -123,17 +132,7 @@ export function decideDocSync(inputs: DecideSyncInputs): SyncRuleAction {
   if (!hasLedger) {
     if (isLocalPresent) {
       // new + present (no ledger)
-      if (oneVersionWins(id)) {
-        const localLamport = {
-          seq: prospectiveSeq !== undefined ? prospectiveSeq : 1,
-          writer: deviceId,
-        };
-        const winner = compareLamport(remote, localLamport);
-        if (winner === 'remote') {
-          return { kind: 'applyRemote', remote };
-        }
-        return { kind: 'pushUpdate', expectedRevision: remote.revision };
-      }
+      if (oneVersionWins(id)) return lamportWinner(remote, prospectiveSeq !== undefined ? prospectiveSeq : 1, deviceId);
       // multi-doc: keep both
       return { kind: 'conflict', remote };
     }
@@ -180,17 +179,7 @@ export function decideDocSync(inputs: DecideSyncInputs): SyncRuleAction {
   }
 
   // local edit + remote edit (lineage ok or broken)
-  if (oneVersionWins(id)) {
-    const localLamport = {
-      seq: prospectiveSeq !== undefined ? prospectiveSeq : ledger.seq + 1,
-      writer: deviceId,
-    };
-    const winner = compareLamport(remote, localLamport);
-    if (winner === 'remote') {
-      return { kind: 'applyRemote', remote };
-    }
-    return { kind: 'pushUpdate', expectedRevision: remote.revision };
-  }
+  if (oneVersionWins(id)) return lamportWinner(remote, prospectiveSeq !== undefined ? prospectiveSeq : ledger.seq + 1, deviceId);
 
   return { kind: 'conflict', remote };
 }

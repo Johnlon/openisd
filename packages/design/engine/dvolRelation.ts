@@ -55,7 +55,7 @@ function rawDepth(i: {Dd: number; Vcd: number; DVol: number; MagDepth: number; M
 function rawMagDepth(i: {Dd: number; Vcd: number; DVol: number; Depth: number; Magnet: number}): number | null {
   const S = crossSection(i.Dd, i.Vcd);
   const denom = S - 3 * i.Magnet * i.Magnet;
-  return denom > 0 ? (Math.PI * S * i.Depth - 12 * i.DVol) / (Math.PI * denom) : null;
+  return denom !== 0 ? (Math.PI * S * i.Depth - 12 * i.DVol) / (Math.PI * denom) : null;
 }
 function rawMagnet(i: {Dd: number; Vcd: number; DVol: number; Depth: number; MagDepth: number}): number | null {
   const S = crossSection(i.Dd, i.Vcd);
@@ -81,10 +81,11 @@ export function depthFromDims(i: {Dd: number; Vcd: number; DVol: number; MagDept
   return depth > i.MagDepth ? depth : null;
 }
 
-/** `MagDepth` from `DVol` and the other three. Refused when the denominator `S - 3*Magnet^2` is not
- *  strictly positive, and when the result is not strictly between 0 and `Depth`. The denominator
- *  is the difference of two nearly equal areas for a driver whose magnet is as wide as its cone, so
- *  the same inputs can give a result of metres. */
+/** `MagDepth` from `DVol` and the other three. Refused when the denominator `S - 3*Magnet^2` is
+ *  zero, and when the result is not strictly between 0 and `Depth`. A magnet wider than sqrt(S/3)
+ *  makes the denominator negative; with a negative numerator that is an ordinary depth, as WinISD
+ *  gives (BUG_20261119_magdepth-refused-for-a-wide-magnet). A denominator near zero gives a result
+ *  of metres, which the `Depth` bound refuses. */
 export function magDepthFromDims(i: {Dd: number; Vcd: number; DVol: number; Depth: number; Magnet: number}): number | null {
   if (!positive(i.Dd, i.Vcd, i.DVol, i.Depth, i.Magnet)) return null;
   const magDepth = rawMagDepth(i);
@@ -129,7 +130,7 @@ export function geometryRefusal(target: GeometryTarget, v: Partial<Record<'Dd' |
     case 'MagDepth': {
       if (DVol === undefined || Depth === undefined || Magnet === undefined || !positive(DVol, Depth, Magnet)) return null;
       const r = rawMagDepth({Dd, Vcd, DVol, Depth, Magnet});
-      if (r === null) return `MagDepth was not calculated: Magnet (${mm(Magnet)}) is as wide as the cone allows, so the dimensions cannot fix it. ${tail}`;
+      if (r === null) return `MagDepth was not calculated: with Magnet ${mm(Magnet)} the magnet and cone terms cancel, so the dimensions cannot fix it. ${tail}`;
       if (r > 0 && r < Depth) return null;
       return `MagDepth was not calculated: the other dimensions give ${mm(r)}, which is ${r <= 0 ? 'not a depth' : `deeper than the driver itself (Depth ${mm(Depth)})`}. ${tail}`;
     }

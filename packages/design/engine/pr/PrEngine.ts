@@ -5,10 +5,12 @@
  * tuning/added-mass the project has not entered.
  */
 import type {Air, AirWorkingName} from '../air.js';
+import {airCompliance} from '../air.js';
 import type {ConsistencyCheck, RouteFormulas, RouteGroup, RouteQuantity} from '../driver/routes/index.js';
 import {RADIATOR_ROUTE_FORMULAS} from '../driver/routes/index.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import type {PrParams} from '../types.js';
+import {combinedOfN} from '../array/driverWiring.js';
 import type {PrSolverParams} from '../solverTypes.js';
 import {isPositiveGeometry, missingDependencies, targetUnreachable, tuningGoalIssue} from '../consistency.js';
 import type {CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
@@ -44,6 +46,8 @@ export interface PrEngine {
   /** Moving mass per radiator that tunes the box to `fp` — the inverse of `tuning`:
    *  `Map = N/((2π·fp)²·Cpar)`, `Mmp = Map·prSd²`. */
   massForFp(p: PrParams, fp: number, air: Air): number;
+  /** Whether a geometry figure (Vb, Mmd, Sd, Cms) is a number above 0, the only kind the solves can use. */
+  readonly isPositiveGeometry: (value: number | null) => value is number;
   /** Free-air resonance loaded with added cone mass: `1/(2π·√((Mmd+Madd)·Cms))` — the
    *  radiator alone, no box. 0 when the total mass or compliance is non-positive. */
   fsWithMass(prMmd: number, prMadd: number, prCms: number): number;
@@ -99,7 +103,8 @@ export class PrEngineImpl implements PrEngine {
 
   twiceDriverDisplacement(driverVd_m3: number | null, nDrivers: number): number | null {
     if (driverVd_m3 === null || !(driverVd_m3 > 0) || !(nDrivers > 0)) return null;
-    return 2 * nDrivers * driverVd_m3;
+    // Two driver displacements per driver, N drivers: 2 × N first, then × Vd, the order main used (T934 review 2).
+    return combinedOfN(driverVd_m3, combinedOfN(2, nDrivers));
   }
 
   routeFormulas(): RouteFormulas {
@@ -116,7 +121,8 @@ export class PrEngineImpl implements PrEngine {
   countForTwiceDisplacement(prVd_m3: number | null, driverVd_m3: number | null, nDrivers: number): number | null {
     if (prVd_m3 === null || driverVd_m3 === null || !(prVd_m3 > 0) || !(driverVd_m3 > 0) || !(nDrivers > 0)) return null;
     // A relative tolerance keeps an exact fit (200 against 2 × 100) from rounding up on floating-point noise.
-    return Math.max(1, Math.ceil(2 * nDrivers * driverVd_m3 / prVd_m3 - 1e-9));
+    const needed_m3 = combinedOfN(driverVd_m3, combinedOfN(2, nDrivers));
+    return Math.max(1, Math.ceil(needed_m3 / prVd_m3 - 1e-9));
   }
 
   constructor(
@@ -125,15 +131,17 @@ export class PrEngineImpl implements PrEngine {
   ) {}
 
   tuning(p: PrParams, air: Air): number {
-    const Cab  = p.Vb / (air.rho() * air.c() * air.c());
+    const Cab  = airCompliance(p.Vb, air.rho(), air.c());
     const Map  = (p.prMmd + p.prMadd) / (p.prSd * p.prSd);
     const Cap  = p.prNum * p.prCms * p.prSd * p.prSd;
     const Cpar = (Cab * Cap) / (Cab + Cap);
     return 1 / (2 * Math.PI * Math.sqrt(Map / p.prNum * Cpar));
   }
 
+  readonly isPositiveGeometry = isPositiveGeometry;
+
   massForFp(p: PrParams, fp: number, air: Air): number {
-    const Cab  = p.Vb / (air.rho() * air.c() * air.c());
+    const Cab  = airCompliance(p.Vb, air.rho(), air.c());
     const Cap  = p.prNum * p.prCms * p.prSd * p.prSd;
     const Cpar = (Cab * Cap) / (Cab + Cap);
     const Map  = p.prNum / ((2 * Math.PI * fp) ** 2 * Cpar);

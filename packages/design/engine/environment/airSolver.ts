@@ -329,9 +329,11 @@ function appValue(appAir: AppAir, name: AppQuantityName): number {
   }
 }
 
-/** The three the app holds, in the order they are filled: T last, so a typed c can solve it. */
+/** The three the app holds, in the order they are filled: T last, so a typed c can solve it;
+ *  humidity before pressure, so a typed T and ρ reach the coupled solve for p and c
+ *  (BUG_20261119_air-fill-order-gives-false-conflict). */
 type AppQuantityName = 'pressurePa' | 'humidityPct' | 'tempK';
-const APP_FILL_ORDER: readonly AppQuantityName[] = Object.freeze<AppQuantityName[]>(['pressurePa', 'humidityPct', 'tempK']);
+const APP_FILL_ORDER: readonly AppQuantityName[] = Object.freeze<AppQuantityName[]>(['humidityPct', 'pressurePa', 'tempK']);
 
 export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
   const known = new Map<AirQuantityName, Quantity>();

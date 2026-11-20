@@ -1,22 +1,14 @@
 <script setup lang="ts">
 // The help sheet a ? opens: what the section is for, then one line per row. The words come from
 // packages/design (`PhoneHelp`); this draws them. Shared by the section bands and the filter cards.
-import {inject} from 'vue';
-import type {PhoneHelpRow, PhoneHelpSection} from '@openisd/design/fields';
-import {WinisdDifferencesModalKey} from '../../../hooks/WinisdDifferencesModal-hooks.js';
+import type {PhoneHelpSection} from '@openisd/design/fields';
+import {useHelpDifferenceLink} from '../../../hooks/WinisdDifferencesModal-hooks.js';
 import {usePhoneHelpSheet} from '../../../hooks/PhoneHelpSheet-hooks.js';
 
 const props = defineProps<{section: PhoneHelpSection}>();
 const emit = defineEmits<{close: []}>();
 usePhoneHelpSheet();
-// Only a sheet whose lines link to a Differences entry needs the Differences page.
-const differences = inject(WinisdDifferencesModalKey, null);
-
-function showDifference(row: PhoneHelpRow): void {
-  if (differences === null || row.difference === undefined) return;
-  emit('close');
-  differences.showEntry(row.difference);
-}
+const showDifference = useHelpDifferenceLink(() => emit('close'));
 </script>
 
 <template>

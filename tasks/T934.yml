@@ -1,0 +1,59 @@
+id: T934
+release_note: internal
+repo: openisd
+owner: dupscan-guardrail
+status: done
+goal: 'The duplicate-logic check knows each kind of sum''s home, one named engine declaration, so the home is never flagged; the known-copies list can only shrink and a re-key must be a pair in a reviewed mapping made from the base source; the pull request check runs the gate-approval check from the base revision''s scripts; 28 listed copies now call an engine or shared function and 16 are recorded as already in their home, taking the open entries from 248 to 204.'
+why: 'John, 19 Nov 2026: ''remove the dupe and fix the guardrail'''
+done_test: bash scripts/test/dupscan.test.sh
+gates_approved: QO956
+files:
+  - tasks/T934.yml
+  - AGENTS.md
+  - .github/workflows/pr.yml
+  - scripts/dupscan.mjs
+  - scripts/dupscan-allow.json
+  - scripts/dupscan-homes.json
+  - scripts/dupscan-rekey-T934.json
+  - scripts/ci/contract-from-base.sh
+  - scripts/test/dupscan.test.sh
+  - land.conf
+  - scripts/land/test/land-gates.test.sh
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/engine/air.ts
+  - packages/design/engine/boxes/AbcBox.ts
+  - packages/design/engine/boxes/Bandpass4Box.ts
+  - packages/design/engine/boxes/Bandpass6Box.ts
+  - packages/design/engine/boxes/port.ts
+  - packages/design/engine/vent/VentEngine.ts
+  - packages/design/engine/array/driverWiring.ts
+  - packages/design/engine/circuit.ts
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/engine/pr/PrEngine.ts
+  - packages/design/engine/signal/SignalEngine.ts
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/engine/solvers/driverQuantities.ts
+  - packages/design/test/engine/air.test.ts
+  - packages/design/test/engine/driver-quantities.test.ts
+  - packages/design/test/engine/driver-wiring.test.ts
+  - scripts/land/check-task-contract.sh
+  - packages/design/cloud/syncRules.ts
+  - packages/design/domain/box/passiveRadiatorBox.ts
+  - packages/design/domain/box/ventedChamberWindow.ts
+  - packages/design/test/engine/pr-displacement.test.ts
+  - packages/persistence/src/repos/myDriverRepo.ts
+  - packages/persistence/src/repos/myPassiveRadiatorRepo.ts
+  - packages/persistence/src/repos/savedEntries.ts
+  - packages/ui/src/fileFormat.ts
+  - packages/ui/src/hooks/MobileAdvancedTab-hooks.ts
+  - packages/ui/src/hooks/WinisdDifferencesModal-hooks.ts
+  - packages/ui/src/ui/components/DesktopHelpPanel.vue
+  - packages/ui/src/ui/shells/mobile/PhoneHelpSheet.vue
+notes: |
+  Open owner decision (John's call; Codex, T934 review 4: "can land as a recorded owner decision"). A pull_request run takes
+  .github/workflows/pr.yml from the change itself, so a change that edits pr.yml could drop the gate-approval job. pr.yml is a
+  gate file, but the check that says so runs inside pr.yml. Options: a pull_request_target workflow for the gate approval
+  (runs the base branch's workflow file), or a repository rule requiring a reviewer's approval for changes under
+  .github/workflows/. Until then every pr.yml change is reviewed by hand.
+  Bootstrap: pr.yml pins BOOTSTRAP_BASE to 6082d07aa (main when T934 was made) and BOOTSTRAP_SHA256 to the reviewed runner and
+  checker scripts; update the pin if main moves before T934 lands, and the sums if those scripts change.

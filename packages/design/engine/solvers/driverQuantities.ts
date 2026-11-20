@@ -149,6 +149,12 @@ export interface WiringRefused {
 
 export type WiringConversion = WiringConverted | WiringRefused;
 
+/** The factor that turns a resistance printed per coil (Re, Znom) into the figure for `coils` identical coils wired
+ *  `wiring`: series N (2 x 4 ohm is 8 ohm), parallel 1/N (2 ohm). The engine's one home for it (T934; QO915). */
+export function perCoilResistanceFactor(coils: number, wiring: Wiring): number {
+  return wiring === 'series' ? coils : 1 / coils;
+}
+
 /**
  * The published figures of a driver with `numVC` identical coils, measured in `measured`, as they
  * are in `target` (QO900 R1). Series → parallel: Re ÷ N², BL ÷ N, Le and Znom ÷ N²; parallel →

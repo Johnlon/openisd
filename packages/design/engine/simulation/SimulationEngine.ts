@@ -28,7 +28,7 @@ import {hotRe, isobarikPair, withAddedMass} from '../solvers/driverQuantities.js
 import {applyFilters} from '../filters.js';
 import {driveFromVoltage} from '../signal/SignalEngine.js';
 import type {DriverDrive} from '../array/driverWiring.js';
-import {DEFAULT_DRIVER_WIRING, driverDrive} from '../array/driverWiring.js';
+import {arrayPowerHandling, DEFAULT_DRIVER_WIRING, combinedOfN, driverDrive, oneBoxOfN} from '../array/driverWiring.js';
 import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepPeaks, SweepResult, WinisdFilterErrors} from '../types.js';
 import type {DriverValues, SweepDriver} from '../solverTypes.js';
 import type {BoxParamsIssue, BoxParamsQuantityName, BoxParamsSolveResult, SweepSettingIssue, SweepSettingsSolveResult} from '../params.js';
@@ -213,12 +213,6 @@ function driverValues(v: DriverValues) {
  *  vented-, bp4-, pr-, bp6- and abc-w5-nd2). SPL, excursion, VA and maximum power follow it. */
 function winisdCountsDrivers(P: SweepParams): boolean {
   return (P.nDrivers || 1) > 1;
-}
-
-/** One of `n` drivers' share of the box: Vb/n and, where they exist, Vf/n, every port area /n and prNum/n. */
-function oneBoxOfN(P: SweepParams, n: number): SweepParams {
-  return { ...P, nDrivers: 1, Vb: P.Vb / n, ...(P.Vf !== undefined ? { Vf: P.Vf / n } : {}), ...(P.Sp !== undefined ? { Sp: P.Sp / n } : {}), ...(P.prNum !== undefined ? { prNum: P.prNum / n } : {}),
-    ...(P.Spr !== undefined ? { Spr: P.Spr / n } : {}), ...(P.SpIntra !== undefined ? { SpIntra: P.SpIntra / n } : {}) };
 }
 
 /** What each of the N drivers sees. An absent `driverWiring` is Parallel, what a project that never chose one is (saved default). */
@@ -569,7 +563,7 @@ export class SimulationEngineImpl implements SimulationEngine {
       const UD  = cMul(s.UD, Hf);
       const UP  = cMul(s.UP, Hf);
       const pm  = cAbs(Hc);
-      const Sdt = cq.Sd_m2 * (P.nDrivers || 1); // withAddedMass leaves Sd untouched
+      const Sdt = combinedOfN(cq.Sd_m2, P.nDrivers || 1); // withAddedMass leaves Sd untouched
       const area = box === 'box-passive-radiator' ? P.prSd! : P.Sp!;
       fs.push(f); H.push(Hc);
       // SPL = 20·log10(|p|/P0)  https://en.wikipedia.org/wiki/Sound_pressure#Sound_pressure_level
@@ -647,9 +641,9 @@ export class SimulationEngineImpl implements SimulationEngine {
 
     // Force flat response (WinISD Advanced) — the inverse filter that lifts every point to the
     // passband reference, applied as a REAL line-level gain: SPL flattens and the excursion /
-    // port-velocity / max-SPL curves show what that costs. Real gain ⇒ phase and group delay
-    // are untouched, and Zel never sees it (the EQ is upstream of the amplifier), exactly as
-    // applyFilters treats the filter chain.
+    // port-velocity curves show what that costs (Maximum SPL and power leave it out, as WinISD
+    // does: `maxCurves`). Real gain ⇒ phase and group delay are untouched, and Zel never sees
+    // it (the EQ is upstream of the amplifier), exactly as applyFilters treats the filter chain.
     // Transfer-function 0 dB: the lossless circuit's own HF asymptote (BUG_20260926_winisd-tf-reference).
     const splRefLimit = 20 * Math.log10(hfAsymptotePressure_Pa(cq, P, r) / P0);
     let flatClamped: number | null = null;
@@ -734,7 +728,12 @@ export class SimulationEngineImpl implements SimulationEngine {
    * Power limit:   v_Pe   = √(Pe · Re)  — Pe is thermal power into Re, per T/S definition.
    *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Other_parameters
    */
-  maxCurves(drv: SweepDriver, Le_H: number | undefined, box: BoxType, P: SweepParams): MaxCurvesSolveResult {
+  maxCurves(drv: SweepDriver, Le_H: number | undefined, box: BoxType, stated: SweepParams): MaxCurvesSolveResult {
+    // Force flat response is left out: WinISD's sealed chart routine f_4618f0 never reads
+    // FlatResponse for chart bytes 11 (Maximum power) and 14 (Maximum SPL)
+    // (winisd_research/re_ghidra/dumps/chart_point_4619e0.out); the EQ sits before the amplifier
+    // and cannot change what the driver can take. BUG_20261119_max-curves-include-force-flat-gain.
+    const P: SweepParams = Object.assign({}, stated, { forceFlatResponse: false });
     const n = P.nDrivers || 1;
     if (winisdCountsDrivers(P)) {
       // WinISD: N times one driver's limits in Vb/N — max power ×N; max SPL +20·log10(N) (⚠ unverified).
@@ -750,7 +749,8 @@ export class SimulationEngineImpl implements SimulationEngine {
     if (swept.values === null) return { values: null, issues: swept.issues, driverPrerequisites: [] };
     const base = swept.values;
     const drvPe_W = drv.values.Pe_W;
-    const Pe   = (drvPe_W != null && drvPe_W > 0) ? drvPe_W * (P.nDrivers || 1) : null;
+    // An Iso-Barik pair is two drivers, each rated Pe (arrayPowerHandling, as WinISD).
+    const Pe   = (drvPe_W != null && drvPe_W > 0) ? arrayPowerHandling(drvPe_W, P.nDrivers || 1, P.loading === 'isobaric' ? 'isobaric' : 'standard') : null;
     // The power reference is Re, not Znom — and the TERMINAL Re, because the amplifier drives the
     // coils as they are wired. `sweep` above already succeeded, and its circuit-required-fields
     // check (CIRCUIT_REQUIRED_FIELDS includes Re_terminal_ohm) demands this exact field be a

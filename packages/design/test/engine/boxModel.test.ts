@@ -32,8 +32,12 @@ describe('boxModel — one class per simulatable box type', () => {
   const P_BP6: SweepParams = {...P_SEALED, Vf: 0.020, Fr: 45, Ff: 60};
   const P_ABC: SweepParams = {...P_BP6, SpIntra: Math.PI * 0.02 ** 2, LeffIntra: 0.05};
 
+  // The vented box takes WinISD's fixed-loss form even at Ql = Qa = 1e6, whose port mass comes from the tuning `Fb`
+  // (bugs/BUG_20261119_vented-lossless-branch-not-winisd-form.md): 38 Hz is this vent's Helmholtz tuning in this box.
+  const P_VENTED_TUNED: SweepParams = {...P_VENTED, Fb: 38};
+
   const PARAMS: Record<SimulatableBoxType, SweepParams> = {
-    sealed: P_SEALED, vented: P_VENTED, 'box-passive-radiator': P_PR, bandpass4: P_BP4,
+    sealed: P_SEALED, vented: P_VENTED_TUNED, 'box-passive-radiator': P_PR, bandpass4: P_BP4,
     bandpass6: P_BP6, abc: P_ABC,
   };
   // `PARAMS`' own type (`Record<SimulatableBoxType, SweepParams>`) already makes the compiler

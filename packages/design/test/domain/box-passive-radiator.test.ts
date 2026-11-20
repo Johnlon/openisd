@@ -232,6 +232,24 @@ describe('the passive radiator a box holds', () => {
     expect(p.box.passiveRadiator.addedMassForTuning_kg(15).value).toBeNull();
   });
 
+  it.each(['Sd_m2', 'Cms_m_per_N'] as const)('addedMassForTuning_kg is not available, never NaN, when the radiator %s is 0 (John, 18 Nov 2026: "charts never go blank or NaN")', (field) => {
+    const p = project();
+    const library = OpenISDPassiveRadiatorStandalone.fromConformingRecord(prJson());
+    if (Array.isArray(library)) throw new Error(`fixture radiator is invalid: ${library.join(', ')}`);
+    p.box.passiveRadiator.radiator.update(library);
+    p.box.boxType.set('box-passive-radiator');
+    p.box.passiveRadiator.volume_m3.set(0.03);
+    p.box.passiveRadiator.addedMass_kg.set(0);
+    expect(p.box.passiveRadiator.addedMassForTuning_kg(15).value).not.toBeNull();
+    p.box.passiveRadiator.radiator.spec[field].set(0);
+
+    const answer = p.box.passiveRadiator.addedMassForTuning_kg(15);
+    expect(Number.isNaN(answer.value)).toBe(false);
+    expect(answer.value).toBeNull();
+    // Absent, not a calculated answer: nothing is claimed as calculated from a radiator with no geometry.
+    expect(answer.calculated).toBe(false);
+  });
+
   // Regression for bugs/archive/BUG_20261003*.md
   it('naturalTuning_hz is the radiator tuning with no added mass and follows a hand edit of Fs; addedMassForTuning_kg follows it too', () => {
     const p = project();

@@ -12,7 +12,7 @@ import {missingDependencies} from '../consistency.js';
 import type {CalculationIssue} from '../consistency.js';
 import type {SignalSolverParams} from '../solverTypes.js';
 import type {DriverWiring} from '../array/driverWiring.js';
-import {DEFAULT_DRIVER_WIRING, amplifierVoltage, driverDrive} from '../array/driverWiring.js';
+import {DEFAULT_DRIVER_WIRING, amplifierVoltage, driverDrive, eachOfN} from '../array/driverWiring.js';
 
 export type SignalQuantityName = keyof SignalSolverParams;
 export type SignalIssue = CalculationIssue<SignalQuantityName>;
@@ -61,7 +61,7 @@ export class SignalEngineImpl implements SignalEngine {
 
   amplifierVoltageFor(pin_W: number, n: number, wiring: DriverWiring, re: number, rs: number, rgAtDriverSide: boolean): number {
     const drive = driverDrive(n, wiring, 1, rs, rgAtDriverSide);
-    return amplifierVoltage(n, wiring, driveVoltage(pin_W / n, re, drive.Rg_ohm));
+    return amplifierVoltage(n, wiring, driveVoltage(eachOfN(pin_W, n), re, drive.Rg_ohm));
   }
 
   powerFor(voltage_V: number, n: number, wiring: DriverWiring, re: number, rs: number, rgAtDriverSide: boolean): number {

@@ -497,7 +497,8 @@ export class OpenISDBox implements Box {
                 const prCms = mech.Cms_m_per_N;
                 const prNum = this.passiveRadiator.count.value || 1;
                 const nowAir = air();
-                if (!(Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null && fp_hz > 0)) {
+                const positive = this.#engine.pr.isPositiveGeometry;
+                if (!(positive(Vb) && positive(prMmd) && positive(prSd) && positive(prCms) && fp_hz > 0)) {
                     return absentCell<number>('addedMassForTuning_kg');
                 }
                 const totalMass = this.#engine.pr.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, fp_hz, nowAir);

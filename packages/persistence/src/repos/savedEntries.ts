@@ -64,6 +64,24 @@ export type SavedRead<T> =
 
 /** What one library supplies: its storage key and the two
  *  directions between a stored record and the domain object it stands for. */
+/** The writes of a repo of the user's saved records (My Drivers, My Passive Radiators) for records of type `T`. Every write
+ *  is refused while the bucket is unreadable. */
+export interface SavedRecordRepoWrites<T> {
+  /** Replace the whole collection. Each entry mints a fresh uuid. */
+  replaceAll(list: T[]): SavedWrite;
+  /** Save one record. `uuid` absent mints a fresh identity (a new entry); `uuid` present overwrites that entry. Returns
+   *  the uuid it was saved under; null = refused (read-only). */
+  upsert(record: T, uuid?: string): { uuid: string; overwrote: boolean } | null;
+  /** Remove the saved record with this uuid. */
+  remove(uuid: string): SavedWrite;
+  /** Remove ONE broken entry by its `BrokenEntry.key` — the surface challenges first. */
+  removeBroken(key: number): SavedWrite;
+  /** The stored string, verbatim — what the unreadable-bucket Export downloads. */
+  exportRaw(): string | null;
+  /** Wipe the bucket and start fresh — NEVER automatic. */
+  deleteAll(): 'done' | 'noRoom';
+}
+
 export interface SavedEntriesSpec<T> {
   key: string;
   /** The domain's own seam — `OpenISDDriver.fromConformingRecord` and friends. Answers with

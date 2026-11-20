@@ -2,22 +2,14 @@
 // The help a desktop ? opens: a panel down the right side of the window, the page still visible
 // beside it. For each section: its name, what it is for, then one line per row. The words come
 // from packages/design; this draws them.
-import {inject} from 'vue';
-import type {PhoneHelpRow, PhoneHelpSection} from '@openisd/design/fields';
-import {WinisdDifferencesModalKey} from '../../hooks/WinisdDifferencesModal-hooks.js';
+import type {PhoneHelpSection} from '@openisd/design/fields';
+import {useHelpDifferenceLink} from '../../hooks/WinisdDifferencesModal-hooks.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 
 const props = defineProps<{title: string; sections: readonly PhoneHelpSection[]}>();
 const emit = defineEmits<{close: []}>();
 useEscToClose(() => true, () => emit('close'));
-// Only a line that links to a Differences entry needs the Differences page.
-const differences = inject(WinisdDifferencesModalKey, null);
-
-function showDifference(row: PhoneHelpRow): void {
-  if (differences === null || row.difference === undefined) return;
-  emit('close');
-  differences.showEntry(row.difference);
-}
+const showDifference = useHelpDifferenceLink(() => emit('close'));
 </script>
 
 <template>

@@ -40,3 +40,17 @@ describe('PrEngine.twiceDriverDisplacement', () => {
     expect(createEngine().pr.twiceDriverDisplacement(null, 1)).toBeNull();
   });
 });
+
+// T934 review 2 (Codex, 19 Nov 2026): moving the sum into driverWiring.ts keeps main's operation order, 2 × N_drivers first,
+// so every input gives the same result as before, even where an intermediate product overflows.
+describe('PrEngine twice-displacement keeps the operation order (2 × N_drivers) × Vd_driver', () => {
+  it('twiceDriverDisplacement equals (2 * n) * v bit for bit, ordinary and extreme', () => {
+    const pr = createEngine().pr;
+    for (const [v, n] of [[86.95e-6, 1], [0.1 + 0.2, 3], [0.25, Number.MAX_VALUE], [Number.MAX_VALUE / 3, 2]] as const) {
+      expect(pr.twiceDriverDisplacement(v, n)).toBe((2 * n) * v);
+    }
+  });
+  it('countForTwiceDisplacement at N_drivers = MAX_VALUE: 2 × N overflows first, as before', () => {
+    expect(createEngine().pr.countForTwiceDisplacement(1, 0.25, Number.MAX_VALUE)).toBe(Math.max(1, Math.ceil((2 * Number.MAX_VALUE) * 0.25 / 1 - 1e-9)));
+  });
+});
