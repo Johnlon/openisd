@@ -239,24 +239,28 @@ class SealedProjectBuilder extends BoxProjectBuilder {
     }
 }
 
-class VentedProjectBuilder extends BoxProjectBuilder {
-    #volume: number | null = null;
-    #tuning: number | null = null;
-    #alignment: VentedAlignment | null = null;
+/** A box built from a volume and a tuning (the vented and the passive-radiator box): the two figures it states, one place. */
+abstract class TunedBoxProjectBuilder extends BoxProjectBuilder {
+    protected volume: number | null = null;
+    protected tuning: number | null = null;
 
     constructor(driver: OpenISDDriver, engine: Engine, appContext: AppServices) {
         super(driver, engine, appContext);
     }
 
     volume_m3(v: number): this {
-        this.#volume = v;
+        this.volume = v;
         return this;
     }
 
     tuning_goal_hz(v: number): this {
-        this.#tuning = v;
+        this.tuning = v;
         return this;
     }
+}
+
+class VentedProjectBuilder extends TunedBoxProjectBuilder {
+    #alignment: VentedAlignment | null = null;
 
     /** Volume and tuning from the named alignment, designed for the driver as the project drives
      *  it (its own Rs and Ql) — what the wizard's vented step chooses. An explicit `volume_m3`
@@ -267,7 +271,7 @@ class VentedProjectBuilder extends BoxProjectBuilder {
     }
 
     protected override afterWrap(project: OpenISDProject): void {
-        if (this.#alignment === null || this.#volume !== null) return;
+        if (this.#alignment === null || this.volume !== null) return;
         const design = project.driver.ventedDesign(this.#alignment, project.driveLoad, project.box.vented.losses.Ql.value);
         if (!design) return;
         project.box.vented.volume_m3.set(design.Vb);
@@ -283,8 +287,8 @@ class VentedProjectBuilder extends BoxProjectBuilder {
                 ...box.vented,
                 chamber: {
                     ...box.vented.chamber,
-                    volume_m3: this.#volume ?? 0,
-                    ...(this.#tuning === null ? {} : {tuning_goal_hz: enteredEntry(this.#tuning)}),
+                    volume_m3: this.volume ?? 0,
+                    ...(this.tuning === null ? {} : {tuning_goal_hz: enteredEntry(this.tuning)}),
                 },
             },
         };
@@ -391,24 +395,8 @@ class TwoChamberProjectBuilder extends BoxProjectBuilder {
 
 /** A passive-radiator box cannot be valid without a RADIATOR — the one box type whose builder
  *  demands a second component, which is exactly why it has a builder of its own. */
-class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
-    #volume: number | null = null;
-    #tuning: number | null = null;
+class PassiveRadiatorProjectBuilder extends TunedBoxProjectBuilder {
     #count = 1;
-
-    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppServices) {
-        super(driver, engine, appContext);
-    }
-
-    volume_m3(v: number): this {
-        this.#volume = v;
-        return this;
-    }
-
-    tuning_goal_hz(v: number): this {
-        this.#tuning = v;
-        return this;
-    }
 
     count(v: number): this {
         this.#count = v;
@@ -422,8 +410,8 @@ class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
             boxType: 'box-passive-radiator',
             passiveRadiator: {
                 ...box.passiveRadiator,
-                volume_m3: this.#volume ?? 0,
-                ...(this.#tuning === null ? {} : {tuning_goal_hz: enteredEntry(this.#tuning)}),
+                volume_m3: this.volume ?? 0,
+                ...(this.tuning === null ? {} : {tuning_goal_hz: enteredEntry(this.tuning)}),
                 count: this.#count,
             },
         };

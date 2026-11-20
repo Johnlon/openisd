@@ -6,6 +6,6 @@ export {RADIATOR_RELATIONS, RADIATOR_ROUTES} from './RadiatorRoutes.js';
 export {RouteGroup} from './RouteGroup.js';
 export {SolveRoute} from './SolveRoute.js';
 export type {DriverRoute, RouteQuantity, WithInputs} from './SolveRoute.js';
-export {BL_FROM_QES_CMS_ROUTE, CMS_FROM_FS_MMS_ROUTE, CMS_FROM_VAS_SD_ROUTE, EBP_AFTER_FIXED_POINT_ROUTE, efficiencyBandwidthProduct, FS_FROM_MASS_CMS_ROUTE, MMS_FROM_FS_CMS_ROUTE, QES_FROM_FS_MMS_RE_BL_ROUTE, QMS_FROM_FS_MMS_RMS_ROUTE, QTS_FROM_QES_QMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE} from './smallSignalRoutes.js';
+export {BL_FROM_QES_CMS_ROUTE, CMS_FROM_VAS_SD_ROUTE, EBP_AFTER_FIXED_POINT_ROUTE, efficiencyBandwidthProduct, FS_FROM_MASS_CMS_ROUTE, MMS_FROM_FS_CMS_ROUTE, QES_FROM_FS_MMS_RE_BL_ROUTE, QMS_FROM_FS_MMS_RMS_ROUTE, QTS_FROM_QES_QMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE} from './smallSignalRoutes.js';
 export {DRIVER_ROUTE_FORMULAS, RADIATOR_ROUTE_FORMULAS, type RouteFormula, type RouteFormulas} from './routeFormulas.js';
 export {VAS_FROM_CMS_SD_ROUTE} from './efficiencyRoutes.js';
