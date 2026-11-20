@@ -8,3 +8,25 @@ why: John, board card test-guardrails, 20 Nov 2026 00:52: "All of A-G: build eve
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/T939.yml
+notes: |
+  Guardrail B of John's test-guardrails decision (20 Nov 2026 00:52, "All of A-G ... the physics-law combination test (B)
+  first"), plan docs/plans/PLAN_20261119_TEST_STRATEGY.md option B (rules R1, R2, R3, R4, R9 there).
+  Test: packages/design/test/engine/driver-array-physics-rules.test.ts. Engine level: each of the six box types starts from
+  its WinISD fixture (packages/design/test/winisd/fixtures/<box>-w5-1.wpr, sealed-w5-nd2.wpr with one driver), the project
+  turns it into the engine's sweep job, and the test then varies the job: number of drivers (1, 2, 3), wiring (parallel,
+  series), loading (standard, Iso-Barik) and every Advanced switch the sweep reads. Switches are combined pairwise: all off,
+  all on, and each switch on alone, which covers every pair of two switches in all four on/off states; the whole set is
+  run for each of the three circuit models.
+
+  Rules (written before the test was run; tolerances are fixed by numerics, never tuned to a result):
+
+  | Rule | Statement | Why it holds | Tolerance and why |
+  | ---- | --------- | ------------ | ----------------- |
+  | R1 parallel array | N drivers wired in parallel in N x the box (every chamber volume, port area and radiator count x N) at amplifier voltage V equal one driver in the box at V, with series resistance N x Rg when Rg sits at the amplifier (Rg when each driver has its own): SPL and Xmax-limited SPL + 20 log10 N, pressure x N, VA x N, impedance / N (one driver's x 1 with "Impedance of one driver"), excursion, radiator excursion, port velocities, phase, group delay, transfer functions and port and radiator gains unchanged; maximum SPL + 20 log10 N, maximum power x N | Every driver sees the same voltage and the same share of the box, so by symmetry each moves as the one driver does (Thevenin: N parallel branches behind Rg each see N x Rg); N in-phase sources sum to N x the volume velocity, so N x the pressure; the parallel load is 1/N of one branch | 1e-9 dB on levels, 1e-9 relative on linear values, 1e-9 rad on phase (mod 2 pi), 1e-9 s on group delay. The two sides differ only by one N x then / N rounding of the box values (a few ulp, 1e-16 relative) carried through a solve of a few hundred floating-point operations; even with a condition number of 1e4 at a sharp resonance that is 1e-11. 1e-9 dB is 6 orders below anything audible (about 0.1 dB), so a real fault cannot hide under it |
+  | R2 series array | The same N drivers wired in series at N x V give the same curves as the parallel array at V (same SPL, excursion, phase, group delay, VA, maximum curves), impedance N^2 x the parallel one; with Rg at the amplifier each driver sees Rg / N, so the comparison is made at Rg = 0 or with Rg at each driver | Series: each driver gets 1/N of the amplifier voltage, N x V / N = V, so each driver does exactly what it does in the parallel array; series impedances add (N x one), parallel divide (one / N) | As R1 |
+  | R3 Xmax limit only lowers | The Xmax-limited SPL never exceeds the SPL at any frequency, equals it wherever peak excursion is at or below Xmax, and R1 holds for it (checked in R1) | Backing off the drive can only lower the level | 1e-9 dB, as R1 |
+  | R4 Iso-Barik pair | An Iso-Barik pair in half the box (every chamber volume and port area / 2, radiator count / 2) at V, against one driver in the box at V: pressure / sqrt 2 (SPL - 10 log10 2 = -3.0103 dB) and excursion / sqrt 2 at every frequency; impedance, phase, group delay and transfer function equal; port velocities x sqrt 2 | OpenISD's (WinISD's) pair is Mms x 2, Cms / 2, Rms x 2, BL x sqrt 2, Re and Le unchanged (isobarikPair). Half the box doubles every acoustic impedance the cone works into, so every mechanical impedance doubles; with force factor sqrt 2 the cone velocity solves to v / sqrt 2 exactly and the motional impedance BL^2 / Zm is unchanged. The constant is the model's convention (equal electrical load, so equal input power), fitted to the WinISD capture sealed-w5-isobarik; a parallel-wired physical pair would instead give the same SPL at twice the current | As R1 |
+  | R9 every curve finite | Every plotted sweep and maximum-curve point is a finite number (the -200 dB silence mark counts as finite; maximum curves may be +Infinity only for a driver with neither Pe nor Xmax, which these fixtures do not have) | The engine standard (ARCHITECTURE.md section 4: failure is a value, never a silent NaN) | Exact |
+
+  A rule that fails on main is not loosened or skipped: it is written as the right expectation under it.fails naming a bug
+  file in bugs/.
