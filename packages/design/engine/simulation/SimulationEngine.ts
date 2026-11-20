@@ -503,7 +503,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
     // The circuit runs on the boxes as they show (QO534); "Chart from Fs, Vas, Qms (WinISD's way)" ticked, on Fs, Vas, Qes, Qms,
     // Re, Sd, BL and Le as WinISD's does, the stated Cms, Mms and Rms not read (QO539).
-    const circuitDriver = P.winisdChartFromFsVasQms === true ? this.driver.winisdCircuitValues(drv.values, P.air) : this.driver.circuitValues(drv.values);
+    const circuitDriver = this.driver.chartValues(drv.values, P.air, P.winisdChartFromFsVasQms === true);
     const single = withAddedMass(driverValues(circuitDriver), P.driverAddedMass ?? 0);
     const d = P.loading === 'isobaric' ? isobarikPair(single) : single;
     const circuit = circuitQuantities(d, Le_H, drv.winisdBL_Tm);

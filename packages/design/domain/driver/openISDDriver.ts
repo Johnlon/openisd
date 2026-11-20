@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { DriveLoad, DriverError, Wiring, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
+import type { Air, DriveLoad, DriverError, Wiring, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppServices } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -258,6 +258,22 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     sealedFsc(volume_m3: number, load: DriveLoad, losses: SealedBoxLosses): number | null {
         const feed = this.#sealedFeed(load, losses);
         return feed === null || !(volume_m3 > 0) ? null : this.engine.sealed.resonance({...feed, Vb: volume_m3}).Fsc;
+    }
+
+    /** What the sealed-box engine takes of this driver as the CHART runs it, so the Box tab's Fsc and Qtc are the chart's impedance
+     *  peak and Q: the circuit's Mms, Cms, Rms and BL (`chartValues`, which follows "Chart from Fs, Vas, Qms (WinISD's way)" through
+     *  `winisdWay`) give Fs, Vas and the Q's, the source resistance and coil heating of `load` fold into Qes, and the drivers
+     *  scale Vas. The stated Fs, Vas and Qts (`#sealedFeed`) while the chart's figures cannot be formed; null while those are not
+     *  stated either. `air` is the project's. */
+    chartSealedFeed(load: DriveLoad, losses: SealedBoxLosses, air: Air, winisdWay: boolean): Omit<SealedParams, 'Vb'> | null {
+        const chart = this.engine.driver.chartValues(this.specs.sweepDriverIn(air).values, air, winisdWay);
+        const figures = this.engine.driver.chartResonanceFigures(chart, air);
+        if (figures === null) return this.#sealedFeed(load, losses);
+        const Qts = this.engine.driver.heatedSourceLoadedQts(
+            figures.Qms, figures.Qes, figures.Re_ohm, load.Rs_ohm, load.alfaVC_per_K, load.vcTempRise_K, figures.Qts);
+        return {
+            Fs: figures.Fs_hz, Vas: this.engine.sealed.arrayVas(figures.Vas_m3, load.nDrivers, load.loading), Qts, Ql: losses.Ql, Qa: losses.Qa,
+        };
     }
 
     /** The sealed volume that gives this driver `targetQtc` on the Box tab, as driven through `Rs_ohm`

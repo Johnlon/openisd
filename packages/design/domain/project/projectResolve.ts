@@ -8,6 +8,7 @@ import type { Vent } from '../vent.js';
 import { isPortCount } from '../box/isPortCount.js';
 import type { OpenISDBox } from '../box/openISDBox.js';
 import { driveLoadOf } from './driveLoad.js';
+import { ProjectAdvanced } from './projectAdvanced.js';
 import type { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import { resolveAir } from './projectAir.js';
 import type { AirFields } from './projectAir.js';
@@ -163,17 +164,15 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         return {...NONE, pr, radiator};
     }
     case 'sealed': {
-        const ts = driver.specs;
-        // The Rg-loaded, coil-heated Qts of the direct-root driver: the same feed the Box tab's readout uses.
-        const rgLoadedQts = (): number | null => driver.heatedSourceLoadedQts(driveLoadOf(directRoot, driver));
+        // The feed the Box tab's readout uses: the driver as the chart runs it (the chart's Mms, Cms, Rms and BL, "Chart from Fs, Vas,
+        // Qms (WinISD's way)" followed), Rg-loaded and coil-heated, all the project's drivers in the one box.
+        const winisdWay = ProjectAdvanced.wrap(focus(directRoot, 'advanced'), focus(directRoot, 'filters')).winisdChartFromFsVasQms.value;
+        const feed = driver.chartSealedFeed(driveLoadOf(directRoot, driver),
+            {Ql: box.sealed.losses.Ql.value, Qa: box.sealed.losses.Qa.value}, air, winisdWay);
         const sealed = engine.sealed.solve({
-            Qts: inputOf(rgLoadedQts),
-            Vas_m3: inputOf(() => {
-                const Vas = ts.Vas_m3.value;
-                const load = driveLoadOf(directRoot, driver);
-                return Vas === null ? null : engine.sealed.arrayVas(Vas, load.nDrivers, load.loading);
-            }),
-            Fs_hz: inputOf(() => ts.Fs_hz.value),
+            Qts: inputOf(() => feed?.Qts ?? null),
+            Vas_m3: inputOf(() => feed?.Vas ?? null),
+            Fs_hz: inputOf(() => feed?.Fs ?? null),
             Ql: inputOf(() => box.sealed.losses.Ql.value),
             Qa: inputOf(() => box.sealed.losses.Qa.value),
             Qtc: box.sealed.q_tc,

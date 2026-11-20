@@ -5,8 +5,11 @@ import type {DriverRoute} from './SolveRoute.js';
 import {BL_FROM_QES, Q_PARALLEL, FS_FROM_MASS_AND_COMPLIANCE, QES_FROM_MOTOR, RME_FROM_MOTIONAL, EBP_FROM_Q, VAS_FROM_COMPLIANCE, RMS_FROM_Q} from './relations.js';
 
 /** Block 2: Qts, Qes and Qms in parallel; any two give the third. */
+export const QTS_FROM_QES_QMS_ROUTE = Object.freeze(
+  new SolveRoute('Qts', ['Qes', 'Qms'], 'Qts = (Qes × Qms) / (Qes + Qms)', v => v.Qes * v.Qms / (v.Qes + v.Qms)).inRelation(Q_PARALLEL));
+
 export const Q_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Qts', ['Qes', 'Qms'], 'Qts = (Qes × Qms) / (Qes + Qms)', v => v.Qes * v.Qms / (v.Qes + v.Qms)).inRelation(Q_PARALLEL),
+  QTS_FROM_QES_QMS_ROUTE,
   new SolveRoute('Qes', ['Qts', 'Qms'], 'Qes = (Qts × Qms) / (Qms - Qts)', v => v.Qts * v.Qms / (v.Qms - v.Qts), v => v.Qms > v.Qts).inRelation(Q_PARALLEL),
   new SolveRoute('Qms', ['Qts', 'Qes'], 'Qms = (Qts × Qes) / (Qes - Qts)', v => v.Qts * v.Qes / (v.Qes - v.Qts), v => v.Qes > v.Qts).inRelation(Q_PARALLEL),
 ]);
@@ -80,15 +83,21 @@ export const RMS_FROM_FS_MMS_QMS_ROUTE = Object.freeze(new SolveRoute('Rms_kg_pe
   v => TAU * v.Fs_hz * v.Mms_kg / v.Qms).inRelation(RMS_FROM_Q));
 
 /** Block 5: Rms, Qms and Mms from Fs and the other two. WinISD has no route deriving Fs from this triple. */
+export const QMS_FROM_FS_MMS_RMS_ROUTE = Object.freeze(
+  new SolveRoute('Qms', ['Fs_hz', 'Mms_kg', 'Rms_kg_per_s'], 'Qms = (2π × Fs_hz × Mms_kg) / Rms_kg_per_s', v => TAU * v.Fs_hz * v.Mms_kg / v.Rms_kg_per_s).inRelation(RMS_FROM_Q));
+
 export const RMS_QMS_MMS_ROUTES: readonly DriverRoute[] = Object.freeze([
   RMS_FROM_FS_MMS_QMS_ROUTE,
-  new SolveRoute('Qms', ['Fs_hz', 'Mms_kg', 'Rms_kg_per_s'], 'Qms = (2π × Fs_hz × Mms_kg) / Rms_kg_per_s', v => TAU * v.Fs_hz * v.Mms_kg / v.Rms_kg_per_s).inRelation(RMS_FROM_Q),
+  QMS_FROM_FS_MMS_RMS_ROUTE,
   new SolveRoute('Mms_kg', ['Fs_hz', 'Qms', 'Rms_kg_per_s'], 'Mms_kg = (Rms_kg_per_s × Qms) / (2π × Fs_hz)', v => v.Rms_kg_per_s * v.Qms / (TAU * v.Fs_hz), v => v.Fs_hz > 0).inRelation(RMS_FROM_Q),
 ]);
 
 /** Block 6: Qes, Re, BL and Mms from the other four of Qes, BL, Fs, Mms, Re. Fs from this group is block 3 rel 2. */
+export const QES_FROM_FS_MMS_RE_BL_ROUTE = Object.freeze(
+  new SolveRoute('Qes', ['Fs_hz', 'Mms_kg', 'Re_ohm', 'BL_Tm'], 'Qes = (2π × Fs_hz × Mms_kg × Re_ohm) / BL²', v => TAU * v.Fs_hz * v.Mms_kg * v.Re_ohm / (v.BL_Tm * v.BL_Tm)).inRelation(QES_FROM_MOTOR));
+
 export const MOTOR_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Qes', ['Fs_hz', 'Mms_kg', 'Re_ohm', 'BL_Tm'], 'Qes = (2π × Fs_hz × Mms_kg × Re_ohm) / BL²', v => TAU * v.Fs_hz * v.Mms_kg * v.Re_ohm / (v.BL_Tm * v.BL_Tm)).inRelation(QES_FROM_MOTOR),
+  QES_FROM_FS_MMS_RE_BL_ROUTE,
   new SolveRoute('Re_ohm', ['Qes', 'BL_Tm', 'Fs_hz', 'Mms_kg'], 'Re_ohm = (BL² × Qes) / (2π × Fs_hz × Mms_kg)', v => v.Qes * v.BL_Tm * v.BL_Tm / (TAU * v.Fs_hz * v.Mms_kg)).inRelation(QES_FROM_MOTOR),
   new SolveRoute('BL_Tm', ['Qes', 'Re_ohm', 'Fs_hz', 'Mms_kg'], 'BL_Tm = √(2π × Fs_hz × Mms_kg × Re_ohm / Qes)',
     v => Math.sqrt(TAU * v.Fs_hz * v.Mms_kg * v.Re_ohm / v.Qes), v => v.Qes > 0).inRelation(QES_FROM_MOTOR),

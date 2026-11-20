@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { Air, BoxType, DqIssue, DriveLoad, RadiatorMechanics, VentedAlignment } from '../../engine/index.js';
+import type { Air, BoxType, DqIssue, DriveLoad, RadiatorMechanics, SealedParams, VentedAlignment } from '../../engine/index.js';
 import { CalculatedFieldImpl, DerivableFieldImpl, DualWriteFieldImpl, absentCell, enteredCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, settlingNullableField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
@@ -669,7 +669,8 @@ export class OpenISDBox implements Box {
             case 'sealed': {
                 if (isStated(this.sealed.volume_m3.value)) return;
                 const losses = this.sealed.losses;
-                const Vb = this.#driver.sealedVolumeForQtc(STARTING.sealedQtc, this.#load(), {Ql: losses.Ql.value, Qa: losses.Qa.value});
+                const feed = this.#sealedFeed({Ql: losses.Ql.value, Qa: losses.Qa.value});
+                const Vb = feed === null ? null : this.#engine.sealed.volumeForLossyQtc(feed, STARTING.sealedQtc);
                 if (Vb !== null && Vb > 0) this.sealed.volume_m3.set(Vb);
                 return;
             }
@@ -777,10 +778,10 @@ export class OpenISDBox implements Box {
         }, air).Vas_m3;
     }
 
-    /** The Vas the sealed readout sees: all the project's drivers in the one box (the engine's rule). */
-    #arrayVas(Vas_m3: number): number {
-        const load = this.#load();
-        return this.#engine.sealed.arrayVas(Vas_m3, load.nDrivers, load.loading);
+    /** What the sealed readout runs on: the driver as the CHART runs it (the same Mms, Cms, Rms and BL, "Chart from Fs, Vas, Qms
+     *  (WinISD's way)" included), with all the project's drivers in the one box. Null while the driver states too little. */
+    #sealedFeed(losses: {Ql: number; Qa: number}): Omit<SealedParams, 'Vb'> | null {
+        return this.#driver.chartSealedFeed(this.#load(), losses, this.#air(), this.#chartFromFsVasQms());
     }
 
     /** The sealed volume an entered Qtc or an entered Fsc gives; null with neither entered or when no box reaches it. */
@@ -790,17 +791,11 @@ export class OpenISDBox implements Box {
         const entered = qtc.entered && qtc.value !== null ? {kind: 'Qtc', value: qtc.value} as const
             : fsc.entered && fsc.value !== null ? {kind: 'Fsc', value: fsc.value} as const : null;
         if (entered === null) return null;
-        if (entered.kind === 'Qtc') {
-            return this.#driver.sealedVolumeForQtc(entered.value, this.#load(), {Ql: losses.Ql.value, Qa: losses.Qa.value});
-        }
-        const ts = this.#driver.specs;
-        const Fs = ts.Fs_hz.value;
-        const Vas = ts.Vas_m3.value;
-        const Qts = this.#driver.heatedSourceLoadedQts(this.#load());
-        if (Fs === null || Vas === null || Qts === null) return null;
-        // The same lossy model the Box tab reads Fsc from, so the volume gives back the value typed.
-        const feed = {Fs, Vas: this.#arrayVas(Vas), Qts, Ql: losses.Ql.value, Qa: losses.Qa.value};
-        return this.#engine.sealed.volumeForResonance(feed, entered.value);
+        const feed = this.#sealedFeed({Ql: losses.Ql.value, Qa: losses.Qa.value});
+        if (feed === null) return null;
+        // The same feed and lossy model the Box tab reads Fsc and Qtc from, so the volume gives back the value typed.
+        return entered.kind === 'Qtc' ? this.#engine.sealed.volumeForLossyQtc(feed, entered.value)
+            : this.#engine.sealed.volumeForResonance(feed, entered.value);
     }
 
     /**
@@ -824,20 +819,15 @@ export class OpenISDBox implements Box {
     #sealedResonance(volume_m3: number | null, losses: SealedLosses,
                      form: 'lossy' | 'lossless'): { Fsc: number; Qtc: number } | null {
         if (volume_m3 === null || !(volume_m3 > 0)) return null;
-        const ts = this.#driver.specs;
-        const Fs_hz = ts.Fs_hz.value;
-        const Vas = ts.Vas_m3.value;
-        const QtsLoaded = this.#driver.heatedSourceLoadedQts(this.#load());
-        if (Fs_hz === null || Vas === null || QtsLoaded === null) return null;
+        const feed = this.#sealedFeed({Ql: losses.Ql.value, Qa: losses.Qa.value});
+        if (feed === null) return null;
         // WinISD displays and saves the LOSSY figure by default (John 2026-08-27: "default is
         // winisd = Lossy") and it MOVES with the chamber's losses: measured, `Fr` shifts 5.8 Hz
         // for a `Ql` change at fixed volume (winisd_research FINDING-007). Ql and Qa at or above
         // the lossless limit give the lossless figure. The bandpass4 rear chamber asks for
         // 'lossless' outright: that is WinISD's own fixed behaviour for that chamber.
-        const feed = {
-            Fs: Fs_hz, Vas: this.#arrayVas(Vas), Qts: QtsLoaded, Vb: volume_m3, Ql: losses.Ql.value, Qa: losses.Qa.value,
-        };
-        return form === 'lossless' ? this.#engine.sealed.losslessResonance(feed) : this.#engine.sealed.resonance(feed);
+        const resonanceFeed = {...feed, Vb: volume_m3};
+        return form === 'lossless' ? this.#engine.sealed.losslessResonance(resonanceFeed) : this.#engine.sealed.resonance(resonanceFeed);
     }
 
 }
