@@ -112,7 +112,7 @@ const wizardPlacementInfo: OpenStep = {root: '.mob-np-icard', open: async page =
 
 const wizardEbpInfo: OpenStep = {root: '.mob-np-icard', open: async page => {
   await wizardCountStep(page);
-  await page.locator('.overlay.open button', {hasText: 'Next'}).click();
+  await page.locator('.overlay.open .modal-footer button', {hasText: 'Next'}).click();
   await page.getByRole('button', {name: 'About EBP'}).first().click();
   await page.locator('.mob-np-icard').waitFor({state: 'visible'});
 }};

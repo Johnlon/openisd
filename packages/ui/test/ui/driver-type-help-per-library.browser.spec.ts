@@ -21,7 +21,7 @@ test('desktop: help left open in Manage drivers is closed in the new-project wiz
   await expect(page.getByText('Step 1 of 5')).toBeVisible();
   await expect(page.getByText(HELP)).toHaveCount(0);
   await page.getByText(TEST_DRIVER).click();
-  await expect(page.getByRole('button', {name: 'Next', exact: true})).toBeEnabled();
+  await expect(page.locator('.overlay.open .modal-footer').getByRole('button', {name: 'Next', exact: true})).toBeEnabled();
 });
 
 test('phone: help left open in Manage drivers is closed in the new-project wizard', async ({page}) => {

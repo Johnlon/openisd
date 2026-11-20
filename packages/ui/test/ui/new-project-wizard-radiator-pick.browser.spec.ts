@@ -14,9 +14,9 @@ test.describe('desktop', () => {
     const modal = page.locator('.overlay.open');
     await modal.locator('.dlist .ditem').first().click();
     await modal.locator('.modal-footer').getByRole('button', {name: 'Next', exact: true}).click();
-    await modal.locator('button', {hasText: 'Next'}).click();
+    await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
     await modal.getByLabel('Box type').selectOption('box-passive-radiator');
-    await modal.locator('button', {hasText: 'Next'}).click();
+    await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
   });
 
   test('the step says to select a radiator or define one below', async ({appPage: page}) => {

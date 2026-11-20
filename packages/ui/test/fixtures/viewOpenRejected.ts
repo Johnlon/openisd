@@ -64,9 +64,9 @@ async function wizardAtVentedAlignment(page: Page, skin: WalkSkin): Promise<void
       const modal = page.locator('.overlay.open');
       await modal.locator('.dlist .ditem').first().click();
       await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
-      await modal.locator('button', {hasText: 'Next'}).click();
+      await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
       await modal.getByLabel('Box type').selectOption('vented');
-      await modal.locator('button', {hasText: 'Next'}).click();
+      await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
       break;
     }
   }
@@ -110,9 +110,9 @@ const passiveRadiatorPickError = (skin: WalkSkin): OpenStep => ({root: skin === 
       const modal = page.locator('.overlay.open');
       await modal.locator('.dlist .ditem').first().click();
       await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
-      await modal.locator('button', {hasText: 'Next'}).click();
+      await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
       await modal.getByLabel('Box type').selectOption('box-passive-radiator');
-      await modal.locator('button', {hasText: 'Next'}).click();
+      await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
       break;
     }
   }

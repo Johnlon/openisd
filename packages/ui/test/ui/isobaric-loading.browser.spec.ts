@@ -564,9 +564,9 @@ const PR_STEP = {
     const modal = page.locator('.overlay.open');
     await modal.locator('.dlist .ditem').first().click();
     await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
-    await modal.locator('button', {hasText: 'Next'}).click();
+    await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
     await modal.getByLabel('Box type').selectOption('box-passive-radiator');
-    await modal.locator('button', {hasText: 'Next'}).click();
+    await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
   }},
   phone: {root: '.mob-np-overlay', prepare: async (page: Page): Promise<void> => { await page.setViewportSize(PIXEL_9); await forceMobileSkin(page); }, error: 'phone/wizard-passive-radiator-pick-error', plain: async (page: Page): Promise<void> => {
     await page.setViewportSize(PIXEL_9);

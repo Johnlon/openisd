@@ -83,10 +83,10 @@ test.describe('Sealed picker volume switch', () => {
       await modal.locator('input[type=file]').setInputFiles({
         name: 'W5.owdr', mimeType: 'application/x-openisd-driver', buffer: Buffer.from(owdrText(W5_1138SMF.toSeedDriver(), '00000000-0000-4000-8000-000000000001')),
       });
-      await modal.locator('button', {hasText: 'Next'}).click();
-      await modal.locator('button', {hasText: 'Next'}).click();
+      await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
+      await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
       await modal.getByLabel('Box type').selectOption('sealed');
-      await modal.locator('button', {hasText: 'Next'}).click();
+      await modal.locator('.modal-footer button', {hasText: 'Next'}).click();
       await modal.locator('#np-alignment').selectOption('0.8');
       return Number(await modal.locator('#np-sealed-volume').inputValue());
     }

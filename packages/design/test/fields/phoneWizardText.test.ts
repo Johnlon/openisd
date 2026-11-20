@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {PhoneWizardHelp, PhoneWizardText} from '../../fields/index.js';
+import {PhoneWizardHelp, PhoneWizardText, PlacementChoice} from '../../fields/index.js';
 
 describe('phone wizard text', () => {
   it('the EBP badge follows the engine thresholds in the mock\'s words', () => {
@@ -34,5 +34,19 @@ describe('phone wizard text', () => {
     expect(labels('box-passive-radiator')[1]).toContain('Xmax');
     expect(labels('bandpass4')[0]).toBe('Rear Chamber:Volume');
     expect(labels('abc')[0]).toBe('Rear Chamber:Volume,Tuning');
+  });
+});
+
+describe('the line under the driver count (T919; John, 19 Nov 2026, asking what Number of drivers means with Iso-Barik on)', () => {
+  it('with Iso-Barik the count is of pairs: 1 pair = 2 drivers, 3 pairs = 6 drivers, in both arrangements', () => {
+    for (const c of [PlacementChoice.CLAMSHELL, PlacementChoice.TANDEM]) {
+      expect(c.driverCountNote(1)).toBe('1 pair = 2 drivers');
+      expect(c.driverCountNote(3)).toBe('3 pairs = 6 drivers');
+    }
+  });
+
+  it('with Standard the count is the drivers: no line', () => {
+    expect(PlacementChoice.STANDARD.driverCountNote(1)).toBeNull();
+    expect(PlacementChoice.STANDARD.driverCountNote(3)).toBeNull();
   });
 });

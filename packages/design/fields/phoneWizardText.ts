@@ -14,6 +14,9 @@ export interface WizardInfoCard {
   readonly note: string | null;
 }
 
+/** An Iso-Barik unit is two real drivers working as one. */
+const DRIVERS_PER_ISOBARIK_PAIR = 2;
+
 /** What either Iso-Barik arrangement does to the box, the same for both. */
 const ISOBARIK_EFFECT = 'the pair acts as one driver with half the Vas, so the same Qtc needs half the box volume.';
 
@@ -43,6 +46,15 @@ export class PlacementChoice {
    * New Project step 2 picture: "the either arrangement comment is out of place now"). Null when the choice has no note. */
   get caption(): string | null {
     return this.effect === null ? null : `${this.label}: ${this.effect}`;
+  }
+
+  /** What the driver count stands for under this choice, said under the count: with Iso-Barik each counted driver is a pair, so
+   * "3 pairs = 6 drivers" ("1 pair = 2 drivers"); null for Standard, where the count is the drivers (John, 19 Nov 2026, asking what
+   * Number of drivers means with Iso-Barik on). */
+  driverCountNote(count: number): string | null {
+    if (this.loading === 'standard') return null;
+    const drivers = count * DRIVERS_PER_ISOBARIK_PAIR;
+    return count === 1 ? `1 pair = ${drivers} drivers` : `${count} pairs = ${drivers} drivers`;
   }
 
   /** The choice a radio or dropdown value names. */

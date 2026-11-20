@@ -50,7 +50,7 @@ test('the ▲▼ pair is one size on the wizard and the Box tab (Options joins w
   const input = await page.locator('#np-vented-volume').boundingBox();
   expect(Math.round(input?.height ?? 0), 'the arrows are as tall as the number box').toBe(DesktopSizes.CONTROL_H_PX);
 
-  const footer = await sizesOf(page, '.overlay.open .footer-buttons button');
+  const footer = await sizesOf(page, '.overlay.open .modal-footer .footer-buttons button');
   expect(footer, 'the wizard has Back, Next, Cancel').toHaveLength(3);
   expect(new Set(footer).size, `wizard footer: ${footer.join(', ')}`).toBe(1);
   expect(footer[0]?.split('x')[1], 'footer buttons have the DesktopSizes height').toBe(String(DesktopSizes.FOOTER_BTN_H_PX));

@@ -43,6 +43,7 @@ const {
   placement,
   placementChoice,
   placementValue,
+  driverCountNote,
 
   boxType,
   BOX_OPTIONS,
@@ -175,6 +176,8 @@ function handleCreate() {
         <template v-if="isCountStep">
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_DRIVER_ARRAY }}</span></div>
           <UIFixedField class="mob-ui-field" input-id="np-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="PhoneLabels.DRIVERS" :value="nDrivers" @update:value="n => nDrivers = n" />
+          <!-- With Iso-Barik the count is of pairs: say how many drivers that is. -->
+          <p v-if="driverCountNote !== null" class="mob-chint" data-testid="np-pair-note">{{ driverCountNote }}</p>
           <div class="mob-crow">
             <label class="mob-crow-label" for="np-placement">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
             <!-- The desktop's three drawings as three choices; both Iso-Barik ones give the same Iso-Barik loading. -->

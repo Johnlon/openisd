@@ -98,6 +98,8 @@ export interface OriginalNewProjectAPI {
   readonly placementChoice: Ref<PlacementChoice>;
   /** The chosen drawing's radio or dropdown value (PlacementChoice.value), for v-model. */
   readonly placementValue: WritableComputedRef<string>;
+  /** The line under the driver count saying how many drivers it is ("3 pairs = 6 drivers"); null for Standard. */
+  readonly driverCountNote: ComputedRef<string | null>;
 
   // Step 3: Box type & starting volume (non-sealed types; a sealed box gets its volume from step 4)
   readonly boxType: Ref<BoxType>;
@@ -229,6 +231,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     get: () => placementChoice.value.value,
     set: value => { placementChoice.value = PlacementChoice.of(value); },
   });
+  const driverCountNote = computed(() => placementChoice.value.driverCountNote(nDrivers.value));
   const placement = computed<'standard' | 'isobaric'>({
     get: () => placementChoice.value.loading,
     set: loading => {
@@ -656,6 +659,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     placement,
     placementChoice,
     placementValue,
+    driverCountNote,
 
     boxType,
     BOX_OPTIONS,

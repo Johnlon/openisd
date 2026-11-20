@@ -103,13 +103,13 @@ async function walkWizard(page: Page, boxType: string, name: string, driverText 
   await expect(modal.locator('.selected-driver-banner')).toContainText(driverText);
   await footerNext(page).click();                               // step 2 (num/placement) -> step 3: box type
   await modal.getByLabel('Box type').selectOption(boxType);
-  await modal.locator('button', { hasText: 'Next' }).click();
+  await modal.locator('.modal-footer button', { hasText: 'Next' }).click();
   if (boxType === 'box-passive-radiator') {
     await choosePassiveRadiator(page);                          // step 4: the radiator, as WinISD's wizard asks
   }
-  await modal.locator('button', { hasText: 'Next' }).click();   // step 4 -> 5: the alignment, the radiator or the chambers
+  await modal.locator('.modal-footer button', { hasText: 'Next' }).click();   // step 4 -> 5: the alignment, the radiator or the chambers
   await modal.locator('input[type="text"]').fill(name);         // step 5: name
-  await modal.locator('button', { hasText: 'Create' }).click();
+  await modal.locator('.modal-footer button', { hasText: 'Create' }).click();
   await expect(page.locator('.original-root')).toBeVisible();
 }
 
@@ -340,9 +340,9 @@ test.describe('New Project wizard', () => {
       const modal = page.locator('.overlay.open');
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
       await footerNext(page).click();                           // chooses the driver: step 2
-      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();
       await modal.getByLabel('Box type').selectOption('sealed');
-      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();
 
       const volume = modal.locator('#np-sealed-volume');
       const unit = modal.locator('.ui-field:has(#np-sealed-volume) [role="button"]');
@@ -352,9 +352,9 @@ test.describe('New Project wizard', () => {
       await volume.click();   // focus puts the caret on the last digit; click first so fill replaces the whole value
       await volume.fill('1');
       await volume.press('Tab');
-      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();
       await modal.locator('input[type="text"]').fill('Cubic foot');
-      await modal.locator('button', { hasText: 'Create' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Create' }).click();
 
       // The Box tab keeps the cu ft the user chose and shows 1; in cm³ it is the 28 317 the entry means.
       await expect.poll(() => shownBoxVolume(page)).toBeCloseTo(1, 2);
@@ -375,9 +375,9 @@ test.describe('New Project wizard', () => {
       const modal = page.locator('.overlay.open');
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
       await footerNext(page).click();                           // chooses the driver: step 2
-      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();
       await modal.getByLabel('Box type').selectOption('box-passive-radiator');
-      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();
       await choosePassiveRadiator(page);
 
       // "Define new passive radiator" states nothing: the three boxes are blank before the test types over them.
@@ -388,9 +388,9 @@ test.describe('New Project wizard', () => {
         await modal.locator(id).fill(text);
         await modal.locator(id).press('Tab');
       }
-      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();
       await modal.locator('input[type="text"]').fill('PR from the wizard');
-      await modal.locator('button', { hasText: 'Create' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Create' }).click();
 
       await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
       await expect.poll(async () => parseFloat(await page.locator('#og-pr-vas').inputValue())).toBeCloseTo(40, 3);
@@ -420,22 +420,22 @@ test.describe('New Project wizard', () => {
       const modal = page.locator('.overlay.open');
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
       await footerNext(page).click();                           // chooses the driver: step 2
-      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();
       await modal.getByLabel('Box type').selectOption('box-passive-radiator');
-      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();
       await modal.locator('#np-pr-select').click();
       await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'E150HE-PR' }).first().click();
       // A pick moves on to the project page (QO442); Back is how the boxes are seen again.
-      await modal.locator('button', { hasText: 'Back' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Back' }).click();
       await expect(modal.locator('#np-pr-name')).toHaveValue(/E150HE-PR/);
 
       for (const [box, , expected] of shown) {
         await expect.poll(async () => parseFloat(await modal.locator(box).inputValue()), { message: `${box} after the pick` }).toBeCloseTo(expected, 1);
       }
 
-      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();
       await modal.locator('input[type="text"]').fill('PR picked in the wizard');
-      await modal.locator('button', { hasText: 'Create' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Create' }).click();
       await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).first().click();
       for (const [, field, expected] of shown) {
         const box = page.locator(`[data-field="${field}"] input`);
@@ -468,9 +468,9 @@ test.describe('New Project wizard', () => {
         const modal = page.locator('.overlay.open');
         await modal.locator('.dlist .ditem').first().click();
         await footerNext(page).click();
-        await modal.locator('button', { hasText: 'Next' }).click();
+        await modal.locator('.modal-footer button', { hasText: 'Next' }).click();
         await modal.getByLabel('Box type').selectOption('box-passive-radiator');
-        await modal.locator('button', { hasText: 'Next' }).click();
+        await modal.locator('.modal-footer button', { hasText: 'Next' }).click();
         await modal.locator('#np-pr-select').click();
         await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'E150HE-PR' }).first().click();
 
@@ -509,13 +509,13 @@ test.describe('New Project wizard', () => {
 
       // Complete the wizard: vented box has an alignment step, C4 default; the .wdr
       // driver must be the project's driver.
-      await modal.locator('button', { hasText: 'Next' }).click();   // step 2
-      await modal.locator('button', { hasText: 'Next' }).click();   // step 3
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();   // step 2
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();   // step 3
       await modal.locator('select').selectOption('vented');
-      await modal.locator('button', { hasText: 'Next' }).click();   // step 4: vented alignment
-      await modal.locator('button', { hasText: 'Next' }).click();   // step 5: name
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();   // step 4: vented alignment
+      await modal.locator('.modal-footer button', { hasText: 'Next' }).click();   // step 5: name
       await modal.locator('input[type="text"]').fill('s-re project');
-      await modal.locator('button', { hasText: 'Create' }).click();
+      await modal.locator('.modal-footer button', { hasText: 'Create' }).click();
 
       await expect(page.locator('.original-root')).toBeVisible();
       await expect(page.locator('.driver-id-row input').first()).toHaveValue(/\S/);

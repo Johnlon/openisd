@@ -44,6 +44,7 @@ const {
   placement,
   placementChoice,
   placementValue,
+  driverCountNote,
 
   boxType,
   BOX_OPTIONS,
@@ -132,6 +133,16 @@ function handleCreate() {
         <div class="win-controls"><span class="close-btn" role="button" tabindex="0" title="Cancel" @click="handleCancel" @keydown.enter="handleCancel">✕</span></div>
       </div>
 
+      <!-- Back and Next (Create on the last step) at the top as well as the bottom (John, 19 Nov 2026: "maybe try putting the next
+           button at the top too"): the same buttons, the same rules for when they work. -->
+      <div class="modal-topnav" data-testid="np-nav-top">
+        <div class="footer-buttons">
+          <button class="back-btn" :disabled="!canBack" title="Back to the previous step" @click="back">Back</button>
+          <button v-if="!leadIsCreate" class="ok-btn" :disabled="!canGoNext" @click="goNext">Next</button>
+          <button v-else class="ok-btn" :disabled="!canCreate" @click="handleCreate">Create</button>
+        </div>
+      </div>
+
       <div class="modal-body">
         <p class="np-step">Step {{ currentStepNumber }} of {{ totalSteps }} — {{ stepLabel }}</p>
 
@@ -142,7 +153,7 @@ function handleCreate() {
         </div>
 
         <!-- Step 1: the driver library itself (Q1). A row summarises; the footer's Next chooses it. -->
-        <div v-if="isDriverStep" class="step-content np-library-step">
+        <div v-if="isDriverStep" class="step-content">
           <DriverLibrary class="np-library" show-name :host="DriverListMode.Pick" />
         </div>
 
@@ -151,6 +162,9 @@ function handleCreate() {
           <div class="field-row">
             <UIFixedField input-id="np-ndrivers" :field="NumberField.DRIVER_NDRIVERS" label="Num. of drivers" :value="nDrivers" @update:value="n => nDrivers = n" />
           </div>
+          <!-- With Iso-Barik the count is of pairs: say how many drivers that is (John, 19 Nov 2026, asking what Number of drivers means). -->
+          <!-- Its line stays for Standard (hidden) so the drawings below do not move when the choice changes. -->
+          <p class="np-pair-note" :class="{'np-pair-note-off': driverCountNote === null}" :aria-hidden="driverCountNote === null" data-testid="np-pair-note">{{ driverCountNote }}</p>
           <div class="np-placement-pic">
             <div class="field-row">
               <!-- A field row like the pick fields around it, so its label column is the group's and the radios start where their boxes do.
@@ -197,7 +211,7 @@ function handleCreate() {
             </div>
           </div>
 
-          <div class="box-diagram-container">
+          <div class="box-diagram-container np-box-diagram-big">
             <BoxPlacementDiagram :box-type="boxType" :loading="placement" />
           </div>
         </div>
@@ -268,6 +282,9 @@ function handleCreate() {
           </div>
         </div>
 
+        <!-- Every Box step ends with the drawing of the box, as on the phone, so the step does not leave half the dialog empty. -->
+        <div v-if="isBoxDetailsStep" class="box-diagram-container" :class="isPassiveRadiator ? 'np-box-diagram-small' : 'np-box-diagram-mid'"><BoxPlacementDiagram :box-type="boxType" :loading="placement" /></div>
+
         <!-- Step 5: Project Information -->
         <div v-else-if="isProjectInfoStep" class="step-content">
           <div class="field-row">
@@ -277,7 +294,7 @@ function handleCreate() {
           </div>
           <div class="field-row" style="margin-top:10px; align-items:flex-start;">
             <div class="field" style="align-items:flex-start;"><label style="margin-top:4px;">Description</label>
-              <textarea style="width:280px; height:80px; border:1px solid #999; padding:4px 6px; border-radius:2px;" placeholder="Optional description..." v-model="projDescription"></textarea>
+              <textarea style="width:280px; height:250px; border:1px solid #999; padding:4px 6px; border-radius:2px;" placeholder="Optional description..." v-model="projDescription"></textarea>
             </div>
           </div>
           <p class="hint">Optional label and notes for this design; you can refine them later on the Project tab.</p>
@@ -308,40 +325,26 @@ function handleCreate() {
 .np-chamber h4 { margin: 0 0 8px; font-weight: 600; }
 .np-chamber .field { margin-bottom: 6px; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.18); z-index: 100; display: flex; align-items: flex-start; justify-content: center; }
-.modal { margin-top: 6vh; background: #f7f7f7; border: 1px solid #888; box-shadow: 3px 6px 18px rgba(0,0,0,.35); width: 800px; max-width: 92vw; display: flex; flex-direction: column; height: 500px; max-height: calc(100vh - 6vh - 6px); }
-/* One compact size on every step and in both placements (John: "dlg changing size for a workflow is anti pattern"; "that MASSIVE popup is terrible!!!!").
-   The content fits the size: the driver library scrolls inside its own area, the radiator rows sit in two columns. */
+.modal { margin-top: 6vh; background: #f7f7f7; border: 1px solid #888; box-shadow: 3px 6px 18px rgba(0,0,0,.35); width: 800px; max-width: 92vw; }
+/* One size on every step (John: "dlg changing size for a workflow is anti pattern"): the height of the tallest step, the driver
+   library, so no step is cut and no step grows the dialog. On a window too short for it the body scrolls inside and both rows of
+   buttons stay in view. */
+.modal { display: flex; flex-direction: column; height: var(--np-h); max-height: calc(100vh - 6vh - 6px); --np-h: 656px; }
+.modal-topnav { display: flex; flex: none; justify-content: flex-end; border-bottom: 1px solid #ccc; padding: 8px 20px; background: #eee; }
 .modal-titlebar { display: flex; align-items: center; justify-content: space-between; background: #e9e9e9; border-bottom: 1px solid #bbb; padding: 8px 12px; font-size: 15px; }
 .modal-titlebar .tb-left { display: flex; align-items: center; gap: 8px; }
 .modal-titlebar .app-icon { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #888, #333 70%); }
 .modal-titlebar .close-btn { cursor: pointer; padding: 1px 6px; color: #555; }
 .modal-titlebar .close-btn:hover { background: #e64545; color: #fff; }
-.modal-body { padding: 10px 16px; flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
-.np-step { color: #666; margin: 0 0 8px; font-weight: 500; }
-.step-content { margin-top: 4px; }
-/* The driver step: the library fills what is left of the dialog and scrolls its list inside it. */
-.np-library-step { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
-.selected-driver-banner { background: #eef4fc; border: 1px solid #b8d4f8; padding: 5px 10px; border-radius: 3px; margin-bottom: 6px; font-size: 13px; color: #224466; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.modal-body { padding: 16px 20px; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.np-step { color: #666; margin-bottom: 10px; font-weight: 500; }
+.step-content { margin-top: 10px; }
+.selected-driver-banner { background: #eef4fc; border: 1px solid #b8d4f8; padding: 6px 10px; border-radius: 3px; margin-bottom: 12px; font-size: 13px; color: #224466; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .driver-specs-preview { display: inline-flex; gap: 12px; font-size: 12px; color: #556; margin-left: auto; }
-.np-library { flex: 1 1 auto; min-height: 0; }
-/* The library in two columns, so its list gets the dialog's height: search and filters on the left, the count, the list and its
-   buttons on the right. The overlay's own library keeps its one column. */
-.np-library { display: grid; grid-template-columns: 330px minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; column-gap: 14px; row-gap: 6px; }
-.np-library > :deep(.filter) { grid-column: 1; grid-row: 1; }
-.np-library > :deep(.filters-block) { grid-column: 1; grid-row: 2 / -1; min-height: 0; overflow-y: auto; align-self: start; display: flex; flex-direction: column; gap: 6px; }
-/* In the narrow filter column every filter takes its own line: Fs, Range, its checkbox, Sd, Z. */
-.np-library :deep(.param-row) { grid-template-columns: max-content; }
-.np-library :deep(.param-row > .pgroup) { grid-column: 1; }
-.np-library > :deep(.statusrow) { grid-column: 2; grid-row: 1; }
-.np-library > :deep(.filters-on) { grid-column: 2; grid-row: 2; }
-.np-library > :deep(.dlist) { grid-column: 2; grid-row: 3; min-height: 0; }
-/* A driver's details, opened from its row, take the whole library. */
-.np-library > :deep(.preview) { grid-column: 1 / -1; grid-row: 1 / 4; min-height: 0; overflow-y: auto; }
-.np-library > :deep(.browser-footer) { grid-column: 2; grid-row: 4; }
-/* The list column is narrower than the overlay's: a long driver name wraps to a second line instead of ending in '...' (John: clipping is a bug). */
-.np-library :deep(.ditem b) { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
-.field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.step-content :deep(.ui-field) { margin-bottom: 6px; }
+/* The library sets its own height here: the overlay gives it a 535px window, the wizard has no window to fill. */
+.np-library { height: 420px; }
+.field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.step-content :deep(.ui-field) { margin-bottom: 10px; }
 /* The passive radiator step: Starting volume beside the Select button, the name across, then the eight radiator rows in two
    columns (Vas Qms Fs Sd | Mms Cms Rms Xmax), the pick error across the bottom. The step component's own box is dissolved
    (display: contents) so its rows join this grid; the phone keeps its one column. */
@@ -366,40 +369,48 @@ function handleCreate() {
 .field input, .field select { border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff; }
 .field input { width: 140px; }
 .field .unit { color: #555; }
-.radio-group { display: grid; align-items: center; margin-bottom: 6px; }
+.radio-group { display: grid; align-items: center; margin-bottom: 12px; }
 .np-placement-pic { display: flex; flex-direction: column; gap: 4px; }
 /* The radios on one line and the drawings under them share one set of columns, starting at the value column. */
 .placement-choices { display: grid; grid-template-columns: repeat(3, 168px) auto; align-items: center; column-gap: 8px; row-gap: 6px; }
 .np-place-radio { white-space: nowrap; }
 /* The label sits level with the radios, not in the middle of radios and drawings. */
 .np-placement-pic .placement-label { align-self: start; line-height: 20px; }
-/* A drawing is a click target; the chosen one is framed. The Box tab's drawing height, not the phone's larger one. */
+/* A drawing is a click target; the chosen one is framed. */
 .np-place-drawing { display: flex; justify-content: center; box-sizing: border-box; padding: 4px 0; border: 2px solid transparent; border-radius: 4px; cursor: pointer; }
 .np-place-drawing:hover { border-color: #b8d4f8; }
 .np-place-drawing.np-place-on { border-color: #2e7d32; background: #f0f7f0; }
-.np-place-drawing :deep(svg) { height: 88px; width: auto; }
-/* The note starts where the labels above it start. */
+.np-place-drawing :deep(svg) { height: var(--np-place-h); width: auto; }
+/* The drawings fill the step's height in the fixed dialog. */
+.np-placement-pic { --np-place-h: 150px; }
 /* One line kept whether or not there is a note (Standard has none), so nothing moves when the choice changes. */
 .np-placement-caption { align-self: flex-start; font-size: 13px; color: #666; min-height: 1lh; }
-/* The note's row stays for Standard so the dialog keeps its size when Placement changes. */
 .np-placement-caption-off { visibility: hidden; }
 .placement-label { color: #333; white-space: nowrap; }
+/* The pairs line sits under the driver count, in the hint's grey. */
+.np-pair-note { margin: -4px 0 10px; font-size: 13px; color: #666; min-height: 1lh; }
+.np-pair-note-off { visibility: hidden; }
 /* The first radio circle starts at the column edge, where the boxes above and below start. */
 .placement-choices > label:first-child input { margin-left: 0; }
 .radio-group label { cursor: pointer; }
-.ebp-readout-card { background: #f0f7f0; border: 1px solid #c0e0c0; border-radius: 4px; padding: 8px 14px; margin: 8px 0; display: flex; align-items: center; justify-content: space-between; }
+.ebp-readout-card { background: #f0f7f0; border: 1px solid #c0e0c0; border-radius: 4px; padding: 10px 14px; margin: 12px 0; display: flex; align-items: center; justify-content: space-between; }
 .ebp-row { font-size: 13.5px; }
 .suitability-badge { padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
 .suitability-badge.sealed { background: #e1f5fe; color: #0277bd; border: 1px solid #81d4fa; }
 .suitability-badge.vented { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
 .suitability-badge.either { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
-.box-diagram-container { --bpd-h: 112px; display: flex; justify-content: center; margin: 4px 0; }
+.box-diagram-container { display: flex; justify-content: center; margin: 10px 0; }
+/* Step 3 has room for a larger drawing: it fills the fixed dialog instead of leaving its lower part empty. */
+.np-box-diagram-big { --bpd-h: 160px; }
+/* Step 4's fields take more room than step 3's, the passive radiator's most of all: smaller drawings, so every step 4 fits the dialog. */
+.np-box-diagram-mid { --bpd-h: 150px; }
+.np-box-diagram-small { --bpd-h: 80px; }
 .volume-fields { margin-top: 10px; }
-.readout-box { background: #fafafa; border: 1px solid #ddd; padding: 8px 14px; border-radius: 4px; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.readout-box { background: #fafafa; border: 1px solid #ddd; padding: 10px 14px; border-radius: 4px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
 .readout-item { display: flex; gap: 12px; white-space: nowrap; }
 .readout-warning { color: #8a5b00; background: #fff6e0; border: 1px solid #e8cd8a; border-radius: 3px; padding: 4px 8px; font-size: 12px; white-space: normal; }
 .hint { color: #888; font-size: 12px; font-style: italic; margin-top: 8px; }
-.modal-footer { display: flex; flex: none; align-items: center; justify-content: flex-end; border-top: 1px solid #ccc; padding: 8px 16px; background: #eee; }
+.modal-footer { display: flex; flex: none; align-items: center; justify-content: flex-end; border-top: 1px solid #ccc; padding: 10px 20px; background: #eee; }
 .footer-buttons { display: flex; gap: 8px; }
 .footer-buttons button { border: 1px solid #999; background: #f0f0f0; color: #222; border-radius: 3px; padding: 6px 14px; cursor: pointer; }
 .footer-buttons button:hover:not(:disabled) { background: #dbeaff; border-color: #7fb3ff; }
