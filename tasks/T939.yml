@@ -4,10 +4,16 @@ repo: openisd
 owner: guardrails-b
 status: open
 goal: A combination test over box type x number of drivers x Iso-Barik x wiring x the Advanced switches checks the engine against physics rules that always hold (array scaling, Iso-Barik equivalence, series = parallel at N x voltage, every curve finite).
-why: John, board card test-guardrails, 20 Nov 2026 00:52: "All of A-G: build every guardrail on the card, the physics-law combination test (B) first"; plan docs/plans/PLAN_20261119_TEST_STRATEGY.md option B.
-done_test: bash scripts/quiet-test.sh npm run typecheck
+why: 'John, board card test-guardrails, 20 Nov 2026 00:52: "All of A-G: build every guardrail on the card, the physics-law combination test (B) first, plus the Finite number type and the four lint rules as ratchets"; plan docs/plans/PLAN_20261119_TEST_STRATEGY.md option B. The card says each guardrail "refuses a pull request, and removing one needs your OK", so the test file joins GATE_FILES in land.conf (protected gate files) on this branch.' 
+done_test: bash scripts/test.sh packages/design/test/engine/driver-array-physics-rules.test.ts
 files:
   - tasks/T939.yml
+  - land.conf
+  - packages/design/test/engine/driver-array-physics-rules.test.ts
+  - bugs/BUG_20261120_array-pressure-and-xmax-limited-spl-not-scaled-by-driver-count.md
+  - bugs/BUG_20261120_isobarik-impedance-motional-term-doubled.md
+  - bugs/BUG_20261120_isobarik-pair-with-two-bl-driver-6db-below-one-driver.md
+  - bugs/BUG_20261120_passive-radiator-box-losses-not-scaled-with-radiator-count.md
 notes: |
   Guardrail B of John's test-guardrails decision (20 Nov 2026 00:52, "All of A-G ... the physics-law combination test (B)
   first"), plan docs/plans/PLAN_20261119_TEST_STRATEGY.md option B (rules R1, R2, R3, R4, R9 there).
@@ -30,3 +36,18 @@ notes: |
 
   A rule that fails on main is not loosened or skipped: it is written as the right expectation under it.fails naming a bug
   file in bugs/.
+
+  Run on main (portingle/main b96d95959 merged in), 20 Nov 2026: 4789 cases, 3028 pass, 1761 fail and run as it.fails naming
+  their bug file; R3 and R9 hold everywhere, R1 and R2 hold for everything but the array's pressure and Xmax-limited SPL.
+  - BUG_20261120_array-pressure-and-xmax-limited-spl-not-scaled-by-driver-count: R1 and R2, every box, 1368 cases (review finding 3).
+  - BUG_20261120_isobarik-impedance-motional-term-doubled: R4 impedance with "Two-BL driver" unticked, every box.
+  - BUG_20261120_isobarik-pair-with-two-bl-driver-6db-below-one-driver: R4 with "Two-BL driver" ticked (may be WinISD's own result
+    behind the bug switch: John's call; not exempted).
+  - BUG_20261120_passive-radiator-box-losses-not-scaled-with-radiator-count: R4 on the passive-radiator box with "PR Npr
+    resonance" unticked.
+  Corrections made to the rules while building, before any rule was judged (none loosens a tolerance): group delay and impedance
+  phase are plotted in ms and degrees, so their 1e-9 s and 1e-9 rad bounds are applied in those units; the drive is 20 V, not 10,
+  so the sealed box also passes Xmax (the R3 non-vacuity check); R4 checks radiator excursion x sqrt 2 and leaves out the
+  passive-radiator box's `pv`, which is no chart (SweepResult.pv: none for a box without a port).
+  Mutation check: VA x N changed to x 1.0001 N in the driver-count branch turned 1368 cases red.
+  Open: the gate-file change to land.conf needs gates_approved: QO<n> naming T939 before ship.sh or pr-gate accepts it.
