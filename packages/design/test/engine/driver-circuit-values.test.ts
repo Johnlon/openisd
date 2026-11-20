@@ -57,8 +57,8 @@ describe('DriverEngine.winisdCircuitValues', () => {
     const mms = 1 / ((2 * Math.PI * 40) ** 2 * cms);
     expect(v.Cms_m_per_N).toBeCloseTo(cms, 12);
     expect(v.Mms_kg).toBeCloseTo(mms, 12);
-    expect(v.Rms_kg_per_s).toBeCloseTo(2 * Math.PI * 40 * mms / 4, 9);
-    expect(v.BL_terminal_Tm).toBeCloseTo(Math.sqrt(6 / (2 * Math.PI * 40 * 0.5 * cms)), 9);
+    expect(v.Rms_kg_per_s).toBeCloseTo(2 * Math.PI * 40 * mms / 4, 12);
+    expect(v.BL_terminal_Tm).toBeCloseTo(Math.sqrt(6 / (2 * Math.PI * 40 * 0.5 * cms)), 12);
   });
 
   it('keeps a stated value whose T/S inputs are missing: no Vas, so the stated Cms stands, and Mms and Rms follow from it', () => {
