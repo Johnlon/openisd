@@ -1,0 +1,23 @@
+id: T929
+release_note: 'Boxes opened from old "lossless" projects (or .wpr files with huge Q values) now draw the same as WinISD: a 6th-order bandpass was up to 36 dB wrong, bandpass and ABC front-chamber losses were ignored, and the closed-box Qtc ignored absorption.'
+repo: openisd
+owner: agent
+status: done
+goal: 'Engine: lossless shortcuts only when every loss the box uses is lossless - 6th-order bandpass lossless output sign, bandpass4/6/ABC lossless test on every chamber Q, sealed resonance lossless only when Ql and Qa are both lossless, vented never lossless (main''s rule, from bugs/BUG_20261119_vented-lossless-branch-not-winisd-form.md, kept); sealed handle solve Qtc to Vb uses the lossy inverse when Fs is stated; volumeForQtc gives no volume without a usable Qts and Vas'
+why: 'John, 3 Nov 2026: "I approve uncontroversial fixes." Ultra review 1 findings 2, 4, 5, 6 and 9 (lead, 19 Nov 2026), each proved by a probe; _agent_files/reference/ULTRA_REVIEW_20261119_engine_findings.md'
+tests_changed: 'Lead-approved 19 Nov 2026 after reading old and new side by side: sealed-resonance.test.ts "short-circuits to the lossless closed form" asserted the defect (lossless figure with Qa 10000), so its input became Qa 1e6 and the title says "no leakage and no absorption"; expected values unchanged (John, 1 Nov 2026: a test never pins a defect). boxModel.test.ts is as on main again: main (T934 merge) takes the lossy form for every vented box, so the Qp 1e6 fixture change no longer did anything and was dropped.'
+done_test: bash scripts/test.sh packages/design/test/engine/lossless-limit-agreement.test.ts
+files:
+  - tasks/T929.yml
+  - packages/design/engine/circuit.ts
+  - packages/design/engine/types.ts
+  - packages/design/engine/sealedResonance.ts
+  - packages/design/engine/sealed/SealedEngine.ts
+  - packages/design/engine/boxes/BoxModel.ts
+  - packages/design/engine/boxes/Bandpass4Box.ts
+  - packages/design/engine/boxes/Bandpass6Box.ts
+  - packages/design/engine/boxes/AbcBox.ts
+  - packages/design/test/engine/lossless-limit-agreement.test.ts
+  - packages/design/test/engine/sealed-resonance.test.ts
+  - packages/design/test/engine/sealed-alignment-consistency.test.ts
+  - packages/design/test/engine/lossless-tuned-chambers.test.ts

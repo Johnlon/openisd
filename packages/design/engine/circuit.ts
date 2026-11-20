@@ -40,6 +40,32 @@ import {DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL} from '../fields/d
 // Re-exported unchanged: the box-specific box models (`./boxes/`) now own the port branch, but
 // an existing import of `portImpedance`/`portLoss` from `circuit.js` still resolves.
 
+/** The loss Q's a box's `winisd-lossy` form reads, as it reads them: the shared Ql/Qa and the vented port's
+ *  Qp with their defaults applied, and each chamber Q the caller states (the app states every one; an
+ *  engine-level caller that leaves one out states no loss there). */
+function lossQsOf(box: Exclude<BoxType, 'vented'>, P: SweepParams, Ql: number, Qa: number): readonly number[] {
+  const stated = (qs: readonly (number | undefined)[]): number[] => qs.filter((q): q is number => q !== undefined);
+  switch (box) {
+    case 'sealed':
+    case 'box-passive-radiator': return [Ql, Qa];
+    case 'bandpass4':            return [Ql, Qa, ...stated([P.Qlr, P.Qar, P.Qlf, P.Qaf, P.Qpf, P.Qiclfr])];
+    case 'bandpass6':
+    case 'abc':                  return [Ql, Qa, ...stated([P.Qlr, P.Qar, P.Qpr, P.Qlf, P.Qaf, P.Qpf, P.Qiclfr])];
+  }
+}
+
+/** 'lossless' only when every loss Q the box's lossy form reads is at or above the lossless limit, so the
+ *  shortcut gives what the lossy form gives in that limit (WinISD has no lossless form: it always computes the
+ *  losses, winisd_research/spec/S04_sealed_box.md section 6). A box with any real loss takes the lossy form.
+ *  WinISD uses one fixed-resistance vented form with or without losses, so a vented box takes the
+ *  'winisd-lossy' form even at Ql = Qa = 1e6, TL port model on (runs/vented-w5-tlports-lossless, 1e-11;
+ *  bugs/archive/BUG_20261018_tl-port-lossless-branch-not-winisd-form.md) or off (runs/vented-w5-tl0-ql1e6-qp15
+ *  and -qp100, 3e-14; bugs/BUG_20261119_vented-lossless-branch-not-winisd-form.md). */
+function boxLoss(box: BoxType, P: SweepParams, Ql: number, Qa: number): BoxLoss {
+  if (box === 'vented') return 'winisd-lossy';
+  return lossQsOf(box, P, Ql, Qa).every(q => q >= LOSSLESS_LIMIT) ? 'lossless' : 'winisd-lossy';
+}
+
 /**
  * Solve the acoustic circuit at frequency f (Hz).
  *
@@ -180,13 +206,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const Ral = cx(Ql / (w * Cab), 0);
   const Raa = cx(Qa / (w * Cab), 0);
 
-  // WinISD uses one fixed-resistance vented form with or without losses, so a vented box takes the
-  // 'winisd-lossy' form even at Ql = Qa = 1e6, TL port model on (runs/vented-w5-tlports-lossless, 1e-11;
-  // bugs/archive/BUG_20261018_tl-port-lossless-branch-not-winisd-form.md) or off (runs/vented-w5-tl0-ql1e6-qp15
-  // and -qp100, 3e-14; bugs/BUG_20261119_vented-lossless-branch-not-winisd-form.md).
-  // The other boxes' lossless branches have no capture at 1e6: they keep today's path.
-  const noLosses = Ql >= LOSSLESS_LIMIT && Qa >= LOSSLESS_LIMIT;
-  const loss: BoxLoss = (noLosses && box !== 'vented') ? 'lossless' : 'winisd-lossy';
+  const loss = boxLoss(box, P, Ql, Qa);
 
   // The one place a `BoxType` becomes a topology's own circuit (`./boxes/`, mirroring
   // `../filters/index.ts`'s `filterModel()`).
