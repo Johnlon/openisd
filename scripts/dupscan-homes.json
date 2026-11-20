@@ -1,0 +1,37 @@
+{
+ "driver-count-scaling": [
+  "packages/design/engine/array/driverWiring.ts:driverDrive",
+  "packages/design/engine/array/driverWiring.ts:combinedOfN",
+  "packages/design/engine/array/driverWiring.ts:eachOfN",
+  "packages/design/engine/array/driverWiring.ts:oneBoxOfN",
+  "packages/design/engine/sealedResonance.ts:arrayVas"
+ ],
+ "coil-wiring-scaling": [
+  "packages/design/engine/solvers/driverQuantities.ts:convertWiring",
+  "packages/design/engine/solvers/driverQuantities.ts:perCoilResistanceFactor"
+ ],
+ "air-compliance": [
+  "packages/design/engine/air.ts:airCompliance"
+ ],
+ "decibel": [
+  "packages/design/engine/efficiency.ts:splAt283V",
+  "packages/design/engine/efficiency.ts:spl1WFromSplAt283V",
+  "packages/design/engine/efficiency.ts:splMaxAtRatedPower"
+ ],
+ "drive-voltage-power": [
+  "packages/design/engine/driver/routes/efficiencyRoutes.ts:USPL_ROUTES"
+ ],
+ "circle-area": [
+  "packages/design/engine/driver/routes/geometryRoutes.ts:SD_DD_ROUTES"
+ ],
+ "displacement": [
+  "packages/design/engine/driver/routes/geometryRoutes.ts:VD_ROUTES",
+  "packages/design/engine/pr/PrEngine.ts:displacement"
+ ],
+ "q-parallel": [
+  "packages/design/engine/driver/routes/smallSignalRoutes.ts:Q_ROUTES"
+ ],
+ "resonance-mass-compliance": [
+  "packages/design/engine/driver/routes/smallSignalRoutes.ts:CMS_SD_ROUTES"
+ ]
+}

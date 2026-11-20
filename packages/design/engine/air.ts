@@ -51,6 +51,11 @@ export const GAMMA = 1.4;
 /** Port end correction, × vent diameter, per open (unflanged) end. */
 export const END_CORRECTION = 0.732;
 
+/** The acoustic compliance of `V_m3` of air: C = V / (rho c^2). The engine's one home for it (T934; scripts/dupscan-homes.json). */
+export function airCompliance(V_m3: number, rho: number, c: number): number {
+  return V_m3 / (rho * c * c);
+}
+
 /** Reference conditions — WinISD's Advanced-pane defaults, and openisd's own. */
 export const DEFAULT_T_REF_K   = 293.15;
 export const DEFAULT_RH_REF_PCT = 30;

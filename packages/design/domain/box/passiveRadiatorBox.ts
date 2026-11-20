@@ -1,4 +1,5 @@
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
+import type { TuningField } from './box.js';
 import type { SealedLosses } from '../losses.js';
 import { OpenISDPassiveRadiatorEmbedded } from '../passiveRadiator/openISDPassiveRadiatorEmbedded.js';
 import { OpenISDPassiveRadiatorStandalone } from '../passiveRadiator/openISDPassiveRadiatorStandalone.js';
@@ -8,7 +9,7 @@ export interface PassiveRadiatorBox {
      *  (BUG_20260927_box-volume-validity-decided-in-ui.md) — zero, negative or non-finite marks
      *  the field's own `.dq` rather than being coerced. No solve relation otherwise. */
     readonly volume_m3: Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
-    readonly tuning_goal_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;     // WinISD: Fp
+    readonly tuning_goal_hz: TuningField;     // WinISD: Fp
     readonly count: SimpleField<number> & Clearable;   // no solve relation, dimensionless; a clear is 1
     readonly addedMass_kg: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly losses: SealedLosses;

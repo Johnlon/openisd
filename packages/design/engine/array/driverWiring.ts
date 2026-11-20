@@ -3,7 +3,13 @@
  * docs/plans/PLAN_20261116_DRIVER_WIRING.md section 5). The one place that turns an amplifier voltage and Rg into what each
  * driver sees. By symmetry every driver does the same, so each is replaced by a one-driver circuit with its own EMF
  * and series resistance (Thevenin). Coil wiring (the voice coils inside one driver) is a different thing and is never read here.
+ *
+ * It is also the engine's one home for scaling by the driver count (T934, John 19 Nov 2026: "remove the dupe and fix the
+ * guardrail"): `combinedOfN`, `eachOfN` and `oneBoxOfN`. The duplicate-logic check (scripts/dupscan.mjs, homes in
+ * scripts/dupscan-homes.json) refuses a driver-count sum written anywhere else.
  */
+
+import type {SweepParams} from '../types.js';
 
 export type DriverWiring = 'parallel' | 'series';
 
@@ -31,4 +37,21 @@ export function driverDrive(n: number, wiring: DriverWiring, amp_V: number, Rg_o
 /** The amplifier's output voltage that puts `eg_V` across each of `n` drivers: n x in series, 1 x in parallel and for one driver. */
 export function amplifierVoltage(n: number, wiring: DriverWiring, eg_V: number): number {
   return n > 1 && wiring === 'series' ? n * eg_V : eg_V;
+}
+
+/** A figure of `n` identical drivers taken together, where it adds up: n x one driver's (cone area, compliance, rated power). */
+export function combinedOfN(oneDriver: number, n: number): number {
+  return oneDriver * n;
+}
+
+/** One of `n` identical drivers' share of `whole` (box volume, input power), and equally `n` alike acoustic elements side by
+ *  side (mass, resistance, coil impedance): whole / n. */
+export function eachOfN(whole: number, n: number): number {
+  return whole / n;
+}
+
+/** One of `n` drivers' share of the box: Vb/n and, where they exist, Vf/n, every port area /n and prNum/n; one driver. */
+export function oneBoxOfN(P: SweepParams, n: number): SweepParams {
+  return { ...P, nDrivers: 1, Vb: P.Vb / n, ...(P.Vf !== undefined ? { Vf: P.Vf / n } : {}), ...(P.Sp !== undefined ? { Sp: P.Sp / n } : {}), ...(P.prNum !== undefined ? { prNum: P.prNum / n } : {}),
+    ...(P.Spr !== undefined ? { Spr: P.Spr / n } : {}), ...(P.SpIntra !== undefined ? { SpIntra: P.SpIntra / n } : {}) };
 }

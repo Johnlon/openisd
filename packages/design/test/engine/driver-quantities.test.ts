@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {isobarikPair, withAddedMass} from '../../engine/solvers/driverQuantities.js';
+import {isobarikPair, perCoilResistanceFactor, withAddedMass} from '../../engine/solvers/driverQuantities.js';
 
 describe('isobarikPair', () => {
   it('doubles the mass and damping, halves the compliance and Vas, and scales terminal BL by root 2', () => {
@@ -27,5 +27,14 @@ describe('withAddedMass', () => {
     expect(withAddedMass(drv, 0.01).Qes).toBeCloseTo(ws * 0.0738 * 4.7 / (12.3 * 12.3), 12);
     expect(withAddedMass(drv, 0.01).Qes).toBeCloseTo(0.4023, 4);
     expect(withAddedMass({...drv, wiring: 'series'}, 0.01).Qes).toBe(withAddedMass(drv, 0.01).Qes);
+  });
+});
+
+// T934: the engine's one home for turning a resistance printed per coil into the measured wiring's figure.
+describe('perCoilResistanceFactor', () => {
+  it('series adds the coils: 2 x 4 ohm is 8 ohm', () => expect(4 * perCoilResistanceFactor(2, 'series')).toBe(8));
+  it('parallel divides by the coils: 2 x 4 ohm is 2 ohm, 3 x 6 ohm is 2 ohm', () => {
+    expect(4 * perCoilResistanceFactor(2, 'parallel')).toBe(2);
+    expect(perCoilResistanceFactor(3, 'parallel')).toBe(1 / 3);
   });
 });

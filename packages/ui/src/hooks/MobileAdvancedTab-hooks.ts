@@ -18,13 +18,8 @@ export function useMobileAdvancedTab() {
   const {projectChanged} = useApp().appState;
   const project = useFocusedProject();
 
-  const {
-    envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
-    envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
-    advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
-    resetAirToAppDefaults, advAir,
-  } = createEnvironmentAir({ project, projectChanged });
-
+  /** The air fields and readouts, as `createEnvironmentAir` names them (the desktop shell's own). */
+  const air = createEnvironmentAir({ project, projectChanged });
 
   const errorSwitches = createErrorSwitches({project, projectChanged});
   /** "Simplified ABC intra-port velocity" acts on the open box. */
@@ -41,10 +36,7 @@ export function useMobileAdvancedTab() {
   return {
     project,
     setCompatSwitch: compatSwitchSetter(useFeatureUse()),
-    envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
-    envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
-    advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
-    resetAirToAppDefaults, advAir,
+    ...air,
     abcVelocityApplies, oneDriverImpedanceApplies, errorSwitches,
   };
 }

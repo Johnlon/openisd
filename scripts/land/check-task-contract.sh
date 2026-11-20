@@ -31,12 +31,32 @@ TASK="tasks/$ID.yml"
 fail() { printf 'REFUSE\t%s\t%s\n' "$1" "$2"; exit 1; }
 [ -f "$TASK" ] || fail task-id "no task file $TASK"
 
-if [ -z "${GATE_FILES:-}" ]; then
-  # shellcheck source=/dev/null
-  [ -f "$ROOT/scripts/paths.sh" ] && . "$ROOT/scripts/paths.sh"; set +u
-  # shellcheck source=/dev/null
-  [ -f "$ROOT/land.conf" ] && . "$ROOT/land.conf"
+# land.conf is read as data, never sourced (T934 review 3, Codex 19 Nov 2026): the proposed land.conf is the change's own
+# file, and sourcing it would run the change's shell in the check that polices it. conf_value <rev> <NAME>: NAME's value
+# there, in any form land.conf uses: NAME="v", NAME='v' or NAME=v (QUESTIONS_FILE is unquoted).
+# A land.conf that cannot be read fails the read (exit 1), never answers "unset" (T934 review 6).
+conf_value() {
+  local text
+  text="$(git show "$1:land.conf" 2> /dev/null)" || return 1
+  printf '%s\n' "$text" | sed -n -e "s/^$2=\"\(.*\)\"[[:space:]]*\$/\1/p" -e "s/^$2='\(.*\)'[[:space:]]*\$/\1/p" \
+    -e "s/^$2=\([^\"'[:space:]][^[:space:]]*\)[[:space:]]*\$/\1/p" | head -n 1
+}
+# GATE_FILES and QUESTIONS_FILE from the environment win (land.sh and ship.sh read their own land.conf); else the proposed
+# land.conf's GATE_FILES and the BASE land.conf's QUESTIONS_FILE (a change cannot point the check at a board file of its own).
+gate_files_from_env="${GATE_FILES:+1}"
+[ -n "${GATE_FILES:-}" ] || GATE_FILES="$(conf_value "$HEAD_REF" GATE_FILES)" || fail gates "cannot read land.conf at $HEAD_REF"
+[ -n "${QUESTIONS_FILE:-}" ] || QUESTIONS_FILE="$(conf_value "$BASE" QUESTIONS_FILE)" || fail gates "cannot read land.conf at the base $BASE"
+# The protected list is the BASE revision's (T934 review 2, Codex 19 Nov 2026): a change cannot unprotect a file by editing
+# its own land.conf. The proposed list is added to it, so a change that protects more is held to more.
+head_gate_files="${GATE_FILES:-}"
+# Read from land.conf, the base's list fails closed: unreadable or empty, the check refuses rather than trust the proposed list alone.
+if [ -z "$gate_files_from_env" ]; then
+  base_gate_files="$(conf_value "$BASE" GATE_FILES)" || fail gates "cannot read land.conf at the base $BASE"
+  [ -n "${base_gate_files//[[:space:]]/}" ] || fail gates "the base's land.conf ($BASE) sets no GATE_FILES"   # empty or only spaces: no pattern
+else
+  base_gate_files="$(conf_value "$BASE" GATE_FILES 2> /dev/null)" || base_gate_files=""
 fi
+GATE_FILES="$base_gate_files ${GATE_FILES:-}"
 
 if [ -n "$PR_MODE" ]; then
   # `why:` is asked of a task file this pull request adds or really changes; a hash-only or status-only edit of an old one is exempt (T767)
@@ -95,7 +115,11 @@ if [ -n "$PR_MODE" ]; then
   done < <(git diff --name-only --diff-filter=ACMR "$BASE" "$HEAD_REF")
 fi
 # A file this branch changed that another task locks warns (T786, QO512): refusing here blocked fixes to process tests; the landing task's own locked tests (above) still refuse.
-changed="$(git diff --name-only "$BASE" "$HEAD_REF")"
+# Every path the change touches, renames split into the old and the new path (T934 review 5: with rename detection on, a
+# renamed protected file showed only its new name). Read NUL-delimited into a file, its status checked.
+changed_z="$(mktemp)" || exit 2; trap 'rm -f "$changed_z" "${work:-}"' EXIT
+git diff --no-renames --name-only -z "$BASE" "$HEAD_REF" > "$changed_z" || fail gates "cannot list the files changed between $BASE and $HEAD_REF"
+changed="$(tr '\0' '\n' < "$changed_z")"
 for other in tasks/*.yml; do
   [ "$other" = "$TASK" ] && continue
   while read -r path hash; do
@@ -108,14 +132,17 @@ for other in tasks/*.yml; do
 done
 
 # gate files: John approves changes to them (30 Oct 2026). An unset or empty GATE_FILES refuses: deleting the list must not switch the check off.
-[ -n "${GATE_FILES:-}" ] || fail gates "GATE_FILES is not set in land.conf"
-gate_hits="$(printf '%s\n' "$changed" | python3 -c '
-import fnmatch, sys
-globs = sys.argv[1:]
-for line in sys.stdin.read().split("\n"):
-    if line and any(fnmatch.fnmatchcase(line, g) for g in globs):
-        print(line)
-' $GATE_FILES | tr '\n' ' ')"
+[ -n "$head_gate_files" ] || fail gates "GATE_FILES is not set in land.conf"
+# The patterns reach fnmatch as one literal string, split there (T934 review 5: unquoted, the shell expanded a pattern against
+# the checkout, so a deleted scripts/coverage-a.sh dropped out while scripts/coverage-b.sh remained). A matcher failure refuses.
+gate_hits="$(GATE_PATTERNS="$GATE_FILES" python3 -I -c '
+import fnmatch, os, sys
+globs = os.environ["GATE_PATTERNS"].split()
+if not globs:
+    sys.exit("no gate patterns")
+paths = [p for p in open(sys.argv[1], "rb").read().decode("utf-8").split("\0") if p]
+print(" ".join(p for p in paths if any(fnmatch.fnmatchcase(p, g) for g in globs)))
+' "$changed_z")" || fail gates "cannot match the changed files against GATE_FILES"
 if [ -n "$gate_hits" ]; then
   gates_qo="$(task_field "$TASK" gates_approved)"; gates_id="$ID"
   # a pull request carrying several tasks needs the approval on one of them (T762): the first that has it speaks for the change
@@ -128,7 +155,7 @@ if [ -n "$gate_hits" ]; then
   printf '%s' "$gates_qo" | grep -Eq '^QO[0-9]+$' || fail gates "gates_approved '$gates_qo' is not QO<n>"
   if [ -f "${QUESTIONS_FILE:-/nonexistent}" ]; then
     # exit 0 only when the item with id == gates_approved names this task and has a thread entry by John
-    python3 - "$QUESTIONS_FILE" "$gates_qo" "$gates_id" <<'PY' || fail gates "$gates_msg (board item $gates_qo has no answer by John in $QUESTIONS_FILE)"
+    python3 -I - "$QUESTIONS_FILE" "$gates_qo" "$gates_id" <<'PY' || fail gates "$gates_msg (board item $gates_qo has no answer by John in $QUESTIONS_FILE)"
 import re, sys, yaml
 path, qo, task_id = sys.argv[1], sys.argv[2], sys.argv[3]
 names_task = re.compile(r"(?<![A-Za-z0-9])" + re.escape(task_id) + r"(?![A-Za-z0-9])")

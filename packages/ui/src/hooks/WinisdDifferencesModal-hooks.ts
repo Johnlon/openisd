@@ -1,6 +1,6 @@
 import type {ComputedRef, InjectionKey, ShallowRef} from 'vue';
 import {computed, inject, provide, shallowRef} from 'vue';
-import type {CompatSwitchGroup, WinisdDeviation} from '@openisd/design/fields';
+import type {CompatSwitchGroup, PhoneHelpRow, WinisdDeviation} from '@openisd/design/fields';
 import {WinisdDifference, WinisdDifferenceSection} from '@openisd/design/fields';
 import {useApp} from '../logic/app.js';
 import type {FeatureUse} from '../logic/telemetry/featureUse.js';
@@ -35,6 +35,18 @@ export interface WinisdDifferencesModalAPI {
 }
 
 export const WinisdDifferencesModalKey: InjectionKey<WinisdDifferencesModalAPI> = Symbol('WinisdDifferencesModalAPI');
+
+/** A help line's "More in Differences" link, for the desktop help panel and the phone help sheet: closes the help (`close`)
+ *  and opens the Differences page at the line's entry. A line without an entry, or a page without the Differences page
+ *  (only help whose lines link to an entry needs it), does nothing. */
+export function useHelpDifferenceLink(close: () => void): (row: PhoneHelpRow) => void {
+  const differences = inject(WinisdDifferencesModalKey, null);
+  return row => {
+    if (differences === null || row.difference === undefined) return;
+    close();
+    differences.showEntry(row.difference);
+  };
+}
 
 /**
  * The help page "OpenISD and WinISD differences". Shallow refs: the entries are design-layer

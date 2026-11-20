@@ -3,7 +3,9 @@
  * what ONE of n identical drivers sees, and the Signal-tab power/voltage relation that follows from it.
  */
 import {describe, expect, it} from 'vitest';
-import {amplifierVoltage, driverDrive} from '../../engine/array/driverWiring.js';
+import {amplifierVoltage, combinedOfN, driverDrive, eachOfN, oneBoxOfN} from '../../engine/array/driverWiring.js';
+import type {SweepParams} from '../../engine/types.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import type {PresentSolverField, SignalSolverParams} from '../../engine/solverTypes.js';
 import {createEngine} from '../../engine/Engine.js';
 import {fakeSolverField} from './testSolver.js';
@@ -89,5 +91,32 @@ describe('Signal solve with a driver wiring (plan section 7, DA215-8 x4, Re 6.8 
     const p: SignalSolverParams = {power_W: fakeSolverField<number>(null), Re_ohm: fakeSolverField(6.8), voltage_V: voltage(2.83, true), Rs_ohm: fakeSolverField(0.5), nDrivers: fakeSolverField(4)};
     engine.signal.solve(p);
     expect(p.power_W.value).toBeCloseTo(4 * 2.83 * 2.83 / 7.3, 10);
+  });
+});
+
+// T934 (John, 19 Nov 2026: "remove the dupe and fix the guardrail"): the engine's one home for scaling by the driver count.
+describe('combinedOfN and eachOfN: n identical drivers taken together, and one of them', () => {
+  it('combinedOfN adds a figure across n drivers: 4 cones of 0.0123 m2 are 0.0492 m2', () => {
+    expect(combinedOfN(0.0123, 4)).toBe(0.0123 * 4);
+    expect(combinedOfN(40, 1)).toBe(40);
+  });
+  it('eachOfN gives one driver its share, and n alike elements side by side: 30 L for 3 drivers is 10 L each', () => {
+    expect(eachOfN(0.030, 3)).toBe(0.030 / 3);
+    expect(eachOfN(1, 4)).toBe(0.25);
+  });
+});
+
+describe('oneBoxOfN: one of n drivers\' share of the box', () => {
+  const P: SweepParams = {Vb: 0.06, Vf: 0.02, Sp: 0.004, prNum: 2, Spr: 0.01, SpIntra: 0.003, nDrivers: 2, eg: 2.83, fmin: 10, fmax: 1000, N: 50, air: REFERENCE_AIR};
+  it('divides the volumes, the port areas and the radiator count by n and leaves one driver', () => {
+    const one = oneBoxOfN(P, 2);
+    expect([one.nDrivers, one.Vb, one.Vf, one.Sp, one.prNum, one.Spr, one.SpIntra]).toEqual([1, 0.03, 0.01, 0.002, 1, 0.005, 0.0015]);
+    expect(one.eg).toBe(2.83);
+  });
+  it('leaves out what the box does not have', () => {
+    const sealed: SweepParams = {Vb: 0.06, nDrivers: 3, eg: 2.83, fmin: 10, fmax: 1000, N: 50, air: REFERENCE_AIR};
+    const one = oneBoxOfN(sealed, 3);
+    expect(one.Vb).toBe(0.06 / 3);
+    expect(['Vf', 'Sp', 'prNum', 'Spr', 'SpIntra'].filter(k => k in one)).toEqual([]);
   });
 });

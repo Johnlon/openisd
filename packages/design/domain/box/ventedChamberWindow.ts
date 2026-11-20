@@ -1,6 +1,7 @@
 import type {IssueEngine} from '../../engine/index.js';
 import { focus, settlingNullableField } from '../cell.js';
-import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
+import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
+import type { TuningField } from './box.js';
 import type { VentedLosses } from '../losses.js';
 import type { VentedChamber } from './ventedChamber.js';
 import type { ChamberJson } from '../openisdSchema.js';
@@ -10,7 +11,7 @@ import { VentedLossesWindow } from './ventedLossesWindow.js';
  *  front, and the shape `VentedChamber` names. */
 export class VentedChamberWindow {
     readonly volume_m3: Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
-    readonly tuning_goal_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly tuning_goal_hz: TuningField;
     readonly losses: VentedLosses;
 
     /** `volumeLabel`: what the ⚠ of a blank volume calls it, e.g. 'Front chamber volume'. */

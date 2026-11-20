@@ -12,6 +12,16 @@
 import {parse as parseYaml} from 'yaml';
 import type {FilePickerFilter} from '@openisd/persistence';
 
+/** The `accept` attribute of a file input for `formats`: each extension with its dot, comma-separated (`.owdr,.wdr`). */
+function acceptOf(formats: readonly {readonly value: string}[]): string {
+  return formats.map(f => '.' + f.value).join(',');
+}
+
+/** `base` with the extension of `format` (`Driver.owdr`). */
+function fileNameOf(base: string, format: {readonly value: string}): string {
+  return `${base}.${format.value}`;
+}
+
 export class DriverFileFormat {
   private constructor(
     /** File extension WITHOUT the dot — the serialised form, and the only thing that crosses a boundary. */
@@ -44,12 +54,10 @@ export class DriverFileFormat {
   }
 
   /** `.wdr, .owdr` — the `accept` attribute of every driver file input. */
-  static get ACCEPT(): string {
-    return DriverFileFormat.ALL.map(f => '.' + f.value).join(',');
-  }
+  static get ACCEPT(): string { return acceptOf(DriverFileFormat.ALL); }
 
   /** The file name a driver saves to by default. */
-  fileName(base: string): string { return `${base}.${this.value}`; }
+  fileName(base: string): string { return fileNameOf(base, this); }
 
   toString(): string { return this.value; }
   toJSON(): string { return this.value; }
@@ -80,11 +88,9 @@ export class ProjectFileFormat {
     return dot < 0 ? null : ProjectFileFormat.parse(fileName.slice(dot + 1));
   }
 
-  static get ACCEPT(): string {
-    return ProjectFileFormat.ALL.map(f => '.' + f.value).join(',');
-  }
+  static get ACCEPT(): string { return acceptOf(ProjectFileFormat.ALL); }
 
-  fileName(base: string): string { return `${base}.${this.value}`; }
+  fileName(base: string): string { return fileNameOf(base, this); }
 
   toString(): string { return this.value; }
   toJSON(): string { return this.value; }

@@ -28,6 +28,8 @@
 
 
 import {hotRe} from './solvers/driverQuantities.js';
+import {combinedOfN, eachOfN} from './array/driverWiring.js';
+import {airCompliance} from './air.js';
 import {cAdd, cDiv, cInv, cMul, cScale, cx} from './complex.js';
 import type {BoxType, Complex, Solution, SweepParams} from './types.js';
 import {boxModel} from './boxes/index.js';
@@ -88,10 +90,10 @@ function coilRdc(drv: CircuitQuantities, P: SweepParams): number {
  *  BUG_20260926_winisd-tf-reference). */
 export function hfAsymptotePressure_Pa(drv: CircuitQuantities, P: SweepParams, r_m: number): number {
   const n = P.nDrivers || 1;
-  const Rac = coilRdc(drv, P) / n + (P.rgAtDriverSide !== false ? 0 : (P.Rs || 0));
+  const Rac = eachOfN(coilRdc(drv, P), n) + (P.rgAtDriverSide !== false ? 0 : (P.Rs || 0));
   const BlPush = drv.BL_entered_Tm;
-  const pg = P.eg * BlPush / (drv.Sd_m2 * n * Rac);
-  const Mas = drv.Mms_kg / (drv.Sd_m2 * drv.Sd_m2) / n;
+  const pg = P.eg * BlPush / (combinedOfN(drv.Sd_m2, n) * Rac);
+  const Mas = eachOfN(drv.Mms_kg / (drv.Sd_m2 * drv.Sd_m2), n);
   const rho = P.air.rho();
   return rho * pg / (2 * Math.PI * r_m * Mas);
 }
@@ -104,7 +106,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const wd     = 2 * Math.PI * fDriver;
   const n      = P.nDrivers || 1;
   const eg     = P.eg;
-  const Sdt    = drv.Sd_m2 * n;
+  const Sdt    = combinedOfN(drv.Sd_m2, n);
 
   const rho = P.air.rho(), c = P.air.c();
 
@@ -129,7 +131,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const Rdc1 = coilRdc(drv, P);
   const arrayTerminals = (Le_H: number): Complex => {
     const z1 = cx(Rdc1, wd * Le_H);
-    return cScale(z1, 1/n);
+    return cScale(z1, eachOfN(1, n));
   };
   const arrayCoil = (Le_H: number): Complex =>
     rgAtDriver ? arrayTerminals(Le_H) : cAdd(arrayTerminals(Le_H), cx(Rg, 0));
@@ -163,15 +165,15 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   // Driver acoustic elements derived from T/S parameters:
   // Cas = Cms·Sd²,  Mas = Mms/Sd²,  Ras = Rms/Sd²
   // https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
-  const Cas = drv.Cms_m_per_N * drv.Sd_m2 * drv.Sd_m2 * n;
-  const Mas = drv.Mms_kg / (drv.Sd_m2 * drv.Sd_m2) / n;
-  const Ras = drv.Rms_kg_per_s / (drv.Sd_m2 * drv.Sd_m2) / n;
+  const Cas = combinedOfN(drv.Cms_m_per_N * drv.Sd_m2 * drv.Sd_m2, n);
+  const Mas = eachOfN(drv.Mms_kg / (drv.Sd_m2 * drv.Sd_m2), n);
+  const Ras = eachOfN(drv.Rms_kg_per_s / (drv.Sd_m2 * drv.Sd_m2), n);
   const ZaD = cAdd(cAdd(cx(Ras, 0), cx(0, wd * Mas)), cInv(cx(0, wd * Cas)));
 
   // Box acoustic compliance Cab = Vb/(ρc²)
   // Loss resistances in parallel with compliance: Ral (leakage) and Raa (absorption)
   // https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
-  const Cab = P.Vb / (rho * c * c);
+  const Cab = airCompliance(P.Vb, rho, c);
   const Zc  = cInv(cx(0, w * Cab));
   const Ql  = P.Ql || DEFAULT_NEW_PROJECT_VENTED_QL;
   const Qa  = P.Qa || DEFAULT_NEW_PROJECT_QA;

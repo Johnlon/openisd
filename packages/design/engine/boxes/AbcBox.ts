@@ -4,7 +4,7 @@
  */
 import {cAdd, cDiv, cInv, cMul, cPar, cx} from '../complex.js';
 import type {SweepParams} from '../types.js';
-import {winisdLinePortReactance, droppedEndCorrection_m} from './port.js';
+import {tunedChamber, winisdLossyChambers} from './port.js';
 import type {BoxModel, BoxOutput, DriverSideQuantities} from './BoxModel.js';
 import {DEFAULT_NEW_PROJECT_QP} from '../../fields/defaults.js';
 
@@ -21,20 +21,13 @@ export class AbcBox implements BoxModel {
         // compliance with the SHARED Ql/Qa/Qp, port mass from its own tuning target. The intra port itself
         // stays (Rai = 0 is a physical fact of this topology, not a loss-Q setting to drop) but
         // without Ricl, the same "no inter-chamber leak" simplification.
-        const rc2 = rho * c * c;
         const Qp = P.Qp || DEFAULT_NEW_PROJECT_QP;
 
-        const Cabr = P.Vb / rc2;
-        const wr = 2 * Math.PI * (P.Fr ?? NaN);
-        const Mapr = 1 / (wr * wr * Cabr);
-        const RapBranchR = cAdd(cx(wr * Mapr / Qp, 0), cx(0, w * Mapr));
+        const {Cab: Cabr, w0: wr, Map: Mapr, Zport: RapBranchR} = tunedChamber(P.Vb, P.Fr ?? NaN, rho, c, w, Qp);
         const Zcr = cAdd(cx(wr * Mapr / Qa, 0), cInv(cx(0, w * Cabr)));
         const Zr = cPar(cx(wr * Mapr * Ql, 0), Zcr, RapBranchR);
 
-        const Cabf = (P.Vf ?? NaN) / rc2;
-        const wf = 2 * Math.PI * (P.Ff ?? NaN);
-        const Mapf = 1 / (wf * wf * Cabf);
-        const RapBranchF = cAdd(cx(wf * Mapf / Qp, 0), cx(0, w * Mapf));
+        const {Cab: Cabf, w0: wf, Map: Mapf, Zport: RapBranchF} = tunedChamber(P.Vf ?? NaN, P.Ff ?? NaN, rho, c, w, Qp);
         const Zcf = cAdd(cx(wf * Mapf / Qa, 0), cInv(cx(0, w * Cabf)));
         const Zf = cPar(cx(wf * Mapf * Ql, 0), Zcf, RapBranchF);
 
@@ -83,32 +76,7 @@ export class AbcBox implements BoxModel {
         //
         // Absent Qlr/Qar/Qpr/Qiclfr/Qlf/Qaf/Qpf/Fr/Ff/LeffIntra/SpIntra poison every value below
         // with NaN (`?? NaN`), caught by `classifyFinite`, never a throw or a `!`.
-        const Cabr = P.Vb / (rho * c * c);
-        const Cabf = (P.Vf ?? NaN) / (rho * c * c);
-
-        const Qlr = P.Qlr ?? NaN, Qar = P.Qar ?? NaN, Qpr = P.Qpr ?? NaN;
-        const Qlf = P.Qlf ?? NaN, Qaf = P.Qaf ?? NaN, Qpf = P.Qpf ?? NaN;
-        const Qiclfr = P.Qiclfr ?? NaN;
-        const Fr = P.Fr ?? NaN, Ff = P.Ff ?? NaN;
-
-        const wr = 2 * Math.PI * Fr;
-        const Mapr = 1 / (wr * wr * Cabr);
-        const Ralr = cx(Qlr * wr * Mapr, 0);
-        const Raar = cx(wr * Mapr / Qar, 0);
-        const Zcr = cAdd(Raar, cInv(cx(0, w * Cabr)));
-        const RapBranchR = cAdd(cx(wr * Mapr / Qpr, 0), cx(0, P.tlPortModel ? winisdLinePortReactance(w, Mapr, P.Spr ?? NaN, droppedEndCorrection_m(P.rearPortEndCorrection_m, P.winisdTlPortNoEndCorrection), rho, c) : w * Mapr));
-        const Zr = cPar(Ralr, Zcr, RapBranchR);
-
-        const wf = 2 * Math.PI * Ff;
-        const Mapf = 1 / (wf * wf * Cabf);
-        const Ralf = cx(Qlf * wf * Mapf, 0);
-        const Raaf = cx(wf * Mapf / Qaf, 0);
-        const Zcf = cAdd(Raaf, cInv(cx(0, w * Cabf)));
-        const RapBranchF = cAdd(cx(wf * Mapf / Qpf, 0), cx(0, P.tlPortModel ? winisdLinePortReactance(w, Mapf, P.Sp ?? NaN, droppedEndCorrection_m(P.portEndCorrection_m, P.winisdTlPortNoEndCorrection), rho, c) : w * Mapf));
-        const Zf = cPar(Ralf, Zcf, RapBranchF);
-
-        const ws = 1 / Math.sqrt(Mas * Cas);
-        const Ricl = cx(Qiclfr * ws * Mas, 0);
+        const {Zr, Zcr, RapBranchR, Zf, Zcf, RapBranchF, Ricl} = winisdLossyChambers(P, w, Cas, Mas, rho, c);
 
         const Mai = rho * (P.LeffIntra ?? NaN) / (P.SpIntra ?? NaN);
         const jwMai = cx(0, w * Mai);
