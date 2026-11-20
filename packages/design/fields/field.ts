@@ -1216,7 +1216,7 @@ export class NumberField extends Field {
     floor: "positive",
     precision: 2,
     loadRepair: {breaks: 'band', to: 0.01, described: 'the 10 mm minimum'},
-    description: "Basket Diameter\nOuter diameter of the frame/chassis.",
+    description: "Basket Diameter\nDiameter of the hole cut in the baffle.",
   });
   static readonly OUTER_M = new NumberField({
     value: "Outer_m",
