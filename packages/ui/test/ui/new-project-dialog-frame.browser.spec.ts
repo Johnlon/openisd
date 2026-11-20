@@ -76,6 +76,46 @@ test.describe('Desktop New Project dialog frame', () => {
     await check('step 5');
   });
 
+  /** At 1280x720 main's passive radiator step hung its footer 40 px below the dialog's own edge, out of sight ("clipping is a bug:
+   * fix it, don't ask"). On every step and every box type the footer ends inside the dialog, and the dialog inside the window. */
+  test('1280x720: on every step and box type the footer sits inside the dialog and the dialog inside the window', async ({page}) => {
+    await open(page);
+    await page.setViewportSize({width: 1280, height: 720});
+    const inside = async (where: string) => {
+      const m = await modal(page).boundingBox();
+      const f = await bottom(page).boundingBox();
+      expect(m, `${where}: the dialog is drawn`).not.toBeNull();
+      expect(f, `${where}: the footer is drawn`).not.toBeNull();
+      const modalBottom = (m?.y ?? 0) + (m?.height ?? 0);
+      expect((f?.y ?? 0) + (f?.height ?? 0), `${where}: the footer's bottom against the dialog's`).toBeLessThanOrEqual(modalBottom + 0.5);
+      expect(modalBottom, `${where}: the dialog's bottom against the window's`).toBeLessThanOrEqual(720);
+    };
+    const next = bottom(page).getByRole('button', {name: 'Next', exact: true});
+    const back = bottom(page).getByRole('button', {name: 'Back', exact: true});
+    await inside('step 1');
+    await page.locator('.overlay.open .modal-body').getByText(TEST_DRIVER).first().click();
+    await next.click();
+    await expect(page.locator('.np-step')).toContainText('Step 2 of 5');
+    await inside('step 2, Standard');
+    await page.locator('.overlay.open input[name=placement][value=isobaric]').check();
+    await inside('step 2, Iso-Barik');
+    await next.click();
+    for (const box of BOX_TYPES) {
+      await expect(page.locator('.np-step')).toContainText('Step 3 of 5');
+      await page.locator('#np-box-type').selectOption(box);
+      await inside(`step 3, ${box}`);
+      await next.click();
+      await expect(page.locator('.np-step')).toContainText('Step 4 of 5');
+      await inside(`step 4, ${box}`);
+      await back.click();
+    }
+    await page.locator('#np-box-type').selectOption('sealed');
+    await next.click();
+    await next.click();
+    await expect(page.locator('.np-step')).toContainText('Step 5 of 5');
+    await inside('step 5');
+  });
+
   test('Back and Next are at the top and the bottom, enabled alike, and the top ones move the wizard as the bottom ones do', async ({page}) => {
     await open(page);
     const pair = (name: string) => [top(page).getByRole('button', {name, exact: true}), bottom(page).getByRole('button', {name, exact: true})] as const;

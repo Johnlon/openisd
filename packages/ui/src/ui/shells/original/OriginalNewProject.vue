@@ -316,6 +316,14 @@ function handleCreate() {
 /* On a window too short for the step the body scrolls inside, so both rows of buttons stay in view; otherwise the size is main's. */
 .modal { display: flex; flex-direction: column; max-height: calc(100vh - 6vh - 6px); }
 .modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+/* The passive radiator step, the tallest, fits a 1280x720 window with its footer inside the dialog and nothing to scroll, the pick
+   error showing too (main's footer hung 40 px below the dialog there; "clipping is a bug: fix it, don't ask"): 34 px rows instead of
+   38, a tighter hint and error, a shorter bottom margin. Desktop only; the phone's wizard draws this step its own way. */
+.step-content.np-pr-fields :deep(.ui-field) { margin-top: 6px; margin-bottom: 6px; }
+.step-content.np-pr-fields :deep(.np-pr-step) { margin-top: 6px; }
+.step-content.np-pr-fields :deep(.np-pr-hint) { margin: 4px 0 8px; }
+.np-pr-error { line-height: 15px; }
+.modal-body:has(> .np-pr-fields) { padding-bottom: 8px; }
 .np-pair-note { font-size: 13px; color: #666; }
 .np-step { color: #666; margin-bottom: 10px; font-weight: 500; }
 .step-content { margin-top: 10px; }
