@@ -366,8 +366,10 @@ export function createProjectRepo(
         backupKey: original === null ? null : source.backupKey,
       });
     }
-    if (tell === 'tell' && result.loadRepairs.length > 0) {
-      onLoadRepaired({projectName: result.project.name.value, lines: result.loadRepairs.map(repair => repair.text)});
+    if (tell === 'tell') {
+      const lines = result.loadRepairs.map(repair => repair.text);
+      if (result.calculationNote !== undefined) lines.push(result.calculationNote);
+      if (lines.length > 0) onLoadRepaired({projectName: result.project.name.value, lines});
     }
     return result;
   }

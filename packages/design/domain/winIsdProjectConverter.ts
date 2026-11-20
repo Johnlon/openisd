@@ -29,6 +29,7 @@ import {OpenISDProject} from './project/openISDProject.js';
 import type {LoadRepairNote} from './project/loadRepair.js';
 import {ProjectBuilder} from './openisdTransforms.js';
 import {type DriverError, type Engine, type Filter} from '../engine/index.js';
+import {ToggleField} from '../fields/field.js';
 import {WINISD_MAX_FILTER_ORDER} from '../fields/filterLimits.js';
 
 import {openIsdDriverToWinIsdDriver} from './driverRecordConverter.js';
@@ -254,6 +255,7 @@ export interface ImportedWinIsdProject {
   readonly value: OpenISDProject | null;
   readonly errors: DriverError[];
   readonly loadRepairs: readonly LoadRepairNote[];
+  readonly notes?: readonly string[];
 }
 
 /** Project file conversion — a project to WinISD's `.wpr` model and `.wpr` text back to a
@@ -640,7 +642,10 @@ export class WinIsdProjectConverter {
     // is repaired as any opened project's is, and named in the opening message.
     const loadRepairs = [...powerRepairs, ...project.repairImported()];
 
-    return {value: project, errors, loadRepairs};
+    const notes = project.loading.value === 'isobaric'
+      ? [`Opened with the coils in parallel. Tick "${ToggleField.PROJECT_WINISDISOBARIK.label}" in the Driver tab to see WinISD's result: 6 dB quieter than one driver at the same voltage, with one driver's impedance.`]
+      : [];
+    return {value: project, errors, loadRepairs, notes};
   }
 
   /** `[Filters]` values: `Count`, plus `filter<i>type`/`filter<i>params` renumbered sequentially

@@ -114,7 +114,7 @@ grep -qxF 'sig|driver-count-scaling|packages/design/engine/keys.ts|export const 
 rm "$SCRATCH/packages/design/engine/keys.ts"
 
 # T911 (QO949): a consolidated copy stays in the allow-list, marked resolved and resolved to the engine function; it
-# never allows its key again, and an allowed entry whose copy is gone fails until it is marked resolved.
+# never allows its key again, and an allowed entry whose copy is gone is reported and passes (T941).
 COPY_LINE='export const perDriver = (Vb: number, n: number): number => Vb / n;'
 KEY="sig|driver-count-scaling|packages/design/engine/newcopy.ts|$COPY_LINE"
 resolved_allow() { node -e 'const [k] = process.argv.slice(1); console.log(JSON.stringify({[k]: {reason: "baseline", where: "packages/design/engine/newcopy.ts:1", count: 1,
@@ -160,7 +160,7 @@ allowed_allow
 rm "$SCRATCH/packages/design/engine/newcopy.ts"
 out="$(run)"; rc=$?
 echo "$out" | sed 's/^/  | /'
-{ [ "$rc" = 1 ] && grep -q 'mark it resolved' <<< "$out"; } && ok "an allowed entry whose copy is gone fails until it is marked resolved (exit 1)" || bad "stale unresolved entry should exit 1 saying mark it resolved, got exit $rc"
+{ [ "$rc" = 0 ] && grep -q 'gone with this change' <<< "$out"; } && ok "an allowed entry whose copy is gone passes (exit 0), reported gone with this change (T941, QO963: replaces the old 'fails until it is marked resolved')" || bad "gone allowed entry should exit 0 reporting it gone, got exit $rc: $out"
 
 resolved_allow
 out="$(run)"; rc=$?
@@ -414,6 +414,194 @@ out="$(run)"; rc=$?
   && ok "a copy resolved under its previous key form is reported back even when its new key is allowed (exit 1)" || bad "resolved-under-old-form copy with its new key allowed should exit 1 naming arrayVas, got exit $rc: $out"
 rm "$SCRATCH/packages/design/engine/newcopy.ts"; echo '{}' > "$SCRATCH/allow.json"; set_base
 
+# T941 (John, QO963, 20 Nov 2026: "accept it, and let the check accept removed copies by itself from now on"): an allowed copy
+# that has gone is resolved by itself. The removal passes with the allow-list untouched; the gone state is the base tree, so a
+# copy that was gone on the base and returns fails (QO949); adding an entry still fails; a copy reworded but still duplicating
+# the sum is a new finding and fails while its old entry is reported gone.
+echo '{}' > "$SCRATCH/allow.json"; set_base
+printf '%s\n' "$COPY_LINE" > "$SCRATCH/packages/design/engine/newcopy.ts"
+allowed_allow; cp "$SCRATCH/allow.json" "$SCRATCH/allow.before"
+g add -A > /dev/null; g commit -q -m "copy and its entry" && g tag -f base > /dev/null     # base: the copy and its entry
+out="$(run)"; rc=$?
+[ "$rc" = 0 ] && ok "T941: an allowed copy that is still there passes (exit 0)" || bad "T941: still-there copy should pass, got exit $rc: $out"
+rm "$SCRATCH/packages/design/engine/newcopy.ts"
+out="$(run)"; rc=$?
+{ [ "$rc" = 0 ] && grep -q 'gone with this change' <<< "$out" && grep -qF "$KEY" <<< "$out" && cmp -s "$SCRATCH/allow.json" "$SCRATCH/allow.before"; } \
+  && ok "T941: removing an allowed copy passes (exit 0) with no edit to the allow-list, reported as gone with this change" || bad "T941: removal should pass and be reported gone, got exit $rc: $out"
+set_base      # the removal is merged: the base tree no longer has the copy, the entry is still listed, unresolved
+out="$(run)"; rc=$?
+{ [ "$rc" = 0 ] && grep -q 'matched nothing on the base either' <<< "$out"; } \
+  && ok "T941: an entry already gone on the base is reported stale and passes (exit 0)" || bad "T941: already-gone entry should pass with a note, got exit $rc: $out"
+printf '%s\n' "$COPY_LINE" > "$SCRATCH/packages/design/engine/newcopy.ts"
+out="$(run)"; rc=$?
+{ [ "$rc" = 1 ] && grep -q 'were gone on the base' <<< "$out" && grep -q 'packages/design/engine/newcopy.ts' <<< "$out"; } \
+  && ok "T941: a copy that was gone on the base and comes back fails (exit 1), though its entry is still listed" || bad "T941: returning copy should exit 1, got exit $rc: $out"
+rm "$SCRATCH/packages/design/engine/newcopy.ts"
+OTHER_KEY="sig|driver-count-scaling|packages/design/engine/other.ts|export const share = (Vb: number, n: number): number => Vb / n;"
+node -e 'const [a, k] = process.argv.slice(1); console.log(JSON.stringify({...JSON.parse(require("fs").readFileSync(a, "utf8")), [k]: {reason: "baseline", where: "packages/design/engine/other.ts:1", count: 1}}, null, 1));' "$SCRATCH/allow.json" "$OTHER_KEY" > "$SCRATCH/allow.new" && mv "$SCRATCH/allow.new" "$SCRATCH/allow.json"
+printf 'export const share = (Vb: number, n: number): number => Vb / n;\n' > "$SCRATCH/packages/design/engine/other.ts"
+out="$(run)"; rc=$?
+{ [ "$rc" = 1 ] && grep -qF "  new entry: $OTHER_KEY" <<< "$out"; } \
+  && ok "T941: adding a new allow-list entry is still refused (exit 1), whatever is gone" || bad "T941: a new entry should exit 1, got exit $rc: $out"
+rm "$SCRATCH/packages/design/engine/other.ts"; cp "$SCRATCH/allow.before" "$SCRATCH/allow.json"
+
+# Edited but still duplicated: the base has the copy listed; the head rewords the line (a renamed function), so the sum is
+# still written out beside the engine. The old entry is gone; the reworded line is a new finding and fails.
+printf '%s\n' "$COPY_LINE" > "$SCRATCH/packages/design/engine/newcopy.ts"; set_base
+printf 'export const eachShare = (Vb: number, n: number): number => Vb / n;\n' > "$SCRATCH/packages/design/engine/newcopy.ts"
+out="$(run)"; rc=$?
+{ [ "$rc" = 1 ] && grep -q 'new duplicated logic' <<< "$out" && grep -q 'packages/design/engine/newcopy.ts:1' <<< "$out" && grep -q 'gone with this change' <<< "$out"; } \
+  && ok "T941: a reworded copy that still duplicates the sum fails (exit 1) as a new finding, its old entry reported gone" || bad "T941: reworded copy should exit 1 as new, got exit $rc: $out"
+rm "$SCRATCH/packages/design/engine/newcopy.ts"; echo '{}' > "$SCRATCH/allow.json"; set_base
+
+# A reviewed migration keeps the identity of its destination, even after that copy has gone.
+node -e 'const [o] = process.argv.slice(1); console.log(JSON.stringify({[o]: {reason: "baseline", where: "x:1", count: 1}}));' "$OLD_FORM" > "$SCRATCH/allow.json"
+node -e 'const [o, k] = process.argv.slice(1); console.log(JSON.stringify({pairs: {[o]: k}}));' "$OLD_FORM" "$KEY" > "$SCRATCH/rekey.json"
+set_base || setup_failed "base after the copy was removed"
+printf '%s\n' "$COPY_LINE" > "$SCRATCH/packages/design/engine/newcopy.ts"
+node -e 'const [k, o] = process.argv.slice(1); console.log(JSON.stringify({[k]: {reason: "baseline", where: "x:1", count: 1, was: o}}));' "$KEY" "$OLD_FORM" > "$SCRATCH/allow.json"
+out="$(run)"; rc=$?
+{ [ "$rc" = 1 ] && grep -q 'were gone on the base' <<< "$out" && grep -q 'newcopy.ts:1' <<< "$out"; } \
+  && ok "a reviewed re-key cannot restore a copy absent from the base" || bad "a reviewed re-key cannot restore a copy absent from the base (exit $rc): $out"
+echo '{"pairs": {}}' > "$SCRATCH/rekey.json"
+rm "$SCRATCH/packages/design/engine/newcopy.ts"
+
+# A formula in its home on the base does not become an allowed base copy when the head drops that home.
+allowed_allow
+printf '%s\n' "$COPY_LINE" > "$SCRATCH/packages/design/engine/newcopy.ts"
+cp "$SCRATCH/homes.json" "$SCRATCH/homes.before"
+echo '{"driver-count-scaling": ["packages/design/engine/newcopy.ts:perDriver"]}' > "$SCRATCH/homes.json"
+set_base || setup_failed "base with the formula in its home"
+cp "$SCRATCH/homes.before" "$SCRATCH/homes.json"
+out="$(run)"; rc=$?
+{ [ "$rc" = 1 ] && grep -q 'newcopy.ts:1' <<< "$out" && grep -q 'were gone on the base' <<< "$out"; } \
+  && ok "base counts use the homes declared on the base" || bad "base counts use the homes declared on the base (exit $rc): $out"
+rm "$SCRATCH/homes.before"
+rm "$SCRATCH/packages/design/engine/newcopy.ts"
+
+# Comment-only edits leave existing formula findings active.
+allowed_allow
+printf '%s\n' "$COPY_LINE" > "$SCRATCH/packages/design/engine/newcopy.ts"
+UNIT_LINE='export const litres = (volume: number): number => volume / 1000;'
+UNIT_KEY="sig|unit-factor|packages/design/engine/units.ts|$UNIT_LINE"
+node -e 'const [a, k] = process.argv.slice(1); console.log(JSON.stringify({...JSON.parse(require("fs").readFileSync(a, "utf8")), [k]: {reason: "baseline", where: "x:1", count: 1}}));' "$SCRATCH/allow.json" "$UNIT_KEY" > "$SCRATCH/allow.new" && mv "$SCRATCH/allow.new" "$SCRATCH/allow.json"
+printf '%s\n' "$UNIT_LINE" > "$SCRATCH/packages/design/engine/units.ts"
+set_base || setup_failed "base with allowed driver-count and unit formulas"
+printf '/* driver share */%s\n' "$COPY_LINE" > "$SCRATCH/packages/design/engine/newcopy.ts"
+out="$(run)"; rc=$?
+{ [ "$rc" = 0 ] && grep -q '0 gone' <<< "$out"; } \
+  && ok "a leading block comment keeps an allowed formula active" || bad "a leading block comment keeps an allowed formula active (exit $rc): $out"
+printf '%s /* driver share\ncontinues here *// n;\n' "${COPY_LINE% / n;}" > "$SCRATCH/packages/design/engine/newcopy.ts"
+out="$(run)"; rc=$?
+{ [ "$rc" = 0 ] && grep -q '0 gone' <<< "$out"; } \
+  && ok "a multiline block comment keeps an allowed formula active" || bad "a multiline block comment keeps an allowed formula active (exit $rc): $out"
+printf '%s\n' "$COPY_LINE" > "$SCRATCH/packages/design/engine/newcopy.ts"
+printf '%s // delay is documented elsewhere\n' "$UNIT_LINE" > "$SCRATCH/packages/design/engine/units.ts"
+out="$(run)"; rc=$?
+{ [ "$rc" = 0 ] && grep -q '0 gone' <<< "$out"; } \
+  && ok "a comment carrying an exclusion keeps an allowed formula active" || bad "a comment carrying an exclusion keeps an allowed formula active (exit $rc): $out"
+rm "$SCRATCH/packages/design/engine/units.ts" "$SCRATCH/packages/design/engine/newcopy.ts"
+
+# Comment line breaks can separate class fields or appear inside a formula or an existing line.
+UNIT_FILE="$SCRATCH/packages/design/engine/units.ts"
+FIELD_LINE='litres = this.volume / 1000;'
+SAME_LINE='const volume = 1; const litres = volume / 1000;'
+node -e 'const [file, ...lines] = process.argv.slice(1); console.log(JSON.stringify(Object.fromEntries(lines.map(line => [
+  `sig|unit-factor|${file}|${line}`, {reason: "baseline", where: "x:1", count: 1}
+]))));' packages/design/engine/units.ts "$FIELD_LINE" "$UNIT_LINE" "$SAME_LINE" > "$SCRATCH/allow.json"
+printf 'class Volume {
+  volume = 1;
+  delay = 0;
+  %s
+}
+%s
+%s
+' "$FIELD_LINE" "$UNIT_LINE" "$SAME_LINE" > "$UNIT_FILE"
+set_base || setup_failed "base with allowed unit conversions in three layouts"
+out="$(run)"; rc=$?
+{ [ "$rc" = 0 ] && grep -q '4 formula signatures.*3 allowed.*0 gone' <<< "$out"; } || setup_failed "unit conversions are active on fixture base (exit $rc): $out"
+
+check_unit_comment() {
+  printf '%s
+' "$2" > "$UNIT_FILE"
+  out="$(run)"; rc=$?
+  { [ "$rc" = 0 ] && grep -q '4 formula signatures.*3 allowed.*0 gone' <<< "$out"; } \
+    && ok "$1" || bad "$1 (exit $rc): $out"
+}
+UNIT_FIXTURE="$(cat "$UNIT_FILE")"
+check_unit_comment "a block comment between class fields keeps the conversion active" \
+  "${UNIT_FIXTURE/  delay = 0;$'
+'/  delay = 0;\/\*$'
+'\*\/}"
+check_unit_comment "a line comment after division keeps the conversion active" \
+  "${UNIT_FIXTURE/"$UNIT_LINE"/"${UNIT_LINE%1000;}// conversion"$'
+  1000;'}"
+check_unit_comment "a multiline comment between same-line statements keeps the original key" \
+  "${UNIT_FIXTURE/"$SAME_LINE"/'const volume = 1; /* note'$'
+continued */ const litres = volume / 1000;'}"
+
+echo '{}' > "$SCRATCH/allow.json"
+rm "$UNIT_FILE"
+set_base || setup_failed "base without the unit conversions"
+printf 'class Volume {
+  volume = 1;
+  delay = 0;/*
+  */ litres = this.volume / 1000;
+}
+' > "$UNIT_FILE"
+out="$(run)"; rc=$?
+{ [ "$rc" = 1 ] && grep -q 'new duplicated logic' <<< "$out" && grep -q 'unit-factor .*units.ts:4' <<< "$out"; } \
+  && ok "a new conversion after a block comment between fields is refused" || bad "new class conversion should be refused (exit $rc): $out"
+printf '%s// conversion
+  1000;
+' "${UNIT_LINE%1000;}" > "$UNIT_FILE"
+out="$(run)"; rc=$?
+{ [ "$rc" = 1 ] && grep -q 'new duplicated logic' <<< "$out" && grep -q 'unit-factor .*units.ts:1' <<< "$out"; } \
+  && ok "a new conversion split by a line comment is refused" || bad "new split conversion should be refused (exit $rc): $out"
+rm "$UNIT_FILE"
+
+# Comments within a formula must leave its key identical to the comment-free form.
+DB_FILE="$SCRATCH/packages/design/engine/decibels.ts"
+DB_LINE='export const db = (ratio: number): number => 20 * Math.log10(ratio);'
+printf '%s\n' "$DB_LINE" > "$DB_FILE"
+db_keys="$(sig_keys)"
+grep -qxF "sig|decibel|packages/design/engine/decibels.ts|$DB_LINE" <<< "$db_keys" || setup_failed "comment-free decibel signature"
+check_db_comment() {
+  printf '%s\n' "$2" > "$DB_FILE"
+  keys="$(sig_keys)"
+  [ "$keys" = "$db_keys" ] && ok "$1" || bad "$1: $keys"
+}
+check_db_comment "a line comment before multiplication keeps the decibel signature" \
+  "${DB_LINE/20 /20 // scale$'\n  '}"
+check_db_comment "a line comment after Math. keeps the decibel signature" \
+  "${DB_LINE/Math./Math. // scale$'\n  '}"
+check_db_comment "a line comment before the property-access dot keeps the decibel signature" \
+  "${DB_LINE/Math./Math // scale$'\n  .'}"
+check_db_comment "a block comment inside the argument list keeps the decibel signature" \
+  "${DB_LINE/log10(ratio)/log10(\/* ratio$'\n  '*\/ratio)}"
+rm "$DB_FILE"
+
+VUE_FILE="$SCRATCH/packages/design/engine/Decibels.vue"
+printf '<script setup lang="ts">\n%s\n</script>\n' "$DB_LINE" > "$VUE_FILE"
+vue_keys="$(sig_keys)"
+grep -qxF "sig|decibel|packages/design/engine/Decibels.vue|$DB_LINE" <<< "$vue_keys" || setup_failed "decibel signature in a Vue script"
+printf '<!-- <script> /* -->\n<script setup lang="ts">\n%s\n</script>\n' "$DB_LINE" > "$VUE_FILE"
+keys="$(sig_keys)"
+[ "$keys" = "$vue_keys" ] && ok "an HTML comment containing a fake script tag leaves the Vue formula visible" \
+  || bad "an HTML comment containing a fake script tag leaves the Vue formula visible: $keys"
+rm "$VUE_FILE"
+
+# The export policy for a tracked file does not change what is present on the base.
+allowed_allow
+printf '%s\n' "$COPY_LINE" > "$SCRATCH/packages/design/engine/newcopy.ts"
+echo 'packages/design/engine/newcopy.ts export-ignore' > "$SCRATCH/.gitattributes"
+set_base || setup_failed "base with an export-ignored formula"
+out="$(run)"; rc=$?
+{ [ "$rc" = 0 ] && grep -q '0 gone' <<< "$out"; } \
+  && ok "base counts include tracked files marked export-ignore" || bad "base counts include tracked files marked export-ignore (exit $rc): $out"
+rm "$SCRATCH/.gitattributes" "$SCRATCH/packages/design/engine/newcopy.ts"
+echo '{}' > "$SCRATCH/allow.json"; set_base || setup_failed "clean base after review regressions"
+
 # T934 review 7: jscpd reads no configuration from the checkout. A .jscpd.json, a "jscpd" section in package.json and a
 # .gitignore that would raise the minimum or leave packages/ out do not hide a copy: every option is the scanner's own.
 block 'one comment' > "$SCRATCH/packages/design/engine/a.ts"; block 'one comment' > "$SCRATCH/packages/design/engine/b.ts"
@@ -424,6 +612,92 @@ printf 'packages/\n' > "$SCRATCH/.gitignore"
 after="$(copy_keys)"
 { [ -n "$before" ] && [ "$before" = "$after" ]; } && ok "a checkout's .jscpd.json, package.json jscpd section and .gitignore do not hide a copy" || bad "planted jscpd config should not change the copies: before [$before] after [$after]"
 rm -f "$SCRATCH/.jscpd.json" "$SCRATCH/package.json" "$SCRATCH/.gitignore" "$SCRATCH/packages/design/engine/a.ts" "$SCRATCH/packages/design/engine/b.ts"
+
+# A block comment spanning the end of an import and the next line cannot hide the next statement.
+allowed_allow
+IMPORT_LINE="import { area } from './clean';"
+printf '%s\n%s\n' "$IMPORT_LINE" "$COPY_LINE" > "$SCRATCH/packages/design/engine/newcopy.ts"
+set_base || setup_failed "base with an allowed formula after an import"
+out="$(run)"; rc=$?
+{ [ "$rc" = 0 ] && grep -q '0 gone' <<< "$out"; } || setup_failed "fixture formula after import is active (exit $rc): $out"
+printf '%s /* comment\ncontinues here */%s\n' "$IMPORT_LINE" "$COPY_LINE" > "$SCRATCH/packages/design/engine/newcopy.ts"
+out="$(run)"; rc=$?
+{ [ "$rc" = 0 ] && grep -q '0 gone' <<< "$out"; } \
+  && ok "a block comment after an import keeps the next formula active" || bad "a block comment after an import keeps the next formula active (exit $rc): $out"
+rm "$SCRATCH/packages/design/engine/newcopy.ts"
+echo '{}' > "$SCRATCH/allow.json"; set_base || setup_failed "clean base for copy fixtures"
+
+# Use a clone with no formula signatures so only jscpd can detect it.
+block 'one comment' > "$SCRATCH/packages/design/engine/a.ts"
+block 'one comment' > "$SCRATCH/packages/design/engine/b.ts"
+CLONE_KEY="$(copy_keys)"
+[ -n "$CLONE_KEY" ] || setup_failed "jscpd clone fixture"
+node -e 'const [k] = process.argv.slice(1); console.log(JSON.stringify({[k]: {reason: "baseline", where: "a.ts:1 = b.ts:1", count: 1}}));' "$CLONE_KEY" > "$SCRATCH/allow.json"
+set_base || setup_failed "base with an allowed clone"
+out="$(run)"; rc=$?
+{ [ "$rc" = 0 ] && grep -q '1 copies' <<< "$out" && grep -q '0 gone' <<< "$out"; } || setup_failed "fixture clone is active (exit $rc): $out"
+
+{ echo '// jscpd:ignore-start'; block 'one comment'; echo '// jscpd:ignore-end'; } > "$SCRATCH/packages/design/engine/b.ts"
+out="$(run)"; rc=$?
+{ [ "$rc" = 1 ] && grep -qF 'packages/design/engine/b.ts:1: jscpd:ignore-start' <<< "$out" && ! grep -q 'gone with this change' <<< "$out"; } \
+  && ok "jscpd ignore directives fail the scan and name the source file" || bad "jscpd ignore directives fail the scan and name the source file (exit $rc): $out"
+set_base || setup_failed "base with jscpd ignore directives"
+block 'one comment' > "$SCRATCH/packages/design/engine/b.ts"
+out="$(run)"; rc=$?
+{ [ "$rc" != 0 ] && grep -qF 'packages/design/engine/b.ts:1: jscpd:ignore-start' <<< "$out" && ! grep -q 'were gone on the base' <<< "$out"; } \
+  && ok "jscpd ignore directives on the base fail the scan" || bad "jscpd ignore directives on the base fail the scan (exit $rc): $out"
+set_base || setup_failed "restore base with an allowed clone"
+
+for growth in lines bytes; do
+  block 'one comment' > "$SCRATCH/packages/design/engine/b.ts"
+  if [ "$growth" = lines ]; then
+    printf '\n%.0s' {1..1000} >> "$SCRATCH/packages/design/engine/b.ts"
+  else
+    printf '//%102400s\n' '' >> "$SCRATCH/packages/design/engine/b.ts"
+  fi
+  out="$(run)"; rc=$?
+  { [ "$rc" = 0 ] && grep -q '1 copies' <<< "$out" && grep -q '0 gone' <<< "$out"; } \
+    && ok "growing a clone's file past jscpd's default $growth limit keeps it active" || bad "growing a clone's file past jscpd's default $growth limit keeps it active (exit $rc): $out"
+done
+
+# The wider scan includes large files on both revisions, so it can reject new clones without requiring entries for older ones.
+mv "$SCRATCH/packages/design/engine/b.ts" "$SCRATCH/large.ts"
+echo '{}' > "$SCRATCH/allow.json"; set_base || setup_failed "base without the large clone file"
+cp "$SCRATCH/large.ts" "$SCRATCH/packages/design/engine/b.ts"
+out="$(run)"; rc=$?
+{ [ "$rc" = 1 ] && grep -q 'new duplicated logic' <<< "$out" && grep -q 'packages/design/engine/b.ts:' <<< "$out"; } \
+  && ok "a new clone in a large file is refused and named" || bad "a new clone in a large file is refused and named (exit $rc): $out"
+rm "$SCRATCH/large.ts"
+set_base || setup_failed "base with an unlisted clone in a large file"
+out="$(run)"; rc=$?
+{ [ "$rc" = 0 ] && grep -q '1 copies' <<< "$out"; } \
+  && ok "a clone in a large file already on the base is counted" || bad "a clone in a large file already on the base is counted (exit $rc): $out"
+rm "$SCRATCH/packages/design/engine/a.ts" "$SCRATCH/packages/design/engine/b.ts"
+
+# A reviewed re-key whose copy was absent on the base cannot use a malformed count to evade the zero cap.
+node -e 'const [o] = process.argv.slice(1); console.log(JSON.stringify({[o]: {reason: "baseline", where: "x:1", count: 0}}));' "$OLD_FORM" > "$SCRATCH/allow.json"
+node -e 'const [o, k] = process.argv.slice(1); console.log(JSON.stringify({pairs: {[o]: k}}));' "$OLD_FORM" "$KEY" > "$SCRATCH/rekey.json"
+set_base || setup_failed "base with a zero-count entry and a reviewed re-key"
+printf '%s\n' "$COPY_LINE" > "$SCRATCH/packages/design/engine/newcopy.ts"
+for count in '"invalid"' '"0"' -1 0.5 null missing; do
+  node -e 'const [k, o, raw] = process.argv.slice(1); const count = raw === "missing" ? undefined : JSON.parse(raw);
+    console.log(JSON.stringify({[k]: {reason: "baseline", where: "x:1", was: o, count}}));' "$KEY" "$OLD_FORM" "$count" > "$SCRATCH/allow.json"
+  out="$(run)"; rc=$?
+  { [ "$rc" = 1 ] && grep -qF "count must be a non-negative integer: $KEY" <<< "$out"; } \
+    && ok "a reviewed re-key rejects malformed count $count" || bad "a reviewed re-key rejects malformed count $count (exit $rc): $out"
+done
+
+# Validate even resolved base entries whose counts would otherwise never be compared.
+resolved_allow
+sed -i 's/"count": 1/"count": "invalid"/' "$SCRATCH/allow.json"
+set_base || setup_failed "base with a malformed resolved count"
+resolved_allow
+out="$(run)"; rc=$?
+{ [ "$rc" = 1 ] && grep -qF "allow.json at the base base: count must be a non-negative integer: $KEY" <<< "$out"; } \
+  && ok "a malformed count on a resolved base entry is rejected" || bad "a malformed count on a resolved base entry is rejected (exit $rc): $out"
+rm "$SCRATCH/packages/design/engine/newcopy.ts"
+echo '{}' > "$SCRATCH/allow.json"; echo '{"pairs": {}}' > "$SCRATCH/rekey.json"
+set_base || setup_failed "clean base after second review regressions"
 
 # T934 review 3: a hand-reviewed pair says why; one without a reason stops the run (exit 2).
 echo '{"pairs": {}, "hand_pairs": {"copy|a|b|1": {"to": "copy|a|b|2", "why": ""}}}' > "$SCRATCH/rekey.json"

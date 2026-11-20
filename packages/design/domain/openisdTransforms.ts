@@ -167,6 +167,7 @@ export abstract class BoxProjectBuilder {
                 driverAddedMass_kg: 0,
                 alfaVC_per_K: DEFAULT_ALFAVC_PER_K,
                 loading: 'standard',
+                winisdIsobarik: false,
             },
             box: this.emptyBox(),
             // A new project copies the app's temperature, humidity and pressure in as entered; c and

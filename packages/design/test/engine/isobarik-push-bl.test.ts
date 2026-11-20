@@ -19,7 +19,7 @@ const engine = createEngine();
 const LE_H = 0.5e-3;
 /** A driver whose BL is the one its Fs, Qes, Vas, Sd and Re imply. */
 const D = solveConsistencyGroup({Fs_hz: 40, Qes: 0.45, Qms: 4, Vas_m3: 0.03, Sd_m2: 0.0133, Re_ohm: 6, Xmax_m: 0.005});
-const P: SweepParams = {Vb: 0.02, eg: 2.83, fmin: 10, fmax: 1000, N: 200, Ql: 1e6, Qa: 1e6, air: REFERENCE_AIR, loading: 'isobaric'};
+const P: SweepParams = {Vb: 0.02, eg: 2.83, fmin: 10, fmax: 1000, N: 200, Ql: 1e6, Qa: 1e6, air: REFERENCE_AIR, loading: 'isobaric', winisdIsobarik: true};
 
 function run(winisdBL_Tm: number | null): SweepResult {
   const r = engine.simulation.sweep({...sweepDriver(D), winisdBL_Tm}, LE_H, 'sealed', P);

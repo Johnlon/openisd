@@ -358,7 +358,7 @@ export function createApplicationIO(deps: {
           flash(`Driver imported from ${f.name}: ${displayNameOf(driver)}`);
           return;
         } else if (format === ProjectFileFormat.Wpr) {
-          const { value: project, errors, loadRepairs } = deps.files.projectFromText(text, ProjectFileFormat.Wpr);
+          const { value: project, errors, loadRepairs, notes } = deps.files.projectFromText(text, ProjectFileFormat.Wpr);
           if (!project) throw new Error(errors[0]?.message ?? 'could not read .wpr');
           project.name.set(projectNameFromFilename(f.name));
           // Naming it after the file it came from is part of LOADING it, not a user edit: the
@@ -370,7 +370,7 @@ export function createApplicationIO(deps: {
           // the SAME file again switches to the tab already holding it instead of adding a second
           // (BUG_20261009_same-project-opens-many-times).
           openProjectOnce(project, {kind: 'file', name: f.name, content: text});
-          repairs = loadRepairs.map(repair => repair.text);
+          repairs = [...(notes ?? []), ...loadRepairs.map(repair => repair.text)];
         } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
           
           let isArchive = false;
@@ -390,7 +390,7 @@ export function createApplicationIO(deps: {
             return;
           }
 
-          const { value: project, errors, loadRepairs } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
+          const { value: project, errors, loadRepairs, notes } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
           if (!project) {
             // `errors[0]` alone is what the message shows — one line is all a toast has room for —
             // but a schema mismatch commonly raises several field-level issues at once (QO152),
@@ -404,6 +404,7 @@ export function createApplicationIO(deps: {
           project.save();   // the loaded design is the ground state — see the .wpr branch above
           openProjectOnce(project, {kind: 'file', name: f.name, content: text});
           repairs = loadRepairs.map(repair => repair.text);
+          repairs.push(...(notes ?? []));
         } else {
           throw new Error('it is not an OpenISD or WinISD file');
         }
