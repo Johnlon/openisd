@@ -1,6 +1,6 @@
 /**
  * Enclosure-parameter precondition — the box-side counterpart to `sweep`'s own driver-side
- * precondition, `circuitQuantities` (CODE_REVIEW.md §18, ENGINE_HARDENING.md "Residual input
+ * precondition, `missingCircuitFields` (CODE_REVIEW.md §18, ENGINE_HARDENING.md "Residual input
  * guards").
  *
  * `solve()` divides by these values without guarding, once per frequency:

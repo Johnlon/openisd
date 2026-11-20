@@ -11,7 +11,6 @@ status: done
 # QO946.c187 (lead): Vd top limit 10,000 cm3
 # The gate reads the first bare ruling line; QO534 is the driver-model ruling for this task (openIsdDriverSpec.ts changes).
 ruling: QO534
-gates_approved: QO963
 why: 'John, 11 Nov 2026 (QO534): "an entered value is never overwritten with a calculated value"; "the editor and pr settings will use the [on-screen] values not hidden recalcs always"; "all get the mark". (QO535) What-if is for experiments and learning: "I only want to add inputs". (QO532) the boxes the charts read get a blue dot. (QO539, B) WinISD''s way stays one tick away, unticked by default.'
 release_note: The driver editor and the passive radiator settings chart exactly the values in their boxes; a value you type is never replaced, and when boxes disagree every box involved is marked and its note says what the maths gives. The boxes that feed the charts are highlighted. The What-if panel gains Qts, Sensitivity, Cms and Rms, and a typed value moves the figures that follow it, so the boxes always agree.
 visual_note: The boxes the charts read (Sd, Mms, Cms, Rms, BL, Re, Le) have a small blue dot right of their label, and the WinISD Compatibility panel has a new unticked switch, Chart from Fs, Vas, Qms. The What-if gains Qts, Sensitivity, Cms and Rms; screens that show a project's saved size show it a few bytes larger (the new switch).
@@ -28,7 +27,17 @@ goal_detail:
 tests_changed: "QO960 (John, 20 Nov 2026): \"if you open a wpr then it gets converted immediately to OpenISD model and the app is unaware of provenance, if the user wants some legacy behave we have flags for that\". The tests that compare with numbers read off WinISD now tick 'Chart from Fs, Vas, Qms' in their own setup, because they test WinISD behaviour now that the sealed Box readout follows the chart's boxes (QO959). The only change in each is that one line (no expected value, tolerance or assertion changed): vented-lossless-winisd.test.ts and isobarik-power-winisd.test.ts (loader), sealed-readout-heats-coil.test.ts (sealedW5), coil-alfavc-driver-first.test.ts (the hot Qtc 0.920 test), sealed-triple.test.ts (sealed() and the Qtc-built box), field-clear-rule.test.ts (sealed Qtc cleared), sealed-readout-counts-drivers.test.ts (the WinISD-number tests call winisdSealedW5, which ticks it). New: the ticked chart-peak tests, an unticked Qtc round trip, and wpr-opens-unticked.test.ts (a .wpr opens with the switch unticked)."
 done_test: bash scripts/test.sh packages/design/test/domain/on-screen-values.test.ts
 files:
-  - scripts/dupscan-allow.json
+  - packages/design/domain/project/calculationOpenNote.ts
+  - packages/design/test/domain/multi-coil-goldens.test.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/test/goldens/backup-file/file-layout-6.json
+  - packages/persistence/test/goldens/many-projects/dump-layout-6.json
+  - packages/persistence/test/goldens/one-project/dump-layout-6.json
+  - packages/persistence/test/goldens/open-sessions/dump-layout-6.json
+  - packages/persistence/test/load-repair-report.test.ts
+  - packages/persistence/test/storageUpgrade.test.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/fileImportExport.ts
   - packages/design/test/domain/coil-alfavc-driver-first.test.ts
   - packages/design/test/domain/sealed-readout-counts-drivers.test.ts
   - packages/design/test/domain/sealed-readout-heats-coil.test.ts

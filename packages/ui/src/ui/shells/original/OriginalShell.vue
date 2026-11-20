@@ -69,12 +69,7 @@ const {
   helpPanel, closeHelp, openSectionHelp, openTabHelp, tabHelpShown, rearChamberHelp, frontChamberHelp, passiveRadiatorHelp, userOptionsHelp,
   placementHelp, advancedOptionsHelp, listeningPlaceHelp, signalSourceHelp, limitsHelp, ventHelp,
   selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, compatOptions, optionApplies, errorSwitches, chartDeviations, prNprDeviationShown, projectAlfaVCDeviationShown,
-  boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
-  sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
-  sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
-  ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
-  ventedAlignmentVolume_m3, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
-  ventedAlignmentSuitabilityLabel,
+  boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, ventedAlignmentEditor, originalFilters,
   activeTuning, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP,
   boxResonance, rearQtc, prSystemTuningDq,
   fbUnreachable, fbUnreachableMsg, isDual,
@@ -780,7 +775,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
     <!-- The What-if? panel (`<OriginalWhatIf>`) is rendered by App.vue, not here, so it survives a box-type
          change that re-renders this shell's enclosure pane (QO134). Its open/close state and
          refresh persistence stay on `presentationState.editDriver`, watched below. -->
-    <div v-if="sealedAlignmentOpen" class="overlay on alignment-overlay">
+    <div v-if="sealedAlignmentEditor.open.value" class="overlay on alignment-overlay">
       <div class="modal alignment-modal">
         <div class="modal-titlebar">
           <div class="tb-left"><span class="app-icon"></span><span>Choose Sealed Alignment</span></div>
@@ -789,14 +784,14 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <div class="modal-body">
           <p class="hint">WinISD uses numeric target Qtc choices. Select one to calculate the sealed box volume for the current driver.</p>
           <div class="field-row"><div class="field alignment-field"><label>Alignment</label>
-            <select class="alignment-select" :value="sealedAlignmentSelected?.value ?? ''" @change="e => { const qtc = selectedOption(e, sealedAlignmentOptions); if (qtc !== null) sealedAlignmentEditor.selectQtc(qtc); }">
-              <option v-for="option in sealedAlignmentOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+            <select class="alignment-select" :value="sealedAlignmentEditor.selectedOption.value?.value ?? ''" @change="e => { const qtc = selectedOption(e, sealedAlignmentEditor.options.value); if (qtc !== null) sealedAlignmentEditor.selectQtc(qtc); }">
+              <option v-for="option in sealedAlignmentEditor.options.value" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
-            <WinisdDeviationCue v-if="sealedAlignmentDeviationShown" :deviation="WinisdDeviation.SEALED_PICKER" />
+            <WinisdDeviationCue v-if="sealedAlignmentEditor.deviationShown.value" :deviation="WinisdDeviation.SEALED_PICKER" />
           </div></div>
-          <div class="field-row"><UIFixedField class="field" input-id="og-sealed-alignment-volume" :field="NumberField.BOX_VB_L" label="Volume" :value="sealedAlignmentVolume_m3" @update:value="v => { sealedAlignmentVolume_m3 = v; }" /></div>
-          <div class="alignment-readout"><span class="alignment-icon" :class="sealedAlignmentSuitability ?? 'unknown'">●</span>
-            <span>EBP {{ ReadoutFormat.EBP.text(sealedAlignmentEbp, '—', unitTokens) }} {{ ReadoutFormat.EBP.unitLabel(unitTokens) }} — {{ sealedAlignmentSuitabilityLabel }}</span>
+          <div class="field-row"><UIFixedField class="field" input-id="og-sealed-alignment-volume" :field="NumberField.BOX_VB_L" label="Volume" :value="sealedAlignmentEditor.volume_m3.value" @update:value="v => { sealedAlignmentEditor.volume_m3.value = v; }" /></div>
+          <div class="alignment-readout"><span class="alignment-icon" :class="sealedAlignmentEditor.ebpSuitability.value ?? 'unknown'">●</span>
+            <span>EBP {{ ReadoutFormat.EBP.text(sealedAlignmentEditor.ebp.value, '—', unitTokens) }} {{ ReadoutFormat.EBP.unitLabel(unitTokens) }} — {{ sealedAlignmentEditor.ebpSuitabilityLabel.value }}</span>
           </div>
           <p class="hint">EBP is Fs ÷ Qes. It is a rule-of-thumb suitability guide: below 50 generally favors sealed, above 100 generally favors vented, and the middle range can use either.</p>
           <p class="hint">The volume uses the driver's Qts and Vas. Editing Volume changes the resulting Qtc and selects the closest numeric alignment.</p>
@@ -805,7 +800,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
       </div>
     </div>
 
-    <div v-if="ventedAlignmentOpen" class="overlay on alignment-overlay">
+    <div v-if="ventedAlignmentEditor.open.value" class="overlay on alignment-overlay">
       <div class="modal alignment-modal">
         <div class="modal-titlebar">
           <div class="tb-left"><span class="app-icon"></span><span>Choose Vented Alignment</span></div>
@@ -814,14 +809,14 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <div class="modal-body">
           <p class="hint">Select a named vented alignment to calculate the box volume and tuning frequency for the current driver.</p>
           <div class="field-row"><div class="field alignment-field"><label>Alignment</label>
-            <select class="alignment-select" :value="ventedAlignmentSelected" @change="e => { const a = selectedOption(e, ventedAlignmentOptions); if (a !== null) ventedAlignmentEditor.selectAlignment(a); }">
-              <option v-for="option in ventedAlignmentOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+            <select class="alignment-select" :value="ventedAlignmentEditor.selectedAlignment.value" @change="e => { const a = selectedOption(e, ventedAlignmentEditor.options); if (a !== null) ventedAlignmentEditor.selectAlignment(a); }">
+              <option v-for="option in ventedAlignmentEditor.options" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
           </div></div>
-          <div class="field-row"><UIFixedField class="field" :field="NumberField.BOX_VB_L" label="Volume" :value="ventedAlignmentVolume_m3" :format="ReadoutFormat.ALIGNMENT_VOLUME_L" readonly /></div>
-          <div class="field-row"><UIFixedField class="field" :field="NumberField.BOX_FB_HZ" label="Tuning freq (Fb)" :value="ventedAlignmentTuning_hz" :format="ReadoutFormat.TUNING_HZ" readonly /></div>
-          <div class="alignment-readout"><span class="alignment-icon" :class="ventedAlignmentSuitability ?? 'unknown'">●</span>
-            <span>EBP {{ ReadoutFormat.EBP.text(ventedAlignmentEbp, '—', unitTokens) }} {{ ReadoutFormat.EBP.unitLabel(unitTokens) }} — {{ ventedAlignmentSuitabilityLabel }}</span>
+          <div class="field-row"><UIFixedField class="field" :field="NumberField.BOX_VB_L" label="Volume" :value="ventedAlignmentEditor.volume_m3.value" :format="ReadoutFormat.ALIGNMENT_VOLUME_L" readonly /></div>
+          <div class="field-row"><UIFixedField class="field" :field="NumberField.BOX_FB_HZ" label="Tuning freq (Fb)" :value="ventedAlignmentEditor.tuning_hz.value" :format="ReadoutFormat.TUNING_HZ" readonly /></div>
+          <div class="alignment-readout"><span class="alignment-icon" :class="ventedAlignmentEditor.ebpSuitability.value ?? 'unknown'">●</span>
+            <span>EBP {{ ReadoutFormat.EBP.text(ventedAlignmentEditor.ebp.value, '—', unitTokens) }} {{ ReadoutFormat.EBP.unitLabel(unitTokens) }} — {{ ventedAlignmentEditor.ebpSuitabilityLabel.value }}</span>
           </div>
           <p class="hint">EBP is Fs ÷ Qes. It is a rule-of-thumb suitability guide: below 50 generally favors sealed, above 100 generally favors vented, and the middle range can use either.</p>
           <p class="hint">Volume and tuning are calculated from the driver's Fs, Qts, and Vas for the selected alignment.</p>

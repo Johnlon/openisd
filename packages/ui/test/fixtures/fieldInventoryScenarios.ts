@@ -66,6 +66,15 @@ export const CLOSED_BOX_INVENTORY = closedBoxInventory(true);
 export const DESKTOP_CLOSED_BOX_INVENTORY = closedBoxInventory(false);
 export const PHONE_DRIVER_INVENTORY: readonly ExpectedFieldOccurrence[] = [
   countOccurrence(NumberField.DRIVER_NDRIVERS, PhoneLabels.DRIVERS),
+  ...EnumField.PROJECT_LOADING.options.map(({value, label}) => ({
+    key: `${EnumField.PROJECT_LOADING.value}:${value}`,
+    owner: `label:has(> input[name="driver-placement"][value="${value}"])`,
+    valueSelector: 'input',
+    editorSelector: 'input[type="radio"]',
+    ownerAttributes: {}, valueAttributes: {tabindex: null},
+    nativeReadOnly: false, nativeChecked: value === 'standard', disabled: false, options: null,
+    parts: enabledParts([{name: 'label', selector: 'label', count: 1, visible: true, text: ` ${label}`}]),
+  })),
   ...[NumberField.FS_HZ, NumberField.QTS, NumberField.VAS_M3, NumberField.RE_OHM, NumberField.XMAX_M].map(field => numericOccurrence(field, READONLY)),
 ];
 export const PHONE_SIGNAL_INVENTORY: readonly ExpectedFieldOccurrence[] = [

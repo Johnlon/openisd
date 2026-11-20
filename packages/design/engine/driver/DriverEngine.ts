@@ -38,6 +38,8 @@ import {
   efficiencyBandwidthProduct, FS_FROM_MASS_CMS_ROUTE, MMS_FROM_FS_CMS_ROUTE, QES_FROM_FS_MMS_RE_BL_ROUTE, QMS_FROM_FS_MMS_RMS_ROUTE,
   QTS_FROM_QES_QMS_ROUTE, RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, VAS_FROM_CMS_SD_ROUTE, withQuantity,
 } from './routes/index.js';
+import {driverCircuitFieldIssues} from './circuitDiagnostics.js';
+import type {DriverCircuitFieldIssue} from './circuitDiagnostics.js';
 import type {DriverRoute, RouteFormulas} from './routes/index.js';
 
 /** The small-signal figures the sealed Box readout runs on: what the chart's circuit values (`chartValues`) imply, so the readout and the
@@ -184,6 +186,8 @@ export interface DriverEngine {
   whatIfMoves(figure: WhatIfFigure, value: number, shown: WhatIfFigures, air: Air): WhatIfMoves;
   /** Every figure the What-if rule moves or is typed into, once. */
   readonly whatIfFigures: readonly WhatIfFigure[];
+  /** Missing circuit values that have a box in the driver editor. */
+  circuitFieldIssues(values: DriverValues, air: Air): readonly DriverCircuitFieldIssue[];
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
   ebp(Fs_hz: number, Qes: number): number;
   /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
@@ -320,6 +324,11 @@ export class DriverEngineImpl implements DriverEngine {
   private qFallback(values: DriverValues): number | null {
     const {Qts} = values;
     return !isPositive(values.Qes) && !isPositive(values.Qms) && isPositive(Qts) ? WINISD_Q_FALLBACK_FACTOR * Qts : null;
+  }
+
+  circuitFieldIssues(values: DriverValues, air: Air): readonly DriverCircuitFieldIssue[] {
+    const resolved = this.circuitValues(values);
+    return driverCircuitFieldIssues({...resolved, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()});
   }
 
   /** The driver handle solve (T10/T11): build a private, entered-only `DriverWorkingSet` working

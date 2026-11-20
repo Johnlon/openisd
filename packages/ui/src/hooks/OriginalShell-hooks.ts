@@ -212,26 +212,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   } = sealedReadouts({ project, selectedBox, projectChanged });
   const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver, featureUse);
   const originalFilters = new OriginalFilters(project, projectChanged, engine.filters);
-  const sealedAlignmentOpen = sealedAlignmentEditor.open;
-  const sealedAlignmentDeviationShown = sealedAlignmentEditor.deviationShown;
-  const sealedAlignmentOptions = sealedAlignmentEditor.options;
-  const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;
-  const sealedAlignmentVolume_m3 = sealedAlignmentEditor.volume_m3;
-  const sealedAlignmentEbp = sealedAlignmentEditor.ebp;
-  const sealedAlignmentSuitability = sealedAlignmentEditor.ebpSuitability;
-  const sealedAlignmentSuitabilityLabel = sealedAlignmentEditor.ebpSuitabilityLabel;
 
   // Same class the mobile skin drives (VentedAlignment-hooks.ts) — one implementation, both
   // shells' pickers.
   const ventedAlignmentEditor = new VentedAlignmentEditor(project, projectChanged, engine.driver, featureUse);
-  const ventedAlignmentOpen = ventedAlignmentEditor.open;
-  const ventedAlignmentOptions = ventedAlignmentEditor.options;
-  const ventedAlignmentSelected = ventedAlignmentEditor.selectedAlignment;
-  const ventedAlignmentVolume_m3 = ventedAlignmentEditor.volume_m3;
-  const ventedAlignmentTuning_hz = ventedAlignmentEditor.tuning_hz;
-  const ventedAlignmentEbp = ventedAlignmentEditor.ebp;
-  const ventedAlignmentSuitability = ventedAlignmentEditor.ebpSuitability;
-  const ventedAlignmentSuitabilityLabel = ventedAlignmentEditor.ebpSuitabilityLabel;
 
   // Box-type-generic rear-chamber volume (WinISD "Vb") — the Box tab's single "Volume" field
   // dispatches through the unit-tested `createBoxVolume` (`boxFields.ts`).
@@ -840,12 +824,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel, ...desktopHelp,
     selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, compatOptions: CompatSwitch.OPTIONS, optionApplies, errorSwitches, chartDeviations, prNprDeviationShown, projectAlfaVCDeviationShown,
-     boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
-     sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
-     sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
-     ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
-     ventedAlignmentVolume_m3, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
-     ventedAlignmentSuitabilityLabel,
+    boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, ventedAlignmentEditor, originalFilters,
     FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP,
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, isDual,

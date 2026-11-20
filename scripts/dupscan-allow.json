@@ -153,11 +153,7 @@
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/ui/src/hooks/MobileAdvancedTab-hooks.ts:29-41 = packages/ui/src/hooks/OriginalShell-hooks.ts:780-792",
   "count": 1,
-  "was": "copy|packages/ui/src/hooks/MobileAdvancedTab-hooks.ts|packages/ui/src/hooks/OriginalShell-hooks.ts|e8430a26876f",
-  "resolved": true,
-  "resolved_to": "packages/design/domain/project/compatSwitch.ts:appliesTo",
-  "resolved_by": "T744",
-  "ruling": "QO963"
+  "was": "copy|packages/ui/src/hooks/MobileAdvancedTab-hooks.ts|packages/ui/src/hooks/OriginalShell-hooks.ts|e8430a26876f"
  },
  "copy|packages/ui/src/hooks/GraphPanel-hooks.ts|packages/ui/src/hooks/OriginalShell-hooks.ts|bdfd434e5dbb": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
@@ -379,11 +375,7 @@
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/domain/openisdTransforms.ts:396-412 = packages/design/domain/openisdTransforms.ts:244-262",
   "count": 1,
-  "was": "copy|packages/design/domain/openisdTransforms.ts|packages/design/domain/openisdTransforms.ts|e456dcd49d31",
-  "resolved": true,
-  "resolved_to": "packages/design/domain/openisdTransforms.ts:TunedBoxProjectBuilder",
-  "resolved_by": "T744",
-  "ruling": "QO963"
+  "was": "copy|packages/design/domain/openisdTransforms.ts|packages/design/domain/openisdTransforms.ts|e456dcd49d31"
  },
  "copy|packages/design/domain/openisdSchema.ts|packages/design/domain/openisdSchema.ts|e4972acc5745": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
@@ -801,11 +793,7 @@
  "sig|bl-from-qes|packages/design/engine/driver/DriverEngine.ts|? Math.sqrt(Re_terminal_ohm / (2 * Math.PI * Fs_hz * Qes * Cms_m_per_N)) : null;": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/engine/driver/DriverEngine.ts:201",
-  "count": 1,
-  "resolved": true,
-  "resolved_to": "packages/design/engine/driver/routes/smallSignalRoutes.ts:BL_FROM_QES_CMS_ROUTE",
-  "resolved_by": "T744",
-  "ruling": "QO963"
+  "count": 1
  },
  "sig|decibel|packages/design/engine/driver/routes/advancedRoutes.ts|return base == null ? null : base + 10 * Math.log10(v.Pe_W) - 3;": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
@@ -1052,20 +1040,12 @@
  "sig|air-compliance|packages/design/engine/pr/PrEngine.ts|return prCms * prSd * prSd * air.rho() * air.c() * air.c();": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/engine/pr/PrEngine.ts:131",
-  "count": 1,
-  "resolved": true,
-  "resolved_to": "packages/design/engine/driver/routes/efficiencyRoutes.ts:VAS_FROM_CMS_SD_ROUTE",
-  "resolved_by": "T744",
-  "ruling": "QO963"
+  "count": 1
  },
  "sig|air-compliance|packages/design/engine/pr/PrEngine.ts|return prVas_m3 / (prSd * prSd * air.rho() * air.c() * air.c());": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/engine/pr/PrEngine.ts:136",
-  "count": 1,
-  "resolved": true,
-  "resolved_to": "packages/design/engine/driver/routes/smallSignalRoutes.ts:CMS_FROM_VAS_SD_ROUTE",
-  "resolved_by": "T744",
-  "ruling": "QO963"
+  "count": 1
  },
  "sig|resonance-mass-compliance|packages/design/engine/pr/PrEngine.ts|return m > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(m * prCms)) : 0;": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
@@ -1075,11 +1055,7 @@
  "sig|resonance-mass-compliance|packages/design/engine/pr/PrEngine.ts|return prFsHz > 0 && prCms > 0 ? 1 / ((2 * Math.PI * prFsHz) ** 2 * prCms) : 0;": {
   "reason": "baseline 2026-11-18 (QO946.c256)",
   "where": "packages/design/engine/pr/PrEngine.ts:145",
-  "count": 1,
-  "resolved": true,
-  "resolved_to": "packages/design/engine/driver/routes/smallSignalRoutes.ts:MMS_FROM_FS_CMS_ROUTE",
-  "resolved_by": "T744",
-  "ruling": "QO963"
+  "count": 1
  },
  "sig|unit-factor|packages/design/engine/sealed/SealedEngine.ts|let lo = guess / 1000;": {
   "reason": "baseline 2026-11-18 (QO946.c256)",

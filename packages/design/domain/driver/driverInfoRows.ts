@@ -27,6 +27,19 @@ const RANGE_FIELDS: Readonly<Partial<Record<NumericDriverSpecFieldName, RangeLab
     freq_high_hz: Object.freeze({label: 'Range to', title: 'Frequency range, high end\nThe highest frequency the maker states the driver is for.'}),
 });
 
+const SUMMARY_NUMBER = Object.freeze(new Intl.NumberFormat('en-US', {
+    maximumSignificantDigits: NumberField.MIN_SIGNIFICANT,
+    useGrouping: false,
+}));
+
+/** Keep the field's usual display whenever its shown precision fits the summary. */
+function summaryValue(field: NumberField, value: number, precision: number | null): string {
+    const shown = field.format(value, precision);
+    const mantissa = shown.split('e')[0];
+    const digits = mantissa.replace(/\D/g, '').replace(/^0+/, '');
+    return digits.length > NumberField.MIN_SIGNIFICANT ? SUMMARY_NUMBER.format(field.toDisplay(value)) : shown;
+}
+
 /** The summary's first rows, the Thiele/Small set a reader looks for first; every other field
  *  follows in `DRIVER_SPEC_FIELD_NAMES` order. */
 const LEADING: readonly NumericDriverSpecFieldName[] = Object.freeze([
@@ -50,13 +63,18 @@ export function driverInfoRows(driver: OpenISDDriver): DriverInfoRow[] {
         if (v === null || !isFinite(v) || v === 0) continue;
         const field = NumberField.named(key);
         const range = RANGE_FIELDS[key];
-        if (field !== undefined) {
-            rows.push({key, label: field.label, title: field.description, value: field.format(v, cell.precision), unit: field.unitLabel(), provenance: cell.provenance});
-        } else if (range !== undefined) {
-            rows.push({key, label: range.label, title: range.title, value: NumberField.FS_HZ.format(v, cell.precision), unit: NumberField.FS_HZ.unitLabel(), provenance: cell.provenance});
-        } else {
+        const display = field ?? NumberField.FS_HZ;
+        if (field === undefined && range === undefined) {
             throw new Error(`driverInfoRows: no display field for ${key}`);
         }
+        rows.push({
+            key,
+            label: range?.label ?? display.label,
+            title: range?.title ?? display.description,
+            value: summaryValue(display, v, cell.precision),
+            unit: display.unitLabel(),
+            provenance: cell.provenance,
+        });
     }
     return rows;
 }

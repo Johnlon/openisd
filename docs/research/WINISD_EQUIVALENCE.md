@@ -35,7 +35,7 @@ from Fs, Mms and Qms. OpenISD charts the boxes as they show, by default. The opt
 cell below is measured with that option ticked (`reproduceWinisdBugs`, `packages/design/test/fixtures/domainBuilders.ts`) or with
 the three boxes holding WinISD's own figures (`useWinisdParts`). Where a file states figures that disagree with its Fs, Vas and
 Qms, OpenISD's charts with the option unticked follow the stated ones and differ from WinISD's,
-[finding](http://lap:8000/winisd/winisd_research/findings/FINDING_20261110_typed-mms-ignored-by-charts.md?html). Measured on the
+[WinISD simulation inputs](http://lap:8000/winisd/winisd_research/archive/GHIDRA_FINDINGS.md?html#L2146). Measured on the
 captures: E150HE-44 as its file states it, up to 6.8 dB SPL; W5-1138SMF, about 1 dB at 1 kHz. Ticked, E150HE-44 as its file
 states it matches WinISD's sealed charts (`driver-edit-parity-e150he-44.test.ts`).
 

@@ -1,4 +1,5 @@
 import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
+import type {TestSolverQuantities} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
@@ -142,23 +143,44 @@ describe('sweep', () => {
   });
 
   describe('sweep circuit diagnostics', () => {
-    it('reports one missing-dependencies issue per missing circuit quantity, each naming exactly '
-     + 'that field — never a combined message or a cross-field substitution suggestion', () => {
-      const result = engine.simulation.sweep(sweepDriver({ Fs_hz: 111111 }), LE_H, BOX, {
+    function sealedSweep(driver: ReturnType<typeof sweepDriver>) {
+      return engine.simulation.sweep(driver, LE_H, BOX, {
         Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, air: REFERENCE_AIR,
       });
+    }
 
+    it('marks all six missing figures and offers a smallest set of datasheet inputs', () => {
+      const result = sealedSweep(sweepDriver({}));
       assert.equal(result.values, null);
-      const targets = result.issues.map(i => i.kind === 'missing-dependencies' ? i.target : null).sort();
-      assert.deepEqual(targets, [
-        'BL_terminal_Tm', 'Cms_m_per_N', 'Mms_kg', 'Re_terminal_ohm', 'Rms_kg_per_s', 'Sd_m2',
-      ].sort());
-      for (const issue of result.issues) {
-        assert.equal(issue.kind, 'missing-dependencies');
-        if (issue.kind !== 'missing-dependencies') continue;
-        assert.equal(issue.routes.length, 1, `${issue.target} must name exactly one route — itself`);
-        assert.deepEqual(issue.routes[0].missing, [issue.target]);
+      const issues = result.issues.filter(issue => issue.kind === 'required-value');
+      assert.deepEqual(issues.map(issue => issue.field), [
+        'Sd_m2', 'Re_ohm', 'BL_Tm', 'Cms_m_per_N', 'Mms_kg', 'Rms_kg_per_s',
+      ]);
+      for (const issue of issues) {
+        assert.match(issue.text, /^Type .* if you know it, otherwise enter .*\.$/);
+        assert.equal(issue.chartFix.desktop, 'Enter Fs, Qes, Qms, Vas, Re and Sd (or Dd) in Driver > Edit > Parameters.');
       }
+      const stated: TestSolverQuantities = {Fs_hz: 37, Qes: 0.4, Qms: 7, Vas_m3: 0.03, Re_ohm: 5.6, Dd_m: 0.13};
+      assert.ok(sealedSweep(sweepDriver(solveConsistencyGroup(stated))).values, 'these six inputs allow the sweep');
+    });
+
+    it('offers only Sd or Dd when cone area is the only missing circuit figure', () => {
+      const typed = {Re_terminal_ohm: 5.6, BL_terminal_Tm: 6, Cms_m_per_N: 0.0005, Mms_kg: 0.024, Rms_kg_per_s: 1.2};
+      const result = sealedSweep(sweepDriver(typed));
+      assert.deepEqual(result.issues.map(issue => issue.kind === 'required-value' ? issue.chartFix.desktop : issue.text), [
+        'Enter Sd (or Dd) in Driver > Edit > Parameters.',
+      ]);
+      assert.ok(sealedSweep(sweepDriver({...typed, Sd_m2: 0.0133})).values);
+    });
+
+    it('uses typed Cms when Vas is missing and asks only for the still-needed figures', () => {
+      const typed = {Fs_hz: 37, Qes: 0.4, Re_ohm: 5.6, Re_terminal_ohm: 5.6, Cms_m_per_N: 0.0005};
+      const result = sealedSweep(sweepDriver(typed));
+      assert.equal(result.values, null);
+      const issues = result.issues.filter(issue => issue.kind === 'required-value');
+      assert.deepEqual(issues.map(issue => issue.field), ['Sd_m2', 'Rms_kg_per_s']);
+      assert.equal(issues[0]?.chartFix.desktop, 'Enter Qms and Sd (or Dd) in Driver > Edit > Parameters.');
+      assert.ok(sealedSweep(sweepDriver(solveConsistencyGroup({...typed, Qms: 7, Dd_m: 0.13}))).values);
     });
 
     it('maxCurves() passes through the same null values and issues as sweep() when the circuit is missing fields', () => {
@@ -223,7 +245,7 @@ describe('sweep', () => {
       const result = engine.simulation.sweep(partial, LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, driverAddedMass: 0.01, air: REFERENCE_AIR });
       assert.equal(result.values, null, 'the circuit cannot be built without Cms_m_per_N');
       assert.ok(
-        result.issues.some(i => i.kind === 'missing-dependencies' && i.target === 'Cms_m_per_N'),
+        result.issues.some(i => i.kind === 'required-value' && i.field === 'Cms_m_per_N'),
         'withAddedMass must leave the driver unchanged (never derive Cms) when a mass-shift input is absent',
       );
     });

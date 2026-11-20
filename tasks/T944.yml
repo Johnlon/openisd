@@ -1,0 +1,13 @@
+id: T944
+release_note: internal
+repo: openisd
+owner: lead
+status: done
+goal: Main green again: the phone field inventory declares the Standard / Iso-Barik radios T942 added
+why: "Main red since T942 (suite 44737955971, browser (1), phone-field-inventory.browser.spec.ts:25 and :43); John, QO481 (10 Nov 2026): main broken, the fix is a pull request labelled fixes"
+done_test: bash scripts/quiet-test.sh npm run typecheck
+label: fixes
+files:
+  - tasks/T944.yml
+  - packages/ui/test/fixtures/fieldInventoryScenarios.ts
+  - packages/ui/test/ui/phone-field-inventory.browser.spec.ts
