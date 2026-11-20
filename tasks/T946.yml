@@ -1,0 +1,10 @@
+id: T946
+release_note: internal
+repo: openisd
+owner: lead
+status: open
+goal: 'Dimensions drawing writes each size figure beside its line'
+why: 'John 20 Nov 2026 20:28 ''better just to add the figures dynamicLy to the diagrams''; liked both mock-ups 20:39 (dims-figures card)'
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T946.yml
