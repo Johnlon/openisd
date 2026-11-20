@@ -4,6 +4,8 @@
  * `test/goldens/<case>` holds a full store dump as an app of each layout writes it
  * (`dump-layout-<K>.json`), and `expected.json`, what the current app yields from the case. A dump
  * is never edited once written: a later layout adds a file.
+ * John's 20 Nov 2026 13:36 UTC ruling, "D: new calculation + note", updates the
+ * layout-6 expected calculated Qtc for older saves from 0.710177… to 0.819343….
  *
  * The bump detector reads the goldens against STORAGE_LAYOUT. It decides the bump, not the author:
  *   - the loaders write a case's newest dump back differently  -> bump STORAGE_LAYOUT, add dumps;

@@ -99,6 +99,9 @@ export class DesignFiles {
     if (Array.isArray(result)) {
       return { value: null, errors: result.map(message => ({ level: 'error', field: 'project', message })), loadRepairs: [] };
     }
-    return { value: result.project, errors: [], loadRepairs: result.loadRepairs };
+    return {
+      value: result.project, errors: [], loadRepairs: result.loadRepairs,
+      notes: result.calculationNote === undefined ? [] : [result.calculationNote],
+    };
   }
 }

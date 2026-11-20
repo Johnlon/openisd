@@ -390,7 +390,7 @@ export function createApplicationIO(deps: {
             return;
           }
 
-          const { value: project, errors, loadRepairs } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
+          const { value: project, errors, loadRepairs, notes } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
           if (!project) {
             // `errors[0]` alone is what the message shows — one line is all a toast has room for —
             // but a schema mismatch commonly raises several field-level issues at once (QO152),
@@ -403,7 +403,7 @@ export function createApplicationIO(deps: {
           project.name.set(projectNameFromFilename(f.name));
           project.save();   // the loaded design is the ground state — see the .wpr branch above
           openProjectOnce(project, {kind: 'file', name: f.name, content: text});
-          repairs = loadRepairs.map(repair => repair.text);
+          repairs = [...loadRepairs.map(repair => repair.text), ...(notes ?? [])];
         } else {
           throw new Error('it is not an OpenISD or WinISD file');
         }

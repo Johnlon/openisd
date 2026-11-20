@@ -43,6 +43,7 @@ import type { LoadRepairNote } from './loadRepair.js';
 import { TuneLimits } from './tuneLimits.js';
 import { tuneViewOf } from './tuneView.js';
 import type { TuneView } from './tuneView.js';
+import { calculationOpenNote } from './calculationOpenNote.js';
 
 // The domain declares its state here. JSON shapes live in `openisdSchema.ts`.
 // Internal JSON types are never re-exported from `domain/index.ts`.
@@ -68,6 +69,7 @@ import type { TuneView } from './tuneView.js';
 export interface OpenedProject {
     readonly project: OpenISDProject;
     readonly loadRepairs: readonly LoadRepairNote[];
+    readonly calculationNote?: string;
 }
 
 /** The port-velocity limit line where a project does not state one. */
@@ -576,12 +578,23 @@ export class OpenISDProject {
 
     /** Wrap a stored session (saved and edited states) under an adopted identity. */
     static wrapSession(session: OpenISDProjectSessionJson, engine: Engine, appContext: AppServices = realAppContext): OpenISDProject {
-        return OpenISDProject.openSession(session, engine, appContext).project;
+        return OpenISDProject.#restoreSession(session, engine, appContext).project;
     }
 
     /** `wrapSession`, with what the load repaired in either layer, one line each for the opening
      *  message ("Driver input voltage (each) -6 V in the file: set to the 10 mV minimum"). */
     static openSession(session: OpenISDProjectSessionJson, engine: Engine, appContext: AppServices): OpenedProject {
+        const opened = OpenISDProject.#restoreSession(session, engine, appContext);
+        const record = opened.project.#current();
+        // John, 20 Nov 2026, 13:36 UTC, "D: new calculation + note" for saves without this switch.
+        if (record.advanced.winisdChartFromFsVasQms !== undefined) return opened;
+        const oldRecord = {...record, advanced: {...record.advanced, winisdChartFromFsVasQms: true}};
+        const oldCalculation = new OpenISDProject(oldRecord, session.id, engine, appContext);
+        const calculationNote = calculationOpenNote(oldCalculation, opened.project);
+        return calculationNote === undefined ? opened : {...opened, calculationNote};
+    }
+
+    static #restoreSession(session: OpenISDProjectSessionJson, engine: Engine, appContext: AppServices): OpenedProject {
         // The record's own values are repaired before the first resolve, which would otherwise work
         // a port out from a 0 Hz tuning and lose the length the file gave.
         const saved = repairedRecord(withNullEmbeddedDriverId(session.saved));
