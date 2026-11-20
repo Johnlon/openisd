@@ -117,6 +117,7 @@ export class SealedEngineImpl implements SealedEngine {
   readonly arrayVas = arrayVas;
 
   volumeForQtc(Qts: number, Vas_m3: number, Qtc: number): number | null {
+    if (!(Qts > 0) || !(Vas_m3 > 0)) return null;
     const ratio = (Qtc / Qts) ** 2 - 1;
     return ratio <= 0 ? null : Vas_m3 / ratio;
   }
@@ -159,9 +160,13 @@ export class SealedEngineImpl implements SealedEngine {
     const Qtc = params.Qtc.value;
     const Vb = params.Vb_m3.value;
 
+    const Fs = params.Fs_hz.value;
     if (Qtc != null && !params.Vb_m3.entered) {
       if (Qts != null && Vas != null) {
-        const v = this.volumeForQtc(Qts, Vas, Qtc);
+        // The inverse of the Vb→Qtc route below: lossy when Fs_hz is stated, else the lossless ratio.
+        const v = Fs != null
+          ? this.volumeForLossyQtc({Fs, Vas, Qts, Ql: params.Ql.value ?? Infinity, Qa: params.Qa.value ?? Infinity}, Qtc)
+          : this.volumeForQtc(Qts, Vas, Qtc);
         if (v != null && Number.isFinite(v)) {
           params.Vb_m3.setCalculated(v);
         } else {
@@ -172,7 +177,6 @@ export class SealedEngineImpl implements SealedEngine {
       }
     } else if (Vb != null && !params.Qtc.entered) {
       if (Qts != null && Vas != null) {
-        const Fs = params.Fs_hz.value;
         // Fs_hz is the gate (S10): only a caller that states it opts into the lossy readout —
         // every pre-S10 caller (Fs_hz absent) keeps the lossless textbook ratio unchanged.
         const v = Fs != null

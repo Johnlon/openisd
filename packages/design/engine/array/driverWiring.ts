@@ -9,7 +9,7 @@
  * scripts/dupscan-homes.json) refuses a driver-count sum written anywhere else.
  */
 
-import type {SweepParams} from '../types.js';
+import type {BoxType, SweepParams} from '../types.js';
 
 export type DriverWiring = 'parallel' | 'series';
 
@@ -48,6 +48,12 @@ export function combinedOfN(oneDriver: number, n: number): number {
  *  side (mass, resistance, coil impedance): whole / n. */
 export function eachOfN(whole: number, n: number): number {
   return whole / n;
+}
+
+/** A passive-radiator box with no radiator count stated has one radiator, as `PassiveRadiatorBox` reads it; the count is
+ *  written in before the box is shared between drivers, so each of n drivers gets 1/n of it (T928). Other boxes: unchanged. */
+export function withStatedRadiatorCount(P: SweepParams, box: BoxType): SweepParams {
+  return box === 'box-passive-radiator' && P.prNum === undefined ? { ...P, prNum: 1 } : P;
 }
 
 /** One of `n` drivers' share of the box: Vb/n and, where they exist, Vf/n, every port area /n and prNum/n; one driver. */

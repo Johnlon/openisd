@@ -80,11 +80,14 @@ function cubicRoots(b: number, c: number, d: number): { re: number; im: number }
  * value as Ql→∞. See winisd_research/spec/S04_sealed_box.md §2 and §3.
  */
 export function sealedResonanceWinisd(p: SealedParams): { Fsc: number; Qtc: number } {
-  const fc0 = p.Fs * boxRatio(p.Vas, p.Vb);
-  if (!(p.Ql > 0) || p.Ql >= LOSSLESS_LIMIT) {
-    return { Fsc: fc0, Qtc: p.Qts * boxRatio(p.Vas, p.Vb) }; // no leak ⇒ lossless
+  const noLoss = (q: number): boolean => !(q > 0) || q >= LOSSLESS_LIMIT;
+  if (noLoss(p.Ql) && noLoss(p.Qa)) {
+    return sealedResonanceLossless(p); // no leak and no absorption ⇒ lossless
   }
-  const qa = !(p.Qa > 0) || p.Qa >= LOSSLESS_LIMIT ? 1e12 : p.Qa;
+  // One of the two with no loss (unusable, or at or above the limit) stands in as a very large finite Q.
+  const asLoss = (q: number): number => (noLoss(q) ? 1e12 : q);
+  const ql = asLoss(p.Ql);
+  const qa = asLoss(p.Qa);
 
   // ρc² cancels in the pole, so use ρc²=1: Cas=Vas, Ccab=Vb.
   const Cas = p.Vas;
@@ -92,7 +95,7 @@ export function sealedResonanceWinisd(p: SealedParams): { Fsc: number; Qtc: numb
   const Cat = 1 / (1 / Cas + 1 / Ccab);
   const Mas = 1 / ((2 * Math.PI * p.Fs) ** 2 * Cas);
   const wsc = 1 / Math.sqrt(Cat * Mas); // = 2π·Fs·√(1+Vas/Vb)
-  const leak = p.Ql / (wsc * Ccab);
+  const leak = ql / (wsc * Ccab);
   const qmL = 1 / (wsc * Cat * qa);
   const reSum = 1 / (2 * Math.PI * p.Fs * p.Qts * Cas);
 

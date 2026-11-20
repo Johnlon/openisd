@@ -51,6 +51,8 @@ interface CatalogueRecord {
   readonly canonicalType: string;
   /** A stated figure in SI, or null where the record states none. */
   figure(key: string): number | null;
+  /** Every spec key the record holds a non-zero number for, stated or calculated. */
+  figureKeys(): readonly string[];
 }
 
 function loadRecord(path: string): CatalogueRecord {
@@ -67,6 +69,7 @@ function loadRecord(path: string): CatalogueRecord {
       const entry = group[key];
       return entry !== undefined && typeof entry.value === 'number' ? entry.value : null;
     },
+    figureKeys: () => Object.entries(group).filter(([, e]) => typeof e.value === 'number' && e.value !== 0).map(([k]) => k),
   };
 }
 
@@ -97,6 +100,9 @@ const PREVIEW_FIGURES: readonly Figure[] = [
   {label: 'Pe', key: 'Pe_W', field: NumberField.PE_W},
   {label: 'Znom', key: 'Znom_ohm', field: NumberField.ZNOM_OHM},
 ];
+
+/** The stated frequency range has no NumberField; the preview names its rows so. */
+const RANGE_LABELS: Readonly<Record<string, string>> = {freq_low_hz: 'Range from', freq_high_hz: 'Range to'};
 
 /** The driver editor's Parameters boxes, which the desktop Driver tab opens with Edit. */
 const EDITOR_FIGURES: readonly Figure[] = [
@@ -333,7 +339,14 @@ async function walk(page: Page, skin: Skin): Promise<void> {
   await expect.soft(preview.locator('.prev-name')).toContainText(driver.model);
   const drawn = PREVIEW_FIGURES.filter(f => (driver.figure(f.key) ?? 0) !== 0);
   const typeRow = driver.canonicalType === '' ? [] : ['Type'];
-  await expect.soft(preview.locator('.spec-row .spec-lbl'), 'preview rows').toHaveText([...drawn.map(f => f.label), ...typeRow, 'EBP']);
+  // Every field the record holds gets a row (John, 20 Nov 2026, T938): the Thiele/Small set first in its order, Type last.
+  const heldLabels = driver.figureKeys().map(key => NumberField.named(key)?.label ?? RANGE_LABELS[key] ?? key);
+  const labels = preview.locator('.spec-row .spec-lbl');
+  await expect.soft(labels, 'preview rows').toHaveCount(heldLabels.length + typeRow.length);
+  const rowLabels = await labels.allTextContents();
+  expect.soft(rowLabels.slice(0, drawn.length), 'preview leads with the Thiele/Small rows').toEqual(drawn.map(f => f.label));
+  expect.soft(rowLabels.slice(rowLabels.length - typeRow.length), 'preview ends with Type').toEqual(typeRow);
+  expect.soft([...rowLabels.slice(0, heldLabels.length)].sort(), 'preview shows every field the record holds').toEqual([...heldLabels].sort());
   for (const f of drawn) {
     const specRow = preview.locator('.spec-row', {has: root.page().locator('.spec-lbl', {hasText: new RegExp(`^${f.label}$`)})});
     await expect.soft(specRow.locator('.spec-val b'), `preview ${f.label}`).toHaveText(f.field.format(required(driver, f.key)));

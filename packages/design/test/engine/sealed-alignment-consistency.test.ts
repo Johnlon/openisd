@@ -163,3 +163,44 @@ describe('Engine.solveSealedAlignment — loss-aware Vb→Qtc route', () => {
     expect(p.Qtc.value).toBeCloseTo(want, 12);
   });
 });
+
+describe('Engine.solveSealedAlignment — the Qtc→Vb route is the inverse of the Vb→Qtc route (T929)', () => {
+  const Qts = 0.5012, Vas_m3 = 0.00485, Fs_hz = 48.5, Ql = 10, Qa = 100;
+  const entered = (value: number): SolverInput => ({ value, entered: true });
+
+  it('a Qtc typed with Fs_hz/Ql/Qa stated gives the volume whose own Qtc is that Qtc', () => {
+    const forward = {
+      Qts: fakeSolverField(Qts), Vas_m3: fakeSolverField(Vas_m3),
+      Fs_hz: entered(Fs_hz), Ql: entered(Ql), Qa: entered(Qa),
+      Qtc: fakeSolverField(0.8), Vb_m3: fakeSolverField<number>(null),
+    };
+    engine.sealed.solve(forward);
+    const back = {
+      Qts: fakeSolverField(Qts), Vas_m3: fakeSolverField(Vas_m3),
+      Fs_hz: entered(Fs_hz), Ql: entered(Ql), Qa: entered(Qa),
+      Qtc: fakeSolverField<number>(null), Vb_m3: fakeSolverField(forward.Vb_m3.value),
+    };
+    engine.sealed.solve(back);
+    expect(back.Qtc.value).toBeCloseTo(0.8, 9);
+  });
+});
+
+describe('Engine.sealed.volumeForQtc — no volume without a usable Qts and Vas (T929)', () => {
+  it('a Vas or Qts of 0 (the .wdr not-present value) gives no volume', () => {
+    expect(engine.sealed.volumeForQtc(0.4, 0, 0.707)).toBeNull();
+    expect(engine.sealed.volumeForQtc(0, 0.03, 0.707)).toBeNull();
+  });
+
+  it('the handle solve leaves Vb not-available instead of writing a calculated 0', () => {
+    for (const [Qts, Vas_m3] of [[0.4, 0], [0, 0.03]]) {
+      const p = {
+        Qts: fakeSolverField(Qts), Vas_m3: fakeSolverField(Vas_m3),
+        Fs_hz: NO_INPUT, Ql: NO_INPUT, Qa: NO_INPUT,
+        Qtc: fakeSolverField(0.707), Vb_m3: fakeSolverField<number>(null),
+      };
+      engine.sealed.solve(p);
+      expect(p.Vb_m3.value).toBeNull();
+      expect(p.Vb_m3.calculated).toBe(false);
+    }
+  });
+});

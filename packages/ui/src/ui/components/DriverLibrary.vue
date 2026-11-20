@@ -23,6 +23,7 @@ const znomUnit = NumberField.ZNOM_OHM.unitLabel();
 // Edit and Clone driver buttons, and suppresses the summary's own Cancel/Use footer
 // (the host wizard draws its own Back/Next/Cancel navigation).
 import {PreviewSpecKind} from '../../logic/driverDisplay.js';
+import {provenanceClassOf} from '../../logic/driverCells.js';
 import {DriverListMode} from '../../logic/driverListMode.js';
 
 // `phone`: the classic phone list (PHONE_CLASSIC_BUILD_SPEC screens 6 and 7): filters fold behind a
@@ -340,7 +341,8 @@ onMounted(openedLibrary);
           </div>
           <div class="prev-body">
             <div class="prev-specs">
-              <div v-for="s in previewData.specs" :key="s.label" class="spec-row">
+              <div v-for="s in previewData.specs" :key="s.label" class="spec-row"
+                   :class="s.provenance === null ? undefined : provenanceClassOf(s.provenance)" :title="s.title || undefined">
                 <span class="spec-lbl">{{ s.label }}</span>
                 <span class="spec-val" :class="{ 'has-unit-slot': s.kind === PreviewSpecKind.Number, 'spec-text': s.kind === PreviewSpecKind.Text }">
                   <b>{{ s.value }}</b>
@@ -618,7 +620,7 @@ onMounted(openedLibrary);
 }
 .driver-library .prev-specs {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 160px);
+  grid-template-columns: repeat(auto-fill, 170px);
   gap: 2px 10px;
   margin-bottom: 10px;
 }
@@ -627,7 +629,7 @@ onMounted(openedLibrary);
 :global(.app-root-mobile) .driver-library .prev-specs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .driver-library .spec-row {
   display: grid;
-  grid-template-columns: fit-content(45%) minmax(0, 1fr);
+  grid-template-columns: fit-content(40%) minmax(0, 1fr);
   align-items: baseline;
   gap: 6px;
   padding: 2px 6px;
@@ -636,6 +638,8 @@ onMounted(openedLibrary);
 }
 .driver-library .spec-lbl {
   min-width: 0;
+  overflow-wrap: anywhere;
+  hyphens: auto;
   color: #666;
 }
 .driver-library .spec-val {
@@ -646,8 +650,8 @@ onMounted(openedLibrary);
   color: #000;
 }
 .driver-library .spec-val.has-unit-slot {
-  grid-template-columns: minmax(0, 1fr) 3em;
-  column-gap: 6px;
+  grid-template-columns: minmax(0, 1fr) 4.2em;
+  column-gap: 5px;
 }
 .driver-library .spec-val b {
   min-width: 0;
@@ -656,6 +660,9 @@ onMounted(openedLibrary);
   font-variant-numeric: tabular-nums;
 }
 .driver-library .spec-val.spec-text, .driver-library .spec-val.spec-text b {text-align:left;}
+/* Stated values green, calculated blue: the app's Entered/Calculated key. */
+.driver-library .spec-row.value-e .spec-val b { color: var(--good); }
+.driver-library .spec-row.value-c .spec-val b { color: var(--acc); }
 .driver-library .spec-unit {
   white-space: nowrap;
   text-align: left;

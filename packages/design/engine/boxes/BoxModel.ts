@@ -48,8 +48,8 @@ export interface DriverSideQuantities {
   readonly rho: number;
   /** Speed of sound, m/s. */
   readonly c: number;
-  /** 'lossless' when Ql and Qa are both ≥ the lossless limit (the user entered no losses at all),
-   *  else WinISD's own lossy model. Derived from Ql/Qa; never a user choice. */
+  /** 'lossless' when every loss Q the box's lossy form reads is ≥ the lossless limit (circuit.ts
+   *  `boxLoss`), else WinISD's own lossy model. Derived from the loss Q's; never a user choice. */
   readonly loss: BoxLoss;
 }
 
