@@ -1,6 +1,7 @@
 import type {BranchMap} from './types.js';
 /** Desktop-skin scanned branches (shells/original) mapped to the view each one is, or sits inside. */
 export const DESKTOP_BRANCH_MAP:BranchMap={
+  'conditional-branch-cf6b84b180540fad':{kind:'partOf',view:'wizard-sealed-2'}, // OriginalNewProject.vue:163, T919: the pairs line beside the driver count
   // T919: Back and Next (Create on the last step) at the top of the New Project dialog, on every step (John, 19 Nov 2026).
   'surface-root-ee815ff1351dbc72':{kind:'partOf',view:'desktop/projects/new/closed-box/choose-driver'}, // OriginalNewProject.vue:138
   'native-ui-eda3c1def1bcf8ca':{kind:'partOf',view:'desktop/projects/new/closed-box/choose-driver'}, // OriginalNewProject.vue:140

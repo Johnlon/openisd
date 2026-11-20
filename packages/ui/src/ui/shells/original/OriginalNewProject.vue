@@ -4,13 +4,12 @@
  * State management delegated to useOgNewProject() hook per ui.md.
  */
 import { computed, onBeforeUnmount, ref } from 'vue';
-import { NumberField, PhoneWizardText, PickWidth, PlacementChoice, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
+import { NumberField, PhoneWizardText, PickWidth, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
-import BoxArrangementDiagram from '../../components/BoxArrangementDiagram.vue';
-import PlacementArt from '../../components/PlacementArt.vue';
+import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import UIPickField from '../../components/UIPickField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
@@ -41,8 +40,7 @@ const {
   selectDriver,
 
   nDrivers,
-  placementChoice,
-  placementValue,
+  placement,
   driverCountNote,
 
   boxType,
@@ -160,31 +158,20 @@ function handleCreate() {
         <div v-else-if="isCountStep" class="step-content short-pick-fields">
           <div class="field-row">
             <UIFixedField input-id="np-ndrivers" :field="NumberField.DRIVER_NDRIVERS" label="Num. of drivers" :value="nDrivers" @update:value="n => nDrivers = n" />
+            <!-- With Iso-Barik the count is of pairs: say how many drivers that is (John, 19 Nov 2026, asking what Number of drivers means).
+                 Beside the count, so the step keeps main's height. -->
+            <span v-if="driverCountNote !== null" class="np-pair-note" data-testid="np-pair-note">{{ driverCountNote }}</span>
           </div>
-          <!-- With Iso-Barik the count is of pairs: say how many drivers that is (John, 19 Nov 2026, asking what Number of drivers means). -->
-          <!-- Its line stays for Standard (hidden) so the drawings below do not move when the choice changes. -->
-          <p class="np-pair-note" :class="{'np-pair-note-off': driverCountNote === null}" :aria-hidden="driverCountNote === null" data-testid="np-pair-note">{{ driverCountNote }}</p>
-          <div class="np-placement-pic">
-            <div class="field-row">
-              <!-- A field row like the pick fields around it, so its label column is the group's and the radios start where their boxes do.
-                   Three choices, one per drawing (John, 19 Nov 2026: "click the images to select the active one of the 3"): both Iso-Barik
-                   drawings give the same Iso-Barik loading; which one is the user's intent, held by the dialog only. -->
-              <div class="ui-field ui-pick-field radio-group" role="group" aria-labelledby="np-placement-label">
-                <label id="np-placement-label" class="ui-field-label placement-label">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
-                <span class="placement-choices">
-                  <label v-for="c in PlacementChoice.ALL" :key="c.value" class="np-place-radio">
-                    <input :id="`np-place-${c.value}`" type="radio" name="placement" :value="c.value" v-model="placementValue"> {{ c.label }}
-                  </label>
-                  <WizardInfoButton question label="About driver placement" @click="openPlacementInfo" />
-                  <!-- Each drawing is its choice's label, under its radio: a click on it ticks that radio. The chosen one is framed. -->
-                  <label v-for="c in PlacementChoice.ALL" :key="`art-${c.value}`" :for="`np-place-${c.value}`" class="np-place-drawing"
-                    :class="{'np-place-on': placementChoice === c}" :data-testid="`placement-${c.art}`" :title="c.label">
-                    <PlacementArt :art="c.art" />
-                  </label>
-                </span>
-              </div>
+          <div class="field-row">
+            <!-- A field row like the pick fields around it, so its label column is the group's and the radios start where their boxes do. -->
+            <div class="ui-field ui-pick-field radio-group" role="group" aria-labelledby="np-placement-label">
+              <label id="np-placement-label" class="ui-field-label placement-label">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
+              <span class="placement-choices">
+                <label><input type="radio" name="placement" value="standard" v-model="placement"> Standard</label>
+                <label><input type="radio" name="placement" value="isobaric" v-model="placement"> Iso-Barik</label>
+                <WizardInfoButton question label="About driver placement" @click="openPlacementInfo" />
+              </span>
             </div>
-            <div class="np-placement-caption" :class="{'np-placement-caption-off': placementChoice.caption === null}" :aria-hidden="placementChoice.caption === null">{{ placementChoice.caption }}</div>
           </div>
         </div>
 
@@ -211,7 +198,7 @@ function handleCreate() {
           </div>
 
           <div class="box-diagram-container">
-            <BoxArrangementDiagram :box-type="boxType" :choice="placementChoice" />
+            <BoxTypeDiagram :box-type="boxType" />
           </div>
         </div>
 
@@ -322,16 +309,17 @@ function handleCreate() {
 .np-chamber .field { margin-bottom: 6px; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.18); z-index: 100; display: flex; align-items: flex-start; justify-content: center; }
 .modal { margin-top: 6vh; background: #f7f7f7; border: 1px solid #888; box-shadow: 3px 6px 18px rgba(0,0,0,.35); width: 800px; max-width: 92vw; }
-/* Model B: the dialog is as tall as the step's content, as on main. On a window too short for it the body scrolls inside and both
-   rows of buttons stay in view. */
-.modal { display: flex; flex-direction: column; max-height: calc(100vh - 6vh - 6px); }
-.modal-topnav { display: flex; flex: none; justify-content: flex-end; border-bottom: 1px solid #ccc; padding: 8px 20px; background: #eee; }
 .modal-titlebar { display: flex; align-items: center; justify-content: space-between; background: #e9e9e9; border-bottom: 1px solid #bbb; padding: 8px 12px; font-size: 15px; }
 .modal-titlebar .tb-left { display: flex; align-items: center; gap: 8px; }
 .modal-titlebar .app-icon { width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #888, #333 70%); }
 .modal-titlebar .close-btn { cursor: pointer; padding: 1px 6px; color: #555; }
 .modal-titlebar .close-btn:hover { background: #e64545; color: #fff; }
-.modal-body { padding: 16px 20px; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.modal-body { padding: 16px 20px; }
+/* On a window too short for the step the body scrolls inside, so both rows of buttons stay in view; otherwise the size is main's. */
+.modal { display: flex; flex-direction: column; max-height: calc(100vh - 6vh - 6px); }
+.modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.modal-topnav { display: flex; flex: none; justify-content: flex-end; border-bottom: 1px solid #ccc; padding: 8px 20px; background: #eee; }
+.np-pair-note { font-size: 13px; color: #666; }
 .np-step { color: #666; margin-bottom: 10px; font-weight: 500; }
 .step-content { margin-top: 10px; }
 .selected-driver-banner { background: #eef4fc; border: 1px solid #b8d4f8; padding: 6px 10px; border-radius: 3px; margin-bottom: 12px; font-size: 13px; color: #224466; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -340,50 +328,14 @@ function handleCreate() {
 .np-library { height: 420px; }
 .field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .step-content :deep(.ui-field) { margin-bottom: 10px; }
-/* The passive radiator step: Starting volume beside the Select button, the name across, then the eight radiator rows in two
-   columns (Vas Qms Fs Sd | Mms Cms Rms Xmax), the pick error across the bottom. The step component's own box is dissolved
-   (display: contents) so its rows join this grid; the phone keeps its one column. */
-.np-pr-fields { display: grid; grid-template-columns: max-content max-content; column-gap: 24px; row-gap: 6px; align-items: center; align-content: start; }
-.np-pr-fields :deep(.np-pr-step) { display: contents; }
-.np-pr-fields :deep(.ui-field) { margin: 0; }
-.np-pr-fields :deep(.np-pr-browse) { grid-row: 1; grid-column: 2; justify-self: start; width: auto; padding: 0 14px; }
-.np-pr-fields :deep(.np-pr-hint) { grid-row: 2; grid-column: 1 / -1; margin: 0; }
-.np-pr-fields :deep(.ui-field:has(#np-pr-name)) { grid-row: 3; grid-column: 1 / -1; }
-.np-pr-fields :deep(.ui-field:has(#np-pr-vas)) { grid-row: 4; grid-column: 1; }
-.np-pr-fields :deep(.ui-field:has(#np-pr-qms)) { grid-row: 5; grid-column: 1; }
-.np-pr-fields :deep(.ui-field:has(#np-pr-fs)) { grid-row: 6; grid-column: 1; }
-.np-pr-fields :deep(.ui-field:has(#np-pr-sd)) { grid-row: 7; grid-column: 1; }
-.np-pr-fields :deep(.ui-field:has(#np-pr-mms)) { grid-row: 4; grid-column: 2; }
-.np-pr-fields :deep(.ui-field:has(#np-pr-cms)) { grid-row: 5; grid-column: 2; }
-.np-pr-fields :deep(.ui-field:has(#np-pr-rms)) { grid-row: 6; grid-column: 2; }
-.np-pr-fields :deep(.ui-field:has(#np-pr-xmax)) { grid-row: 7; grid-column: 2; }
-/* Width 0 and min-width 100%: the long error wraps inside the two columns instead of widening them. */
-.np-pr-fields .np-pr-error { grid-row: 8; grid-column: 1 / -1; width: 0; min-width: 100%; box-sizing: border-box; }
 .field { display: flex; align-items: center; gap: 6px; }
 .field label { color: #333; display: inline-block; min-width: 150px; }
 .field input, .field select { border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff; }
 .field input { width: 140px; }
 .field .unit { color: #555; }
 .radio-group { display: grid; align-items: center; margin-bottom: 12px; }
-.np-placement-pic { display: flex; flex-direction: column; gap: 4px; }
-/* The radios on one line and the drawings under them share one set of columns, starting at the value column. */
-.placement-choices { display: grid; grid-template-columns: repeat(3, 168px) auto; align-items: center; column-gap: 8px; row-gap: 6px; }
-.np-place-radio { white-space: nowrap; }
-/* The label sits level with the radios, not in the middle of radios and drawings. */
-.np-placement-pic .placement-label { align-self: start; line-height: 20px; }
-/* A drawing is a click target; the chosen one is framed. */
-.np-place-drawing { display: flex; justify-content: center; box-sizing: border-box; padding: 4px 0; border: 2px solid transparent; border-radius: 4px; cursor: pointer; }
-.np-place-drawing:hover { border-color: #b8d4f8; }
-.np-place-drawing.np-place-on { border-color: #2e7d32; background: #f0f7f0; }
-.np-place-drawing :deep(svg) { height: var(--np-place-h); width: auto; }
-.np-placement-pic { --np-place-h: 88px; }
-/* One line kept whether or not there is a note (Standard has none), so nothing moves when the choice changes. */
-.np-placement-caption { align-self: flex-start; font-size: 13px; color: #666; min-height: 1lh; }
-.np-placement-caption-off { visibility: hidden; }
 .placement-label { color: #333; white-space: nowrap; }
-/* The pairs line sits under the driver count, in the hint's grey. */
-.np-pair-note { margin: -4px 0 10px; font-size: 13px; color: #666; min-height: 1lh; }
-.np-pair-note-off { visibility: hidden; }
+.placement-choices { display: inline-flex; align-items: center; gap: 16px; }
 /* The first radio circle starts at the column edge, where the boxes above and below start. */
 .placement-choices > label:first-child input { margin-left: 0; }
 .radio-group label { cursor: pointer; }

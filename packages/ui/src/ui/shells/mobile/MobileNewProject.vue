@@ -3,12 +3,12 @@
 // Driver -> Num/placement -> Box type + EBP -> Sealed alignment -> Metadata). Uses the SAME
 // useOgNewProject() hook as OriginalNewProject.vue: one wizard implementation, two presentations.
 import { computed, onBeforeUnmount, ref } from 'vue';
-import { NumberField, PhoneLabels, PhoneWizardHelp, PhoneWizardText, PlacementChoice, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
+import { NumberField, PhoneLabels, PhoneWizardHelp, PhoneWizardText, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
-import BoxArrangementDiagram from '../../components/BoxArrangementDiagram.vue';
+import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import PhoneButton from './PhoneButton.vue';
 import PlacementDiagram from '../../components/PlacementDiagram.vue';
 import WizardHelpSheet from '../../components/WizardHelpSheet.vue';
@@ -42,7 +42,6 @@ const {
   nDrivers,
   placement,
   placementChoice,
-  placementValue,
   driverCountNote,
 
   boxType,
@@ -176,19 +175,19 @@ function handleCreate() {
         <template v-if="isCountStep">
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_DRIVER_ARRAY }}</span></div>
           <UIFixedField class="mob-ui-field" input-id="np-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="PhoneLabels.DRIVERS" :value="nDrivers" @update:value="n => nDrivers = n" />
-          <!-- With Iso-Barik the count is of pairs: say how many drivers that is. -->
+          <!-- With Iso-Barik the count is of pairs: say how many drivers that is (John, 19 Nov 2026, asking what Number of drivers means). -->
           <p v-if="driverCountNote !== null" class="mob-chint" data-testid="np-pair-note">{{ driverCountNote }}</p>
           <div class="mob-crow">
             <label class="mob-crow-label" for="np-placement">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
-            <!-- The desktop's three drawings as three choices; both Iso-Barik ones give the same Iso-Barik loading. -->
-            <select id="np-placement" class="mob-cselect mob-cselect-info" v-model="placementValue">
-              <option v-for="c in PlacementChoice.ALL" :key="c.value" :value="c.value">{{ c.label }}</option>
+            <select id="np-placement" class="mob-cselect mob-cselect-info" v-model="placement">
+              <option value="standard">{{ PhoneWizardText.PLACEMENT_STANDARD }}</option>
+              <option value="isobaric">{{ PhoneWizardText.PLACEMENT_ISOBARIK }}</option>
             </select>
             <WizardInfoButton label="About driver placement" @click="openPlacementInfo" />
           </div>
           <div class="mob-np-pic mob-np-pic-note">
             <PlacementDiagram :placement="placement" />
-            <div class="mob-np-pic-caption" :class="{'mob-np-pic-caption-off': placementChoice.caption === null}" :aria-hidden="placementChoice.caption === null">{{ placementChoice.caption }}</div>
+            <div v-if="placementChoice.caption !== null" class="mob-np-pic-caption">{{ placementChoice.caption }}</div>
           </div>
         </template>
 
@@ -208,6 +207,7 @@ function handleCreate() {
             </div>
             <WizardInfoButton label="About EBP" @click="openEbpInfo" />
           </div>
+          <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
         </template>
 
         <!-- Step 4: Sealed Alignment -->
@@ -223,6 +223,7 @@ function handleCreate() {
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_KEY_FIGURES }}</span></div>
           <UIFixedField class="mob-ui-field" :label="PhoneWizardText.CALCULATED_QTC_LABEL" :field="NumberField.BOX_QTC_VALUE" :value="qtc" :deviation="sealedPickerDeviationShown ? WinisdDeviation.SEALED_PICKER : undefined" readonly plain />
           <UIFixedField class="mob-ui-field" :label="PhoneWizardText.BOX_RESONANCE_LABEL" :field="NumberField.BOX_FSC_HZ" :value="sealedFsc_hz" readonly plain />
+          <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
         </template>
 
         <!-- Step 4: Vented Alignment -->
@@ -238,6 +239,7 @@ function handleCreate() {
           <div v-if="ventedVolumeWarning" class="mob-chint mob-chint-warn" role="alert" aria-live="polite" data-testid="np-vented-volume-warning">{{ ventedVolumeWarning }}</div>
           <UIFixedField class="mob-ui-field" input-id="np-vented-tuning" :label="PhoneWizardText.TUNING_FREQUENCY_LABEL" :field="NumberField.BOX_FB_HZ" :value="ventedTuning_hz" @update:value="setVentedTuning_hz" />
           <div v-if="ventedTuningWarning" class="mob-chint mob-chint-warn" role="alert" aria-live="polite" data-testid="np-vented-tuning-warning">{{ ventedTuningWarning }}</div>
+          <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
         </template>
 
         <!-- Step 4: Passive Radiator (WinISD's own wizard step: the radiator and its Vas / Qms / Fs / Sd / Xmax) -->
@@ -249,6 +251,7 @@ function handleCreate() {
               @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
             @rename="setPassiveRadiatorName" @load-saved="loadSavedPassiveRadiator" @load-bundled="loadBundledPassiveRadiator" :editor="passiveRadiatorEditor" @define="startDefinePassiveRadiator" />
           <div v-if="passiveRadiatorPickError" class="mob-chint mob-chint-warn np-pr-error" role="alert" aria-live="polite">{{ passiveRadiatorPickError }}</div>
+          <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
         </template>
 
         <!-- Step 4: Chambers (4th and 6th order bandpass, ABC): each chamber's volume and tuning together -->
@@ -259,6 +262,7 @@ function handleCreate() {
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_FRONT_CHAMBER }}</span></div>
           <UIFixedField class="mob-ui-field" input-id="np-front-volume" :label="PhoneWizardText.VOLUME_LABEL" :field="NumberField.BOX_VF_L" :value="frontVolume_m3" @update:value="v => frontVolume_m3 = v" />
           <UIFixedField class="mob-ui-field" input-id="np-front-tuning" :label="PhoneWizardText.TUNING_LABEL" :field="NumberField.BOX_FFC_HZ" :value="frontTuning_hz" @update:value="v => frontTuning_hz = v" />
+          <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
         </template>
 
         <!-- Step 5: Project Information -->
@@ -270,8 +274,6 @@ function handleCreate() {
           <div class="mob-np-stack-box"><textarea id="np-proj-desc" class="mob-np-text" :placeholder="PhoneWizardText.DESCRIPTION_PLACEHOLDER" v-model="projDescription"></textarea></div>
           <p class="mob-np-hint">{{ PhoneWizardText.PROJECT_HINT }}</p>
         </template>
-        <!-- The Box type and every Box step end with the drawing of the box, one drawing for Standard and the pair for Iso-Barik, as on the Box tab. -->
-        <div v-if="isBoxTypeStep || isBoxDetailsStep" class="mob-np-pic"><BoxArrangementDiagram :box-type="boxType" :choice="placementChoice" /></div>
       </PhoneClassicPage>
     </div>
 
@@ -323,12 +325,9 @@ function handleCreate() {
 /* Placement: the select keeps its width; the ⓘ sits in the 90 px stepper area (46 + 44) */
 .mob-classic .mob-cselect.mob-cselect-info { margin-right: 46px; }
 .mob-np-info { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: none; background: none; color: var(--acc); padding: 0; cursor: pointer; }
-.mob-np-pic { display: flex; justify-content: center; align-items: center; padding: 16px 0 12px; border-bottom: 1px solid #e6e6e6; }
-.mob-np-pic-note { flex-direction: column; gap: 8px; }
-/* The note starts where the labels above it start (the row edge), not at the screen edge. */
-.mob-np-pic-caption-off { visibility: hidden; }
-/* Two lines kept whether or not there is a note (Standard has none), so nothing moves when the choice changes. */
-.mob-np-pic-caption { align-self: stretch; box-sizing: border-box; padding: 0 var(--mob-edge); font-size: 13px; color: #666; min-height: 2lh; }
+.mob-np-pic { display: flex; justify-content: center; align-items: center; padding: 12px 0; border-bottom: 1px solid #e6e6e6; }
+.mob-np-pic-note { flex-direction: column; gap: 4px; }
+.mob-np-pic-caption { font-size: 13px; color: #666; }
 
 /* Alignment: prod's option names are long, so the label sits above a full-width select */
 .mob-classic .mob-crow-stack { flex-direction: column; align-items: stretch; height: auto; padding: 0 var(--mob-edge) 8px; }

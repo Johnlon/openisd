@@ -92,12 +92,10 @@ export interface OriginalNewProjectAPI {
 
   // Step 2: Driver count & placement
   readonly nDrivers: Ref<number>;
-  /** The project's loading, from the chosen drawing; setting it keeps the chosen Iso-Barik drawing when it stays Iso-Barik. */
+  /** The project's loading: Standard or Iso-Barik (the radio or dropdown). */
   readonly placement: WritableComputedRef<'standard' | 'isobaric'>;
-  /** Which of the three drawings the user chose (dialog state only: no project field holds clamshell or back to front). */
+  /** The placement chosen, for its words (the pairs line, the phone's caption); dialog state only. */
   readonly placementChoice: Ref<PlacementChoice>;
-  /** The chosen drawing's radio or dropdown value (PlacementChoice.value), for v-model. */
-  readonly placementValue: WritableComputedRef<string>;
   /** The line under the driver count saying how many drivers it is ("3 pairs = 6 drivers"); null for Standard. */
   readonly driverCountNote: ComputedRef<string | null>;
 
@@ -227,10 +225,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
   const nDrivers = ref(1);
   const placementChoice = shallowRef<PlacementChoice>(PlacementChoice.STANDARD);
-  const placementValue = computed<string>({
-    get: () => placementChoice.value.value,
-    set: value => { placementChoice.value = PlacementChoice.of(value); },
-  });
   const driverCountNote = computed(() => placementChoice.value.driverCountNote(nDrivers.value));
   const placement = computed<'standard' | 'isobaric'>({
     get: () => placementChoice.value.loading,
@@ -658,7 +652,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     nDrivers,
     placement,
     placementChoice,
-    placementValue,
     driverCountNote,
 
     boxType,

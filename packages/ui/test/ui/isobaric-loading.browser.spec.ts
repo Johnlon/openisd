@@ -58,6 +58,8 @@ interface Shell {
   readonly volume: string;
   /** Where the Box tab draws the box. */
   readonly boxDrawingArea: string;
+  /** The height main draws the Box tab's box at (desktop: the drawing's own 126 px; phone: its 158 px panel less padding and rule). */
+  readonly boxDrawingHeight: number;
   /** The Driver tab's driver count box. */
   readonly nDriversInput: string;
   /** The Driver tab's arrangement pictures sit beside the Placement choice. */
@@ -83,6 +85,7 @@ const DESKTOP: Shell = {
   name: 'desktop',
   volume: 'Volume',
   boxDrawingArea: '.box-diagram-col',
+  boxDrawingHeight: 126,
   nDriversInput: '#og-ndrivers',
   // To the right of the radios, level with them.
   expectPicturesBeside: (choice, pics) => {
@@ -134,6 +137,7 @@ const PHONE: Shell = {
   name: 'phone',
   volume: 'Vb',
   boxDrawingArea: '.mob-cpic',
+  boxDrawingHeight: 125,
   nDriversInput: '#mob-n-drivers',
   // Straight under the Placement row (the pairs line between them).
   expectPicturesBeside: (choice, pics) => {
@@ -299,7 +303,7 @@ for (const {shell, width, fits} of SIZE_CASES) {
       await openTab(page, 'Box');
       const standard = await boxDrawings(page, area);
       expect(standard.map((d) => d.id), `${boxType} standard: the one classic drawing`).toEqual([BOX_DRAWING_ID[boxType]]);
-      expect(standard[0].h, `${boxType}: the classic drawing's height`).toBe(126);
+      expect(standard[0].h, `${boxType}: the classic drawing's height`).toBe(shell.boxDrawingHeight);
       await openTab(page, 'Driver');
       await shell.chooseIsobaric(page);
       await openTab(page, 'Box');

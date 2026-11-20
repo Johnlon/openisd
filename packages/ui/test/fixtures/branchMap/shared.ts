@@ -1,16 +1,14 @@
 import type {BranchMap} from './types.js';
 /** Shared (neither shell) scanned branches, drawn on both skins, mapped to the view each one is, or sits inside. Phone view ids are used where a view exists per skin. */
 export const SHARED_BRANCH_MAP:BranchMap={
-  'conditional-branch-f072f6aa74ba9d5f':{kind:'partOf',view:'wizard-sealed-3'}, // components/BoxArrangementDiagram.vue:18, T919: the box with the one arrangement picked
-  'conditional-branch-6dea12ee5dcce015':{kind:'partOf',view:'wizard-sealed-3'}, // components/BoxArrangementDiagram.vue:20
-  'conditional-branch-86d15a99910deefd':{kind:'partOf',view:'wizard-placement'}, // components/PlacementArt.vue:14
-  'conditional-branch-d75023e5737f711e':{kind:'partOf',view:'wizard-placement'}, // components/PlacementArt.vue:19
-  'conditional-branch-3fc6dc87e6d864b5':{kind:'partOf',view:'wizard-placement'}, // components/PlacementDiagram.vue:15
+  'conditional-branch-912ac8616c45b88e':{kind:'partOf',view:'wizard-placement'}, // components/PlacementDiagram.vue:13
+  'conditional-branch-b03c2f98a60afa86':{kind:'partOf',view:'wizard-placement'}, // components/PlacementDiagram.vue:18
+  'conditional-branch-86d15a99910deefd':{kind:'partOf',view:'tab-driver'}, // components/PlacementArt.vue:14 (the Driver tab's arrangement pictures)
+  'conditional-branch-d75023e5737f711e':{kind:'partOf',view:'tab-driver'}, // components/PlacementArt.vue:19
   'conditional-branch-cd66175048d64d4b':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:16
   'conditional-branch-09a5ecaf37ab2624':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:23
   'conditional-branch-b8a825f4f5ced54d':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:14
   'conditional-branch-34f60700bc70d590':{kind:'partOf',view:'wizard-placement'}, // components/DriverPairArt.vue:15
-  'conditional-branch-04178604c72209a3':{kind:'partOf',view:'wizard-placement'}, // components/PlacementDiagram.vue:21
   'conditional-branch-c30b881777091cc0':{kind:'view',view:'shared/field-catalogue'}, // App.vue:157
   'conditional-branch-f00473ae100ea10b':{kind:'notAView',reason:'skin switch that mounts the phone shell'}, // App.vue:158
   'conditional-branch-1cd7b2da45fdd08a':{kind:'notAView',reason:'skin switch that mounts the desktop shell'}, // App.vue:159
