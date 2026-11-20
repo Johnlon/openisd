@@ -634,8 +634,15 @@ describe('driverYmlToOpenisdAndWdr', () => {
           .map(([k, x]) => [k, stripDeep(x)]));
       };
 
+      // A sensitivity printed at 2.83 V/1 m is stored as the USPL, as printed (John, QO962, 20 Nov 2026: "B: keep the
+      // printed 2.83 V figure; the engine works out the 1 W one (changes how drivers are stored)"). CE28N-4 prints
+      // "81 dB @ 2.83V/1m", so its SPL_dB entry arrives as USPL_dB, and the SPL the engine works out is a C entry.
       const parsedOpenisd: unknown = parse(openisd);
       const parsedSource: unknown = parse(source);
+      const sourceWoofer = at(parsedSource, 'specs', 'woofer');
+      assert.ok(isRecord(sourceWoofer) && at(sourceWoofer, 'SPL_dB', 'readings', 'manufacturer_datasheet', 'note') === '2.83V/1m');
+      sourceWoofer.USPL_dB = sourceWoofer.SPL_dB;
+      Reflect.deleteProperty(sourceWoofer, 'SPL_dB');
       const openisdRecord = stripDeep(parsedOpenisd);
       const sourceRecord = stripDeep(parsedSource);
 

@@ -1532,7 +1532,17 @@ export class EnumField extends Field {
     options: VC_CONNECTION_OPTIONS,
     description: "Coil wiring: how you wire it in this project\nHow you wire this driver's voice coils in this project. If it differs from how the driver was measured, the calculations use the figures for your wiring (for 2 coils, Series gives Re, Le and nominal impedance ×4 and BL ×2 compared with Parallel; Fs, Q, Vas and Mms do not change). The driver's own figures are never changed. It can be changed only for a driver with 2 or more coils whose measured wiring is stated.",
   });
-  /** How the project's several drivers are wired to the amplifier (ticket 519; John's approved text, copied exactly after the title line). */
+  static readonly PROJECT_LOADING = new EnumField({
+    value: "project_loading",
+    label: "Placement",
+    options: [
+      {value: 'standard', label: 'Standard'},
+      {value: 'isobaric', label: 'Iso-Barik'},
+    ],
+    description: "Iso-Barik uses two coupled drivers moving together. One cone radiates sound, and the pair needs half the box volume of a single driver for the same alignment.",
+  });
+
+  /** How the project's several drivers are wired to the amplifier (ticket 519). */
   static readonly PROJECT_DRIVERWIRING = new EnumField({
     value: "project_driverWiring",
     label: "Driver wiring",
@@ -1717,6 +1727,12 @@ export class ToggleField extends Field {
     label: "Simplified ABC intra-port velocity",
     description: "Simplified ABC intra-port velocity: WinISD works out the air speed in an ABC box's inner port without a small leak term, Zf·jωMai/Ricl, but that term is part of the real current through the port mass. So its chart is slightly off: by up to 1.35 dB and 4.6° near 110 Hz, and under 0.1 dB elsewhere (W5-1138SMF). OpenISD drops the same term by default, so it matches WinISD. Untick this to use the exact port-mass current. It changes the ABC box's Intra port velocity chart only.",
   }, null, 'intra-port');
+  static readonly PROJECT_WINISDISOBARIK = new ToggleField({
+    value: "project_winisdIsobarik",
+    label: "WinISD's Iso-Barik numbers",
+    description: "WinISD shows a sealed W5-1138SMF Iso-Barik pair at 2,830 mV and 2 kHz as 6 dB quieter than one driver, with the same 3.4 Ω impedance. But the pair's wiring changes the load and how much voltage each driver gets, so these numbers can misstate both loudness and amplifier load. OpenISD uses Driver wiring by default. In parallel the pair is as loud as one driver and shows 1.7 Ω. In series it is 6 dB quieter and shows 6.8 Ω. (Tick this to use WinISD's numbers.)",
+  });
+
   static readonly ADV_WINISDONEDRIVERIMPEDANCE = new ToggleField({
     value: "adv_WinisdOneDriverImpedance",
     label: "Impedance of one driver",

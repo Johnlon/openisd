@@ -1,6 +1,6 @@
 import {Relation} from './Relation.js';
 import {TAU} from './constants.js';
-import {referenceEfficiency} from '../../efficiency.js';
+import {referenceEfficiency, splAt283V, splFromEfficiency} from '../../efficiency.js';
 
 export const Q_PARALLEL = Object.freeze(new Relation('Qts = Qes·Qms/(Qes+Qms)', 'Qts', Object.freeze(['Qts', 'Qes', 'Qms']),
   (v) => v.Qes! * v.Qms! / (v.Qes! + v.Qms!)));
@@ -48,6 +48,23 @@ export const EBP_FROM_Q = Object.freeze(new Relation('EBP = Fs/Qes', 'EBP_hz', O
 export const NO_FROM_VAS = Object.freeze(new Relation('no = 4π²·Fs³·Vas/(c³·Qes)', 'no', Object.freeze(['no', 'Fs_hz', 'Vas_m3', 'Qes', 'c_m_per_s']),
   (v) => referenceEfficiency(v.Fs_hz!, v.Vas_m3!, v.Qes!, v.c_m_per_s!)));
 
+/** A maker's stated sensitivity is measured on the cone's response, averaged over a band of the maker's choosing, and is
+ *  not the T/S efficiency's own number. On the 660 catalogue records that print it at 1 W / 1 m beside Fs, Vas and Qes,
+ *  the stated figure sits a median 1.2 dB from the efficiency's, 2.8 dB at the 90th percentile. 2 % of the predicted dB
+ *  (1.8 dB at 90 dB), added to every figure's printed rounding, leaves about one record in seven of those marked; it
+ *  marks a 2.83 V figure on a 4 ohm driver taken as the 1 W one (SB Acoustics SB23NRXS45-4: 92 dB against 89.3 implied)
+ *  and leaves the same figure read at its own 2.83 V (88.15 dB at 1 W) unmarked (QO962, 20 Nov 2026). */
+const SENSITIVITY_FROM_EFFICIENCY_TOLERANCE = 0.02;
+/** The 1 W / 1 m sensitivity the efficiency implies, against a stated SPL. Only a stated SPL: one the engine worked out
+ *  from a stated USPL is that USPL's disagreement, which `USPL_FROM_EFFICIENCY` reports. */
+export const SPL_FROM_EFFICIENCY = Object.freeze(new Relation('SPL = 10·log₁₀(ρ·c/(2π·p_ref²)) + 10·log₁₀(no)', 'SPL_dB',
+  Object.freeze(['SPL_dB', 'no', 'roo_kg_per_m3', 'c_m_per_s']),
+  (v) => splFromEfficiency(v.no!, v.roo_kg_per_m3!, v.c_m_per_s!), SENSITIVITY_FROM_EFFICIENCY_TOLERANCE, true));
+/** The 2.83 V / 1 m sensitivity the efficiency implies into Re, against a stated USPL. */
+export const USPL_FROM_EFFICIENCY = Object.freeze(new Relation('USPL = 10·log₁₀(ρ·c/(2π·p_ref²)) + 10·log₁₀(no) + 10·log₁₀(2.83²/Re)', 'USPL_dB',
+  Object.freeze(['USPL_dB', 'no', 'Re_ohm', 'roo_kg_per_m3', 'c_m_per_s']),
+  (v) => splAt283V(splFromEfficiency(v.no!, v.roo_kg_per_m3!, v.c_m_per_s!), v.Re_ohm!), SENSITIVITY_FROM_EFFICIENCY_TOLERANCE, true));
+
 /** The relations the consistency check reports, in report order. */
 export const DRIVER_RELATIONS: readonly Relation[] = Object.freeze([
   Q_PARALLEL,
@@ -65,4 +82,6 @@ export const DRIVER_RELATIONS: readonly Relation[] = Object.freeze([
   VAS_FROM_COMPLIANCE,
   EBP_FROM_Q,
   NO_FROM_VAS,
+  SPL_FROM_EFFICIENCY,
+  USPL_FROM_EFFICIENCY,
 ]);

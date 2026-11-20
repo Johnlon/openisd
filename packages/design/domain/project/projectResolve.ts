@@ -74,7 +74,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
 
     // The drive power/voltage pair, against the driver's just-resolved Re. Its dq is read from
     // `#issues.signal` at read time, so no `projectGroupDq` here.
-    const Re_ohm = usableRe(directRoot, driverOver);
+    const Re_ohm = usableRe(directRoot, driverOver, engine.signal);
     settleSignal(focus(directRoot, 'signal'), Re_ohm);
     const signal = engine.signal.solve({
         power_W: powerDriveOver(directRoot),
@@ -189,10 +189,11 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
 /** The driver's Re at the project's coil temperature rise, or null when Re is unusable — read
  *  off `driverOver`, the permanent facade collaborator every caller of `resolveProject` already supplies. Exported: also
  *  used by the facade's own `#signalOver` to build the `usableRe` callback `ProjectSignal` needs */
-export function usableRe(root: SimpleField<OpenISDProjectJson>, driverOver: ProjectResolveContext['driverOver']): number | null {
+export function usableRe(root: SimpleField<OpenISDProjectJson>, driverOver: ProjectResolveContext['driverOver'], signal: Engine['signal']): number | null {
     const driver = driverOver(root);
     const {alfaVC_per_K, vcTempRise_K} = driveLoadOf(root, driver);
-    return driver.hotRe_ohm(alfaVC_per_K, vcTempRise_K);
+    const re = driver.hotRe_ohm(alfaVC_per_K, vcTempRise_K);
+    return signal.isobarikDriveResistance(re, root.value.driverEmbedding);
 }
 
 /**

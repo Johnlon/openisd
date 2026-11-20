@@ -25,6 +25,7 @@ import type {DriverEngine, DriverIssue, DriverPrerequisite, DriverQuantityName} 
 import type {PrIssue} from '../pr/PrEngine.js';
 import type {VentIssue} from '../vent/VentEngine.js';
 import {hotRe, isobarikPair, withAddedMass} from '../solvers/driverQuantities.js';
+import {isobarikImpedanceScale, isobarikMotorScale, physicalPairWiring, wiredIsobarikPair} from '../solvers/isobarikWiring.js';
 import {applyFilters} from '../filters.js';
 import {driveFromVoltage} from '../signal/SignalEngine.js';
 import type {DriverDrive} from '../array/driverWiring.js';
@@ -228,7 +229,7 @@ function oneDriverOfArray(P: SweepParams, box: BoxType, n: number, drive: Driver
 
 /** `q` is the driver the circuit runs on (the pair under Iso-Barik loading); `one` is one driver of
  *  it, whose BL is the motor's push when no BL is typed. */
-function circuitQuantities(q: ReturnType<typeof withAddedMass>, one: ReturnType<typeof withAddedMass>, Le_H: number | undefined, BL_typed_Tm: number | null): { value: CircuitQuantities | null; issues: DriverIssue[] } {
+function circuitQuantities(q: ReturnType<typeof withAddedMass>, one: ReturnType<typeof withAddedMass>, Le_H: number | undefined, BL_typed_Tm: number | null, pushScale: number): { value: CircuitQuantities | null; issues: DriverIssue[] } {
   const issues: DriverIssue[] = [];
   for (const field of CIRCUIT_REQUIRED_FIELDS) {
     const v = q[field];
@@ -242,7 +243,7 @@ function circuitQuantities(q: ReturnType<typeof withAddedMass>, one: ReturnType<
       Sd_m2: q.Sd_m2!, Re_terminal_ohm: q.Re_terminal_ohm!, BL_terminal_Tm: q.BL_terminal_Tm!,
       Cms_m_per_N: q.Cms_m_per_N!, Mms_kg: q.Mms_kg!, Rms_kg_per_s: q.Rms_kg_per_s!, Le_H,
       BL_Qes_Tm: blFromQes(q.Re_terminal_ohm!, q.Cms_m_per_N!, q.Fs_hz, q.Qes),
-      BL_entered_Tm: enteredTerminalBL_Tm(one, BL_typed_Tm),
+      BL_entered_Tm: enteredTerminalBL_Tm(one, BL_typed_Tm) * pushScale,
     },
     issues: [],
   };
@@ -492,6 +493,7 @@ export class SimulationEngineImpl implements SimulationEngine {
       // computes Nd·BL²/(Nd·Sd)²/(Za+Zload) + Re + jωLe, so Re is never scaled by Nd). The array's
       // impedance is ticket Johnlon/openisd#519; it replaced the "Per-driver impedance" switch (QO941).
       // The chart is the amplifier's load, one driver's x loadScale, unless "Impedance of one driver" is ticked (absent: unticked).
+      // For Iso-Barik loading, the one-position sweep already includes the wiring within the pair.
       const zScale = P.winisdOneDriverImpedance === true ? 1 : drive.loadScale;
       const gain = 20 * Math.log10(n);
       // The gain is the array's pressure, N in phase: SPL, the Xmax-limited SPL and the complex pressure H alike (T928).
@@ -506,8 +508,10 @@ export class SimulationEngineImpl implements SimulationEngine {
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
     // The circuit runs on Fs, Vas, Qes, Qms, Re, Sd, BL and Le as WinISD's does; the stated Cms, Mms and Rms are not read.
     const single = withAddedMass(driverValues(this.driver.circuitValues(drv.values, P.air)), P.driverAddedMass ?? 0);
-    const d = P.loading === 'isobaric' ? isobarikPair(single) : single;
-    const circuit = circuitQuantities(d, single, Le_H, drv.winisdBL_Tm);
+    const wiring = physicalPairWiring(P);
+    const d = wiring !== null ? wiredIsobarikPair(single, wiring) : P.loading === 'isobaric' ? isobarikPair(single) : single;
+    const Le = Le_H === undefined ? undefined : Le_H * isobarikImpedanceScale(wiring);
+    const circuit = circuitQuantities(d, single, Le, drv.winisdBL_Tm, isobarikMotorScale(wiring));
     if (circuit.value === null) return { values: null, issues: circuit.issues };
     const cq = circuit.value;
     const rho = P.air.rho();
@@ -759,7 +763,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     // Power is into Re + Rs, the same load the power → voltage drive solve uses (`driveVoltage`),
     // with Re at the coil's temperature rise as WinISD states it
     // (bugs/archive/BUG_20260928_vc-temperature-drive-uses-hot-re.md).
-    const Re = hotRe(drv.values.Re_terminal_ohm!, P.alfaVC ?? 0, P.vcTempRise ?? 0) + (P.Rs != null && P.Rs > 0 ? P.Rs : 0);
+    const Re = hotRe(drv.values.Re_terminal_ohm!, P.alfaVC ?? 0, P.vcTempRise ?? 0) * isobarikImpedanceScale(physicalPairWiring(P)) + (P.Rs != null && P.Rs > 0 ? P.Rs : 0);
     const drvXmax_m = drv.values.Xmax_m;
     const xmaxUsable = drvXmax_m != null && drvXmax_m > 0;
     const maxspl: number[] = [], maxpwr: number[] = [], xlim: boolean[] = [];

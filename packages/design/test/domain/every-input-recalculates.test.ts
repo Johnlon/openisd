@@ -233,6 +233,7 @@ const PROJECT_SETTINGS: Readonly<Record<SettingKey, SettingCase>> = {
   driverAddedMass_kg: moves(p => p.driverAddedMass_kg.set(0.02)),
   alfaVC_per_K: moves(p => p.alfaVC_per_K.set(0.008), 'vented', p => p.vcTempRise_K.set(60)),
   loading: moves(p => p.loading.set('isobaric')),
+  winisdIsobarik: moves(p => p.winisdIsobarik.set(true), 'sealed', p => p.loading.set('isobaric')),
   portVelocityLimit_m_per_s: exempt('a limit line the chart draws; the sweep series do not read it'),
   name: exempt('project metadata'),
   creator: exempt('project metadata'),

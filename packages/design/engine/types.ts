@@ -336,6 +336,7 @@ export interface SweepParams {
   vcTempRise?: number;
   // Iso-barik loading: the driver is a compound pair (`isobarikPair`). Absent = standard.
   loading?: 'standard' | 'isobaric';
+  winisdIsobarik?: boolean;
   alfaVC?: number;
   // ---- WinISD Advanced-pane simulation options (PLAN_ADVANCED_SIM_OPTIONS.md) ----------
   /**

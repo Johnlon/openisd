@@ -108,6 +108,7 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-ad20275eedeb4b3a':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:34 (the catcher over the greyed control)
   'conditional-branch-c358f2fc1b9e0781':{kind:'partOf',view:'tab-driver'}, // components/DriverPlacement.vue:13 (the phone row)
   'conditional-branch-3f6f0f6f5c62bf1f':{kind:'partOf',view:'tab-driver'}, // components/DriverPlacement.vue:19 (the desktop row)
+  'conditional-branch-28578796288ae007':{kind:'partOf',view:'tab-driver'}, // DriverWiring.vue (Iso-Barik compatibility checkbox)
   'conditional-branch-587ab05924db500c':{kind:'partOf',view:'tab-driver'}, // components/DriverWiring.vue:15 (the phone row)
   'conditional-branch-eb847ee4b5bc2de2':{kind:'partOf',view:'tab-driver'}, // components/DriverWiring.vue:23 (the desktop row)
   'conditional-branch-b989dd12d68f1ae3':{kind:'notAView',reason:'summary button that opens the driver disagreements list'}, // components/DriverConsistencyList.vue:12

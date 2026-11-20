@@ -1,0 +1,13 @@
+id: T941
+release_note: internal
+repo: openisd
+owner: dupscan-agent
+status: done
+goal: The duplicate check treats an allowed copy that has gone as resolved by itself (never fails, never needs an edit to dupscan-allow.json); adding an entry or un-resolving still needs gates_approved; a gone copy that returns fails.
+why: John, 20 Nov 2026, QO963: 'A: accept it, and let the check accept removed copies by itself from now on'
+done_test: bash scripts/test/dupscan.test.sh
+gates_approved: QO963
+files:
+  - tasks/T941.yml
+  - scripts/dupscan.mjs
+  - scripts/test/dupscan.test.sh

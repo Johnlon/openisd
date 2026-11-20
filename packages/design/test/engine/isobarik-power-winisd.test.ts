@@ -52,6 +52,7 @@ function setUpProject(drive: Drive, setting: Setting): OpenISDProject {
   project.winisdVaModel.set(setting.winisdVa);
   project.nDrivers.set(drive.nDrivers);
   project.loading.set(drive.loading);
+  project.winisdIsobarik.set(true);
   project.powerDrive_W.set(drive.power_W);
   project.splGraphIsXmaxLimited.set(drive.splXmaxLimited);
   return project;
