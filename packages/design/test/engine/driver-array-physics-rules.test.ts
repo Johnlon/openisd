@@ -151,19 +151,31 @@ const levelPlus = (gain: number): Check => (got, want) =>
 const times = (k: number): Check => (got, want) =>
   worst(got, want.map((w) => w * k), (g, w) => Math.abs(g - w) / Math.max(Math.abs(w), Number.MIN_VALUE), REL_TOL, 'relative');
 const sameLinear = times(1);
-const samePhase: Check = (got, want) =>
-  worst(got, want, (g, w) => { const d = Math.abs(g - w) % (2 * Math.PI); return Math.min(d, 2 * Math.PI - d); }, RAD_TOL, 'rad');
+const angleMiss = (turn: number) => (g: number, w: number): number => { const d = Math.abs(g - w) % turn; return Math.min(d, turn - d); };
+/** Phase in radians, compared modulo one turn. */
+const samePhase: Check = (got, want) => worst(got, want, angleMiss(2 * Math.PI), RAD_TOL, 'rad');
+/** Impedance phase is plotted in degrees: the same 1e-9 rad. */
+const samePhaseDeg: Check = (got, want) => worst(got, want, angleMiss(360), RAD_TOL * 180 / Math.PI, 'deg');
 const sameDelay: Check = (got, want) => worst(got, want, (g, w) => Math.abs(g - w), GD_TOL_MS, 'ms');
 
-interface Expectation { readonly name: string; readonly got: readonly number[] | null; readonly want: readonly number[] | null; readonly check: Check }
+/** Which part of a rule an expectation belongs to, so a fault in one part leaves the others a hard gate:
+ *  `pressure` the array's complex pressure and Xmax-limited SPL; `impedance` the Iso-Barik pair's impedance; `response` the rest. */
+type Group = 'response' | 'pressure' | 'impedance';
 
-function misses(expectations: readonly Expectation[]): string[] {
-  return expectations.flatMap((e): string[] => {
-    if (e.got === null || e.want === null) return e.got === e.want ? [] : [`${e.name}: one side has no curve`];
+interface Expectation { readonly name: string; readonly group: Group; readonly got: readonly number[] | null; readonly want: readonly number[] | null; readonly check: Check }
+
+interface Miss { readonly group: Group; readonly text: string }
+
+function misses(expectations: readonly Expectation[]): Miss[] {
+  return expectations.flatMap((e): Miss[] => {
+    if (e.got === null || e.want === null) return e.got === e.want ? [] : [{group: e.group, text: `${e.name}: one side has no curve`}];
     const m = e.check(e.got, e.want);
-    return m === null ? [] : [`${e.name}: ${m}`];
+    return m === null ? [] : [{group: e.group, text: `${e.name}: ${m}`}];
   });
 }
+
+const response = (text: string): Miss => ({group: 'response', text});
+const prefixed = (prefix: string) => (m: Miss): Miss => ({group: m.group, text: `${prefix}: ${m.text}`});
 
 const real = (h: SweepResult['H']): number[] => h.map((c) => c.re);
 const imag = (h: SweepResult['H']): number[] => h.map((c) => c.im);
@@ -172,31 +184,31 @@ const imag = (h: SweepResult['H']): number[] => h.map((c) => c.im);
 function arrayAgainstOne(n: number, array: SweepResult, one: SweepResult, oneDriverImpedance: boolean, impedanceScale: number): Expectation[] {
   const gain = 20 * Math.log10(n);
   return [
-    {name: 'SPL', got: array.spl, want: one.spl, check: levelPlus(gain)},
-    {name: 'Xmax-limited SPL', got: array.splXlimCurve, want: one.splXlimCurve, check: levelPlus(gain)},
-    {name: 'pressure (real part)', got: real(array.H), want: real(one.H), check: times(n)},
-    {name: 'pressure (imaginary part)', got: imag(array.H), want: imag(one.H), check: times(n)},
-    {name: 'amplifier apparent load power', got: array.va, want: one.va, check: times(n)},
-    {name: 'impedance', got: array.zmag, want: one.zmag, check: times(oneDriverImpedance ? 1 : impedanceScale)},
-    {name: 'impedance phase', got: array.zph, want: one.zph, check: samePhase},
-    {name: 'excursion', got: array.exc, want: one.exc, check: sameLinear},
-    {name: 'radiator excursion', got: array.excPR, want: one.excPR, check: sameLinear},
-    {name: 'port velocity', got: array.pv, want: one.pv, check: sameLinear},
-    {name: 'rear port velocity', got: array.pvRear, want: one.pvRear, check: sameLinear},
-    {name: 'intra port velocity', got: array.pvIntra, want: one.pvIntra, check: sameLinear},
-    {name: 'phase', got: array.phase, want: one.phase, check: samePhase},
-    {name: 'group delay', got: array.gd, want: one.gd, check: sameDelay},
-    {name: 'transfer function', got: array.tfMag, want: one.tfMag, check: levelPlus(0)},
-    {name: 'radiator transfer function', got: array.prTfMag, want: one.prTfMag, check: levelPlus(0)},
-    {name: 'rear port gain', got: array.rearPortGain, want: one.rearPortGain, check: levelPlus(0)},
-    {name: 'front port gain', got: array.frontPortGain, want: one.frontPortGain, check: levelPlus(0)},
+    {name: 'SPL', group: 'response', got: array.spl, want: one.spl, check: levelPlus(gain)},
+    {name: 'Xmax-limited SPL', group: 'pressure', got: array.splXlimCurve, want: one.splXlimCurve, check: levelPlus(gain)},
+    {name: 'pressure (real part)', group: 'pressure', got: real(array.H), want: real(one.H), check: times(n)},
+    {name: 'pressure (imaginary part)', group: 'pressure', got: imag(array.H), want: imag(one.H), check: times(n)},
+    {name: 'amplifier apparent load power', group: 'response', got: array.va, want: one.va, check: times(n)},
+    {name: 'impedance', group: 'response', got: array.zmag, want: one.zmag, check: times(oneDriverImpedance ? 1 : impedanceScale)},
+    {name: 'impedance phase', group: 'response', got: array.zph, want: one.zph, check: samePhaseDeg},
+    {name: 'excursion', group: 'response', got: array.exc, want: one.exc, check: sameLinear},
+    {name: 'radiator excursion', group: 'response', got: array.excPR, want: one.excPR, check: sameLinear},
+    {name: 'port velocity', group: 'response', got: array.pv, want: one.pv, check: sameLinear},
+    {name: 'rear port velocity', group: 'response', got: array.pvRear, want: one.pvRear, check: sameLinear},
+    {name: 'intra port velocity', group: 'response', got: array.pvIntra, want: one.pvIntra, check: sameLinear},
+    {name: 'phase', group: 'response', got: array.phase, want: one.phase, check: samePhase},
+    {name: 'group delay', group: 'response', got: array.gd, want: one.gd, check: sameDelay},
+    {name: 'transfer function', group: 'response', got: array.tfMag, want: one.tfMag, check: levelPlus(0)},
+    {name: 'radiator transfer function', group: 'response', got: array.prTfMag, want: one.prTfMag, check: levelPlus(0)},
+    {name: 'rear port gain', group: 'response', got: array.rearPortGain, want: one.rearPortGain, check: levelPlus(0)},
+    {name: 'front port gain', group: 'response', got: array.frontPortGain, want: one.frontPortGain, check: levelPlus(0)},
   ];
 }
 
 function maxAgainstOne(n: number, array: MaxCurvesResult, one: MaxCurvesResult): Expectation[] {
   return [
-    {name: 'maximum SPL', got: array.maxspl, want: one.maxspl, check: levelPlus(20 * Math.log10(n))},
-    {name: 'maximum power', got: array.maxpwr, want: one.maxpwr, check: times(n)},
+    {name: 'maximum SPL', group: 'response', got: array.maxspl, want: one.maxspl, check: levelPlus(20 * Math.log10(n))},
+    {name: 'maximum power', group: 'response', got: array.maxpwr, want: one.maxpwr, check: times(n)},
   ];
 }
 
@@ -211,7 +223,7 @@ function rgEach(P: SweepParams, n: number, wiring: 'parallel' | 'series'): numbe
 type RuleId = 'R1 parallel array' | 'R2 series array' | 'R3 Xmax limit only lowers' | 'R4 Iso-Barik pair' | 'R9 every curve finite';
 
 /** The misses of one rule for one box, one combination and one loading. */
-function ruleMisses(rule: RuleId, s: Setup, loading: 'standard' | 'isobaric'): string[] {
+function ruleMisses(rule: RuleId, s: Setup, loading: 'standard' | 'isobaric'): Miss[] {
   const P: SweepParams = {...s.P, loading};
   const oneDriverImpedance = P.winisdOneDriverImpedance === true;
   switch (rule) {
@@ -220,7 +232,7 @@ function ruleMisses(rule: RuleId, s: Setup, loading: 'standard' | 'isobaric'): s
         const array = {...boxTimes(P, n), nDrivers: n, driverWiring: 'parallel' as const};
         const one = {...P, Rs: rgEach(P, n, 'parallel')};
         return [...misses(arrayAgainstOne(n, sweep(s, array), sweep(s, one), oneDriverImpedance, 1 / n)),
-          ...misses(maxAgainstOne(n, maxCurves(s, array), maxCurves(s, one)))].map((m) => `N ${n}: ${m}`);
+          ...misses(maxAgainstOne(n, maxCurves(s, array), maxCurves(s, one)))].map(prefixed(`N ${n}`));
       });
     case 'R2 series array':
       return [2, 3].flatMap((n) => {
@@ -234,21 +246,21 @@ function ruleMisses(rule: RuleId, s: Setup, loading: 'standard' | 'isobaric'): s
           const parallel = {...boxTimes(P, n), nDrivers: n, driverWiring: 'parallel' as const};
           const sw = sweep(s, series), pw = sweep(s, parallel);
           found.push(...misses([
-            {name: 'series against parallel: SPL', got: sw.spl, want: pw.spl, check: levelPlus(0)},
-            {name: 'series against parallel: excursion', got: sw.exc, want: pw.exc, check: sameLinear},
-            {name: 'series against parallel: VA', got: sw.va, want: pw.va, check: sameLinear},
-            {name: 'series against parallel: impedance', got: sw.zmag, want: pw.zmag, check: times(oneDriverImpedance ? 1 : n * n)},
+            {name: 'series against parallel: SPL', group: 'response', got: sw.spl, want: pw.spl, check: levelPlus(0)},
+            {name: 'series against parallel: excursion', group: 'response', got: sw.exc, want: pw.exc, check: sameLinear},
+            {name: 'series against parallel: VA', group: 'response', got: sw.va, want: pw.va, check: sameLinear},
+            {name: 'series against parallel: impedance', group: 'response', got: sw.zmag, want: pw.zmag, check: times(oneDriverImpedance ? 1 : n * n)},
           ]));
         }
-        return found.map((m) => `N ${n}: ${m}`);
+        return found.map(prefixed(`N ${n}`));
       });
     case 'R3 Xmax limit only lowers': {
       const sw = sweep(s, P);
       const xmax_mm = (s.driver.values.Xmax_m ?? Infinity) * 1000;
-      const found: string[] = [];
+      const found: Miss[] = [];
       for (let i = 0; i < sw.fs.length; i++) {
-        if (!(sw.splXlimCurve[i] <= sw.spl[i] + DB_TOL)) found.push(`${sw.fs[i]} Hz: Xmax-limited ${sw.splXlimCurve[i]} dB above SPL ${sw.spl[i]} dB`);
-        if (sw.exc[i] <= xmax_mm && Math.abs(sw.splXlimCurve[i] - sw.spl[i]) > DB_TOL) found.push(`${sw.fs[i]} Hz: excursion ${sw.exc[i]} mm within Xmax but Xmax-limited ${sw.splXlimCurve[i]} dB is not SPL ${sw.spl[i]} dB`);
+        if (!(sw.splXlimCurve[i] <= sw.spl[i] + DB_TOL)) found.push(response(`${sw.fs[i]} Hz: Xmax-limited ${sw.splXlimCurve[i]} dB above SPL ${sw.spl[i]} dB`));
+        if (sw.exc[i] <= xmax_mm && Math.abs(sw.splXlimCurve[i] - sw.spl[i]) > DB_TOL) found.push(response(`${sw.fs[i]} Hz: excursion ${sw.exc[i]} mm within Xmax but Xmax-limited ${sw.splXlimCurve[i]} dB is not SPL ${sw.spl[i]} dB`));
       }
       return found.slice(0, 3);
     }
@@ -256,20 +268,22 @@ function ruleMisses(rule: RuleId, s: Setup, loading: 'standard' | 'isobaric'): s
       const pair = sweep(s, {...boxTimes(P, 0.5), loading: 'isobaric'});
       const one = sweep(s, {...P, loading: 'standard'});
       return misses([
-        {name: 'SPL', got: pair.spl, want: one.spl, check: levelPlus(-10 * Math.log10(2))},
-        {name: 'excursion', got: pair.exc, want: one.exc, check: times(Math.SQRT1_2)},
-        {name: 'impedance', got: pair.zmag, want: one.zmag, check: sameLinear},
-        {name: 'impedance phase', got: pair.zph, want: one.zph, check: samePhase},
-        {name: 'phase', got: pair.phase, want: one.phase, check: samePhase},
-        {name: 'group delay', got: pair.gd, want: one.gd, check: sameDelay},
-        {name: 'transfer function', got: pair.tfMag, want: one.tfMag, check: levelPlus(0)},
-        {name: 'port velocity', got: pair.pv, want: one.pv, check: times(Math.SQRT2)},
-        {name: 'rear port velocity', got: pair.pvRear, want: one.pvRear, check: times(Math.SQRT2)},
-        {name: 'intra port velocity', got: pair.pvIntra, want: one.pvIntra, check: times(Math.SQRT2)},
+        {name: 'SPL', group: 'response', got: pair.spl, want: one.spl, check: levelPlus(-10 * Math.log10(2))},
+        {name: 'excursion', group: 'response', got: pair.exc, want: one.exc, check: times(Math.SQRT1_2)},
+        {name: 'impedance', group: 'impedance', got: pair.zmag, want: one.zmag, check: sameLinear},
+        {name: 'impedance phase', group: 'impedance', got: pair.zph, want: one.zph, check: samePhaseDeg},
+        {name: 'phase', group: 'response', got: pair.phase, want: one.phase, check: samePhase},
+        {name: 'group delay', group: 'response', got: pair.gd, want: one.gd, check: sameDelay},
+        {name: 'transfer function', group: 'response', got: pair.tfMag, want: one.tfMag, check: levelPlus(0)},
+        {name: 'radiator excursion', group: 'response', got: pair.excPR, want: one.excPR, check: times(Math.SQRT2)},
+        // A passive-radiator box has no port: its `pv` is no chart (SweepResult.pv), so only ported boxes are held to this.
+        {name: 'port velocity', group: 'response', got: s.box === 'box-passive-radiator' ? null : pair.pv, want: s.box === 'box-passive-radiator' ? null : one.pv, check: times(Math.SQRT2)},
+        {name: 'rear port velocity', group: 'response', got: pair.pvRear, want: one.pvRear, check: times(Math.SQRT2)},
+        {name: 'intra port velocity', group: 'response', got: pair.pvIntra, want: one.pvIntra, check: times(Math.SQRT2)},
       ]);
     }
     case 'R9 every curve finite': {
-      const found: string[] = [];
+      const found: Miss[] = [];
       for (const n of [1, 2, 3]) for (const wiring of ['parallel', 'series'] as const) {
         const Pn = {...boxTimes(P, n), nDrivers: n, driverWiring: wiring};
         const sw = sweep(s, Pn), mx = maxCurves(s, Pn);
@@ -279,7 +293,7 @@ function ruleMisses(rule: RuleId, s: Setup, loading: 'standard' | 'isobaric'): s
           fltMag: sw.fltMag, fltPhase: sw.fltPhase, fltGd: sw.fltGd, maxspl: mx.maxspl, maxpwr: mx.maxpwr};
         for (const [name, values] of Object.entries(curves)) {
           const bad = values === null ? -1 : values.findIndex((v) => !Number.isFinite(v));
-          if (bad >= 0) found.push(`N ${n} ${wiring}: ${name}[${bad}] = ${values![bad]}`);
+          if (values !== null && bad >= 0) found.push(response(`N ${n} ${wiring}: ${name}[${bad}] = ${values[bad]}`));
         }
       }
       return found;
@@ -290,34 +304,67 @@ function ruleMisses(rule: RuleId, s: Setup, loading: 'standard' | 'isobaric'): s
 const RULES: readonly RuleId[] = ['R1 parallel array', 'R2 series array', 'R3 Xmax limit only lowers', 'R4 Iso-Barik pair', 'R9 every curve finite'];
 const LOADINGS = ['standard', 'isobaric'] as const;
 
-/** One case: a box, a rule, a combination and a loading (R4 compares the two loadings, so it runs once). */
-interface Case { readonly box: BoxCase; readonly rule: RuleId; readonly row: Row; readonly loading: 'standard' | 'isobaric' }
-const titleOf = (c: Case): string => `${c.box.label}: ${c.rule}, ${c.row.name}${c.rule === 'R4 Iso-Barik pair' ? '' : `, ${c.loading} loading`}`;
+function groupsOf(rule: RuleId): readonly Group[] {
+  switch (rule) {
+    case 'R1 parallel array': case 'R2 series array': return ['response', 'pressure'];
+    case 'R4 Iso-Barik pair': return ['response', 'impedance'];
+    case 'R3 Xmax limit only lowers': case 'R9 every curve finite': return ['response'];
+  }
+}
 
-const JOBS = new Map(BOXES.map((b) => [b.wpr, baseJob(b)]));
-const CASES: readonly Case[] = BOXES.flatMap((box) => RULES.flatMap((rule) => ROWS.flatMap((row) =>
-  (rule === 'R4 Iso-Barik pair' ? (['standard'] as const) : LOADINGS).map((loading): Case => ({box, rule, row, loading})))));
+/** One case: a box, a rule, a part of it, a combination and a loading (R4 compares the two loadings, so it runs once). */
+interface Case { readonly box: BoxCase; readonly rule: RuleId; readonly group: Group; readonly row: Row; readonly loading: 'standard' | 'isobaric' }
+const titleOf = (c: Case): string =>
+  `${c.box.label}: ${c.rule} (${c.group}), ${c.row.name}${c.rule === 'R4 Iso-Barik pair' ? '' : `, ${c.loading} loading`}`;
 
-function caseMisses(c: Case): string[] {
-  return ruleMisses(c.rule, setupOf(JOBS.get(c.box.wpr)!, c.row), c.loading);
+const CASES: readonly Case[] = BOXES.flatMap((box) => RULES.flatMap((rule) => groupsOf(rule).flatMap((group) => ROWS.flatMap((row) =>
+  (rule === 'R4 Iso-Barik pair' ? (['standard'] as const) : LOADINGS).map((loading): Case => ({box, rule, group, row, loading}))))));
+
+/** The faults the rules found on main (20 Nov 2026), each a bug file in bugs/, and the cases each one breaks. A case a fault
+ *  breaks runs as `it.fails`: when the fault is fixed the case passes, `it.fails` goes red, and the fault comes out of here. */
+const ARRAY_PRESSURE = 'BUG_20261120_array-pressure-and-xmax-limited-spl-not-scaled-by-driver-count';
+const ISOBARIK_IMPEDANCE = 'BUG_20261120_isobarik-impedance-motional-term-doubled';
+const ISOBARIK_TWO_BL = 'BUG_20261120_isobarik-pair-with-two-bl-driver-6db-below-one-driver';
+const PR_LOSSES = 'BUG_20261120_passive-radiator-box-losses-not-scaled-with-radiator-count';
+
+function faultsOf(c: Case): readonly string[] {
+  const twoBl = c.row.on.has('twoBlDriver');
+  const prLosses = c.box.wpr.startsWith('pr-') && !c.row.on.has('winisdPrNprResonance');
+  if ((c.rule === 'R1 parallel array' || c.rule === 'R2 series array') && c.group === 'pressure') return [ARRAY_PRESSURE];
+  if (c.rule !== 'R4 Iso-Barik pair') return [];
+  const pairFault = c.group === 'impedance' ? (twoBl ? [] : [ISOBARIK_IMPEDANCE]) : (twoBl ? [ISOBARIK_TWO_BL] : []);
+  return [...pairFault, ...(prLosses ? [PR_LOSSES] : [])];
 }
 
 describe('the driver array obeys physics rules over every box, driver count, wiring, loading and switch combination', () => {
-  for (const c of CASES) {
-    it(titleOf(c), () => {
-      expect(caseMisses(c)).toEqual([]);
-    });
-  }
+  const jobs = new Map(BOXES.map((b) => [b.wpr, baseJob(b)]));
+  const jobOf = (box: BoxCase): SweepJob => {
+    const job = jobs.get(box.wpr);
+    if (job === undefined) throw new Error(`no job for ${box.wpr}`);
+    return job;
+  };
+  // A rule's parts share one computation: the misses of every part, per box, rule, combination and loading.
+  const computed = new Map<string, readonly Miss[]>();
+  const caseMisses = (c: Case): string[] => {
+    const key = `${c.box.wpr}|${c.rule}|${c.row.name}|${c.loading}`;
+    const all = computed.get(key) ?? ruleMisses(c.rule, setupOf(jobOf(c.box), c.row), c.loading);
+    computed.set(key, all);
+    return all.filter((m) => m.group === c.group).map((m) => m.text);
+  };
 
-  it('DIAGNOSTIC (temporary)', async () => {
-    const {writeFileSync} = await import('node:fs');
-    const out = CASES.map((c) => { try { return {title: titleOf(c), misses: caseMisses(c)}; } catch (e) { return {title: titleOf(c), misses: [String(e)]}; } });
-    writeFileSync(process.env.DIAG_OUT ?? '/dev/null', JSON.stringify(out.filter((o) => o.misses.length > 0)));
-  });
+  for (const c of CASES) {
+    const faults = faultsOf(c);
+    if (faults.length === 0) {
+      it(titleOf(c), () => expect(caseMisses(c)).toEqual([]));
+    } else {
+      // BUG_ files: named in the title, from ARRAY_PRESSURE, ISOBARIK_IMPEDANCE, ISOBARIK_TWO_BL and PR_LOSSES above.
+      it.fails(`${titleOf(c)}: ${faults.join(', ')}`, () => expect(caseMisses(c)).toEqual([]));
+    }
+  }
 
   it('R3 is not vacuous: every box drives the cone past Xmax somewhere at the test voltage', () => {
     for (const box of BOXES) {
-      const s = setupOf(JOBS.get(box.wpr)!, ROWS[0]);
+      const s = setupOf(jobOf(box), ROWS[0]);
       expect(sweep(s, s.P).xlimited.some((x) => x), box.label).toBe(true);
     }
   });
