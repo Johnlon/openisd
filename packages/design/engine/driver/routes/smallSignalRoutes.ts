@@ -42,15 +42,6 @@ export const FS_ROUTES: readonly DriverRoute[] = Object.freeze([
   new SolveRoute('Fs_hz', ['EBP_hz', 'Qes'], 'Fs_hz = EBP_hz × Qes', v => v.EBP_hz * v.Qes).inRelation(EBP_FROM_Q),
 ]);
 
-/** Mms from Fs and Cms. */
-export const MMS_FROM_FS_CMS_ROUTE = Object.freeze(new SolveRoute('Mms_kg', ['Fs_hz', 'Cms_m_per_N'], 'Mms_kg = 1 / (4π² × Fs² × Cms_m_per_N)',
-  v => 1 / ((TAU * v.Fs_hz) ** 2 * v.Cms_m_per_N)).inRelation(FS_FROM_MASS_AND_COMPLIANCE));
-
-/** Block 3b: Mms from Fs and Cms, the reverse direction, unaffected by which Fs route fired. */
-export const MMS_FROM_FS_CMS_ROUTES: readonly DriverRoute[] = Object.freeze([
-  MMS_FROM_FS_CMS_ROUTE,
-]);
-
 /** Cms from Vas and Sd, in the working set's air. */
 export const CMS_FROM_VAS_SD_ROUTE = Object.freeze(new SolveRoute('Cms_m_per_N', ['Vas_m3', 'Sd_m2', 'roo_kg_per_m3', 'c_m_per_s'], 'Cms_m_per_N = Vas_m3 / (ρ × c² × Sd²)',
   v => v.Vas_m3 / (v.roo_kg_per_m3 * v.c_m_per_s * v.c_m_per_s * v.Sd_m2 * v.Sd_m2),
@@ -63,14 +54,30 @@ export const CMS_FROM_VAS_SD_ROUTE = Object.freeze(new SolveRoute('Cms_m_per_N',
  * true resolves its compliance from the geometry, so the impossible Mms then disagrees with the
  * Fs/Mms/Cms group, the fields the user actually typed.
  */
-export const CMS_SD_ROUTES: readonly DriverRoute[] = Object.freeze([
-  CMS_FROM_VAS_SD_ROUTE,
-  new SolveRoute('Cms_m_per_N', ['Fs_hz', 'Mms_kg'], 'Cms_m_per_N = 1 / (4π² × Fs² × Mms_kg)',
-    v => 1 / ((TAU * v.Fs_hz) ** 2 * v.Mms_kg)).inRelation(FS_FROM_MASS_AND_COMPLIANCE),
-  new SolveRoute('Sd_m2', ['Vas_m3', 'Cms_m_per_N', 'roo_kg_per_m3', 'c_m_per_s'], 'Sd_m2 = √(Vas_m3 / (ρ × c² × Cms_m_per_N))',
-    v => Math.sqrt(v.Vas_m3 / (v.roo_kg_per_m3 * v.c_m_per_s * v.c_m_per_s * v.Cms_m_per_N)),
-    v => v.Cms_m_per_N > 0).inRelation(VAS_FROM_COMPLIANCE),
-]);
+const CMS_SD_ROUTES = (() => {
+  // Fs and either mechanical figure give the other by the same inverse.
+  const massOrCompliance = (Fs_hz: number, knownFigure: number): number =>
+    1 / ((TAU * Fs_hz) ** 2 * knownFigure);
+  return Object.freeze({
+    movingMass: Object.freeze(new SolveRoute('Mms_kg', ['Fs_hz', 'Cms_m_per_N'], 'Mms_kg = 1 / (4π² × Fs² × Cms_m_per_N)',
+      v => massOrCompliance(v.Fs_hz, v.Cms_m_per_N),
+      v => v.Fs_hz > 0 && v.Cms_m_per_N > 0).inRelation(FS_FROM_MASS_AND_COMPLIANCE)),
+    complianceAndArea: Object.freeze([
+      CMS_FROM_VAS_SD_ROUTE,
+      new SolveRoute('Cms_m_per_N', ['Fs_hz', 'Mms_kg'], 'Cms_m_per_N = 1 / (4π² × Fs² × Mms_kg)',
+        v => massOrCompliance(v.Fs_hz, v.Mms_kg)).inRelation(FS_FROM_MASS_AND_COMPLIANCE),
+      new SolveRoute('Sd_m2', ['Vas_m3', 'Cms_m_per_N', 'roo_kg_per_m3', 'c_m_per_s'], 'Sd_m2 = √(Vas_m3 / (ρ × c² × Cms_m_per_N))',
+        v => Math.sqrt(v.Vas_m3 / (v.roo_kg_per_m3 * v.c_m_per_s * v.c_m_per_s * v.Cms_m_per_N)),
+        v => v.Cms_m_per_N > 0).inRelation(VAS_FROM_COMPLIANCE),
+    ]),
+  });
+})();
+
+export const COMPLIANCE_AND_AREA_ROUTES: readonly DriverRoute[] = CMS_SD_ROUTES.complianceAndArea;
+
+/** Block 3b: Mms from Fs and Cms, unaffected by which Fs route fired. */
+export const MMS_FROM_FS_CMS_ROUTE = CMS_SD_ROUTES.movingMass;
+export const MMS_FROM_FS_CMS_ROUTES: readonly DriverRoute[] = Object.freeze([MMS_FROM_FS_CMS_ROUTE]);
 
 /** Rms from Fs, Mms and Qms. */
 export const RMS_FROM_FS_MMS_QMS_ROUTE = Object.freeze(new SolveRoute('Rms_kg_per_s', ['Fs_hz', 'Mms_kg', 'Qms'], 'Rms_kg_per_s = (2π × Fs_hz × Mms_kg) / Qms',

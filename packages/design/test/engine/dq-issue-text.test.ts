@@ -115,12 +115,15 @@ describe('DqIssue text', () => {
     });
 
     // BUG_20261104_driver-consistency-gap-shown-as-zero: BL stated 24.7 Tm, implied 26.748 Tm.
-    it('B&C 18NW100-4 BL states the real stated-vs-implied gap (implied 26.7 Tm, stated 24.7 Tm), not 0.0%', () => {
+    it('B&C 18NW100-4 BL names the disagreeing figures and shows the two BL values 7.7% apart', () => {
       const driver = OpenISDDriver.fromConformingRecord(JSON.parse(BC_18NW100_4), engine);
       if (Array.isArray(driver)) throw new Error(driver.join('; '));
       const bl = driver.dataQualityWarnings().find(w => w.field === 'BL_Tm');
-      // QO534: the popup says what the maths gives and what the box says.
-      expect(bl?.message).toMatch(/gives BL 26\.7\d* Tm, the box says 24\.70 Tm/);
+      // The displayed values, 26.74834 Tm and 24.70 Tm, are 7.7% apart.
+      expect(bl?.level).toBe('warn');
+      expect(bl?.message).toMatch(/^BL, Re, Fs, Qes and Cms disagree:/);
+      expect(bl?.message).toContain('gives BL 26.74834 Tm, the box says 24.70 Tm');
+      expect(bl?.message).toContain('Correct one of them, or clear one to let it be calculated.');
       expect(bl?.message).not.toMatch(/0\.0%/);
     });
   });

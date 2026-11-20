@@ -2,7 +2,7 @@ import {ADVANCED_ROUTES, KLE_ROUTES, ZNOM_ROUTES} from './advancedRoutes.js';
 import {NO_ROUTES, QES_FROM_NO_ROUTES, SPL_FROM_NO_ROUTES, SPL_FROM_USPL_ROUTES, USPL_ROUTES, VAS_ROUTES} from './efficiencyRoutes.js';
 import {MAGNET_ROUTES, SD_DD_ROUTES, SD_FROM_VD_ROUTES, VD_ROUTES, XMAX_ROUTES} from './geometryRoutes.js';
 import {
-  CMS_SD_ROUTES,
+  COMPLIANCE_AND_AREA_ROUTES,
   EBP_AFTER_FIXED_POINT_ROUTE,
   FS_ROUTES,
   MMS_FROM_FS_CMS_ROUTES,
@@ -22,7 +22,7 @@ export const DRIVER_ROUTES: readonly DriverRoute[] = Object.freeze([
   ...Q_ROUTES,                  // 2
   ...FS_ROUTES,                 // 3
   ...MMS_FROM_FS_CMS_ROUTES,    // 3b
-  ...CMS_SD_ROUTES,             // 4a
+  ...COMPLIANCE_AND_AREA_ROUTES, // 4a
   ...NO_ROUTES,                 // 4b
   ...VAS_ROUTES,                // 4c
   ...RMS_QMS_MMS_ROUTES,        // 5

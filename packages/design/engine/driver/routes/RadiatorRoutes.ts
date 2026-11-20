@@ -1,7 +1,7 @@
 import {VAS_FROM_CMS_SD_ROUTE} from './efficiencyRoutes.js';
 import {DRIVER_RELATIONS} from './relations.js';
 import {
-  CMS_SD_ROUTES,
+  COMPLIANCE_AND_AREA_ROUTES,
   FS_FROM_MASS_CMS_ROUTE,
   MMS_FROM_FS_CMS_ROUTES,
   RMS_QMS_MMS_ROUTES,
@@ -15,7 +15,7 @@ import type {DriverRoute} from './SolveRoute.js';
 export const RADIATOR_ROUTES: readonly DriverRoute[] = Object.freeze([
   FS_FROM_MASS_CMS_ROUTE,
   ...MMS_FROM_FS_CMS_ROUTES,
-  ...CMS_SD_ROUTES,
+  ...COMPLIANCE_AND_AREA_ROUTES,
   VAS_FROM_CMS_SD_ROUTE,
   ...RMS_QMS_MMS_ROUTES,
 ]);
