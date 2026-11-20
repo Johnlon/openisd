@@ -962,8 +962,8 @@ export class DriverRecordConverter {
   ): ProjectedEntry {
     const { readings } = scraped;
     const originResult = selectOrigin(readings, field, (f, v) => this.engine.driver.isPhysicallyPlausible(f, v));
-    // A reading outside the field's physical band never becomes a value (T018: the field is N
-    // and the .wdr comment lists it), but the tools still read the range mark as a warning
+    // A reading outside the selection band never becomes a value (T018: the field is N
+    // and the .wdr comment lists it). The tools still read the normal-band mark as a warning
     // (winisd_tools BUG_20260823 range/calc marks; AI triage of calculation-field failures).
     for (const [, r] of Object.entries(readings).sort(byRoleName)) {
       if (!isUsable(r)) continue;

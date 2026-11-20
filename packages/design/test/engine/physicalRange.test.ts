@@ -29,6 +29,20 @@ describe('checkRange (D5/O4)', () => {
     expect(rangeIssues({ Qts: 0.4, Fs_hz: 45 })).toEqual([]);
   });
 
+  it('accepts basket readings across the hard band and warns above the normal band', () => {
+    const field = NumberField.BASKET_M;
+    expect(field.limits).toEqual({min: 0.01, max: 1});
+    expect(field.plausible).toEqual({min: 0.01, max: 0.61});
+    for (const value of [0.01, 0.61, 0.75, 1]) {
+      expect(engine.driver.isPhysicallyPlausible(field.value, value)).toBe(true);
+    }
+    for (const value of [0, 0.009, 1.001, 2.38]) {
+      expect(engine.driver.isPhysicallyPlausible(field.value, value)).toBe(false);
+    }
+    expect(engine.driver.rangeIssue(field.value, 0.61)).toBeUndefined();
+    expect(engine.driver.rangeIssue(field.value, 0.75)).toMatchObject({limit: 0.61, side: 'above'});
+  });
+
   it('accepts high finite electrical Q values without an arbitrary upper plausibility cap', () => {
     expect(NumberField.QES.limits.max).toBe(Number.MAX_VALUE);
     expect(NumberField.QES.plausible.max).toBe(Number.MAX_VALUE);

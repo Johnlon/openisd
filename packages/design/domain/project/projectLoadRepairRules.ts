@@ -12,6 +12,7 @@
  */
 import {NumberField} from '../../fields/field.js';
 import {enteredEntry} from '../specEntry.js';
+import {basketLoadRule} from '../driver/basketLoadRepair.js';
 import {focus, simpleField} from '../cell.js';
 import type {SimpleField} from '../cell.js';
 import type {
@@ -167,6 +168,7 @@ export function projectLoadRepairRules(root: SimpleField<OpenISDProjectJson>): r
     return [
         numberRule(NumberField.DRIVER_NDRIVERS, focus(embedding, 'nDrivers')),
         numberRule(NumberField.SIGNAL_RS_OHM, focus(embedding, 'Rs_ohm')),
+        basketLoadRule(focus(embedding, 'device')),
         entryRule(NumberField.ADV_TEMP_K, focus(environment, 'temperature_K')),
         entryRule(NumberField.ADV_HUMIDITY_PCT, focus(environment, 'humidity_pct')),
         entryRule(NumberField.ADV_PRESSURE_KPA, focus(environment, 'pressure_Pa')),

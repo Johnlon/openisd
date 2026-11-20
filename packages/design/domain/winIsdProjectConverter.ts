@@ -640,7 +640,7 @@ export class WinIsdProjectConverter {
     project.filters.set(this.#importFilters(wpr,  errors));
     // Every value the file gave that a field cannot hold (an air pressure of 0, a driver count of 0)
     // is repaired as any opened project's is, and named in the opening message.
-    const loadRepairs = [...powerRepairs, ...project.repairImported()];
+    const loadRepairs = [...driverOrErrors.loadRepairs, ...powerRepairs, ...project.repairImported()];
 
     const notes = project.loading.value === 'isobaric'
       ? [`Opened with the coils in parallel. Tick "${ToggleField.PROJECT_WINISDISOBARIK.label}" in the Driver tab to see WinISD's result: 6 dB quieter than one driver at the same voltage, with one driver's impedance.`]

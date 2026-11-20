@@ -37,6 +37,7 @@ import {driverFromFileText, type DriverSelection} from './driverSelection.js';
 import type {DesignFiles} from './fileImportExport.js';
 import {inputFrom} from './domEvents.js';
 import type {AppState} from './appState.js';
+import {driverOpeningMessage} from './loadRepairNotice.js';
 
 /** A My Drivers row: the storage uuid this repo minted (the delete/edit handle) plus the driver
  *  itself. The uuid is NOT on the driver — it is the key into the saved-driver map, assigned only
@@ -527,7 +528,16 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const previewData = computed<PreviewVM | null>(() =>
     previewDriver.value ? previewVMOf(previewDriver.value) : null);
 
-  function pickDriver(d: OpenISDDriverStandalone | null): void { previewDriver.value = d; }
+  function showDriverRepairs(driver: OpenISDDriverStandalone): void {
+    if (driver.loadRepairs.length > 0) {
+      logging.flash(driverOpeningMessage(`Driver opened: ${displayNameOf(driver)}`, driver));
+    }
+  }
+
+  function pickDriver(d: OpenISDDriverStandalone | null): void {
+    previewDriver.value = d;
+    if (d !== null) showDriverRepairs(d);
+  }
 
   /** Read the embedded project driver directly; no catalogue lookup or replacement. */
   function showProjectDriverInfo(): void {
@@ -540,7 +550,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
 
   async function pickBundledDriver(row: BundledDriverIndexRow): Promise<void> {
     try {
-      previewDriver.value = await driverRepo.load(row.uuid);
+      pickDriver(await driverRepo.load(row.uuid));
       statusErr.value = false;
       statusMsg.value = '';
     } catch (err) {
@@ -616,7 +626,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       if (!saved) { failed('saved drivers are read-only until the storage problem is resolved'); return; }
       statusErr.value = false;
       statusMsg.value = '';
-      logging.flash(`Driver imported to My Drivers: ${displayNameOf(res.driver)}`);
+      logging.flash(driverOpeningMessage(`Driver imported to My Drivers: ${displayNameOf(res.driver)}`, res.driver));
       previewDriver.value = res.driver;
     }, (err: Error) => {
       input.value = '';
@@ -690,7 +700,10 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     myDrivers, filteredMyDrivers, displayNameOf,
     myDriversRead, exportedThisSession, exportMyDriversRaw, exportBrokenEntry,
     deleteAllMyDrivers, removeBrokenEntry,
-    editMyDriver: selection.editMyDriver,
+    editMyDriver(driver, uuid) {
+      selection.editMyDriver(driver, uuid);
+      showDriverRepairs(driver);
+    },
     editOverviewDriver: selection.editOverviewDriver,
     reloadMyDrivers, deleteMyDriver, clearMyDrivers,
     // preview + selection

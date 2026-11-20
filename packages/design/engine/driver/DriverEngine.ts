@@ -26,7 +26,7 @@ import type {
 import {approximateCharts, missingDependencies, resultRefused} from '../consistency.js';
 import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue, WiringIssue} from '../consistency.js';
 import {geometryRefusal} from '../dvolRelation.js';
-import {checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
+import {basketRangeWarning, checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import {coilAlfaVC_per_K, convertWiring, hotRe, perCoilResistanceFactor} from '../solvers/driverQuantities.js';
 import type {WiringConversion, WiredMotor} from '../solvers/driverQuantities.js';
@@ -166,11 +166,12 @@ export interface DriverEngine {
    *  else the project's; the project's only with `winisdProjectAlfaVC` (WinISD's sum). QO953.c16. The one place that
    *  chooses: the Box readout, the charts and the Signal tab's power all take it from here (`driveLoadOf`). */
   coilAlfaVC_per_K(driverAlfaVC_per_K: number | null, projectAlfaVC_per_K: number, winisdProjectAlfaVC: boolean): number;
-  /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9
-   *  tier 1) — the domain's one door into that table. */
+  /** Whether a single raw reading can win selection for this field. */
   isPhysicallyPlausible(field: string, value: number): boolean;
   /** The out-of-range issue one RAW reading of `field` raises (limit and side), or nothing. */
   rangeIssue(field: string, value: number): OutOfRangeIssue | undefined;
+  /** The warning for a basket diameter outside its normal range. */
+  basketRangeWarning: typeof basketRangeWarning;
   /** Sealed resonance and Qtc read off a swept impedance curve, rather than computed. */
   findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null;
   /** The formulas `solve` works quantities out by: one per route, with its text and inputs, in the order it tries them.
@@ -197,6 +198,7 @@ export class DriverEngineImpl implements DriverEngine {
   readonly coilAlfaVC_per_K = coilAlfaVC_per_K;
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
   readonly rangeIssue = rangeIssue;
+  readonly basketRangeWarning = basketRangeWarning;
 
   circuitValues(values: DriverValues, air: Air): DriverValues {
     const positive = (x: number | null | undefined): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;

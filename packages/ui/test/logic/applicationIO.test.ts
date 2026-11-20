@@ -403,7 +403,9 @@ describe('every import and export says what it did', () => {
     try {
       const { io, flash } = ioWith(createFileStorage());
       await importGolden(io);
-      expect(flash).toHaveBeenCalledWith('Project imported from MyBox.wpr');
+      expect(flash).toHaveBeenCalledExactlyOnceWith(
+        'Project imported from MyBox.wpr\nBasket Diameter (Basket) 0 mm in the file: set to the 10 mm minimum',
+      );
 
       io.exportWpr();
       expect(flash).toHaveBeenLastCalledWith('Project exported as Tang_Band_W5-1138SMF.wpr');

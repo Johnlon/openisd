@@ -389,7 +389,8 @@ export class OpenIsdDriverSpec {
         this.Depth_m = f('Depth_m');
         this.MagDepth_m = f('MagDepth_m');
         this.Magnet_m = f('Magnet_m');
-        this.Basket_m = f('Basket_m');
+        this.Basket_m = entryField(sectionSlot('Basket_m'), 'Basket_m', dqFor('Basket_m'),
+            v => floorIssue('Basket_m', v, issues) ?? driver.basketRangeWarning(v));
         this.Outer_m = f('Outer_m');
         this.OuterX_m = f('OuterX_m');
         this.OuterY_m = f('OuterY_m');

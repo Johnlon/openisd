@@ -366,6 +366,8 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
   let undoTo: UndoPoint | null = null;
   /** True once the user has edited the box in this focus; cleared on leaving it and by an undo. */
   let editedThisFocus = false;
+  /** A typed draft has already published a value for live updates. */
+  let publishedText = false;
 
   /** The stored value now, with the precision it was entered to; null when the box holds nothing. */
   function currentUndoPoint(): UndoPoint | null {
@@ -380,6 +382,14 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     if (!editedThisFocus || refusal.value !== '') return;
     if (valueBeforeEdit !== null) undoTo = valueBeforeEdit;
     editedThisFocus = false;
+    publishedText = false;
+  }
+
+  function restoreBeforeRefusal(): void {
+    if (!publishedText) return;
+    publishedText = false;
+    const before = valueBeforeEdit;
+    emit('update:modelValue', before?.value ?? null, before?.halfWidth ?? undefined);
   }
 
   /** Ctrl-Z: an edit still in the box reverts its text to the stored value (as Esc does); otherwise
@@ -389,6 +399,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     if (editedThisFocus || refusal.value !== '') {
       editedThisFocus = false;
       revertToStored(el);
+      publishedText = false;
       return;
     }
     if (undoTo === null) return;
@@ -404,9 +415,15 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
 
   /** Put the stored value back over whatever is in the box, and clear any refusal. */
   function revertToStored(el: HTMLInputElement | null) {
+    const before = refusal.value !== '' && publishedText ? valueBeforeEdit : undefined;
+    if (before !== undefined) restoreBeforeRefusal();
     badEntry.value = false;
     emptied.value = false;
-    showStored(props.modelValue);
+    if (before === undefined) showStored(props.modelValue);
+    else {
+      typedDraft.value = false;
+      display.value = fmt(before?.value, before?.halfWidth);
+    }
     if (el) el.value = display.value;
   }
 
@@ -457,6 +474,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
         e.preventDefault();
         e.stopPropagation();
         revertToStored(e.target instanceof HTMLInputElement ? e.target : null);
+        editedThisFocus = false;
         return;
       }
     }
@@ -761,6 +779,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     if (t.value === '') {
       badEntry.value = false;
       emptied.value = true;
+      publishedText = true;
       emit('update:modelValue', null);
       return;
     }
@@ -770,7 +789,10 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     badEntry.value = badEntry.value || !isFinite(v);   // a lone "-" or "." is not a number yet, and says so
     if (badEntry.value) return;
     const typed = fromDisp(v);
-    if (valid(typed)) emit('update:modelValue', typed, typedPrecision(t.value.replace(',', '.')));
+    if (valid(typed)) {
+      publishedText = true;
+      emit('update:modelValue', typed, typedPrecision(t.value.replace(',', '.')));
+    } else restoreBeforeRefusal();
   }
 
   function onBlur(e: Event) {
@@ -796,7 +818,8 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     longPressEditing.value = false;
     stopLongPress();
     if (refusal.value !== '') {
-      // Ruling "b": leaving the box keeps the refused entry and its ⚠; nothing was stored.
+      // The note stays beside the refused text. Undo any live writes from its valid prefixes.
+      restoreBeforeRefusal();
       emit('blur');
       return;
     }

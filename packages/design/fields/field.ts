@@ -1211,9 +1211,11 @@ export class NumberField extends Field {
     value: "Basket_m",
     label: "Basket Diameter (Basket)",
     display: {kind: 'switchable', group: 'length', base: 'mm'},
-    limits: {min: 0, max: 5},
+    limits: {min: 0.01, max: 1},
+    plausible: {min: 0.01, max: 0.61},
     floor: "positive",
     precision: 2,
+    loadRepair: {breaks: 'band', to: 0.01, described: 'the 10 mm minimum'},
     description: "Basket Diameter\nOuter diameter of the frame/chassis.",
   });
   static readonly OUTER_M = new NumberField({

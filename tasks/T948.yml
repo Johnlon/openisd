@@ -1,10 +1,37 @@
 id: T948
-release_note: internal
+release_note: Basket Diameter keeps the previous value when you enter an impossible size, warns about unusually large baskets, and repairs impossible diameters in older files when you open them.
 repo: openisd
 owner: lead
 status: open
+label: fixes
 goal: A typed or loaded basket diameter of 2.38 m is refused or repaired (limits 10-1000 mm, warning above 610 mm), like every other number box
 why: Release 7.0.961 is held: the app accepts a 2.38 m basket and the bundled Dayton DSA115-8 stores 2.37744 m (John's number-box rule, 18 Nov)
-done_test: bash scripts/quiet-test.sh npm run typecheck
+ruling: QO953
+done_test: bash scripts/test.sh packages/design/test/domain/basket-load-repair.test.ts packages/design/test/domain/driver-value-validity.test.ts packages/design/test/engine/physicalRange.test.ts packages/ui/test/hooks/NumInput-hooks.test.ts packages/ui/test/logic/applicationIO.test.ts
 files:
   - tasks/T948.yml
+  - bugs/BUG_20261120_impossible-basket-diameter.md
+  - packages/design/domain/driver/basketLoadRepair.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/domain/project/projectLoadRepairRules.ts
+  - packages/design/domain/winIsdProjectConverter.ts
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/engine/physicalRange.ts
+  - packages/design/fields/field.ts
+  - packages/design/test/domain/basket-load-repair.test.ts
+  - packages/design/test/domain/driver-value-validity.test.ts
+  - packages/design/test/engine/physicalRange.test.ts
+  - packages/ui/src/hooks/NumInput-hooks.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/logic/loadRepairNotice.ts
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/test/fixtures/generateSample.ts
+  - packages/ui/test/fixtures/sampleProject.ts
+  - packages/ui/test/hooks/NumInput-hooks.test.ts
+  - packages/ui/test/logic/applicationIO.test.ts
+  - packages/ui/test/ui/driver-editor-basket.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-units.browser.spec.ts
+note: "John, 18 Nov 2026, QO953: 'refuse impossible, warn odd'. The existing Driver Editor unit-rotation test seeds an empty basket with 165 mm instead of 1 mm, with the same conversion assertions. The WinISD project import test now checks that the single import toast also reports the fixture's entered zero basket being set to 10 mm. The lead runs the new Driver Editor basket journey and the unit-rotation browser spec."
