@@ -9,6 +9,7 @@ ruling: QO918
 done_test: bash scripts/test.sh packages/ui/test/hooks/DriverEditorModal-hooks.test.ts
 files:
   - tasks/T946.yml
+  - bugs/BUG_20261121_phone-driver-dimensions-depth-clipped.md
   - packages/design/fields/field.ts
   - packages/ui/src/hooks/DriverEditorModal-hooks.ts
   - packages/ui/src/hooks/useUnitReadouts.ts

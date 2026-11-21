@@ -63,6 +63,9 @@ test.describe('desktop', () => {
     await fillAndBlur(thickness.locator('input'), '13.701234');
     await expect(drawing.getByText('Basket Plate Thickness 13.7012 mm', {exact: true})).toBeVisible();
     expect(await measure(page)).toMatchObject({labelsOutside: 0, labelsOverlap: false});
+    for (const label of await drawing.locator('text').all()) {
+      await expect(label).toBeInViewport({ratio: 1});
+    }
 
     const basket = driverEditorField(page, 'Basket Diameter');
     await basket.getByRole('button', {name: 'mm', exact: true}).click();
@@ -90,8 +93,8 @@ test.describe('desktop', () => {
 });
 
 test.describe('phone', () => {
-  for (const viewport of [PIXEL_9, {width: 412, height: 844}]) {
-    test(`the diagram shows its dimension labels without clipping at ${viewport.width} px`, async ({page}) => {
+  for (const viewport of [PIXEL_9, {width: 412, height: 844}, {width: 412, height: 960}]) {
+    test(`the diagram shows its dimension labels without clipping at ${viewport.width} × ${viewport.height}`, async ({page}) => {
       await page.setViewportSize(viewport);
       await forceMobileSkin(page);
       await page.goto('/');
@@ -111,7 +114,13 @@ test.describe('phone', () => {
       await expect(drawing.getByText('Driver Depth 208.35 mm', {exact: true})).toBeVisible();
       await expect(drawing.getByText('Magnet Diameter', {exact: true})).toBeVisible();
       await expect(drawing.getByText('Magnet Depth', {exact: true})).toBeVisible();
+
+      await fillAndBlur(driverEditorField(page, 'Thick').locator('input'), '13.701234');
+      await expect(drawing.getByText('Basket Plate Thickness 13.7012 mm', {exact: true})).toBeVisible();
       await drawing.scrollIntoViewIfNeeded();
+      for (const label of await drawing.locator('text').all()) {
+        await expect(label).toBeInViewport({ratio: 1});
+      }
       const m = await measure(page);
       console.log('PHONE', JSON.stringify(m));
       expect(m.basket).toHaveLength(3);

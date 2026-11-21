@@ -1409,8 +1409,10 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-phone .de-params, .de-phone .de-group, .de-phone .de-cols, .de-phone .de-dimlist, .de-phone .de-row2 { display: block; }
 /* The first section band of a tab sits flush under the key strip (the classic page rule gives later bands a 12 px gap). */
 .de-phone .de-body > .de-params > .de-group:first-child > .mob-band:first-child, .de-phone .de-dimlist > .mob-band:first-child { margin-top: 0; }
-.de-phone .de-dims { flex-direction: column; align-items: stretch; gap: 0; height: auto; }
-.de-phone .de-diagram { min-width: 0; height: auto; padding: 12px; }
+/* Keep the full drawing height in the phone scroll content, including the bottom label. */
+.de-phone .de-dims { display: block; flex: none; height: auto; }
+.de-phone .de-diagram { display: block; min-width: 0; height: auto; padding: 12px; }
+.de-phone .de-diagram :deep(.dd-dim-svg) { display: block; margin-inline: auto; }
 .de-phone .de-scroll { display: flex; flex-direction: column; }
 .de-phone .de-scroll > .de-body { flex: 1 0 auto !important; }
 /* General tab on the phone: the Comment box takes whatever height the tab has left. */
