@@ -364,7 +364,7 @@ onMounted(openedLibrary);
                 <span class="prev-src-lbl">Series</span> {{ previewData.series }}
               </div>
               <div v-if="previewData.model" class="prev-textrow">
-                <span class="prev-src-lbl">Model</span> {{ previewData.model }}
+                <span class="prev-src-lbl">Model</span> <span class="prev-model-value">{{ previewData.model }}</span>
               </div>
               <div v-if="previewData.sku" class="prev-textrow">
                 <span class="prev-src-lbl">SKU</span> <code>{{ previewData.sku }}</code>
@@ -626,7 +626,11 @@ onMounted(openedLibrary);
 }
 /* Phones share two equal summary columns on both hosts; desktop columns keep a
    stable width with enough room for the number and its reserved unit rail. */
-:global(.app-root-mobile) .driver-library .prev-specs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.driver-library.dl-phone .prev-specs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 340px) {
+  .driver-library.dl-phone .prev-specs { grid-template-columns: minmax(0, 1fr); }
+}
+.driver-library.dl-phone .prev-name { flex: none; overflow-wrap: anywhere; }
 .driver-library .spec-row {
   display: grid;
   grid-template-columns: fit-content(40%) minmax(0, 1fr);
@@ -635,6 +639,10 @@ onMounted(openedLibrary);
   padding: 2px 6px;
   font-size: 11px;
   border-bottom: 1px solid #ececec;
+}
+.driver-library.dl-phone .spec-row { column-gap: 4px; padding-inline: 2px; }
+.driver-library.dl-phone .spec-row:has(> .has-unit-slot) {
+  grid-template-columns: minmax(0, 1fr) max-content;
 }
 .driver-library .spec-lbl {
   min-width: 0;
@@ -652,6 +660,9 @@ onMounted(openedLibrary);
 .driver-library .spec-val.has-unit-slot {
   grid-template-columns: minmax(0, 1fr) 4.2em;
   column-gap: 5px;
+}
+.driver-library.dl-phone .spec-val.has-unit-slot {
+  grid-template-columns: max-content 4.2em;
 }
 .driver-library .spec-val b {
   min-width: 0;
@@ -689,6 +700,12 @@ onMounted(openedLibrary);
 .driver-library .prev-textrow {
   padding: 2px 0;
 }
+.driver-library.dl-phone .prev-textrow:has(> .prev-model-value) {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  scroll-margin-block: 4px;
+}
+.driver-library.dl-phone .prev-model-value { overflow-wrap: anywhere; }
 .driver-library .prev-src-lbl {
   display: inline-block;
   min-width: 92px;

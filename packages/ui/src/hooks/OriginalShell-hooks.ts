@@ -712,7 +712,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg,
   } = createVentReadouts({ project, projectChanged, selectedBox, vent: engine.vent });
 
-  const placement = ref<'standard' | 'iso'>('standard');
 
   // ---- Box losses (real: Ql/Qa/Qp) + docked/modal editors ------------------------
   const optionsOpen = computed<boolean>({
@@ -855,7 +854,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, isDual,
     frontVolumeCell, rearTuningCell, rearResonance,
-    model, startEdit, showDriverDisagreements, showDriverInfo: driverBrowsing.showProjectDriverInfo, startWhatIf, placement, driverConsistencyReasons,
+    model, startEdit, showDriverDisagreements, showDriverInfo: driverBrowsing.showProjectDriverInfo, startWhatIf, driverConsistencyReasons,
     activeVent, activeTuning, ventPorts, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, prEditor, startEditPR, defineNewPREntry, prInfoOpen, prInfo, openPRInfo,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,

@@ -1,0 +1,32 @@
+id: T940
+release_note: internal
+repo: openisd
+owner: sens283-agent
+status: done
+goal: A sensitivity printed at 2.83 V / 1 m is stored as USPL_dB and the engine derives the 1 W / 1 m SPL_dB from it and Re; a data-quality check compares the stated sensitivity with the one implied by the T/S figures.
+why: John, QO962, 20 Nov 2026: 'B: keep the printed 2.83 V figure; the engine works out the 1 W one (changes how drivers are stored)'
+ruling: QO962
+gates_approved: QO962
+done_test: bash scripts/test.sh packages/design/test/winisd/driverRecordConverter.sensitivityCondition.test.ts
+files:
+  - scripts/dupscan-homes.json
+  - packages/design/test/winisd/openisdToWdr.test.ts
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - packages/design/test/domain/multi-coil-goldens.test.ts
+  - bugs/BUG_20261120_sensitivity-at-2p83v-stored-as-1w-spl.md
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/domain/measurementNote.ts
+  - packages/design/engine/driver/routes/DriverRoutes.ts
+  - packages/design/engine/driver/routes/efficiencyRoutes.ts
+  - packages/design/engine/driver/routes/relations.ts
+  - packages/design/test/engine/driver-consistency-check.test.ts
+  - packages/design/test/engine/driver-solve.test.ts
+  - packages/design/test/fixtures/corpus/b-c-speakers-12ndl88-8.driver.json
+  - packages/design/test/fixtures/corpus/b-c-speakers-12ndl88-8.driver.json.provenance.md
+  - packages/design/test/fixtures/corpus/dayton-audio-rss265ho-44.driver.json
+  - packages/design/test/fixtures/corpus/dayton-audio-rss265ho-44.driver.json.provenance.md
+  - packages/design/test/fixtures/corpus/sb-acoustics-sb23nrxs45-4.driver.json
+  - packages/design/test/fixtures/corpus/sb-acoustics-sb23nrxs45-4.driver.json.provenance.md
+  - packages/design/test/winisd/driverRecordConverter.sensitivityCondition.test.ts
+  - tasks/T940.yml
+note: A sensitivity whose winning reading is noted 2.83V/1m is projected into USPL_dB (entered) instead of SPL_dB; a new engine route works SPL_dB out from USPL_dB and Re ahead of the SPL from the efficiency; two consistency relations compare a stated SPL or USPL with the one the efficiency implies (2% of the predicted dB plus every figure's printed rounding). openisd.json in winisd_drivers is not regenerated here.

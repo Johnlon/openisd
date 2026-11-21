@@ -17,6 +17,7 @@ import type {PresentationState} from '../../src/logic/presentationState.js';
 import {backupRepoOn, projectRepoOn, exportedFilesOn, storageUsageOn} from '../fixtures/repoOn.js';
 import type {TelemetryEvent} from '../../src/logic/telemetry/events.js';
 import {ChartData, ChartLayout, FrequencyAxis, LevelAxis} from '@openisd/design/chart';
+import {dqOfCell} from '../../src/logic/cellDataQuality.js';
 
 let appState: AppState;
 let presentationState: PresentationState;
@@ -396,6 +397,21 @@ describe('every import and export says what it did', () => {
     appState.requireFocusedProject().driver.brand.set('Tang Band');
     appState.requireFocusedProject().driver.model.set('W5-1138SMF');
   }
+
+  it('an imported passive radiator with an infinite resonance shows an unavailable readout with its reason', async () => {
+    const bytes = readFileSync(new URL('../fixtures/pr-resonance-underflow.owpr', import.meta.url));
+    stubDom([]);
+    try {
+      const {io, flash} = ioWith(createFileStorage());
+      await io.importFile(new File([new Uint8Array(bytes)], 'pr-resonance-underflow.owpr'));
+      expect(flash).toHaveBeenCalledWith('Project imported from pr-resonance-underflow.owpr');
+
+      const readout = appState.requireFocusedProject().box.passiveRadiator.resonanceWithAddedMass_hz;
+      expect(dqOfCell(readout).dq).toContainEqual(expect.stringMatching(/passive radiator resonance with added mass.*infinite/i));
+      expect(readout.value).toBeNull();
+      expect(readout.provenance).toBe('N');
+    } finally { restoreGlobals(); }
+  });
 
   it('project import, .wpr export, .wdr and .owdr export, and a driver import each flash', async () => {
     const downloads: { name: string; body: string | Uint8Array }[] = [];

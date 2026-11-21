@@ -34,7 +34,7 @@ test.describe('desktop', () => {
 
     const row = (key: string) => page.locator(`.de-dimlist .de-fld[data-field-key="${key}"]`);
     const weight = await shown(row('weight_kg'));
-    expect(weight.text).toContain('Driver Weight (Weight)');
+    expect(weight.text).toContain('Driver Weight');
     expect(weight.value).toBe('0.184');
     expect(weight.text).toContain('kg');
     const x = await shown(row('OuterX_m'));

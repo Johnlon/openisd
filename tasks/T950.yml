@@ -1,0 +1,22 @@
+id: T950
+release_note: internal
+repo: openisd
+owner: lead
+status: done
+label: fixes
+goal: Update the blocked-chart wording and new-project driver preview assertions for the approved screen changes.
+why: "Main suite run 44838606967 failed 27 browser cases on the prior wording and preview precision. John, 20 Nov 2026, approved the screen changes that introduced both."
+ruling: >-
+  John, 20 Nov 2026, on "Ship the 7 screen fixes, the Edit driver parameters button and the wording?"
+  (t945-popups), as quoted in the task brief: "Yes: 5 and 6 are right; ship it all".
+  The card includes "driver info and summary show at most 4 significant figures" and "blocked chart names Re and BL".
+done_test: bash scripts/test.sh packages/design/test/domain/driver-info-rows.test.ts packages/design/test/engine/driver-preconditions.test.ts packages/design/test/fields/chart-block-text.test.ts
+files:
+  - tasks/T950.yml
+  - packages/ui/test/fixtures/driverPreviewText.ts
+  - packages/ui/test/ui/consistency-dq.browser.spec.ts
+  - packages/ui/test/ui/new-project-pick-fills-journey.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard-walk.browser.spec.ts
+test_changes: >-
+  Keep exact preview text comparisons against the stored catalogue values with the four-significant-figure cap.
+  Keep both full-phrase blocked-chart checks and use the approved Re and BL wording.

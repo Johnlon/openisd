@@ -1,0 +1,11 @@
+id: T951
+release_note: internal
+repo: openisd
+owner: lead
+status: done
+goal: 'Every Claude tool call in openisd finds the gate hook on any machine, not only under /home/john.'
+why: 'John, 21 Nov 2026: "fix the hook path". .claude/settings.json called /home/john/work/winisd/_agent_files/bin/run_gates.py, the old laptop path, so every Claude command failed on /home/johnl.'
+done_test: grep -q 'HOME/work/winisd/_agent_files/bin/run_gates.py' .claude/settings.json && ! grep -q '/home/john/' .claude/settings.json
+files:
+  - tasks/T951.yml
+  - .claude/settings.json

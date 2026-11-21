@@ -245,6 +245,36 @@ describe('Engine.solveDriver', () => {
       engine.driver.solve(p, AIR);
       expect(p.SPLref_dB.value).toBeCloseTo(SPLref_dB, 9);
     });
+
+    // John's ruling QO962 (20 Nov 2026): "keep the printed 2.83 V figure; the engine works out the 1 W one". SB Acoustics
+    // SB23NRXS45-4 prints 92 dB at 2.83 V/1 m, Re 3.3; its Fs/Vas/Qes imply about 89.3 dB at 1 W, its stated figure 88.15.
+    it('derives the 1 W SPL from a stated USPL and Re, ahead of the efficiency Fs/Vas/Qes imply', () => {
+      const p = driverParams({ USPL_dB: 92, Re_ohm: 3.3, Fs_hz: 27, Vas_m3: 0.0875, Qes: 0.32, Pe_W: 60 });
+      engine.driver.solve(p, AIR);
+      const spl1W = 92 - 10 * Math.log10(V283_SQ / 3.3);
+      expect(p.USPL_dB.entered).toBe(true);
+      expect(p.USPL_dB.value).toBe(92);
+      expect(p.SPL_dB.calculated).toBe(true);
+      expect(p.SPL_dB.value).toBeCloseTo(spl1W, 9);
+      expect(p.SPL_dB.value).toBeCloseTo(88.15, 2);
+      expect(p.SPLmax_dB.value).toBeCloseTo(spl1W + 10 * Math.log10(60) - 3, 9);
+    });
+
+    it('a stated USPL and Re with no T/S figures give the SPL and the efficiency it implies', () => {
+      const p = driverParams({ USPL_dB: 90.5, Re_ohm: 1.6 });
+      engine.driver.solve(p, AIR);
+      const spl1W = 90.5 - 10 * Math.log10(V283_SQ / 1.6);
+      expect(p.SPL_dB.value).toBeCloseTo(spl1W, 9);
+      expect(p.SPLref_dB.value).toBeCloseTo(spl1W, 9);
+      expect(p.no.calculated).toBe(true);
+    });
+
+    it('a stated SPL is not replaced by the one a stated USPL implies', () => {
+      const p = driverParams({ SPL_dB: 90, USPL_dB: 92, Re_ohm: 3.3 });
+      engine.driver.solve(p, AIR);
+      expect(p.SPL_dB.entered).toBe(true);
+      expect(p.SPL_dB.value).toBe(90);
+    });
   });
 
   describe('Engine.solveDriver — enteredDriverValue null handling', () => {

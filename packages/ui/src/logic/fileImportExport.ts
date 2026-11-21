@@ -93,7 +93,7 @@ export class DesignFiles {
   /** Project file text → a project, or the reasons it could not be read. A `.wpr` goes
    *  through the WinISD converter; an `.owpr` is brought up to the current schema by the
    *  persistence layer. `loadRepairs` is every value the load repaired, for the opening message. */
-  projectFromText(text: string, format: ProjectFileFormat): { value: OpenISDProject | null; errors: DriverError[]; loadRepairs: readonly LoadRepairNote[] } {
+  projectFromText(text: string, format: ProjectFileFormat): { value: OpenISDProject | null; errors: DriverError[]; loadRepairs: readonly LoadRepairNote[]; notes?: readonly string[] } {
     if (format === ProjectFileFormat.Wpr) return this.#projects.winIsdProjectToOpenIsdProject(text);
     const result = this.projectRepo.openProjectText(text);
     if (Array.isArray(result)) {

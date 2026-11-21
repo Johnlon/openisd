@@ -36,22 +36,24 @@ describe('driver preconditions', () => {
       assert.equal(refused().values, null, 'no Q cannot solve the group; the sweep must refuse');
     });
 
-    it('the refusal names exactly the circuit fields still missing, one issue per field — '
-     + 'never a combined message or a cross-field substitution suggestion (QO144)', () => {
+    it('the refusal names each missing circuit field once and tells the user what to type for it '
+     + '(QO144: "I want the user to clearly know what they need to do to get charts working"; '
+     + 'John, 20 Nov 2026 22:24: "Type X if you know it, otherwise...")', () => {
       const { issues } = refused();
       assert.ok(issues.length > 0, 'a refused sweep must carry at least one issue');
       for (const issue of issues) {
-        assert.equal(issue.kind, 'missing-dependencies');
-        if (issue.kind !== 'missing-dependencies') continue;
-        // Exactly one route — the field itself — never a list of alternative fields.
-        assert.equal(issue.routes.length, 1);
-        assert.deepEqual(issue.routes[0].missing, [issue.target]);
+        assert.equal(issue.kind, 'required-value');
+        if (issue.kind !== 'required-value') continue;
+        assert.match(issue.text, /^Type .* if you know it, otherwise enter .*\.$/);
+        assert.match(issue.chartFix.desktop, /^Enter .* in Driver > Edit > Parameters\.$/);
       }
-      const targets = issues.map(i => i.kind === 'missing-dependencies' ? i.target : null);
-      // Vas+Fs derive Cms and Mms; nothing derives BL_terminal_Tm (no BL_Tm stated) or
+      const fields = issues.map(i => i.kind === 'required-value' ? i.field : null);
+      assert.equal(new Set(fields).size, fields.length, 'one issue per missing field, never a field twice');
+      // Vas+Fs derive Cms and Mms; nothing derives BL (no BL_Tm stated) or
       // Rms_kg_per_s (needs Qms, which VAS_NO_Q does not state).
-      assert.ok(targets.includes('BL_terminal_Tm'), 'BL_terminal_Tm is genuinely absent and must be named');
-      assert.ok(targets.includes('Rms_kg_per_s'), 'Rms_kg_per_s is genuinely absent and must be named');
+      assert.ok(fields.includes('BL_Tm'), 'BL is genuinely absent and must be named');
+      assert.ok(fields.includes('Rms_kg_per_s'), 'Rms_kg_per_s is genuinely absent and must be named');
+      assert.ok(!fields.includes('Sd_m2') && !fields.includes('Re_ohm'), 'stated figures are never asked for');
     });
 
     it('a driver with only Qts is NOT refused: Qes = Qms = 2·Qts, as WinISD does', () => {

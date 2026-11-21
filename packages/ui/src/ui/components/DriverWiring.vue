@@ -1,17 +1,27 @@
 <script setup lang="ts">
 // "Driver wiring" on both skins (ticket 519, plan 3.1): how the project's several drivers are wired to the amplifier.
-// Drawn only with 2 or more drivers. Not the Coil wiring (the voice coils inside one driver). Display and wiring only: the options and
-// the words come from packages/design through useDriverWiring().
+// Placement and Iso-Barik compatibility share this control group on both skins.
 import UIPickField from './UIPickField.vue';
-import {EnumField} from '@openisd/design/fields';
+import ToggleLabel from './ToggleLabel.vue';
+import {EnumField, ToggleField} from '@openisd/design/fields';
 import {useDriverWiring} from '../../hooks/DriverWiring-hooks.js';
 
 const help = EnumField.PROJECT_DRIVERWIRING.description;
 defineProps<{phone?: boolean}>();
-const {shown, mine, options, onSelect} = useDriverWiring();
+const {shown, mine, options, onSelect, loading, winisdIsobarik, selectLoading, selectWinisdIsobarik, loadingField} = useDriverWiring();
 </script>
 
 <template>
+  <div :class="phone ? 'mob-crow' : 'radio-group field-row'" :title="loadingField.description">
+    <label v-for="option in loadingField.options" :key="option.value">
+      <input type="radio" name="driver-placement" :value="option.value" :checked="loading === option.value" @change="selectLoading(option.value)">
+      {{ option.label }}
+    </label>
+  </div>
+  <label v-if="loading === 'isobaric'" class="isobarik-switch" :title="ToggleField.PROJECT_WINISDISOBARIK.description">
+    <input type="checkbox" :checked="winisdIsobarik" @change="selectWinisdIsobarik">
+    <ToggleLabel :field="ToggleField.PROJECT_WINISDISOBARIK" />
+  </label>
   <template v-if="shown && phone">
     <div class="mob-crow">
       <label class="mob-crow-label" for="mob-driver-wiring">{{ EnumField.PROJECT_DRIVERWIRING.label }}</label>
@@ -30,3 +40,12 @@ const {shown, mine, options, onSelect} = useDriverWiring();
     </div>
   </template>
 </template>
+
+<style scoped>
+.isobarik-switch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-block: 4px;
+}
+</style>

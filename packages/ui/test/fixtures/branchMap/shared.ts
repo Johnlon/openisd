@@ -98,6 +98,7 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-86a74738b0c40fb4':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:32
   'conditional-branch-265d98b1829da319':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:35
   'conditional-branch-ad20275eedeb4b3a':{kind:'partOf',view:'tab-driver'}, // components/DriverCoilWiring.vue:34 (the catcher over the greyed control)
+  'conditional-branch-28578796288ae007':{kind:'partOf',view:'tab-driver'}, // DriverWiring.vue (Iso-Barik compatibility checkbox)
   'conditional-branch-587ab05924db500c':{kind:'partOf',view:'tab-driver'}, // components/DriverWiring.vue:15 (the phone row)
   'conditional-branch-eb847ee4b5bc2de2':{kind:'partOf',view:'tab-driver'}, // components/DriverWiring.vue:23 (the desktop row)
   'conditional-branch-b989dd12d68f1ae3':{kind:'notAView',reason:'summary button that opens the driver disagreements list'}, // components/DriverConsistencyList.vue:12
@@ -282,6 +283,8 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-a5f4f45eade96e0b':{kind:'view',view:'shared/graph-warning-pill'}, // components/GraphPanel.vue:372
   'native-ui-5600554eae49bd62':{kind:'notAView',reason:'dismiss button of the graph warning pill'}, // components/GraphPanel.vue:375
   'conditional-branch-252cc2515f3da2b0':{kind:'view',view:'shared/graph-blocked-message'}, // components/GraphPanel.vue:378
+  'conditional-branch-650bcffff7ad1091':{kind:'partOf',view:'shared/graph-blocked-message'}, // Edit driver parameters button
+  'conditional-branch-e441b400d1b16a1d':{kind:'partOf',view:'shared/graph-blocked-message'}, // Missing driver figures summary
   'surface-root-b7c451a71a22119e':{kind:'view',view:'shared/graph-context-menu'}, // components/GraphPanel.vue:386
   'native-ui-daaf434cc32ba8a6':{kind:'partOf',view:'shared/graph-context-menu'}, // components/GraphPanel.vue:390
   'native-ui-7a7f5ed32ddeff6e':{kind:'partOf',view:'shared/graph-context-menu'}, // components/GraphPanel.vue:392
