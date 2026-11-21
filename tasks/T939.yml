@@ -6,11 +6,11 @@ status: open
 goal: A combination test over box type x number of drivers x Iso-Barik x wiring x the Advanced switches checks the engine against physics rules that always hold (array scaling, Iso-Barik equivalence, series = parallel at N x voltage, every curve finite).
 why: 'John, 20 Nov 2026 00:52, board card test-guardrails: "All of A-G: build every guardrail on the card, the physics-law combination test (B) first, plus the Finite number type and the four lint rules as ratchets"; plan docs/plans/PLAN_20261119_TEST_STRATEGY.md option B. The card says each guardrail "refuses a pull request, and removing one needs your OK", so the test file joins GATE_FILES in land.conf (protected gate files) on this branch.' 
 gates_approved: QO961
-done_test: bash scripts/test.sh packages/design/test/engine/driver-array-physics-rules.test.ts
+done_test: bash scripts/test.sh packages/design/test/engine/driver-array-physics-law-combinations.test.ts
 files:
   - tasks/T939.yml
   - land.conf
-  - packages/design/test/engine/driver-array-physics-rules.test.ts
+  - packages/design/test/engine/driver-array-physics-law-combinations.test.ts
   - bugs/BUG_20261120_array-pressure-and-xmax-limited-spl-not-scaled-by-driver-count.md
   - bugs/BUG_20261120_isobarik-impedance-motional-term-doubled.md
   - bugs/BUG_20261120_isobarik-pair-with-two-bl-driver-6db-below-one-driver.md
@@ -19,7 +19,7 @@ files:
 notes: |
   Guardrail B of John's test-guardrails decision (20 Nov 2026 00:52, "All of A-G ... the physics-law combination test (B)
   first"), plan docs/plans/PLAN_20261119_TEST_STRATEGY.md option B (rules R1, R2, R3, R4, R9 there).
-  Test: packages/design/test/engine/driver-array-physics-rules.test.ts. Engine level: each of the six box types starts from
+  Test: packages/design/test/engine/driver-array-physics-law-combinations.test.ts. Engine level: each of the six box types starts from
   its WinISD fixture (packages/design/test/winisd/fixtures/<box>-w5-1.wpr, sealed-w5-nd2.wpr with one driver), the project
   turns it into the engine's sweep job, and the test then varies the job: number of drivers (1, 2, 3), wiring (parallel,
   series), loading (standard, Iso-Barik) and every Advanced switch the sweep reads. Switches are combined pairwise: all off,

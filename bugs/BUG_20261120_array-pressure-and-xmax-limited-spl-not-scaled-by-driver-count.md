@@ -29,6 +29,6 @@ driver's `splXlimCurve` and `H` unchanged.
 T928 applies the driver-count gain to `splXlimCurve` and `H` as it does to `spl`.
 
 ## Tests
-`packages/design/test/engine/driver-array-physics-rules.test.ts`: after main with T928 was merged into T939 (20 Nov 2026,
+`packages/design/test/engine/driver-array-physics-law-combinations.test.ts`: after main with T928 was merged into T939 (20 Nov 2026,
 01:35 UTC), all 1368 "(pressure)" cases of R1 and R2 pass at 1e-9 dB / 1e-9 relative, every box, combination, loading and
 wiring, and now run as plain tests (they were `it.fails` naming this file).

@@ -50,5 +50,5 @@ Whether R4's expectation changes to WinISD's -6.02 dB / one half, or stays as ph
 decision.
 
 ## Tests
-`packages/design/test/engine/driver-array-physics-rules.test.ts`: the "(response)" part of R4 for those rows runs as `it.fails`
+`packages/design/test/engine/driver-array-physics-law-combinations.test.ts`: the "(response)" part of R4 for those rows runs as `it.fails`
 naming this file.

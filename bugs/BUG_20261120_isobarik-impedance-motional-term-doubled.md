@@ -31,7 +31,7 @@ T928 takes the Iso-Barik push BL from one driver whether BL is typed or not, so 
 (sqrt 2 BL)^2 in both switch states.
 
 ## Tests
-`packages/design/test/engine/driver-array-physics-rules.test.ts`: after main with T928 was merged into T939 (20 Nov 2026,
+`packages/design/test/engine/driver-array-physics-law-combinations.test.ts`: after main with T928 was merged into T939 (20 Nov 2026,
 01:35 UTC), every "(impedance)" case of R4 that named only this file passes at 1e-9 relative (impedance) and 1e-9 rad
 (impedance phase) and now runs as a plain test: all 57 combinations for sealed, vented, both bandpasses and ABC, and the 3
 passive-radiator combinations with "PR Npr resonance" ticked. The other passive-radiator impedance cases still miss by about

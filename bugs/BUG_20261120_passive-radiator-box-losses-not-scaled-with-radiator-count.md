@@ -29,4 +29,4 @@ affected the same way. Needs a WinISD capture with 2 radiators and losses before
 each driver's share is 1 radiator).
 
 ## Tests
-`packages/design/test/engine/driver-array-physics-rules.test.ts`: the passive-radiator cases of R4 run as `it.fails` naming this file.
+`packages/design/test/engine/driver-array-physics-law-combinations.test.ts`: the passive-radiator cases of R4 run as `it.fails` naming this file.
