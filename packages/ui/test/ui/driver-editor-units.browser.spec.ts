@@ -88,7 +88,7 @@ test('every unit with alternates is a working toggle, and every other unit is a 
 
       const input = fld.locator('input').first();
       if (!(await input.inputValue())) {
-        await input.fill(label === 'Basket Diameter (Basket)' ? '165' : '1');
+        await input.fill(label === 'Basket Diameter' ? '165' : '1');
         await input.blur();
       }
       const before = await input.inputValue();

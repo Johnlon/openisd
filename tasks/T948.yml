@@ -5,8 +5,8 @@ owner: lead
 status: done
 label: fixes
 goal: Refuse typed Basket Diameter outside 10–1000 mm with the existing note. Keep loaded driver dimensions as written, warn beside impossible or unusual values, and keep chart data finite.
-why: Replacing a dimension on opening can misrepresent the file and change a subsequent export. John ruled on 21 Nov 2026 that a data-quality warning should accompany the loaded value.
-ruling: QO953
+why: Replacing a dimension on opening can misrepresent the file and change a subsequent export. (John, 21 Nov 2026, QO972: "a bad idea if it misrepresent data, a dq is better and more consistent".)
+ruling: QO972
 done_test: bash scripts/test.sh packages/design/test/domain/basket-load-repair.test.ts packages/design/test/domain/driver-dimensions-load-repair.test.ts packages/design/test/domain/driver-value-validity.test.ts packages/design/test/engine/physicalRange.test.ts packages/design/test/winisd/wdr-round-trip-through-driver.test.ts packages/ui/test/hooks/NumInput-hooks.test.ts packages/ui/test/logic/applicationIO.test.ts
 files:
   - tasks/T948.yml
