@@ -21,6 +21,7 @@ setup() {
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes gates
     cp "$REPO/scripts/land.sh" "$REPO/scripts/paths.sh" scripts/; cp -r "$REPO/scripts/land" scripts/; cp -r "$REPO/scripts/lib" scripts/
+    [ "${NO_READER_ON_BASE:-0}" = 1 ] && rm -f scripts/land/questions_reader.py
     # the pull request check's runner (17-23) is on the base unless NO_RUNNER_ON_BASE=1
     [ "${NO_RUNNER_ON_BASE:-0}" = 1 ] || { mkdir -p scripts/ci; cp "$REPO/scripts/ci/contract-from-base.sh" scripts/ci/; }
     # BASE_FILES: more files on the base (24-25), each of three lines so git could pair a rename
@@ -64,7 +65,7 @@ GATE_DEADLINE_S=30
 LAND_LOCK="$SCRATCH/land.lock"
 POST_LAND_LOCK="$SCRATCH/post.lock"
 POST_LAND_RECORD="$SCRATCH/post.lock"
-QUESTIONS_FILE=$SCRATCH/questions.yml
+QUESTIONS_FILE=${BOARD_RECORD:-$SCRATCH/questions.yml}
 $([ "${NO_BASE_GATE_FILES:-0}" = 1 ] || printf '%s' "$gate_files")
 ${BASE_CONF_EXTRA:-}
 CONF
@@ -102,8 +103,8 @@ refused_gates "$r" && ok "8 John-answered QO that names T90, not T9, refuses" ||
 setup "" tsconfig.json; sed -i '/^GATE_FILES=/d' land.conf; git add -A; git commit -qm nogf; r=$(land)
 if refused_gates "$r" && grep -q 'GATE_FILES is not set in land.conf' "$SCRATCH/out"; then ok "9 unset GATE_FILES refuses"; else fail "9 (r=$r)"; fi
 
-# 10: land.conf and scripts/land.sh are themselves gate files (QO313). Edit = append a comment so the scratch run still works.
-for gf in land.conf scripts/land.sh; do
+# 10: the landing config, entry point and decision reader are gate files. Append a comment to each.
+for gf in land.conf scripts/land.sh scripts/land/questions_reader.py; do
     setup "" f.txt; echo "# edit" >> "$gf"; git add -A; git commit -qm wip2; r=$(land)
     if refused_gates "$r" && grep -q "$gf" "$SCRATCH/out"; then ok "10 $gf without field refuses gates"; else fail "10 $gf (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-300)"; fi
 done
@@ -141,10 +142,10 @@ if refused_gates "$r" && grep -q 'gate files changed: [^;]*scripts/dupscan-homes
 # here sets QUESTIONS_FILE unquoted, as the real one does.
 # ci_step <job> <bootstrap base> <base sha> <head sha>: the last step of that pr.yml job, run as GitHub runs it (its env from
 # the yaml, the event's shas given here). ci_contract <bootstrap base>: gate-approval with base origin/main, head HEAD.
+sums="$(python3 -c 'import sys, yaml; print(yaml.safe_load(open(sys.argv[1]))["jobs"]["gate-approval"]["steps"][-1]["env"]["BOOTSTRAP_SHA256"])' "$REPO/.github/workflows/pr.yml")" || exit 2
 ci_step() {
     python3 -c 'import sys, yaml; steps = yaml.safe_load(open(sys.argv[1]))["jobs"][sys.argv[2]]["steps"]; print(steps[-1]["run"])' \
       "$REPO/.github/workflows/pr.yml" "$1" > "$SCRATCH/step.sh" || { echo "no $1 step in pr.yml" > "$SCRATCH/out"; echo 2; return; }
-    sums="$(python3 -c 'import sys, yaml; print(yaml.safe_load(open(sys.argv[1]))["jobs"]["gate-approval"]["steps"][-1]["env"]["BOOTSTRAP_SHA256"])' "$REPO/.github/workflows/pr.yml")"
     rm -rf "$SCRATCH/rt"; mkdir -p "$SCRATCH/rt"
     (unset GATE_FILES QUESTIONS_FILE; BASE_SHA="$3" HEAD_SHA="$4" BOOTSTRAP_BASE="$2" BOOTSTRAP_SHA256="$sums" RUNNER_TEMP="$SCRATCH/rt" \
       timeout 300 bash "$SCRATCH/step.sh") > "$SCRATCH/out" 2>&1; echo $?
@@ -162,6 +163,13 @@ ci_setup() {
         printf 'touch "%s/sourced"\n' "$SCRATCH" >> land.conf
     else
         mkdir -p scripts/ci; cp "$REPO/scripts/ci/contract-from-base.sh" scripts/ci/
+        if [ "${NO_RUNNER_ON_BASE:-0}" = 1 ]; then
+            # The workflow pins the original reviewed files. Reproduce that historical head.
+            while read -r sum path; do
+                [ -n "$path" ] || continue
+                git -C "$REPO" show "456ae03e13f6d831c3b0b08334055ab86e2243f9:$path" > "$path" || exit 2
+            done <<< "$sums"
+        fi
     fi
     echo 2 > tsconfig.json; echo 2 > f.txt; rm -f "$SCRATCH/sourced"
     printf '\n# the change\n' >> tasks/T9.yml
@@ -271,6 +279,78 @@ if [ "$r" = 1 ] && grep -q "the base's land.conf .* sets no GATE_FILES" "$SCRATC
 # 32 (T934 review 6): the checker's Python runs isolated (-I): a fnmatch.py in the checkout that matches nothing is not imported.
 ci_setup "" 0; printf 'def fnmatchcase(name, pat):\n    return False\n' > fnmatch.py; git add -A; git commit -qm planted; r=$(ci_contract "$NOT_BASE")
 if [ "$r" = 1 ] && grep -q $'REFUSE\tgates\tgate files changed: [^;]*tsconfig.json' "$SCRATCH/out"; then ok "32 a checkout-local fnmatch.py is not imported by the checker"; else fail "32 (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-400)"; fi
+
+# Folder approvals use the protected base's reader and the workspace's data.
+split="$SCRATCH/record/questions"; mkdir -p "$split" "$SCRATCH/record/_agent_files/bin"
+printf 'split-v1\n' > "$split/LAYOUT"
+printf '{"questions.yml":["QO1","QO2","QO11"],"questions-archived.yml":["QO3"]}\n' > "$split/ORDER.json"
+printf '%s\n' '- id: QO1' '  title: Gate change for T9' '  # questions-split: comments pages' > "$split/QO1.yml"
+printf '%s\n' 'thread: [{by: John}]' > "$split/QO1-comments-01.txt"
+printf '{"QO1":{"thread":1}}\n' > "$split/COMMENT-PAGES.json"
+printf '%s\n' '- id: QO2' '  title: Gate change for T9' '  thread: [{by: john}]' > "$split/QO2.yml"
+printf '%s\n' '- id: QO3' '  title: Gate change for T9' '  thread: [{by: John}]' > "$split/QO3.yml"
+printf '%s\n' '- id: QO11' '  title: Gate change for T90' '  thread: [{by: John}]' > "$split/QO11.yml"
+cat > "$SCRATCH/record/_agent_files/bin/qboard.py" <<'PYFIXTURE'
+from pathlib import Path
+Path("untrusted-reader-was-run").touch()
+print("questions: [{id: QO2, title: Gate change for T9, thread: [{by: John}]}]")
+PYFIXTURE
+contract() {
+    GATE_FILES="tsconfig.json" QUESTIONS_FILE="$1" bash scripts/land/check-task-contract.sh T9 origin/main HEAD > "$SCRATCH/out" 2>&1
+}
+NO_READER_ON_BASE=1 setup $'gates_approved: QO1\n' tsconfig.json
+if contract "$SCRATCH/questions.yml"; then ok "33 legacy approval works before the reader lands"
+else fail "33 legacy approval: $(cat "$SCRATCH/out")"; fi
+if contract "$split" || ! grep -q $'REFUSE\tgates' "$SCRATCH/out"; then
+    fail "34 folder approval without a protected reader: $(cat "$SCRATCH/out")"
+else ok "34 folder approval requires the protected reader"; fi
+
+setup $'gates_approved: QO2\n' tsconfig.json
+if contract "$split" || [ -e untrusted-reader-was-run ] || ! grep -q 'REFUSE.*gates' "$SCRATCH/out"; then
+    fail "35 workspace executable influenced the approval: $(cat "$SCRATCH/out")"
+else ok "35 folder gate refuses lowercase author and ignores the workspace reader"; fi
+
+setup $'gates_approved: QO1\n' tsconfig.json
+printf '%s\n' 'raise RuntimeError("the proposed reader ran")' > scripts/land/questions_reader.py
+git add scripts/land/questions_reader.py; git commit -qm "vary proposed reader"
+if contract "$split" && [ ! -e untrusted-reader-was-run ]; then
+    ok "36 split approval reads John's paged answer using the protected base's reader"
+else fail "36 protected reader: $(cat "$SCRATCH/out")"; fi
+
+for qo in QO3 QO11; do
+    setup "gates_approved: $qo"$'\n' tsconfig.json
+    if contract "$split" || ! grep -q 'REFUSE.*gates' "$SCRATCH/out"; then
+        fail "37 wrong-scope or wrong-task approval ($qo): $(cat "$SCRATCH/out")"
+    else ok "37 refuses archived or wrong-task approval ($qo)"; fi
+done
+
+BOARD_RECORD="$SCRATCH/record/questions.yml" ci_setup $'gates_approved: QO1\n' 1; r=$(ci_contract "$NOT_BASE")
+if [ "$r" = 0 ]; then ok "38 the CI runner checks a split approval using the protected configuration"
+else fail "38 protected CI and split approval (r=$r): $(cat "$SCRATCH/out")"; fi
+BOARD_RECORD="$SCRATCH/record/questions.yml" ci_setup $'gates_approved: QO2\n' 1; r=$(ci_contract "$NOT_BASE")
+if [ "$r" = 1 ] && grep -q 'board item QO2 has no answer by John' "$SCRATCH/out"; then
+    ok "39 the CI runner finds the folder even when the configured legacy path is absent"
+else fail "39 protected CI and split refusal (r=$r): $(cat "$SCRATCH/out")"; fi
+
+setup $'gates_approved: QO1\n' tsconfig.json
+cp "$SCRATCH/questions.yml" "$SCRATCH/questions-archived.yml"
+if contract "$SCRATCH/questions-archived.yml" || ! grep -q $'REFUSE\tgates' "$SCRATCH/out"; then
+    fail "40 legacy archive accepted as the approval record: $(cat "$SCRATCH/out")"
+else ok "40 refuses an explicit legacy archive path"; fi
+cp "$SCRATCH/questions.yml" "$SCRATCH/record/questions.yml"
+if contract "$SCRATCH/record/questions.yml" || ! grep -q 'mixed decision layouts' "$SCRATCH/out"; then
+    fail "41 mixed decision record: $(cat "$SCRATCH/out")"
+else ok "41 recreated legacy path cannot approve from a mixed record"; fi
+
+setup $'gates_approved: QO3\n' tsconfig.json
+if contract "$split/QO3.yml" || ! grep -q $'REFUSE\tgates' "$SCRATCH/out"; then
+    fail "42 direct archived decision file accepted: $(cat "$SCRATCH/out")"
+else ok "42 refuses a direct archived decision file"; fi
+
+rm -f "$SCRATCH/record/questions.yml"
+BOARD_RECORD="$split" setup $'gates_approved: QO1\n' tsconfig.json; r=$(land)
+if [ "$r" = 0 ]; then ok "43 land.sh accepts the live folder approval"
+else fail "43 land.sh with split approval (r=$r): $(cat "$SCRATCH/out")"; fi
 
 [ $fails = 0 ] && { echo "land-gates: all passed"; exit 0; }
 echo "land-gates: $fails failed"; exit 1

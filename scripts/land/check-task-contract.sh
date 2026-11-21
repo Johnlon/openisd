@@ -14,7 +14,7 @@
 #
 # Exit 0 clean. Exit 1: the first problem, on stdout as `REFUSE<TAB><gate><TAB><detail>` (land.sh turns that
 # into its refusal); more lines may follow. The board check of gates_approved reads QUESTIONS_FILE (land.conf);
-# where that file does not exist (a GitHub runner) the field must still be a well-formed QO<n>.
+# where the decision record is absent (a GitHub runner) the field must still be a well-formed QO<n>.
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -33,7 +33,7 @@ fail() { printf 'REFUSE\t%s\t%s\n' "$1" "$2"; exit 1; }
 
 # land.conf is read as data, never sourced (T934 review 3, Codex 19 Nov 2026): the proposed land.conf is the change's own
 # file, and sourcing it would run the change's shell in the check that polices it. conf_value <rev> <NAME>: NAME's value
-# there, in any form land.conf uses: NAME="v", NAME='v' or NAME=v (QUESTIONS_FILE is unquoted).
+# there, in any form land.conf uses: NAME="v", NAME='v' or NAME=v.
 # A land.conf that cannot be read fails the read (exit 1), never answers "unset" (T934 review 6).
 conf_value() {
   local text
@@ -45,7 +45,17 @@ conf_value() {
 # land.conf's GATE_FILES and the BASE land.conf's QUESTIONS_FILE (a change cannot point the check at a board file of its own).
 gate_files_from_env="${GATE_FILES:+1}"
 [ -n "${GATE_FILES:-}" ] || GATE_FILES="$(conf_value "$HEAD_REF" GATE_FILES)" || fail gates "cannot read land.conf at $HEAD_REF"
-[ -n "${QUESTIONS_FILE:-}" ] || QUESTIONS_FILE="$(conf_value "$BASE" QUESTIONS_FILE)" || fail gates "cannot read land.conf at the base $BASE"
+if [ -z "${QUESTIONS_FILE:-}" ]; then
+  QUESTIONS_FILE="$(conf_value "$BASE" QUESTIONS_FILE)" || fail gates "cannot read land.conf at the base $BASE"
+  # Expand the protected default's literal home prefix without evaluating land.conf as shell.
+  case "$QUESTIONS_FILE" in '$HOME/'*) QUESTIONS_FILE="$HOME/${QUESTIONS_FILE#\$HOME/}" ;; esac
+  if [ "${QUESTIONS_FILE##*/}" = questions.yml ]; then
+    split_dir="$(dirname "$QUESTIONS_FILE")/questions"
+    if [ -e "$split_dir/LAYOUT" ] || [ -L "$split_dir/LAYOUT" ]; then
+      QUESTIONS_FILE="$split_dir"
+    fi
+  fi
+fi
 # The protected list is the BASE revision's (T934 review 2, Codex 19 Nov 2026): a change cannot unprotect a file by editing
 # its own land.conf. The proposed list is added to it, so a change that protects more is held to more.
 head_gate_files="${GATE_FILES:-}"
@@ -153,15 +163,43 @@ if [ -n "$gate_hits" ]; then
   gates_msg="gate files changed: ${gate_hits}; a gate file changed; John approves gate changes: put the change to John as a board item and add gates_approved: QO<n> to the task once he has answered"
   [ -n "$gates_qo" ] || fail gates "$gates_msg"
   printf '%s' "$gates_qo" | grep -Eq '^QO[0-9]+$' || fail gates "gates_approved '$gates_qo' is not QO<n>"
-  if [ -f "${QUESTIONS_FILE:-/nonexistent}" ]; then
+  record_path="${QUESTIONS_FILE:-/nonexistent}"
+  layout_marker="$(dirname "$record_path")/questions/LAYOUT"
+  if [ -e "$record_path" ] || [ -L "$record_path" ] || [ -e "$layout_marker" ] || [ -L "$layout_marker" ]; then
     # exit 0 only when the item with id == gates_approved names this task and has a thread entry by John
-    python3 -I - "$QUESTIONS_FILE" "$gates_qo" "$gates_id" <<'PY' || fail gates "$gates_msg (board item $gates_qo has no answer by John in $QUESTIONS_FILE)"
-import re, sys, yaml
-path, qo, task_id = sys.argv[1], sys.argv[2], sys.argv[3]
+    python3 -I - "$record_path" "$gates_qo" "$gates_id" "$BASE" <<'PY' || fail gates "$gates_msg (board item $gates_qo has no answer by John in $record_path)"
+from pathlib import Path
+import os
+import re
+import subprocess
+import sys
+from types import ModuleType
+import yaml
+
+record = Path(sys.argv[1]).absolute()
+qo, task_id, base = sys.argv[2:]
+
+# A single item file has no live/archive index.
+if record.name == "questions-archived.yml" or record.is_symlink() or os.path.lexists(record.parent / "LAYOUT"):
+    sys.exit(1)
+
 names_task = re.compile(r"(?<![A-Za-z0-9])" + re.escape(task_id) + r"(?![A-Za-z0-9])")
-with open(path) as f:
-    doc = yaml.safe_load(f)
-items = doc.get("questions", []) if isinstance(doc, dict) else doc
+if record.is_dir() or os.path.lexists(record.parent / "questions/LAYOUT"):
+    # The proposed checkout and the decision workspace supply data only.
+    ref = subprocess.check_output(["git", "rev-parse", "--verify", "--end-of-options", f"{base}^{{commit}}"], text=True).strip()
+    path = "scripts/land/questions_reader.py"
+    source = subprocess.check_output(["git", "show", f"{ref}:{path}"])
+    reader = ModuleType("protected_questions_reader")
+    sys.modules[reader.__name__] = reader
+    exec(compile(source, f"{ref}:{path}", "exec"), reader.__dict__)
+    items = reader.read_gate_record(record, "live", qo)
+else:
+    # An approval on the current legacy layout can land the first protected reader.
+    if not record.is_file():
+        sys.exit(1)
+    with record.open() as f:
+        doc = yaml.safe_load(f)
+    items = doc.get("questions", []) if isinstance(doc, dict) else doc
 for item in items or []:
     if isinstance(item, dict) and item.get("id") == qo:
         text = str(item.get("title", "")) + "\n" + str(item.get("body", ""))
