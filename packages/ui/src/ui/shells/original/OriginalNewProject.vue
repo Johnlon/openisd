@@ -299,12 +299,8 @@ function handleCreate() {
 
 <style scoped>
 .modal { position: relative; }
-/* Center the card within the dialog's visible area and scroll inside it if the dialog is short. */
-.modal :deep(.mob-np-icard) {
-  left: 50%; right: auto; top: 50%; bottom: auto; transform: translate(-50%, -50%);
-  width: 400px; max-width: calc(100% - 24px); max-height: calc(100% - 24px); box-sizing: border-box;
-  overflow-y: auto; overscroll-behavior: contain;
-}
+/* The popup is a 400px card over the middle of the dialog, as on the phone but not bottom-anchored. */
+.modal :deep(.mob-np-icard) { left: 50%; right: auto; bottom: auto; top: 110px; width: 400px; margin-left: -200px; box-sizing: border-box; }
 .ebp-row, .readout-item { display: flex; align-items: center; gap: 6px; }
 .np-chambers { display: flex; gap: 32px; align-items: flex-start; }
 .np-chamber h4 { margin: 0 0 8px; font-weight: 600; }
@@ -320,14 +316,6 @@ function handleCreate() {
 /* On a window too short for the step the body scrolls inside, so both rows of buttons stay in view; otherwise the size is main's. */
 .modal { display: flex; flex-direction: column; max-height: calc(100vh - 6vh - 6px); }
 .modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
-/* The passive radiator step, the tallest, fits a 1280x720 window with its footer inside the dialog and nothing to scroll, the pick
-   error showing too (main's footer hung 40 px below the dialog there; "clipping is a bug: fix it, don't ask"): 34 px rows instead of
-   38, a tighter hint and error, a shorter bottom margin. Desktop only; the phone's wizard draws this step its own way. */
-.step-content.np-pr-fields :deep(.ui-field) { margin-top: 6px; margin-bottom: 6px; }
-.step-content.np-pr-fields :deep(.np-pr-step) { margin-top: 6px; }
-.step-content.np-pr-fields :deep(.np-pr-hint) { margin: 4px 0 8px; }
-.np-pr-error { line-height: 15px; }
-.modal-body:has(> .np-pr-fields) { padding-bottom: 8px; }
 .np-pair-note { font-size: 13px; color: #666; }
 .np-step { color: #666; margin-bottom: 10px; font-weight: 500; }
 .step-content { margin-top: 10px; }
