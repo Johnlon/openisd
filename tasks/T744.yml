@@ -287,13 +287,10 @@ visual:
   - desktop-dialog-driver-editor-parameters
   - desktop-dialog-driver-export-format
   - desktop-dialog-driver-library-save
-  - desktop-dialog-driver-rename
-  - desktop-dialog-enclosure-passive-radiator-data-quality
   - desktop-dialog-enclosure-passive-radiator-save
   - desktop-dialog-enclosure-passive-radiator-select
   - desktop-dialog-equation-inspector
   - desktop-dialog-settings-options-your-data
-  - desktop-dialog-shared-driver-editor-incomplete-warning
   - desktop-dialog-shared-storage-restore-picker
   - desktop-tab-advanced
   - desktop-tab-box
@@ -304,7 +301,6 @@ visual:
   - mobile-dialog-driver-dq
   - mobile-dialog-driver-export
   - mobile-dialog-driver-more
-  - mobile-dialog-driver-rename
   - mobile-dialog-driver-save
   - mobile-dialog-editor-advanced
   - mobile-dialog-editor-parameters
@@ -316,4 +312,3 @@ visual:
   - mobile-tab-advanced
   - mobile-tab-driver
   - mobile-tab-graph
-  - desktop-dialog-driver-editor-help-dimensions
