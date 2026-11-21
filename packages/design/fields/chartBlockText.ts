@@ -1,5 +1,5 @@
 /**
- * The line a chart that cannot be drawn shows under its reason: which input to change (John, 19 Nov 2026,
+ * The line a chart that cannot be drawn shows before its reasons: which input to change (John, 19 Nov 2026,
  * QO955.c3/c4: "if a chart cannot be drawn then the chart should show the reason message, and the related fields
  * also, this is particularly important on the mobile where we can't see the chart and fields at the same time";
  * he chose "chart shows the reason AND each field causing it shows it too (desktop and phone)").
@@ -9,6 +9,7 @@
  * A key no field answers to (a sweep that produced no numbers) names nothing, and the line then says so
  * instead of pointing at "the listed inputs".
  */
+import type {DriverError} from '../engine/index.js';
 import {NumberField} from './field.js';
 
 /** The phone tab, or the options dialog, a field lives on. */
@@ -20,6 +21,8 @@ interface Place {
 }
 
 const PLACES: ReadonlyMap<string, Place> = new Map<string, Place>([
+  ['Re_terminal_ohm', {field: NumberField.RE_OHM, place: 'Driver'}],
+  ['BL_terminal_Tm', {field: NumberField.BL_TM, place: 'Driver'}],
   ['Vb_m3', {field: NumberField.BOX_VB_L, place: 'Box'}],
   ['volume_m3', {field: NumberField.BOX_VB_L, place: 'Box'}],
   ['Vb', {field: NumberField.BOX_VB_L, place: 'Box'}],
@@ -74,7 +77,7 @@ function nameOf(place: Place, onPhone: boolean): string {
 }
 
 /**
- * The line under a blocked chart's reason. `keys` are the blocking issues' field keys; the same field named
+ * The fix line for ordinary field issues. `keys` are the blocking issues' field keys; the same field named
  * twice is named once. With no field to name it says only to change an input, never "the listed inputs".
  */
 export function blockedChartFixLine(keys: readonly string[], onPhone: boolean): string {
@@ -84,4 +87,18 @@ export function blockedChartFixLine(keys: readonly string[], onPhone: boolean): 
   }))];
   if (names.length === 0) return 'Change an input to restore this chart.';
   return `Fix: ${names.join(', ')}`;
+}
+
+/** The repair and driver summary precede the individual field notes on both skins. */
+export function blockedChartText(errors: readonly DriverError[], onPhone: boolean) {
+  const driver = errors.find(error => error.chartFix !== undefined)?.chartFix;
+  const other = errors.filter(error => error.chartFix === undefined);
+  const fieldFix = blockedChartFixLine(other.map(error => error.field), onPhone);
+  return {
+    fix: driver === undefined ? fieldFix :
+      [onPhone ? driver.phone : driver.desktop, ...(other.length === 0 ? [] : [fieldFix])].join(' '),
+    canEditDriverParameters: driver !== undefined,
+    summary: driver?.summary,
+    details: errors.map(error => ({field: error.field, text: error.message})),
+  };
 }

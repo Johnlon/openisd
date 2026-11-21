@@ -853,8 +853,8 @@ const SEED_PARAMETERS: ReadonlyArray<readonly [string, string]> = [
 /** Dimensions-tab geometry (mm). DVol is deliberately the ONE unseeded member of the
  *  DVol/Depth/MagDepth/Magnet lock, so the solver fills it and a CALCULATED geometry field exists. */
 const SEED_DIMENSIONS: ReadonlyArray<readonly [string, string]> = [
-  ['Driver Depth (Depth)', '55'], ['Magnet Depth', '20'],
-  ['Magnet Diameter (Magnet)', '60'], ['Voice Coil Dia (Vcd)', '25'],
+  ['Driver Depth', '55'], ['Magnet Depth', '20'],
+  ['Magnet Diameter', '60'], ['Voice Coil Dia (Vcd)', '25'],
 ];
 
 /** The same Dimensions rows under the phone editor's short labels (PhoneLabels, T530). */

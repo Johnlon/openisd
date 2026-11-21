@@ -35,6 +35,13 @@ test('shows the quick-add row and an empty list with no filters yet', async ({ a
   await expect(page.getByText('No filters active.')).toBeVisible();
 });
 
+for (const width of [320, 360, 374, 390]) {
+  test(`the initial filter strip shows the whole + PEQ button at ${width}px`, async ({appPage: page}) => {
+    await page.setViewportSize({width, height: 844});
+    await expect(page.getByRole('button', {name: '+ PEQ', exact: true})).toBeInViewport({ratio: 1});
+  });
+}
+
 test('adding a filter opens its editor immediately, and it survives switching tabs', async ({ appPage: page }) => {
   await page.getByText('+ LP', { exact: true }).click();
   await expect(page.getByText('Cutoff')).toBeVisible();

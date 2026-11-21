@@ -483,8 +483,13 @@ export function errorsForChart(chartId: ChartId, errors: DriverError[]): DriverE
       case 'FltGD': return 'filter group delay';
     }
   })();
-  return errors.filter(error => !error.field.startsWith('sweep:') && !error.field.startsWith('maxCurves:')
-    || error.field === `sweep:${output}` || error.field === `maxCurves:${output}`);
+  const maxChart = chartId === 'MaxSPL' || chartId === 'MaxPwr';
+  const maxOutput = chartId === 'MaxSPL' ? 'maxspl' : 'maxpwr';
+  return errors.filter(error => {
+    if (error.field.startsWith('maxCurves:')) return maxChart;
+    if (error.field === 'maxspl' || error.field === 'maxpwr') return maxChart && error.field === maxOutput;
+    return !error.field.startsWith('sweep:') || error.field === `sweep:${output}`;
+  });
 }
 
 // Returns { value, errors } per the project's Go-inspired contract
@@ -507,8 +512,14 @@ export function buildPlotData(
   opts: { bare?: boolean; primaryColor?: string; referenceLines?: ReferenceLineColors } = {},
 ): { value: PlotData | null; errors: DriverError[] } {
   const chartErrors = errorsForChart(chartId, errors);
-  if (!currentDesign.driver || !currentDesign.curves || !currentDesign.maxCurves)
+  if (!currentDesign.driver || !currentDesign.curves)
     return { value: null, errors: chartErrors };
+  const maxChart = chartId === 'MaxSPL' || chartId === 'MaxPwr';
+  if (maxChart && currentDesign.maxCurves === undefined) {
+    // The project keeps an unbounded result advisory. On the chart it explains why there is no trace.
+    return {value: null, errors: chartErrors.map(error => error.field === 'maxspl' || error.field === 'maxpwr'
+      ? {...error, level: 'error'} : error)};
+  }
 
   // Compare overlays may be hidden (visible === false) without being removed. Additive:
   // the current design is always drawn, and any overlay lacking the flag stays visible —
@@ -521,7 +532,7 @@ export function buildPlotData(
   // A design draws only on a chart its own box type has: a PR box has no port, so it draws
   // nothing on a port-velocity chart (BUG_20261001_port-velocity-chart-draws-a-pr-box-overlay).
   const designs = [currentDesign, ...compare.filter(d => d.visible !== false)]
-    .filter(d => engine.box.chartsFor(d.box).includes(chartId))
+    .filter(d => engine.box.chartsFor(d.box).includes(chartId) && (!maxChart || d.maxCurves !== undefined))
     .map((d, i) => [d, d.sortIndex ?? i] as const)
     .sort((a, b) => a[1] - b[1])
     .map(([d]) => d);

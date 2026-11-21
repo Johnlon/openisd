@@ -220,9 +220,9 @@ describe('driver editor — unit label and scale agree', () => {
   it('the Dimensions tab shows lengths in millimetres, not raw metres under a wrong label', () => {
     // A 6.5" driver's basket is 0.165 m. Rendered under a length label it must read as that
     // length — 165 mm — never 0.17, and never a metre value printed beside "in".
-    for (const label of ['Basket Plate Thickness (Thick)', 'Driver Depth (Depth)', 'Magnet Depth',
-                         'Magnet Diameter (Magnet)', 'Basket Diameter (Basket)',
-                         'Outer Diameter (Outer)', 'Voice Coil Dia (Vcd)']) {
+    for (const label of ['Basket Plate Thickness', 'Driver Depth', 'Magnet Depth',
+                         'Magnet Diameter', 'Basket Diameter',
+                         'Outer Diameter', 'Voice Coil Dia (Vcd)']) {
       const f = byLabel(label);
       assert.equal(f.unit, 'mm', `${label} is labelled "${f.unit}"`);
       assert.equal(0.165 * f.scale, 165, `${label} renders 0.165 m as ${0.165 * f.scale} ${f.unit}`);
@@ -323,15 +323,15 @@ describe('driver editor — precision comes from the field registry', () => {
     ['fLe', NumberField.FLE_HZ],
     // Mechanical fields carry "Full Name (Short)" labels, taken from WinISD's own help
     // (docs/winisd_helpfiles/help/thielesmall.html). Keys here are the rendered label text.
-    ['Basket Plate Thickness (Thick)', NumberField.THICK_M],
-    ['Driver Depth (Depth)', NumberField.DEPTH_M],
+    ['Basket Plate Thickness', NumberField.THICK_M],
+    ['Driver Depth', NumberField.DEPTH_M],
     ['Magnet Depth', NumberField.MAGDEPTH_M],
-    ['Magnet Diameter (Magnet)', NumberField.MAGNET_M],
-    ['Basket Diameter (Basket)', NumberField.BASKET_M],
-    ['Outer Diameter (Outer)', NumberField.OUTER_M],
+    ['Magnet Diameter', NumberField.MAGNET_M],
+    ['Basket Diameter', NumberField.BASKET_M],
+    ['Outer Diameter', NumberField.OUTER_M],
     ['Frame Size X (OuterX)', NumberField.OUTERX_M],
     ['Frame Size Y (OuterY)', NumberField.OUTERY_M],
-    ['Driver Weight (Weight)', NumberField.WEIGHT_KG],
+    ['Driver Weight', NumberField.WEIGHT_KG],
     ['Voice Coil Dia (Vcd)', NumberField.VCD_M],
     ['Driver Displacement Volume (DVol)', NumberField.DVOL_M3],
   ]);

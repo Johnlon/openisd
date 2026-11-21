@@ -302,7 +302,7 @@ function ventSweepIssuesOf(source: ProjectSweepSource, box: 'vented' | 'bandpass
  *  simulates"), and `solvePr`'s own issues already stay empty on that terms, so there is
  *  deliberately no extra gate here, unlike `ventSweepIssuesOf`. */
 function prSweepIssuesOf(source: ProjectSweepSource): readonly PrIssue[] {
-    return source.prIssues;
+    return source.prIssues.filter(issue => !('cause' in issue) || issue.target !== 'resonanceWithAddedMass_hz');
 }
 
 /** The active box's own sweep-level blockers, beyond what `solveBoxParams()` already reports: a
@@ -335,12 +335,14 @@ export interface SweepJob {
 
 /** The job's frequency response, impedance and excursion. */
 export function runSweepJob(simulation: SimulationEngine, job: SweepJob): SweepSolveResult {
-    return simulation.sweep(job.driver, job.Le_H, job.box, {...job.sweep, air: new FixedAir(job.air)});
+    const result = simulation.sweep(job.driver, job.Le_H, job.box, {...job.sweep, air: new FixedAir(job.air)});
+    return simulation.publishSweep(result);
 }
 
 /** The job's excursion- and power-limited maximum SPL curves. */
 export function runMaxCurvesJob(simulation: SimulationEngine, job: SweepJob): MaxCurvesSolveResult {
-    return simulation.maxCurves(job.driver, job.Le_H, job.box, {...job.maxCurves, air: new FixedAir(job.air)});
+    const result = simulation.maxCurves(job.driver, job.Le_H, job.box, {...job.maxCurves, air: new FixedAir(job.air)});
+    return simulation.publishMaxCurves(result);
 }
 
 /** The job this project's sweep runs, or the issues that stop it. */

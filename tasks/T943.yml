@@ -1,0 +1,26 @@
+id: T943
+release_note: internal
+repo: openisd
+owner: t943-agent
+status: done
+goal: Refuse non-finite calculated results at the engine boundary and show the reason in the existing chart and field messages, including after importing a passive-radiator project.
+why: "John, 20 Nov 2026 12:32 UTC, safety-net card: build both safety nets now; the NaN refusal is Codex's item F"
+done_test: bash scripts/test.sh packages/design/test/domain/cell.test.ts packages/design/test/domain/project-sweep-plan.test.ts packages/ui/test/logic/applicationIO.test.ts
+files:
+  - bugs/BUG_20261120_non-finite-pr-readout-has-no-reason.md
+  - packages/design/calculatedResult.ts
+  - packages/design/chart/series.ts
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/cell.ts
+  - packages/design/domain/project/projectSweep.ts
+  - packages/design/engine/consistency.ts
+  - packages/design/engine/pr/PrEngine.ts
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/test/domain/cell.test.ts
+  - packages/design/test/domain/project-sweep-plan.test.ts
+  - packages/ui/src/hooks/compareOverlays.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/test/fixtures/pr-resonance-underflow.owpr
+  - packages/ui/test/logic/applicationIO.test.ts
+  - packages/ui/test/ui/original-pr-readout.browser.spec.ts
+  - tasks/T943.yml

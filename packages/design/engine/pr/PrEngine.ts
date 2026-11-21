@@ -11,9 +11,10 @@ import {RADIATOR_ROUTE_FORMULAS} from '../driver/routes/index.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import type {PrParams} from '../types.js';
 import {combinedOfN} from '../array/driverWiring.js';
-import type {PrSolverParams} from '../solverTypes.js';
+import type {PrSolverParams, SolverField} from '../solverTypes.js';
 import {isPositiveGeometry, missingDependencies, targetUnreachable, tuningGoalIssue} from '../consistency.js';
 import type {CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
+import {nonFiniteResult} from '../../calculatedResult.js';
 
 export type PrQuantityName = keyof PrSolverParams | AirWorkingName;
 export type PrIssue = CalculationIssue<PrQuantityName> | TargetUnreachableIssue;
@@ -246,6 +247,15 @@ export class PrEngineImpl implements PrEngine {
     const prNum = params.prNum.value || 1;
 
     const issues: PrIssue[] = [];
+    const write = (target: keyof PrSolverParams, label: string, field: SolverField, value: number): void => {
+      const issue = nonFiniteResult(target, label, value);
+      if (issue === null) {
+        field.setCalculated(value);
+      } else {
+        field.setNotAvailable();
+        issues.push(issue);
+      }
+    };
 
     const goalIssue = tuningGoalIssue(tuning);
     if (goalIssue !== null) issues.push(goalIssue);
@@ -257,7 +267,8 @@ export class PrEngineImpl implements PrEngine {
 
     if (addedMass != null && !params.tuning_goal_hz.entered) {
       if (geometryComplete) {
-        params.tuning_goal_hz.setCalculated(this.tuning({ Vb, prMmd, prMadd: addedMass, prSd, prCms, prNum }, air));
+        write('tuning_goal_hz', 'Passive radiator tuning', params.tuning_goal_hz,
+          this.tuning({ Vb, prMmd, prMadd: addedMass, prSd, prCms, prNum }, air));
       } else {
         params.tuning_goal_hz.setNotAvailable();
         // Either the geometry is incomplete, and every way it can be — Vb null/≤0, or prMmd/prSd/
@@ -271,12 +282,13 @@ export class PrEngineImpl implements PrEngine {
       if (geometryComplete && tuning > 0) {
         const totalMass = this.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, tuning, air);
         const addedMassResult = totalMass - prMmd;
-        if (addedMassResult >= 0) {
-          params.addedMass_kg.setCalculated(addedMassResult);
-        } else {
+        if (addedMassResult < 0) {
           params.addedMass_kg.setNotAvailable();
-          issues.push(targetUnreachable('addedMass_kg',
-            this.tuning({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, air)));
+          const ceiling = this.tuning({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, air);
+          issues.push(nonFiniteResult('addedMass_kg', 'Passive radiator added mass', ceiling)
+            ?? targetUnreachable('addedMass_kg', ceiling));
+        } else {
+          write('addedMass_kg', 'Passive radiator added mass', params.addedMass_kg, addedMassResult);
         }
       } else {
         params.addedMass_kg.setNotAvailable();
@@ -288,12 +300,14 @@ export class PrEngineImpl implements PrEngine {
 
     const resolvedMass = params.addedMass_kg.value;
     if (resolvedMass != null && isPositiveGeometry(prMmd) && isPositiveGeometry(prCms)) {
-      params.resonanceWithAddedMass_hz.setCalculated(this.fsWithMass(prMmd, resolvedMass, prCms));
+      write('resonanceWithAddedMass_hz', 'Passive radiator resonance with added mass',
+        params.resonanceWithAddedMass_hz, this.fsWithMass(prMmd, resolvedMass, prCms));
     } else {
       params.resonanceWithAddedMass_hz.setNotAvailable();
     }
     if (resolvedMass != null && geometryComplete) {
-      params.systemTuning_hz.setCalculated(this.tuning({ Vb, prMmd, prMadd: resolvedMass, prSd, prCms, prNum }, air));
+      write('systemTuning_hz', 'Passive radiator system tuning', params.systemTuning_hz,
+        this.tuning({ Vb, prMmd, prMadd: resolvedMass, prSd, prCms, prNum }, air));
     } else {
       params.systemTuning_hz.setNotAvailable();
     }

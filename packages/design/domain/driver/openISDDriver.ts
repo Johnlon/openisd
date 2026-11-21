@@ -1,5 +1,5 @@
 import {type Engine, FixedAir} from '../../engine/index.js';
-import type { Air, DriveLoad, DriverError, Wiring, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
+import type { Air, DriveLoad, DriverCircuitFieldIssue, DriverError, Wiring, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -198,6 +198,11 @@ export abstract class OpenISDDriver extends OpenISDDevice {
             if (this.specs[field].value === null) reasons.push({subject: this.engine.issues.plainNames(field), text: 'is not set'});
         }
         return reasons;
+    }
+
+    /** The missing circuit figures and their guidance, for the editor's field notes. */
+    chartFieldIssues(): readonly DriverCircuitFieldIssue[] {
+        return this.engine.driver.circuitFieldIssues(this.specs.sweepDriver().values, this.airProvider());
     }
 
     /** Qts as the amplifier's source impedance `Rs_ohm` loads it: `Rs` folded into Qes. The bare

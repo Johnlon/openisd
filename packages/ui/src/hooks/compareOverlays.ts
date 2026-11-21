@@ -47,13 +47,13 @@ export function useCompareOverlays(
       };
       const swept = sweeps.sweep(p, { fmin: P.fmin, fmax: P.fmax });
       const sw = swept?.sweep, mx = swept?.max;
-      if (!sw?.values || !mx?.values) continue;
+      if (!sw?.values) continue;
       out.push({
         driver: p.driver.specs.sweepDriver(),
         box,
         P,
         curves: sw.values,
-        maxCurves: mx.values,
+        maxCurves: mx?.values ?? undefined,
         name: projectDisplayName(p),
         color: traceColor(p),
         visible: isTraceVisible(p),

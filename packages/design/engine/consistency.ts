@@ -1,6 +1,7 @@
 import {decimal, pct, plainNames, relativeGap} from './issueText.js';
 import type {MaxCurvesResult, SweepResult, Wiring} from './types.js';
 import type {VentedPlausibilityIssue} from './plausibility.js';
+import type {NonFiniteResultIssue} from '../calculatedResult.js';
 
 /** One route to a derivable quantity: the formula, everything it needs, and whatever of that
  *  is still absent. `missing` is empty exactly when the route is usable. */
@@ -16,6 +17,7 @@ export interface SolveRoute<Q extends string> {
  * contradicts what the OTHER entered values imply for it, or a result drawn from a fallback.
  */
 export type CalculationIssue<Q extends string> =
+  | NonFiniteResultIssue<Q>
   | {
       readonly kind: 'missing-dependencies';
       readonly target: Q;
@@ -125,8 +127,7 @@ export interface NegativeValueIssue {
  *  plain `string` here, not a domain's own quantity-name union — `Readable<V>.dq` is shared
  *  across every domain and carries no quantity-name type parameter of its own, and a
  *  `CalculationIssue<Q>` for any `Q extends string` widens to this without a cast. */
-/** A value only the project owner can state — never calculated — left blank. The ⚠ says so and
- *  what to enter (bugs/BUG_20261005_no-common-ui-field-component.md, "just show errors"). */
+/** A required value left blank. The ⚠ says so and what to enter (bugs/BUG_20261005_no-common-ui-field-component.md, "just show errors"). */
 export interface RequiredValueIssue {
   readonly kind: 'required-value';
   readonly text: string;

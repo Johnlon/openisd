@@ -165,7 +165,7 @@ test('mobile Driver Editor: every numeric field uses the shared bold unit afford
 test('rotating a unit changes the display only — the stored value round-trips', async ({ page }) => {
   await openDriverEditor(page);
   await page.getByRole('button', { name: 'Dimensions', exact: true }).click();
-  const fld = driverEditorField(page, 'Basket Diameter (Basket)');
+  const fld = driverEditorField(page, 'Basket Diameter');
   const input = fld.locator('input').first();
   const unit = fld.locator('.unit-label').first();
 
