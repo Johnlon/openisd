@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs';
 import type {Page} from '@playwright/test';
 import {expect, openAMobileProject, openAProject, setFocusedBoxType} from '../fixtures.js';
 import {forceMobileSkin, openMobileMenu} from '../fixtures/mobileSkin.js';
@@ -199,6 +200,29 @@ function screens(): readonly Screen[] {
       // A step that imports a file leaves its "… imported" strip fading over the screen: the picture waits it out.
       await expect(page.locator(FADING_STRIP)).toHaveCount(0, {timeout: 15_000});
     }, [...MACHINE_DECIDED_PARTS, ...(VIEW_MASKS.get(view.id) ?? [])], plan.ownConsoleErrors, 'popup'));
+  }
+  // The Dimensions tab with a catalogue driver that states every dimension (Faital Pro 18HP1030-4), so the drawing shows each
+  // label with its figure; the fixture project's own driver states none, so its Dimensions pictures show names only.
+  for (const visualSkin of [VisualSkin.DESKTOP, VisualSkin.MOBILE]) {
+    all.push(screen(visualSkin, 'driver-dimensions-with-figures', async page => {
+      await visualSkin.openProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
+      if (visualSkin === VisualSkin.MOBILE) {
+        await page.locator('.mob-tab', {hasText: 'Driver'}).click();
+        await page.getByText('Edit', {exact: true}).click();
+      } else {
+        await page.locator('.project-nav li', {hasText: 'Driver'}).click();
+        await page.locator('.edit-btn[title^="Full editor for this driver"]').click();
+      }
+      await page.locator('.de-modal input[type=file]').setInputFiles({
+        name: '18HP1030-4.owdr',
+        mimeType: 'application/x-openisd-driver',
+        buffer: readFileSync(new URL('../../public/drivers/faitalpro/18hp1030-4.json', import.meta.url)),
+      });
+      await page.getByRole('button', {name: 'Dimensions', exact: true}).click();
+      await expect(page.locator('.de-diagram svg').getByText('Driver Depth 208.35 mm', {exact: true})).toBeVisible();
+      if (visualSkin === VisualSkin.MOBILE) await page.locator('.de-diagram svg').scrollIntoViewIfNeeded();
+      await expect(page.locator(FADING_STRIP)).toHaveCount(0, {timeout: 15_000});
+    }, [...MACHINE_DECIDED_PARTS], [], 'popup'));
   }
   // One rule for every screen, not only the popups: a view pictured under another name, or one that cannot be shown, has no
   // screen of its own (pictureSet.ts). The box screens above are listed by hand, so without this the retake drew

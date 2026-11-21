@@ -11,7 +11,7 @@ import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/driverCells.js';
 import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
-import {commitMyDriver, useDriverEditorHelp} from '../../hooks/DriverEditorModal-hooks.js';
+import {commitMyDriver, useDriverDimensionLabels, useDriverEditorHelp} from '../../hooks/DriverEditorModal-hooks.js';
 import {useFeatureUse} from '../../hooks/telemetryContext.js';
 import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '@openisd/design';
@@ -252,6 +252,8 @@ function fieldOf(field: NumSpecField): Readable<number | null> & Entered & Calcu
   void trigger.value;
   return draftDriver.value.specField(field);
 }
+
+const dimensionLabels = useDriverDimensionLabels(fieldOf, () => presentationState.ui.unitTokens ?? {});
 
 function cellVal(field: NumSpecField): number | null {
   const v = cellOf(field).value;
@@ -899,15 +901,15 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <UIField class="de-fld" :class="[skin?.field, inspectClass('Magnet_m')]" data-field-key="Magnet_m" :label="skin ? PhoneLabels.MAGNET : undefined" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Basket_m" :label="skin ? PhoneLabels.BASKET : undefined" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Outer_m" :label="skin ? PhoneLabels.OUTER : undefined" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
-              <UIField class="de-fld" :class="skin?.field" data-field-key="OuterX_m" :label="skin ? PhoneLabels.OUTER_X : undefined" :field="NumberField.OUTERX_M" :cell="fieldOf('OuterX_m')" />
-              <UIField class="de-fld" :class="skin?.field" data-field-key="OuterY_m" :label="skin ? PhoneLabels.OUTER_Y : undefined" :field="NumberField.OUTERY_M" :cell="fieldOf('OuterY_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="OuterX_m" :label="skin ? PhoneLabels.OUTER_X : NumberField.OUTERX_M.fullLabel" :field="NumberField.OUTERX_M" :cell="fieldOf('OuterX_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="OuterY_m" :label="skin ? PhoneLabels.OUTER_Y : NumberField.OUTERY_M.fullLabel" :field="NumberField.OUTERY_M" :cell="fieldOf('OuterY_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="weight_kg" :label="skin ? PhoneLabels.WEIGHT : undefined" :field="NumberField.WEIGHT_KG" :cell="fieldOf('weight_kg')" />
-              <UIField class="de-fld" :class="skin?.field" data-field-key="Vcd_m" :label="skin ? PhoneLabels.VCD : undefined" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
-              <UIField class="de-fld" :class="[skin?.field, inspectClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : undefined" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="Vcd_m" :label="skin ? PhoneLabels.VCD : NumberField.VCD_M.fullLabel" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
+              <UIField class="de-fld" :class="[skin?.field, inspectClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : NumberField.DVOL_M3.fullLabel" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
             </div>
 
-            <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">
-              <DriverDimensionsDiagram />
+            <div class="de-diagram" aria-hidden="true" title="Driver cross-section (not to scale)">
+              <DriverDimensionsDiagram :dimensions="dimensionLabels" />
             </div>
           </div>
         </div>
@@ -1407,8 +1409,10 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-phone .de-params, .de-phone .de-group, .de-phone .de-cols, .de-phone .de-dimlist, .de-phone .de-row2 { display: block; }
 /* The first section band of a tab sits flush under the key strip (the classic page rule gives later bands a 12 px gap). */
 .de-phone .de-body > .de-params > .de-group:first-child > .mob-band:first-child, .de-phone .de-dimlist > .mob-band:first-child { margin-top: 0; }
-.de-phone .de-dims { flex-direction: column; align-items: stretch; gap: 0; height: auto; }
-.de-phone .de-diagram { min-width: 0; height: auto; padding: 12px; }
+/* Keep the full drawing height in the phone scroll content, including the bottom label. */
+.de-phone .de-dims { display: block; flex: none; height: auto; }
+.de-phone .de-diagram { display: block; min-width: 0; height: auto; padding: 12px; }
+.de-phone .de-diagram :deep(.dd-dim-svg) { display: block; margin-inline: auto; }
 .de-phone .de-scroll { display: flex; flex-direction: column; }
 .de-phone .de-scroll > .de-body { flex: 1 0 auto !important; }
 /* General tab on the phone: the Comment box takes whatever height the tab has left. */

@@ -134,7 +134,7 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-9221a8bbab297f6a-3':{kind:'partOf',view:'editor-advanced'}, // components/DriverEditorModal.vue:837
   'conditional-branch-63d5e9a0ebc63177':{kind:'partOf',view:'editor-dimensions'}, // components/DriverEditorModal.vue:848
   'conditional-branch-7586f29f27db56aa':{kind:'partOf',view:'editor-dimensions'}, // components/DriverEditorModal.vue:849
-  'native-ui-2fe0596dca458293':{kind:'partOf',view:'editor-dimensions'}, // components/DriverEditorModal.vue:864
+  'native-ui-46e960b79f5500b3':{kind:'partOf',view:'editor-dimensions'}, // components/DriverEditorModal.vue:902
   'conditional-branch-dc8f2246e4d66ee2':{kind:'view',view:'shared/driver-editor-incomplete-warning'}, // components/DriverEditorModal.vue:875
   'conditional-branch-67bd860bb45131c3':{kind:'partOf',view:'shared/driver-editor-incomplete-warning'}, // components/DriverEditorModal.vue:882
   'conditional-branch-ac7c251470b91f7c':{kind:'partOf',view:'shared/driver-editor-incomplete-warning'}, // components/DriverEditorModal.vue:889
