@@ -194,6 +194,7 @@ export const PHONE_BRANCH_MAP:BranchMap={
   'surface-root-5dfbbcb405010bcd':{kind:'partOf',view:'section-help'}, // PhoneHelpSheet.vue:22
   'conditional-branch-ef863c233116e5ea':{kind:'partOf',view:'section-help'}, // PhoneHelpSheet.vue:28
   'conditional-branch-543827f4686073bc':{kind:'partOf',view:'section-help'}, // PhoneHelpSheet.vue:29
+  'conditional-branch-9a9ab0830e31a069':{kind:'partOf',view:'section-help'}, // PhoneHelpSheet.vue:26 'More below' bar (hidden on the phone skin, shown in the desktop driver editor)
   'native-ui-c32234a299fbc8a5':{kind:'notAView',reason:'passive radiator name button, a trigger for the picker'}, // MobileEnclosureTab.vue name row
   'native-ui-e2016f9ecd236891':{kind:'notAView',reason:'passive radiator Info button, a trigger for the info view'}, // MobileEnclosureTab.vue Info
   'conditional-branch-86ff1a4fcc05d7e1':{kind:'view',view:'pr-info'}, // MobileEnclosureTab.vue PRInfoDialog

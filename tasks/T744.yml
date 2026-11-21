@@ -273,6 +273,7 @@ files:
   - packages/ui/test/ui/field-visual-contract.browser.spec.ts
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-dimensions.png
   - packages/ui/src/hooks/PhoneHelpSheet-hooks.ts
+  - packages/ui/test/fixtures/branchMap/phone.ts
   - packages/ui/src/ui/shells/mobile/PhoneHelpSheet.vue
   - packages/ui/src/style.css
   - packages/ui/test/ui/driver-editor-help-overview-clip.browser.spec.ts
