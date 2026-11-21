@@ -1,14 +1,14 @@
 import type {InjectionKey, Ref} from 'vue';
 import {useApp} from '../logic/app.js';
 import {computed, ref, watch} from 'vue';
-import {usePerf} from './telemetryContext.js';
+import {useFeatureUse, usePerf} from './telemetryContext.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {
   buildPlotData, ChartData, type ChartEngineAreas, referenceLineColors, selectedRangeCss, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats, type Rolloff,
   type SnapDirection, type SnapExtremum, snapFrequency, TAB_META,
 } from '@openisd/design/chart';
 import type {ChartId, DriverError} from '@openisd/design/engine';
-import {blockedChartFixLine} from '@openisd/design/fields';
+import {blockedChartText} from '@openisd/design/fields';
 
 export interface GraphPanelProps {
   chartId: ChartId;
@@ -17,6 +17,7 @@ export interface GraphPanelProps {
   overlays?: Design[];
   /** True drops the chart's Auto Y switch (the mobile skin while What-if? is closed). */
   hideAutoY?: boolean;
+  classic?: boolean;
 }
 
 export interface GraphPanelAPI {
@@ -24,10 +25,8 @@ export interface GraphPanelAPI {
   readonly selectedRangeCss: typeof selectedRangeCss;
   readonly currentDesign: Readonly<Ref<Design>>;
   readonly plotData: Readonly<Ref<PlotData | null>>;
-  readonly blockErrors: Readonly<Ref<DriverError[]>>;
   readonly blocked: Readonly<Ref<boolean>>;
-  /** The line under a blocked chart's reason that names the field(s) to fix; the phone adds each field's tab. */
-  blockFixLine(onPhone: boolean): string;
+  readonly blockText: Readonly<Ref<ReturnType<typeof blockedChartText>>>;
   readonly warnings: Readonly<Ref<DriverError[]>>;
   readonly warningsDismissed: Readonly<Ref<boolean>>;
   /** The plot as drawn: `plotData` with this chart's Y-axis override applied, when it has one. */
@@ -41,6 +40,7 @@ export interface GraphPanelAPI {
 
   /** Every chart of the project, whatever is on screen, as one ZIP of CSV files plus the project file. */
   exportAllChartData(): void;
+  editDriverParameters(): void;
   dismissWarnings(): void;
   /** Off stores the Y range drawn now as this chart's override, so later data changes never
    *  rescale it; on removes the override. */
@@ -65,9 +65,10 @@ export const GraphPanelKey: InjectionKey<GraphPanelAPI> = Symbol('GraphPanelAPI'
 /** `chartEngine`: the simulation and environment areas the curves read — the app facade's
  *  engine, handed in by the component rather than reached for here. */
 export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAreas): GraphPanelAPI {
-  const {appState, presentation: presentationState, designIO} = useApp();
+  const {appState, presentation: presentationState, designIO, selection} = useApp();
   const {allIssues, curvesData, driverName, maxData, openProjects, syncedP} = appState;
   const project = useFocusedProject();
+  const featureUse = useFeatureUse();
   const perf = usePerf();
   const overlayDesigns = computed(() => props.overlays ?? []);
 
@@ -179,9 +180,8 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     selectedRangeCss,
     currentDesign,
     plotData,
-    blockErrors,
     blocked,
-    blockFixLine: (onPhone: boolean) => blockedChartFixLine(blockErrors.value.map(e => e.field), onPhone),
+    blockText: computed(() => blockedChartText(blockErrors.value, props.classic === true)),
     warnings,
     warningsDismissed,
     viewPlot,
@@ -190,6 +190,10 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     yRangeLabel,
     dismissWarnings,
     exportAllChartData: () => designIO.downloadAllChartData(),
+    editDriverParameters: () => {
+      featureUse.feature('driver_editor');
+      selection.editProjectDriver(false);
+    },
     setAutoY,
     frequencyAxis,
     clickCursorAt,

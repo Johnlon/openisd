@@ -409,8 +409,11 @@ export class OpenISDBox implements Box {
             return new OpenISDPassiveRadiatorEmbedded(prSlot, () => issues().radiator);
         };
         const prVolume = settlingNullableField(pr, 'volume_m3', () => STARTING_SHARED_VOLUME_M3, (v) => engine.issues.requiredPositiveIssue('Box volume', v));
-        const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
-        const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().pr));
+        const prFieldDq = (target: string): readonly DqIssue[] => groupDq(issues().pr.filter(
+            issue => !('cause' in issue) || issue.target === target,
+        ));
+        const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => prFieldDq('addedMass_kg'));
+        const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', () => prFieldDq('tuning_goal_hz'));
         // A cleared member keeps the other as entered; with nothing to calculate from, both are N
         // (John, 2026-10-16).
         const prTuningField: ReturnType<typeof pairedField> = pairedField(
@@ -447,8 +450,8 @@ export class OpenISDBox implements Box {
             // OUTPUTS of the solved pair (S2-7d2): plain entry-backed slots the `solvePr` cascade
             // in `OpenISDProject#resolve()` writes as 'C' entries — never entered by a user, never
             // recomputed at read time here.
-            systemTuning_hz: entryField(focus(pr, 'systemTuning_hz'), 'systemTuning_hz', () => groupDq(issues().pr)),
-            resonanceWithAddedMass_hz: entryField(focus(pr, 'resonanceWithAddedMass_hz'), 'resonanceWithAddedMass_hz', () => groupDq(issues().pr)),
+            systemTuning_hz: entryField(focus(pr, 'systemTuning_hz'), 'systemTuning_hz', () => prFieldDq('systemTuning_hz')),
+            resonanceWithAddedMass_hz: entryField(focus(pr, 'resonanceWithAddedMass_hz'), 'resonanceWithAddedMass_hz', () => prFieldDq('resonanceWithAddedMass_hz')),
             naturalTuning_hz: new CalculatedFieldImpl<number | null>(() => {
                 const Vb = prVolume.value;
                 const r = getRadiator();

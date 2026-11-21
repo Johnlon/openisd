@@ -30,6 +30,19 @@ function assertOneProvenance(field: Readable<unknown> & Entered & Calculated): v
 }
 
 describe('entryField — a field over a C/E-flagged entry slot', () => {
+  it.each([
+    {value: Number.NaN, cause: 'not-a-number'},
+    {value: Infinity, cause: 'infinite'},
+  ])('publishes an unavailable calculated field with cause $cause', ({value, cause}) => {
+    const field = new CalculatedFieldImpl(() => calculatedCell<number | null>('resonanceWithAddedMass_hz', value));
+
+    expect(field.dq).toEqual([
+      expect.objectContaining({kind: 'result-refused', target: 'resonanceWithAddedMass_hz', cause}),
+    ]);
+    expect(field.value).toBeNull();
+    expect(field.calculated).toBe(false);
+  });
+
   it('set(v) writes an entered entry into the slot', () => {
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'x');

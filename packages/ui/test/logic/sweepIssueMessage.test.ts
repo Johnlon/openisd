@@ -14,13 +14,21 @@ import {createEngine} from '@openisd/design/engine';
 const engine = createEngine();
 
 describe('sweepIssueMessage — SweepIssue projected to a DriverError for the existing UI channel', () => {
-  it('a missing-dependencies issue names its target field and what would unblock it', () => {
-    const issue: SweepIssue = engine.issues.missingDependencies('Sd_m2',
-      [{ formula: 'Sd_m2 is a directly entered or derived driver quantity', required: ['Sd_m2'], missing: ['Sd_m2'] }]);
+  it('shows the plain driver-field guidance and keeps the editor field key', () => {
+    const issue: SweepIssue = {
+      kind: 'required-value',
+      field: 'Sd_m2',
+      text: 'Type Sd (cone area) if you know it, otherwise enter Dd (cone diameter).',
+      chartFix: {
+        desktop: 'Enter Sd (or Dd) in Driver > Edit > Parameters.',
+        phone: 'Enter Sd (or Dd) in Driver tab > Edit > Parameters.',
+        summary: 'The missing driver figure is cone area (Sd).',
+      },
+    };
     const error = sweepIssueMessage(issue);
-    assert.equal(error.level, 'error');
-    assert.equal(error.field, 'Sd_m2');
-    assert.match(error.message, /cone area \(Sd\)/);
+    assert.deepEqual(error, {
+      level: 'error', field: 'Sd_m2', message: issue.text, chartFix: issue.chartFix,
+    });
   });
 
   it('an inconsistent-inputs issue names every field in the group and the disagreement', () => {

@@ -489,6 +489,15 @@ const chartBlockingReasons = computed<readonly DqReason[]>(() => {
   return draftDriver.value.chartBlockingReasons();
 });
 
+const chartFieldIssues = computed(() => {
+  void trigger.value;
+  return draftDriver.value.chartFieldIssues();
+});
+
+function chartFieldNotes(field: NumSpecField): string[] {
+  return chartFieldIssues.value.filter(issue => issue.field === field).map(issue => issue.text);
+}
+
 // The stated values contradict each other. The charts plot from the stated values regardless,
 // so this is a conflict to resolve, not a blocker — hence its own strip and its own consequence.
 const inconsistentInputReasons = computed<readonly DqReason[]>(() => {
@@ -788,14 +797,14 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_ELECTRO_MECHANICAL" />
               <div v-else class="de-hdr">Electro-Mechanical parameters<button type="button" class="de-help-button" aria-label="Help: Electro-Mechanical parameters" @click="showHelp(PhoneHelp.EDITOR_ELECTRO_MECHANICAL)">?</button></div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Cms_m_per_N')]" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Rms_kg_per_s')]" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Re_ohm')]" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" required />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('BL_Tm')]" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" :dq="chartFieldNotes('Mms_kg')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Cms_m_per_N')]" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" :dq="chartFieldNotes('Cms_m_per_N')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Rms_kg_per_s')]" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" :dq="chartFieldNotes('Rms_kg_per_s')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Re_ohm')]" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" :dq="chartFieldNotes('Re_ohm')" required />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('BL_Tm')]" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" :dq="chartFieldNotes('BL_Tm')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Dd_m')]" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :field="NumberField.DD_M" :cell="fieldOf('Dd_m')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Le_H')]" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :field="NumberField.LE_H" :cell="fieldOf('Le_H')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Sd_m2')]" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :field="NumberField.SD_M2" :cell="fieldOf('Sd_m2')" required />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Sd_m2')]" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :field="NumberField.SD_M2" :cell="fieldOf('Sd_m2')" :dq="chartFieldNotes('Sd_m2')" required />
                 <!-- fLe is STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and shown in kHz, so the
                      scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
                      Hz as kHz and put the field out by 1e6. -->
