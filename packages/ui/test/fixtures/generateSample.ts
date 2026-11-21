@@ -128,6 +128,6 @@ const oldBasket = new ProjectBuilder(dayton, engine, fixtureContext(3)).sealed()
 const {saved, ...session} = oldBasket.cloneSession();
 const {driverEmbedding} = saved;
 const {device} = driverEmbedding;
-// Write the legacy value into the fixture file, bypassing load repair until the browser opens it.
+// Write the legacy 2.37 m basket into the fixture file by hand, as an old file stored it.
 const legacyDevice = {...device, specs: {...device.specs, woofer: {...device.specs.woofer, Basket_m: {state: 'E', value: 2.37744}}}};
 writeWhole(OLD_BASKET_PROJECT_OWPR, JSON.stringify({...session, saved: {...saved, driverEmbedding: {...driverEmbedding, device: legacyDevice}}}));
