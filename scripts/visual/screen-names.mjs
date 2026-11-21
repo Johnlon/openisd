@@ -17,6 +17,7 @@ function screenWords(skin, rest) {
   if (rest === 'empty') return 'no project open';
   if (rest === 'menu') return 'menu';
   if (rest === 'complete-project') return 'complete driver project open, nothing else showing';
+  if (rest === 'driver-dimensions-with-figures') return 'driver editor, Dimensions page, a driver that states every dimension';
   // A popup (dialog, sheet, menu, help, note, warning, browser): its view's name in words.
   let popup = /^dialog-(.+)$/.exec(rest);
   if (popup) return `popup, ${popup[1].replace(/-/g, ' ')}`;
