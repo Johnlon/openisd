@@ -15,6 +15,7 @@ import { OpenISDBox } from '../box/openISDBox.js';
 import { OpenISDDriver } from '../driver/openISDDriver.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import type { DiscardChallenge } from './discardChallenge.js';
+import { stringifyWithOverflow } from '../../json/stringifyWithOverflow.js';
 import type { DragRange } from './dragRange.js';
 import { errorSwitchStatesOf } from './errorSwitches.js';
 import type { ErrorSwitchStates } from './errorSwitches.js';
@@ -22,7 +23,7 @@ import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
 import { airFieldsOver } from './projectAir.js';
 import type { AirField, AirFields } from './projectAir.js';
-import { storedTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, parseOwprRecordRepairing, sessionOf } from './projectSerialization.js';
+import { storedTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf } from './projectSerialization.js';
 import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
@@ -607,9 +608,9 @@ export class OpenISDProject {
         }
         if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return null;
         const rest = Object.fromEntries(Object.entries(parsed).filter(([key]) => key !== 'id'));
-        const project = OpenISDProject.fromOwprText(JSON.stringify({id, ...rest}), engine);
+        const project = OpenISDProject.fromOwprText(stringifyWithOverflow({id, ...rest}, {}), engine);
         // A text the strict read refuses (a field to repair) still keeps its content; only the id is added.
-        if (Array.isArray(project)) return /^\{\r?\n/.test(text) ? JSON.stringify({id, ...rest}, null, 2) : JSON.stringify({id, ...rest});
+        if (Array.isArray(project)) return stringifyWithOverflow({id, ...rest}, {indent: /^\{\r?\n/.test(text) ? 2 : undefined});
         return /^\{\r?\n/.test(text) ? project.toOwprText() : project.toStoredText();
     }
 
@@ -780,18 +781,9 @@ export class OpenISDProject {
      *  instead of refusing the project; `repaired` names every field that was reset, for the
      *  user to be told; `loadRepairs` every value the load repair pass set (`openSession`). Refused only when the text is not a project at all. */
     static fromOwprTextRepairing(text: string, engine: Engine, appContext: AppContext = realAppContext): OpenedProject & { repaired: readonly FieldPath[] } | string[] {
-        return OpenISDProject.#openParsedSession(parseOwprSessionRepairing(text, () => appContext.newId()), engine, appContext);
-    }
-
-    /** A parsed `.owpr` object, after the file's layout has been upgraded, with the same repairs. */
-    static fromOwprRecordRepairing(record: unknown, engine: Engine, appContext: AppContext = realAppContext): OpenedProject & { repaired: readonly FieldPath[] } | string[] {
-        return OpenISDProject.#openParsedSession(parseOwprRecordRepairing(record, () => appContext.newId()), engine, appContext);
-    }
-
-    static #openParsedSession(parsed: ReturnType<typeof parseOwprRecordRepairing>, engine: Engine, appContext: AppContext): OpenedProject & { repaired: readonly FieldPath[] } | string[] {
+        const parsed = parseOwprSessionRepairing(text, () => appContext.newId());
         if (Array.isArray(parsed)) return parsed;
-        const opened = OpenISDProject.openSession(parsed.value, engine, appContext);
-        return {...opened, repaired: parsed.repaired, loadRepairs: [...parsed.loadRepairs, ...opened.loadRepairs]};
+        return { ...OpenISDProject.openSession(parsed.value, engine, appContext), repaired: parsed.repaired };
     }
 
     /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */
@@ -807,7 +799,7 @@ export class OpenISDProject {
         if (!this.#edited) return false;
         const {charts: _editedCharts, ...editedRest} = this.#edited;
         const {charts: _savedCharts, ...savedRest} = this.#saved;
-        return JSON.stringify(editedRest) !== JSON.stringify(savedRest);
+        return stringifyWithOverflow(editedRest, {}) !== stringifyWithOverflow(savedRest, {});
     }
 
     // ── THE SIGNAL ────────────────────────────────────────────────────────────────────────────
@@ -1103,7 +1095,7 @@ export class OpenISDProject {
      *  when one is open but untouched. */
     hasWhatIfChanges(): boolean {
         const whatIf = this.#whatif;
-        return whatIf !== null && JSON.stringify(whatIf) !== JSON.stringify(this.#committed());
+        return whatIf !== null && stringifyWithOverflow(whatIf, {}) !== stringifyWithOverflow(this.#committed(), {});
     }
 
     /** Keep the What-if layer: its values become ordinary unsaved edits of the design and the

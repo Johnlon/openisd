@@ -55,6 +55,8 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
   const activeToken = computed(() => props.field?.unitTokenFor(presentationState.ui.unitTokens ?? {}));
 
   function fmt(v: number | null | undefined, halfWidth: number | null | undefined = props.halfWidth): string {
+    // A numeric field can carry an overflowing file value with its own DQ mark.
+    if (props.field && (v === Infinity || v === -Infinity)) return formatFixed(v, 0);
     if (v == null || !isFinite(v)) return '';
     if (props.field) {
       return props.field.format(v, halfWidth, activeToken.value, presentationState.shownSkin() === 'mobile' ? PHONE_MAX_SIGNIFICANT : undefined);

@@ -104,6 +104,13 @@ function writeDriverBack(field: SolverField, value: number | undefined, width: n
   if (value != null) field.setCalculated(value, undefined, width); else field.setNotAvailable();
 }
 
+/** A file can also carry an invalid dimension marked calculated. Keep it visible until cleared. */
+function writeDriverDimensionBack(field: SolverField, value: number | undefined, width: number | undefined): void {
+  const current = field.value;
+  if (current !== null && (!Number.isFinite(current) || current <= 0)) return;
+  writeDriverBack(field, value, width);
+}
+
 /** Efficiency Bandwidth Product, Fs / Qes (`efficiencyBandwidthProduct`). */
 const ebp = efficiencyBandwidthProduct;
 
@@ -279,9 +286,12 @@ export class DriverEngineImpl implements DriverEngine {
     writeDriverBack(params.SPLmaxLF_dB, solved.SPLmaxLF_dB, widths.SPLmaxLF_dB); writeDriverBack(params.Rme_kg_per_s, solved.Rme_kg_per_s, widths.Rme_kg_per_s);
     writeDriverBack(params.Mpow_N_per_sqrtW, solved.Mpow_N_per_sqrtW, widths.Mpow_N_per_sqrtW); writeDriverBack(params.Mcost_kg_per_s, solved.Mcost_kg_per_s, widths.Mcost_kg_per_s);
     writeDriverBack(params.gamma_m_per_s2_A, solved.gamma_m_per_s2_A, widths.gamma_m_per_s2_A); writeDriverBack(params.Gloss, solved.Gloss, widths.Gloss);
-    // Vcd has no derivation. Its load-repair minimum remains visible as a calculated entry.
-    writeDriverBack(params.Depth_m, solved.Depth_m, widths.Depth_m); writeDriverBack(params.MagDepth_m, solved.MagDepth_m, widths.MagDepth_m);
-    writeDriverBack(params.Magnet_m, solved.Magnet_m, widths.Magnet_m); writeDriverBack(params.DVol_m3, solved.DVol_m3, widths.DVol_m3); writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm, widths.Re_terminal_ohm);
+    writeDriverDimensionBack(params.Vcd_m, solved.Vcd_m, widths.Vcd_m);
+    writeDriverDimensionBack(params.Depth_m, solved.Depth_m, widths.Depth_m);
+    writeDriverDimensionBack(params.MagDepth_m, solved.MagDepth_m, widths.MagDepth_m);
+    writeDriverDimensionBack(params.Magnet_m, solved.Magnet_m, widths.Magnet_m);
+    writeDriverDimensionBack(params.DVol_m3, solved.DVol_m3, widths.DVol_m3);
+    writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm, widths.Re_terminal_ohm);
     writeDriverBack(params.BL_terminal_Tm, solved.BL_terminal_Tm, widths.BL_terminal_Tm);
     params.c_m_per_s.setCalculated(air.c());
     params.roo_kg_per_m3.setCalculated(air.rho());

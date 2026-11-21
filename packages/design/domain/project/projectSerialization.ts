@@ -9,8 +9,7 @@ import { retireLossMode } from './retiredLossMode.js';
 import { singleEnteredVentPairs } from './singleEnteredVentPairs.js';
 import { PROJECT_DEFAULT_DRIVER_WIRING } from './driverWiringDefault.js';
 import { CompatSwitch } from './compatSwitch.js';
-import { repairNonFiniteDriverDimensions } from '../driver/driverDimensionLoadRepair.js';
-import type { LoadRepairNote } from './loadRepair.js';
+import { stringifyWithOverflow } from '../../json/stringifyWithOverflow.js';
 
 /** The project with "Driver wiring" and "Impedance of one driver" written out, as every save does (plan 519, 4.1), also at one
  *  driver, so a later change of the driver count brings back the user's choice. A key the project holds is kept. */
@@ -48,7 +47,7 @@ function canonicalSession(session: unknown): unknown {
 /** A session as `.owpr` text — openisd's own format. Lossless: there is nothing to drop and no
  *  error to report. */
 export function owprTextOf(session: OpenISDProjectSessionJson): string {
-    return JSON.stringify(canonicalSession(session), withoutDerivedMarks, 2);
+    return stringifyWithOverflow(canonicalSession(session), {replacer: withoutDerivedMarks, indent: 2});
 }
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
@@ -58,7 +57,7 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
 /** A session as the text browser storage holds it: one compact line, without what the load
  *  works out again. `.owpr` files keep their indented form with everything in it. */
 export function storedTextOf(session: OpenISDProjectSessionJson): string {
-    return JSON.stringify(canonicalSession(session), withoutDerivedMarks);
+    return stringifyWithOverflow(canonicalSession(session), {replacer: withoutDerivedMarks});
 }
 
 /** A text written before projects carried an id gets one here, once, when it is read; a text
@@ -74,21 +73,6 @@ function withEditedLayer(parsed: unknown): unknown {
     return isRecord(parsed) && isRecord(parsed.saved) && !('edited' in parsed) ? {...parsed, edited: null} : parsed;
 }
 
-function repairNonFiniteEmbeddedDimensions(session: unknown): {session: unknown; notes: readonly LoadRepairNote[]} {
-    if (!isRecord(session)) return {session, notes: []};
-    let current = session;
-    const notes = new Map<string, LoadRepairNote>();
-    for (const layer of ['saved', 'edited'] as const) {
-        const project = current[layer];
-        if (!isRecord(project) || !isRecord(project.driverEmbedding)) continue;
-        const {record: device, notes: repairs} = repairNonFiniteDriverDimensions(project.driverEmbedding.device);
-        if (repairs.length === 0) continue;
-        current = {...current, [layer]: {...project, driverEmbedding: {...project.driverEmbedding, device}}};
-        for (const repair of repairs) notes.set(repair.text, repair);
-    }
-    return {session: current, notes: [...notes.values()]};
-}
-
 /** A stored or `.owpr` project text as `storedTextOf` writes it; null when the text is not a
  *  project session, which the repo that owns it reports and this leaves untouched. */
 export function compactedStoredText(text: string): string | null {
@@ -102,7 +86,7 @@ export function compactedStoredText(text: string): string | null {
     const upgraded = upgradeToCurrent(parsed);
     if ('refusal' in upgraded) return null;
     const canonical = canonicalOrNull(upgraded.value) ?? withSlimModel(parsed);
-    return JSON.stringify(canonical, withoutDerivedMarks);
+    return stringifyWithOverflow(canonical, {replacer: withoutDerivedMarks});
 }
 
 /** `.owpr` text parsed and validated, or everything wrong with it. Stops short of building an
@@ -117,8 +101,7 @@ export function parseOwprSession(text: string, newId: () => string): { session: 
     }
     const upgraded = upgradeToCurrent(withEditedLayer(withProjectId(parsed, newId)));
     if ('refusal' in upgraded) return {errors: [upgraded.refusal]};
-    const input = repairNonFiniteEmbeddedDimensions(upgraded.value);
-    const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(input.session));
+    const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(upgraded.value));
     if (!result.success) {
         return {errors: result.error.issues.map(issue => issue.path.length === 0
             ? issue.message
@@ -131,30 +114,19 @@ import {withoutImportSku} from './withoutImportSku.js';
 
 /** `.owpr` text parsed with every failing field removed so its default applies, and which ones
  *  were; refused only when the text is not JSON or not a project session at all. */
-type ParsedProject = (Repaired<OpenISDProjectSessionJson> & {loadRepairs: readonly LoadRepairNote[]}) | string[];
-
-export function parseOwprSessionRepairing(text: string, newId: () => string): ParsedProject {
+export function parseOwprSessionRepairing(text: string, newId: () => string): Repaired<OpenISDProjectSessionJson> | string[] {
     let parsed: unknown;
     try {
         parsed = JSON.parse(text);
     } catch {
         return ['not valid JSON'];
     }
-    return parseOwprRecordRepairing(parsed, newId);
-}
-
-export function parseOwprRecordRepairing(parsed: unknown, newId: () => string): ParsedProject {
     const upgraded = upgradeToCurrent(withEditedLayer(withProjectId(parsed, newId)));
     if ('refusal' in upgraded) return [upgraded.refusal];
-    const input = repairNonFiniteEmbeddedDimensions(upgraded.value);
-    const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(input.session));
+    const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(upgraded.value));
     if (Array.isArray(repaired)) return repaired;
     const retired = retireLossMode(repaired.value);
     const paired = singleEnteredVentPairs(retired.session);
     const unstated = withoutImportSku(paired.session);
-    return {
-        value: unstated.session,
-        repaired: [...repaired.repaired, ...retired.repaired, ...paired.repaired, ...unstated.repaired],
-        loadRepairs: input.notes,
-    };
+    return {value: unstated.session, repaired: [...repaired.repaired, ...retired.repaired, ...paired.repaired, ...unstated.repaired]};
 }

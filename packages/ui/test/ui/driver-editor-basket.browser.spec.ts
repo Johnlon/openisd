@@ -63,7 +63,7 @@ test('an old Dayton project displays its loaded basket with a warning and draws 
   await expect(input).toHaveValue('2377.44');
 });
 
-test('a project with a zero basket opens at 10 mm, lists the repair once, and draws a chart', async ({page}) => {
+test('a project with a zero basket shows the zero and its warning, and draws a chart', async ({page}) => {
   ensureSampleProject();
   await page.goto('/');
   const text = readFileSync(OLD_BASKET_PROJECT_OWPR, 'utf8').replace('"value":2.37744', '"value":0');
@@ -72,18 +72,18 @@ test('a project with a zero basket opens at 10 mm, lists the repair once, and dr
   });
   const toast = page.locator('.flash').filter({hasText: 'Project imported from zero-basket.owpr'});
   await expect(toast).toHaveCount(1);
-  await expect(toast).toHaveText(
-    'Project imported from zero-basket.owpr\nBasket Diameter (Basket) 0 mm in the file: set to the 10 mm minimum',
-    {useInnerText: true},
-  );
+  await expect(toast).toHaveText('Project imported from zero-basket.owpr', {useInnerText: true});
   await expectChartDrawn(page);
   await page.locator('.gpanel canvas').first().hover();
   await expect(page.locator('.cursor-readout .ro-val')).toHaveText(/^-?\d+(?:\.\d+)? dB$/);
 
   await openDimensions(page);
   const basket = driverEditorField(page, 'Basket Diameter (Basket)');
-  await expect(basket.getByRole('textbox')).toHaveValue('10.00');
-  await expect(basket.getByRole('button', {name: 'Why this value is flagged'})).toHaveCount(0);
+  const input = basket.getByRole('textbox');
+  await expect(input).toHaveValue('0.00');
+  await expect(input).toHaveClass(/\bdq-root\b/);
+  await basket.getByRole('button', {name: 'Why this value is flagged'}).click();
+  await expect(basket.getByRole('note')).toHaveText(/zero or less is not a physical value/);
 });
 
 test('opening a WinISD driver displays the file’s dimensions and range marks', async ({page}) => {

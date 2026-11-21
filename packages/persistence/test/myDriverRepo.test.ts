@@ -74,12 +74,16 @@ describe('myDriverRepo', () => {
   it('reads back an OpenISDDriver carrying every stored field', () => {
     const storage = memoryStorage();
     const repo = myDriverRepoOn(storage, engine);
-    repo.upsert(aDriver());
+    const driver = aDriver();
+    driver.specs.Basket_m.set(-Infinity);
+    repo.upsert(driver);
 
     const back = myDriverRepoOn(storage, engine).list();
     assert.equal(back.length, 1);
     assert.equal(back[0].driver.model.value, 'RS225');
     assert.equal(back[0].driver.brand.value, 'Dayton');
+    assert.equal(back[0].driver.specs.Basket_m.value, -Infinity);
+    assert.ok(back[0].driver.specs.Basket_m.dq.some(issue => issue.kind === 'invalid-value'));
   });
 
   describe('cloud sync onSaved trigger', () => {

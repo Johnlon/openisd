@@ -247,16 +247,18 @@ describe('useNumInput', () => {
     app.unmount();
   });
 
-  it('shows a loaded 55 m basket without applying typing limits on focus and blur', () => {
-    const {api, app, emissions} = setup({modelValue: 55, field: NumberField.BASKET_M, min: 0.01, max: 1});
-    expect(api.display.value).toBe('55000.00');
-    focusIn(api);
-    api.onBlur(focusEvent('blur'));
-    expect(api.display.value).toBe('55000.00');
-    expect(api.refusal.value).toBe('');
-    expect(emissions.some(({event}) => event === 'update:modelValue')).toBe(false);
-    app.unmount();
-  });
+  it.each([[55, '55000.00'], [0, '0.00'], [-0.01, '-10.00'], [Infinity, 'Infinity'], [-Infinity, '-Infinity']] as const)(
+    'shows a loaded basket of %s m without applying typing limits on focus and blur', (modelValue, text) => {
+      const {api, app, emissions} = setup({modelValue, field: NumberField.BASKET_M, min: 0.01, max: 1});
+      expect(api.display.value).toBe(text);
+      focusIn(api);
+      api.onBlur(focusEvent('blur'));
+      expect(api.display.value).toBe(text);
+      expect(api.refusal.value).toBe('');
+      expect(emissions.some(({event}) => event === 'update:modelValue')).toBe(false);
+      app.unmount();
+    },
+  );
 
   it('has its own one-step undo: Ctrl-Z after a committed edit restores and commits the old value, again swaps back', () => {
     const {api, app, props, input, emissions} = setup({modelValue: 12});

@@ -12,6 +12,7 @@ import {OpenISDDriver, OpenISDDriverStandalone, type VoiceCoilWiring} from '@ope
 import {type SelectorOption, MEASURED_WIRING_NOT_STATED_LABEL, VC_CONNECTION_OPTIONS} from '@openisd/design/fields';
 import type {AppContext} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
+import {stringifyWithOverflow} from '@openisd/design/json';
 import type {EditorDraftSeed} from './driverSelection.js';
 
 /** The wiring choices the editor's select lists — the domain's list, reached through logic so no
@@ -83,7 +84,7 @@ export class DriverDrafts {
       return subject.seed ? subject.seed.detach() : OpenISDDriver.empty(this.engine, this.appContext);
     };
 
-    const textOf = (driver: OpenISDDriverStandalone): string => JSON.stringify(driver.cloneDriver());
+    const textOf = (driver: OpenISDDriverStandalone): string => stringifyWithOverflow(driver.cloneDriver(), {});
     let current = seedDraft();
     let openedOn = textOf(current);
     const session = { changed: () => textOf(current) !== openedOn };

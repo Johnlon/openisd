@@ -8,12 +8,6 @@
  * one turn are gathered and shown once.
  */
 import type {LoadRepairReport} from '@openisd/persistence';
-import type {OpenISDDriverStandalone} from '@openisd/design';
-
-/** The driver opening message with one line for each repaired value. */
-export function driverOpeningMessage(headline: string, driver: OpenISDDriverStandalone): string {
-  return [headline, ...driver.loadRepairs.map(repair => repair.text)].join('\n');
-}
 
 /** The handler `createProjectRepo` calls for each project the load repaired. `schedule` runs the
  *  gathered toast once the current turn is done (`queueMicrotask` in the app). */

@@ -63,7 +63,7 @@ function rawMagnet(i: {Dd: number; Vcd: number; DVol: number; Depth: number; Mag
   return radicand > 0 ? Math.sqrt(radicand) : null;
 }
 
-const positive = (...xs: number[]): boolean => xs.every(x => x > 0);
+const positive = (...xs: number[]): boolean => xs.every(x => Number.isFinite(x) && x > 0);
 
 /** `DVol` from the other four. Guarded on every input being strictly positive and `Depth >
  *  MagDepth` (the cone's height must be positive): a magnet deeper than the whole driver is

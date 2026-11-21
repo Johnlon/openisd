@@ -95,13 +95,6 @@ export interface LoadRepair {
   readonly described: string;
 }
 
-const MINIMUM_DRIVER_LENGTH_REPAIR: LoadRepair = Object.freeze({
-  breaks: 'floor', to: 0.00001, described: 'the 0.01 mm minimum',
-});
-const DERIVED_DRIVER_DIMENSION_REPAIR: LoadRepair = Object.freeze({
-  breaks: 'floor', to: 'empty', described: 'the value worked out from the other dimensions, when available',
-});
-
 /**
  * How a spinner press moves a number field (`spinnerStep.ts`).
  *
@@ -1185,7 +1178,6 @@ export class NumberField extends Field {
     limits: {min: 0, max: 0.3},
     floor: "positive",
     precision: 2,
-    loadRepair: MINIMUM_DRIVER_LENGTH_REPAIR,
     description: "Basket Flange Thickness\nFrame flange thickness at the mounting boundary.",
   });
   static readonly DEPTH_M = new NumberField({
@@ -1195,7 +1187,6 @@ export class NumberField extends Field {
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 2,
-    loadRepair: DERIVED_DRIVER_DIMENSION_REPAIR,
     description: "Overall Driver Depth\nFull depth from mounting flange to rear magnet pole plate.",
   });
   static readonly MAGDEPTH_M = new NumberField({
@@ -1205,7 +1196,6 @@ export class NumberField extends Field {
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 2,
-    loadRepair: DERIVED_DRIVER_DIMENSION_REPAIR,
     description: "Magnet Assembly Depth\nThickness of the rear magnet assembly.",
   });
   static readonly MAGNET_M = new NumberField({
@@ -1215,7 +1205,6 @@ export class NumberField extends Field {
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 2,
-    loadRepair: DERIVED_DRIVER_DIMENSION_REPAIR,
     description: "Magnet Diameter\nOuter diameter of the motor magnet.",
   });
   static readonly BASKET_M = new NumberField({
@@ -1226,7 +1215,6 @@ export class NumberField extends Field {
     plausible: {min: 0.01, max: 0.61},
     floor: "positive",
     precision: 2,
-    loadRepair: {breaks: 'floor', to: 0.01, described: 'the 10 mm minimum'},
     description: "Basket Diameter\nDiameter of the hole cut in the baffle.",
   });
   static readonly OUTER_M = new NumberField({
@@ -1236,7 +1224,6 @@ export class NumberField extends Field {
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 2,
-    loadRepair: MINIMUM_DRIVER_LENGTH_REPAIR,
     description: "Outer Mounting Diameter\nOverall diameter of the front mounting flange.",
   });
   static readonly OUTERX_M = new NumberField({
@@ -1246,7 +1233,6 @@ export class NumberField extends Field {
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 2,
-    loadRepair: MINIMUM_DRIVER_LENGTH_REPAIR,
     description: "Rectangular Frame Size, X\nOne side of the frame, for a driver with a rectangular (not round) frame. WinISD has no such field.",
   });
   static readonly OUTERY_M = new NumberField({
@@ -1256,7 +1242,6 @@ export class NumberField extends Field {
     limits: {min: 0, max: 5},
     floor: "positive",
     precision: 2,
-    loadRepair: MINIMUM_DRIVER_LENGTH_REPAIR,
     description: "Rectangular Frame Size, Y\nThe other side of the frame, for a driver with a rectangular (not round) frame. WinISD has no such field.",
   });
   static readonly WEIGHT_KG = new NumberField({
@@ -1275,7 +1260,6 @@ export class NumberField extends Field {
     limits: {min: 0, max: 1},
     floor: "positive",
     precision: 2,
-    loadRepair: MINIMUM_DRIVER_LENGTH_REPAIR,
     description: "Voice Coil Diameter\nFormer diameter of the coil winding.",
   });
   static readonly DVOL_M3 = new NumberField({
@@ -1285,7 +1269,6 @@ export class NumberField extends Field {
     limits: {min: 0, max: 1},
     floor: "positive",
     precision: 2,
-    loadRepair: DERIVED_DRIVER_DIMENSION_REPAIR,
     description: "Driver Displacement Volume\nVolume the motor and basket occupy inside the enclosure.",
   });
   static readonly ZNOM_OHM = new NumberField({

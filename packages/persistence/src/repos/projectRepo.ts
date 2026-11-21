@@ -6,6 +6,7 @@
  *  boundary). This file supplies no shape of its own and never holds the project's record. */
 import {OpenISDProject, ProjectSummary, withMovedChamberQicl, type FieldPath, type OpenedProject} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
+import {stringifyWithOverflow} from '@openisd/design/json';
 import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY, OPENISD_BACKUP_KEYS, OPENISD_STORAGE_LAYOUT_KEY} from './storageKeys.js';
@@ -352,18 +353,11 @@ export function createProjectRepo(
   function openRepairing(text: string, source: StoredSource | null, tell: LoadRepairTelling): OpenedProject | string[] {
     let parsed: unknown;
     try { parsed = JSON.parse(text); } catch { return ['not valid JSON']; }
-    return openRecordRepairing(parsed, source, tell);
-  }
-
-  function openRecordRepairing(parsed: unknown, source: StoredSource | null, tell: LoadRepairTelling): OpenedProject | string[] {
     // The same upgrade every door applies, so a design saved by an older build opens anywhere.
     const current = upgrade.projectPayload(parsed);
-    if (current.kind === 'errors') return current.errors;
-    const result = current.kind === 'upgraded'
-      ? OpenISDProject.fromOwprTextRepairing(current.text, engine)
-      : OpenISDProject.fromOwprRecordRepairing(current.record, engine);
+    if (Array.isArray(current)) return current;
+    const result = OpenISDProject.fromOwprTextRepairing(current, engine);
     if (Array.isArray(result)) return result;
-    const loadRepairs = current.kind === 'upgraded' ? [...current.loadRepairs, ...result.loadRepairs] : result.loadRepairs;
     if (result.repaired.length > 0 && source !== null) {
       const original = storage.get(source.key);
       if (original !== null) backup.guard('repair', () => backup.keepPreRepairCopy(source.copy, original));
@@ -373,19 +367,19 @@ export function createProjectRepo(
         backupKey: original === null ? null : source.backupKey,
       });
     }
-    if (tell === 'tell' && loadRepairs.length > 0) {
-      onLoadRepaired({projectName: result.project.name.value, lines: loadRepairs.map(repair => repair.text)});
+    if (tell === 'tell' && result.loadRepairs.length > 0) {
+      onLoadRepaired({projectName: result.project.name.value, lines: result.loadRepairs.map(repair => repair.text)});
     }
-    return {...result, loadRepairs};
+    return result;
   }
 
   /** A design read from opened file text (a file, a backup being restored, an archive entry). */
   function openExportedText(text: string, tell: LoadRepairTelling): OpenedProject | string[] {
-    const opened = exportedFiles.openRecord(text);
+    const opened = exportedFiles.open(text);
     if (opened.kind === 'newer') {
       return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads}). The file is unchanged: reload this page to get the latest OpenISD, then open it again`];
     }
-    const result = opened.record === null ? openRepairing(text, null, tell) : openRecordRepairing(opened.record, null, tell);
+    const result = openRepairing(opened.text, null, tell);
     if (!Array.isArray(result)) claimId(result.project);
     return result;
   }
@@ -504,7 +498,7 @@ function migratePayloadText(text: string): { text: string; changed: boolean } {
   try {
     const parsed: unknown = JSON.parse(text);
     if (dropRetiredFields(parsed)) {
-      return { text: JSON.stringify(parsed), changed: true };
+      return { text: stringifyWithOverflow(parsed, {}), changed: true };
     }
   } catch (err) {
     console.error(createStoredDataFault('project', `stored project payload is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
@@ -589,7 +583,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
   function designOf(project: OpenISDProject): string {
     const parsed: unknown = JSON.parse(project.toOwprText());
     if (isRecord(parsed)) delete parsed.id;
-    return JSON.stringify(parsed);
+    return stringifyWithOverflow(parsed, {});
   }
 
   /** `project` may not take a stored project's place unless it is that project: when a stored entry has
@@ -614,7 +608,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
   function layersOf(text: string): { readonly saved: string; readonly edited: string | null } | null {
     const design = (layer: Readonly<Record<string, unknown>>): string => {
       const {charts: _charts, ...rest} = layer;
-      return JSON.stringify(rest);
+      return stringifyWithOverflow(rest, {});
     };
     try {
       const parsed: unknown = JSON.parse(text);
@@ -936,7 +930,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       let parsed: unknown;
       try { parsed = JSON.parse(entry.text); } catch { return 'same'; }
       if (!isRecord(parsed) || !isRecord(parsed.edited)) return 'same';
-      return rewriteEntry(id, JSON.stringify({...parsed, edited: null}));
+      return rewriteEntry(id, stringifyWithOverflow({...parsed, edited: null}, {}));
     },
     deleteStoredProject(id: string): 'done' | 'refused' {
       const entries = readStoredEntries();

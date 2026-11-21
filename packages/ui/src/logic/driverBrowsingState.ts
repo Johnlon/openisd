@@ -37,7 +37,6 @@ import {driverFromFileText, type DriverSelection} from './driverSelection.js';
 import type {DesignFiles} from './fileImportExport.js';
 import {inputFrom} from './domEvents.js';
 import type {AppState} from './appState.js';
-import {driverOpeningMessage} from './loadRepairNotice.js';
 
 /** A My Drivers row: the storage uuid this repo minted (the delete/edit handle) plus the driver
  *  itself. The uuid is NOT on the driver — it is the key into the saved-driver map, assigned only
@@ -528,15 +527,8 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const previewData = computed<PreviewVM | null>(() =>
     previewDriver.value ? previewVMOf(previewDriver.value) : null);
 
-  function showDriverRepairs(driver: OpenISDDriverStandalone): void {
-    if (driver.loadRepairs.length > 0) {
-      logging.flash(driverOpeningMessage(`Driver opened: ${displayNameOf(driver)}`, driver));
-    }
-  }
-
   function pickDriver(d: OpenISDDriverStandalone | null): void {
     previewDriver.value = d;
-    if (d !== null) showDriverRepairs(d);
   }
 
   /** Read the embedded project driver directly; no catalogue lookup or replacement. */
@@ -626,7 +618,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       if (!saved) { failed('saved drivers are read-only until the storage problem is resolved'); return; }
       statusErr.value = false;
       statusMsg.value = '';
-      logging.flash(driverOpeningMessage(`Driver imported to My Drivers: ${displayNameOf(res.driver)}`, res.driver));
+      logging.flash(`Driver imported to My Drivers: ${displayNameOf(res.driver)}`);
       previewDriver.value = res.driver;
     }, (err: Error) => {
       input.value = '';
@@ -700,10 +692,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     myDrivers, filteredMyDrivers, displayNameOf,
     myDriversRead, exportedThisSession, exportMyDriversRaw, exportBrokenEntry,
     deleteAllMyDrivers, removeBrokenEntry,
-    editMyDriver(driver, uuid) {
-      selection.editMyDriver(driver, uuid);
-      showDriverRepairs(driver);
-    },
+    editMyDriver: selection.editMyDriver,
     editOverviewDriver: selection.editOverviewDriver,
     reloadMyDrivers, deleteMyDriver, clearMyDrivers,
     // preview + selection

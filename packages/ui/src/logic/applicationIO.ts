@@ -59,7 +59,6 @@ import {setShareUrl} from './urlAppState.js';
 import type {Logging} from '../logging/flash.js';
 import {readDriverFileText} from './driverFileText.js';
 import {displayNameOf} from './driverDisplay.js';
-import {driverOpeningMessage} from './loadRepairNotice.js';
 import {DriverFileFormat, formatOf, OpenableFiles, ProjectFileFormat, sniff} from '../fileFormat.js';
 import type {RecentActions} from './telemetry/errorContext.js';
 
@@ -356,7 +355,7 @@ export function createApplicationIO(deps: {
             presentationState.newProjectOpen = true;
           }
           deps.fileStorage.forget();
-          flash(driverOpeningMessage(`Driver imported from ${f.name}: ${displayNameOf(driver)}`, driver));
+          flash(`Driver imported from ${f.name}: ${displayNameOf(driver)}`);
           return;
         } else if (format === ProjectFileFormat.Wpr) {
           const { value: project, errors, loadRepairs, notes } = deps.files.projectFromText(text, ProjectFileFormat.Wpr);

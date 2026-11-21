@@ -1,4 +1,5 @@
 import { conflictSuffix } from '../fields/projectRows.js';
+import { stringifyWithOverflow } from '../json/stringifyWithOverflow.js';
 import type { DeviceName } from './deviceName.js';
 
 /** The name a kept conflict copy is saved under, for a project, driver or passive radiator:
@@ -41,7 +42,7 @@ export function setDeviceModelInBody(body: string, model: string): string {
     if (!isRecord(parsed)) return body;
     const held = parsed['model'];
     const next = isRecord(held) ? {...held, value: model} : model;
-    return JSON.stringify({...parsed, model: next});
+    return stringifyWithOverflow({...parsed, model: next}, {});
   } catch {
     return body;
   }
@@ -71,7 +72,7 @@ export function setProjectNameInBody(body: string, newName: string): string {
     if (!isRecord(parsed)) return body;
     const labelled = mapEntry(parsed, 'label', () => newName);
     const saved = mapEntry(labelled, 'saved', value => renameMeta(value, newName));
-    return JSON.stringify(mapEntry(saved, 'edited', value => renameMeta(value, newName)));
+    return stringifyWithOverflow(mapEntry(saved, 'edited', value => renameMeta(value, newName)), {});
   } catch {
     return body;
   }

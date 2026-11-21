@@ -8,14 +8,13 @@ import {createEngine} from '../../engine/Engine.js';
 import {DEFAULT_GRID, loadProject, projectFindings} from '../fixtures/inputLimitsSweep.js';
 
 const engine = createEngine();
-const zeroBasketNotice = 'Basket Diameter (Basket) 0 mm in the file: set to the 10 mm minimum';
 
 function driverWith(driver: DriverDeviceJson, basket: SpecEntryJson): DriverDeviceJson {
   return {...driver, specs: {...driver.specs, woofer: {...driver.specs.woofer, Basket_m: basket}}};
 }
 
 describe('Basket Diameter on opening', () => {
-  it('repairs a zero basket in both project layers, reports it once, and gives finite chart data', () => {
+  it('keeps a zero basket in both project layers, flags it, and gives finite chart data', () => {
     const session = loadProject('sealed').cloneSession();
     const {saved: project} = session;
     const device = driverWith(project.driverEmbedding.device, {state: 'E', value: 0});
@@ -23,25 +22,30 @@ describe('Basket Diameter on opening', () => {
     const opened = OpenISDProject.fromOwprTextRepairing(owprTextOf({...session, saved, edited: saved}), engine);
     if (Array.isArray(opened)) throw new Error(opened.join('\n'));
     const basket = opened.project.driver.specs.Basket_m;
-    expect(basket.value).toBe(0.01);
-    expect(basket.dq).toEqual([]);
+    expect(basket.value).toBe(0);
+    expect(basket.dq).toContainEqual(expect.objectContaining({kind: 'invalid-value', value: 0}));
     expect(opened.project.cloneSession().saved.driverEmbedding.device.specs.woofer.Basket_m)
-      .toEqual({state: 'C', value: 0.01});
-    expect(opened.loadRepairs).toEqual([expect.objectContaining({loaded: 0, repaired: 0.01, text: zeroBasketNotice})]);
+      .toEqual({state: 'E', value: 0});
+    expect(opened.loadRepairs).toEqual([]);
     expect(opened.project.sweep(DEFAULT_GRID).values?.tfMag.length).toBeGreaterThan(0);
     expect(projectFindings(opened.project, DEFAULT_GRID)).toMatchObject({findings: [], refused: false});
   });
 
-  it.each([['0', 0], ['-0.01', -0.01], ['1e999', Infinity]])('repairs Basket=%s from a .wdr file', (text, loaded) => {
+  it.each([['0', 0], ['-0.01', -0.01], ['1e999', Infinity]])('keeps and flags Basket=%s from a .wdr file and gives finite chart data', (text, loaded) => {
+    const project = loadProject('sealed');
+    project.driver.specs.Basket_m.set(0.15);
+    const fixture = project.driver.toWdrIniText();
+    if (fixture.value === null) throw new Error(JSON.stringify(fixture.errors));
     const {value: driver, errors} = new DriverRecordConverter(engine).winIsdDriverToOpenIsdDriver(
-      `[Driver]\r\nBrand=Fixture\r\nModel=Basket\r\nnumVC=1\r\nBasket=${text}\r\n`);
+      fixture.value.replace(/^Basket=.*$/m, `Basket=${text}`));
     if (!driver) throw new Error(JSON.stringify(errors));
-    expect(driver.specs.Basket_m.value).toBe(0.01);
-    expect(driver.specs.Basket_m.dq).toEqual([]);
-    expect(driver.loadRepairs).toEqual([expect.objectContaining({loaded, repaired: 0.01})]);
+    expect(driver.specs.Basket_m.value).toBe(loaded);
+    expect(driver.specs.Basket_m.dq).toContainEqual(expect.objectContaining({kind: 'invalid-value', value: loaded}));
+    project.loadDriver(driver);
+    expect(projectFindings(project, DEFAULT_GRID)).toMatchObject({findings: [], refused: false});
   });
 
-  it('repairs an overflowing JSON number in both .owdr and .owpr files', () => {
+  it('keeps and flags an overflowing JSON number in .owdr and .owpr files and gives finite chart data', () => {
     const session = loadProject('sealed').cloneSession();
     const device = driverWith(session.saved.driverEmbedding.device, {state: 'E', value: 1234});
     const saved = {...session.saved, driverEmbedding: {...session.saved.driverEmbedding, device}};
@@ -49,12 +53,18 @@ describe('Basket Diameter on opening', () => {
     const opened = OpenISDProject.fromOwprTextRepairing(owprTextOf({...session, saved, edited: null}).replace('"value": 1234', '"value": 1e999'), engine);
     if (Array.isArray(driver)) throw new Error(driver.join('\n'));
     if (Array.isArray(opened)) throw new Error(opened.join('\n'));
-    for (const [loaded, repairs] of [[driver, driver.loadRepairs], [opened.project.driver, opened.loadRepairs]] as const) {
-      expect(loaded.specs.Basket_m.value).toBe(0.01);
-      expect(loaded.specs.Basket_m.dq).toEqual([]);
-      expect(repairs).toEqual([expect.objectContaining({loaded: Infinity, repaired: 0.01})]);
+    const projectWithDriver = loadProject('sealed');
+    projectWithDriver.loadDriver(driver);
+    for (const project of [projectWithDriver, opened.project]) {
+      expect(project.driver.specs.Basket_m.value).toBe(Infinity);
+      expect(project.driver.specs.Basket_m.dq).toContainEqual(expect.objectContaining({kind: 'invalid-value', value: Infinity}));
+      expect(projectFindings(project, DEFAULT_GRID)).toMatchObject({findings: [], refused: false});
     }
+    expect(opened.loadRepairs).toEqual([]);
     expect(opened.repaired).toEqual([]);
+    const reloaded = OpenISDProject.fromOwprText(opened.project.toOwprText(), engine);
+    if (Array.isArray(reloaded)) throw new Error(reloaded.join('\n'));
+    expect(reloaded.driver.specs.Basket_m.value).toBe(Infinity);
   });
 
   it('keeps a 55 m basket from an .owpr file, warns, and still gives finite chart data', () => {
