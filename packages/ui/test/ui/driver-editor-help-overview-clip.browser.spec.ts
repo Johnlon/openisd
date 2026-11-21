@@ -56,10 +56,16 @@ for (const surface of helpSurfaces) {
     await page.setViewportSize({width: 1280, height: 720});
     const sheet = await openHelp(page, surface);
     await expectSheetInsideEditor(sheet);
-    const scrollTop = await expectLastParagraphAtEnd(sheet);
-    if (surface === overview) expect(scrollTop).toBeGreaterThan(0);
+    expect(await expectLastParagraphAtEnd(sheet)).toBeGreaterThanOrEqual(0);
   });
 }
+
+test('the overview is longer than the 680 px sheet at 1280 x 720 and scrolls to its last paragraph', async ({page}) => {
+  await page.setViewportSize({width: 1280, height: 720});
+  const sheet = await openHelp(page, overview);
+  await expectSheetInsideEditor(sheet);
+  expect(await expectLastParagraphAtEnd(sheet)).toBeGreaterThan(0);
+});
 
 test('help that fits is fully visible without scrolling in a large desktop window', async ({page}) => {
   await page.setViewportSize({width: 1880, height: 1000});

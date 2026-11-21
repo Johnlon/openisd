@@ -334,15 +334,16 @@ test.describe('What-if panel', () => {
       expect(named.length).toBeGreaterThan(8);
       expect(named.find(row => row.label === 'Cms')?.symbol).toBe('mm/N');
       expect(named.find(row => row.label === 'Rms')?.symbol).toBe('Ns/m');
-      for (const {label, rowWidth, width, symbol, chipWidth, unitFits, chipPadding} of named) {
+      for (const {label, rowWidth, width} of named) {
         const wide = label === 'Cms' || label === 'Rms';
         expect(width, label).toBe(wide ? 102 : 93);
         expect(width, label).toBeLessThan(rowWidth);
-        if (symbol !== '') {
-          expect(chipWidth, label).toBe(wide ? 38 : 29);
-          expect(unitFits, `${label} ${symbol}`).toBe(true);
-          expect(width - chipPadding, `${label} numeric rail`).toBe(64);
-        }
+      }
+      for (const {label, width, symbol, chipWidth, unitFits, chipPadding} of named.filter(row => row.symbol !== '')) {
+        const wide = label === 'Cms' || label === 'Rms';
+        expect(chipWidth, label).toBe(wide ? 38 : 29);
+        expect(unitFits, `${label} ${symbol}`).toBe(true);
+        expect(width - chipPadding, `${label} numeric rail`).toBe(64);
       }
     });
 
