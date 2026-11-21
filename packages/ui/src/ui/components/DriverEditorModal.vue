@@ -14,7 +14,6 @@ import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
 import {commitMyDriver, useDriverEditorHelp} from '../../hooks/DriverEditorModal-hooks.js';
 import {useFeatureUse} from '../../hooks/telemetryContext.js';
 import type {DqReason} from '@openisd/design';
-import {driverOpeningMessage} from '../../logic/loadRepairNotice.js';
 import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '@openisd/design';
 import UIField from './UIField.vue';
 import UIFixedField from './UIFixedField.vue';
@@ -687,7 +686,7 @@ async function handleFileLoaded(e: Event) {
       if (!read) { failed(errors[0]?.message ?? 'unreadable'); return; }
       draft.replace(read);
       forceUpdate();
-      logging.flash(driverOpeningMessage(`Driver imported from ${file.name}`, read));
+      logging.flash(`Driver imported from ${file.name}`);
     } catch (err) {
       failed(err instanceof Error ? err.message : String(err));
     }

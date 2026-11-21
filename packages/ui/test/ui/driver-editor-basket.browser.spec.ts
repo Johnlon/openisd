@@ -41,21 +41,57 @@ test('Basket Diameter refuses 2380 mm and saves 750 mm with a warning', async ({
   await expect(warning).toBeVisible();
 });
 
-test('an old Dayton project opens at the basket minimum, with one repair notice and a chart', async ({page}) => {
+test('an old Dayton project displays its loaded basket with a warning and draws a chart', async ({page}) => {
   await page.goto('/');
   await openAProject(page, OLD_BASKET_PROJECT_OWPR);
   const toast = page.locator('.flash').filter({hasText: 'Project imported from old-basket-project.owpr'});
   await expect(toast).toHaveCount(1);
-  await expect(toast).toHaveText(
-    'Project imported from old-basket-project.owpr\nBasket Diameter (Basket) 2377.44 mm in the file: set to the 10 mm minimum',
-    {useInnerText: true},
-  );
+  await expect(toast).toHaveText('Project imported from old-basket-project.owpr', {useInnerText: true});
   await expectChartDrawn(page);
   await page.locator('.gpanel canvas').first().hover();
   await expect(page.locator('.cursor-readout .ro-val')).toHaveText(/^-?\d+(?:\.\d+)? dB$/);
 
   await openDimensions(page);
   const basket = driverEditorField(page, 'Basket Diameter (Basket)');
-  await expect(basket.getByRole('textbox')).toHaveValue('10.00');
-  await expect(basket.getByRole('button', {name: 'Why this value is flagged'})).toHaveCount(0);
+  const input = basket.getByRole('textbox');
+  await expect(input).toHaveValue('2377.44');
+  await input.focus();
+  await basket.getByRole('button', {name: 'Why this value is flagged'}).click();
+  await expect(basket.getByRole('note')).toHaveText(/2377\.44 mm is outside the normal range.*610\.00 mm/);
+  await expect(basket.getByRole('note')).toHaveClass(/ui-field-note-warning/);
+  await expect(input).toHaveValue('2377.44');
+});
+
+test('opening a WinISD driver displays the file’s dimensions and range marks', async ({page}) => {
+  await page.goto('/');
+  await openAProject(page);
+  await openDimensions(page);
+
+  const dimensions = [
+    ['Basket Plate Thickness (Thick)', 'Thick', 11, 11000],
+    ['Driver Depth (Depth)', 'Depth', 22, 22000],
+    ['Magnet Depth', 'MagDepth', 66, 66000],
+    ['Magnet Diameter (Magnet)', 'Magnet', 44, 44000],
+    ['Basket Diameter (Basket)', 'Basket', 55, 55000],
+    ['Outer Diameter (Outer)', 'Outer', 66, 66000],
+  ] as const;
+  const name = 'impossible-dimensions.wdr';
+  const text = ['[Driver]', 'Brand=Fixture', 'Model=Dimensions', 'numVC=1',
+    ...dimensions.map(([, key, value]) => `${key}=${value}`), ''].join('\r\n');
+  await page.locator('.de-modal input[type=file]').setInputFiles({
+    name, mimeType: 'application/x-winisd-driver', buffer: Buffer.from(text),
+  });
+  await page.getByRole('button', {name: 'Continue', exact: true}).click();
+
+  const heading = `Driver imported from ${name}`;
+  const toast = page.locator('.flash').filter({hasText: heading});
+  await expect(toast).toHaveCount(1);
+  await expect(toast).toHaveText(heading, {useInnerText: true});
+  for (const [label, , , mm] of dimensions) {
+    const field = driverEditorField(page, label);
+    const input = field.getByRole('textbox');
+    await expect(input).toHaveValue(`${mm}.00`);
+    await expect(input).toHaveClass(/\bvalue-e\b/);
+    await expect(field.getByRole('button', {name: 'Why this value is flagged'})).toBeVisible();
+  }
 });

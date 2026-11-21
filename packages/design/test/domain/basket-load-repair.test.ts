@@ -13,41 +13,39 @@ function driverWith(driver: DriverDeviceJson, basket: SpecEntryJson): DriverDevi
 }
 
 describe('Basket Diameter on opening', () => {
-  it('repairs an impossible embedded value once, clears its flag and still draws charts', () => {
+  it('keeps a 55 m basket from an .owpr file, warns, and still gives finite chart data', () => {
     const session = loadProject('sealed').cloneSession();
     const project = session.saved;
-    const device = driverWith(project.driverEmbedding.device, {state: 'E', value: 2.37744});
+    const device = driverWith(project.driverEmbedding.device, {state: 'E', value: 55});
     const saved = {...project, driverEmbedding: {...project.driverEmbedding, device}};
     const opened = OpenISDProject.fromOwprTextRepairing(owprTextOf({...session, saved, edited: saved}), engine);
     if (Array.isArray(opened)) throw new Error(opened.join('\n'));
     const basket = opened.project.driver.specs.Basket_m;
-    expect(basket.value).toBe(0.01);
-    expect(basket.dq).toEqual([]);
-    expect(opened.loadRepairs).toEqual([expect.objectContaining({
-      loaded: 2.37744, repaired: 0.01,
-      text: 'Basket Diameter (Basket) 2377.44 mm in the file: set to the 10 mm minimum',
-    })]);
+    expect(basket.value).toBe(55);
+    expect(basket.dq).toContainEqual(expect.objectContaining({kind: 'outside-normal-band'}));
+    expect(opened.project.cloneSession().saved.driverEmbedding.device.specs.woofer.Basket_m)
+      .toEqual({state: 'E', value: 55});
+    expect(opened.loadRepairs).toEqual([]);
+    expect(opened.project.sweep(DEFAULT_GRID).values?.tfMag.length).toBeGreaterThan(0);
     const charts = projectFindings(opened.project, DEFAULT_GRID);
     expect(charts.findings).toEqual([]);
     expect(charts.refused).toBe(false);
   });
 
-  it('applies the general basket repair to an old Dayton DSA115-8 record', () => {
+  it('keeps the unusual basket in an old Dayton DSA115-8 record and warns', () => {
     const device = loadProject('sealed').cloneSession().saved.driverEmbedding.device;
     const dayton = {...device, brand: {value: 'Dayton Audio'}, model: {value: 'DSA115-8'}};
     const driver = OpenISDDriver.fromConformingRecord(driverWith(dayton, {state: 'E', value: 2.37744}), engine);
     if (Array.isArray(driver)) throw new Error(driver.join('\n'));
-    expect(driver.specs.Basket_m.value).toBe(0.01);
-    expect(driver.specs.Basket_m.dq).toEqual([]);
-    expect(driver.loadRepairs.map(repair => repair.repaired)).toEqual([0.01]);
+    expect(driver.specs.Basket_m.value).toBe(2.37744);
+    expect(driver.specs.Basket_m.dq).toContainEqual(expect.objectContaining({kind: 'outside-normal-band'}));
   });
 
-  it('keeps an odd but possible value from a standalone driver file with a warning', () => {
+  it.each([0.75, 55])('keeps a %s m basket from an .owdr file with a warning', value => {
     const device = loadProject('sealed').cloneSession().saved.driverEmbedding.device;
-    const driver = OpenISDDriver.fromOwdrText(JSON.stringify(driverWith(device, {state: 'E', value: 0.75})), engine);
+    const driver = OpenISDDriver.fromOwdrText(JSON.stringify(driverWith(device, {state: 'E', value})), engine);
     if (Array.isArray(driver)) throw new Error(driver.join('\n'));
-    expect(driver.specs.Basket_m.value).toBe(0.75);
+    expect(driver.specs.Basket_m.value).toBe(value);
     expect(driver.specs.Basket_m.dq).toContainEqual(expect.objectContaining({kind: 'outside-normal-band'}));
-    expect(driver.loadRepairs).toEqual([]);
   });
 });
