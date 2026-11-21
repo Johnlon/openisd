@@ -160,8 +160,8 @@ test('chart failure lists the missing circuit values returned by the sweep', asy
   const chartMessage = page.locator('.gmsg');
   await expect(chartMessage).toBeVisible();
   await expect(chartMessage).toContainText('cone area (Sd)');
-  await expect(chartMessage).toContainText('coil resistance at the terminals (Re)');
-  await expect(chartMessage).toContainText('force factor at the terminals (BL)');
+  await expect(chartMessage).toContainText('coil resistance (Re)');
+  await expect(chartMessage).toContainText('force factor (BL)');
   await expect(chartMessage).toContainText('compliance (Cms)');
   await expect(chartMessage).toContainText('moving mass (Mms)');
   await expect(chartMessage).toContainText('mechanical resistance (Rms)');

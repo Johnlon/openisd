@@ -7,6 +7,7 @@ import {z} from 'zod';
 import {defaultProjectName, WizardPlan, WizardStep} from '@openisd/design';
 import {createEngine, type BoxType, type EbpSuitability} from '@openisd/design/engine';
 import {NumberField, PhoneWizardText, ReadoutFormat} from '@openisd/design/fields';
+import {driverPreviewText} from '../fixtures/driverPreviewText.js';
 import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
 import {readPassiveRadiatorTab} from '../fixtures/passiveRadiatorScreen.js';
 
@@ -16,8 +17,8 @@ import {readPassiveRadiatorTab} from '../fixtures/passiveRadiatorScreen.js';
  * E150HE-44 driver and the E150HE-PR radiator that is its partner.
  *
  * Every step is checked on arrival (the heading, the footer buttons and which of them work) and every figure the
- * step shows is checked against the catalogue record it came from. The expected figures are read from the record
- * file and formatted by the same design formatter (`NumberField.format`) the screen uses; nothing is typed in.
+ * step shows is checked against the catalogue record it came from. The preview caps the stored figures at four
+ * significant figures. The editable boxes use their field format, and nothing is typed in.
  * The checks on figures are soft, so one run lists every wrong figure instead of stopping at the first.
  */
 
@@ -349,7 +350,7 @@ async function walk(page: Page, skin: Skin): Promise<void> {
   expect.soft([...rowLabels.slice(0, heldLabels.length)].sort(), 'preview shows every field the record holds').toEqual([...heldLabels].sort());
   for (const f of drawn) {
     const specRow = preview.locator('.spec-row', {has: root.page().locator('.spec-lbl', {hasText: new RegExp(`^${f.label}$`)})});
-    await expect.soft(specRow.locator('.spec-val b'), `preview ${f.label}`).toHaveText(f.field.format(required(driver, f.key)));
+    await expect.soft(specRow.locator('.spec-val b'), `preview ${f.label}`).toHaveText(driverPreviewText(f.field, required(driver, f.key)));
     await expect.soft(specRow.locator('.spec-unit'), `preview ${f.label} unit`).toHaveText(f.field.unitLabel());
   }
   const typeSpec = preview.locator('.spec-row', {has: root.page().locator('.spec-lbl', {hasText: /^Type$/})});
