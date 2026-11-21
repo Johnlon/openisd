@@ -94,6 +94,10 @@ function allOff(p: SweepParams): SweepParams {
     vcTempRise: 0, alfaVC: 0, driverAddedMass: 0, filters: []};
 }
 
+/** `winisdIsobarik: true`: the pair is WinISD's (T942's "WinISD's Iso-Barik numbers"; the project default is the physical pair,
+ *  whose coil wiring follows the array's `driverWiring`, so R2's one-pair reference and its series array would not be the same
+ *  pair). The physical pair is not covered here: R4 and R2 for it wait for John (tasks/T939.yml notes). */
+
 /** A combination: which switches are on, and the circuit model. */
 interface Row { readonly name: string; readonly on: ReadonlySet<SwitchName>; readonly circuitModel: CircuitModel }
 
@@ -108,7 +112,7 @@ interface Setup { readonly driver: SweepDriver; readonly Le_H: number | undefine
 
 function setupOf(job: SweepJob, row: Row): Setup {
   let P: SweepParams = allOff({...job.sweep, air: new FixedAir(job.air), eg: DRIVE_V, nDrivers: 1, loading: 'standard',
-    driverWiring: 'parallel', circuitModel: row.circuitModel});
+    driverWiring: 'parallel', circuitModel: row.circuitModel, winisdIsobarik: true});
   for (const s of row.on) if (s !== 'twoBlDriver') P = SWITCHES[s](P);
   const driver: SweepDriver = row.on.has('twoBlDriver') ? job.driver : {...job.driver, winisdBL_Tm: null};
   return {driver, Le_H: job.Le_H, box: job.box, P};
@@ -326,10 +330,9 @@ const ISOBARIK_TWO_BL = 'BUG_20261120_isobarik-pair-with-two-bl-driver-6db-below
 const PR_LOSSES = 'BUG_20261120_passive-radiator-box-losses-not-scaled-with-radiator-count';
 
 function faultsOf(c: Case): readonly string[] {
-  const twoBl = c.row.on.has('twoBlDriver');
   const prLosses = c.box.wpr.startsWith('pr-') && !c.row.on.has('winisdPrNprResonance');
   if (c.rule !== 'R4 Iso-Barik pair') return [];
-  const pairFault = c.group === 'response' && twoBl ? [ISOBARIK_TWO_BL] : [];
+  const pairFault = c.group === 'response' ? [ISOBARIK_TWO_BL] : [];
   return [...pairFault, ...(prLosses ? [PR_LOSSES] : [])];
 }
 

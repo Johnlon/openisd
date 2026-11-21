@@ -39,26 +39,20 @@ notes: |
   A rule that fails on main is not loosened or skipped: it is written as the right expectation under it.fails naming a bug
   file in bugs/.
 
-  Run on main (portingle/main b96d95959 merged in), 20 Nov 2026: 4789 cases, 3028 pass, 1761 fail and run as it.fails naming
-  their bug file; R3 and R9 hold everywhere, R1 and R2 hold for everything but the array's pressure and Xmax-limited SPL.
-  - BUG_20261120_array-pressure-and-xmax-limited-spl-not-scaled-by-driver-count: R1 and R2, every box, 1368 cases (review finding 3).
-  - BUG_20261120_isobarik-impedance-motional-term-doubled: R4 impedance with "Two-BL driver" unticked, every box.
-  - BUG_20261120_isobarik-pair-with-two-bl-driver-6db-below-one-driver: R4 with "Two-BL driver" ticked (may be WinISD's own result
-    behind the bug switch: John's call; not exempted).
+  Run on main (T942 Iso-Barik wiring, T943 NaN guard merged), 21 Nov 2026: 4789 cases, 4396 pass, 393 it.fails, 0 red, 0 unexpectedly passed.
+  R1, R2, R3 and R9 hold everywhere (R1 and R2 for the array's pressure and Xmax-limited SPL since T928). The sweep job the
+  test builds pins `winisdIsobarik: true` (WinISD's numbers): the project default, the physical pair, wires its coils as the
+  array is wired, so R2's one-pair reference and series array are not the same pair and R4's -3.01 dB is not its result either
+  (parallel 0 dB, series -6.02 dB, WinISD numbers -6.02 dB); the physical pair is not covered until John rules on R4.
+  - BUG_20261120_isobarik-pair-with-two-bl-driver-6db-below-one-driver: R4 response part, every combination of every box (342
+    it.fails): the pair is 6.02 dB below one driver, not R4's 3.01 dB. R4's value is John's call; not changed.
   - BUG_20261120_passive-radiator-box-losses-not-scaled-with-radiator-count: R4 on the passive-radiator box with "PR Npr
-    resonance" unticked.
+    resonance" unticked (its 54 response cases are among the 342; 51 more are the impedance part).
+  - BUG_20261120_array-pressure-and-xmax-limited-spl-not-scaled-by-driver-count and BUG_20261120_isobarik-impedance-motional-term-doubled:
+    fixed by T928; their cases are plain tests.
   Corrections made to the rules while building, before any rule was judged (none loosens a tolerance): group delay and impedance
   phase are plotted in ms and degrees, so their 1e-9 s and 1e-9 rad bounds are applied in those units; the drive is 20 V, not 10,
   so the sealed box also passes Xmax (the R3 non-vacuity check); R4 checks radiator excursion x sqrt 2 and leaves out the
   passive-radiator box's `pv`, which is no chart (SweepResult.pv: none for a box without a port).
   Mutation check: VA x N changed to x 1.0001 N in the driver-count branch turned 1368 cases red.
   Gate-file change approved: QO961 (John, 20 Nov 2026 00:52, recorded by the lead).
-  Re-run after main with T928 (Iso-Barik push BL from one driver; driver-count gain on Xmax-limited SPL and H) and T929 was
-  merged, 20 Nov 2026 01:35 UTC: 4789 cases, 4396 pass, 135 it.fails, 258 red.
-  - BUG_20261120_array-pressure-and-xmax-limited-spl-not-scaled-by-driver-count: fixed by T928; its 1368 cases are plain tests.
-  - BUG_20261120_isobarik-impedance-motional-term-doubled: fixed by T928; its cases are plain tests (the passive-radiator ones
-    still fail under the radiator-losses bug alone).
-  - BUG_20261120_isobarik-pair-with-two-bl-driver-6db-below-one-driver: 36 it.fails, unchanged; T928 made the unticked default
-    do the same, so 258 R4 response cases with the switch unticked are red. WinISD's own captures put the pair 6.03 dB below
-    one driver at 2 kHz: R4's -3.01 dB is waiting for John's decision, not changed by an agent.
-  - BUG_20261120_passive-radiator-box-losses-not-scaled-with-radiator-count: 102 it.fails, unchanged.
