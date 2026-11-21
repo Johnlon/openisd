@@ -712,6 +712,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg,
   } = createVentReadouts({ project, projectChanged, selectedBox, vent: engine.vent });
 
+
   // ---- Box losses (real: Ql/Qa/Qp) + docked/modal editors ------------------------
   const optionsOpen = computed<boolean>({
     get: () => presentationState.optionsOpen,

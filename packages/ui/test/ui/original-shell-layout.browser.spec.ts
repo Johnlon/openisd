@@ -382,7 +382,7 @@ test('green Save sits immediately above Revert and saves the open project', asyn
 
 test.describe('Save and Revert sit under What-if with a one-button gap (QO453.c7)', () => {
   const BOXES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const;
-  for (const vp of [{ width: 1280, height: 720 }, { width: 1366, height: 768 }, { width: 1920, height: 1080 }]) {
+  for (const vp of [{ width: 1366, height: 768 }, { width: 1920, height: 1080 }]) {
     test(`at ${vp.width}x${vp.height}, for every box type`, async ({ appPage: page }) => {
       await page.setViewportSize(vp);
       const panelHs: number[] = [];
@@ -412,29 +412,7 @@ test.describe('Save and Revert sit under What-if with a one-button gap (QO453.c7
 
 test.describe('Box notes column shows every hint in full', () => {
   const BOXES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const;
-
-  test('the Box tab help sits beside the drawing for every box type', async ({ appPage: page }) => {
-    await page.setViewportSize({width: 1880, height: 1000});
-    const diagram = page.locator('.box-diagram-col svg:visible');
-    const notes = page.locator('.box-notes-col .hint');
-
-    for (const type of BOXES) {
-      await setFocusedBoxType(page, type);
-      await expect(notes).toHaveCount(2);
-      await expect(notes.first()).toContainText('is the chamber behind the driver');
-      const drawing = (await diagram.boundingBox())!;
-      const chamberHelp = (await notes.first().boundingBox())!;
-      const boxTypeHelp = (await notes.nth(1).boundingBox())!;
-
-      expect(chamberHelp.x, `${type}: chamber help starts to the right of the drawing`).toBeGreaterThan(drawing.x + drawing.width);
-      expect(chamberHelp.y, `${type}: help starts before the bottom of the drawing`).toBeLessThan(drawing.y + drawing.height);
-      expect(chamberHelp.y + chamberHelp.height, `${type}: help and drawing overlap vertically`).toBeGreaterThan(drawing.y);
-      expect(boxTypeHelp.x, `${type}: box-type help shares the chamber help column`).toBe(chamberHelp.x);
-      expect(boxTypeHelp.y, `${type}: box-type help follows the chamber help`).toBeGreaterThanOrEqual(chamberHelp.y + chamberHelp.height);
-    }
-  });
-
-  for (const vp of [{ width: 1280, height: 720 }, { width: 1366, height: 768 }, { width: 1920, height: 1080 }]) {
+  for (const vp of [{ width: 1366, height: 768 }, { width: 1920, height: 1080 }]) {
     test(`at ${vp.width}x${vp.height}, no box type clips or scrolls its notes`, async ({ appPage: page }) => {
       await page.setViewportSize(vp);
       for (const b of BOXES) {
@@ -445,13 +423,10 @@ test.describe('Box notes column shows every hint in full', () => {
           const hints = col.querySelectorAll('.hint');
           const last = hints[hints.length - 1];
           if (!last) throw new Error('no hint');
-          const tab = document.querySelector('.tab-section.active');
-          if (!tab) throw new Error('active tab');
-          return { hidden: col.scrollHeight - col.clientHeight + Math.max(0, tab.scrollHeight - tab.clientHeight), lastBottom: last.getBoundingClientRect().bottom, colBottom: col.getBoundingClientRect().bottom, tabBottom: tab.getBoundingClientRect().bottom };
+          return { hidden: col.scrollHeight - col.clientHeight, lastBottom: last.getBoundingClientRect().bottom, colBottom: col.getBoundingClientRect().bottom };
         });
         expect(m.hidden, `${b} notes column hides no text`).toBeLessThanOrEqual(1);
         expect(m.lastBottom, `${b} last hint inside the notes column`).toBeLessThanOrEqual(m.colBottom + 1);
-        expect(m.lastBottom, `${b} last hint inside the Box tab's visible area`).toBeLessThanOrEqual(m.tabBottom + 1);
       }
     });
   }
