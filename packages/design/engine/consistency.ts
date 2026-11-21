@@ -1,6 +1,7 @@
 import {decimal, pct, plainNames, relativeGap} from './issueText.js';
 import type {MaxCurvesResult, SweepResult, Wiring} from './types.js';
 import type {VentedPlausibilityIssue} from './plausibility.js';
+import type {NonFiniteResultIssue} from '../calculatedResult.js';
 
 /** One route to a derivable quantity: the formula, everything it needs, and whatever of that
  *  is still absent. `missing` is empty exactly when the route is usable. */
@@ -16,6 +17,7 @@ export interface SolveRoute<Q extends string> {
  * contradicts what the OTHER entered values imply for it, or a result drawn from a fallback.
  */
 export type CalculationIssue<Q extends string> =
+  | NonFiniteResultIssue<Q>
   | {
       readonly kind: 'missing-dependencies';
       readonly target: Q;
