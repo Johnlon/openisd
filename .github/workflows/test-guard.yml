@@ -1,0 +1,48 @@
+name: test-guard
+
+# No agent may weaken a test (John, 21 Nov 2026: "wtf would a worker weaken tests under any circumstances - that is
+# forbidden"). Runs the same guard as the local commit/push gate on every pull request, so --no-verify or a broken
+# hook path cannot get round it: a deleted test file, a removed test, a new skip/only/fixme/expected-fail, or a
+# removed or changed expect/assert line fails this check unless a commit-message trailer names a real ruling of John's
+# (Test-change-ruling: <QO/QT/QP/QD id>, Test-change-old: <name>, Test-change-new: <name or removed>).
+# The guard and the decision record live in the private workspace repo Johnlon/openisd_monorepo (_agent_files/bin/test_guard.sh,
+# questions.yml); the secret MONOREPO_READ_TOKEN (a read-only token for that repo) fetches them. Without the secret
+# the job FAILS: a guard that cannot run never passes. Mark `test-guard` a required check on main.
+on:
+  pull_request:
+    branches: [main]
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  test-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MONOREPO_READ_TOKEN: ${{ secrets.MONOREPO_READ_TOKEN }}
+      BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+    steps:
+      - name: The guard needs its token
+        run: |
+          [ -n "$MONOREPO_READ_TOKEN" ] || { echo "::error::secret MONOREPO_READ_TOKEN is not set: the test guard cannot run, so this check fails (it never passes unchecked)"; exit 1; }
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+      - uses: actions/checkout@v4
+        with:
+          repository: Johnlon/openisd_monorepo
+          token: ${{ secrets.MONOREPO_READ_TOKEN }}
+          path: _monorepo
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install the decision-record reader's dependency
+        run: python -m pip install pyyaml
+      - name: Test guard
+        run: |
+          GUARD_RECORD_ROOT="$PWD/_monorepo" GUARD_PYTHON="$(command -v python)" \
+            bash _monorepo/_agent_files/bin/test_guard.sh "$PWD" "$BASE_SHA" "$HEAD_SHA"
