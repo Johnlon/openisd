@@ -4,8 +4,6 @@
  * `test/goldens/<case>` holds a full store dump as an app of each layout writes it
  * (`dump-layout-<K>.json`), and `expected.json`, what the current app yields from the case. A dump
  * is never edited once written: a later layout adds a file.
- * John's 20 Nov 2026 13:36 UTC ruling, "D: new calculation + note", updates the
- * layout-6 expected calculated Qtc for older saves from 0.710177… to 0.819343….
  *
  * The bump detector reads the goldens against STORAGE_LAYOUT. It decides the bump, not the author:
  *   - the loaders write a case's newest dump back differently  -> bump STORAGE_LAYOUT, add dumps;
@@ -47,6 +45,14 @@ const dumpAt = (c: StoreCase, layout: number): Dump => {
   assert.ok(dump !== undefined, `case ${c.name} has no dump for layout ${layout}`);
   return dump;
 };
+/** John's older-save ruling (20 Nov 2026, "D: new calculation + note") changes the calculated
+ * sealed Qtc when these projects are read and written by today's code. The fixture stays as recorded.
+ * Change only that expected value so the comparisons still check the rest of the saved bytes. */
+const withCurrentSealedQtc = (text: string): string => text.replaceAll('0.7101774159567577', '0.8193428312756991');
+const expectedLayoutSixWrite = (dump: Dump): Dump => Object.fromEntries(
+  Object.entries(dump).map(([key, text]) => [key, withCurrentSealedQtc(text)]),
+);
+
 /** QO414 (John, 4 Nov 2026): data-quality marks are derived, never stored, and an old dump that holds
  *  them still loads. The fixed-point check leaves `dq_calculated` and `dq_scraper` out of BOTH sides:
  *  the loaders no longer write them, which is not a layout change and needs no bump. */
@@ -95,7 +101,9 @@ for (const c of cases) {
       const settled = (data: Dump, layout: number): Dump => withoutDataSourceLinks(migrator.migrate(withoutLayoutKey(data), layout) ?? {});
       const migrated = migrator.migrate(oldest, born(c), (layout, data) => {
         reached.push(layout);
-        assert.deepEqual(sorted(settled(data, layout)), sorted(settled(dumpAt(c, layout), layout)), `layout ${layout}`);
+        const recorded = dumpAt(c, layout);
+        const expected = layout === 6 ? expectedLayoutSixWrite(recorded) : recorded;
+        assert.deepEqual(sorted(settled(data, layout)), sorted(settled(expected, layout)), `layout ${layout}`);
       });
       assert.ok(migrated !== null);
       assert.deepEqual(reached, Array.from({length: STORAGE_LAYOUT - born(c)}, (_, i) => born(c) + 1 + i));
@@ -105,7 +113,7 @@ for (const c of cases) {
       const raw = createMemoryStorage({...oldest});
       const opening = ready(raw);
 
-      assert.deepEqual(sorted(dumpOf(raw)), sorted(dumpAt(c, STORAGE_LAYOUT)));
+      assert.deepEqual(sorted(dumpOf(raw)), sorted(expectedLayoutSixWrite(dumpAt(c, STORAGE_LAYOUT))));
       assert.deepEqual(JSON.parse(JSON.stringify(summaryOf(opening.storage))), JSON.parse(goldenText(c.name, 'expected.json')));
 
       const backups = raw.keys().filter(k => k.startsWith(OPENISD_BACKUP_PREFIX));
@@ -137,10 +145,11 @@ for (const c of cases) {
       assert.deepEqual(writes.filter(k => k !== 'openisd_storage_log'), [], 'only the start-up log may be written');
     });
 
-    it('a dump at the current layout is a fixed point: load then write back reproduces it byte for byte', () => {
+    it('a current-layout dump writes back byte for byte with the current calculated Qtc', () => {
       const raw = createMemoryStorage({...dumpAt(c, STORAGE_LAYOUT)});
       writeBack(raw);
-      assert.deepEqual(sorted(withoutDerivedMarks(dumpOf(raw))), sorted(withoutDerivedMarks(dumpAt(c, STORAGE_LAYOUT))),
+      const expected = expectedLayoutSixWrite(dumpAt(c, STORAGE_LAYOUT));
+      assert.deepEqual(sorted(withoutDerivedMarks(dumpOf(raw))), sorted(withoutDerivedMarks(expected)),
         `${c.name}: the loaders now write layout ${STORAGE_LAYOUT} differently. Layout changed: bump STORAGE_LAYOUT, add a migration step and dump-layout-${STORAGE_LAYOUT + 1}.json for every case.`);
     });
   });
@@ -194,7 +203,7 @@ describe('case backup-file: an older backup file restores into the current app',
       assert.equal(repo.importAll(file, {replaceEverything: true}).kind, 'ok');
       assert.deepEqual(JSON.parse(JSON.stringify(summaryOf(opening.storage))), expected);
       // Layouts 3 and 4 wrote a project's embedded driver without its links (see `withoutLinks`): compare without them.
-      assert.equal(String(withoutLinks(repo.exportAll())), String(withoutLinks(file6)));
+      assert.equal(String(withoutLinks(repo.exportAll())), String(withoutLinks(withCurrentSealedQtc(file6))));
     });
   }
 

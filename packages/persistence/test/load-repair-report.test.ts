@@ -84,8 +84,8 @@ describe('a drive level repaired on opening a stored project is reported for the
 });
 
 describe('projects saved before Chart from Fs, Vas, Qms', () => {
-  function oldAlphaText(): string {
-    const dump: unknown = JSON.parse(goldenText('one-project', 'dump-layout-5.json'));
+  function oldAlphaText(layout: number): string {
+    const dump: unknown = JSON.parse(goldenText('one-project', `dump-layout-${layout}.json`));
     if (typeof dump !== 'object' || dump === null || !('openisd_state' in dump) || typeof dump.openisd_state !== 'string') {
       throw new Error('expected the old Alpha project');
     }
@@ -93,7 +93,7 @@ describe('projects saved before Chart from Fs, Vas, Qms', () => {
   }
 
   function alphaFromOldSave(): OpenISDProject {
-    const project = OpenISDProject.fromOwprText(oldAlphaText(), engine);
+    const project = OpenISDProject.fromOwprText(oldAlphaText(5), engine);
     if (Array.isArray(project)) throw new Error(project.join('; '));
     return project;
   }
@@ -107,13 +107,15 @@ describe('projects saved before Chart from Fs, Vas, Qms', () => {
     return opened;
   }
 
-  it('opens Alpha with the typed parts and tells the user which readouts moved', () => {
+  it.each([5, 6])('opens layout-%i Alpha with the typed parts and tells the user which readouts moved', (layout) => {
     const told = vi.fn<(report: LoadRepairReport) => void>();
-    const opened = openSavedAlpha(oldAlphaText(), told);
+    const recorded = oldAlphaText(layout);
+    expect(recorded).toContain('0.7101774159567577');
+    const opened = openSavedAlpha(recorded, told);
 
     expect(opened.winisdChartFromFsVasQms.value).toBe(false);
     expect(opened.box.sealed.resonance_hz.value).toBeCloseTo(73.54, 2);
-    expect(opened.box.sealed.q_tc.value).toBeCloseTo(0.819, 3);
+    expect(opened.box.sealed.q_tc.value).toBe(0.8193428312756991);
     expect(told).toHaveBeenCalledExactlyOnceWith({projectName: 'Alpha', lines: [
       'Calculated with your typed Mms, Cms and Rms: box resonance 67.5 -> 73.5 Hz, Qtc 0.71 -> 0.82',
     ]});

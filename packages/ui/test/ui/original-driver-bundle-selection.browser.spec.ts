@@ -60,11 +60,6 @@ function entryValue(value: unknown): unknown {
   return isRecord(value) ? value.value : undefined;
 }
 
-/** The mechanical figures a project's box may show as calculated while the datasheet states them. */
-const CHART_FIGURE_KEYS = new Set<string>(['Cms_m_per_N', 'Mms_kg', 'Rms_kg_per_s']);
-
-// T744 goal 4: the saved record keeps every datasheet entry as stated, state and value. What a box shows may be another
-// (calculated) figure; that is read off the screen, never off the record.
 function expectedState(source: SpecEntry): string {
   return source.state;
 }
@@ -315,14 +310,18 @@ test.describe('Original driver bundle selection', () => {
       const missingUiFields = uiSpecKeys.filter(key => !(key in renderedValues));
       const wrongUiValues = uiSpecKeys.filter(key =>
         renderedValues[key]?.value !== visibleNumber(editorSpecs[key], NumberField.named(key), renderedValues[key]?.unit ?? ''));
-      // T744: a stated Cms, Mms or Rms the charts do not use shows as the calculated figure the charts use (the record keeps the stated one, checked above).
-      const wrongUiStates = uiSpecKeys.filter(key => renderedValues[key]?.state !== source.specs.woofer[key]?.state
-        && !(CHART_FIGURE_KEYS.has(key) && source.specs.woofer[key]?.state === 'E' && renderedValues[key]?.state === 'C'));
+      const wrongUiStates = uiSpecKeys.filter(key => renderedValues[key]?.state !== source.specs.woofer[key]?.state);
       expect(missingUiFields, `${model} editor does not expose every bundled parameter`).toEqual([]);
       expect(wrongUiStates.map(key => ({key, rendered: renderedValues[key]?.state, bundled: source.specs.woofer[key]?.state})),
         `${model} editor changed a bundled field's Entered/Calculated/Not available state`).toEqual([]);
       expect(wrongUiValues.map(key => ({key, rendered: renderedValues[key], editor: editorSpecs[key], formatted: visibleNumber(editorSpecs[key], NumberField.named(key), renderedValues[key]?.unit ?? '')})),
         `${model} editor values do not match the detached editor driver's resolved data`).toEqual([]);
+      const wrongEnteredValues = uiSpecKeys.filter(key => {
+        const bundled = source.specs.woofer[key];
+        return bundled?.state === 'E'
+          && renderedValues[key]?.value !== visibleNumber(bundled, NumberField.named(key), renderedValues[key]?.unit ?? '');
+      });
+      expect(wrongEnteredValues, `${model} editor values do not match the bundled entered figures`).toEqual([]);
     });
   }
 
@@ -355,19 +354,21 @@ test.describe('Original driver bundle selection', () => {
         ['Vas_m3', '#og-pr-vas', NumberField.PR_VAS_L],
         ['Sd_m2', 'label.ui-field-label:text-is("Sd") ~ .ui-field-value input', NumberField.PR_SD_CM2],
         ['Mms_kg', '#og-pr-mms', NumberField.MMS_KG], ['Cms_m_per_N', '#og-pr-cms', NumberField.CMS_M_PER_N],
+        ['Rms_kg_per_s', '#og-pr-rms', NumberField.RMS_KG_PER_S],
         ['Xmax_m', 'label.ui-field-label:text-is("Xmax") ~ .ui-field-value input', NumberField.PR_XMAX_MM],
       ] as const;
       const shown = await Promise.all(displayedFields.map(async ([key, selector, field]) => ({
         key,
         value: await page.locator(selector).inputValue(),
-        calculated: await page.locator(selector).evaluate(element => element.classList.contains('value-c')),
+        state: await page.locator(selector).evaluate(element =>
+          ['E', 'C', 'N'].find(state => element.classList.contains(`value-${state.toLowerCase()}`))),
         unit: await page.locator(selector).evaluate(element =>
           element.closest('.field')?.querySelector('.unit-label')?.textContent?.trim() ?? ''),
         field,
       })));
-      // T744: a stated Cms or Mms the charts do not use shows as the calculated figure the charts use; the record (checked above) keeps the stated one.
-      const wrongDisplayedValues = shown.filter(item => item.value !== visibleNumber(actual[item.key], item.field, item.unit)
-        && !(CHART_FIGURE_KEYS.has(item.key) && item.calculated && item.value !== '')).map(item => item.key);
+      const wrongDisplayedStates = shown.filter(item => item.state !== entryState(actual[item.key])).map(item => item.key);
+      expect(wrongDisplayedStates, `${model} page states do not match the embedded project data`).toEqual([]);
+      const wrongDisplayedValues = shown.filter(item => item.value !== visibleNumber(actual[item.key], item.field, item.unit)).map(item => item.key);
       expect(wrongDisplayedValues, `${model} page values do not match the embedded project data`).toEqual([]);
     });
   }

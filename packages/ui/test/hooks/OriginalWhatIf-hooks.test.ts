@@ -1,4 +1,4 @@
-import {describe, expect, it, beforeEach} from 'vitest';
+import {assert, describe, expect, it, beforeEach} from 'vitest';
 import {computed, defineComponent, effectScope, h, provide} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {createEngine} from '@openisd/design/engine';
@@ -172,11 +172,14 @@ describe('OriginalWhatIf-hooks', () => {
     expect(typeof api.dqNote('Fs_hz')).toBe('string');
   });
 
-  it('Mms is calculated by default; a typed Mms is kept and moves Fs, Vas stays (T744, QO535); clearing it leaves it not entered', async () => {
+  it('keeps a typed Mms, moves Fs, and calculates Mms again when cleared', async () => {
     const api = await renderHook();
-    expect(api.specField('Mms_kg').calculated).toBe(true);
-    const calculatedMms = api.specField('Mms_kg').value!;
-    const fs = api.specField('Fs_hz').value!;
+    const initialMms = api.specField('Mms_kg');
+    expect(initialMms.calculated).toBe(true);
+    const calculatedMms = initialMms.value;
+    const fs = api.specField('Fs_hz').value;
+    assert.isNotNull(calculatedMms);
+    assert.isNotNull(fs);
 
     api.enterField('Mms_kg', calculatedMms * 4);
     const entered = api.specField('Mms_kg');
@@ -186,8 +189,9 @@ describe('OriginalWhatIf-hooks', () => {
     expect(api.specField('Vas_m3').value).toBe(0.03);
 
     api.clearField('Mms_kg');
-    expect(api.specField('Mms_kg').entered).toBe(false);
-    expect(calculatedMms).not.toBeNull();
+    const cleared = api.specField('Mms_kg');
+    expect(cleared.calculated).toBe(true);
+    expect(cleared.value).not.toBeNull();
   });
 
   it('BL_Tm becomes entered when set directly', async () => {
