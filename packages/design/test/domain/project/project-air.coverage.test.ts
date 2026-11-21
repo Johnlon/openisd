@@ -14,7 +14,7 @@ function over(initial: OpenISDEnvironmentJson = {}, issues: readonly AirIssue[] 
 
 const conflict: AirIssue = {
   kind: 'inconsistent-inputs', target: 'rho', fields: ['tempK', 'pressurePa', 'rho'],
-  formula: 'f', expected: 1, actual: 2, relative: 1, text: 'conflict',
+  formula: 'f', expected: 1, actual: 2, relative: 1, gap: '50.0%', text: 'conflict',
 };
 
 describe('airOf', () => {

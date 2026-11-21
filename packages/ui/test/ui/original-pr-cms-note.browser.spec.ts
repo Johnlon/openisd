@@ -40,8 +40,8 @@ test('P173 keeps its stated Cms; a typed Vas that disagrees marks Vas and Cms in
   const note = cms.locator('.ui-field-note');
   await expect(note).toBeVisible();
   const text = (await note.textContent()) ?? '';
-  expect(text).toMatch(/Vas.*Cms.* disagree: .+ gives .+, the box says /);
-  expect(text).not.toContain('disagree by');
+  expect(text).toMatch(/Vas.*Cms.* disagree by [0-9.]+%: .+ gives .+, the box says /);
+  expect(text).not.toMatch(/0\.0%/);
   expect(text).not.toMatch(/roo_kg_per|c_m_per_s|_kg_|_m3|_m2/);
   await expect(page.locator('.ui-field', {has: vas}).locator('.ui-field-dq-btn')).toHaveCount(1);
 

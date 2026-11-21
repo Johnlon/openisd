@@ -121,10 +121,11 @@ describe('DqIssue text', () => {
       const bl = driver.dataQualityWarnings().find(w => w.field === 'BL_Tm');
       // The displayed values, 26.74834 Tm and 24.70 Tm, are 7.7% apart.
       expect(bl?.level).toBe('warn');
-      expect(bl?.message).toMatch(/^BL, Re, Fs, Qes and Cms disagree:/);
+      expect(bl?.message).toMatch(/^BL, Re, Fs, Qes and Cms disagree by 7.7%:/);
       expect(bl?.message).toContain('gives BL 26.74834 Tm, the box says 24.70 Tm');
       expect(bl?.message).toContain('Correct one of them, or clear one to let it be calculated.');
       expect(bl?.message).not.toMatch(/0\.0%/);
+      expect(bl?.message).toContain('disagree by 7.7%');
     });
   });
 });

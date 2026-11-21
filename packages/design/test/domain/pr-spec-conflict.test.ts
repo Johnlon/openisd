@@ -41,6 +41,17 @@ describe('radiator figure conflicts reach the fields', () => {
     expect(marked(spec.Qms)).toBe(false);
   });
 
+  it('typing a 50% increase in Mms marks Mms, Fs and Cms while leaving Qms unmarked', () => {
+    const spec = prProject(createEngine(), four).box.passiveRadiator.radiator.spec;
+    const originalMms = spec.Mms_kg.value;
+    if (originalMms === null) throw new Error('Expected a calculated Mms before typing');
+
+    spec.Mms_kg.set(originalMms * 1.5);
+
+    expect([spec.Mms_kg, spec.Fs_hz, spec.Cms_m_per_N].map(marked)).toEqual([true, true, true]);
+    expect(marked(spec.Qms)).toBe(false);
+  });
+
   it('clearing a typed Mms removes all three conflict marks and restores calculated Mms', () => {
     const spec = prProject(createEngine(), four).box.passiveRadiator.radiator.spec;
     const originalMms = spec.Mms_kg.value;

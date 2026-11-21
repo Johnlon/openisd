@@ -27,6 +27,11 @@ describe('DriverEngine.circuitValues', () => {
     expect(v.BL_terminal_Tm).toBe(7.5);
   });
 
+  it('keeps the stated Cms when Vas is absent', () => {
+    const v = circuitOf({...STATED, Vas_m3: undefined});
+    expect(v.Cms_m_per_N).toBe(0.009);
+  });
+
   it('with only Qts, takes Qes = Qms = 2·Qts', () => {
     const v = circuitOf({...STATED, Qes: undefined, Qms: undefined, Qts: 0.4});
     expect(v.Qes).toBeCloseTo(0.8, 12);
