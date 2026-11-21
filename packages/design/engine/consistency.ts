@@ -265,8 +265,9 @@ export function targetUnreachable(target: string, maxReachable_hz: number): Targ
 export function invalidValue(value: number): InvalidValueIssue {
   return {
     kind: 'invalid-value', value,
-    text: 'Bad data: zero or less is not a physical value here. It is kept and saved exactly as '
-      + 'entered - clear the field to fix it.',
+    text: Number.isFinite(value)
+      ? 'Bad data: zero or less is not a physical value here. It is kept and saved exactly as entered - clear the field to fix it.'
+      : 'Bad data: this value is not finite. Clear the field to fix it.',
   };
 }
 

@@ -8,6 +8,7 @@
  *  so this file states no record shape of its own. */
 import {OpenISDDriver, ProjectBuilder} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
+import {stringifyWithOverflow} from '@openisd/design/json';
 
 /** A pre-session payload: the driver as a record OBJECT beside flat project meta, with no
  *  `{label, saved, edited}` wrapper. Written by builds before the session wrapper landed. */
@@ -62,7 +63,7 @@ export function createProjectSchemaUpgrade(engine: Engine): ProjectSchemaUpgrade
   return { projectPayload, sharePayload };
 
   function projectPayload(parsed: unknown): string | string[] {
-  if (!isV1(parsed)) return JSON.stringify(parsed);
+  if (!isV1(parsed)) return stringifyWithOverflow(parsed, {});
 
   const driver = OpenISDDriver.fromConformingRecord(parsed.driver, engine);
   if (Array.isArray(driver)) {

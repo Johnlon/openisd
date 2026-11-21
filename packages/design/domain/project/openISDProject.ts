@@ -15,6 +15,7 @@ import { OpenISDBox } from '../box/openISDBox.js';
 import { OpenISDDriver } from '../driver/openISDDriver.js';
 import { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 import type { DiscardChallenge } from './discardChallenge.js';
+import { stringifyWithOverflow } from '../../json/stringifyWithOverflow.js';
 import type { DragRange } from './dragRange.js';
 import { errorSwitchStatesOf } from './errorSwitches.js';
 import type { ErrorSwitchStates } from './errorSwitches.js';
@@ -607,9 +608,9 @@ export class OpenISDProject {
         }
         if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return null;
         const rest = Object.fromEntries(Object.entries(parsed).filter(([key]) => key !== 'id'));
-        const project = OpenISDProject.fromOwprText(JSON.stringify({id, ...rest}), engine);
+        const project = OpenISDProject.fromOwprText(stringifyWithOverflow({id, ...rest}, {}), engine);
         // A text the strict read refuses (a field to repair) still keeps its content; only the id is added.
-        if (Array.isArray(project)) return /^\{\r?\n/.test(text) ? JSON.stringify({id, ...rest}, null, 2) : JSON.stringify({id, ...rest});
+        if (Array.isArray(project)) return stringifyWithOverflow({id, ...rest}, {indent: /^\{\r?\n/.test(text) ? 2 : undefined});
         return /^\{\r?\n/.test(text) ? project.toOwprText() : project.toStoredText();
     }
 
@@ -798,7 +799,7 @@ export class OpenISDProject {
         if (!this.#edited) return false;
         const {charts: _editedCharts, ...editedRest} = this.#edited;
         const {charts: _savedCharts, ...savedRest} = this.#saved;
-        return JSON.stringify(editedRest) !== JSON.stringify(savedRest);
+        return stringifyWithOverflow(editedRest, {}) !== stringifyWithOverflow(savedRest, {});
     }
 
     // ── THE SIGNAL ────────────────────────────────────────────────────────────────────────────
@@ -1094,7 +1095,7 @@ export class OpenISDProject {
      *  when one is open but untouched. */
     hasWhatIfChanges(): boolean {
         const whatIf = this.#whatif;
-        return whatIf !== null && JSON.stringify(whatIf) !== JSON.stringify(this.#committed());
+        return whatIf !== null && stringifyWithOverflow(whatIf, {}) !== stringifyWithOverflow(this.#committed(), {});
     }
 
     /** Keep the What-if layer: its values become ordinary unsaved edits of the design and the

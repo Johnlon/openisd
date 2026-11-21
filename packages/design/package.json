@@ -33,6 +33,10 @@
       "types": "./ini/index.ts",
       "default": "./ini/index.ts"
     },
+    "./json": {
+      "types": "./json/stringifyWithOverflow.ts",
+      "default": "./json/stringifyWithOverflow.ts"
+    },
     "./cloud": {
       "types": "./cloud/index.ts",
       "default": "./cloud/index.ts"

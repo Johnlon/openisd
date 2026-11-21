@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {z} from 'zod';
 import {type AppContext, createEngine, OpenISDDriver, ProjectBuilder, realAppContext} from '@openisd/design';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
-import {COMPLETE_DRIVER_PROJECT_OWPR, FIXTURE_DATE, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, FIXTURE_DATE, OLD_BASKET_PROJECT_OWPR, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
 
 // Only the fields this fixture generator mutates directly; `fromConformingRecord` re-validates
 // the whole record against the real schema, so this schema stays loose (`z.looseObject`) rather
@@ -120,3 +120,14 @@ completeProject.save();
 const completeOwprText = completeProject.toOwprText();
 writeWhole(COMPLETE_DRIVER_PROJECT_OWPR, completeOwprText);
 console.log(`Generated ${COMPLETE_DRIVER_PROJECT_OWPR}`);
+
+const daytonRecord = readFileSync(join(__dirname, '../../public/drivers/dayton-audio/dsa115-8.json'), 'utf-8');
+const dayton = OpenISDDriver.fromConformingRecord(JSON.parse(daytonRecord), engine);
+if (Array.isArray(dayton)) throw new Error(`fixture driver is not conforming: ${dayton.join(', ')}`);
+const oldBasket = new ProjectBuilder(dayton, engine, fixtureContext(3)).sealed().volume_m3(0.003).build();
+const {saved, ...session} = oldBasket.cloneSession();
+const {driverEmbedding} = saved;
+const {device} = driverEmbedding;
+// Write the legacy 2.37 m basket into the fixture file by hand, as an old file stored it.
+const legacyDevice = {...device, specs: {...device.specs, woofer: {...device.specs.woofer, Basket_m: {state: 'E', value: 2.37744}}}};
+writeWhole(OLD_BASKET_PROJECT_OWPR, JSON.stringify({...session, saved: {...saved, driverEmbedding: {...driverEmbedding, device: legacyDevice}}}));

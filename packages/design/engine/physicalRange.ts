@@ -15,8 +15,8 @@
  */
 import {NumberField} from '../fields/field.js';
 import type {DriverSolverParams} from './solverTypes.js';
-import {outOfRange} from './consistency.js';
-import type {OutOfRangeIssue} from './consistency.js';
+import {outsideNormalBand, outOfRange} from './consistency.js';
+import type {NormalBandIssue, OutOfRangeIssue} from './consistency.js';
 
 /** Mirrors `solver.ts`'s own (private) `NumericDriverQuantityName`: every driver quantity this
  *  check can bound is a plain numeric `SolverField`. `wiring` is not a quantity; `numVC`
@@ -65,7 +65,7 @@ export function checkRange(params: DriverSolverParams): readonly OutOfRangeIssue
 }
 
 /**
- * Whether a single RAW value would sit inside `field`'s plausible band (D9 tier 1 —
+ * Whether a single RAW value is allowed to win reading selection (D9 tier 1 —
  * `crosscheck.py`'s "impossible reading" exclusion, ported to `domain/selectOrigin.ts` via
  * `Engine.isPhysicallyPlausible`, the only door this check has out of the engine).
  *
@@ -76,12 +76,17 @@ export function checkRange(params: DriverSolverParams): readonly OutOfRangeIssue
  * extraction this check exists to catch. A name the registry does not know is always plausible.
  */
 export function isPhysicallyPlausible(field: string, value: number): boolean {
+  if (field === NumberField.BASKET_M.value) {
+    const {min, max} = NumberField.BASKET_M.limits;
+    return value >= min && value <= max;
+  }
   return rangeIssue(field, value) === undefined;
 }
 
 /** The out-of-range issue a single RAW reading of `field` raises, with the limit it broke; nothing
- *  when it sits inside the band or the registry does not know the name. Same rules as
- *  `isPhysicallyPlausible`: `0` is not special. This is how a reading the projection drops as
+ *  when it sits inside the normal band or the registry does not know the name. For the basket,
+ *  readings inside the hard band may win selection even when they raise this warning.
+ *  This is how a reading the projection drops as
  *  impossible (QO/T018) still reaches the tools as a warning (BUG_20260823 range marks). */
 export function rangeIssue(field: string, value: number): OutOfRangeIssue | undefined {
   const spec = NumberField.named(field);
@@ -89,4 +94,14 @@ export function rangeIssue(field: string, value: number): OutOfRangeIssue | unde
   if (value < spec.plausible.min) return outOfRange(field, value, spec.plausible.min, 'below');
   if (value > spec.plausible.max) return outOfRange(field, value, spec.plausible.max, 'above');
   return undefined;
+}
+
+/** Basket dimensions get a live warning independent of the driver solve. */
+export function basketRangeWarning(value: number): NormalBandIssue<string> | null {
+  const field = NumberField.BASKET_M;
+  if (rangeIssue(field.value, value) === undefined) return null;
+  const {min, max} = field.plausible;
+  const unit = field.unitLabel();
+  return outsideNormalBand(field.value,
+    `Basket diameter ${field.format(value)} ${unit} is outside the normal range (${field.format(min)} to ${field.format(max)} ${unit}).`);
 }

@@ -289,7 +289,7 @@ export class OpenIsdDriverSpec {
          *  CURRENT value on every read so it shows up immediately on `.set()`, not only after
          *  the next `resolve()`. */
         const f =
-            (key: NumericDriverSpecFieldName):
+            (key: NumericDriverSpecFieldName, rangeIssue?: (value: number) => DqIssue | null | undefined):
                 Readable<number | null> &
                 Entered & Calculated &
                 Precise &
@@ -302,8 +302,10 @@ export class OpenIsdDriverSpec {
                     sectionSlot(key),
                     key,
                     dqFor(key),
-                    (v) => floorIssue(key, v, issues)
+                    v => floorIssue(key, v, issues) ?? rangeIssue?.(v) ?? null
                 );
+        // Descriptive dimensions need their own range check because the solver does not read them.
+        const descriptiveDimension = (key: NumericDriverSpecFieldName) => f(key, v => driver.rangeIssue(key, v));
 
         /** The wiring field — `entryField` in every respect but the value's type, which is a
          *  NAME rather than one of `DriverSpecsSection`'s numbers, so it cannot go through `f()`.
@@ -385,14 +387,14 @@ export class OpenIsdDriverSpec {
         this.freq_high_hz = f('freq_high_hz');
         this.power_peak_W = f('power_peak_W');
         this.weight_kg = f('weight_kg');
-        this.Thick_m = f('Thick_m');
+        this.Thick_m = descriptiveDimension('Thick_m');
         this.Depth_m = f('Depth_m');
         this.MagDepth_m = f('MagDepth_m');
         this.Magnet_m = f('Magnet_m');
-        this.Basket_m = f('Basket_m');
-        this.Outer_m = f('Outer_m');
-        this.OuterX_m = f('OuterX_m');
-        this.OuterY_m = f('OuterY_m');
+        this.Basket_m = f('Basket_m', v => driver.basketRangeWarning(v));
+        this.Outer_m = descriptiveDimension('Outer_m');
+        this.OuterX_m = descriptiveDimension('OuterX_m');
+        this.OuterY_m = descriptiveDimension('OuterY_m');
         this.DVol_m3 = f('DVol_m3');
     }
 

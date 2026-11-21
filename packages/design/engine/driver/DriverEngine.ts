@@ -26,7 +26,7 @@ import type {
 import {approximateCharts, missingDependencies, resultRefused} from '../consistency.js';
 import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue, WiringIssue} from '../consistency.js';
 import {geometryRefusal} from '../dvolRelation.js';
-import {checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
+import {basketRangeWarning, checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import {coilAlfaVC_per_K, convertWiring, hotRe, perCoilResistanceFactor} from '../solvers/driverQuantities.js';
 import type {WiringConversion, WiredMotor} from '../solvers/driverQuantities.js';
@@ -106,6 +106,13 @@ function writeDriverBack(field: SolverField, value: number | undefined, width: n
   if (value != null) field.setCalculated(value, undefined, width); else field.setNotAvailable();
 }
 
+/** A file can also carry an invalid dimension marked calculated. Keep it visible until cleared. */
+function writeDriverDimensionBack(field: SolverField, value: number | undefined, width: number | undefined): void {
+  const current = field.value;
+  if (current !== null && (!Number.isFinite(current) || current <= 0)) return;
+  writeDriverBack(field, value, width);
+}
+
 /** Efficiency Bandwidth Product, Fs / Qes (`efficiencyBandwidthProduct`). */
 const ebp = efficiencyBandwidthProduct;
 
@@ -170,11 +177,12 @@ export interface DriverEngine {
    *  else the project's; the project's only with `winisdProjectAlfaVC` (WinISD's sum). QO953.c16. The one place that
    *  chooses: the Box readout, the charts and the Signal tab's power all take it from here (`driveLoadOf`). */
   coilAlfaVC_per_K(driverAlfaVC_per_K: number | null, projectAlfaVC_per_K: number, winisdProjectAlfaVC: boolean): number;
-  /** Whether a single RAW value would sit inside `PHYSICAL_RANGE`'s band for `field` (D9
-   *  tier 1) — the domain's one door into that table. */
+  /** Whether a single raw reading can win selection for this field. */
   isPhysicallyPlausible(field: string, value: number): boolean;
   /** The out-of-range issue one RAW reading of `field` raises (limit and side), or nothing. */
   rangeIssue(field: string, value: number): OutOfRangeIssue | undefined;
+  /** The warning for a basket diameter outside its normal range. */
+  basketRangeWarning: typeof basketRangeWarning;
   /** Sealed resonance and Qtc read off a swept impedance curve, rather than computed. */
   findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null;
   /** The formulas `solve` works quantities out by: one per route, with its text and inputs, in the order it tries them.
@@ -201,6 +209,7 @@ export class DriverEngineImpl implements DriverEngine {
   readonly coilAlfaVC_per_K = coilAlfaVC_per_K;
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
   readonly rangeIssue = rangeIssue;
+  readonly basketRangeWarning = basketRangeWarning;
 
   circuitValues(values: DriverValues, air: Air): DriverValues {
     const positive = (x: number | null | undefined): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
@@ -286,8 +295,12 @@ export class DriverEngineImpl implements DriverEngine {
     writeDriverBack(params.SPLmaxLF_dB, solved.SPLmaxLF_dB, widths.SPLmaxLF_dB); writeDriverBack(params.Rme_kg_per_s, solved.Rme_kg_per_s, widths.Rme_kg_per_s);
     writeDriverBack(params.Mpow_N_per_sqrtW, solved.Mpow_N_per_sqrtW, widths.Mpow_N_per_sqrtW); writeDriverBack(params.Mcost_kg_per_s, solved.Mcost_kg_per_s, widths.Mcost_kg_per_s);
     writeDriverBack(params.gamma_m_per_s2_A, solved.gamma_m_per_s2_A, widths.gamma_m_per_s2_A); writeDriverBack(params.Gloss, solved.Gloss, widths.Gloss);
-    writeDriverBack(params.Vcd_m, solved.Vcd_m, widths.Vcd_m); writeDriverBack(params.Depth_m, solved.Depth_m, widths.Depth_m); writeDriverBack(params.MagDepth_m, solved.MagDepth_m, widths.MagDepth_m);
-    writeDriverBack(params.Magnet_m, solved.Magnet_m, widths.Magnet_m); writeDriverBack(params.DVol_m3, solved.DVol_m3, widths.DVol_m3); writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm, widths.Re_terminal_ohm);
+    writeDriverDimensionBack(params.Vcd_m, solved.Vcd_m, widths.Vcd_m);
+    writeDriverDimensionBack(params.Depth_m, solved.Depth_m, widths.Depth_m);
+    writeDriverDimensionBack(params.MagDepth_m, solved.MagDepth_m, widths.MagDepth_m);
+    writeDriverDimensionBack(params.Magnet_m, solved.Magnet_m, widths.Magnet_m);
+    writeDriverDimensionBack(params.DVol_m3, solved.DVol_m3, widths.DVol_m3);
+    writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm, widths.Re_terminal_ohm);
     writeDriverBack(params.BL_terminal_Tm, solved.BL_terminal_Tm, widths.BL_terminal_Tm);
     params.c_m_per_s.setCalculated(air.c());
     params.roo_kg_per_m3.setCalculated(air.rho());

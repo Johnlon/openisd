@@ -100,6 +100,18 @@ describe('driver spec-field value validity — every field has its OWN floor', (
     expect(driver.specs.Fs_hz.dq).toEqual([]);
   });
 
+  it('keeps an unusual basket diameter and warns even with auto calculation off', () => {
+    const driver = OpenISDDriver.empty(createEngine());
+    driver.setAutoCalculate(false);
+    const basket = driver.specs.Basket_m;
+    basket.set(0.75);
+    expect(basket.value).toBe(0.75);
+    expect(basket.dq).toMatchObject([{kind: 'outside-normal-band'}]);
+    expect(basket.dq[0]?.text).toContain('610.00 mm');
+    basket.set(0.61);
+    expect(basket.dq).toEqual([]);
+  });
+
   it('keeps the bad value exactly as entered, never coerced', () => {
     const engine = createEngine();
     const driver = OpenISDDriver.empty(engine);

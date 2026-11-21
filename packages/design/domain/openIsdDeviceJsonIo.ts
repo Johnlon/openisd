@@ -8,6 +8,7 @@
 import {newUuid} from './newUuid.js';
 import {withoutScraperOnlyFields} from './withoutScraperOnlyFields.js';
 import {openISDDeviceJsonSchema} from './openisdSchema.js';
+import {stringifyWithOverflow} from '../json/stringifyWithOverflow.js';
 import {CURRENT_SCHEMA_VERSION, upgradeToCurrent} from './schemaVersion.js';
 import type {OpenISDDeviceJson as OpenISDDeviceJsonRecord} from './openisdSchema.js';
 
@@ -85,7 +86,7 @@ export const OpenISDDeviceJson = Object.freeze({
     toOpenisdDriverJson(json: OpenISDDeviceJson): string {
         const { uuid, ...withoutUuid } = json;
         void uuid;
-        return JSON.stringify(sortKeysDeep({...withoutUuid, schemaVersion: CURRENT_SCHEMA_VERSION}), null, 2);
+        return stringifyWithOverflow(sortKeysDeep({...withoutUuid, schemaVersion: CURRENT_SCHEMA_VERSION}), {indent: 2});
     },
 
     fromConformingRecord(record: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {

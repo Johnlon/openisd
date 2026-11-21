@@ -361,6 +361,15 @@ export const specEntryJsonSchema =
     z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema, notAvailableEntrySchema]);
 
 export type SpecEntryJson = z.infer<typeof specEntryJsonSchema>;
+
+// File literals beyond the numeric range still state a dimension. Keep signed overflow so
+// the field can flag it in place. Other spec fields retain their finite-number validation.
+const dimensionValueSchema = z.union([z.number(), z.literal(Infinity), z.literal(-Infinity)]);
+const driverDimensionEntryJsonSchema = z.discriminatedUnion('state', [
+    enteredEntrySchema.extend({value: dimensionValueSchema}),
+    calculatedEntrySchema.extend({value: dimensionValueSchema}),
+    notAvailableEntrySchema,
+]);
 /**
  * VCCon, the wiring Re and BL were measured in (QO914, #514): `state` + the wiring's NAME, and no
  * `precision` (a name is not a measurement). An unknown wiring is an absent key; `N` is a
@@ -419,17 +428,17 @@ const driverRolesField = valueFieldOf(
 //
 // A FUNCTION, not a shared object: a module-scoped literal would be state, and each schema gets
 // its own (`test/architecture-no-globals.test.ts`).
-const driverSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strictObject({
+const driverSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema, d: typeof driverDimensionEntryJsonSchema) => z.strictObject({
     Fs_hz: e, Re_ohm: e, Le_H: e, fLe_hz: e, KLe_H_sqrtHz: e, Znom_ohm: e,
     Qts: e, Qes: e, Qms: e, Vas_m3: e, Sd_m2: e, BL_Tm: e,
     Mms_kg: e, Cms_m_per_N: e, Rms_kg_per_s: e, Xmax_m: e, Xlim_m: e, SPL_dB: e,
     Pe_W: e, Dd_m: e, EBP_hz: e, numVC: e, VCCon: wiringEntryJsonSchema,
     Vd_m3: e, no: e, SPLmax_dB: e, SPLmaxLF_dB: e, USPL_dB: e, alfaVC_per_K: e,
     Rt_K_per_W: e, Ct_J_per_K: e, gamma_m_per_s2_A: e, Rme_kg_per_s: e, Mpow_N_per_sqrtW: e, Mcost_kg_per_s: e,
-    Gloss: e, c_m_per_s: e, roo_kg_per_m3: e, Vcd_m: e, Hg_m: e, Hc_m: e,
-    freq_low_hz: e, freq_high_hz: e, power_peak_W: e, weight_kg: e, Thick_m: e, Depth_m: e,
-    MagDepth_m: e, Magnet_m: e, Basket_m: e, Outer_m: e, OuterX_m: e, OuterY_m: e,
-    DVol_m3: e,
+    Gloss: e, c_m_per_s: e, roo_kg_per_m3: e, Vcd_m: d, Hg_m: e, Hc_m: e,
+    freq_low_hz: e, freq_high_hz: e, power_peak_W: e, weight_kg: e, Thick_m: d, Depth_m: d,
+    MagDepth_m: d, Magnet_m: d, Basket_m: d, Outer_m: d, OuterX_m: d, OuterY_m: d,
+    DVol_m3: d,
 }).partial();
 
 /** A radiator has no motor and no voice coil, so `Re`, `Le`, `Znom`, `Qes`, `BL`, `numVC` and the
@@ -444,9 +453,13 @@ const passiveRadiatorSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) =>
 /** A DRIVER's spec sections: the woofer section the app simulates — always — and, on a coaxial
  *  only, a tweeter section beside it. */
 const driverSpecsJsonSchema = z.strictObject({
-    woofer: driverSpecsSectionJsonSchema(specEntryJsonSchema),
-    tweeter: driverSpecsSectionJsonSchema(specEntryJsonSchema).optional(),
+    woofer: driverSpecsSectionJsonSchema(specEntryJsonSchema, driverDimensionEntryJsonSchema),
+    tweeter: driverSpecsSectionJsonSchema(specEntryJsonSchema, driverDimensionEntryJsonSchema).optional(),
 });
+
+export function isDriverDimension(key: keyof DriverSpecsSection): boolean {
+    return driverSpecsJsonSchema.shape.woofer.shape[key].unwrap() === driverDimensionEntryJsonSchema;
+}
 
 /** A PASSIVE RADIATOR's spec sections: exactly one, its own. */
 const radiatorSpecsJsonSchema = z.strictObject({

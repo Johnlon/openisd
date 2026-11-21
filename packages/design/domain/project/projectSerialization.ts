@@ -9,6 +9,7 @@ import { retireLossMode } from './retiredLossMode.js';
 import { singleEnteredVentPairs } from './singleEnteredVentPairs.js';
 import { PROJECT_DEFAULT_DRIVER_WIRING } from './driverWiringDefault.js';
 import { CompatSwitch } from './compatSwitch.js';
+import { stringifyWithOverflow } from '../../json/stringifyWithOverflow.js';
 
 /** The project with "Driver wiring" and "Impedance of one driver" written out, as every save does (plan 519, 4.1), also at one
  *  driver, so a later change of the driver count brings back the user's choice. A key the project holds is kept. */
@@ -46,7 +47,7 @@ function canonicalSession(session: unknown): unknown {
 /** A session as `.owpr` text — openisd's own format. Lossless: there is nothing to drop and no
  *  error to report. */
 export function owprTextOf(session: OpenISDProjectSessionJson): string {
-    return JSON.stringify(canonicalSession(session), withoutDerivedMarks, 2);
+    return stringifyWithOverflow(canonicalSession(session), {replacer: withoutDerivedMarks, indent: 2});
 }
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
@@ -56,7 +57,7 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
 /** A session as the text browser storage holds it: one compact line, without what the load
  *  works out again. `.owpr` files keep their indented form with everything in it. */
 export function storedTextOf(session: OpenISDProjectSessionJson): string {
-    return JSON.stringify(canonicalSession(session), withoutDerivedMarks);
+    return stringifyWithOverflow(canonicalSession(session), {replacer: withoutDerivedMarks});
 }
 
 /** A text written before projects carried an id gets one here, once, when it is read; a text
@@ -85,7 +86,7 @@ export function compactedStoredText(text: string): string | null {
     const upgraded = upgradeToCurrent(parsed);
     if ('refusal' in upgraded) return null;
     const canonical = canonicalOrNull(upgraded.value) ?? withSlimModel(parsed);
-    return JSON.stringify(canonical, withoutDerivedMarks);
+    return stringifyWithOverflow(canonical, {replacer: withoutDerivedMarks});
 }
 
 /** `.owpr` text parsed and validated, or everything wrong with it. Stops short of building an
