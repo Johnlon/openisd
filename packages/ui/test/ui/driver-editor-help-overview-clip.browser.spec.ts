@@ -1,47 +1,81 @@
 /**
  * T744, John (16 Nov 2026): "Clipping is a bug: fix it, don't ask". The driver editor's help overview ("Blue dot" is its next-to-last
  * paragraph) was cut off at the bottom of the dialog. The dialog keeps its size ("dlg changing size for a workflow is anti pattern"),
- * so the help sheet must show the whole text, and where the window is too small to, it scrolls to the last paragraph.
+ * and the help sheet keeps 680 px and scrolls (John, 21 Nov 2026: "big text dialogues can scroll if needed, better than losing good
+ * explanations"), so every help sheet must lie inside the editor and scroll to its last paragraph.
  */
 import {expect, openAProject, test} from '../fixtures.js';
-import type {Page} from '@playwright/test';
+import {DESKTOP_SURFACES, DesktopRoute, type DesktopSurface} from '../fixtures/desktopSurfaceManifest.js';
+import {openDesktopSurface} from '../fixtures/desktopSurfaceNavigation.js';
+import type {Locator, Page} from '@playwright/test';
 
-async function openOverview(page: Page): Promise<void> {
+async function openHelp(page: Page, surface: DesktopSurface): Promise<Locator> {
   await page.goto('/');
   await openAProject(page);
-  await page.locator('.project-nav li', {hasText: 'Driver'}).click();
-  await page.locator('.driver-id-row').getByRole('button', {name: 'Edit'}).click();
-  await expect(page.locator('.de-modal')).toBeVisible();
-  await page.getByRole('button', {name: 'General', exact: true}).click();
-  await page.getByRole('button', {name: 'Help: Driver editor', exact: true}).click();
-  await expect(page.locator('.mob-help-sheet')).toBeVisible();
+  await openDesktopSurface(page, surface);
+  const sheet = page.locator('.de-desktop .mob-help-sheet');
+  await expect(sheet).toBeVisible();
+  return sheet;
 }
 
-async function lastRowInsideSheet(page: Page): Promise<boolean> {
-  return page.locator('.mob-help-sheet').evaluate(sheet => {
-    const rows = sheet.querySelectorAll('.mob-help-row');
-    const box = sheet.getBoundingClientRect();
-    const last = rows[rows.length - 1]!.getBoundingClientRect();
-    return last.bottom <= box.bottom + 0.5 && last.top >= box.top;
+async function expectSheetInsideEditor(sheet: Locator): Promise<void> {
+  const {width, top, right, bottom, left} = await sheet.evaluate(el => {
+    const bounds = el.getBoundingClientRect();
+    const editor = el.closest('.de-modal')!.getBoundingClientRect();
+    return {
+      width: bounds.width,
+      top: bounds.top - editor.top,
+      right: editor.right - bounds.right,
+      bottom: editor.bottom - bounds.bottom,
+      left: bounds.left - editor.left,
+    };
+  });
+  expect(width).toBeLessThanOrEqual(680);
+  expect(top, 'space above the sheet inside the editor').toBeGreaterThanOrEqual(0);
+  expect(right, 'space right of the sheet inside the editor').toBeGreaterThanOrEqual(0);
+  expect(bottom, 'space below the sheet inside the editor').toBeGreaterThanOrEqual(0);
+  expect(left, 'space left of the sheet inside the editor').toBeGreaterThanOrEqual(0);
+  await expect(sheet).toBeInViewport({ratio: 1});
+}
+
+async function expectLastParagraphAtEnd(sheet: Locator): Promise<number> {
+  const scrollHeight = await sheet.evaluate(el => el.scrollHeight);
+  await sheet.hover();
+  await sheet.page().mouse.wheel(0, scrollHeight);
+  await expect.poll(() => sheet.evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
+  await expect(sheet.locator('.mob-help-row').last()).toBeInViewport({ratio: 1});
+  return sheet.evaluate(el => el.scrollTop);
+}
+
+const helpSurfaces = DESKTOP_SURFACES.filter(surface => surface.route === DesktopRoute.EditorHelp);
+const overview = helpSurfaces.find(surface => surface.id === 'desktop/driver/editor/help/overview')!;
+const thieleSmall = helpSurfaces.find(surface => surface.id === 'desktop/driver/editor/help/thiele-small')!;
+
+for (const surface of helpSurfaces) {
+  test(`${surface.title} fits the desktop editor and its last paragraph is reachable`, async ({page}) => {
+    await page.setViewportSize({width: 1280, height: 720});
+    const sheet = await openHelp(page, surface);
+    await expectSheetInsideEditor(sheet);
+    const scrollTop = await expectLastParagraphAtEnd(sheet);
+    if (surface === overview) expect(scrollTop).toBeGreaterThan(0);
   });
 }
 
-test('the help overview shows its whole text on the desktop editor, with nothing hidden below the sheet', async ({page}) => {
+test('help that fits is fully visible without scrolling in a large desktop window', async ({page}) => {
   await page.setViewportSize({width: 1880, height: 1000});
-  await openOverview(page);
-  const [scrollHeight, clientHeight] = await page.locator('.mob-help-sheet').evaluate(el => [el.scrollHeight, el.clientHeight]);
+  const sheet = await openHelp(page, thieleSmall);
+  const [scrollHeight, clientHeight] = await sheet.evaluate(el => [el.scrollHeight, el.clientHeight]);
   expect(scrollHeight).toBeLessThanOrEqual(clientHeight);
-  expect(await lastRowInsideSheet(page)).toBe(true);
+  await expect(sheet.locator('.mob-help-row').last()).toBeInViewport({ratio: 1});
 });
 
-test('in a short window the help overview scrolls and its last paragraph is reachable inside the dialog', async ({page}) => {
-  await page.setViewportSize({width: 1280, height: 560});
-  await openOverview(page);
-  const sheet = page.locator('.mob-help-sheet');
-  await sheet.evaluate(el => { el.scrollTop = el.scrollHeight; });
-  expect(await lastRowInsideSheet(page)).toBe(true);
-  const [sheetBottom, modalBottom] = await page.evaluate(() => [
-    document.querySelector('.mob-help-sheet')!.getBoundingClientRect().bottom,
-    document.querySelector('.de-modal')!.getBoundingClientRect().bottom]);
-  expect(sheetBottom).toBeLessThanOrEqual(modalBottom);
-});
+// The overview retains its full text at the restored width, so it can need scrolling even in a large window.
+for (const {width, height} of [{width: 1880, height: 1000}, {width: 1280, height: 560}, {width: 1280, height: 480}]) {
+  test(`the overview scrolls to Other fields inside the editor at ${width} × ${height}`, async ({page}) => {
+    await page.setViewportSize({width, height});
+    const sheet = await openHelp(page, overview);
+    await expectSheetInsideEditor(sheet);
+    await expect(sheet.locator('.mob-help-row').last()).toContainText('Other fields:');
+    expect(await expectLastParagraphAtEnd(sheet)).toBeGreaterThan(0);
+  });
+}

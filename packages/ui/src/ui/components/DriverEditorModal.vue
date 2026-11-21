@@ -1098,9 +1098,10 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
 /* ONE fixed box for all four tabs — switching tab must never resize the dialog under the
    user's cursor. Sized to the largest tab so nothing ever scrolls: Advanced parameters is
    the widest (about 840px of content with the step arrows) and Parameters the tallest. Both measured, not guessed. The
-   vh caps are only a small-screen backstop. */
+   height cap is relative to the viewport-sized overlay. Keep the minimum within the same cap
+   so in short windows the editor's clipping edge and its help overlay both stay on screen. */
 /* position: relative anchors the format picker's scrim to the editor, not the viewport. */
-.de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 1100px !important; max-width: 96vw !important; min-height: 550px !important; max-height: 96vh !important; flex-shrink: 0 !important; overflow: hidden !important; }
+.de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 1100px !important; max-width: 96vw !important; min-height: min(550px, 96%) !important; max-height: 96% !important; flex-shrink: 0 !important; overflow: hidden !important; }
 .de-tabs { display: flex; gap: 2px; padding: 6px 12px 0; border-bottom: 1px solid var(--line); }
 .de-tab { padding: 5px 12px; border: 1px solid var(--line); border-bottom: none; border-radius: 3px 3px 0 0; background: var(--panel2); color: var(--fg); cursor: pointer; font: inherit; font-size: 14px; font-weight: 500; }
 .de-tab.on { background: var(--panel); font-weight: 600; }
@@ -1543,5 +1544,8 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-hdr .de-help-button {width:14px;height:14px;font-size:10px;}
 .de-help-button:hover,.de-help-button:focus-visible {background:#cfe2f8;}
 .de-desktop :deep(.mob-help-overlay) {align-items:center;justify-content:center;}
-.de-desktop :deep(.mob-help-sheet) {width:min(900px,96%);max-height:96%;border-radius:8px;}
+/* John, 21 Nov 2026: "big text dialogues can scroll if needed, better than losing good explanations,
+   or the key words can be expanding for more info, that kind of thing".
+   The height cap is relative to the help overlay that fills the editor. */
+.de-desktop :deep(.mob-help-sheet) {width:min(680px,92%);max-height:90%;border-radius:8px;}
 </style>
