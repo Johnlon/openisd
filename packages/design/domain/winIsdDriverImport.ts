@@ -11,6 +11,7 @@ import {CURRENT_SCHEMA_VERSION} from './schemaVersion.js';
 import type {DriverError} from '../engine/index.js';
 import type {DriverSpecsSection, OpenISDDeviceJson, SpecEntryJson, WiringEntryJson} from './openisdSchema.js';
 import {VoiceCoilWiring} from './voiceCoilWiring.js';
+import {isDriverDimension} from './driver/driverDimensionLoadRepair.js';
 
 /** WinISD's `VCCon` code for a wiring (`docs/design/WINISD_SCHEMA.md` §3.2): 1 = parallel,
  *  2 = series. The record stores the name (QO914, #514); the code exists only in the `.wdr`/`.wpr`
@@ -110,7 +111,11 @@ function readSpecEntryInto(
 ): void {
     const cell = wdr.cell(wdrKey);
     const numValue = Number(cell.value);
-    if (!isFinite(numValue)) {
+    // Keep a stated non-finite dimension for the numeric load repair to report. Malformed
+    // text still takes the normal parse warning path.
+    const numeric = Number.isFinite(numValue) || (isDriverDimension(schemaKey)
+        && (!Number.isNaN(numValue) || /^nan$/i.test(cell.value.trim())));
+    if (!numeric) {
         // Text where a number belongs: a .wdr holds only a flag and a number (John, 2026-10-11), so
         // the cell is left out, and the user is told whatever its ParState mark says.
         warnings.push({

@@ -9,6 +9,8 @@ import { retireLossMode } from './retiredLossMode.js';
 import { singleEnteredVentPairs } from './singleEnteredVentPairs.js';
 import { PROJECT_DEFAULT_DRIVER_WIRING } from './driverWiringDefault.js';
 import { CompatSwitch } from './compatSwitch.js';
+import { repairNonFiniteDriverDimensions } from '../driver/driverDimensionLoadRepair.js';
+import type { LoadRepairNote } from './loadRepair.js';
 
 /** The project with "Driver wiring" and "Impedance of one driver" written out, as every save does (plan 519, 4.1), also at one
  *  driver, so a later change of the driver count brings back the user's choice. A key the project holds is kept. */
@@ -72,6 +74,21 @@ function withEditedLayer(parsed: unknown): unknown {
     return isRecord(parsed) && isRecord(parsed.saved) && !('edited' in parsed) ? {...parsed, edited: null} : parsed;
 }
 
+function repairNonFiniteEmbeddedDimensions(session: unknown): {session: unknown; notes: readonly LoadRepairNote[]} {
+    if (!isRecord(session)) return {session, notes: []};
+    let current = session;
+    const notes = new Map<string, LoadRepairNote>();
+    for (const layer of ['saved', 'edited'] as const) {
+        const project = current[layer];
+        if (!isRecord(project) || !isRecord(project.driverEmbedding)) continue;
+        const {record: device, notes: repairs} = repairNonFiniteDriverDimensions(project.driverEmbedding.device);
+        if (repairs.length === 0) continue;
+        current = {...current, [layer]: {...project, driverEmbedding: {...project.driverEmbedding, device}}};
+        for (const repair of repairs) notes.set(repair.text, repair);
+    }
+    return {session: current, notes: [...notes.values()]};
+}
+
 /** A stored or `.owpr` project text as `storedTextOf` writes it; null when the text is not a
  *  project session, which the repo that owns it reports and this leaves untouched. */
 export function compactedStoredText(text: string): string | null {
@@ -100,7 +117,8 @@ export function parseOwprSession(text: string, newId: () => string): { session: 
     }
     const upgraded = upgradeToCurrent(withEditedLayer(withProjectId(parsed, newId)));
     if ('refusal' in upgraded) return {errors: [upgraded.refusal]};
-    const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(upgraded.value));
+    const input = repairNonFiniteEmbeddedDimensions(upgraded.value);
+    const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(input.session));
     if (!result.success) {
         return {errors: result.error.issues.map(issue => issue.path.length === 0
             ? issue.message
@@ -113,19 +131,30 @@ import {withoutImportSku} from './withoutImportSku.js';
 
 /** `.owpr` text parsed with every failing field removed so its default applies, and which ones
  *  were; refused only when the text is not JSON or not a project session at all. */
-export function parseOwprSessionRepairing(text: string, newId: () => string): Repaired<OpenISDProjectSessionJson> | string[] {
+type ParsedProject = (Repaired<OpenISDProjectSessionJson> & {loadRepairs: readonly LoadRepairNote[]}) | string[];
+
+export function parseOwprSessionRepairing(text: string, newId: () => string): ParsedProject {
     let parsed: unknown;
     try {
         parsed = JSON.parse(text);
     } catch {
         return ['not valid JSON'];
     }
+    return parseOwprRecordRepairing(parsed, newId);
+}
+
+export function parseOwprRecordRepairing(parsed: unknown, newId: () => string): ParsedProject {
     const upgraded = upgradeToCurrent(withEditedLayer(withProjectId(parsed, newId)));
     if ('refusal' in upgraded) return [upgraded.refusal];
-    const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(upgraded.value));
+    const input = repairNonFiniteEmbeddedDimensions(upgraded.value);
+    const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(input.session));
     if (Array.isArray(repaired)) return repaired;
     const retired = retireLossMode(repaired.value);
     const paired = singleEnteredVentPairs(retired.session);
     const unstated = withoutImportSku(paired.session);
-    return {value: unstated.session, repaired: [...repaired.repaired, ...retired.repaired, ...paired.repaired, ...unstated.repaired]};
+    return {
+        value: unstated.session,
+        repaired: [...repaired.repaired, ...retired.repaired, ...paired.repaired, ...unstated.repaired],
+        loadRepairs: input.notes,
+    };
 }

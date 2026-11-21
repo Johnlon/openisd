@@ -6,7 +6,7 @@
  *  The upgrade is a TEXT→TEXT step over the wire form, never a reach into the domain's record:
  *  it rebuilds the project through `OpenISDProject`'s own builder and asks it for `.owpr` text,
  *  so this file states no record shape of its own. */
-import {OpenISDDriver, ProjectBuilder} from '@openisd/design';
+import {OpenISDDriver, ProjectBuilder, type LoadRepairNote} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 
 /** A pre-session payload: the driver as a record OBJECT beside flat project meta, with no
@@ -31,13 +31,10 @@ function isV1(parsed: unknown): parsed is V1Payload {
  *  construction like every other repo here, rather than threaded through each call. */
 export interface ProjectSchemaUpgrade {
   /**
-   * `parsed` as current-schema `.owpr` text, or the problems that stopped it.
-   *
-   * A payload already at the current schema is returned as its own text unchanged — the caller
-   * hands the result to `OpenISDProject.fromOwprText()` either way, so there is one validation
-   * boundary, not two.
+   * Upgrade a V1 payload. Current records pass through as parsed so the domain can validate
+   * their original values.
    */
-  projectPayload(parsed: unknown): string | string[];
+  projectPayload(parsed: unknown): UpgradedProject;
   /**
    * A whole SHARE-LINK payload brought to the current schema. A V1 link is the bare payload —
    * driver, meta and `graphs` at the top level, with no `{project, view}` split — so the upgrade
@@ -48,6 +45,11 @@ export interface ProjectSchemaUpgrade {
    */
   sharePayload(parsed: unknown): UpgradedShare;
 }
+
+type UpgradedV1Project =
+  | {readonly kind: 'upgraded'; readonly text: string; readonly loadRepairs: readonly LoadRepairNote[]}
+  | {readonly kind: 'errors'; readonly errors: string[]};
+type UpgradedProject = UpgradedV1Project | {readonly kind: 'current'; readonly record: unknown};
 
 /** The outcome of upgrading a share-link payload: the payload at the current schema, or the
  *  problems that stopped it. `payload` is `unknown` because it is still unvalidated here — the
@@ -61,12 +63,14 @@ export type UpgradedShare =
 export function createProjectSchemaUpgrade(engine: Engine): ProjectSchemaUpgrade {
   return { projectPayload, sharePayload };
 
-  function projectPayload(parsed: unknown): string | string[] {
-  if (!isV1(parsed)) return JSON.stringify(parsed);
+  function projectPayload(parsed: unknown): UpgradedProject {
+    return isV1(parsed) ? fromV1(parsed) : {kind: 'current', record: parsed};
+  }
 
+  function fromV1(parsed: V1Payload): UpgradedV1Project {
   const driver = OpenISDDriver.fromConformingRecord(parsed.driver, engine);
   if (Array.isArray(driver)) {
-    return driver.map(problem => `the V1 payload's driver does not conform: ${problem}`);
+    return {kind: 'errors', errors: driver.map(problem => `the V1 payload's driver does not conform: ${problem}`)};
   }
 
   // A V1 payload states no box volume — the field did not travel — so the upgraded project takes
@@ -84,14 +88,14 @@ export function createProjectSchemaUpgrade(engine: Engine): ProjectSchemaUpgrade
   // and leaving it in the edited state would show the recipient unsaved changes they never made.
   project.save();
 
-  return project.toOwprText();
+  return {kind: 'upgraded', text: project.toOwprText(), loadRepairs: driver.loadRepairs};
 }
 
   function sharePayload(parsed: unknown): UpgradedShare {
   if (!isV1(parsed)) return {kind: 'payload', payload: parsed};
 
-  const text = projectPayload(parsed);
-  if (Array.isArray(text)) return {kind: 'errors', errors: text};
+  const upgraded = fromV1(parsed);
+  if (upgraded.kind === 'errors') return upgraded;
 
   // V1 carried the open charts and nothing else of the view; the rest takes the same
   // all-unset values a fresh session has, rather than inventing preferences the sender never
@@ -99,7 +103,7 @@ export function createProjectSchemaUpgrade(engine: Engine): ProjectSchemaUpgrade
   return {
     kind: 'payload',
     payload: {
-      project: text,
+      project: upgraded.text,
       view: {
         graphs: Array.isArray(parsed.graphs) ? parsed.graphs : [],
         ui: {},

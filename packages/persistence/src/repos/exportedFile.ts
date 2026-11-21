@@ -4,16 +4,18 @@
  *  what the domain wrote. */
 import {createLayoutMigrator, type FileJson, type LayoutRules} from './layoutMigration.js';
 
-export type OpenedFile =
-  | {readonly kind: 'ok'; readonly text: string}
-  /** Written by an OpenISD whose layout is newer than this one reads. */
-  | {readonly kind: 'newer'; readonly layout: number; readonly reads: number};
+/** Written by an OpenISD whose layout is newer than this one reads. */
+interface NewerFile {readonly kind: 'newer'; readonly layout: number; readonly reads: number}
+export type OpenedFile = {readonly kind: 'ok'; readonly text: string} | NewerFile;
+type OpenedRecord = {readonly kind: 'ok'; readonly record: FileJson | null} | NewerFile;
 
 export interface ExportedFiles {
   /** `text` (a JSON object) with `layout` first. Text that is not a JSON object is returned as it is. */
   stamp(text: string): string;
   /** `text` brought to the layout this build reads, with the stamp taken off. */
   open(text: string): OpenedFile;
+  /** The parsed, migrated object, without re-encoding the numbers before domain validation. */
+  openRecord(text: string): OpenedRecord;
 }
 
 function parseObject(text: string): FileJson | null {
@@ -30,6 +32,15 @@ function indentOf(text: string): number | undefined {
 
 export function createExportedFiles(rules: LayoutRules): ExportedFiles {
   const migrator = createLayoutMigrator(rules);
+  function openRecord(text: string): (Extract<OpenedRecord, {kind: 'ok'}> & {migrated: boolean}) | NewerFile {
+    const file = parseObject(text);
+    if (file === null) return {kind: 'ok', record: null, migrated: false};
+    const {layout, ...rest} = file;
+    const from = layout === undefined ? 1 : typeof layout === 'number' && Number.isInteger(layout) && layout >= 1 ? layout : null;
+    if (from === null) return {kind: 'ok', record: file, migrated: false};
+    if (from > rules.layout) return {kind: 'newer', layout: from, reads: rules.layout};
+    return {kind: 'ok', record: migrator.migrateFile(rest, from) ?? rest, migrated: true};
+  }
   return {
     stamp(text) {
       const file = parseObject(text);
@@ -38,14 +49,10 @@ export function createExportedFiles(rules: LayoutRules): ExportedFiles {
       return JSON.stringify({layout: rules.layout, ...Object.fromEntries(rest)}, null, indentOf(text));
     },
     open(text) {
-      const file = parseObject(text);
-      if (file === null) return {kind: 'ok', text};
-      const {layout, ...rest} = file;
-      const from = layout === undefined ? 1 : typeof layout === 'number' && Number.isInteger(layout) && layout >= 1 ? layout : null;
-      if (from === null) return {kind: 'ok', text};
-      if (from > rules.layout) return {kind: 'newer', layout: from, reads: rules.layout};
-      const migrated = migrator.migrateFile(rest, from);
-      return {kind: 'ok', text: JSON.stringify(migrated ?? rest, null, indentOf(text))};
+      const opened = openRecord(text);
+      if (opened.kind === 'newer') return opened;
+      return {kind: 'ok', text: opened.migrated ? JSON.stringify(opened.record, null, indentOf(text)) : text};
     },
+    openRecord,
   };
 }

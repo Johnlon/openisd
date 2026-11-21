@@ -2,7 +2,7 @@ import {type Engine, FixedAir} from '../../engine/index.js';
 import type { Air, DriveLoad, DriverError, Wiring, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
-import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
+import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField, simpleField } from '../cell.js';
 import type { Calculated, Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import { openIsdDriverToWinIsdDriver } from '../driverRecordConverter.js';
 import { asDriverDevice } from '../openisdSchema.js';
@@ -16,6 +16,8 @@ import type { NumericDriverSpecFieldName } from './driverSpecFieldName.js';
 import { NumberField } from '../../fields/field.js';
 import { formatSignificant } from '../../fields/format.js';
 import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
+import { driverDimensionLoadRules } from './driverDimensionLoadRepair.js';
+import { repairLoaded, type LoadRepairNote } from '../project/loadRepair.js';
 
 /**
  * A real, playable driver — its record has a `woofer` section (a coaxial has a `tweeter` section beside it).
@@ -62,7 +64,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         const driver = asDriverDevice(conformed.json);
         if (driver === null) return [NOT_A_DRIVER];
         // A library driver saved from a WinISD import holds the model text as its short code; it opens with none (QO259).
-        return OpenISDDriverStandalone.wrap(deviceWithoutImportSku(driver), engine);
+        return OpenISDDriverStandalone.open(deviceWithoutImportSku(driver), engine, conformed.loadRepairs);
     }
 
     /** A driver stating nothing — what the editor opens on "create a new driver from scratch".
@@ -76,12 +78,20 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** `.owdr` text — openisd driver JSON — back to a driver, or the reasons it could not be
      *  read. The inverse of `toOwdrText()`. */
     static fromOwdrText(text: string, engine: Engine): OpenISDDriverStandalone | string[] {
-        const parsed = OpenISDDeviceJson.fromOpenisdDriverJson(text);
+        return OpenISDDriver.#fromOwdrRead(OpenISDDeviceJson.fromOpenisdDriverJson(text), engine);
+    }
+
+    /** A parsed `.owdr` object, after the file's layout has been upgraded. */
+    static fromOwdrRecord(record: unknown, engine: Engine): OpenISDDriverStandalone | string[] {
+        return OpenISDDriver.#fromOwdrRead(OpenISDDeviceJson.fromDriverYmlRecord(record), engine);
+    }
+
+    static #fromOwdrRead(parsed: ReturnType<typeof OpenISDDeviceJson.fromOpenisdDriverJson>, engine: Engine): OpenISDDriverStandalone | string[] {
         if ('problems' in parsed) return parsed.problems;
 
         const driver = asDriverDevice(parsed.json);
         if (driver === null) return [NOT_A_DRIVER];
-        return OpenISDDriverStandalone.wrap(driver, engine);
+        return OpenISDDriverStandalone.open(driver, engine, parsed.loadRepairs);
     }
 
     /** This driver's spec fields — the woofer section. Driver math is woofer-only in OpenISD; a
@@ -486,6 +496,21 @@ export interface SealedBoxLosses {
 }
 
 export class OpenISDDriverStandalone extends OpenISDDriver {
+    #loadRepairs: readonly LoadRepairNote[] = [];
+
+    /** Repairs made while opening this record, for the opening message. */
+    get loadRepairs(): readonly LoadRepairNote[] {
+        return this.#loadRepairs;
+    }
+
+    static open(json: DriverDeviceJson, engine: Engine, beforeValidation: readonly LoadRepairNote[]): OpenISDDriverStandalone {
+        let current = json;
+        const notes = repairLoaded(driverDimensionLoadRules(simpleField(() => current, value => { current = value; })));
+        const driver = OpenISDDriverStandalone.wrap(current, engine);
+        driver.#loadRepairs = [...beforeValidation, ...notes];
+        return driver;
+    }
+
     /** ON: every write derives, as `resolve()` always did before this flag existed. OFF: a
      *  write still lands (`entered`/`clear` on the record), but `resolve()` stops deriving —
      *  every field, entered or calculated, stays frozen at whatever it currently reads, so

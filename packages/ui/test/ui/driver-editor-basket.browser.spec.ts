@@ -1,7 +1,8 @@
 import type {Page} from '@playwright/test';
+import {readFileSync} from 'node:fs';
 import {driverEditorField, expect, expectChartDrawn, openAProject, openDriverEditor, test} from '../fixtures.js';
 import {fillAndBlur, typeInto} from '../fixtures/numField.js';
-import {OLD_BASKET_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+import {ensureSampleProject, OLD_BASKET_PROJECT_OWPR} from '../fixtures/sampleProject.js';
 
 async function openDimensions(page: Page): Promise<void> {
   await openDriverEditor(page);
@@ -60,6 +61,29 @@ test('an old Dayton project displays its loaded basket with a warning and draws 
   await expect(basket.getByRole('note')).toHaveText(/2377\.44 mm is outside the normal range.*610\.00 mm/);
   await expect(basket.getByRole('note')).toHaveClass(/ui-field-note-warning/);
   await expect(input).toHaveValue('2377.44');
+});
+
+test('a project with a zero basket opens at 10 mm, lists the repair once, and draws a chart', async ({page}) => {
+  ensureSampleProject();
+  await page.goto('/');
+  const text = readFileSync(OLD_BASKET_PROJECT_OWPR, 'utf8').replace('"value":2.37744', '"value":0');
+  await page.locator('.original-root input[type=file]').setInputFiles({
+    name: 'zero-basket.owpr', mimeType: 'application/json', buffer: Buffer.from(text),
+  });
+  const toast = page.locator('.flash').filter({hasText: 'Project imported from zero-basket.owpr'});
+  await expect(toast).toHaveCount(1);
+  await expect(toast).toHaveText(
+    'Project imported from zero-basket.owpr\nBasket Diameter (Basket) 0 mm in the file: set to the 10 mm minimum',
+    {useInnerText: true},
+  );
+  await expectChartDrawn(page);
+  await page.locator('.gpanel canvas').first().hover();
+  await expect(page.locator('.cursor-readout .ro-val')).toHaveText(/^-?\d+(?:\.\d+)? dB$/);
+
+  await openDimensions(page);
+  const basket = driverEditorField(page, 'Basket Diameter (Basket)');
+  await expect(basket.getByRole('textbox')).toHaveValue('10.00');
+  await expect(basket.getByRole('button', {name: 'Why this value is flagged'})).toHaveCount(0);
 });
 
 test('opening a WinISD driver displays the file’s dimensions and range marks', async ({page}) => {

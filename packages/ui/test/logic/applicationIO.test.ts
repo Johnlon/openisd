@@ -9,7 +9,7 @@ import {createApplicationIO, type DesignIO} from '../../src/logic/applicationIO.
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {createFileOpen, createFileStorage, createMemoryStorage, type FileOpen, type FilePick, type FileStorage} from '@openisd/persistence';
 import {createEngine} from '@openisd/design/engine';
-import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+import {ensureSampleProject, OLD_BASKET_PROJECT_OWPR, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
 import type {ConfirmPort} from '../../src/logic/confirmPort.js';
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppState} from '../../src/logic/appState.js';
@@ -403,7 +403,22 @@ describe('every import and export says what it did', () => {
     try {
       const { io, flash } = ioWith(createFileStorage());
       await importGolden(io);
-      expect(flash).toHaveBeenCalledExactlyOnceWith('Project imported from MyBox.wpr');
+      expect(flash).toHaveBeenCalledExactlyOnceWith(
+        [
+          'Project imported from MyBox.wpr',
+          'Basket Plate Thickness (Thick) 0 mm in the file: set to the 0.01 mm minimum',
+          'Driver Depth (Depth) 0 mm in the file: emptied, so the box shows the value worked out from the other dimensions, when available',
+          'Magnet Depth 0 mm in the file: emptied, so the box shows the value worked out from the other dimensions, when available',
+          'Magnet Diameter (Magnet) 0 mm in the file: emptied, so the box shows the value worked out from the other dimensions, when available',
+          'Basket Diameter (Basket) 0 mm in the file: set to the 10 mm minimum',
+          'Outer Diameter (Outer) 0 mm in the file: set to the 0.01 mm minimum',
+          'Voice Coil Dia (Vcd) 0 mm in the file: set to the 0.01 mm minimum',
+          'Driver Displacement Volume (DVol) 0 cm³ in the file: emptied, so the box shows the value worked out from the other dimensions, when available',
+        ].join('\n'),
+      );
+      const basket = appState.requireFocusedProject().driver.specs.Basket_m;
+      expect(basket.value).toBe(0.01);
+      expect(basket.dq).toEqual([]);
 
       io.exportWpr();
       expect(flash).toHaveBeenLastCalledWith('Project exported as Tang_Band_W5-1138SMF.wpr');
@@ -420,6 +435,29 @@ describe('every import and export says what it did', () => {
 
       io.exportBackup();
       expect(flash).toHaveBeenLastCalledWith(expect.stringMatching(/^Backup downloaded as openisd-backup-\d{4}-\d{2}-\d{2}\.json$/));
+    } finally { restoreGlobals(); }
+  });
+
+  it('lists a non-finite basket repair once when importing either OpenISD file format', async () => {
+    stubDom([]);
+    try {
+      const {io, flash} = ioWith(createFileStorage());
+      const projectText = readFileSync(OLD_BASKET_PROJECT_OWPR, 'utf8').replace('"value":2.37744', '"value":1e999');
+      const repair = 'Basket Diameter (Basket) Infinity mm in the file: set to the 10 mm minimum';
+      await io.importFile(new File([projectText], 'overflow.owpr'));
+      expect(flash).toHaveBeenCalledExactlyOnceWith(`Project imported from overflow.owpr\n${repair}`);
+      const project = appState.requireFocusedProject();
+      expect(project.driver.specs.Basket_m.value).toBe(0.01);
+      expect(project.driver.specs.Basket_m.dq).toEqual([]);
+
+      const driverText = project.driver.toOwdrText().replace(/("Basket_m":\s*\{[^}]*"value":\s*)0\.01/, (_match, prefix: string) => `${prefix}1e999`);
+      vi.mocked(flash).mockClear();
+      await io.importFile(new File([driverText], 'overflow.owdr'));
+      expect(flash).toHaveBeenCalledExactlyOnceWith(
+        `Driver imported from overflow.owdr: Dayton Audio DSA115-8 4" Designer Series Aluminum Cone Woofer 8 Ohm\n${repair}`,
+      );
+      expect(project.driver.specs.Basket_m.value).toBe(0.01);
+      expect(project.driver.specs.Basket_m.dq).toEqual([]);
     } finally { restoreGlobals(); }
   });
 

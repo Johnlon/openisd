@@ -51,43 +51,49 @@ describe('Driver dimensions on opening', () => {
     expect(projectFindings(project, DEFAULT_GRID)).toMatchObject({findings: [], refused: false});
   });
 
-  it('keeps a stated zero magnet depth even when the other dimensions could determine it', () => {
+  it('recalculates a stated zero magnet depth from the other dimensions', () => {
     const {driver, project} = openBoth({
       ...magnetGeometry,
       MagDepth_m: {state: 'E', value: 0},
     });
-    for (const {specs} of [driver, project.project.driver]) {
-      expect(specs.MagDepth_m.value).toBe(0);
-      expect(specs.MagDepth_m.entered).toBe(true);
-      expect(specs.MagDepth_m.dq).toContainEqual(expect.objectContaining({kind: 'invalid-value'}));
+    for (const [loaded, repairs] of [[driver, driver.loadRepairs], [project.project.driver, project.loadRepairs]] as const) {
+      expect(loaded.specs.MagDepth_m.value).toBeCloseTo(0.020, 12);
+      expect(loaded.specs.MagDepth_m.calculated).toBe(true);
+      expect(loaded.specs.MagDepth_m.dq).toEqual([]);
+      expect(repairs).toEqual([expect.objectContaining({
+        loaded: 0, text: 'Magnet Depth 0 mm in the file: emptied, so the box shows the value worked out from the other dimensions, when available',
+      })]);
     }
   });
 
-  it('keeps explicitly supplied zero and negative dimensions and flags them', () => {
+  it('repairs explicitly supplied zero and negative dimensions to their minima', () => {
     const entries = {
       Thick_m: {state: 'E', value: 0},
       Basket_m: {state: 'E', value: 0},
       Outer_m: {state: 'E', value: -0.002},
+      Vcd_m: {state: 'E', value: -0.002},
     } satisfies DriverSpecsSection;
     const {driver, project} = openBoth(entries);
     for (const loaded of [driver, project.project.driver]) {
-      expect(loaded.toOpenIsdDeviceJson().specs.woofer).toMatchObject(entries);
-      for (const key of ['Thick_m', 'Basket_m', 'Outer_m'] as const) {
-        expect(loaded.specs[key].dq).toContainEqual(expect.objectContaining({kind: 'invalid-value'}));
+      for (const [key, minimum] of [['Thick_m', 0.00001], ['Basket_m', 0.01], ['Outer_m', 0.00001], ['Vcd_m', 0.00001]] as const) {
+        expect(loaded.toOpenIsdDeviceJson().specs.woofer[key]).toEqual({state: 'C', value: minimum});
+        expect(loaded.specs[key].value).toBe(minimum);
+        expect(loaded.specs[key].dq).toEqual([]);
       }
     }
   });
 
-  it('keeps the separate saved and unsaved dimensions in a project file', () => {
+  it('repairs the saved dimension independently of the unsaved dimension', () => {
     const {session} = openingRecord({MagDepth_m: {state: 'E', value: 0}});
     const {session: {saved: edited}} = openingRecord({MagDepth_m: {state: 'E', value: 66}});
     const opened = OpenISDProject.fromOwprTextRepairing(owprTextOf({...session, edited}), engine);
     if (Array.isArray(opened)) throw new Error(opened.join('\n'));
     expect(opened.project.isModified()).toBe(true);
     expect(opened.project.cloneSession().saved.driverEmbedding.device.specs.woofer.MagDepth_m)
-      .toEqual({state: 'E', value: 0});
+      .toBeUndefined();
     expect(opened.project.driver.specs.MagDepth_m.value).toBe(66);
-    expect(opened.loadRepairs).toEqual([]);
+    expect(opened.project.driver.specs.MagDepth_m.dq).toContainEqual(expect.objectContaining({kind: 'out-of-range'}));
+    expect(opened.loadRepairs).toEqual([expect.objectContaining({loaded: 0, repaired: null})]);
   });
 
   it('keeps the file’s dimensions marked entered through two WinISD exports', () => {

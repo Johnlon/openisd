@@ -1,11 +1,11 @@
 id: T948
-release_note: Basket Diameter keeps the previous value when you enter an impossible size. Imported driver dimensions keep the values in the file, with a data-quality warning for unusual sizes.
+release_note: Basket Diameter keeps the previous value when you enter an impossible size. Opening a file repairs impossible dimensions and lists them in one message. Unusual but possible sizes load as written, with a warning.
 repo: openisd
 owner: lead
 status: done
 label: fixes
-goal: Refuse typed Basket Diameter outside 10–1000 mm with the existing note. Preserve loaded driver dimensions in .wdr, .owdr and .owpr files, show the data-quality warning for an unusual value, and keep chart data finite.
-why: The load repair replaced the 55 m Basket in John's WinISD probes with 10 mm and exported the wrong value. John's 21 Nov 2026 ruling applies the typing limits only to edits and requires loaded values to be read as their formats specify.
+goal: Refuse typed Basket Diameter outside 10–1000 mm with the existing note. Repair impossible loaded driver dimensions, report each repair, and keep unusual but possible dimensions as written with a warning. Keep chart data finite.
+why: The load repair replaced the 55 m Basket in John's WinISD probes with 10 mm and exported the wrong value. John's 21 Nov 2026 ruling keeps possible values as written. The 18 Nov QO953 ruling repairs impossible values on opening.
 ruling: QO953
 done_test: bash scripts/test.sh packages/design/test/domain/basket-load-repair.test.ts packages/design/test/domain/driver-dimensions-load-repair.test.ts packages/design/test/domain/driver-value-validity.test.ts packages/design/test/engine/physicalRange.test.ts packages/design/test/winisd/wdr-round-trip-through-driver.test.ts packages/ui/test/hooks/NumInput-hooks.test.ts packages/ui/test/logic/applicationIO.test.ts
 files:
@@ -13,10 +13,15 @@ files:
   - bugs/BUG_20261120_impossible-basket-diameter.md
   - bugs/BUG_20261121_winisd-dimension-repair-lost-on-reexport.md
   - packages/design/domain/driver/basketLoadRepair.ts
+  - packages/design/domain/driver/driverDimensionLoadRepair.ts
   - packages/design/domain/driver/openISDDriver.ts
   - packages/design/domain/driver/openIsdDriverSpec.ts
   - packages/design/domain/driverRecordConverter.ts
+  - packages/design/domain/openIsdDeviceJsonIo.ts
+  - packages/design/domain/project/openISDProject.ts
   - packages/design/domain/project/projectLoadRepairRules.ts
+  - packages/design/domain/project/projectSerialization.ts
+  - packages/design/domain/winIsdDriverImport.ts
   - packages/design/domain/winIsdProjectConverter.ts
   - packages/design/engine/driver/DriverEngine.ts
   - packages/design/engine/physicalRange.ts
@@ -25,9 +30,13 @@ files:
   - packages/design/test/domain/driver-dimensions-load-repair.test.ts
   - packages/design/test/domain/driver-value-validity.test.ts
   - packages/design/test/engine/physicalRange.test.ts
+  - packages/persistence/src/repos/exportedFile.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/src/repos/projectSchemaUpgrade.ts
   - packages/ui/src/hooks/NumInput-hooks.ts
   - packages/ui/src/logic/applicationIO.ts
   - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/logic/fileImportExport.ts
   - packages/ui/src/logic/loadRepairNotice.ts
   - packages/ui/src/ui/components/DriverEditorModal.vue
   - packages/ui/test/fixtures/generateSample.ts
@@ -40,5 +49,6 @@ note: >-
   John, 18 Nov 2026, QO953, “refuse impossible, warn odd”. John clarified on 21 Nov, 01:11–01:14,
   “if a user is editing it that is different” and “WinISD file's basket is read exactly as WinISD's
   format states it, never squashed”, which “same applies to owdr and Owpr files”. The unit regression
-  opens a 55 m basket and checks for finite chart data. The Driver Editor browser spec covers the
-  typed refusal, the 610 mm warning threshold, and what is shown for loaded values.
+  opens a 55 m basket and checks for finite chart data. The load also repairs zero, negative and
+  non-finite dimensions under QO953. The Driver Editor browser spec covers the typed refusal,
+  the 610 mm warning threshold, and the values and messages shown on opening.

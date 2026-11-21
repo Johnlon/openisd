@@ -352,11 +352,18 @@ export function createProjectRepo(
   function openRepairing(text: string, source: StoredSource | null, tell: LoadRepairTelling): OpenedProject | string[] {
     let parsed: unknown;
     try { parsed = JSON.parse(text); } catch { return ['not valid JSON']; }
+    return openRecordRepairing(parsed, source, tell);
+  }
+
+  function openRecordRepairing(parsed: unknown, source: StoredSource | null, tell: LoadRepairTelling): OpenedProject | string[] {
     // The same upgrade every door applies, so a design saved by an older build opens anywhere.
     const current = upgrade.projectPayload(parsed);
-    if (Array.isArray(current)) return current;
-    const result = OpenISDProject.fromOwprTextRepairing(current, engine);
+    if (current.kind === 'errors') return current.errors;
+    const result = current.kind === 'upgraded'
+      ? OpenISDProject.fromOwprTextRepairing(current.text, engine)
+      : OpenISDProject.fromOwprRecordRepairing(current.record, engine);
     if (Array.isArray(result)) return result;
+    const loadRepairs = current.kind === 'upgraded' ? [...current.loadRepairs, ...result.loadRepairs] : result.loadRepairs;
     if (result.repaired.length > 0 && source !== null) {
       const original = storage.get(source.key);
       if (original !== null) backup.guard('repair', () => backup.keepPreRepairCopy(source.copy, original));
@@ -366,19 +373,19 @@ export function createProjectRepo(
         backupKey: original === null ? null : source.backupKey,
       });
     }
-    if (tell === 'tell' && result.loadRepairs.length > 0) {
-      onLoadRepaired({projectName: result.project.name.value, lines: result.loadRepairs.map(repair => repair.text)});
+    if (tell === 'tell' && loadRepairs.length > 0) {
+      onLoadRepaired({projectName: result.project.name.value, lines: loadRepairs.map(repair => repair.text)});
     }
-    return result;
+    return {...result, loadRepairs};
   }
 
   /** A design read from opened file text (a file, a backup being restored, an archive entry). */
   function openExportedText(text: string, tell: LoadRepairTelling): OpenedProject | string[] {
-    const opened = exportedFiles.open(text);
+    const opened = exportedFiles.openRecord(text);
     if (opened.kind === 'newer') {
       return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads}). The file is unchanged: reload this page to get the latest OpenISD, then open it again`];
     }
-    const result = openRepairing(opened.text, null, tell);
+    const result = opened.record === null ? openRepairing(text, null, tell) : openRecordRepairing(opened.record, null, tell);
     if (!Array.isArray(result)) claimId(result.project);
     return result;
   }

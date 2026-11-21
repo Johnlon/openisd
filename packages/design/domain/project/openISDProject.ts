@@ -22,7 +22,7 @@ import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
 import { airFieldsOver } from './projectAir.js';
 import type { AirField, AirFields } from './projectAir.js';
-import { storedTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf } from './projectSerialization.js';
+import { storedTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, parseOwprRecordRepairing, sessionOf } from './projectSerialization.js';
 import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
@@ -780,9 +780,18 @@ export class OpenISDProject {
      *  instead of refusing the project; `repaired` names every field that was reset, for the
      *  user to be told; `loadRepairs` every value the load repair pass set (`openSession`). Refused only when the text is not a project at all. */
     static fromOwprTextRepairing(text: string, engine: Engine, appContext: AppContext = realAppContext): OpenedProject & { repaired: readonly FieldPath[] } | string[] {
-        const parsed = parseOwprSessionRepairing(text, () => appContext.newId());
+        return OpenISDProject.#openParsedSession(parseOwprSessionRepairing(text, () => appContext.newId()), engine, appContext);
+    }
+
+    /** A parsed `.owpr` object, after the file's layout has been upgraded, with the same repairs. */
+    static fromOwprRecordRepairing(record: unknown, engine: Engine, appContext: AppContext = realAppContext): OpenedProject & { repaired: readonly FieldPath[] } | string[] {
+        return OpenISDProject.#openParsedSession(parseOwprRecordRepairing(record, () => appContext.newId()), engine, appContext);
+    }
+
+    static #openParsedSession(parsed: ReturnType<typeof parseOwprRecordRepairing>, engine: Engine, appContext: AppContext): OpenedProject & { repaired: readonly FieldPath[] } | string[] {
         if (Array.isArray(parsed)) return parsed;
-        return { ...OpenISDProject.openSession(parsed.value, engine, appContext), repaired: parsed.repaired };
+        const opened = OpenISDProject.openSession(parsed.value, engine, appContext);
+        return {...opened, repaired: parsed.repaired, loadRepairs: [...parsed.loadRepairs, ...opened.loadRepairs]};
     }
 
     /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */

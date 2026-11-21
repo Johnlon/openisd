@@ -10,6 +10,8 @@ import {withoutScraperOnlyFields} from './withoutScraperOnlyFields.js';
 import {openISDDeviceJsonSchema} from './openisdSchema.js';
 import {CURRENT_SCHEMA_VERSION, upgradeToCurrent} from './schemaVersion.js';
 import type {OpenISDDeviceJson as OpenISDDeviceJsonRecord} from './openisdSchema.js';
+import {repairNonFiniteDriverDimensions} from './driver/driverDimensionLoadRepair.js';
+import type {LoadRepairNote} from './project/loadRepair.js';
 
 // A local type alias, not a re-export statement: the re-export form (`export type {X} from 'Y'`)
 // creates its own local binding for X, which then collides with the `export const OpenISDDeviceJson`
@@ -18,6 +20,7 @@ import type {OpenISDDeviceJson as OpenISDDeviceJsonRecord} from './openisdSchema
 // so consumers can still `import {OpenISDDeviceJson}` for the value or `import type
 // {OpenISDDeviceJson}` for the type, from this one module.
 export type OpenISDDeviceJson = OpenISDDeviceJsonRecord;
+type DeviceRead = {json: OpenISDDeviceJson; loadRepairs: readonly LoadRepairNote[]} | {problems: string[]};
 
 /** The keys `driver.yml` carries that an openisd record does not. `definition` sits at EVERY
  *  depth — on each metadata envelope, each `sku.grounds` entry and each spec entry — so removing
@@ -72,7 +75,7 @@ export function sortKeysDeep(value: unknown): unknown {
 }
 
 export const OpenISDDeviceJson = Object.freeze({
-    fromOpenisdDriverJson(jsonText: string): { json: OpenISDDeviceJson } | { problems: string[] } {
+    fromOpenisdDriverJson(jsonText: string): DeviceRead {
         let parsed: unknown;
         try {
             parsed = JSON.parse(jsonText);
@@ -88,11 +91,12 @@ export const OpenISDDeviceJson = Object.freeze({
         return JSON.stringify(sortKeysDeep({...withoutUuid, schemaVersion: CURRENT_SCHEMA_VERSION}), null, 2);
     },
 
-    fromConformingRecord(record: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
+    fromConformingRecord(record: unknown): DeviceRead {
         const upgraded = upgradeToCurrent(record);
         if ('refusal' in upgraded) return {problems: [upgraded.refusal]};
-        const result = openISDDeviceJsonSchema.safeParse(upgraded.value);
-        if (result.success) return {json: result.data};
+        const repaired = repairNonFiniteDriverDimensions(upgraded.value);
+        const result = openISDDeviceJsonSchema.safeParse(repaired.record);
+        if (result.success) return {json: result.data, loadRepairs: repaired.notes};
         return {
             problems: result.error.issues.map(issue => issue.path.length === 0
                 ? issue.message
@@ -108,7 +112,7 @@ export const OpenISDDeviceJson = Object.freeze({
      *  gone before the schema sees the record. Loosening the schema to strip them instead is not
      *  the alternative it looks like — zod 4's loose mode PASSES unknown keys through rather than
      *  removing them. */
-    fromDriverYmlRecord(value: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
+    fromDriverYmlRecord(value: unknown): DeviceRead {
         return OpenISDDeviceJson.fromConformingRecord(freshDriverRecord(stripDriverYmlOnlyFields(value)));
     }
 });
