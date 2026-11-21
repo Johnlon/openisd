@@ -176,6 +176,14 @@ function screens(): readonly Screen[] {
       await setFocusedBoxType(page, type);
     }));
   }
+  all.push(screen(VisualSkin.DESKTOP, 'dialog-what-if-sealed', async page => {
+    await VisualSkin.DESKTOP.openProject(page);
+    await setFocusedBoxType(page, 'sealed');
+    await page.getByRole('button', {name: 'What-if', exact: true}).click();
+    const panel = page.locator('.what-if-panel');
+    await expect(panel).toBeInViewport({ratio: 1});
+    await expect(panel.locator('.what-if-content')).toBeInViewport({ratio: 1});
+  }, [], [], 'popup'));
   for (const {view, skin, plan} of openTargets()) {
     if (!POPUP_KINDS.has(view.kind)) continue;
     const visualSkin = skin === WalkSkin.Phone ? VisualSkin.MOBILE : VisualSkin.DESKTOP;

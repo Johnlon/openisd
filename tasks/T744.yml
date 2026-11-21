@@ -209,6 +209,7 @@ files:
   - packages/design/domain/project/projectResolve.ts
   - packages/design/domain/box/passiveRadiatorBox.ts
   - packages/design/test/domain/pr-chart-from-fs-vas-qms.test.ts
+  - packages/ui/test/visual/screens.ts
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
@@ -240,6 +241,7 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-settings-options-your-data.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-driver-editor-incomplete-warning.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-storage-restore-picker.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-what-if-sealed.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
@@ -309,6 +311,7 @@ visual:
   - desktop-dialog-settings-options-your-data
   - desktop-dialog-shared-driver-editor-incomplete-warning
   - desktop-dialog-shared-storage-restore-picker
+  - desktop-dialog-what-if-sealed
   - desktop-tab-advanced
   - desktop-tab-box
   - desktop-tab-driver
