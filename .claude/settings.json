@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 /home/john/work/winisd/_agent_files/bin/run_gates.py PreToolUse"
+            "command": "/usr/bin/python3 $HOME/work/winisd/_agent_files/bin/run_gates.py PreToolUse"
           }
         ]
       }
