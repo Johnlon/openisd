@@ -29,8 +29,8 @@ test('the Cms popup of W5-1138SMF in the driver editor says the one sentence, in
   const note = cms.locator('.ui-field-note');
   await expect(note).toBeVisible();
   const text = (await note.textContent()) ?? '';
-  expect(text).toMatch(/Vas.*Cms.* disagree: .* gives .*, the box says /);
-  expect(text).not.toContain('disagree by');
+  expect(text).toMatch(/Vas.*Cms.* disagree by [0-9.]+%: .* gives .*, the box says /);
+  expect(text).not.toMatch(/0\.0%/);
   expect(text).not.toMatch(/roo_kg_per|c_m_per_s|_kg_|_m3|_m2/);
 });
 
@@ -58,7 +58,7 @@ test('a typed Mms is kept; Fs, Mms and Cms all carry the mark, and the popup say
   for (const label of [/^Fs\b/, /^Mms\b/, /^Cms\b/]) await expect(fieldOf(page, label).locator('.ui-field-dq-btn')).toHaveCount(1);
   const mmsField = fieldOf(page, /^Mms\b/);
   await mmsField.locator('.ui-field-dq-btn').first().click();
-  await expect(mmsField.locator('.ui-field-note')).toContainText(/ disagree: .+ gives .+, the box says /);
+  await expect(mmsField.locator('.ui-field-note')).toContainText(/ disagree by [0-9.]+%: .+ gives .+, the box says /);
 });
 
 // QO532 (John, 11 Nov 2026: "not dimmed, just accentuated"; "not like that with the input cell fucked up"; on the blue dot picture: "do this").

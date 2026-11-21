@@ -35,6 +35,8 @@ export type CalculationIssue<Q extends string> =
       readonly expected: number;
       readonly actual: number;
       readonly relative: number;
+      /** The real gap between the stated and the implied value, as printed: "7.7%". */
+      readonly gap: string;
       readonly text: string;
     }
   | {
@@ -194,7 +196,7 @@ export function inconsistentInputs<Q extends string>(
   relative: number,
 ): CalculationIssue<Q> {
   return {
-    kind: 'inconsistent-inputs', target, fields, formula, expected, actual, relative,
+    kind: 'inconsistent-inputs', target, fields, formula, expected, actual, relative, gap: pct(relativeGap(expected, actual)),
     text: plainNames(`${fields.join(', ')} disagree by ${pct(relativeGap(expected, actual))}: ${formula}. Every field in the `
       + 'group is marked - correct one of them, or clear one to let it be calculated.'),
   };
