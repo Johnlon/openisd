@@ -8,10 +8,11 @@ status: done
 # ruling: QO532 - John, 11 Nov 2026, on the "Desktop: driver editor, Parameters page, Blue dot" picture: "do this" (a blue dot right of the label; no ring, no bold).
 # ruling: QO539 - John, 11 Nov 2026, on driver files whose Mms, Cms, Rms disagree with their Fs, Vas, Qms: "B" (the charts keep the on-screen boxes; an option "Chart from Fs, Vas, Qms (WinISD's way)", unticked by default, charts them WinISD's way; openisdSchema.ts gains the switch).
 # ruling: QO539 help text - John approved 16 Nov 2026 14:51 UTC (woody board QO946.c167) the switch help "Chart from Fs, Vas, Qms: WinISD draws its charts from Fs, Vas and Qms ... Tick this to draw from Fs, Vas and Qms as WinISD does." (field.ts ADV_WINISDCHARTFROMFSVASQMS; phone line in phoneText.ts).
+# ruling text: John, 21 Nov 2026 (desktop What-if widths): "only the col that needed widening really needs the fix".
 # QO946.c187 (lead): Vd top limit 10,000 cm3
 # The gate reads the first bare ruling line; QO534 is the driver-model ruling for this task (openIsdDriverSpec.ts changes).
 ruling: QO534
-why: 'John, 11 Nov 2026 (QO534): "an entered value is never overwritten with a calculated value"; "the editor and pr settings will use the [on-screen] values not hidden recalcs always"; "all get the mark". (QO535) What-if is for experiments and learning: "I only want to add inputs". (QO532) the boxes the charts read get a blue dot. (QO539, B) WinISD''s way stays one tick away, unticked by default.'
+why: 'John, 11 Nov 2026 (QO534): "an entered value is never overwritten with a calculated value"; "the editor and pr settings will use the [on-screen] values not hidden recalcs always"; "all get the mark". (QO535) What-if is for experiments and learning: "I only want to add inputs". (QO532) the boxes the charts read get a blue dot. (QO539, B) WinISD''s way stays one tick away, unticked by default. John, 21 Nov 2026 (desktop What-if widths): "only the col that needed widening really needs the fix".'
 release_note: The driver editor and the passive radiator settings chart exactly the values in their boxes; a value you type is never replaced, and when boxes disagree every box involved is marked and its note says what the maths gives. The boxes that feed the charts are highlighted. The What-if panel gains Qts, Sensitivity, Cms and Rms, and a typed value moves the figures that follow it, so the boxes always agree.
 visual_note: The boxes the charts read (Sd, Mms, Cms, Rms, BL, Re, Le) have a small blue dot right of their label, and the WinISD Compatibility panel has a new unticked switch, Chart from Fs, Vas, Qms. The What-if gains Qts, Sensitivity, Cms and Rms; screens that show a project's saved size show it a few bytes larger (the new switch).
 goal: The driver editor and radiator settings chart what the boxes show and mark every box of a disagreeing set; What-if gains Qts, Sensitivity, Cms and Rms and a move rule; a blue dot marks every box the charts read; the "Chart from Fs, Vas, Qms" switch (unticked) charts WinISD's way
@@ -33,7 +34,8 @@ tests_changed: >-
   original-driver-bundle-selection.browser.spec.ts checks the editor's displayed states against the bundle and its entered numbers against the bundled figures, and checks all eight displayed passive radiator figures and states against the saved selection. This enforces John's on-screen values ruling (QO534), "an entered value is never overwritten with a calculated value".
   All four historical layout-6 storage recordings keep the original sealed Qtc of 0.7101774159567577.
   load-repair-report.test.ts checks Qtc 0.8193428312756991 and the on-open note from both layout-5 and layout-6 saves. storageUpgrade.test.ts checks the exact recalculated Qtc in today's writes and the original bytes when a layout-6 backup is restored and exported as-is, following John's older-save ruling, "D: new calculation + note".
-  The desktop What-if box width (93 to 102 px) and passive radiator label-span cap (62 to 74 px) remain branch changes pending picture review.
+  The desktop What-if layout checks 102 px boxes and 38 px chips for Cms and Rms, with 93 px boxes and 29 px chips for the other fields.
+  The passive radiator label-span cap (62 to 74 px) remains a branch change pending picture review.
 done_test: bash scripts/test.sh packages/design/test/domain/on-screen-values.test.ts
 files:
   - packages/design/domain/project/calculationOpenNote.ts

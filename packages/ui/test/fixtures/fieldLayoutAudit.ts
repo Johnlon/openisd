@@ -82,11 +82,25 @@ export function measureFieldLayoutRules(root: Element, minStepperGapPx: number):
     if (group.length < 2) continue;
     const list = (pick: (f: (typeof group)[number]) => string) => group.map(f => `${f.label}:${pick(f)}`).join(', ');
     if (new Set(group.map(f => f.x)).size > 1) issues.push(`R3 ${key} value left edges differ: ${list(f => String(f.x))}`);
-    const narrow = Math.min(...group.map(f => f.width));
-    const widest = Math.max(...group.map(f => f.width));
-    // A pick list may be wider than the narrowest box when its text needs it, or narrower than the widest when its text still fits (the 90 px short dropdowns, QO428).
-    const sameEdge = group.filter(f => !(f.control instanceof HTMLSelectElement && ((f.width > narrow && needsMore(f.control, narrow)) || (f.width < widest && !needsMore(f.control, f.width)))));
-    if (new Set(sameEdge.map(f => f.right)).size > 1 || new Set(sameEdge.map(f => f.width)).size > 1) issues.push(`R4 ${key} value widths differ: ${list(f => `${f.width}/${f.right}`)}`);
+    if (root.matches('.what-if-panel')) {
+      // John, 21 Nov 2026: "only the col that needed widening really needs the fix".
+      for (const f of group) {
+        const wide = f.control.closest('.ui-field')?.matches('[data-field="Cms_m_per_N"], [data-field="Rms_kg_per_s"]');
+        const expected = wide ? 102 : 93;
+        if (f.width !== expected) issues.push(`R4 ${key} ${f.label} is ${f.width}px wide, needs ${expected}px`);
+        const wrapper = f.control.closest('.num-input-wrap');
+        if (wrapper !== null) {
+          const width = Math.round(wrapper.getBoundingClientRect().width);
+          if (width !== expected) issues.push(`R4 ${key} ${f.label} input wrapper is ${width}px wide, needs ${expected}px`);
+        }
+      }
+    } else {
+      const narrow = Math.min(...group.map(f => f.width));
+      const widest = Math.max(...group.map(f => f.width));
+      // A pick list may be wider than the narrowest box when its text needs it, or narrower than the widest when its text still fits (the 90 px short dropdowns, QO428).
+      const sameEdge = group.filter(f => !(f.control instanceof HTMLSelectElement && ((f.width > narrow && needsMore(f.control, narrow)) || (f.width < widest && !needsMore(f.control, f.width)))));
+      if (new Set(sameEdge.map(f => f.right)).size > 1 || new Set(sameEdge.map(f => f.width)).size > 1) issues.push(`R4 ${key} value widths differ: ${list(f => `${f.width}/${f.right}`)}`);
+    }
     for (const tag of ['INPUT', 'SELECT']) {
       const same = group.filter(f => f.tag === tag);
       if (new Set(same.map(f => f.height)).size > 1) issues.push(`R5 ${key} ${tag.toLowerCase()} heights differ: ${same.map(f => `${f.label}:${f.height}`).join(', ')}`);

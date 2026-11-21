@@ -308,22 +308,42 @@ test.describe('What-if panel', () => {
       await expect(page.locator('.what-if-btn')).toHaveAttribute('title', 'Try values & watch the charts. Your project will not be updated.');
     });
 
-    test('numeric fields are narrow and uniform, not stretched to fill the column', async ({ page }) => {
+    test('only Cms and Rms get wider boxes and unit chips', async ({ page }) => {
       await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);
       const named = await page.locator('.what-if-panel .what-if-fld:not(.what-if-ro) input').evaluateAll(
-        els => els.map(e => ({ label: e.closest('.what-if-fld')?.querySelector('label')?.textContent ?? '', width: Math.round(e.getBoundingClientRect().width) })));
-      const widths = named.map(n => n.width);
-      expect(widths.length).toBeGreaterThan(8);
-      // One width for the whole panel — a field that sizes to its container instead of its content
-      // would vary with the column it landed in.
-      expect(new Set(widths).size, JSON.stringify(named)).toBe(1);
-      // 93px, 25% narrower than 124px (John, 8 Nov 2026), and 9px wider for the 38px unit rail mm/N and Ns/m need (QO535).
-      expect(widths[0], 'joined box includes its 38px unit rail').toBe(102);
-      const railWidths = await page.locator('.what-if-panel .what-if-fld:not(.what-if-ro) input').evaluateAll(els => els.filter(el => el.closest('.what-if-fld')?.querySelector('.ui-field-unit')?.textContent?.trim()).map(el => { const css = getComputedStyle(el); return el.getBoundingClientRect().width - parseFloat(css.paddingRight); }));
-      for (const width of railWidths) expect(width, 'numeric rail stays narrow').toBeLessThanOrEqual(90);
-      // ...and genuinely narrower than the cell holding it, i.e. leftover whitespace exists.
-      const cellW = await page.locator('.what-if-panel .what-if-fld').first().evaluate(e => e.getBoundingClientRect().width);
-      expect(widths[0]).toBeLessThan(cellW);
+        async els => {
+          await document.fonts.ready;
+          return els.map(input => {
+            const row = input.closest('.what-if-fld');
+            const unit = row?.querySelector('.ui-field-unit');
+            const chip = unit?.getBoundingClientRect();
+            const text = document.createRange();
+            if (unit) text.selectNodeContents(unit);
+            const glyphs = text.getBoundingClientRect();
+            return {
+              label: row?.querySelector('label')?.textContent?.trim() ?? '',
+              rowWidth: row?.getBoundingClientRect().width ?? 0,
+              width: Math.round(input.getBoundingClientRect().width),
+              symbol: unit?.textContent?.trim() ?? '',
+              chipWidth: Math.round(chip?.width ?? 0),
+              unitFits: chip !== undefined && glyphs.left >= chip.left - 0.5 && glyphs.right <= chip.right + 0.5,
+              chipPadding: parseFloat(getComputedStyle(input).paddingRight),
+            };
+          });
+        });
+      expect(named.length).toBeGreaterThan(8);
+      expect(named.find(row => row.label === 'Cms')?.symbol).toBe('mm/N');
+      expect(named.find(row => row.label === 'Rms')?.symbol).toBe('Ns/m');
+      for (const {label, rowWidth, width, symbol, chipWidth, unitFits, chipPadding} of named) {
+        const wide = label === 'Cms' || label === 'Rms';
+        expect(width, label).toBe(wide ? 102 : 93);
+        expect(width, label).toBeLessThan(rowWidth);
+        if (symbol !== '') {
+          expect(chipWidth, label).toBe(wide ? 38 : 29);
+          expect(unitFits, `${label} ${symbol}`).toBe(true);
+          expect(width - chipPadding, `${label} numeric rail`).toBe(64);
+        }
+      }
     });
 
     test('a blank Q autocalculates from the other two, with the editor E/C/N marks and red border', async ({ page }) => {
