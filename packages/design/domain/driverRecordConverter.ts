@@ -486,12 +486,6 @@ function wdrRow(
   const cell = field;
   if (cell.value === null)
     return [wdrName, { value: "0", state: "not-available" }];
-  // No non-finite `cell.value` reaches here to guard against: `openisdSchema.ts` types every
-  // spec entry's value as a plain (finite-only, by Zod v4 default) `z.number()`, and the
-  // solver's own `setVal` write gate (`engine/solver.ts`) refuses to write a calculated value
-  // that is not `isFinite(val) && val > 0` — so neither an entered nor a calculated value can
-  // ever be `Infinity`/`NaN` here. Deleted 2026-09-21 rather than carried as permanently-dead
-  // code (proved via both invariants, not just argued).
   // An ENTERED zero is written through as an entered zero, and flagged. A scraper that
   // failed to read a number frequently yields 0, and 0 is a legitimate value for several of
   // these fields, so nothing downstream can tell the two apart from the file alone. Corpus
@@ -962,8 +956,8 @@ export class DriverRecordConverter {
   ): ProjectedEntry {
     const { readings } = scraped;
     const originResult = selectOrigin(readings, field, (f, v) => this.engine.driver.isPhysicallyPlausible(f, v));
-    // A reading outside the field's physical band never becomes a value (T018: the field is N
-    // and the .wdr comment lists it), but the tools still read the range mark as a warning
+    // A reading outside the selection band never becomes a value (T018: the field is N
+    // and the .wdr comment lists it). The tools still read the normal-band mark as a warning
     // (winisd_tools BUG_20260823 range/calc marks; AI triage of calculation-field failures).
     for (const [, r] of Object.entries(readings).sort(byRoleName)) {
       if (!isUsable(r)) continue;

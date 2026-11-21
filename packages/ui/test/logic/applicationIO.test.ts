@@ -9,7 +9,7 @@ import {createApplicationIO, type DesignIO} from '../../src/logic/applicationIO.
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import {createFileOpen, createFileStorage, createMemoryStorage, type FileOpen, type FilePick, type FileStorage} from '@openisd/persistence';
 import {createEngine} from '@openisd/design/engine';
-import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+import {ensureSampleProject, OLD_BASKET_PROJECT_OWPR, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
 import type {ConfirmPort} from '../../src/logic/confirmPort.js';
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppState} from '../../src/logic/appState.js';
@@ -398,6 +398,12 @@ describe('every import and export says what it did', () => {
     appState.requireFocusedProject().driver.model.set('W5-1138SMF');
   }
 
+  function expectFiniteTransferFunction(): void {
+    const sweep = appState.requireFocusedProject().sweep({fmin: 10, fmax: 1000});
+    expect(sweep.values?.tfMag.length).toBeGreaterThan(0);
+    expect(sweep.values?.tfMag.every(Number.isFinite)).toBe(true);
+  }
+
   it('an imported passive radiator with an infinite resonance shows an unavailable readout with its reason', async () => {
     const bytes = readFileSync(new URL('../fixtures/pr-resonance-underflow.owpr', import.meta.url));
     stubDom([]);
@@ -419,7 +425,14 @@ describe('every import and export says what it did', () => {
     try {
       const { io, flash } = ioWith(createFileStorage());
       await importGolden(io);
-      expect(flash).toHaveBeenCalledWith('Project imported from MyBox.wpr');
+      expect(flash).toHaveBeenCalledExactlyOnceWith('Project imported from MyBox.wpr');
+      const {specs} = appState.requireFocusedProject().driver;
+      for (const field of [specs.Thick_m, specs.Depth_m, specs.MagDepth_m, specs.Magnet_m,
+        specs.Basket_m, specs.Outer_m, specs.Vcd_m, specs.DVol_m3]) {
+        expect(field.value).toBe(0);
+        expect(field.dq).toContainEqual(expect.objectContaining({kind: 'invalid-value', value: 0}));
+      }
+      expectFiniteTransferFunction();
 
       io.exportWpr();
       expect(flash).toHaveBeenLastCalledWith('Project exported as Tang_Band_W5-1138SMF.wpr');
@@ -436,6 +449,31 @@ describe('every import and export says what it did', () => {
 
       io.exportBackup();
       expect(flash).toHaveBeenLastCalledWith(expect.stringMatching(/^Backup downloaded as openisd-backup-\d{4}-\d{2}-\d{2}\.json$/));
+    } finally { restoreGlobals(); }
+  });
+
+  it('keeps and flags an overflowing basket with only the normal import message and a finite sweep', async () => {
+    stubDom([]);
+    try {
+      const {io, flash} = ioWith(createFileStorage());
+      const projectText = readFileSync(OLD_BASKET_PROJECT_OWPR, 'utf8').replace('"value":2.37744', '"value":1e999');
+      await io.importFile(new File([projectText], 'overflow.owpr'));
+      expect(flash).toHaveBeenCalledExactlyOnceWith('Project imported from overflow.owpr');
+      const project = appState.requireFocusedProject();
+      expect(project.driver.specs.Basket_m.value).toBe(Infinity);
+      expect(project.driver.specs.Basket_m.dq).toContainEqual(expect.objectContaining({kind: 'invalid-value', value: Infinity}));
+      expectFiniteTransferFunction();
+
+      const driverText = project.driver.toOwdrText();
+      project.driver.specs.Basket_m.set(0.15);
+      vi.mocked(flash).mockClear();
+      await io.importFile(new File([driverText], 'overflow.owdr'));
+      expect(flash).toHaveBeenCalledExactlyOnceWith(
+        'Driver imported from overflow.owdr: Dayton Audio DSA115-8 4" Designer Series Aluminum Cone Woofer 8 Ohm',
+      );
+      expect(project.driver.specs.Basket_m.value).toBe(Infinity);
+      expect(project.driver.specs.Basket_m.dq).toContainEqual(expect.objectContaining({kind: 'invalid-value', value: Infinity}));
+      expectFiniteTransferFunction();
     } finally { restoreGlobals(); }
   });
 

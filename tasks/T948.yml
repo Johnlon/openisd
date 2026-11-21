@@ -1,0 +1,68 @@
+id: T948
+release_note: Basket Diameter keeps the previous value when you enter an impossible size. Imported driver dimensions keep the values in the file and show data-quality warnings beside impossible or unusual values.
+repo: openisd
+owner: lead
+status: done
+label: fixes
+goal: Refuse typed Basket Diameter outside 10–1000 mm with the existing note. Keep loaded driver dimensions as written, warn beside impossible or unusual values, and keep chart data finite.
+why: Replacing a dimension on opening can misrepresent the file and change a subsequent export. (John, 21 Nov 2026, QO972: "a bad idea if it misrepresent data, a dq is better and more consistent".)
+ruling: QO972
+done_test: bash scripts/test.sh packages/design/test/domain/basket-load-repair.test.ts packages/design/test/domain/driver-dimensions-load-repair.test.ts packages/design/test/domain/driver-value-validity.test.ts packages/design/test/engine/physicalRange.test.ts packages/design/test/winisd/wdr-round-trip-through-driver.test.ts packages/ui/test/hooks/NumInput-hooks.test.ts packages/ui/test/logic/applicationIO.test.ts
+files:
+  - tasks/T948.yml
+  - bugs/BUG_20261120_impossible-basket-diameter.md
+  - bugs/BUG_20261121_winisd-dimension-repair-lost-on-reexport.md
+  - packages/design/cloud/conflictNames.ts
+  - packages/design/domain/driver/basketLoadRepair.ts
+  - packages/design/domain/driver/driverDimensionLoadRepair.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/domain/openIsdDeviceJsonIo.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectLoadRepairRules.ts
+  - packages/design/domain/project/projectSerialization.ts
+  - packages/design/domain/winIsdDriverImport.ts
+  - packages/design/domain/winIsdProjectConverter.ts
+  - packages/design/engine/consistency.ts
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/engine/dvolRelation.ts
+  - packages/design/engine/physicalRange.ts
+  - packages/design/fields/field.ts
+  - packages/design/json/stringifyWithOverflow.ts
+  - packages/design/package.json
+  - packages/design/test/domain/basket-load-repair.test.ts
+  - packages/design/test/domain/driver-dimensions-load-repair.test.ts
+  - packages/design/test/domain/driver-value-validity.test.ts
+  - packages/design/test/engine/physicalRange.test.ts
+  - packages/persistence/src/repos/exportedFile.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/src/repos/projectSchemaUpgrade.ts
+  - packages/persistence/src/repos/savedEntries.ts
+  - packages/persistence/test/myDriverRepo.test.ts
+  - packages/ui/src/hooks/NumInput-hooks.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/logic/driverDraft.ts
+  - packages/ui/src/logic/fileImportExport.ts
+  - packages/ui/src/logic/loadRepairNotice.ts
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/test/fixtures/generateSample.ts
+  - packages/ui/test/fixtures/sampleProject.ts
+  - packages/ui/test/hooks/NumInput-hooks.test.ts
+  - packages/ui/test/logic/applicationIO.test.ts
+  - packages/ui/test/ui/driver-editor-basket.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-units.browser.spec.ts
+  - scripts/schemagen/cases.ts
+  - scripts/schemagen/out/driver_model.py
+  - scripts/schemagen/prove.ts
+  - scripts/schemagen/translate.ts
+note: >-
+  John, 18 Nov 2026, QO953, “refuse impossible, warn odd”. John clarified on 21 Nov, 01:11–01:14,
+  “if a user is editing it that is different” and “WinISD file's basket is read exactly as WinISD's
+  format states it, never squashed”, which “same applies to owdr and Owpr files”. At about 02:40
+  John ruled “a bad idea if it misrepresent data, a dq is better and more consistent”. Loaded zero,
+  negative and overflowing dimensions keep their values with a field warning. A 55 m Basket keeps
+  its range warning. Tests cover finite sweeps, genuinely empty calculated fields, and the import
+  message and warning beside a zero Basket in the Driver Editor.

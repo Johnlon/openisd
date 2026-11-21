@@ -1,0 +1,36 @@
+id: T946
+release_note: The driver dimensions drawing uses full field names and shows each available measurement in your chosen unit.
+repo: openisd
+owner: lead
+status: done
+goal: 'Show full field names and the available measurements on the Dimensions drawing'
+why: "John, 21 Nov 2026 at 00:53, asked for full field names and to keep the numbers on the drawing. QO918 requires driver sizes on the Dimensions screen."
+ruling: QO918
+done_test: bash scripts/test.sh packages/ui/test/hooks/DriverEditorModal-hooks.test.ts
+files:
+  - tasks/T946.yml
+  - bugs/BUG_20261121_phone-driver-dimensions-depth-clipped.md
+  - packages/design/fields/field.ts
+  - packages/ui/src/hooks/DriverEditorModal-hooks.ts
+  - packages/ui/src/hooks/useUnitReadouts.ts
+  - packages/ui/src/ui/components/DriverDimensionsDiagram.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/test/architecture/driver-editor-template.test.ts
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/fixtures/branchMap/shared.ts
+  - packages/ui/test/hooks/DriverEditorModal-hooks.test.ts
+  - packages/ui/test/ui/driver-editor-dimensions-diagram.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-weight-frame-size.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-dimensions.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-dimensions.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-editor-dimensions.png
+  - packages/ui/test/visual/screens.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-driver-dimensions-with-figures.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-driver-dimensions-with-figures.png
+visual:
+  - desktop-dialog-driver-editor-dimensions
+  - desktop-dialog-driver-editor-help-dimensions
+  - mobile-dialog-editor-dimensions
+  - desktop-driver-dimensions-with-figures
+  - mobile-driver-dimensions-with-figures
+visual_note: The drawing spells out each dimension and still shows its measurement when known. The desktop Dimensions field list uses full names. New screen driver-dimensions-with-figures pictures a catalogue driver that states its sizes (Faital Pro 18HP1030-4), desktop and phone; John approved both on the board (21 Nov 2026: "it's good").

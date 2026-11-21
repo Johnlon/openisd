@@ -527,7 +527,9 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const previewData = computed<PreviewVM | null>(() =>
     previewDriver.value ? previewVMOf(previewDriver.value) : null);
 
-  function pickDriver(d: OpenISDDriverStandalone | null): void { previewDriver.value = d; }
+  function pickDriver(d: OpenISDDriverStandalone | null): void {
+    previewDriver.value = d;
+  }
 
   /** Read the embedded project driver directly; no catalogue lookup or replacement. */
   function showProjectDriverInfo(): void {
@@ -540,7 +542,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
 
   async function pickBundledDriver(row: BundledDriverIndexRow): Promise<void> {
     try {
-      previewDriver.value = await driverRepo.load(row.uuid);
+      pickDriver(await driverRepo.load(row.uuid));
       statusErr.value = false;
       statusMsg.value = '';
     } catch (err) {

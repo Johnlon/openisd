@@ -157,6 +157,7 @@ files:
   - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
   - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
   - packages/ui/test/hooks/OriginalWhatIf-hooks.test.ts
+  - packages/ui/test/fixtures/branchMap/desktop.ts
   - packages/ui/test/ui/driver-editor-cms-note.browser.spec.ts
   - packages/ui/test/ui/field-layout-rules.browser.spec.ts
   - packages/ui/test/ui/new-project-radiator-eight-figures.browser.spec.ts
@@ -208,6 +209,7 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-cloud-hint.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-cloud-reconnect-strip.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-difference-cue.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-current-info.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-disagreement-list.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-advanced.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-electro-mechanical.png
@@ -237,6 +239,7 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-driver-dq.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-driver-export.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-driver-info.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-driver-more.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-driver-rename.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-driver-save.png
@@ -274,8 +277,10 @@ visual:
   - desktop-dialog-cloud-hint
   - desktop-dialog-cloud-reconnect-strip
   - desktop-dialog-difference-cue
+  - desktop-dialog-driver-current-info
   - desktop-dialog-driver-disagreement-list
   - desktop-dialog-driver-editor-advanced
+  - desktop-dialog-driver-editor-help-dimensions
   - desktop-dialog-driver-editor-help-electro-mechanical
   - desktop-dialog-driver-editor-help-environment
   - desktop-dialog-driver-editor-help-figure-of-merit
@@ -287,10 +292,13 @@ visual:
   - desktop-dialog-driver-editor-parameters
   - desktop-dialog-driver-export-format
   - desktop-dialog-driver-library-save
+  - desktop-dialog-driver-rename
+  - desktop-dialog-enclosure-passive-radiator-data-quality
   - desktop-dialog-enclosure-passive-radiator-save
   - desktop-dialog-enclosure-passive-radiator-select
   - desktop-dialog-equation-inspector
   - desktop-dialog-settings-options-your-data
+  - desktop-dialog-shared-driver-editor-incomplete-warning
   - desktop-dialog-shared-storage-restore-picker
   - desktop-tab-advanced
   - desktop-tab-box
@@ -300,7 +308,9 @@ visual:
   - desktop-tab-signal
   - mobile-dialog-driver-dq
   - mobile-dialog-driver-export
+  - mobile-dialog-driver-info
   - mobile-dialog-driver-more
+  - mobile-dialog-driver-rename
   - mobile-dialog-driver-save
   - mobile-dialog-editor-advanced
   - mobile-dialog-editor-parameters

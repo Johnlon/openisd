@@ -2,6 +2,7 @@
  *  `"layout": <N>` as its first field when it is written, and is migrated stepwise from that
  *  layout when it is read; a file with no stamp is layout 1. The file's other fields are exactly
  *  what the domain wrote. */
+import {stringifyWithOverflow} from '@openisd/design/json';
 import {createLayoutMigrator, type FileJson, type LayoutRules} from './layoutMigration.js';
 
 export type OpenedFile =
@@ -35,7 +36,7 @@ export function createExportedFiles(rules: LayoutRules): ExportedFiles {
       const file = parseObject(text);
       if (file === null) return text;
       const rest = Object.entries(file).filter(([field]) => field !== 'layout');
-      return JSON.stringify({layout: rules.layout, ...Object.fromEntries(rest)}, null, indentOf(text));
+      return stringifyWithOverflow({layout: rules.layout, ...Object.fromEntries(rest)}, {indent: indentOf(text)});
     },
     open(text) {
       const file = parseObject(text);
@@ -45,7 +46,7 @@ export function createExportedFiles(rules: LayoutRules): ExportedFiles {
       if (from === null) return {kind: 'ok', text};
       if (from > rules.layout) return {kind: 'newer', layout: from, reads: rules.layout};
       const migrated = migrator.migrateFile(rest, from);
-      return {kind: 'ok', text: JSON.stringify(migrated ?? rest, null, indentOf(text))};
+      return {kind: 'ok', text: stringifyWithOverflow(migrated ?? rest, {indent: indentOf(text)})};
     },
   };
 }

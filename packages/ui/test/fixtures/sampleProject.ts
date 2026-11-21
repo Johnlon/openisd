@@ -20,6 +20,9 @@ export const SAMPLE_PROJECT_OWPR = join(
 export const COMPLETE_DRIVER_PROJECT_OWPR = join(
   dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'build', 'test-fixtures', 'complete-driver-project.owpr');
 
+/** A saved project with the old Dayton DSA115-8 basket value. */
+export const OLD_BASKET_PROJECT_OWPR = join(dirname(SAMPLE_PROJECT_OWPR), 'old-basket-project.owpr');
+
 /** The date the browser suite runs at and the sample projects are dated: the Project tab shows
  *  Created and Modified, so a wall-clock date made a screen shot one day fail the next (F48).
  *  Midday UTC is the same date in every time zone from UTC-11 to UTC+11. */
@@ -33,6 +36,7 @@ const GENERATED_FROM = [
   join(HERE, 'generateSample.ts'),
   join(HERE, '..', '..', '..', 'design', 'domain', 'openisdSchema.ts'),
   join(HERE, '..', '..', 'public', 'drivers', 'tang-band', 'w5-1138smf.json'),
+  join(HERE, '..', '..', 'public', 'drivers', 'dayton-audio', 'dsa115-8.json'),
 ];
 
 /** Whether `output` is missing or older than anything it is generated from. */
@@ -44,7 +48,7 @@ function isStale(output: string): boolean {
 
 /** Generate the sample projects when missing or stale, then return SAMPLE_PROJECT_OWPR path. */
 export function ensureSampleProject(): string {
-  if (isStale(SAMPLE_PROJECT_OWPR) || isStale(COMPLETE_DRIVER_PROJECT_OWPR)) {
+  if ([SAMPLE_PROJECT_OWPR, COMPLETE_DRIVER_PROJECT_OWPR, OLD_BASKET_PROJECT_OWPR].some(isStale)) {
     execSync('npx vite-node ' + join(dirname(fileURLToPath(import.meta.url)), 'generateSample.ts'), { stdio: 'inherit' });
   }
   return SAMPLE_PROJECT_OWPR;

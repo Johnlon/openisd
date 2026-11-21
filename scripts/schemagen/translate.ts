@@ -28,6 +28,8 @@ interface UnionMember { readonly type: PyType; readonly transform: {param: strin
 export type PyType =
     | { readonly kind: 'str' }
     | { readonly kind: 'number'; readonly positive: boolean }
+    | { readonly kind: 'number-with-overflow' }
+    | { readonly kind: 'infinity'; readonly sign: 1 | -1 }
     | { readonly kind: 'bool' }
     | { readonly kind: 'unknown' }
     | { readonly kind: 'literal'; readonly value: string }
@@ -121,7 +123,7 @@ export class ZodTranslator {
             case 'number': return {kind: 'number', positive: false};
             case 'boolean': return {kind: 'bool'};
             case 'unknown': return {kind: 'unknown'};
-            case 'literal': return {kind: 'literal', value: this.#stringOf(args[0], env)};
+            case 'literal': return this.#literal(args[0], env);
             case 'enum': return {kind: 'enum', values: this.#stringsOf(args[0], env)};
             case 'strictObject': return this.#object(args[0], env);
             case 'record': return {kind: 'record', key: this.#plain(this.#translate(args[0], env, hint)), value: this.#plain(this.#translate(args[1], env, hint))};
@@ -151,6 +153,12 @@ export class ZodTranslator {
                 if (r.kind !== 'object') throw new Untranslated(call, '.partial on a non-object');
                 return {kind: 'object', hint: r.hint, checks: r.checks, fields: r.fields.map(f => ({...f, optional: true}))};
             }
+            case 'extend': {
+                if (r.kind !== 'object' || r.checks.length !== 0) throw new Untranslated(call, '.extend needs an unrefined strict object');
+                const fields = new Map(r.fields.map(f => [f.name, f]));
+                for (const field of this.#object(args[0], env).fields) fields.set(field.name, field);
+                return {...r, hint: '', fields: [...fields.values()]};
+            }
             case 'refine': {
                 const check = this.#check(args[0], args[1], env);
                 if (r.kind === 'object') return {...r, checks: [...r.checks, check]};
@@ -163,6 +171,15 @@ export class ZodTranslator {
             case 'transform': return this.#transform(call, r, args[0], env);
             default: throw new Untranslated(call, `.${method}`);
         }
+    }
+
+    #literal(expr: Expression, env: Env): PyType {
+        if (Node.isIdentifier(expr) && expr.getText() === 'Infinity') return {kind: 'infinity', sign: 1};
+        if (Node.isPrefixUnaryExpression(expr) && expr.getOperatorToken() === SyntaxKind.MinusToken) {
+            const operand = expr.getOperand();
+            if (Node.isIdentifier(operand) && operand.getText() === 'Infinity') return {kind: 'infinity', sign: -1};
+        }
+        return {kind: 'literal', value: this.#stringOf(expr, env)};
     }
 
     #object(arg: Expression, env: Env): PyObject {
@@ -212,6 +229,12 @@ export class ZodTranslator {
             if (t.kind === 'piped' && t.target.kind === 'unknown' && t.members.length === 1) return t.members[0];
             return {type: this.#plain(t), transform: null};
         });
+        const numbers = parts.filter(p => p.transform === null).map(p => p.type);
+        if (parts.length === 3 && numbers.some(t => t.kind === 'number' && !t.positive)
+            && numbers.some(t => t.kind === 'infinity' && t.sign === 1)
+            && numbers.some(t => t.kind === 'infinity' && t.sign === -1)) {
+            return {kind: 'number-with-overflow'};
+        }
         return {kind: 'piped', hint: '', members: parts, target: {kind: 'unknown'}};
     }
 
@@ -427,6 +450,8 @@ export class PythonEmitter {
             'from pydantic_core import PydanticCustomError',
             '',
             'Number = Annotated[float, Field(allow_inf_nan=False)]',
+            '# Every number is <= infinity except NaN.',
+            'NumberWithOverflow = Annotated[float, Field(allow_inf_nan=True, le=float("inf"))]',
             '',
             '# Zod 4 reports a failed union as the issues of the ONE member whose issues are all continuable',
             '# (a refinement, a size bound, an unrecognised key); with none or several such members it reports',
@@ -495,6 +520,11 @@ export class PythonEmitter {
         switch (t.kind) {
             case 'str': return 'str';
             case 'number': return t.positive ? 'Annotated[Number, Field(gt=0)]' : 'Number';
+            case 'number-with-overflow': return 'NumberWithOverflow';
+            case 'infinity': {
+                const bound = t.sign === 1 ? 'ge=float("inf")' : 'le=float("-inf")';
+                return `Annotated[float, Field(allow_inf_nan=True, ${bound})]`;
+            }
             case 'bool': return 'bool';
             case 'unknown': return 'object';
             case 'literal': return `Literal[${py(t.value)}]`;

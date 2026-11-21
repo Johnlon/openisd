@@ -1,9 +1,15 @@
 <!--
-  The driver dimensions diagram — Basket, Outer, Depth, MagDpt, Magnet, Thick.
+  The driver dimensions diagram.
 
   ONE definition, shared by every caller. Do not inline a second copy: two drawings of one
   thing drift.
 -->
+<script setup lang="ts">
+import type {DriverDimensionLabels} from '../../hooks/DriverEditorModal-hooks.js';
+
+defineProps<{dimensions: DriverDimensionLabels}>();
+</script>
+
 <template>
   <svg viewBox="0 0 540 450" class="dd-dim-svg" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -48,17 +54,17 @@
       <line x1="242" y1="295" x2="242" y2="340"/>
       <line x1="325" y1="295" x2="325" y2="340"/>
       <line x1="242" y1="330" x2="325" y2="330" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
-      <line x1="242" y1="295" x2="242" y2="420"/>
+      <line x1="242" y1="380" x2="242" y2="420"/>
       <line x1="415" y1="385" x2="415" y2="420"/>
       <line x1="242" y1="410" x2="415" y2="410" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
     </g>
-    <g style="font-family: var(--font-ui)" font-size="14" fill="#4fb0ff" text-anchor="middle">
-      <text x="482" y="225" transform="rotate(90,482,225)">Outer</text>
-      <text x="153" y="225" transform="rotate(-90,153,225)">Basket</text>
-      <text x="198" y="225" transform="rotate(-90,198,225)">Magnet</text>
-      <text x="420" y="15" font-size="13">Thick</text>
-      <text x="287" y="355">MagDpt</text>
-      <text x="328" y="435">Depth</text>
+    <g style="font-family: var(--font-ui)" font-size="17" fill="#4fb0ff" text-anchor="middle">
+      <text x="482" y="225" transform="rotate(90,482,225)">{{ dimensions.outer.label }} <tspan font-weight="700">{{ dimensions.outer.figure }}</tspan></text>
+      <text x="153" y="225" transform="rotate(-90,153,225)">{{ dimensions.basket.label }} <tspan font-weight="700">{{ dimensions.basket.figure }}</tspan></text>
+      <text x="198" y="225" transform="rotate(-90,198,225)">{{ dimensions.magnet.label }} <tspan font-weight="700">{{ dimensions.magnet.figure }}</tspan></text>
+      <text x="525" y="19" text-anchor="end">{{ dimensions.thick.label }} <tspan font-weight="700">{{ dimensions.thick.figure }}</tspan></text>
+      <text x="287" y="355">{{ dimensions.magnetDepth.label }} <tspan x="287" y="374" font-weight="700">{{ dimensions.magnetDepth.figure }}</tspan></text>
+      <text x="328" y="435">{{ dimensions.depth.label }} <tspan font-weight="700">{{ dimensions.depth.figure }}</tspan></text>
     </g>
   </svg>
 </template>

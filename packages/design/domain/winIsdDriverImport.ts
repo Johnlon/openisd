@@ -9,6 +9,7 @@ import type {WdrCell} from '../winisd/winisdDriver.js';
 import {newUuid} from './newUuid.js';
 import {CURRENT_SCHEMA_VERSION} from './schemaVersion.js';
 import type {DriverError} from '../engine/index.js';
+import {isDriverDimension} from './openisdSchema.js';
 import type {DriverSpecsSection, OpenISDDeviceJson, SpecEntryJson, WiringEntryJson} from './openisdSchema.js';
 import {VoiceCoilWiring} from './voiceCoilWiring.js';
 
@@ -110,7 +111,7 @@ function readSpecEntryInto(
 ): void {
     const cell = wdr.cell(wdrKey);
     const numValue = Number(cell.value);
-    if (!isFinite(numValue)) {
+    if (!Number.isFinite(numValue) && (Number.isNaN(numValue) || !isDriverDimension(schemaKey))) {
         // Text where a number belongs: a .wdr holds only a flag and a number (John, 2026-10-11), so
         // the cell is left out, and the user is told whatever its ParState mark says.
         warnings.push({

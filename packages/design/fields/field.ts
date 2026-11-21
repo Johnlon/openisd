@@ -149,6 +149,7 @@ export enum NumberEditor {
 }
 
 interface NumberFieldSpec extends FieldSpec {
+  readonly fullLabel?: string;
   readonly editor?: NumberEditor;
   readonly display: SwitchableUnit | FixedUnit;
   readonly limits: FieldLimits;
@@ -167,6 +168,8 @@ export class NumberField extends Field {
   /** The fewest significant figures a number box shows (John, 10 Nov 2026, board option B). */
   static readonly MIN_SIGNIFICANT = 4;
   readonly kind = 'number';
+  /** The expanded name for displays with room for it. */
+  readonly fullLabel: string;
   readonly editor: NumberEditor;
   /** How the field is shown: one fixed symbol, or a `UnitGroup` the user may rotate through. */
   readonly display: SwitchableUnit | FixedUnit;
@@ -197,6 +200,7 @@ export class NumberField extends Field {
 
   private constructor(spec: NumberFieldSpec) {
     super(spec);
+    this.fullLabel = spec.fullLabel ?? spec.label;
     this.editor = spec.editor ?? NumberEditor.Input;
     this.display = Object.freeze(spec.display);
     this.limits = Object.freeze(spec.limits);
@@ -1212,10 +1216,11 @@ export class NumberField extends Field {
     value: "Basket_m",
     label: "Basket Diameter",
     display: {kind: 'switchable', group: 'length', base: 'mm'},
-    limits: {min: 0, max: 5},
+    limits: {min: 0.01, max: 1},
+    plausible: {min: 0.01, max: 0.61},
     floor: "positive",
     precision: 2,
-    description: "Basket Diameter\nOuter diameter of the frame/chassis.",
+    description: "Basket Diameter\nDiameter of the hole cut in the baffle.",
   });
   static readonly OUTER_M = new NumberField({
     value: "Outer_m",
@@ -1229,6 +1234,7 @@ export class NumberField extends Field {
   static readonly OUTERX_M = new NumberField({
     value: "OuterX_m",
     label: "Frame Size X (OuterX)",
+    fullLabel: "Frame Size X",
     display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 5},
     floor: "positive",
@@ -1238,6 +1244,7 @@ export class NumberField extends Field {
   static readonly OUTERY_M = new NumberField({
     value: "OuterY_m",
     label: "Frame Size Y (OuterY)",
+    fullLabel: "Frame Size Y",
     display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 5},
     floor: "positive",
@@ -1256,6 +1263,7 @@ export class NumberField extends Field {
   static readonly VCD_M = new NumberField({
     value: "Vcd_m",
     label: "Voice Coil Dia (Vcd)",
+    fullLabel: "Voice Coil Diameter",
     display: {kind: 'switchable', group: 'length', base: 'mm'},
     limits: {min: 0, max: 1},
     floor: "positive",
@@ -1265,6 +1273,7 @@ export class NumberField extends Field {
   static readonly DVOL_M3 = new NumberField({
     value: "DVol_m3",
     label: "Driver Displacement Volume (DVol)",
+    fullLabel: "Driver Displacement Volume",
     display: {kind: 'switchable', group: 'volume', base: 'cm3'},
     limits: {min: 0, max: 1},
     floor: "positive",

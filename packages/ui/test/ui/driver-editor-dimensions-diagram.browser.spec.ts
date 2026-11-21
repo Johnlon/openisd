@@ -3,8 +3,10 @@
  * The Dimensions tab's diagram stays full size (John withdrew "too big": it shows the driver's
  * dimensions); the guard here is that its labels are visible and nothing is clipped.
  */
-import {expect, openAMobileProject, openAProject, test} from '../fixtures.js';
+import {readFileSync} from 'node:fs';
+import {driverEditorField, expect, openAMobileProject, openAProject, openDriverEditor, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {fillAndBlur} from '../fixtures/numField.js';
 import {PIXEL_9} from '../fixtures/phoneSizes.js';
 
 async function measure(page: import('@playwright/test').Page) {
@@ -12,17 +14,17 @@ async function measure(page: import('@playwright/test').Page) {
     const r = (s: string) => document.querySelector(s)!.getBoundingClientRect();
     const dims = r('.de-dims');
     const svg = r('.de-diagram svg');
-        const labelEls = [...document.querySelectorAll('.de-diagram svg text')];
-    const labels = labelEls.length;
-    const labelsOutside = labelEls.filter((t) => {
-      const b = t.getBoundingClientRect();
+    const labels = [...document.querySelectorAll('.de-diagram svg text')].map(t => t.getBoundingClientRect());
+    const labelsOutside = labels.filter(b => {
       return b.left < svg.left - 1 || b.right > svg.right + 1 || b.top < svg.top - 1 || b.bottom > svg.bottom + 1;
     }).length;
+    const labelsOverlap = labels.some((a, i) => labels.slice(i + 1).some(b =>
+      a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom));
     const clipped = [...document.querySelectorAll<HTMLElement>('.de-dimlist .de-fld')]
       .filter((f) => f.scrollWidth > f.clientWidth + 1).length;
     const basket=[document.querySelector('.de-diagram g[transform] > rect'),...[...document.querySelectorAll('.de-diagram g[transform] > g:first-of-type > path')].slice(0,2)].filter((node):node is Element=>node!==null).map(node=>{const css=getComputedStyle(node);return {stroke:css.stroke,width:css.strokeWidth,vector:css.vectorEffect};});
     return {basket,
-      dimsW: dims.width, svgW: svg.width, svgH: svg.height, labels, labelsOutside,
+      dimsW: dims.width, svgW: svg.width, svgH: svg.height, labels: labels.length, labelsOutside, labelsOverlap,
       scrollW: document.documentElement.scrollWidth, innerW: window.innerWidth, clipped,
     };
   });
@@ -30,6 +32,46 @@ async function measure(page: import('@playwright/test').Page) {
 
 test.describe('desktop', () => {
   test.use({viewport: {width: 1280, height: 800}});
+
+  test('the drawing shows the imported driver dimensions and follows a unit change', async ({page}) => {
+    await page.goto('/');
+    await openAProject(page);
+    await openDriverEditor(page);
+    const name = 'PTT4.0M04-NAC-03.owdr';
+    await page.locator('.de-modal input[type=file]').setInputFiles({
+      name,
+      mimeType: 'application/x-openisd-driver',
+      buffer: readFileSync(new URL('../../public/drivers/purifi/ptt4-0m04-nac-03.json', import.meta.url)),
+    });
+    await expect(page.locator('.flash')).toContainText(`Driver imported from ${name}`);
+    await page.getByRole('button', {name: 'Dimensions', exact: true}).click();
+
+    const drawing = page.locator('.de-diagram svg');
+    await expect(drawing.getByText('Basket Diameter 101.00 mm', {exact: true})).toBeVisible();
+    await expect(drawing.getByText('Outer Diameter 125.00 mm', {exact: true})).toBeVisible();
+    await expect(drawing.getByText('Magnet Diameter 90.00 mm', {exact: true})).toBeVisible();
+    await expect(drawing.getByText('Magnet Depth 6.893 mm', {exact: true})).toBeVisible();
+    await expect(drawing.getByText('Driver Depth 73.50 mm', {exact: true})).toBeVisible();
+    await expect(drawing.getByText('Basket Plate Thickness', {exact: true})).toBeVisible();
+    await expect(page.locator('.de-dimlist .de-fld label')).toHaveText([
+      'Basket Plate Thickness', 'Driver Depth', 'Magnet Depth', 'Magnet Diameter', 'Basket Diameter',
+      'Outer Diameter', 'Frame Size X', 'Frame Size Y', 'Driver Weight', 'Voice Coil Diameter',
+      'Driver Displacement Volume',
+    ]);
+
+    const thickness = driverEditorField(page, 'Basket Plate Thickness');
+    await fillAndBlur(thickness.locator('input'), '13.701234');
+    await expect(drawing.getByText('Basket Plate Thickness 13.7012 mm', {exact: true})).toBeVisible();
+    expect(await measure(page)).toMatchObject({labelsOutside: 0, labelsOverlap: false});
+    for (const label of await drawing.locator('text').all()) {
+      await expect(label).toBeInViewport({ratio: 1});
+    }
+
+    const basket = driverEditorField(page, 'Basket Diameter');
+    await basket.getByRole('button', {name: 'mm', exact: true}).click();
+    await expect(drawing.getByText('Basket Diameter 3.976 in', {exact: true})).toBeVisible();
+    await expect(drawing.getByText('Outer Diameter 125.00 mm', {exact: true})).toBeVisible();
+  });
 
   test('the diagram shows its dimension labels and nothing is clipped', async ({page}) => {
     await page.goto('/');
@@ -44,32 +86,52 @@ test.describe('desktop', () => {
     for(const edge of m.basket)expect(edge).toEqual({stroke:'rgb(15, 23, 42)',width:'2.5px',vector:'non-scaling-stroke'});
     expect(m.labels).toBeGreaterThan(0);
     expect(m.labelsOutside).toBe(0);
+    expect(m.labelsOverlap).toBe(false);
     expect(m.scrollW).toBeLessThanOrEqual(m.innerW);
     expect(m.clipped).toBe(0);
   });
 });
 
 test.describe('phone', () => {
-  test.use({viewport: PIXEL_9});
+  for (const viewport of [PIXEL_9, {width: 412, height: 844}, {width: 412, height: 960}]) {
+    test(`the diagram shows its dimension labels without clipping at ${viewport.width} × ${viewport.height}`, async ({page}) => {
+      await page.setViewportSize(viewport);
+      await forceMobileSkin(page);
+      await page.goto('/');
+      await openAMobileProject(page);
+      await page.locator('.mob-tab', {hasText: 'Driver'}).click();
+      await page.getByText('Edit', {exact: true}).click();
+      await page.locator('.de-modal input[type=file]').setInputFiles({
+        name: '18HP1030-4.owdr',
+        mimeType: 'application/x-openisd-driver',
+        buffer: readFileSync(new URL('../../public/drivers/faitalpro/18hp1030-4.json', import.meta.url)),
+      });
+      await page.getByRole('button', {name: 'Dimensions', exact: true}).click();
+      const drawing = page.locator('.de-diagram svg');
+      await expect(drawing.getByText('Basket Plate Thickness 13.70 mm', {exact: true})).toBeVisible();
+      await expect(drawing.getByText('Basket Diameter 421.00 mm', {exact: true})).toBeVisible();
+      await expect(drawing.getByText('Outer Diameter 460.00 mm', {exact: true})).toBeVisible();
+      await expect(drawing.getByText('Driver Depth 208.35 mm', {exact: true})).toBeVisible();
+      await expect(drawing.getByText('Magnet Diameter', {exact: true})).toBeVisible();
+      await expect(drawing.getByText('Magnet Depth', {exact: true})).toBeVisible();
 
-  test('the diagram shows its dimension labels, nothing is clipped, no horizontal scroll', async ({page}) => {
-    await forceMobileSkin(page);
-    await page.goto('/');
-    await openAMobileProject(page);
-    await page.locator('.mob-tab', {hasText: 'Driver'}).click();
-    await page.getByText('Edit', {exact: true}).click();
-    await page.getByRole('button', {name: 'Dimensions', exact: true}).click();
-    await expect(page.locator('.de-diagram svg')).toBeVisible();
-    await page.locator('.de-diagram svg').scrollIntoViewIfNeeded();
-    const m = await measure(page);
-    console.log('PHONE', JSON.stringify(m));
-    expect(m.basket).toHaveLength(3);
-    for(const edge of m.basket)expect(edge).toEqual({stroke:'rgb(15, 23, 42)',width:'2.5px',vector:'non-scaling-stroke'});
-    expect(m.labels).toBeGreaterThan(0);
-    expect(m.labelsOutside).toBe(0);
-    expect(m.clipped).toBe(0);
-    expect(m.scrollW).toBeLessThanOrEqual(m.innerW);
-  });
+      await fillAndBlur(driverEditorField(page, 'Thick').locator('input'), '13.701234');
+      await expect(drawing.getByText('Basket Plate Thickness 13.7012 mm', {exact: true})).toBeVisible();
+      await drawing.scrollIntoViewIfNeeded();
+      for (const label of await drawing.locator('text').all()) {
+        await expect(label).toBeInViewport({ratio: 1});
+      }
+      const m = await measure(page);
+      console.log('PHONE', JSON.stringify(m));
+      expect(m.basket).toHaveLength(3);
+      for(const edge of m.basket)expect(edge).toEqual({stroke:'rgb(15, 23, 42)',width:'2.5px',vector:'non-scaling-stroke'});
+      expect(m.labels).toBeGreaterThan(0);
+      expect(m.labelsOutside).toBe(0);
+      expect(m.labelsOverlap).toBe(false);
+      expect(m.clipped).toBe(0);
+      expect(m.scrollW).toBeLessThanOrEqual(m.innerW);
+    });
+  }
 });
 
 /** T520 addition (John, 21 Oct 2026): the General tab's text areas fill the remaining height. */

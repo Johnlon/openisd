@@ -23,6 +23,7 @@
  *  on file is provenance).
  */
 import {newUuid} from '@openisd/design';
+import {stringifyWithOverflow} from '@openisd/design/json';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import type {Guarded, StorageBackup} from './storageBackup.js';
 import {OPENISD_MY_PASSIVE_RADIATORS_KEY} from './storageKeys.js';
@@ -176,7 +177,7 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
 
   function write(entries: SavedEntry[]): boolean {
     try {
-      storage.set(spec.key, JSON.stringify({ entries }));
+      storage.set(spec.key, stringifyWithOverflow({ entries }, {}));
       return true;
     } catch { return false; }
   }
@@ -199,13 +200,13 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
     const broken: BrokenEntry[] = [];
     for (const blob of all) {
       if (!isSavedEntry(blob)) {
-        broken.push({ key: brokenRaw.length, label: labelOf(blob), raw: JSON.stringify(blob) });
+        broken.push({ key: brokenRaw.length, label: labelOf(blob), raw: stringifyWithOverflow(blob, {}) });
         brokenRaw.push(blob);
         continue;
       }
       const opened = spec.open(blob.record);
       if (Array.isArray(opened)) {
-        broken.push({ key: brokenRaw.length, label: labelOf(blob.record), raw: JSON.stringify(blob) });
+        broken.push({ key: brokenRaw.length, label: labelOf(blob.record), raw: stringifyWithOverflow(blob.record, {}) });
         brokenRaw.push(blob);
         continue;
       }

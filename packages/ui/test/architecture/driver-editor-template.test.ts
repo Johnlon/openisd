@@ -87,9 +87,8 @@ const RESISTANCE_FIELDS = [
   NumberField.RMS_KG_PER_S, NumberField.RME_KG_PER_S, NumberField.MCOST_KG_PER_S,
 ] as const;
 
-/** Every `<UIField>` in the editor template bound to a driver cell. A `UIField` takes its label,
- *  precision and unit from the ONE `:field` registry member it binds, so those are read off that
- *  member — the same resolver UIField/NumInput/UnitToggle use at runtime. */
+/** Every `<UIField>` in the editor template bound to a driver cell. Read its desktop label,
+ *  precision and unit from the `:field` registry member it binds. */
 function boundFields(): Bound[] {
   const out: Bound[] = [];
   for (const tag of src.match(/<UIField\b[^>]*\/>/g) ?? []) {
@@ -98,6 +97,9 @@ function boundFields(): Bound[] {
     if (!regMatch || !field) continue;
     const regField = memberNamed(regMatch[1], regMatch[2]);
     if (!(regField instanceof NumberField)) assert.fail(`${regMatch[1]}.${regMatch[2]} is not a NumberField`);
+    const fullLabelField = /:label="skin \? PhoneLabels\.\w+ : (NumberField\.\w+)\.fullLabel"/.exec(tag)?.[1];
+    if (fullLabelField !== undefined) assert.equal(fullLabelField, `${regMatch[1]}.${regMatch[2]}`);
+    const label = fullLabelField === undefined ? regField.label : regField.fullLabel;
     const precisionExpr = `${regMatch[1]}.${regMatch[2]}.precision`;
 
     // A click-to-rotate unit is SWITCHABLE on the field's own registry entry (BUG_20260928,
@@ -106,11 +108,11 @@ function boundFields(): Bound[] {
       const {group, base} = regField.display;
       const def = unitDef(group, base);
       const scale = def.kind === 'switchable' ? def.factor : 1;
-      out.push({ label: regField.label, field, scale, precision: evalNum(precisionExpr, 2), unit: def.label, precisionExpr, toggleable: true, regField });
+      out.push({ label, field, scale, precision: evalNum(precisionExpr, 2), unit: def.label, precisionExpr, toggleable: true, regField });
       continue;
     }
     out.push({
-      label: regField.label, field, scale: 1, precision: evalNum(precisionExpr, 2),
+      label, field, scale: 1, precision: evalNum(precisionExpr, 2),
       unit: regField.unitLabel(), precisionExpr, toggleable: false, regField,
     });
   }
@@ -222,7 +224,7 @@ describe('driver editor — unit label and scale agree', () => {
     // length — 165 mm — never 0.17, and never a metre value printed beside "in".
     for (const label of ['Basket Plate Thickness', 'Driver Depth', 'Magnet Depth',
                          'Magnet Diameter', 'Basket Diameter',
-                         'Outer Diameter', 'Voice Coil Dia (Vcd)']) {
+                         'Outer Diameter', 'Voice Coil Diameter']) {
       const f = byLabel(label);
       assert.equal(f.unit, 'mm', `${label} is labelled "${f.unit}"`);
       assert.equal(0.165 * f.scale, 165, `${label} renders 0.165 m as ${0.165 * f.scale} ${f.unit}`);
@@ -321,19 +323,18 @@ describe('driver editor — precision comes from the field registry', () => {
   const REGISTRY_FIELD: ReadonlyMap<string, NumberField> = new Map([
     ['Dd', NumberField.DD_M],
     ['fLe', NumberField.FLE_HZ],
-    // Mechanical fields carry "Full Name (Short)" labels, taken from WinISD's own help
-    // (docs/winisd_helpfiles/help/thielesmall.html). Keys here are the rendered label text.
+    // Keys here are the full names rendered in the desktop Dimensions tab.
     ['Basket Plate Thickness', NumberField.THICK_M],
     ['Driver Depth', NumberField.DEPTH_M],
     ['Magnet Depth', NumberField.MAGDEPTH_M],
     ['Magnet Diameter', NumberField.MAGNET_M],
     ['Basket Diameter', NumberField.BASKET_M],
     ['Outer Diameter', NumberField.OUTER_M],
-    ['Frame Size X (OuterX)', NumberField.OUTERX_M],
-    ['Frame Size Y (OuterY)', NumberField.OUTERY_M],
+    ['Frame Size X', NumberField.OUTERX_M],
+    ['Frame Size Y', NumberField.OUTERY_M],
     ['Driver Weight', NumberField.WEIGHT_KG],
-    ['Voice Coil Dia (Vcd)', NumberField.VCD_M],
-    ['Driver Displacement Volume (DVol)', NumberField.DVOL_M3],
+    ['Voice Coil Diameter', NumberField.VCD_M],
+    ['Driver Displacement Volume', NumberField.DVOL_M3],
   ]);
 
   for (const [label, spec] of REGISTRY_FIELD) {

@@ -6,6 +6,7 @@ import {spawnSync} from 'node:child_process';
 import {readFileSync, writeFileSync} from 'node:fs';
 import {isDeepStrictEqual} from 'node:util';
 import type {z} from 'zod';
+import {stringifyWithOverflow} from '../../packages/design/json/stringifyWithOverflow.js';
 import type {Case} from './cases.js';
 
 export interface Verdict {
@@ -29,14 +30,20 @@ function problemPaths(error: z.ZodError): string[] {
 export function zodVerdicts(schema: z.ZodType, cases: readonly Case[]): Verdict[] {
     return cases.map(c => {
         const r = schema.safeParse(c.input);
-        if (r.success) return {id: c.id, verdict: 'accept', result: JSON.parse(JSON.stringify(r.data))};
+        if (r.success) return {id: c.id, verdict: 'accept', result: JSON.parse(stringifyWithOverflow(r.data, {}))};
         return {id: c.id, verdict: 'refuse', problems: problemPaths(r.error)};
     });
 }
 
 /** Parses the Python runner's results file into verdicts, refusing any row that is not one. */
 function verdictsFrom(text: string): Verdict[] {
-    const rows: unknown = JSON.parse(text);
+    // Python's json.dump emits bare Infinity tokens. Keep their sign and leave string tokens intact.
+    const json = text.replace(/"(?:[^"\\]|\\.)*"|-?Infinity/g, token => {
+        if (token === 'Infinity') return '1e999';
+        if (token === '-Infinity') return '-1e999';
+        return token;
+    });
+    const rows: unknown = JSON.parse(json);
     if (!Array.isArray(rows)) throw new Error('python results: not a list');
     return rows.map((row: unknown): Verdict => {
         if (typeof row !== 'object' || row === null) throw new Error('python results: row is not an object');
@@ -50,7 +57,7 @@ function verdictsFrom(text: string): Verdict[] {
 }
 
 export function pydanticVerdicts(runner: string, modulePath: string, cases: readonly Case[], casesPath: string, resultsPath: string): Verdict[] {
-    writeFileSync(casesPath, JSON.stringify(cases));
+    writeFileSync(casesPath, stringifyWithOverflow(cases, {}));
     const run = spawnSync('python3', ['-I', runner, modulePath, casesPath, resultsPath], {encoding: 'utf-8', maxBuffer: 1 << 28});
     if (run.status !== 0) throw new Error(`python runner failed (exit ${run.status}):\n${run.stderr}`);
     return verdictsFrom(readFileSync(resultsPath, 'utf-8'));
@@ -67,7 +74,7 @@ export function differences(zod: readonly Verdict[], pydantic: readonly Verdict[
         if (a.verdict !== b.verdict) {
             out.push({id: a.id, what: `zod ${a.verdict} ${a.problems?.join(', ') ?? ''} / pydantic ${b.verdict} ${b.problems?.join(', ') ?? ''}`});
         } else if (a.verdict === 'accept') {
-            if (!isDeepStrictEqual(a.result, b.result)) out.push({id: a.id, what: `parsed results differ:\n  zod      ${JSON.stringify(a.result)}\n  pydantic ${JSON.stringify(b.result)}`});
+            if (!isDeepStrictEqual(a.result, b.result)) out.push({id: a.id, what: `parsed results differ:\n  zod      ${stringifyWithOverflow(a.result, {})}\n  pydantic ${stringifyWithOverflow(b.result, {})}`});
         } else if (!isDeepStrictEqual(a.problems, b.problems)) {
             out.push({id: a.id, what: `problem paths differ:\n  zod      ${a.problems?.join(', ')}\n  pydantic ${b.problems?.join(', ')}`});
         }

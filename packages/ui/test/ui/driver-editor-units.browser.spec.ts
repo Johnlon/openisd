@@ -87,7 +87,10 @@ test('every unit with alternates is a working toggle, and every other unit is a 
       if (decoration !== 'underline/solid') problems.push(`${tab}/${label}: toggle unit "${shownUnit}" has ${decoration}, expected underline/solid`);
 
       const input = fld.locator('input').first();
-      if (!(await input.inputValue())) { await input.fill('1'); await input.blur(); }
+      if (!(await input.inputValue())) {
+        await input.fill(label === 'Basket Diameter' ? '165' : '1');
+        await input.blur();
+      }
       const before = await input.inputValue();
       await unitEl.click();
       const after = (await unitEl.innerText()).trim();
