@@ -1,6 +1,8 @@
 import type {DqIssue, SolverField, SolverInput} from '@openisd/design/engine';
 import type {SpecEntryJson} from './openisdSchema.js';
 import {halfUlp} from './precision.js';
+import {nonFiniteResult} from '../calculatedResult.js';
+import {NumberField} from '../fields/field.js';
 
 // ───────────────────────────────── Capability atoms ─────────────────────────────────────────────
 //
@@ -98,6 +100,23 @@ export function absentCell<T>(name: string, dq?: readonly DqIssue[]): FieldCell<
   return { name, value: null, entered: false, calculated: false, precision: null, dq: dq ?? [] };
 }
 
+function finiteCell<V>(cell: FieldCell<V>): FieldCell<V | null> {
+  if (!cell.calculated || typeof cell.value !== 'number') return cell;
+  const issue = nonFiniteResult(cell.name, calculatedFieldLabel(cell.name), cell.value);
+  return issue === null ? cell : absentCell(cell.name, [...cell.dq, issue]);
+}
+
+function calculatedFieldLabel(name: string): string {
+  switch (name) {
+    case 'naturalTuning_hz': return 'Passive radiator tuning with no added mass';
+    case 'addedMassForTuning_kg': return 'Passive radiator added mass';
+    case 'ventAchievedFb': return 'Achieved vent tuning';
+    case 'ventMaxReachableFb': return 'Maximum vent tuning';
+    case 'resonance_hz': return 'Box resonance';
+    default: return NumberField.named(name)?.label ?? name;
+  }
+}
+
 // ──────────────── Write plumbing the impls below take in their constructors ────────────────────
 
 /** `entered(v)`: the one write a solver never makes — a project fact. `precision` is what that
@@ -157,11 +176,19 @@ export class EnteredFieldImpl<T> extends ReadableFieldImpl<T | null> implements 
 /** A fact the owner enters and clears, whose value reads as calculated by the owner's own formula
  *  while none is entered. The solver never writes it. */
 export class DerivableFieldImpl<T> extends EnteredFieldImpl<T> implements Calculated {
+  constructor(readCell: () => FieldCell<T | null>, writes: Enterable<T> & Clearable) {
+    super(() => finiteCell(readCell()), writes);
+  }
+
   get calculated(): boolean { return this.readCell().calculated; }
 }
 
 /** Read-only: the solver derives this value or reports it absent, and nothing ever enters it. */
-export class CalculatedFieldImpl<V> extends ReadableFieldImpl<V> implements Calculated {
+export class CalculatedFieldImpl<V> extends ReadableFieldImpl<V | null> implements Calculated {
+  constructor(readCell: () => FieldCell<V>) {
+    super(() => finiteCell(readCell()));
+  }
+
   get calculated(): boolean { return this.readCell().calculated; }
 }
 
@@ -384,12 +411,17 @@ export function entryField(
     const fullDq = extra ? [...dq, extra] : dq;
     return entry.state === 'E'
       ? enteredCell<number | null>(name, entry.value, fullDq, entryPrecision(entry))
-      : calculatedCell<number | null>(name, entry.value, fullDq, entry.precision ?? null);
+      : finiteCell(calculatedCell<number | null>(name, entry.value, fullDq, entry.precision ?? null));
   };
   return new DualWriteFieldImpl<number>(readCell, {
     entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
     clear: () => { liveDq = []; slot.set(undefined); },
-    calculated: (v, precision) => { liveDq = []; slot.set({ state: 'C', value: v, precision }); },
+    calculated: (v, precision) => {
+      const issue = nonFiniteResult(name, calculatedFieldLabel(name), v);
+      liveDq = issue === null ? [] : [issue];
+      if (issue === null) slot.set({state: 'C', value: v, precision});
+      else if (slot.value?.state === 'C') slot.set(undefined);
+    },
     dq: (list) => { liveDq = list; },
     notAvailable: () => {
       liveDq = [];

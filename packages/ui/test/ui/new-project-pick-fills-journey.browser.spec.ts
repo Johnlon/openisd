@@ -6,6 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {z} from 'zod';
 import type {BoxType} from '@openisd/design/engine';
 import {NumberField, PhoneWizardText} from '@openisd/design/fields';
+import {driverPreviewText} from '../fixtures/driverPreviewText.js';
 import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
 import {readPassiveRadiatorTab} from '../fixtures/passiveRadiatorScreen.js';
 
@@ -13,8 +14,9 @@ import {readPassiveRadiatorTab} from '../fixtures/passiveRadiatorScreen.js';
  * Journey (QO326): from an empty app, make a new project of each box type with a real bundled driver, and for
  * the passive-radiator box also a real bundled radiator. Every box the screen shows for the driver or the radiator
  * must hold the figure the bundled record states, in both skins (desktop 1280x800, phone 374x705).
- * The expected figures are read from the record file and formatted by the design formatter the screen uses;
- * the observed figures are read from the screen. Nothing is seeded, no state object is read, no reload.
+ * The expected figures are read from the record file. The preview caps them at four significant figures;
+ * the editable boxes use their field format. The observed figures are read from the screen.
+ * Nothing is seeded, no state object is read, no reload.
  */
 
 const PUBLIC = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public');
@@ -146,7 +148,7 @@ async function runJourney(page: Page, phone: boolean, c: Case, blanks: boolean):
   for (const f of EDITOR_FIGURES.filter(e => ['Fs', 'Qts', 'Qes', 'Qms', 'Re', 'BL', 'Le', 'Vas', 'Sd', 'Xmax', 'Pe'].includes(e.label))) {
     if ((driver.figure(f.key) ?? 0) === 0) continue; // the preview draws only the figures a record states
     const row = root.locator('.preview .spec-row', {has: page.locator('.spec-lbl', {hasText: new RegExp(`^${f.label}$`)})});
-    await expect.soft(row.locator('.spec-val b'), `preview ${f.label}`).toHaveText(f.field.format(required(driver, f.key)));
+    await expect.soft(row.locator('.spec-val b'), `preview ${f.label}`).toHaveText(driverPreviewText(f.field, required(driver, f.key)));
   }
   await next.click();
   await next.click();

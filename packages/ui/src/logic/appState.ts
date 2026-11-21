@@ -674,22 +674,12 @@ export function createAppState(deps: AppStateDeps): AppState {
   );
   watch(live, () => sweepScheduler.changed());
 
-  // Postcondition (hardening): a valid driver can still yield a non-finite sweep at
-  // some frequency (a numerical singularity the input guards can't foresee). Classify
-  // the sweep output so it's never a silently blank chart — surfaced through the same
-  // issue channel as the project's own errors. Empty when the driver is invalid (no sweep)
-  // or the sweep is clean.
   const curveIssues = computed<DriverError[]>(() => {
-    const sw = curves.value, mx = max.value;
+    const sw = curves.value;
     const p = live.value;
     if (!sw || !p) return [];
-    // classifyFinite: a singularity made the curve undrawable. classifyMaxFinite: the same
-    // question asked of the Max-SPL/Max-power pair, which is computed after the sweep and can
-    // be non-finite while every sweep array is fine. classifyFlatClamp: force-flat ran out of
-    // allowed boost, so the "flat" response is not flat below some frequency — a truncated
-    // inverse filter must never look like a design that flattens for free.
-    return [...p.classifyFiniteIssues(sw), mx ? p.classifyMaxFinite(mx) : null, p.classifyFlatClamp(sw)]
-      .filter((e): e is DriverError => e !== null);
+    const issue = p.classifyFlatClamp(sw);
+    return issue === null ? [] : [issue];
   });
 
   // Precondition (hardening, CODE_REVIEW.md §18): the enclosure parameters the circuit
@@ -701,19 +691,9 @@ export function createAppState(deps: AppStateDeps): AppState {
     return live.value ? live.value.boxParamsIssues().map(issue => sweepIssueMessage(issue)) : [];
   });
 
-  // The full issue list the UI shows: box-parameter issues + sweep/max-curve finiteness issues.
-  // `sweep(grid).errors`/`maxCurves(grid).errors` would duplicate `paramIssues` (both come from
-  // the same `solveBoxParams` call inside the project's own sweep/maxCurves), so this reads only
-  // the postcondition classifications on top of it.
   const allIssues = computed<DriverError[]>(
-    () => {
-      const params = paramIssues.value;
-      const hasBlockingParam = params.some(issue => issue.level === 'error');
-      const outputIssues = hasBlockingParam
-        ? curveIssues.value.filter(issue => issue.field !== 'sweep' && issue.field !== 'maxCurves')
-        : curveIssues.value;
-      return [...sweepErrors.value, ...params, ...outputIssues];
-    });
+    () => [...sweepErrors.value, ...paramIssues.value, ...curveIssues.value],
+  );
 
   /** True when the focused project has unsaved changes (`OpenISDProject.isModified()`). False
    *  when no project is focused — nothing is "modified" if nothing is open. */
