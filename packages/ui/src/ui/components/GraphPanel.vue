@@ -269,6 +269,9 @@ function onDocClick() {
 
 let ro: ResizeObserver | undefined;
 onMounted(() => {
+  // Draw the mounted canvas before it can receive pointer input. The observer's first
+  // notification is deferred, so a pointer move in that gap would have no plot geometry.
+  redraw();
   // Deferred to the next frame: drawing resizes the canvas backing store, and a resize inside
   // the observer's own callback is the loop Chrome reports as an error (BUG_20261001).
   ro = new ResizeObserver(() => requestAnimationFrame(redraw));
