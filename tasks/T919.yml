@@ -20,6 +20,8 @@ files:
   - packages/design/fields/index.ts
   - packages/design/fields/phoneWizardText.ts
   - packages/ui/src/hooks/DriverPlacement-hooks.ts
+  - packages/ui/src/hooks/DriverWiring-hooks.ts
+  - packages/ui/src/ui/components/DriverWiring.vue
   - packages/ui/src/ui/components/DriverPlacement.vue
   - packages/ui/src/hooks/OriginalNewProject-hooks.ts
   - packages/ui/src/hooks/OriginalShell-hooks.ts

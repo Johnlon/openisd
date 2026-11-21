@@ -146,7 +146,7 @@ export class PhoneWizardText {
       'Standard: each driver sits in its own place on the baffle, and they all share the box volume.',
       'Iso-Barik: two drivers coupled face to face in a short tunnel. The pair acts as one driver with half the Vas, so the box can be half the size.',
     ],
-    note: 'The pair gives the same Qtc in half the volume. WinISD shows the pair 6 dB quieter than one driver at the same impedance, but the wiring changes both the load and the voltage each driver gets, so those numbers can misstate loudness and amplifier load. OpenISD works both out from your Driver wiring: in parallel the pair is as loud as one driver at half the impedance; in series it is 6 dB quieter at twice the impedance. A tick-box in the options gives WinISD\'s numbers.',
+    note: 'The pair gives the same Qtc in half the volume. WinISD shows the pair 6 dB quieter than one driver at the same impedance, but the wiring changes both the load and the voltage each driver gets, so those numbers can misstate loudness and amplifier load. OpenISD works both out from your Driver wiring. At the same voltage, in parallel the pair is as loud as one driver at half the impedance; in series it is 6 dB quieter at twice the impedance. A tick-box in the options gives WinISD\'s Iso-Barik numbers.',
   };
 
   /** The ⓘ popup on the EBP row, with the chosen driver's value. */
