@@ -34,15 +34,15 @@ test.describe('desktop', () => {
 
     const row = (key: string) => page.locator(`.de-dimlist .de-fld[data-field-key="${key}"]`);
     const weight = await shown(row('weight_kg'));
-    expect(weight.text).toContain('Driver Weight (Weight)');
+    expect(weight.text).toContain('Driver Weight');
     expect(weight.value).toBe('0.184');
     expect(weight.text).toContain('kg');
     const x = await shown(row('OuterX_m'));
-    expect(x.text).toContain('Frame Size X (OuterX)');
+    await expect(row('OuterX_m').locator('label')).toHaveText('Frame Size X');
     expect(x.value).toBe('88.00');
     expect(x.text).toContain('mm');
     const y = await shown(row('OuterY_m'));
-    expect(y.text).toContain('Frame Size Y (OuterY)');
+    await expect(row('OuterY_m').locator('label')).toHaveText('Frame Size Y');
     expect(y.value).toBe('68.00');
   });
 });

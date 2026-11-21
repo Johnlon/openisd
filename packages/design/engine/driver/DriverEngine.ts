@@ -36,6 +36,8 @@ import {
   efficiencyBandwidthProduct, MMS_FROM_FS_CMS_ROUTE,
   RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
 } from './routes/index.js';
+import {driverCircuitFieldIssues} from './circuitDiagnostics.js';
+import type {DriverCircuitFieldIssue} from './circuitDiagnostics.js';
 import type {DriverRoute, RouteFormulas} from './routes/index.js';
 
 /** WinISD's fallback for a driver with a Qts and neither Qes nor Qms (decompile `fr_45e090`: `+0x4c8 = 2*Qts`):
@@ -133,6 +135,8 @@ export interface DriverEngine {
    *  Each is replaced only where its own inputs are positive and the result is positive;
    *  otherwise the stated value stands. `air` is the project's. */
   circuitValues(values: DriverValues, air: Air): DriverValues;
+  /** Missing circuit values that have a box in the driver editor. */
+  circuitFieldIssues(values: DriverValues, air: Air): readonly DriverCircuitFieldIssue[];
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
   ebp(Fs_hz: number, Qes: number): number;
   /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
@@ -223,6 +227,11 @@ export class DriverEngineImpl implements DriverEngine {
       ...values, Qes, Qms, Cms_m_per_N, Mms_kg, Rms_kg_per_s: Rms ?? values.Rms_kg_per_s,
       BL_terminal_Tm: positive(BL) ? BL : values.BL_terminal_Tm,
     };
+  }
+
+  circuitFieldIssues(values: DriverValues, air: Air): readonly DriverCircuitFieldIssue[] {
+    const resolved = this.circuitValues(values, air);
+    return driverCircuitFieldIssues({...resolved, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()});
   }
 
   /** The driver handle solve (T10/T11): build a private, entered-only `DriverWorkingSet` working

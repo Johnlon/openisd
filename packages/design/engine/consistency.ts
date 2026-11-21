@@ -125,8 +125,7 @@ export interface NegativeValueIssue {
  *  plain `string` here, not a domain's own quantity-name union — `Readable<V>.dq` is shared
  *  across every domain and carries no quantity-name type parameter of its own, and a
  *  `CalculationIssue<Q>` for any `Q extends string` widens to this without a cast. */
-/** A value only the project owner can state — never calculated — left blank. The ⚠ says so and
- *  what to enter (bugs/BUG_20261005_no-common-ui-field-component.md, "just show errors"). */
+/** A required value left blank. The ⚠ says so and what to enter (bugs/BUG_20261005_no-common-ui-field-component.md, "just show errors"). */
 export interface RequiredValueIssue {
   readonly kind: 'required-value';
   readonly text: string;

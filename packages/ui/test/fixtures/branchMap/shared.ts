@@ -283,6 +283,8 @@ export const SHARED_BRANCH_MAP:BranchMap={
   'conditional-branch-a5f4f45eade96e0b':{kind:'view',view:'shared/graph-warning-pill'}, // components/GraphPanel.vue:372
   'native-ui-5600554eae49bd62':{kind:'notAView',reason:'dismiss button of the graph warning pill'}, // components/GraphPanel.vue:375
   'conditional-branch-252cc2515f3da2b0':{kind:'view',view:'shared/graph-blocked-message'}, // components/GraphPanel.vue:378
+  'conditional-branch-650bcffff7ad1091':{kind:'partOf',view:'shared/graph-blocked-message'}, // Edit driver parameters button
+  'conditional-branch-e441b400d1b16a1d':{kind:'partOf',view:'shared/graph-blocked-message'}, // Missing driver figures summary
   'surface-root-b7c451a71a22119e':{kind:'view',view:'shared/graph-context-menu'}, // components/GraphPanel.vue:386
   'native-ui-daaf434cc32ba8a6':{kind:'partOf',view:'shared/graph-context-menu'}, // components/GraphPanel.vue:390
   'native-ui-7a7f5ed32ddeff6e':{kind:'partOf',view:'shared/graph-context-menu'}, // components/GraphPanel.vue:392

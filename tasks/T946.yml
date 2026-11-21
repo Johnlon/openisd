@@ -1,18 +1,27 @@
 id: T946
-release_note: The driver dimensions drawing now shows each available measurement in your chosen unit.
+release_note: The driver dimensions drawing uses full field names and shows each available measurement in your chosen unit.
 repo: openisd
 owner: lead
 status: done
-goal: 'Dimensions drawing writes each size figure beside its line'
-why: "John, 20 Nov 2026: 'better just to add the figures dynamicLy to the diagrams' at 20:28 and 'I like' on both mock-ups at 20:39. QO918 requires driver sizes on the Dimensions screen."
+goal: 'Show full field names and the available measurements on the Dimensions drawing'
+why: "John, 21 Nov 2026 at 00:53, asked for full field names and to keep the numbers on the drawing. QO918 requires driver sizes on the Dimensions screen."
 ruling: QO918
 done_test: bash scripts/test.sh packages/ui/test/hooks/DriverEditorModal-hooks.test.ts
 files:
   - tasks/T946.yml
+  - packages/design/fields/field.ts
   - packages/ui/src/hooks/DriverEditorModal-hooks.ts
   - packages/ui/src/hooks/useUnitReadouts.ts
   - packages/ui/src/ui/components/DriverDimensionsDiagram.vue
   - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/test/architecture/driver-editor-template.test.ts
+  - packages/ui/test/fixtures.ts
   - packages/ui/test/fixtures/branchMap/shared.ts
   - packages/ui/test/hooks/DriverEditorModal-hooks.test.ts
   - packages/ui/test/ui/driver-editor-dimensions-diagram.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-weight-frame-size.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-dimensions.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-dimensions.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-editor-dimensions.png
+visual_note: The drawing spells out each dimension and still shows its measurement when known. The desktop Dimensions field list uses full names.
+# The lead adds the visual list once CI supplies the stamped pictures.

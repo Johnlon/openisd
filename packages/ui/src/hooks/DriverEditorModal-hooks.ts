@@ -35,34 +35,38 @@ export function useDriverEditorHelp() {
   return {helpSection, showHelp, closeHelp};
 }
 
-export interface DriverDimensionFigures {
-  readonly outer: string;
-  readonly basket: string;
-  readonly magnet: string;
-  readonly thick: string;
-  readonly magnetDepth: string;
-  readonly depth: string;
+interface DimensionLabel {
+  readonly label: string;
+  readonly figure: string;
 }
 
-export function useDriverDimensionFigures(
+export interface DriverDimensionLabels {
+  readonly outer: DimensionLabel;
+  readonly basket: DimensionLabel;
+  readonly magnet: DimensionLabel;
+  readonly thick: DimensionLabel;
+  readonly magnetDepth: DimensionLabel;
+  readonly depth: DimensionLabel;
+}
+
+export function useDriverDimensionLabels(
   readField: (key: NumSpecField) => Readable<number | null> & Precise,
   readTokens: () => Readonly<Record<string, string>>,
 ) {
-  return computed<DriverDimensionFigures>(() => {
+  return computed<DriverDimensionLabels>(() => {
     const tokens = readTokens();
-    function figure(key: NumSpecField, field: NumberField): string {
+    function dimension(key: NumSpecField, field: NumberField): DimensionLabel {
       const {value, precision} = readField(key);
       const quantity = value === null ? null : {valueSI: value, halfWidthSI: precision};
-      // The drawing has to fit its longest label on the phone as well as the desktop.
-      return formatFieldWithUnit(field, quantity, tokens, PHONE_MAX_SIGNIFICANT);
+      return {label: field.label, figure: formatFieldWithUnit(field, quantity, tokens, PHONE_MAX_SIGNIFICANT)};
     }
     return {
-      outer: figure('Outer_m', NumberField.OUTER_M),
-      basket: figure('Basket_m', NumberField.BASKET_M),
-      magnet: figure('Magnet_m', NumberField.MAGNET_M),
-      thick: figure('Thick_m', NumberField.THICK_M),
-      magnetDepth: figure('MagDepth_m', NumberField.MAGDEPTH_M),
-      depth: figure('Depth_m', NumberField.DEPTH_M),
+      outer: dimension('Outer_m', NumberField.OUTER_M),
+      basket: dimension('Basket_m', NumberField.BASKET_M),
+      magnet: dimension('Magnet_m', NumberField.MAGNET_M),
+      thick: dimension('Thick_m', NumberField.THICK_M),
+      magnetDepth: dimension('MagDepth_m', NumberField.MAGDEPTH_M),
+      depth: dimension('Depth_m', NumberField.DEPTH_M),
     };
   });
 }

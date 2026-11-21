@@ -11,7 +11,7 @@ import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/driverCells.js';
 import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
-import {commitMyDriver, useDriverDimensionFigures, useDriverEditorHelp} from '../../hooks/DriverEditorModal-hooks.js';
+import {commitMyDriver, useDriverDimensionLabels, useDriverEditorHelp} from '../../hooks/DriverEditorModal-hooks.js';
 import {useFeatureUse} from '../../hooks/telemetryContext.js';
 import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '@openisd/design';
@@ -253,7 +253,7 @@ function fieldOf(field: NumSpecField): Readable<number | null> & Entered & Calcu
   return draftDriver.value.specField(field);
 }
 
-const dimensionFigures = useDriverDimensionFigures(fieldOf, () => presentationState.ui.unitTokens ?? {});
+const dimensionLabels = useDriverDimensionLabels(fieldOf, () => presentationState.ui.unitTokens ?? {});
 
 function cellVal(field: NumSpecField): number | null {
   const v = cellOf(field).value;
@@ -490,6 +490,15 @@ const chartBlockingReasons = computed<readonly DqReason[]>(() => {
   void trigger.value;
   return draftDriver.value.chartBlockingReasons();
 });
+
+const chartFieldIssues = computed(() => {
+  void trigger.value;
+  return draftDriver.value.chartFieldIssues();
+});
+
+function chartFieldNotes(field: NumSpecField): string[] {
+  return chartFieldIssues.value.filter(issue => issue.field === field).map(issue => issue.text);
+}
 
 // The stated values contradict each other. The charts plot from the stated values regardless,
 // so this is a conflict to resolve, not a blocker — hence its own strip and its own consequence.
@@ -790,14 +799,14 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_ELECTRO_MECHANICAL" />
               <div v-else class="de-hdr">Electro-Mechanical parameters<button type="button" class="de-help-button" aria-label="Help: Electro-Mechanical parameters" @click="showHelp(PhoneHelp.EDITOR_ELECTRO_MECHANICAL)">?</button></div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Cms_m_per_N')]" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Rms_kg_per_s')]" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Re_ohm')]" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" required />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('BL_Tm')]" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" :dq="chartFieldNotes('Mms_kg')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Cms_m_per_N')]" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" :dq="chartFieldNotes('Cms_m_per_N')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Rms_kg_per_s')]" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" :dq="chartFieldNotes('Rms_kg_per_s')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Re_ohm')]" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" :dq="chartFieldNotes('Re_ohm')" required />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('BL_Tm')]" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" :dq="chartFieldNotes('BL_Tm')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Dd_m')]" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :field="NumberField.DD_M" :cell="fieldOf('Dd_m')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Le_H')]" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :field="NumberField.LE_H" :cell="fieldOf('Le_H')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Sd_m2')]" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :field="NumberField.SD_M2" :cell="fieldOf('Sd_m2')" required />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Sd_m2')]" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :field="NumberField.SD_M2" :cell="fieldOf('Sd_m2')" :dq="chartFieldNotes('Sd_m2')" required />
                 <!-- fLe is STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and shown in kHz, so the
                      scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
                      Hz as kHz and put the field out by 1e6. -->
@@ -892,15 +901,15 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <UIField class="de-fld" :class="[skin?.field, inspectClass('Magnet_m')]" data-field-key="Magnet_m" :label="skin ? PhoneLabels.MAGNET : undefined" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Basket_m" :label="skin ? PhoneLabels.BASKET : undefined" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Outer_m" :label="skin ? PhoneLabels.OUTER : undefined" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
-              <UIField class="de-fld" :class="skin?.field" data-field-key="OuterX_m" :label="skin ? PhoneLabels.OUTER_X : undefined" :field="NumberField.OUTERX_M" :cell="fieldOf('OuterX_m')" />
-              <UIField class="de-fld" :class="skin?.field" data-field-key="OuterY_m" :label="skin ? PhoneLabels.OUTER_Y : undefined" :field="NumberField.OUTERY_M" :cell="fieldOf('OuterY_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="OuterX_m" :label="skin ? PhoneLabels.OUTER_X : NumberField.OUTERX_M.fullLabel" :field="NumberField.OUTERX_M" :cell="fieldOf('OuterX_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="OuterY_m" :label="skin ? PhoneLabels.OUTER_Y : NumberField.OUTERY_M.fullLabel" :field="NumberField.OUTERY_M" :cell="fieldOf('OuterY_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="weight_kg" :label="skin ? PhoneLabels.WEIGHT : undefined" :field="NumberField.WEIGHT_KG" :cell="fieldOf('weight_kg')" />
-              <UIField class="de-fld" :class="skin?.field" data-field-key="Vcd_m" :label="skin ? PhoneLabels.VCD : undefined" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
-              <UIField class="de-fld" :class="[skin?.field, inspectClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : undefined" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="Vcd_m" :label="skin ? PhoneLabels.VCD : NumberField.VCD_M.fullLabel" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
+              <UIField class="de-fld" :class="[skin?.field, inspectClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : NumberField.DVOL_M3.fullLabel" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
             </div>
 
             <div class="de-diagram" aria-hidden="true" title="Driver cross-section (not to scale)">
-              <DriverDimensionsDiagram :figures="dimensionFigures" />
+              <DriverDimensionsDiagram :dimensions="dimensionLabels" />
             </div>
           </div>
         </div>

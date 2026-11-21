@@ -20,8 +20,10 @@ import {cAbs, cArg, cDiv, cMul, cScale, cx} from '../complex.js';
 import type {CircuitQuantities} from '../circuit.js';
 import {hfAsymptotePressure_Pa, solve} from '../circuit.js';
 import {missingDependencies} from '../consistency.js';
+import {driverCircuitIssues, hasCircuitFields, missingCircuitFields} from '../driver/circuitDiagnostics.js';
+import type {DriverCircuitIssue, ReadyCircuitReadings} from '../driver/circuitDiagnostics.js';
 import {createDriverEngine} from '../driver/DriverEngine.js';
-import type {DriverEngine, DriverIssue, DriverPrerequisite, DriverQuantityName} from '../driver/DriverEngine.js';
+import type {DriverEngine, DriverIssue, DriverPrerequisite} from '../driver/DriverEngine.js';
 import type {PrIssue} from '../pr/PrEngine.js';
 import type {VentIssue} from '../vent/VentEngine.js';
 import {hotRe, isobarikPair, withAddedMass} from '../solvers/driverQuantities.js';
@@ -39,9 +41,8 @@ import type {SignalIssue} from '../signal/SignalEngine.js';
 import {DEFAULT_SWEEP_POINTS} from '../../fields/defaults.js';
 import {NumberField} from '../../fields/field.js';
 
-/** Every issue channel a sweep can surface: the driver's own missing circuit fields (a
- *  `missing-dependencies` issue per absent field, never a combined message or a cross-field
- *  substitution suggestion — packages/design/AGENTS.md ruling QO144), the environment's entered
+/** Every issue channel a sweep can surface: the driver's own missing circuit fields and the
+ *  inputs that would supply them, the environment's entered
  *  air constants being out of range, an unstated enclosure parameter (`OpenISDProject.sweep()`
  *  reports this channel when the box has no `Vb`/`Vf`/`Sp`/etc. to sweep with at all — the engine
  *  `sweep()` function itself never produces this variant, since it never reads box params
@@ -53,7 +54,7 @@ import {NumberField} from '../../fields/field.js';
  *  instead). Never a sweep-own quantity: `sweep()` computes nothing a caller enters, so it has
  *  no target of its own to report an issue about. */
 export type SweepIssue =
-  | DriverIssue | AirIssue | BoxParamsIssue | SweepSettingIssue
+  | DriverIssue | DriverCircuitIssue | AirIssue | BoxParamsIssue | SweepSettingIssue
   | VentIssue | PrIssue | SignalIssue;
 
 /** The unified sweep result: the curves (or null if nothing could be derived), and why. */
@@ -155,32 +156,6 @@ export function groupDelayAtMs(h: (f: number) => Complex, f: number): number {
  * Group delay τg = −dφ/dω
  *   https://en.wikipedia.org/wiki/Group_delay_and_phase_delay
  */
-/**
- * The six quantities the circuit cannot run without, or the issues naming what is missing.
- *
- * These six are what `circuit.ts` reads unguarded; every OTHER quantity a curve wants is
- * optional and gated at its own use below, because a driver states what its datasheet printed
- * and each chart decides for itself what it can still draw. `Number.isFinite` is part of the
- * check: a subnormal `Sd_m2` yields an infinite `Cms_m_per_N`, which is not a driver.
- */
-/** The six quantities `circuit.ts` reads unguarded — every OTHER quantity a curve wants is
- *  optional and gated at its own use below, because a driver states what its datasheet printed
- *  and each chart decides for itself what it can still draw. */
-const CIRCUIT_REQUIRED_FIELDS: readonly DriverQuantityName[] = Object.freeze([
-  'Sd_m2', 'Re_terminal_ohm', 'BL_terminal_Tm', 'Cms_m_per_N', 'Mms_kg', 'Rms_kg_per_s',
-]);
-
-/**
- * The circuit's required quantities, or the issues naming which are absent.
- *
- * One `missing-dependencies` issue per absent field, each naming itself as the (trivial,
- * one-field) route that would unblock it — never a combined message, and never a suggestion to
- * state a DIFFERENT field instead. QO144 (2026-09-15): the user wants to know exactly what to
- * do to get the chart working, not weigh a menu of cross-field substitutions. A stated-but-
- * non-physical value (≤0, non-finite — `Number.isFinite` matters here: a subnormal `Sd_m2`
- * yields an infinite `Cms_m_per_N`, which is not a driver) is reported the same way as absent:
- * either way the user's actual next step is "state a valid `<field>`".
- */
 /** The driver's values with null read as absent — the one conversion point `sweep()` needs:
  *  `withAddedMass` (a pure mass-shift transform) and `circuitQuantities` both work over plain
  *  numbers, never over the `SolverField` handle machinery itself. No type name crosses this
@@ -229,23 +204,12 @@ function oneDriverOfArray(P: SweepParams, box: BoxType, n: number, drive: Driver
 
 /** `q` is the driver the circuit runs on (the pair under Iso-Barik loading); `one` is one driver of
  *  it, whose BL is the motor's push when no BL is typed. */
-function circuitQuantities(q: ReturnType<typeof withAddedMass>, one: ReturnType<typeof withAddedMass>, Le_H: number | undefined, BL_typed_Tm: number | null, pushScale: number): { value: CircuitQuantities | null; issues: DriverIssue[] } {
-  const issues: DriverIssue[] = [];
-  for (const field of CIRCUIT_REQUIRED_FIELDS) {
-    const v = q[field];
-    if (typeof v === 'number' && Number.isFinite(v) && v > 0) continue;
-    issues.push(missingDependencies(field,
-      [{ formula: `${field} is a directly entered or derived driver quantity`, required: [field], missing: [field] }]));
-  }
-  if (issues.length > 0) return { value: null, issues };
+function circuitQuantities(q: ReturnType<typeof withAddedMass> & ReadyCircuitReadings, one: ReturnType<typeof withAddedMass>, Le_H: number | undefined, BL_typed_Tm: number | null, pushScale: number): CircuitQuantities {
   return {
-    value: {
-      Sd_m2: q.Sd_m2!, Re_terminal_ohm: q.Re_terminal_ohm!, BL_terminal_Tm: q.BL_terminal_Tm!,
-      Cms_m_per_N: q.Cms_m_per_N!, Mms_kg: q.Mms_kg!, Rms_kg_per_s: q.Rms_kg_per_s!, Le_H,
-      BL_Qes_Tm: blFromQes(q.Re_terminal_ohm!, q.Cms_m_per_N!, q.Fs_hz, q.Qes),
-      BL_entered_Tm: enteredTerminalBL_Tm(one, BL_typed_Tm) * pushScale,
-    },
-    issues: [],
+    Sd_m2: q.Sd_m2, Re_terminal_ohm: q.Re_terminal_ohm, BL_terminal_Tm: q.BL_terminal_Tm,
+    Cms_m_per_N: q.Cms_m_per_N, Mms_kg: q.Mms_kg, Rms_kg_per_s: q.Rms_kg_per_s, Le_H,
+    BL_Qes_Tm: blFromQes(q.Re_terminal_ohm, q.Cms_m_per_N, q.Fs_hz, q.Qes),
+    BL_entered_Tm: enteredTerminalBL_Tm(one, BL_typed_Tm) * pushScale,
   };
 }
 
@@ -507,13 +471,16 @@ export class SimulationEngineImpl implements SimulationEngine {
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
     // The circuit runs on Fs, Vas, Qes, Qms, Re, Sd, BL and Le as WinISD's does; the stated Cms, Mms and Rms are not read.
-    const single = withAddedMass(driverValues(this.driver.circuitValues(drv.values, P.air)), P.driverAddedMass ?? 0);
+    const resolved = this.driver.circuitValues(drv.values, P.air);
+    const single = withAddedMass(driverValues(resolved), P.driverAddedMass ?? 0);
     const wiring = physicalPairWiring(P);
     const d = wiring !== null ? wiredIsobarikPair(single, wiring) : P.loading === 'isobaric' ? isobarikPair(single) : single;
     const Le = Le_H === undefined ? undefined : Le_H * isobarikImpedanceScale(wiring);
-    const circuit = circuitQuantities(d, single, Le, drv.winisdBL_Tm, isobarikMotorScale(wiring));
-    if (circuit.value === null) return { values: null, issues: circuit.issues };
-    const cq = circuit.value;
+    if (!hasCircuitFields(d)) {
+      const values = {...resolved, c_m_per_s: P.air.c(), roo_kg_per_m3: P.air.rho()};
+      return {values: null, issues: driverCircuitIssues(values, missingCircuitFields(d))};
+    }
+    const cq = circuitQuantities(d, single, Le, drv.winisdBL_Tm, isobarikMotorScale(wiring));
     const rho = P.air.rho();
     const f0 = P.fmin || NumberField.PLOT_RANGE_DEFAULT_HZ.min, f1 = P.fmax || NumberField.PLOT_RANGE_DEFAULT_HZ.max, N = P.N || DEFAULT_SWEEP_POINTS, r = 1;
     const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
@@ -758,7 +725,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     const Pe   = (drvPe_W != null && drvPe_W > 0) ? arrayPowerHandling(drvPe_W, P.nDrivers || 1, P.loading === 'isobaric' ? 'isobaric' : 'standard') : null;
     // The power reference is Re, not Znom — and the TERMINAL Re, because the amplifier drives the
     // coils as they are wired. `sweep` above already succeeded, and its circuit-required-fields
-    // check (CIRCUIT_REQUIRED_FIELDS includes Re_terminal_ohm) demands this exact field be a
+    // check (the circuit requires Re_terminal_ohm) demands this exact field be a
     // positive finite number before `swept.values` can be non-null — Re cannot be absent here.
     // Power is into Re + Rs, the same load the power → voltage drive solve uses (`driveVoltage`),
     // with Re at the coil's temperature rise as WinISD states it

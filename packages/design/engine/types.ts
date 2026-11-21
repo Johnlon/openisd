@@ -31,11 +31,19 @@ export interface Complex {
 /** Severity of a driver/parse issue. `error` blocks derivation; `warn` only drops a reference line. */
 export type IssueLevel = 'error' | 'warn';
 
+/** Guidance shared by the fields that prevent a circuit from running. */
+export interface DriverChartFix {
+  readonly desktop: string;
+  readonly phone: string;
+  readonly summary: string;
+}
+
 /** One human-readable problem tied to a specific field. */
 export interface DriverError {
   level: IssueLevel;
   field: string;
   message: string;
+  chartFix?: DriverChartFix;
 }
 
 /**

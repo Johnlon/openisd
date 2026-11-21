@@ -4,7 +4,7 @@ import {NumberField, PhoneHelpSection} from '@openisd/design/fields';
 import {MY_DRIVERS_KEY, createMemoryStorage} from '@openisd/persistence';
 import {OpenISDDriver, OpenISDDriverStandalone} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-import {commitMyDriver, ebpVal, useDriverDimensionFigures, useDriverEditorHelp} from '../../src/hooks/DriverEditorModal-hooks.js';
+import {commitMyDriver, ebpVal, useDriverDimensionLabels, useDriverEditorHelp} from '../../src/hooks/DriverEditorModal-hooks.js';
 import {recordingTelemetryUi} from '../fixtures/recordingTelemetryUi.js';
 import {myDriverRepoOn} from '../fixtures/repoOn.js';
 
@@ -21,19 +21,24 @@ function completeDriver(): OpenISDDriverStandalone {
 }
 
 describe('DriverEditorModal-hooks', () => {
-  it('formats the draft dimensions with their selected units and leaves absent figures empty', () => {
+  it('pairs every dimension field name with its figure in the selected unit', () => {
     const driver = completeDriver();
     driver.specs.Basket_m.set(0.101);
     driver.specs.MagDepth_m.set(0.006893, 0.0000005);
     const tokens = ref<Readonly<Record<string, string>>>({});
-    const figures = useDriverDimensionFigures(key => driver.specField(key), () => tokens.value);
+    const figures = useDriverDimensionLabels(key => driver.specField(key), () => tokens.value);
 
     expect(figures.value).toEqual({
-      basket: '101.00 mm', magnetDepth: '6.893 mm', thick: '', outer: '', magnet: '', depth: '',
+      basket: {label: NumberField.BASKET_M.label, figure: '101.00 mm'},
+      magnetDepth: {label: NumberField.MAGDEPTH_M.label, figure: '6.893 mm'},
+      thick: {label: NumberField.THICK_M.label, figure: ''},
+      outer: {label: NumberField.OUTER_M.label, figure: ''},
+      magnet: {label: NumberField.MAGNET_M.label, figure: ''},
+      depth: {label: NumberField.DEPTH_M.label, figure: ''},
     });
     tokens.value = NumberField.BASKET_M.withNextUnit(tokens.value);
-    expect(figures.value.basket).toBe('3.976 in');
-    expect(figures.value.magnetDepth).toBe('6.893 mm');
+    expect(figures.value.basket).toEqual({label: NumberField.BASKET_M.label, figure: '3.976 in'});
+    expect(figures.value.magnetDepth).toEqual({label: NumberField.MAGDEPTH_M.label, figure: '6.893 mm'});
   });
 
   describe('ebpVal', () => {
