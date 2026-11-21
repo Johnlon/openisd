@@ -26,6 +26,11 @@ describe('phone wizard text', () => {
     expect(PhoneWizardText.ebpInfo('84.9').note).toBe('Your driver: EBP 84.9.');
     expect(PhoneWizardText.PLACEMENT_INFO.note).toContain('half the volume');
     expect(PhoneWizardText.PLACEMENT_INFO.note).toContain('Driver wiring');
+    expect(PhoneWizardText.PLACEMENT_INFO.note).toContain('At the same voltage');
+    expect(PhoneWizardText.PLACEMENT_INFO.note).toContain('half the impedance');
+    expect(PhoneWizardText.PLACEMENT_INFO.note).toContain('6 dB quieter');
+    expect(PhoneWizardText.PLACEMENT_INFO.note).toContain('twice the impedance');
+    expect(PhoneWizardText.PLACEMENT_INFO.note).toContain("WinISD's Iso-Barik numbers");
     expect(PhoneWizardText.PLACEMENT_INFO.note).not.toContain('as WinISD does');
     expect(PhoneWizardText.PLACEMENT_INFO.note).not.toContain('not modelled');
   });
