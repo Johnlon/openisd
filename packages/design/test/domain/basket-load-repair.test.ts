@@ -67,6 +67,20 @@ describe('Basket Diameter on opening', () => {
     expect(reloaded.driver.specs.Basket_m.value).toBe(Infinity);
   });
 
+  it('saves a loaded 1e999 basket as the same literal and reads it back as the same value with its warning', () => {
+    const session = loadProject('sealed').cloneSession();
+    const device = driverWith(session.saved.driverEmbedding.device, {state: 'E', value: 1234});
+    const driver = OpenISDDriver.fromOwdrText(JSON.stringify(device).replace('"value":1234', '"value":1e999'), engine);
+    if (Array.isArray(driver)) throw new Error(driver.join('\n'));
+    const driverText = driver.toOwdrText();
+    expect(driverText).toContain('1e999');
+    expect(driverText).not.toMatch(/"Basket_m":\s*\{[^}]*null/);
+    const driverAgain = OpenISDDriver.fromOwdrText(driverText, engine);
+    if (Array.isArray(driverAgain)) throw new Error(driverAgain.join('\n'));
+    expect(driverAgain.specs.Basket_m.value).toBe(Infinity);
+    expect(driverAgain.specs.Basket_m.dq).toContainEqual(expect.objectContaining({kind: 'invalid-value', value: Infinity}));
+  });
+
   it('keeps a 55 m basket from an .owpr file, warns, and still gives finite chart data', () => {
     const session = loadProject('sealed').cloneSession();
     const project = session.saved;

@@ -7,6 +7,8 @@ from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Dis
 from pydantic_core import PydanticCustomError
 
 Number = Annotated[float, Field(allow_inf_nan=False)]
+# Every number is <= infinity except NaN.
+NumberWithOverflow = Annotated[float, Field(allow_inf_nan=True, le=float("inf"))]
 
 # Zod 4 reports a failed union as the issues of the ONE member whose issues are all continuable
 # (a refinement, a size bound, an unrecognised key); with none or several such members it reports
@@ -203,6 +205,27 @@ def _tag_state_8(v):
 
 WiringEntry = Annotated[Union[Annotated[WiringEntryJsonSchemaE, Tag("<E>")], Annotated[WiringEntryJsonSchemaC, Tag("<C>")], Annotated[NotAvailableEntry2, Tag("<N>")]], Discriminator(_tag_state_8)]
 
+class DriverDimensionEntryJsonSchemaE(Strict):
+    state: Literal["E"]
+    value: NumberWithOverflow
+    precision: Annotated[Number, Field(gt=0)] = None
+
+class DriverDimensionEntryJsonSchemaC(Strict):
+    state: Literal["C"]
+    value: NumberWithOverflow
+    precision: Annotated[Number, Field(gt=0)] = None
+
+class NotAvailableEntry3(Strict):
+    state: Literal["N"]
+    readings: NotAvailableEntryReadings = None
+
+def _tag_state_9(v):
+    if isinstance(v, dict) and v.get("state") in ("E", "C", "N"):
+        return '<' + v["state"] + '>'
+    return None
+
+DriverDimensionEntry = Annotated[Union[Annotated[DriverDimensionEntryJsonSchemaE, Tag("<E>")], Annotated[DriverDimensionEntryJsonSchemaC, Tag("<C>")], Annotated[NotAvailableEntry3, Tag("<N>")]], Discriminator(_tag_state_9)]
+
 class DriverSpecsWoofer(Strict):
     Fs_hz: SpecEntry = None
     Re_ohm: SpecEntry = None
@@ -242,22 +265,22 @@ class DriverSpecsWoofer(Strict):
     Gloss: SpecEntry = None
     c_m_per_s: SpecEntry = None
     roo_kg_per_m3: SpecEntry = None
-    Vcd_m: SpecEntry = None
+    Vcd_m: DriverDimensionEntry = None
     Hg_m: SpecEntry = None
     Hc_m: SpecEntry = None
     freq_low_hz: SpecEntry = None
     freq_high_hz: SpecEntry = None
     power_peak_W: SpecEntry = None
     weight_kg: SpecEntry = None
-    Thick_m: SpecEntry = None
-    Depth_m: SpecEntry = None
-    MagDepth_m: SpecEntry = None
-    Magnet_m: SpecEntry = None
-    Basket_m: SpecEntry = None
-    Outer_m: SpecEntry = None
-    OuterX_m: SpecEntry = None
-    OuterY_m: SpecEntry = None
-    DVol_m3: SpecEntry = None
+    Thick_m: DriverDimensionEntry = None
+    Depth_m: DriverDimensionEntry = None
+    MagDepth_m: DriverDimensionEntry = None
+    Magnet_m: DriverDimensionEntry = None
+    Basket_m: DriverDimensionEntry = None
+    Outer_m: DriverDimensionEntry = None
+    OuterX_m: DriverDimensionEntry = None
+    OuterY_m: DriverDimensionEntry = None
+    DVol_m3: DriverDimensionEntry = None
 
 class DriverSpecs(Strict):
     woofer: DriverSpecsWoofer
@@ -287,7 +310,7 @@ class RadiatorSpecsPassiveRadiator(Strict):
 class RadiatorSpecs(Strict):
     passive_radiator: RadiatorSpecsPassiveRadiator = Field(alias="passive-radiator")
 
-def _dispatch_specs_json_schema_9(v):
+def _dispatch_specs_json_schema_10(v):
     keyed = isinstance(v, dict)
     claims_0 = keyed and "woofer" in v
     claims_1 = keyed and "passive-radiator" in v
@@ -295,7 +318,7 @@ def _dispatch_specs_json_schema_9(v):
         return None  # a driver (a 'woofer' section, optionally with a 'tweeter' section) or a passive radiator (a 'passive-radiator' section) — not both, not neither
     return "<woofer>" if claims_0 else "<passive-radiator>"
 
-Specs = Annotated[Union[Annotated[DriverSpecs, Tag("<woofer>")], Annotated[RadiatorSpecs, Tag("<passive-radiator>")]], Discriminator(_dispatch_specs_json_schema_9)]
+Specs = Annotated[Union[Annotated[DriverSpecs, Tag("<woofer>")], Annotated[RadiatorSpecs, Tag("<passive-radiator>")]], Discriminator(_dispatch_specs_json_schema_10)]
 
 class RootCurvesValue(Strict):
     type: str
@@ -329,4 +352,4 @@ class Root(Strict):
 ROOT = Root
 TAGS = frozenset({"<woofer>", "<E>", "<C>", "<N>", "<passive-radiator>"})
 DISPATCH_TAGS = frozenset({"<woofer>", "<passive-radiator>"})
-DISCRIMINATOR_FIELD = {"_tag_state_7": "state", "_tag_state_8": "state", "_dispatch_specs_json_schema_9": None}
+DISCRIMINATOR_FIELD = {"_tag_state_7": "state", "_tag_state_8": "state", "_tag_state_9": "state", "_dispatch_specs_json_schema_10": None}

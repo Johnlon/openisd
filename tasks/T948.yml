@@ -54,6 +54,10 @@ files:
   - packages/ui/test/logic/applicationIO.test.ts
   - packages/ui/test/ui/driver-editor-basket.browser.spec.ts
   - packages/ui/test/ui/driver-editor-units.browser.spec.ts
+  - scripts/schemagen/cases.ts
+  - scripts/schemagen/out/driver_model.py
+  - scripts/schemagen/prove.ts
+  - scripts/schemagen/translate.ts
 note: >-
   John, 18 Nov 2026, QO953, “refuse impossible, warn odd”. John clarified on 21 Nov, 01:11–01:14,
   “if a user is editing it that is different” and “WinISD file's basket is read exactly as WinISD's
