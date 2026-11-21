@@ -1546,6 +1546,12 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-desktop :deep(.mob-help-overlay) {align-items:center;justify-content:center;}
 /* John, 21 Nov 2026: "big text dialogues can scroll if needed, better than losing good explanations,
    or the key words can be expanding for more info, that kind of thing".
-   The height cap is relative to the help overlay that fills the editor. */
-.de-desktop :deep(.mob-help-sheet) {width:min(680px,92%);max-height:90%;border-radius:8px;}
+   John, 21 Nov 2026, on the overview cut off mid-sentence with no scrollbar: "it's clipped".
+   So on desktop the help overlay covers the window, not just the editor, and the sheet may be
+   90% of the window's height: the overview fits whole in a 1880 x 1000 window. Where it still
+   cannot fit, a "More below ▼" bar sits at the sheet's foot until its end is reached (a scrollbar
+   alone is hidden on Mac and phone browsers). */
+.de-desktop :deep(.mob-help-overlay) {position:fixed;}
+.de-desktop :deep(.mob-help-sheet) {width:min(680px,92vw);max-height:90vh;border-radius:8px;overflow-y:scroll;scrollbar-width:thin;scrollbar-color:#9aa4b0 #eef1f4;}
+.de-desktop :deep(.mob-help-more-below) {display:block;position:sticky;bottom:0;margin:0 -16px;padding:18px 16px 6px;text-align:center;font-weight:600;color:var(--acc);background:linear-gradient(rgba(255,255,255,0),#fff 55%);}
 </style>

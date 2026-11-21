@@ -246,7 +246,6 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-driver-editor-incomplete-warning.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-storage-restore-picker.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-what-if-sealed.png
-  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-overview-scrolled-to-end.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
@@ -273,6 +272,9 @@ files:
   - packages/ui/test/ui/layout-long-values.browser.spec.ts
   - packages/ui/test/ui/field-visual-contract.browser.spec.ts
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-driver-editor-help-dimensions.png
+  - packages/ui/src/hooks/PhoneHelpSheet-hooks.ts
+  - packages/ui/src/ui/shells/mobile/PhoneHelpSheet.vue
+  - packages/ui/src/style.css
   - packages/ui/test/ui/driver-editor-help-overview-clip.browser.spec.ts
   - CLAUDE.md
   - packages/design/test/domain/driver-wiring-data-facade.test.ts
@@ -317,7 +319,6 @@ visual:
   - desktop-dialog-shared-driver-editor-incomplete-warning
   - desktop-dialog-shared-storage-restore-picker
   - desktop-dialog-what-if-sealed
-  - desktop-dialog-driver-editor-help-overview-scrolled-to-end
   - desktop-tab-advanced
   - desktop-tab-box
   - desktop-tab-driver

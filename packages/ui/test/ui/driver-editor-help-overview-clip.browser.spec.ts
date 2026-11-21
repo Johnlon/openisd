@@ -2,7 +2,9 @@
  * T744, John (16 Nov 2026): "Clipping is a bug: fix it, don't ask". The driver editor's help overview ("Blue dot" is its next-to-last
  * paragraph) was cut off at the bottom of the dialog. The dialog keeps its size ("dlg changing size for a workflow is anti pattern"),
  * and the help sheet keeps 680 px and scrolls (John, 21 Nov 2026: "big text dialogues can scroll if needed, better than losing good
- * explanations"), so every help sheet must lie inside the editor and scroll to its last paragraph.
+ * explanations"). Shown the overview cut off mid-sentence with no scrollbar, John (21 Nov 2026): "it's clipped". So every help sheet
+ * lies inside the window (it may reach past the editor, which keeps its size), the overview fits whole in 1880 x 1000 and 1280 x 720, and
+ * a sheet that must scroll says "More below" at its foot until its end is reached.
  */
 import {expect, openAProject, test} from '../fixtures.js';
 import {DESKTOP_SURFACES, DesktopRoute, type DesktopSurface} from '../fixtures/desktopSurfaceManifest.js';
@@ -18,24 +20,14 @@ async function openHelp(page: Page, surface: DesktopSurface): Promise<Locator> {
   return sheet;
 }
 
-async function expectSheetInsideEditor(sheet: Locator): Promise<void> {
-  const {width, top, right, bottom, left} = await sheet.evaluate(el => {
-    const bounds = el.getBoundingClientRect();
-    const editor = el.closest('.de-modal')!.getBoundingClientRect();
-    return {
-      width: bounds.width,
-      top: bounds.top - editor.top,
-      right: editor.right - bounds.right,
-      bottom: editor.bottom - bounds.bottom,
-      left: bounds.left - editor.left,
-    };
-  });
+async function expectSheetInsideWindow(sheet: Locator): Promise<void> {
+  const width = await sheet.evaluate(el => el.getBoundingClientRect().width);
   expect(width).toBeLessThanOrEqual(680);
-  expect(top, 'space above the sheet inside the editor').toBeGreaterThanOrEqual(0);
-  expect(right, 'space right of the sheet inside the editor').toBeGreaterThanOrEqual(0);
-  expect(bottom, 'space below the sheet inside the editor').toBeGreaterThanOrEqual(0);
-  expect(left, 'space left of the sheet inside the editor').toBeGreaterThanOrEqual(0);
   await expect(sheet).toBeInViewport({ratio: 1});
+}
+
+async function expectMoreBelowShown(sheet: Locator): Promise<void> {
+  await expect(sheet.getByText('More below ▼')).toBeInViewport({ratio: 1});
 }
 
 async function expectLastParagraphAtEnd(sheet: Locator): Promise<number> {
@@ -44,6 +36,7 @@ async function expectLastParagraphAtEnd(sheet: Locator): Promise<number> {
   await sheet.page().mouse.wheel(0, scrollHeight);
   await expect.poll(() => sheet.evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
   await expect(sheet.locator('.mob-help-row').last()).toBeInViewport({ratio: 1});
+  await expect(sheet.getByText('More below ▼')).toHaveCount(0);
   return sheet.evaluate(el => el.scrollTop);
 }
 
@@ -52,20 +45,26 @@ const overview = helpSurfaces.find(surface => surface.id === 'desktop/driver/edi
 const thieleSmall = helpSurfaces.find(surface => surface.id === 'desktop/driver/editor/help/thiele-small')!;
 
 for (const surface of helpSurfaces) {
-  test(`${surface.title} fits the desktop editor and its last paragraph is reachable`, async ({page}) => {
+  test(`${surface.title} fits the window and its last paragraph is reachable`, async ({page}) => {
     await page.setViewportSize({width: 1280, height: 720});
     const sheet = await openHelp(page, surface);
-    await expectSheetInsideEditor(sheet);
+    await expectSheetInsideWindow(sheet);
     expect(await expectLastParagraphAtEnd(sheet)).toBeGreaterThanOrEqual(0);
   });
 }
 
-test('the overview is longer than the 680 px sheet at 1280 x 720 and scrolls to its last paragraph', async ({page}) => {
-  await page.setViewportSize({width: 1280, height: 720});
-  const sheet = await openHelp(page, overview);
-  await expectSheetInsideEditor(sheet);
-  expect(await expectLastParagraphAtEnd(sheet)).toBeGreaterThan(0);
-});
+for (const {width, height} of [{width: 1880, height: 1000}, {width: 1280, height: 720}]) {
+  test(`the whole overview shows without scrolling in a ${width} × ${height} window`, async ({page}) => {
+    await page.setViewportSize({width, height});
+    const sheet = await openHelp(page, overview);
+    await expectSheetInsideWindow(sheet);
+    const [scrollHeight, clientHeight] = await sheet.evaluate(el => [el.scrollHeight, el.clientHeight]);
+    expect(scrollHeight).toBeLessThanOrEqual(clientHeight);
+    await expect(sheet.getByText('More below ▼')).toHaveCount(0);
+    await expect(sheet.locator('.mob-help-row').last()).toContainText('Other fields:');
+    await expect(sheet.locator('.mob-help-row').last()).toBeInViewport({ratio: 1});
+  });
+}
 
 test('help that fits is fully visible without scrolling in a large desktop window', async ({page}) => {
   await page.setViewportSize({width: 1880, height: 1000});
@@ -75,12 +74,13 @@ test('help that fits is fully visible without scrolling in a large desktop windo
   await expect(sheet.locator('.mob-help-row').last()).toBeInViewport({ratio: 1});
 });
 
-// The overview retains its full text at the restored width, so it can need scrolling even in a large window.
-for (const {width, height} of [{width: 1880, height: 1000}, {width: 1280, height: 560}, {width: 1280, height: 480}]) {
-  test(`the overview scrolls to Other fields inside the editor at ${width} × ${height}`, async ({page}) => {
+// In a short window the overview still needs scrolling: it says More below and reaches Other fields.
+for (const {width, height} of [{width: 1280, height: 560}, {width: 1280, height: 480}]) {
+  test(`the overview says More below and scrolls to Other fields at ${width} × ${height}`, async ({page}) => {
     await page.setViewportSize({width, height});
     const sheet = await openHelp(page, overview);
-    await expectSheetInsideEditor(sheet);
+    await expectSheetInsideWindow(sheet);
+    await expectMoreBelowShown(sheet);
     await expect(sheet.locator('.mob-help-row').last()).toContainText('Other fields:');
     expect(await expectLastParagraphAtEnd(sheet)).toBeGreaterThan(0);
   });

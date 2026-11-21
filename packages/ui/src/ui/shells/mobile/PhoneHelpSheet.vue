@@ -7,13 +7,13 @@ import {usePhoneHelpSheet} from '../../../hooks/PhoneHelpSheet-hooks.js';
 
 const props = defineProps<{section: PhoneHelpSection}>();
 const emit = defineEmits<{close: []}>();
-usePhoneHelpSheet();
+const {sheetEl, moreBelow, measure} = usePhoneHelpSheet();
 const showDifference = useHelpDifferenceLink(() => emit('close'));
 </script>
 
 <template>
   <div class="mob-help-overlay" @click.self="emit('close')">
-    <div class="mob-help-sheet" role="dialog" :aria-label="'Help: ' + props.section.title">
+    <div ref="sheetEl" class="mob-help-sheet" role="dialog" :aria-label="'Help: ' + props.section.title" @scroll="measure">
       <div class="mob-help-head">
         <span>{{ props.section.title }}</span>
         <button type="button" class="mob-help-close" aria-label="Close help" @click="emit('close')">&#10005;</button>
@@ -23,6 +23,7 @@ const showDifference = useHelpDifferenceLink(() => emit('close'));
     <ul v-if="props.section.links.length > 0" class="mob-help-links">
         <li v-for="link in props.section.links" :key="link.url"><a :href="link.url" target="_blank" rel="noopener noreferrer">{{ link.title }}</a></li>
       </ul>
+      <div v-if="moreBelow" class="mob-help-more-below" aria-hidden="true">More below ▼</div>
     </div>
   </div>
 </template>

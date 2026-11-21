@@ -176,21 +176,6 @@ function screens(): readonly Screen[] {
       await setFocusedBoxType(page, type);
     }));
   }
-  // The driver editor's help overview scrolled to its end: the sheet keeps 680 px and scrolls inside the editor, and its last
-  // paragraph is reachable (John, 21 Nov 2026: "big text dialogues can scroll if needed, better than losing good explanations").
-  all.push(screen(VisualSkin.DESKTOP, 'dialog-driver-editor-help-overview-scrolled-to-end', async page => {
-    await VisualSkin.DESKTOP.openProject(page);
-    await page.locator('.project-nav li', {hasText: 'Driver'}).click();
-    await page.locator('.edit-btn[title^="Full editor for this driver"]').click();
-    await page.locator('.de-tabs').getByRole('button', {name: 'General', exact: true}).click();
-    await page.getByRole('button', {name: 'Help: Driver editor', exact: true}).click();
-    const sheet = page.locator('.de-desktop .mob-help-sheet');
-    await expect(sheet).toBeVisible();
-    await sheet.hover();
-    await page.mouse.wheel(0, 5000);
-    await expect.poll(() => sheet.evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(1);
-    await expect(sheet.locator('.mob-help-row').last()).toBeInViewport({ratio: 1});
-  }, [], [], 'popup'));
   all.push(screen(VisualSkin.DESKTOP, 'dialog-what-if-sealed', async page => {
     await VisualSkin.DESKTOP.openProject(page);
     await setFocusedBoxType(page, 'sealed');
