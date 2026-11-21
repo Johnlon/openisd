@@ -1,9 +1,11 @@
 import type {FeatureUse} from '../logic/telemetry/featureUse.js';
-import {shallowRef} from 'vue';
-import type {PhoneHelpSection} from '@openisd/design/fields';
+import {computed, shallowRef} from 'vue';
+import {NumberField, PHONE_MAX_SIGNIFICANT, type PhoneHelpSection} from '@openisd/design/fields';
 import {useEscToClose} from '../logic/useEscToClose.js';
-import type {OpenISDDriver, OpenISDDriverStandalone} from '@openisd/design';
+import type {OpenISDDriver, OpenISDDriverStandalone, Precise, Readable} from '@openisd/design';
 import type {MyDriverRepo} from '@openisd/persistence';
+import type {NumSpecField} from '../logic/appState.js';
+import {formatFieldWithUnit} from './useUnitReadouts.js';
 
 /**
  * Plain-function reads and writes for the driver editor (DriverEditorModal.vue), parameterised on
@@ -31,4 +33,36 @@ export function useDriverEditorHelp() {
   const closeHelp = (): void => { helpSection.value = null; };
   useEscToClose(() => helpSection.value !== null, closeHelp);
   return {helpSection, showHelp, closeHelp};
+}
+
+export interface DriverDimensionFigures {
+  readonly outer: string;
+  readonly basket: string;
+  readonly magnet: string;
+  readonly thick: string;
+  readonly magnetDepth: string;
+  readonly depth: string;
+}
+
+export function useDriverDimensionFigures(
+  readField: (key: NumSpecField) => Readable<number | null> & Precise,
+  readTokens: () => Readonly<Record<string, string>>,
+) {
+  return computed<DriverDimensionFigures>(() => {
+    const tokens = readTokens();
+    function figure(key: NumSpecField, field: NumberField): string {
+      const {value, precision} = readField(key);
+      const quantity = value === null ? null : {valueSI: value, halfWidthSI: precision};
+      // The drawing has to fit its longest label on the phone as well as the desktop.
+      return formatFieldWithUnit(field, quantity, tokens, PHONE_MAX_SIGNIFICANT);
+    }
+    return {
+      outer: figure('Outer_m', NumberField.OUTER_M),
+      basket: figure('Basket_m', NumberField.BASKET_M),
+      magnet: figure('Magnet_m', NumberField.MAGNET_M),
+      thick: figure('Thick_m', NumberField.THICK_M),
+      magnetDepth: figure('MagDepth_m', NumberField.MAGDEPTH_M),
+      depth: figure('Depth_m', NumberField.DEPTH_M),
+    };
+  });
 }

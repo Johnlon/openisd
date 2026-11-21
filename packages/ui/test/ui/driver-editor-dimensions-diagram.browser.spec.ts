@@ -3,8 +3,10 @@
  * The Dimensions tab's diagram stays full size (John withdrew "too big": it shows the driver's
  * dimensions); the guard here is that its labels are visible and nothing is clipped.
  */
-import {expect, openAMobileProject, openAProject, test} from '../fixtures.js';
+import {readFileSync} from 'node:fs';
+import {driverEditorField, expect, openAMobileProject, openAProject, openDriverEditor, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {fillAndBlur} from '../fixtures/numField.js';
 import {PIXEL_9} from '../fixtures/phoneSizes.js';
 
 async function measure(page: import('@playwright/test').Page) {
@@ -30,6 +32,38 @@ async function measure(page: import('@playwright/test').Page) {
 
 test.describe('desktop', () => {
   test.use({viewport: {width: 1280, height: 800}});
+
+  test('the drawing shows the imported driver dimensions and follows a unit change', async ({page}) => {
+    await page.goto('/');
+    await openAProject(page);
+    await openDriverEditor(page);
+    const name = 'PTT4.0M04-NAC-03.owdr';
+    await page.locator('.de-modal input[type=file]').setInputFiles({
+      name,
+      mimeType: 'application/x-openisd-driver',
+      buffer: readFileSync(new URL('../../public/drivers/purifi/ptt4-0m04-nac-03.json', import.meta.url)),
+    });
+    await expect(page.locator('.flash')).toContainText(`Driver imported from ${name}`);
+    await page.getByRole('button', {name: 'Dimensions', exact: true}).click();
+
+    const drawing = page.locator('.de-diagram svg');
+    await expect(drawing.getByText('Basket 101.00 mm', {exact: true})).toBeVisible();
+    await expect(drawing.getByText('Outer 125.00 mm', {exact: true})).toBeVisible();
+    await expect(drawing.getByText('Magnet 90.00 mm', {exact: true})).toBeVisible();
+    await expect(drawing.getByText('MagDpt 6.893 mm', {exact: true})).toBeVisible();
+    await expect(drawing.getByText('Depth 73.50 mm', {exact: true})).toBeVisible();
+    await expect(drawing.getByText('Thick', {exact: true})).toBeVisible();
+
+    const thickness = driverEditorField(page, 'Basket Plate Thickness (Thick)');
+    await fillAndBlur(thickness.locator('input'), '13.701234');
+    await expect(drawing.getByText('Thick 13.7012 mm', {exact: true})).toBeVisible();
+    expect((await measure(page)).labelsOutside).toBe(0);
+
+    const basket = driverEditorField(page, 'Basket Diameter (Basket)');
+    await basket.getByRole('button', {name: 'mm', exact: true}).click();
+    await expect(drawing.getByText('Basket 3.976 in', {exact: true})).toBeVisible();
+    await expect(drawing.getByText('Outer 125.00 mm', {exact: true})).toBeVisible();
+  });
 
   test('the diagram shows its dimension labels and nothing is clipped', async ({page}) => {
     await page.goto('/');

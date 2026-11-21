@@ -1,10 +1,18 @@
 id: T946
-release_note: internal
+release_note: The driver dimensions drawing now shows each available measurement in your chosen unit.
 repo: openisd
 owner: lead
-status: open
+status: done
 goal: 'Dimensions drawing writes each size figure beside its line'
-why: 'John 20 Nov 2026 20:28 ''better just to add the figures dynamicLy to the diagrams''; liked both mock-ups 20:39 (dims-figures card)'
-done_test: bash scripts/quiet-test.sh npm run typecheck
+why: "John, 20 Nov 2026: 'better just to add the figures dynamicLy to the diagrams' at 20:28 and 'I like' on both mock-ups at 20:39. QO918 requires driver sizes on the Dimensions screen."
+ruling: QO918
+done_test: bash scripts/test.sh packages/ui/test/hooks/DriverEditorModal-hooks.test.ts
 files:
   - tasks/T946.yml
+  - packages/ui/src/hooks/DriverEditorModal-hooks.ts
+  - packages/ui/src/hooks/useUnitReadouts.ts
+  - packages/ui/src/ui/components/DriverDimensionsDiagram.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/test/fixtures/branchMap/shared.ts
+  - packages/ui/test/hooks/DriverEditorModal-hooks.test.ts
+  - packages/ui/test/ui/driver-editor-dimensions-diagram.browser.spec.ts

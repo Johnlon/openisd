@@ -1,10 +1,10 @@
 import {describe, expect, it, vi} from 'vitest';
-import {createRenderer, defineComponent} from 'vue';
-import {PhoneHelpSection} from '@openisd/design/fields';
+import {createRenderer, defineComponent, ref} from 'vue';
+import {NumberField, PhoneHelpSection} from '@openisd/design/fields';
 import {MY_DRIVERS_KEY, createMemoryStorage} from '@openisd/persistence';
 import {OpenISDDriver, OpenISDDriverStandalone} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-import {commitMyDriver, ebpVal, useDriverEditorHelp} from '../../src/hooks/DriverEditorModal-hooks.js';
+import {commitMyDriver, ebpVal, useDriverDimensionFigures, useDriverEditorHelp} from '../../src/hooks/DriverEditorModal-hooks.js';
 import {recordingTelemetryUi} from '../fixtures/recordingTelemetryUi.js';
 import {myDriverRepoOn} from '../fixtures/repoOn.js';
 
@@ -21,6 +21,21 @@ function completeDriver(): OpenISDDriverStandalone {
 }
 
 describe('DriverEditorModal-hooks', () => {
+  it('formats the draft dimensions with their selected units and leaves absent figures empty', () => {
+    const driver = completeDriver();
+    driver.specs.Basket_m.set(0.101);
+    driver.specs.MagDepth_m.set(0.006893, 0.0000005);
+    const tokens = ref<Readonly<Record<string, string>>>({});
+    const figures = useDriverDimensionFigures(key => driver.specField(key), () => tokens.value);
+
+    expect(figures.value).toEqual({
+      basket: '101.00 mm', magnetDepth: '6.893 mm', thick: '', outer: '', magnet: '', depth: '',
+    });
+    tokens.value = NumberField.BASKET_M.withNextUnit(tokens.value);
+    expect(figures.value.basket).toBe('3.976 in');
+    expect(figures.value.magnetDepth).toBe('6.893 mm');
+  });
+
   describe('ebpVal', () => {
     it('reads the driver EBP once Fs and Qes are both known', () => {
       const driver = completeDriver();

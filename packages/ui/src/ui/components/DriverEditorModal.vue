@@ -11,7 +11,7 @@ import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/driverCells.js';
 import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
-import {commitMyDriver, useDriverEditorHelp} from '../../hooks/DriverEditorModal-hooks.js';
+import {commitMyDriver, useDriverDimensionFigures, useDriverEditorHelp} from '../../hooks/DriverEditorModal-hooks.js';
 import {useFeatureUse} from '../../hooks/telemetryContext.js';
 import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '@openisd/design';
@@ -252,6 +252,8 @@ function fieldOf(field: NumSpecField): Readable<number | null> & Entered & Calcu
   void trigger.value;
   return draftDriver.value.specField(field);
 }
+
+const dimensionFigures = useDriverDimensionFigures(fieldOf, () => presentationState.ui.unitTokens ?? {});
 
 function cellVal(field: NumSpecField): number | null {
   const v = cellOf(field).value;
@@ -897,8 +899,8 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
               <UIField class="de-fld" :class="[skin?.field, inspectClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : undefined" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
             </div>
 
-            <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">
-              <DriverDimensionsDiagram />
+            <div class="de-diagram" aria-hidden="true" title="Driver cross-section (not to scale)">
+              <DriverDimensionsDiagram :figures="dimensionFigures" />
             </div>
           </div>
         </div>

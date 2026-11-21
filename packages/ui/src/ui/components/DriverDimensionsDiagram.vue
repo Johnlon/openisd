@@ -4,6 +4,12 @@
   ONE definition, shared by every caller. Do not inline a second copy: two drawings of one
   thing drift.
 -->
+<script setup lang="ts">
+import type {DriverDimensionFigures} from '../../hooks/DriverEditorModal-hooks.js';
+
+defineProps<{figures: DriverDimensionFigures}>();
+</script>
+
 <template>
   <svg viewBox="0 0 540 450" class="dd-dim-svg" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -48,17 +54,21 @@
       <line x1="242" y1="295" x2="242" y2="340"/>
       <line x1="325" y1="295" x2="325" y2="340"/>
       <line x1="242" y1="330" x2="325" y2="330" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
-      <line x1="242" y1="295" x2="242" y2="420"/>
+      <line x1="242" :y1="figures.magnetDepth ? 365 : 295" x2="242" y2="420"/>
       <line x1="415" y1="385" x2="415" y2="420"/>
       <line x1="242" y1="410" x2="415" y2="410" marker-start="url(#dd-arr-s)" marker-end="url(#dd-arr-e)"/>
     </g>
     <g style="font-family: var(--font-ui)" font-size="14" fill="#4fb0ff" text-anchor="middle">
-      <text x="482" y="225" transform="rotate(90,482,225)">Outer</text>
-      <text x="153" y="225" transform="rotate(-90,153,225)">Basket</text>
-      <text x="198" y="225" transform="rotate(-90,198,225)">Magnet</text>
-      <text x="420" y="15" font-size="13">Thick</text>
-      <text x="287" y="355">MagDpt</text>
-      <text x="328" y="435">Depth</text>
+      <text x="482" y="225" transform="rotate(90,482,225)">Outer <tspan font-weight="700">{{ figures.outer }}</tspan></text>
+      <text x="153" y="225" transform="rotate(-90,153,225)">Basket <tspan font-weight="700">{{ figures.basket }}</tspan></text>
+      <text x="198" y="225" transform="rotate(-90,198,225)">Magnet <tspan font-weight="700">{{ figures.magnet }}</tspan></text>
+      <text x="420" :y="figures.thick ? 19 : 15" font-size="13">Thick <tspan font-weight="700">{{ figures.thick }}</tspan></text>
+      <text x="287" y="355">MagDpt <tspan font-weight="700">{{ figures.magnetDepth }}</tspan></text>
+      <text x="328" y="435">Depth <tspan font-weight="700">{{ figures.depth }}</tspan></text>
     </g>
   </svg>
 </template>
+
+<style scoped>
+text:has(tspan:not(:empty)) { font-size: 17px; }
+</style>
