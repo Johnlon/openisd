@@ -15,7 +15,7 @@ import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {type Engine, createEngine} from '../../engine/Engine.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
-import {reproduceWinisdBugs, useWinisdParts} from '../fixtures/domainBuilders.js';
+import {reproduceWinisdBugs, useWinisdParts, winisdParts} from '../fixtures/domainBuilders.js';
 import {CompatSwitch} from '../../domain/project/compatSwitch.js';
 
 describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', () => {
@@ -46,12 +46,17 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     return {re: zmag * Math.cos(ph) - Re, im: zmag * Math.sin(ph)};
   };
 
-  it('set: a typed BL keeps the impedance and SPL shape; it sets the SPL level and the motional impedance\'s scale', () => {
+  it.each([
+    {chart: 'chart from boxes with a conflicting BL', fromFsVasQms: false, spec: {...SHARED, BL_Tm: CONTRADICTORY.BL_Tm}},
+    {chart: 'chart from Fs, Vas, Qms with conflicting Mms, BL and Rms', fromFsVasQms: true, spec: {...SHARED, ...CONTRADICTORY}},
+  ])('Two-BL on, $chart: entered BL changes the SPL level and motional impedance scale across the sweep', ({fromFsVasQms, spec}) => {
     const engine = createEngine();
-    const entered = projectOn(engine, {...SHARED, BL_Tm: CONTRADICTORY.BL_Tm});
-    entered.winisdDriverModel.set(true);
+    const entered = projectOn(engine, spec);
     const winisd = projectOn(engine, {...SHARED});
-    winisd.winisdDriverModel.set(true);
+    for (const project of [entered, winisd]) {
+      project.winisdDriverModel.set(true);
+      CompatSwitch.CHART_FROM_FS_VAS_QMS.of(project).set(fromFsVasQms);
+    }
 
     const mine = entered.sweep(P).values;
     const theirs = winisd.sweep(P).values;
@@ -124,6 +129,22 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
       const a = byCms.sweep(P).values!, b = withBigVas.sweep(P).values!;
       a.spl.forEach((db, i) => expect(b.spl[i]).toBeCloseTo(db, 6));
     }
+  });
+
+  it.each([true, false])('chart from Fs, Vas, Qms: different stated Cms values give equal SPL with Two-BL set to %s', twoBl => {
+    const engine = createEngine();
+    const Vas_m3 = SHARED.Vas_m3 * 1.2;
+    const conflicting = projectOn(engine, {...SHARED, Vas_m3});
+    const matching = projectOn(engine, {...SHARED, Vas_m3, Cms_m_per_N: winisdParts(conflicting).Cms_m_per_N});
+    for (const project of [conflicting, matching]) {
+      CompatSwitch.CHART_FROM_FS_VAS_QMS.of(project).set(true);
+      project.winisdDriverModel.set(twoBl);
+    }
+
+    const a = conflicting.sweep(P).values;
+    const b = matching.sweep(P).values;
+    if (a === null || b === null) throw new Error('Expected both projects to produce a sweep');
+    a.spl.forEach((db, i) => expect(db).toBeCloseTo(b.spl[i], 6));
   });
 
   it('defaults off — a new project has WinISD\'s two-BL bug fixed (John, 2026-10-04)', () => {
