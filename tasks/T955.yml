@@ -1,0 +1,24 @@
+id: T955
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: 'The Your data and Restore one project pictures depend on save times and the browser'''s persistence answer; fix both in the picture harness'
+why: 'fixer (lead), 21 Nov 2026: CI picture review on PR 154 (run 44923383800) flagged mobile-dialog-options-your-data showing ''This site uses 1.2 MB of the 2.3 GB this browser allows'' and sizes moving 20.5 to 20.6 KB between runs; John, 16 Oct 2026 ''no workarounds''; BUG_20261121_your-data-picture-depends-on-save-time-and-browser'
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T955.yml
+  - bugs/BUG_20261121_your-data-picture-depends-on-save-time-and-browser.md
+  - packages/ui/test/fixtures/viewOpenSavedState.ts
+  - packages/ui/test/visual/screens.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-settings-options-your-data.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-dialog-shared-storage-restore-picker.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-options-your-data.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-dialog-shared-storage-restore-picker.png
+visual:
+  - desktop-dialog-settings-options-your-data
+  - desktop-dialog-shared-storage-restore-picker
+  - mobile-dialog-options-your-data
+  - mobile-dialog-shared-storage-restore-picker
+visual_note: Your data keeps the fixed 1.2 MB of 2.3 GB line; the stored sizes no longer carry a startup backup or depend on save times. The restore picker shows one backup taken at 14:00 UTC.
+label: fixes

@@ -1,7 +1,7 @@
-import type {Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 import {announcementEndpointsForHostname} from '../../src/logic/announcementCenter.js';
 import {deviceRecord} from './seedMyDrivers.js';
-import {tapMobileMenuItem} from './mobileSkin.js';
+import {openMobileMenu, tapMobileMenuItem} from './mobileSkin.js';
 import {WalkSkin} from './viewOpenTypes.js';
 import type {OpenStep} from './viewOpenTypes.js';
 
@@ -55,14 +55,24 @@ const brokenDriverEntry = (skin: WalkSkin): OpenStep => ({root: skin === WalkSki
   await page.locator('.my-broken-row').waitFor({state: 'visible'});
 }});
 
+type StorageWrite = 'save' | 'backup';
+const clickButton = (button: Locator): Promise<void> => button.click();
+
 /** The project is saved, a backup is made from Options > Your data, and Restore on its row opens the project list. */
-const storageRestorePicker = (skin: WalkSkin): OpenStep => ({root: skin === WalkSkin.Phone ? '.opt-phone' : '.opt-modal', open: async page => {
+export const storageRestorePicker = (skin: WalkSkin, clickToWrite: (button: Locator, write: StorageWrite) => Promise<void>): OpenStep => ({root: skin === WalkSkin.Phone ? '.opt-phone' : '.opt-modal', open: async page => {
   switch (skin) {
-    case WalkSkin.Phone: await tapMobileMenuItem(page, /^Save$/); await tapMobileMenuItem(page, 'Options'); break;
-    case WalkSkin.Desktop: await page.locator('.tb-btn[title^="Save - "]').click(); await page.locator('.tb-btn[title="Options"]').click(); break;
+    case WalkSkin.Phone:
+      await openMobileMenu(page);
+      await clickToWrite(page.getByRole('button', {name: 'Save', exact: true}), 'save');
+      await tapMobileMenuItem(page, 'Options');
+      break;
+    case WalkSkin.Desktop:
+      await clickToWrite(page.locator('.tb-btn[title^="Save - "]'), 'save');
+      await page.locator('.tb-btn[title="Options"]').click();
+      break;
   }
   await page.locator('.opt-tab, .opt-phone-tabs button', {hasText: 'Your data'}).click();
-  await page.locator('.sh-backup-now').click();
+  await clickToWrite(page.locator('.sh-backup-now'), 'backup');
   const row = page.locator('.sh-row').filter({has: page.locator('.sh-reason', {hasText: 'Back up now'})});
   await row.locator('.sh-restore-one').click();
   await row.locator('.sh-picker').waitFor({state: 'visible'});
@@ -76,6 +86,6 @@ export const SAVED_STATE_STEPS: readonly (readonly [WalkSkin, string, OpenStep])
   [WalkSkin.Desktop, 'desktop/diagnostic-repairs', diagnosticRepairs(WalkSkin.Desktop)],
   [WalkSkin.Phone, 'shared/driver-library-broken-entry', brokenDriverEntry(WalkSkin.Phone)],
   [WalkSkin.Desktop, 'shared/driver-library-broken-entry', brokenDriverEntry(WalkSkin.Desktop)],
-  [WalkSkin.Phone, 'shared/storage-restore-picker', storageRestorePicker(WalkSkin.Phone)],
-  [WalkSkin.Desktop, 'shared/storage-restore-picker', storageRestorePicker(WalkSkin.Desktop)],
+  [WalkSkin.Phone, 'shared/storage-restore-picker', storageRestorePicker(WalkSkin.Phone, clickButton)],
+  [WalkSkin.Desktop, 'shared/storage-restore-picker', storageRestorePicker(WalkSkin.Desktop, clickButton)],
 ];

@@ -1,10 +1,14 @@
 import {readFileSync} from 'node:fs';
-import type {Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
+import {OPENISD_STORAGE_LAYOUT_KEY} from '../../../persistence/src/repos/storageKeys.js';
+import {PERSIST_RISK_ACKNOWLEDGED_KEY} from '../../../persistence/src/storage/browserStorage.js';
+import {STORAGE_LAYOUT} from '../../../persistence/src/storageLayout.js';
 import {expect, openAMobileProject, openAProject, setFocusedBoxType} from '../fixtures.js';
 import {forceMobileSkin, openMobileMenu} from '../fixtures/mobileSkin.js';
 import {FIXTURE_DATE} from '../fixtures/sampleProject.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR} from '../fixtures.js';
 import {openTargets, WalkSkin} from '../fixtures/viewOpen.js';
+import {storageRestorePicker} from '../fixtures/viewOpenSavedState.js';
 import {BASE_SCREEN, CANNOT_BE_SHOWN, SAME_VIEW, WAITING_FOR_FIX} from './pictureSet.js';
 import {ViewKind} from '../fixtures/viewIndex.js';
 import {standInForReleaseSite} from '../fixtures/releaseSite.js';
@@ -87,22 +91,60 @@ export interface Screen {
   readonly ownConsoleErrors: readonly RegExp[];
 }
 
+const RESTORE_PICKER_SCREEN = 'dialog-shared-storage-restore-picker';
+const STORAGE_SCREENS: ReadonlySet<string> = new Set([
+  'dialog-options-your-data', 'dialog-settings-options-your-data', RESTORE_PICKER_SCREEN,
+]);
+
+async function prepareStoragePicture(page: Page): Promise<void> {
+  // The saved view belongs to the current layout. Without its stamp, startup backs up the fixture as an old store.
+  // The browser refuses persistence, and this visitor has already dismissed that warning at startup.
+  await page.addInitScript(({layoutKey, layout, riskKey}) => {
+    localStorage.setItem(layoutKey, layout);
+    localStorage.setItem(riskKey, 'refused:Chrome');
+    navigator.storage.persisted = async () => false;
+    navigator.storage.persist = async () => false;
+  }, {layoutKey: OPENISD_STORAGE_LAYOUT_KEY, layout: String(STORAGE_LAYOUT), riskKey: PERSIST_RISK_ACKNOWLEDGED_KEY});
+}
+
+/** Save stamps the project inside the compressed backup. Fix that time and the backup's own time,
+ *  advancing the clock between clicks so Vue's event handlers can run. */
+async function clickAtStorageFixtureTime(button: Locator, write: 'save' | 'backup'): Promise<void> {
+  const clock = button.page().clock;
+  const time = new Date(FIXTURE_DATE);
+  time.setUTCHours(write === 'save' ? 13 : 14);
+  await clock.setFixedTime(time);
+  try {
+    await button.click();
+  } finally {
+    await clock.setSystemTime(time.getTime() + 1);
+  }
+}
+
 function screen(skin: VisualSkin, name: string, open: (page: Page) => Promise<void>, mask: readonly string[] = [],
   ownConsoleErrors: readonly RegExp[] = [], kind: ScreenKind = 'page'): Screen {
+  const showsStorage = STORAGE_SCREENS.has(name);
+  async function openScreen(page: Page, start: (page: Page) => Promise<void>): Promise<void> {
+    if (showsStorage) await prepareStoragePicture(page);
+    await start(page);
+    await open(page);
+    if (showsStorage) {
+      await expect(page.locator('.su-site')).toHaveText('This site uses 1.2 MB of the 2.3 GB this browser allows.');
+      await expect(page.locator('.sh-taken')).toHaveText(name === RESTORE_PICKER_SCREEN ? ['16 Oct 2026, 14:00'] : []);
+    }
+  }
   return {
     name, kind, skin, mask, ownConsoleErrors,
-    open: async page => { await skin.startOnReleaseSite(page); await open(page); },
-    openOnServer: async page => { await skin.start(page); await open(page); },
+    open: page => openScreen(page, target => skin.startOnReleaseSite(target)),
+    openOnServer: page => openScreen(page, target => skin.start(target)),
   };
 }
 
 /**
  * Parts of a dialog the build decides, masked on every dialog screen (a selector that matches nothing masks nothing):
  * - the phone About's "Build · <date>" line: the build's own date, which differs with every build.
- * The sizes Options, Your data states are not masked (T834, QO924): a backup is stored packed, and its packed size followed the sample
- * project's random id until the sample projects were generated with fixed ids (`generateSample.ts`). The storage quota line is not
- * masked either: `VisualSkin.start` fixes the browser's answer. The "saved in this browser at https://openisd.app/" line (the page is opened at the release address, fixtures/releaseSite.ts) is not
- * masked.
+ * The Your data figures come from a fixture project with fixed ids (`generateSample.ts`) and the visual browser's
+ * fixed storage estimate. The project-list address comes from the release-site stand-in (`fixtures/releaseSite.ts`).
  */
 const MACHINE_DECIDED_PARTS: readonly string[] = [
   '[data-testid="about-version-line"]',
@@ -189,7 +231,8 @@ function screens(): readonly Screen[] {
         if (visualSkin === VisualSkin.MOBILE) await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
         else await openAProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
       } else await visualSkin.openProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
-      await plan.open(page);
+      const open = name === RESTORE_PICKER_SCREEN ? storageRestorePicker(skin, clickAtStorageFixtureTime).open : plan.open;
+      await open(page);
       const message = SCROLL_TO_MESSAGE.get(view.id);
       if (message !== undefined) await page.locator(message).first().scrollIntoViewIfNeeded();
       if (FLASH_VIEWS.has(view.id)) {
