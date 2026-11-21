@@ -13,7 +13,7 @@ test('Basket Diameter refuses 2380 mm and saves 750 mm with a warning', async ({
   await page.goto('/');
   await openAProject(page);
   await openDimensions(page);
-  const basket = driverEditorField(page, 'Basket Diameter (Basket)');
+  const basket = driverEditorField(page, 'Basket Diameter');
   const input = basket.getByRole('textbox');
   const ok = page.locator('.de-modal').getByRole('button', {name: 'OK', exact: true});
   await expect(basket.locator('.unit-label')).toHaveText('mm');
@@ -53,7 +53,7 @@ test('an old Dayton project displays its loaded basket with a warning and draws 
   await expect(page.locator('.cursor-readout .ro-val')).toHaveText(/^-?\d+(?:\.\d+)? dB$/);
 
   await openDimensions(page);
-  const basket = driverEditorField(page, 'Basket Diameter (Basket)');
+  const basket = driverEditorField(page, 'Basket Diameter');
   const input = basket.getByRole('textbox');
   await expect(input).toHaveValue('2377.44');
   await input.focus();
@@ -78,7 +78,7 @@ test('a project with a zero basket shows the zero and its warning, and draws a c
   await expect(page.locator('.cursor-readout .ro-val')).toHaveText(/^-?\d+(?:\.\d+)? dB$/);
 
   await openDimensions(page);
-  const basket = driverEditorField(page, 'Basket Diameter (Basket)');
+  const basket = driverEditorField(page, 'Basket Diameter');
   const input = basket.getByRole('textbox');
   await expect(input).toHaveValue('0.00');
   await expect(input).toHaveClass(/\bdq-root\b/);
@@ -92,12 +92,12 @@ test('opening a WinISD driver displays the file’s dimensions and range marks',
   await openDimensions(page);
 
   const dimensions = [
-    ['Basket Plate Thickness (Thick)', 'Thick', 11, 11000],
-    ['Driver Depth (Depth)', 'Depth', 22, 22000],
+    ['Basket Plate Thickness', 'Thick', 11, 11000],
+    ['Driver Depth', 'Depth', 22, 22000],
     ['Magnet Depth', 'MagDepth', 66, 66000],
-    ['Magnet Diameter (Magnet)', 'Magnet', 44, 44000],
-    ['Basket Diameter (Basket)', 'Basket', 55, 55000],
-    ['Outer Diameter (Outer)', 'Outer', 66, 66000],
+    ['Magnet Diameter', 'Magnet', 44, 44000],
+    ['Basket Diameter', 'Basket', 55, 55000],
+    ['Outer Diameter', 'Outer', 66, 66000],
   ] as const;
   const name = 'impossible-dimensions.wdr';
   const text = ['[Driver]', 'Brand=Fixture', 'Model=Dimensions', 'numVC=1',
