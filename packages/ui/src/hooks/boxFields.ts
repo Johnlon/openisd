@@ -1,0 +1,184 @@
+/**
+ * Box-tab field wiring shared by every shell: sealed/PR readouts, the box-type-generic rear
+ * volume, and the selected-box state machine. `OriginalShell.vue`'s Box tab and
+ * `MobileBoxTab.vue` both call these factories — one implementation of "what does the Box tab
+ * do", asked by both shells.
+ */
+import type {FeatureUse} from '../logic/telemetry/featureUse.js';
+import type {ComputedRef, Ref} from 'vue';
+import {computed, ref, watch} from 'vue';
+import type {BoxLossGroup, LossChamber, OpenISDProject} from '@openisd/design';
+import type {BoxType} from '@openisd/design/engine';
+import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
+import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
+
+// ---- Sealed / PR readouts (unit-testable, real domain) ------------------------
+// The fix this slice exists for: reading `project.value` ALONE does not invalidate these
+// computeds on every project mutation — `changeTicks`-driven `projectChanged` MUST be read too,
+// or the readout freezes at the value it had when the shell first mounted (the live-wire spec
+// proved 54.81 stale while the domain computed 61.878). Every member below therefore reads
+// BOTH `projectChanged` and `project`.
+export interface SealedReadoutsDeps {
+  project: ComputedRef<OpenISDProject>;
+  selectedBox: Ref<BoxType>;
+  projectChanged: Ref<number>;
+}
+
+export function createSealedReadouts({ project, selectedBox, projectChanged: changed }: SealedReadoutsDeps) {
+  // Sealed-box (and PR rear-chamber) resonance + system Q via the selected loss model — the
+  // WinISD lossy cubic by default. NOT the impedance-magnitude peak: that scan returns the
+  // high-frequency voice-coil-inductance rise (≈20 kHz) as the GLOBAL |Z| maximum for any driver
+  // with Le, which is not the system resonance (and yields Qtc=0).
+  //
+  // These computeds are only read from the Box tab, which the shell gates with `projectOpen`.
+  // They require a real project — there is no box and no readout without one.
+  const rearResonance = computed<number | null>(() => {
+    void changed.value; void project.value;
+    if (selectedBox.value === 'bandpass4') return project.value.box.bandpass4?.chambers?.rear?.resonance_hz?.value ?? null;
+    return project.value.box.sealed?.resonance_hz?.value ?? null;
+  });
+  const prFsMass_hz = computed<number | null>(() => {
+    void changed.value;
+    return project.value.box.passiveRadiator?.resonanceWithAddedMass_hz?.value ?? null;
+  });
+  // PR solved-pair DQ readouts, live: the editable added mass and target tuning (Fp), and the
+  // two read-only outputs (system tuning, free-air resonance with mass). Each is a fresh
+  // `DqReadout` per recompute — the field object itself never changes identity, so a computed
+  // returning the field would not re-render its dependents.
+  const EMPTY_DQ: DqReadout = { dq: [], dqState: 'E' };
+  const prAddedMassDq = computed(() => { void changed.value; const f = project.value.box.passiveRadiator?.addedMass_kg; return f ? dqOfCell(f) : EMPTY_DQ; });
+  const prTuningDq = computed(() => { void changed.value; const f = project.value.box.passiveRadiator?.tuning_goal_hz; return f ? dqOfCell(f) : EMPTY_DQ; });
+  const prSystemTuningDq = computed(() => { void changed.value; const f = project.value.box.passiveRadiator?.systemTuning_hz; return f ? dqOfCell(f) : EMPTY_DQ; });
+  const prResonanceMassDq = computed(() => { void changed.value; const f = project.value.box.passiveRadiator?.resonanceWithAddedMass_hz; return f ? dqOfCell(f) : EMPTY_DQ; });
+  // box.sealed.resonance_hz / q_tc are the domain's own readouts under the selected loss mode:
+  // engine.sealedResonance returns {Fsc, Qtc} together, fed the driver's SOLVED Vas and Qts as
+  // sourceLoadedQts(Rs) loads it (winisd-parity-goldens.test.ts "Box.Fr" pins that feed) —
+  // never an inline Cms·Sd²·ρc² reconstruction and never bare Qts.
+  const rearQtc = computed<number | null>(() => {
+    void changed.value;
+    void project.value;
+    if (selectedBox.value === 'bandpass4') return project.value.box.bandpass4?.chambers?.rear?.q_tc?.value ?? null;
+    if (selectedBox.value === 'sealed') return project.value.box.sealed?.q_tc?.value ?? null;
+    return null;
+  });
+  // WinISD's "Fh" for a PR box is the PASSIVE RADIATOR system tuning — the box compliance in
+  // series with the PR's own, against the PR's moving mass — NOT the sealed Fc above, which
+  // ignores the PR entirely. winisd_research/GAPS.md §A3.
+  /** The Box pane's rear-chamber readout: the PR system tuning for a PR box, else sealed Fc. */
+  const prNaturalFh = computed<number | null>(() => {
+    void changed.value; void project.value;
+    if (selectedBox.value !== 'box-passive-radiator') return null;
+    return project.value.box.passiveRadiator.naturalTuning_hz.value;
+  });
+
+  const boxResonance = computed<number | null>(() => {
+    void changed.value; void project.value;
+    if (selectedBox.value === 'box-passive-radiator') return project.value.box.passiveRadiator?.systemTuning_hz?.value ?? null;
+    return rearResonance.value;
+  });
+
+  return { rearResonance, rearQtc, boxResonance, prAddedMassDq, prTuningDq, prSystemTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh };
+}
+
+// ---- Box-type-generic rear-chamber volume (unit-testable, real domain) --------
+// WinISD's single "Vb" field — every box type keeps its own volume field under its own
+// `box.<type>` slice, so this dispatches on `selectedBox` to the type currently shown.
+export interface BoxVolumeDeps {
+  project: ComputedRef<OpenISDProject>;
+  selectedBox: Ref<BoxType>;
+  projectChanged: Ref<number>;
+}
+
+// A presentation fact with no domain counterpart: these three draw two chambers. Also read
+// directly by `OriginalShell-hooks.ts`'s own `frontChamberTuningLabel`.
+export const DUAL_CHAMBER = new Set<BoxType>(['bandpass4', 'bandpass6', 'abc']);
+
+// The cell itself, for a `UIField`: it reads the value, the ⚠ and blank-ness, and writes or clears.
+export function createBoxVolume({ project, selectedBox }: BoxVolumeDeps) {
+  const boxVolumeCell = computed(() => project.value.box.volumeOf(selectedBox.value));
+  // A closed box's Fsc and Qtc: enterable like its volume, each fixing the other two.
+  const sealedFscCell = computed(() => project.value.box.sealed.resonance_hz);
+  const sealedQtcCell = computed(() => project.value.box.sealed.q_tc);
+  return { boxVolumeCell, sealedFscCell, sealedQtcCell };
+}
+
+// Front-chamber volume (WinISD "Vf") and rear-chamber tuning (WinISD "Frc"): which field each box
+// type has is the box's own knowledge (`Box.frontVolumeOf`, `rearTuningOf`); null = the type has
+// no such field. Both shells' Box tabs call this.
+export function createChamberFields({ project, selectedBox }: BoxVolumeDeps) {
+  const frontVolumeCell = computed(() => project.value.box.frontVolumeOf(selectedBox.value));
+  const rearTuningCell = computed(() => project.value.box.rearTuningOf(selectedBox.value));
+  return { frontVolumeCell, rearTuningCell };
+}
+
+// ---- Box losses popup (unit-testable, real domain) ----------------------------
+// Each chamber panel's Advanced-> opens the popup for its own chamber (`LossChamber`); the popup
+// shows that one set from `Box.lossGroupsOf` and Reset puts only that set back. `null`: closed.
+export interface BoxLossesDeps extends BoxVolumeDeps {
+  /** null while no project is open: the shell renders then, with no loss rows. */
+  focusedProject: () => OpenISDProject | null;
+  /** Counts the losses panel opened. */
+  readonly featureUse: FeatureUse;
+}
+
+export function createBoxLosses({ project, selectedBox, projectChanged: changed, focusedProject, featureUse }: BoxLossesDeps) {
+  const lossesOpen = ref<LossChamber | null>(null);
+  // Starts closed and is never restored, so every open is the user's.
+  watch(lossesOpen, chamber => { if (chamber !== null) featureUse.feature('losses'); });
+  const openLossGroup = computed<BoxLossGroup | null>(() => {
+    void changed.value;
+    const open = focusedProject();
+    const chamber = lossesOpen.value;
+    if (!open || chamber === null) return null;
+    return open.box.lossGroupsOf(selectedBox.value).find(g => g.chamber === chamber) ?? null;
+  });
+  function resetBoxLosses(): void {
+    const chamber = lossesOpen.value;
+    if (chamber !== null) project.value.box.resetLossesOf(selectedBox.value, chamber);
+  }
+  /** `openLossGroup` as a list of at most one, for a template's `v-for` to bind the set to a name. */
+  const openLossGroups = computed<readonly BoxLossGroup[]>(() => openLossGroup.value === null ? [] : [openLossGroup.value]);
+  return { lossesOpen, openLossGroup, openLossGroups, resetBoxLosses };
+}
+
+export interface SelectedBoxDeps {
+  focusedProject: () => OpenISDProject | null;
+  projectChanged: Ref<number>;
+  isSimulatable: (b: BoxType) => boolean;
+  /** Counts a box type the user picks. */
+  readonly featureUse: FeatureUse;
+}
+
+// selectedBox is the Box tab's source of truth: it can hold types the solver refuses. Its
+// initial value comes from the focused project when one is open — the shell renders, with
+// empty placeholders, without one, and `useFocusedProject()` must not be evaluated then.
+export function createSelectedBox({ focusedProject, projectChanged: changed, isSimulatable, featureUse }: SelectedBoxDeps) {
+  const selectedBox = ref<BoxType>(focusedProject()?.box.boxType.value ?? 'sealed');
+  watch(selectedBox, (b) => {
+    const p = focusedProject();
+    // A type that differs from the project's is the user's pick; one that follows the project is equal here.
+    if (isSimulatable(b) && p && p.box.boxType.value !== b) {
+      featureUse.feature('box_type');
+      p.box.boxType.set(b);
+    }
+  });
+  watch(
+    () => { void changed.value; return focusedProject()?.box.boxType.value; },
+    (b) => { if (b != null && selectedBox.value !== b) selectedBox.value = b; },
+  );
+
+  const pending = computed(() => !isSimulatable(selectedBox.value));
+  const isDual = computed(() => DUAL_CHAMBER.has(selectedBox.value));
+  const boxLabel = computed(() => BOX_TYPE_OPTIONS.find(o => o.value === selectedBox.value)?.label ?? 'Box');
+  const showEnclosureTab = computed(() => selectedBox.value !== 'sealed');
+  // The Enclosure destination's own bar/menu label — "Passive Radiator" for a PR box, "Closed"
+  // for sealed (though sealed never shows the destination at all), else the box type's own name
+  // ("Vented", "4th Order Bandpass", …). One shared computed so any hint referring to "the
+  // Enclosure tab" can name what the user actually sees there instead of a literal string that
+  // was never a real tab name (it should say 'Passive Radiator').
+  const enclosureNavLabel = computed(() =>
+    selectedBox.value === 'box-passive-radiator' ? 'Passive Radiator'
+      : selectedBox.value === 'sealed' ? 'Closed'
+        : boxLabel.value);
+  return { selectedBox, pending, isDual, boxLabel, showEnclosureTab, enclosureNavLabel };
+}

@@ -1,0 +1,71 @@
+/**
+ * `MobileBoxTab.vue`'s hook — box type, volume, and the calculated resonance/Qtc readout. Calls
+ * the SAME field-wiring factories `boxFields.ts` exports — one implementation of
+ * "what does the Box tab's Volume field do", asked by both shells.
+ */
+import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import {useFeatureUse} from './telemetryContext.js';
+import {useApp} from '../logic/app.js';
+import {FH_TARGET_TIP} from './ventReadouts.js';
+import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
+import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
+import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
+import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
+
+export function useMobileBoxTab() {
+  const {IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, focusedProject, projectChanged} = useApp().appState;
+  const project = useFocusedProject();
+  const { engine } = useApp();
+  const isSimulatable = boxTypeIsSimulatable;
+
+  const { selectedBox, pending, isDual, boxLabel } =
+    createSelectedBox({ focusedProject, projectChanged, isSimulatable, featureUse: useFeatureUse() });
+  const { boxResonance, prNaturalFh } = createSealedReadouts({ project, selectedBox, projectChanged });
+  const { boxVolumeCell, sealedFscCell, sealedQtcCell } = createBoxVolume({ project, selectedBox, projectChanged });
+  const { frontVolumeCell } = createChamberFields({ project, selectedBox, projectChanged });
+  // Box losses popup: one row set per chamber, the same hook the desktop shell uses.
+  const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject, featureUse: useFeatureUse() });
+
+  // Same skin-neutral class the desktop shell uses (SealedAlignment-hooks.ts) — one editor, not
+  // a mobile copy. It takes only the two engine areas it needs (sealed, driver), never the
+  // aggregate.
+  const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver, useFeatureUse());
+  const sealedAlignmentOpen = sealedAlignmentEditor.open;
+  const sealedAlignmentDeviationShown = sealedAlignmentEditor.deviationShown;
+  const sealedAlignmentOptions = sealedAlignmentEditor.options;
+  const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;
+  const sealedAlignmentVolume_m3 = sealedAlignmentEditor.volume_m3;
+  const sealedAlignmentEbp = sealedAlignmentEditor.ebp;
+  const sealedAlignmentSuitability = sealedAlignmentEditor.ebpSuitability;
+  const sealedAlignmentSuitabilityLabel = sealedAlignmentEditor.ebpSuitabilityLabel;
+
+  // Same class the desktop shell will drive too (engine, 2026-09-29: "go, and add the desktop
+  // button too since it is the same class") — one implementation, both shells' pickers.
+  const ventedAlignmentEditor = new VentedAlignmentEditor(project, projectChanged, engine.driver, useFeatureUse());
+  const ventedAlignmentOpen = ventedAlignmentEditor.open;
+  const ventedAlignmentOptions = ventedAlignmentEditor.options;
+  const ventedAlignmentSelected = ventedAlignmentEditor.selectedAlignment;
+  const ventedAlignmentVolume_m3 = ventedAlignmentEditor.volume_m3;
+  const ventedAlignmentTuning_hz = ventedAlignmentEditor.tuning_hz;
+  const ventedAlignmentEbp = ventedAlignmentEditor.ebp;
+  const ventedAlignmentSuitability = ventedAlignmentEditor.ebpSuitability;
+  const ventedAlignmentSuitabilityLabel = ventedAlignmentEditor.ebpSuitabilityLabel;
+
+  function selectBoxType(value: string): void {
+    const opt = BOX_TYPE_OPTIONS.find(o => o.value === value);
+    if (opt) selectedBox.value = opt.value;
+  }
+
+  return {
+    project, selectedBox, pending, isDual, boxLabel, frontVolumeCell,
+    boxResonance, prNaturalFh, boxVolumeCell, sealedFscCell, sealedQtcCell,
+    FH_TARGET_TIP,
+    selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
+    sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown, sealedAlignmentOptions, sealedAlignmentSelected,
+    sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
+    ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
+    ventedAlignmentVolume_m3, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
+    ventedAlignmentSuitabilityLabel,
+    lossesOpen, openLossGroups, resetBoxLosses,
+  };
+}

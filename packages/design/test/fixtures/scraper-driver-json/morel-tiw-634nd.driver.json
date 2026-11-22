@@ -1,0 +1,366 @@
+{
+  "added": {
+    "definition": "when this record was added, ISO yyyy-mm-dd",
+    "origin": "openisd",
+    "value": "2026-09-24"
+  },
+  "brand": {
+    "definition": "the selling brand; equals the manufacturer except for house brands",
+    "origin": "manufacturer_product_page",
+    "value": "Morel"
+  },
+  "data_sources": {
+    "definition": "the record-wide provenance index — every source role used anywhere in this file resolves to a URL here",
+    "value": {
+      "manufacturer_datasheet": "https://www.morelhifi.com/filecont/TiW634Nd.pdf",
+      "manufacturer_product_page": "https://www.morelhifi.com/en/products/raw-drivers/titanium-former-44/tiw-634nd-437"
+    }
+  },
+  "driver_type": {
+    "definition": "what kind of driver this is (closed vocabulary); decides which specs section applies",
+    "origin": "manufacturer_product_page",
+    "value": [
+      "woofer"
+    ]
+  },
+  "manufacturer": {
+    "definition": "the company that makes the driver; a second-order descriptive field, shown only when it differs from the brand",
+    "origin": "manufacturer_product_page",
+    "value": "Morel"
+  },
+  "model": {
+    "definition": "the vendor's exact designation including the impedance variant — unique within a brand, and the name shown in the driver browser",
+    "origin": "manufacturer_product_page",
+    "value": "TIW 634ND"
+  },
+  "printed": [],
+  "product_image": {
+    "definition": "the manufacturer's product photo for this driver",
+    "origin": "manufacturer_product_page",
+    "value": "https://www.morelhifi.com/en/products/raw-drivers/titanium-former-44/image.php?image=43744--tiw-634nd---87844395.webp"
+  },
+  "provided_by": {
+    "definition": "who supplied this record — the OpenISD project for a pipeline-emitted record",
+    "origin": "openisd",
+    "value": "OpenIsd"
+  },
+  "quality": {
+    "invalid": [],
+    "parse_errors": []
+  },
+  "scraper_meta": {
+    "scraper": {
+      "definition": "the vendor scraper/extraction method that produced this record",
+      "value": "morel_html_extractor"
+    }
+  },
+  "sku": {
+    "definition": "the canonical identity code — the vendor designation slugified, impedance variant included; names the record directory (guard-enforced equal) and is unique within the manufacturer",
+    "grounds": [
+      {
+        "definition": "the printed designation the code was derived from",
+        "origin": "manufacturer_product_page",
+        "reading": "TIW 634ND"
+      },
+      {
+        "definition": "the source URL that corroborated the derivation",
+        "origin": "manufacturer_product_page",
+        "reading": "https://www.morelhifi.com/en/products/raw-drivers/titanium-former-44/tiw-634nd-437"
+      }
+    ],
+    "value": "tiw-634nd"
+  },
+  "specs": {
+    "woofer": {
+      "BL_Tm": {
+        "definition": "motor force factor (T·m)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "6.52 T.m",
+            "read_precision": 0.005,
+            "read_value": 6.52
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "6.52 T.m",
+            "read_precision": 0.005,
+            "read_value": 6.52
+          }
+        }
+      },
+      "Cms_m_per_N": {
+        "definition": "suspension compliance (m/N)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.81 mm/N",
+            "read_precision": 5e-06,
+            "read_value": 0.00081
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "0.81 mm/N",
+            "read_precision": 5e-06,
+            "read_value": 0.00081
+          }
+        }
+      },
+      "Fs_hz": {
+        "definition": "free-air resonance frequency (Hz)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "40.5 Hz",
+            "read_precision": 0.05,
+            "read_value": 40.5
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "40 Hz",
+            "read_precision": 0.5,
+            "read_value": 40.0
+          }
+        }
+      },
+      "Hc_m": {
+        "definition": "voice-coil winding height — stored in m, not mm",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "16 mm (0.62\")",
+            "read_precision": 0.0005,
+            "read_value": 0.016
+          }
+        }
+      },
+      "Hg_m": {
+        "definition": "magnetic air-gap height — stored in m, not mm",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "5 mm (0.20\")",
+            "read_precision": 0.0005,
+            "read_value": 0.005
+          }
+        }
+      },
+      "Le_H": {
+        "definition": "voice-coil inductance (H)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.41 mH",
+            "read_precision": 5e-06,
+            "read_value": 0.00041
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "0.41 mH",
+            "read_precision": 5e-06,
+            "read_value": 0.00041
+          }
+        }
+      },
+      "Mms_kg": {
+        "definition": "moving mass including air load — stored in kg, not g",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "17.8 gr",
+            "read_precision": 5e-05,
+            "read_value": 0.0178
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "17.8 gr",
+            "read_precision": 5e-05,
+            "read_value": 0.0178
+          }
+        }
+      },
+      "Pe_W": {
+        "definition": "rated thermal power handling (W, IEC 268-5)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "150W",
+            "read_precision": 0.5,
+            "read_value": 150.0
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "150W",
+            "read_precision": 0.5,
+            "read_value": 150.0
+          }
+        }
+      },
+      "Qes": {
+        "definition": "electrical Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.39",
+            "read_precision": 0.005,
+            "read_value": 0.39
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "0.39",
+            "read_precision": 0.005,
+            "read_value": 0.39
+          }
+        }
+      },
+      "Qms": {
+        "definition": "mechanical Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "5.33",
+            "read_precision": 0.005,
+            "read_value": 5.33
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "5.33",
+            "read_precision": 0.005,
+            "read_value": 5.33
+          }
+        }
+      },
+      "Qts": {
+        "definition": "total Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.36",
+            "read_precision": 0.005,
+            "read_value": 0.36
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "0.36",
+            "read_precision": 0.005,
+            "read_value": 0.36
+          }
+        }
+      },
+      "Re_ohm": {
+        "definition": "DC voice coil resistance (Ω)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "3.7Ω",
+            "read_precision": 0.05,
+            "read_value": 3.7
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "3.7Ω",
+            "read_precision": 0.05,
+            "read_value": 3.7
+          }
+        }
+      },
+      "Rms_kg_per_s": {
+        "definition": "mechanical suspension resistance (kg/s)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.925 Ωm",
+            "read_precision": 0.0005,
+            "read_value": 0.925
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "0.925 Ωm",
+            "read_precision": 0.0005,
+            "read_value": 0.925
+          }
+        }
+      },
+      "Sd_m2": {
+        "definition": "effective piston area — stored in m², not cm²",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "119 cm ²",
+            "read_precision": 5e-05,
+            "read_value": 0.0119
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "119 cm ²",
+            "read_precision": 5e-05,
+            "read_value": 0.0119
+          }
+        }
+      },
+      "Vas_m3": {
+        "definition": "equivalent compliance volume — stored in m³, not litres",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "16.5 Lt",
+            "read_precision": 5e-05,
+            "read_value": 0.0165
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "16.5 Lt",
+            "read_precision": 5e-05,
+            "read_value": 0.0165
+          }
+        }
+      },
+      "Vcd_m": {
+        "definition": "voice coil diameter — stored in m, not mm",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "75mm (3\")",
+            "read_precision": 0.0005,
+            "read_value": 0.075
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "75mm (3\")",
+            "read_precision": 0.0005,
+            "read_value": 0.075
+          }
+        }
+      },
+      "Xmax_m": {
+        "definition": "one-way linear excursion limit — stored in m, not mm",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "± 5.5mm",
+            "read_precision": 5e-05,
+            "read_value": 0.0055
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "± 5.5mm",
+            "read_precision": 5e-05,
+            "read_value": 0.0055
+          }
+        }
+      },
+      "Znom_ohm": {
+        "definition": "nominal impedance (Ω)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "4Ω",
+            "read_precision": 0.5,
+            "read_value": 4.0
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "4Ω",
+            "read_precision": 0.5,
+            "read_value": 4.0
+          }
+        }
+      },
+      "power_peak_W": {
+        "definition": "short-term/peak power handling (W)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "1000W",
+            "read_precision": 0.5,
+            "read_value": 1000.0
+          }
+        }
+      },
+      "weight_kg": {
+        "definition": "net driver weight (kg)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "1.2 Kg",
+            "read_precision": 0.05,
+            "read_value": 1.2
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "1.2 Kg",
+            "read_precision": 0.05,
+            "read_value": 1.2
+          }
+        }
+      }
+    }
+  },
+  "uuid": {
+    "definition": "stable record identity, minted by the pipeline at first emit and never re-derived",
+    "value": "fb8cdfa7-a89c-451e-9877-7ddc71fddd83"
+  }
+}

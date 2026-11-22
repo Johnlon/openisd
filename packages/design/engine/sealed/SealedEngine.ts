@@ -1,0 +1,210 @@
+/**
+ * The sealed-box area of the engine: system resonance and Q (WinISD's lossy model, and the lossless closed form), the
+ * volume for a target Qtc and its inverse, the alignment options a picker offers, and the
+ * handle solve that fills in whichever of Qtc/volume the project has not entered.
+ */
+import {SEALED_ALIGNMENT_OPTIONS} from '../../fields/options.js';
+import type {SealedAlignmentOption} from '../types.js';
+import type {SealedParams} from '../sealedResonance.js';
+import {arrayVas, sealedResonanceLossless, sealedResonanceWinisd} from '../sealedResonance.js';
+import type {SealedAlignmentSolverParams} from '../solverTypes.js';
+import {missingDependencies} from '../consistency.js';
+import type {CalculationIssue} from '../consistency.js';
+
+/** The source resistance WinISD's sealed picker folds into Qes, whatever the project's Rg is. */
+const WINISD_PICKER_RG_OHM = 0.1;
+/** The absorption Q WinISD's sealed picker folds into Qt, whatever the project's Qa is. */
+const WINISD_PICKER_QA = 100;
+
+export type SealedAlignmentQuantityName = keyof SealedAlignmentSolverParams;
+export type SealedAlignmentIssue = CalculationIssue<SealedAlignmentQuantityName>;
+
+export interface SealedEngine {
+  /** System resonance Fsc and Q Qtc under WinISD's lossy model — the Box tab readout. Takes
+   *  `Vas` directly. Ql and Qa at or above the lossless limit give the lossless figure. */
+  resonance(p: SealedParams): { Fsc: number; Qtc: number };
+  /** The Vas the sealed readout takes for `nDrivers` identical drivers in one box: N·Vas, half that when isobaric.
+   *  Fs and Qts do not change. The same rule as the chart sweep's one driver in Vb/N. */
+  arrayVas(vas_m3: number, nDrivers: number, loading: 'standard' | 'isobaric'): number;
+  /** The lossless textbook Fsc and Qtc, whatever Ql and Qa are. Only for a chamber WinISD itself
+   *  reports lossless (the bandpass4 rear). */
+  losslessResonance(p: SealedParams): { Fsc: number; Qtc: number };
+  /** Box volume for a target system Q: `Qtc = Qts·√(1 + Vas/Vb)` → `Vb = Vas/((Qtc/Qts)² − 1)`.
+   *  Null when `Qtc ≤ Qts` — no sealed volume reaches it.
+   *  https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters */
+  volumeForQtc(Qts: number, Vas_m3: number, Qtc: number): number | null;
+  /** The box volume whose lossy `resonance` gives system resonance `Fsc`, found by bisection (Fsc
+   *  falls as the box grows). Null when `Fsc` is not above the driver's own `Fs`: no box reaches it. */
+  volumeForResonance(p: Omit<SealedParams, 'Vb'>, Fsc: number): number | null;
+  /** The box volume whose lossy `resonance` gives system Q `Qtc`, found by bisection. Null when the
+   *  lossless form reaches no volume (`Qtc ≤ Qts`) or the losses let no volume reach `Qtc`. */
+  volumeForLossyQtc(p: Omit<SealedParams, 'Vb'>, Qtc: number): number | null;
+  /** The volume WinISD's sealed alignment picker (winisd.exe 0x45c140) gives for system Q `Qtc`: a fixed
+   *  Rg of 0.1 Ω folded into Qes, a fixed Qa of 100 folded into Qt, box losses Ql left out.
+   *  `Qes' = Qes·(Re + 0.1)/Re`, `Qts' = 1/(1/Qes' + 1/Qms)`, `Qt = 1/(1/Qts' + 1/100)`,
+   *  `Vb = Vas/((Qtc/Qt)² − 1)`, where `Vas` is the array Vas (`arrayVas`: N·Vas, halved for Iso-barik), as WinISD's
+   *  picker divides its design object's Nd·Vas. Null when `Qtc ≤ Qt`, or an input is not positive. */
+  winisdPickerVolume(p: {Vas: number; Qes: number; Qms: number; Re: number}, Qtc: number): number | null;
+  /** The lossless textbook Qtc a volume gives — the inverse of `volumeForQtc`. Null when any
+   *  input is not positive. */
+  qtcFromVolume(Qts: number, Vas_m3: number, Vb_m3: number): number | null;
+  /** The named alignments a picker offers (Bessel, Butterworth, …), each with its Qtc. */
+  alignmentOptions(): readonly SealedAlignmentOption[];
+  /** The option whose Qtc is nearest to `Qtc`. */
+  closestAlignment(Qtc: number): SealedAlignmentOption;
+  /** The sealed-alignment handle solve (T10/T11): derive whichever of `Qtc`/`Vb_m3` is not
+   *  entered from the driver's own `Qts`/`Vas_m3`, write it onto its `SolverField` via
+   *  `setCalculated`, and return the issues the stated values carry. An entered value is never
+   *  overwritten; an underivable member becomes `not-available`. */
+  solve(params: SealedAlignmentSolverParams): SealedAlignmentIssue[];
+}
+
+interface SealedAlignmentWorkingSet {
+  Qts?: number;
+  Vas_m3?: number;
+  Qtc?: number;
+  Vb_m3?: number;
+}
+
+/** The driver quantities every sealed-alignment route needs, beside `Qtc`/`Vb_m3` themselves. */
+const SEALED_ALIGNMENT_DRIVER_QUANTITIES: readonly (keyof SealedAlignmentWorkingSet & SealedAlignmentQuantityName)[] =
+  Object.freeze(['Qts', 'Vas_m3']);
+
+/** The stated sealed-alignment quantities that cannot yet solve because `Qts`/`Vas_m3` are
+ *  incomplete — mirrors `solve`'s own route conditions. There is no inconsistent-inputs case: a
+ *  sealed box has no THIRD input to `Qtc`/`Vb_m3` that could disagree with the pair, unlike the
+ *  driver's Qts/Qes/Qms triple. */
+function checkSealedAlignment(p: SealedAlignmentWorkingSet): SealedAlignmentIssue[] {
+  const issues: SealedAlignmentIssue[] = [];
+  const missingDriverQuantities = SEALED_ALIGNMENT_DRIVER_QUANTITIES.filter(f => {
+    const v = p[f];
+    return !(typeof v === 'number' && v > 0);
+  });
+  if (missingDriverQuantities.length === 0) return issues;
+
+  if (p.Qtc != null && p.Vb_m3 == null) {
+    issues.push(missingDependencies('Vb_m3',
+      [{ formula: 'Vb_m3 = Vas_m3 / ((Qtc/Qts)² − 1)',
+        required: ['Qtc', ...SEALED_ALIGNMENT_DRIVER_QUANTITIES], missing: missingDriverQuantities }]));
+  } else if (p.Vb_m3 != null && p.Qtc == null) {
+    issues.push(missingDependencies('Qtc',
+      [{ formula: 'Qtc = Qts · √(1 + Vas_m3/Vb_m3)',
+        required: ['Vb_m3', ...SEALED_ALIGNMENT_DRIVER_QUANTITIES], missing: missingDriverQuantities }]));
+  }
+
+  return issues;
+}
+
+/** The volume at which `quantityAt` (falling as the box grows) equals `target`, by bisection around
+ *  `guess` (the lossless answer, within a few orders of magnitude of the lossy one). Null when the
+ *  bracket does not straddle `target`: no volume gives it. */
+function bisectVolume(guess: number, quantityAt: (Vb_m3: number) => number, target: number): number | null {
+  let lo = guess / 1000;
+  let hi = guess * 1000;
+  if (!(quantityAt(lo) > target && quantityAt(hi) < target)) return null;
+  for (let i = 0; i < 200; i++) {
+    const mid = Math.sqrt(lo * hi);
+    if (quantityAt(mid) > target) lo = mid; else hi = mid;
+  }
+  return Math.sqrt(lo * hi);
+}
+
+export class SealedEngineImpl implements SealedEngine {
+  readonly resonance = sealedResonanceWinisd;
+
+  readonly losslessResonance = sealedResonanceLossless;
+
+  readonly arrayVas = arrayVas;
+
+  volumeForQtc(Qts: number, Vas_m3: number, Qtc: number): number | null {
+    if (!(Qts > 0) || !(Vas_m3 > 0)) return null;
+    const ratio = (Qtc / Qts) ** 2 - 1;
+    return ratio <= 0 ? null : Vas_m3 / ratio;
+  }
+
+  volumeForResonance(p: Omit<SealedParams, 'Vb'>, Fsc: number): number | null {
+    if (!(Fsc > p.Fs) || !(p.Fs > 0) || !(p.Vas > 0)) return null;
+    return bisectVolume(p.Vas / ((Fsc / p.Fs) ** 2 - 1), Vb => this.resonance({...p, Vb}).Fsc, Fsc);
+  }
+
+  volumeForLossyQtc(p: Omit<SealedParams, 'Vb'>, Qtc: number): number | null {
+    const lossless = this.volumeForQtc(p.Qts, p.Vas, Qtc);
+    return lossless === null ? null : bisectVolume(lossless, Vb => this.resonance({...p, Vb}).Qtc, Qtc);
+  }
+
+  winisdPickerVolume(p: {Vas: number; Qes: number; Qms: number; Re: number}, Qtc: number): number | null {
+    if (!(p.Vas > 0) || !(p.Qes > 0) || !(p.Qms > 0) || !(p.Re > 0)) return null;
+    const QesLoaded = p.Qes * (p.Re + WINISD_PICKER_RG_OHM) / p.Re;
+    const QtsLoaded = 1 / (1 / QesLoaded + 1 / p.Qms);
+    return this.volumeForQtc(1 / (1 / QtsLoaded + 1 / WINISD_PICKER_QA), p.Vas, Qtc);
+  }
+
+  qtcFromVolume(Qts: number, Vas_m3: number, Vb_m3: number): number | null {
+    if (!(Qts > 0) || !(Vas_m3 > 0) || !(Vb_m3 > 0)) return null;
+    return Qts * Math.sqrt(1 + Vas_m3 / Vb_m3);
+  }
+
+  alignmentOptions(): readonly SealedAlignmentOption[] {
+    return SEALED_ALIGNMENT_OPTIONS;
+  }
+
+  closestAlignment(Qtc: number): SealedAlignmentOption {
+    return SEALED_ALIGNMENT_OPTIONS.reduce((closest, option) =>
+      Math.abs(option.value - Qtc) < Math.abs(closest.value - Qtc) ? option : closest,
+    );
+  }
+
+  solve(params: SealedAlignmentSolverParams): SealedAlignmentIssue[] {
+    const Qts = params.Qts.value;
+    const Vas = params.Vas_m3.value;
+    const Qtc = params.Qtc.value;
+    const Vb = params.Vb_m3.value;
+
+    const Fs = params.Fs_hz.value;
+    if (Qtc != null && !params.Vb_m3.entered) {
+      if (Qts != null && Vas != null) {
+        // The inverse of the Vb→Qtc route below: lossy when Fs_hz is stated, else the lossless ratio.
+        const v = Fs != null
+          ? this.volumeForLossyQtc({Fs, Vas, Qts, Ql: params.Ql.value ?? Infinity, Qa: params.Qa.value ?? Infinity}, Qtc)
+          : this.volumeForQtc(Qts, Vas, Qtc);
+        if (v != null && Number.isFinite(v)) {
+          params.Vb_m3.setCalculated(v);
+        } else {
+          params.Vb_m3.setNotAvailable();
+        }
+      } else {
+        params.Vb_m3.setNotAvailable();
+      }
+    } else if (Vb != null && !params.Qtc.entered) {
+      if (Qts != null && Vas != null) {
+        // Fs_hz is the gate (S10): only a caller that states it opts into the lossy readout —
+        // every pre-S10 caller (Fs_hz absent) keeps the lossless textbook ratio unchanged.
+        const v = Fs != null
+          ? this.resonance({
+              Fs, Vas, Qts, Vb, Ql: params.Ql.value ?? Infinity, Qa: params.Qa.value ?? Infinity,
+            }).Qtc
+          : this.qtcFromVolume(Qts, Vas, Vb);
+        // A Vas of 0 gives no finite Qtc: not available, never a NaN the saved text writes as null.
+        if (v != null && Number.isFinite(v)) {
+          params.Qtc.setCalculated(v);
+        } else {
+          params.Qtc.setNotAvailable();
+        }
+      } else {
+        params.Qtc.setNotAvailable();
+      }
+    } else if (!params.Qtc.entered) {
+      // No volume to read Qtc from (a tiny Fsc typed, so no box reaches it): drop the Qtc an earlier solve
+      // left, so it is blank as in a project where only that Fsc was typed.
+      params.Qtc.setNotAvailable();
+    }
+
+    const solved: SealedAlignmentWorkingSet = {
+      Qts: Qts ?? undefined,
+      Vas_m3: Vas ?? undefined,
+      Qtc: params.Qtc.value ?? undefined,
+      Vb_m3: params.Vb_m3.value ?? undefined,
+    };
+    return checkSealedAlignment(solved);
+  }
+}

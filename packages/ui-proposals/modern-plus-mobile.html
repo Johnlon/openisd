@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>modern-plus — mobile · OpenISD skin mockup</title>
+<link rel="stylesheet" href="proposal.css">
+</head>
+<body>
+<div class="pagehead">
+  <span class="eye">OpenISD · modern-plus · mobile variant</span>
+  <h1>One shell, phone layout</h1>
+  <p>Below 900px the same shell reflows: enclosure-type pills stay pinned, inputs become one-open-at-a-time accordions, and a bottom Inputs⇄Results toggle swaps to a single full-width chart with a chart-type selector.</p>
+  <a class="backlink" href="index.html">← all mockups</a>
+</div>
+
+<div class="phones">
+
+  <!-- INPUTS state -->
+  <div class="phone">
+    <div class="app">
+      <div class="appbar">
+        <div class="brand"><span class="mark">◐</span>OpenISD</div>
+        <div class="grow"></div>
+        <div class="iconbtn">⚙</div>
+      </div>
+      <div class="typebar">
+        <span class="pill">Sealed</span><span class="pill on">Vented</span><span class="pill">BP4</span><span class="pill">PR</span>
+      </div>
+      <div style="flex:1; overflow-y:auto; background:var(--panel)">
+        <div class="acc-item">
+          <div class="acc-head"><span class="car">▾</span>Driver<span class="sub">Demo 6.5″ Woofer</span></div>
+          <div class="acc-body">
+            <div class="specline" style="padding-top:2px">Fs <b>37 Hz</b> · Qts <b>0.378</b> · Vas <b>30 L</b></div>
+            <div class="disclose" style="margin:8px 0"><span class="seg on">Basic</span><span class="seg">Advanced</span></div>
+            <div class="frow"><label>Fs</label><span class="val">37.0</span><span class="u">Hz</span></div>
+            <div class="frow"><label>Qts</label><span class="val">0.378</span><span class="u"></span></div>
+            <div class="frow"><label>Vas</label><span class="val">30.0</span><span class="u">L</span></div>
+            <div class="frow"><label>Xmax</label><span class="val">5.0</span><span class="u">mm</span></div>
+            <div class="btns" style="margin-top:8px"><span class="btn pri">Browse library</span></div>
+          </div>
+        </div>
+        <div class="acc-item"><div class="acc-head"><span class="car">▸</span>Box<span class="sub">Vented · 30 L · 37.9 Hz</span></div></div>
+        <div class="acc-item"><div class="acc-head"><span class="car">▸</span>Port<span class="sub">ø50 × 100 mm</span></div></div>
+        <div class="acc-item"><div class="acc-head"><span class="car">▸</span>Signal<span class="sub">1 W · 2.36 V</span></div></div>
+        <div class="acc-item"><div class="acc-head"><span class="car">▸</span>Filters<span class="sub">none</span></div></div>
+      </div>
+      <div class="mtabbar"><button class="on">Inputs</button><button>Results</button></div>
+    </div>
+  </div>
+
+  <!-- RESULTS state -->
+  <div class="phone">
+    <div class="app">
+      <div class="appbar">
+        <div class="brand"><span class="mark">◐</span>OpenISD</div>
+        <div class="grow"></div>
+        <div class="iconbtn">⚙</div>
+      </div>
+      <div class="gtoolbar" style="padding:8px 10px">
+        <span class="gchip on">SPL</span><span class="gchip">Excursion</span><span class="gchip">Impedance</span><span class="gchip">GD</span><span class="gchip">Air vel.</span>
+      </div>
+      <div class="mchart">
+        <div class="gpanel">
+          <span class="gtitle">SPL response (dB)</span>
+          <span class="gread">38.0 Hz&nbsp; <b>84.1 dB</b></span>
+          <svg viewBox="0 0 300 360" preserveAspectRatio="none" aria-hidden="true">
+            <g stroke="#1b2530" stroke-width="1">
+              <line x1="34" y1="14" x2="34" y2="330"/><line x1="90" y1="14" x2="90" y2="330"/>
+              <line x1="150" y1="14" x2="150" y2="330"/><line x1="210" y1="14" x2="210" y2="330"/>
+              <line x1="270" y1="14" x2="270" y2="330"/>
+              <line x1="34" y1="80" x2="290" y2="80"/><line x1="34" y1="150" x2="290" y2="150"/>
+              <line x1="34" y1="220" x2="290" y2="220"/><line x1="34" y1="290" x2="290" y2="290"/>
+            </g>
+            <path d="M34,330 C56,330 72,250 88,168 C104,110 118,100 140,106 C160,112 160,124 182,116 C220,104 258,108 290,108"
+                  fill="none" stroke="var(--c-spl)" stroke-width="2.4"/>
+            <g font-family="var(--mono)" font-size="10" fill="#5a6b7b">
+              <text x="28" y="348">20</text><text x="82" y="348">50</text><text x="140" y="348">100</text>
+              <text x="200" y="348">300</text><text x="260" y="348">1k</text>
+            </g>
+          </svg>
+        </div>
+        <div class="statbar" style="border-top:1px solid var(--line)">
+          <span><span class="k">F3</span> <b>41.2 Hz</b></span>
+          <span><span class="k">Fb</span> <b>37.9 Hz</b></span>
+          <span><span class="k">peak</span> <b>88.1 dB</b></span>
+        </div>
+      </div>
+      <div class="mtabbar"><button>Inputs</button><button class="on">Results</button></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="caption">
+  Both phone states drive the <em>same</em> <code>store.ts</code> state as the desktop variant — the chart-type
+  chips reuse the <code>SingleChart</code> wrapper (<code>GraphPanel</code> + the <code>TABS</code> list from
+  <code>utils/series.ts</code>). No forked logic; only the arrangement changes. A specialised phone-only
+  <code>MobileShell</code> is held in reserve for when this responsive variant is no longer good enough.
+</div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+/** Keeps Cloud sync from seeing a stored-text rewrite as an edit. The sync hash covers the stored
+ *  text, so a project nobody edited gets its ledger hash moved to the hash of its rewritten text.
+ *  A project edited here since its last sync, or unknown to the ledger, is left as it is. A device
+ *  that never synced has no ledger, and none is created. */
+import {bodyHashOf} from '@openisd/design/cloud';
+import type {KeyValueStorage} from '../storage/keyValueStorage.js';
+import type {ProjectRewritten} from '../repos/storedTextCompaction.js';
+import {createSyncLedger, LEDGER_KEY} from './syncLedger.js';
+
+export function createLedgerFollowsRewrite(storage: KeyValueStorage, random: () => Uint8Array): ProjectRewritten {
+  return (projectId, before, after) => {
+    if (storage.get(LEDGER_KEY) === null) return;
+    const ledger = createSyncLedger({storage, random});
+    const row = ledger.row({kind: 'project', uuid: projectId});
+    const beforeHash = bodyHashOf(before);
+    const afterHash = bodyHashOf(after);
+    if (row === null || beforeHash === null || afterHash === null) return;
+    if (row.hash.toString() !== beforeHash.toString()) return;
+    ledger.set({...row, hash: afterHash});
+  };
+}
+
+/** A layout migration is `createLedgerFollowsRewrite` and one thing more: the change cursor is dropped, so
+ *  the next sync lists every Drive file and finds each older-layout doc to replace with its upgraded text
+ *  (a run that reads only what changed since the cursor would leave them at the old layout). */
+export function createLedgerFollowsMigration(storage: KeyValueStorage, random: () => Uint8Array): ProjectRewritten {
+  const follow = createLedgerFollowsRewrite(storage, random);
+  return (projectId, before, after) => {
+    follow(projectId, before, after);
+    if (storage.get(LEDGER_KEY) === null) return;
+    createSyncLedger({storage, random}).setCursor(null);
+  };
+}

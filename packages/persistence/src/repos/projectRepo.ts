@@ -1,0 +1,1063 @@
+/** REPO: the open design as a persisted payload — localStorage autosave, the share-link
+ *  hash, and the project file on disk (`.owpr`). Takes the domain object, returns the domain
+ *  object; every door carries the SAME bytes, `OpenISDProject.toOwprText()`'s `.owpr` text, and
+ *  validation and reconstruction are entirely `@openisd/design`'s
+ *  (`OpenISDProject.fromOwprText()` — QO116: one whole-record `.safeParse()` at the load
+ *  boundary). This file supplies no shape of its own and never holds the project's record. */
+import {OpenISDProject, ProjectSummary, withMovedChamberQicl, type FieldPath, type OpenedProject} from '@openisd/design';
+import type {Engine} from '@openisd/design/engine';
+import {stringifyWithOverflow} from '@openisd/design/json';
+import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
+import type {KeyValueStorage} from '../storage/keyValueStorage.js';
+import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY, OPENISD_BACKUP_KEYS, OPENISD_STORAGE_LAYOUT_KEY} from './storageKeys.js';
+import type {StorageBackup} from './storageBackup.js';
+import {createProjectSchemaUpgrade} from './projectSchemaUpgrade.js';
+import {createStoredDataFault} from './storedDataFault.js';
+import type {ExportedFiles} from './exportedFile.js';
+import {parseLayout} from './storageSnapshot.js';
+import {setProjectNameInBody} from '@openisd/design/cloud';
+
+export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
+
+/** View/UI preferences a share link carries ALONGSIDE the project (a link is a complete description of the session, stripped of nothing) — panel/unit
+ *  preferences and layout, nothing project-shaped. Not part of `openISDProjectJsonSchema`
+ *  (QO90: a saved `.owpr`/autosave carries only the project; view state persists under its own
+ *  storage key, independent of the project) so it travels as a sibling field in the share-link
+ *  payload, never inside the project record itself.
+ *
+ *  Loss-model choice and open charts used to live here too, but QO130 made both PROJECT data
+ *  (`OpenISDProject.lossMode`/`.graphs`) — the project text a share link already carries has
+ *  them, so repeating them here would be a second, driftable copy. The graph cursor
+ *  (crosshair/pinned/locked/drag-band) went further still: QO168 (2026-09-21) keeps it out of
+ *  EVERY saved record, `ViewSnapshot` included — it is `OpenISDProject`'s own in-memory-only
+ *  state, reset on every (re)wrap, never serialized anywhere. */
+export interface ViewSnapshot {
+  ui: Record<string, unknown>;
+  /** The chart view: app-level, shared across every open project. Absent in a view saved
+   *  before it was persisted. */
+  chart?: ChartView;
+}
+
+/** A frequency or value range, `min` below `max`. */
+export interface ViewRange {
+  min: number;
+  max: number;
+}
+
+/** The swept frequency range every chart draws over, and each chart's Y-axis override keyed by
+ *  chart id (absent = auto-scale). */
+export interface ChartView {
+  sweepRange: ViewRange;
+  yRanges: Record<string, ViewRange>;
+}
+
+export type StorageSaveResult = { kind: 'saved' } | { kind: 'failed', reason: string };
+
+export interface ProjectRepo {
+  /** The address of the browser storage this repo writes to. */
+  readonly storeAddress: string;
+  /** "Projects saved in this browser at <address>" */
+  readonly storeLabel: string;
+  /** A URL carrying the whole session — project and view together. */
+  stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string>;
+  /** The session in the current location hash, or null when the hash carries none, or the
+   *  problems the project record failed validation with. */
+  loadFromHash(): Promise<{ project: OpenISDProject; view: ViewSnapshot } | string[] | null>;
+  /** A design parsed from opened file TEXT — File → Open's JSON branch. Project only (QO90);
+   *  same validator every other door uses, so a payload another door wrote loads identically. */
+  readProjectText(text: string): OpenISDProject | string[];
+  /** `readProjectText`, with every value the load repaired, one line each for the opening message
+   *  (QO953.c31): File → Open of a project file. */
+  openProjectText(text: string): OpenedProject | string[];
+  /** Write to the previously-picked file (first save prompts). `naming` carries the
+   *  suggested filename and the picker's format bits. */
+  saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult>;
+  /** Always prompt for a new location. */
+  saveToNewFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult>;
+  /** Save the committed project to browser storage, under its own stored id; names are never
+   *  matched or changed. View state has its own repository/key. */
+  saveToStorage(project: OpenISDProject): StorageSaveResult;
+  /** Whether browser storage holds the project's own stored copy. `open` is every project open
+   *  now: a project sharing its stored copy with an earlier open one has no copy of its own. */
+  isStored(project: OpenISDProject): boolean;
+  /** Store a project the moment it is made, as a stored project of its own, under the name it
+   *  has (two projects may share a name). The same file with the same content is the stored
+   *  project already: it keeps that copy. A project that already has a stored copy is stored
+   *  under it again. */
+  storeNew(project: OpenISDProject): StorageSaveResult;
+  /** Save `project` to browser storage as the stored project `id` (a new id makes a new entry). */
+  saveToStorageAs(project: OpenISDProject, id: string): StorageSaveResult;
+  /** Imports projects from an archive, merging by unique name. */
+  importArchive(imported: readonly OpenISDProject[]): { added: number };
+  /** Restore the committed project from browser storage, or return null when none exists. */
+  loadFromStorage(): OpenISDProject | string[] | null;
+  /** List all projects saved in browser storage, newest save first. */
+  listStoredProjects(): StoredProjectListing[];
+  /** Load one project selected from the browser-storage picker. */
+  loadStoredProject(id: string): OpenISDProject | string[];
+  /** Persist the current open-project session for refresh recovery, with which of its projects
+   *  have their trace hidden on the charts. */
+  saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null, traceHidden: ReadonlySet<OpenISDProject>): void;
+  /** Whether the stored session holds what this tab last saved or adopted, so a reload brings every edit
+   *  back. False when the last write did not reach the store (full, disabled). */
+  openSessionIsStored(): boolean;
+  /** Restore the open-project session, or null when no refresh session exists. A `string[]`
+   *  means the record itself is unusable — bad JSON, or not the shape of a session — so there
+   *  is nothing to restore from it. An entry that will not read is reported in the session's
+   *  own `refused`, not here. */
+  loadOpenProjects(): OpenProjectSession | string[] | null;
+  /** Call `onChange` whenever another tab saves its open projects. Returns the call that stops it. */
+  watchOpenProjects(onChange: () => void): () => void;
+  /** Keep each refused entry whole as a refused copy. Returns how many did not fit and were not kept. */
+  keepRefusedEntries(entries: readonly RefusedEntry[]): number;
+  /** All stored projects as docs with layout, or 'unreadable'. */
+  storedDocs(): StoredDocsResult;
+  /** Save one stored doc by uuid; name clash is resolved via uniqueName. */
+  putStoredDoc(id: string, body: string): 'done' | 'refused';
+  /** Remove one stored doc by uuid. */
+  removeStoredDoc(id: string): 'done' | 'refused';
+  /** The user's Delete: remove the project from the saved list, the open session and the refused
+   *  session, under one backup, then ask for a sync so Drive and other devices drop it too. */
+  deleteStoredProject(id: string): 'done' | 'refused';
+  /** The saved-list id `project` was loaded from or saved as, or null when it has none yet. */
+  storedIdOf(project: OpenISDProject): string | null;
+  /** Cloud sync sends the whole project (QO946.c248): the project's saved entry takes its unsaved
+   *  layer too, so a sync run sends both, and Save stays the checkpoint. The entry keeps its `modified`
+   *  stamp, which only a Save, a pull or a conflict copy changes (see `savedStampOf`). `base` is the stamp
+   *  the entry had when this project was opened, shown or last written (null when not known).
+   *  - 'same': the entry holds the project's design already (view state aside).
+   *  - 'idle': neither has unsaved edits: nothing to send, nothing written.
+   *  - 'written': the entry still has stamp `base`, or the same checkpoint with no unsaved edits: it now holds the project.
+   *  - 'moved': the entry holds another version (a pull, another device's Save): nothing is written, so neither is lost.
+   *  - 'notStored' / 'refused': no entry, or the store refused the write. */
+  storeWithUnsavedLayer(project: OpenISDProject, base: string | null): LayerWrite;
+  /** The `modified` stamp of saved entry `id`, or null when there is none. A Save, a pull and a conflict copy
+   *  give it a new one; the unsaved-layer writes keep it, so every tab of this browser shares one lineage. */
+  savedStampOf(id: string): string | null;
+  /** The saved entry `id` without its unsaved layer: what closing a project without saving leaves. */
+  dropUnsavedLayer(id: string): 'written' | 'same' | 'notStored' | 'refused';
+}
+
+/** What writing a saved entry's unsaved layer did; `stamp` is the entry's `modified` stamp afterwards. */
+export type LayerWrite =
+  | { readonly kind: 'written' | 'same'; readonly stamp: string }
+  | { readonly kind: 'idle' | 'moved' | 'notStored' | 'refused' };
+
+export interface StoredProjectDoc {
+  readonly id: string;
+  readonly body: string;
+  readonly layout: number;
+}
+
+export type StoredDocsResult =
+  | { readonly kind: 'ok'; readonly docs: readonly StoredProjectDoc[] }
+  | { readonly kind: 'unreadable' };
+
+/** A project that loaded only after fields were reset to their defaults. The user must be told;
+ *  `backupKey` holds the stored text as it was (null when the source was a file or a link,
+ *  which still exist as they were). */
+export interface ProjectRepairReport {
+  readonly projectName: string;
+  readonly repaired: readonly FieldPath[];
+  readonly backupKey: string | null;
+}
+
+/** A project whose values the load repaired on opening (a series resistance below 0 Ω set to 0 Ω,
+ *  `OpenISDProject.openSession`): the user is told by a toast, one line per repair (QO953.c31). */
+export interface LoadRepairReport {
+  readonly projectName: string;
+  readonly lines: readonly string[];
+}
+
+/** Who tells the user about a load repair: this repo ('tell'), the caller that shows them itself
+ *  ('caller'), or nobody, for a read that opens nothing ('silent'). */
+type LoadRepairTelling = 'tell' | 'caller' | 'silent';
+
+/** One project saved in browser storage, as the Open project list shows it. An entry whose text
+ *  would not read even after repair is `unreadable`: it has a name but no summary. */
+export type StoredProjectListing = ReadableStoredProject | UnreadableStoredProject;
+
+/** The size of a stored text in browser storage, in bytes. */
+function textBytes(text: string): number {
+  return new TextEncoder().encode(text).length;
+}
+
+export interface ReadableStoredProject {
+  readonly kind: 'readable';
+  readonly id: string;
+  readonly name: string;
+  readonly modified: string;
+  /** Its size in browser storage. */
+  readonly bytes: number;
+  readonly summary: ProjectSummary;
+}
+
+export interface UnreadableStoredProject {
+  readonly kind: 'unreadable';
+  readonly id: string;
+  readonly name: string;
+  readonly modified: string;
+  readonly bytes: number;
+}
+
+/** One stored open-project entry that would not read. */
+export interface RefusedEntry {
+  readonly id: string;
+  /** The entry's text exactly as stored. */
+  readonly text: string;
+}
+
+export interface OpenProjectSession {
+  readonly projects: OpenISDProject[];
+  readonly focusedIndex: number;
+  /** One message per entry the record held that could not be read. The entries that did read
+   *  are in `projects` — a refusal costs its own project, never the others. The record itself
+   *  is untouched; `keepRefusedEntries()` keeps each refused entry whole before anything overwrites it. */
+  readonly refused: readonly string[];
+  /** The refused entries themselves, text as stored, for `keepRefusedEntries`. */
+  readonly refusedEntries: readonly RefusedEntry[];
+  /** The restored projects whose trace was hidden on the charts. Every other one is shown. */
+  readonly traceHidden: ReadonlySet<OpenISDProject>;
+}
+
+/** The project's name as its stored text states it; '' when the text will not parse. */
+function refusedNameOf(text: string): string {
+  try {
+    const parsed: unknown = JSON.parse(text);
+    return typeof parsed === 'object' && parsed !== null && 'label' in parsed && typeof parsed.label === 'string' ? parsed.label : '';
+  } catch {
+    return '';
+  }
+}
+
+const PROJECT_STORAGE_KEY = OPENISD_STATE_KEY;
+const PROJECTS_STORAGE_KEY = OPENISD_PROJECTS_KEY;
+const OPEN_SESSION_STORAGE_KEY = OPENISD_OPEN_SESSIONS_KEY;
+const QUARANTINE_SESSION_STORAGE_KEY = OPENISD_QUARANTINE_SESSION_KEY;
+const LEGACY_PROJECT_STORAGE_KEY = 'openisd.project';
+const LEGACY_PROJECTS_STORAGE_KEY = 'openisd.projects';
+
+export interface StoredProjectEntry {
+  id: string;
+  text: string;
+  modified: string;
+}
+
+export interface StoredProjectsPayload {
+  entries: StoredProjectEntry[];
+}
+
+/** One open project as the session stores it: its record, and whether its trace is hidden. */
+interface OpenSessionEntry extends StoredProjectEntry {
+  traceHidden: boolean;
+}
+
+interface OpenSessionPayload {
+  entries: OpenSessionEntry[];
+  focusedId: string | null;
+}
+
+/** `Array.isArray` on an `unknown` narrows it to `any[]`, and every read off an element is then
+ *  unchecked. This says what is actually known: a list, of things not yet identified. */
+export function isUnknownArray(value: unknown): value is readonly unknown[] {
+  return Array.isArray(value);
+}
+
+export function storedProjectsPayload(value: unknown): StoredProjectsPayload | null {
+  if (!value || typeof value !== 'object' || !('entries' in value) || !isUnknownArray(value.entries)) return null;
+  const entries: StoredProjectEntry[] = [];
+  for (const entry of value.entries) {
+    if (!entry || typeof entry !== 'object') return null;
+    if (!('id' in entry) || typeof entry.id !== 'string') return null;
+    if (!('text' in entry) || typeof entry.text !== 'string') return null;
+    if (!('modified' in entry) || typeof entry.modified !== 'string') return null;
+    entries.push({ id: entry.id, text: entry.text, modified: entry.modified });
+  }
+  return { entries };
+}
+
+function openSessionPayload(value: unknown): OpenSessionPayload | null {
+  if (!value || typeof value !== 'object' || !('entries' in value) || !isUnknownArray(value.entries)) return null;
+  if (!('focusedId' in value) || (value.focusedId !== null && typeof value.focusedId !== 'string')) return null;
+  const entries: OpenSessionEntry[] = [];
+  for (const entry of value.entries) {
+    if (!entry || typeof entry !== 'object') return null;
+    if (!('id' in entry) || typeof entry.id !== 'string') return null;
+    if (!('text' in entry) || typeof entry.text !== 'string') return null;
+    // Absent in a session saved before visibility was stored: the trace is shown.
+    const traceHidden = 'traceHidden' in entry && entry.traceHidden === true;
+    entries.push({ id: entry.id, text: entry.text, modified: '', traceHidden });
+  }
+  return { entries, focusedId: value.focusedId };
+}
+
+// Share-link payload: gzip (native CompressionStream — Baseline widely available since May
+// 2023, no library needed) then base64url. JSON compresses well (repetitive key names), so
+// this typically shrinks the link by more than base64's own ~33% inflation costs — net
+// smaller than the old plain-base64 encoding, not just "smaller than uncompressed JSON".
+async function gzipEncodeBase64Url(json: string): Promise<string> {
+  const bytes = new TextEncoder().encode(json);
+  const compressed = new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'));
+  const buf = await new Response(compressed).arrayBuffer();
+  let binary = '';
+  for (const b of new Uint8Array(buf)) binary += String.fromCharCode(b);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function gzipDecodeBase64Url(encoded: string): Promise<string> {
+  const binary = atob(encoded.replace(/-/g, '+').replace(/_/g, '/'));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const decompressed = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+  const buf = await new Response(decompressed).arrayBuffer();
+  return new TextDecoder().decode(buf);
+}
+
+/** A stored record a project is read from, and where its pre-repair text is kept. */
+interface StoredSource {
+  readonly key: string;
+  readonly copy: 'state' | 'projects' | 'openSessions';
+  readonly backupKey: string;
+}
+
+const AUTOSAVE_SOURCE: StoredSource = { key: OPENISD_STATE_KEY, copy: 'state', backupKey: OPENISD_BACKUP_KEYS.state };
+const LEGACY_AUTOSAVE_SOURCE: StoredSource = { key: LEGACY_PROJECT_STORAGE_KEY, copy: 'state', backupKey: OPENISD_BACKUP_KEYS.state };
+const SAVED_PROJECTS_SOURCE: StoredSource = { key: OPENISD_PROJECTS_KEY, copy: 'projects', backupKey: OPENISD_BACKUP_KEYS.projects };
+const OPEN_SESSION_SOURCE: StoredSource = { key: OPENISD_OPEN_SESSIONS_KEY, copy: 'openSessions', backupKey: OPENISD_BACKUP_KEYS.openSessions };
+
+export function createProjectRepo(
+  engine: Engine, fileStorage: FileStorage,
+  storage: KeyValueStorage, storeAddress: string,
+  backup: StorageBackup,
+  exportedFiles: ExportedFiles,
+  onRepaired: (report: ProjectRepairReport) => void,
+  onSaved: () => void,
+  onLoadRepaired: (report: LoadRepairReport) => void,
+): ProjectRepo {
+  const upgrade = createProjectSchemaUpgrade(engine);
+  let lastSavedAt = 0;
+
+  /** Upgrade and parse `text`, resetting any field the schema refuses. When a field was reset,
+   *  the stored record it came from is backed up (before anything can write over it) and the
+   *  repair is reported. `source` is null for a file or a link, which still hold the original. */
+  function readRepairing(text: string, source: StoredSource | null, tell: LoadRepairTelling): OpenISDProject | string[] {
+    const opened = openRepairing(text, source, tell);
+    return Array.isArray(opened) ? opened : opened.project;
+  }
+
+  /** `readRepairing`, with every value the load repair pass set (`OpenISDProject.openSession`). With
+   *  `tell` 'tell', those repairs are reported through `onLoadRepaired` (QO953.c31: a repair on opening is
+   *  told by a toast); 'caller' leaves them to the caller, which shows them itself; 'silent' is for a read
+   *  that opens nothing (a listing, an id check). */
+  function openRepairing(text: string, source: StoredSource | null, tell: LoadRepairTelling): OpenedProject | string[] {
+    let parsed: unknown;
+    try { parsed = JSON.parse(text); } catch { return ['not valid JSON']; }
+    // The same upgrade every door applies, so a design saved by an older build opens anywhere.
+    const current = upgrade.projectPayload(parsed);
+    if (Array.isArray(current)) return current;
+    const result = OpenISDProject.fromOwprTextRepairing(current, engine);
+    if (Array.isArray(result)) return result;
+    if (result.repaired.length > 0 && source !== null) {
+      const original = storage.get(source.key);
+      if (original !== null) backup.guard('repair', () => backup.keepPreRepairCopy(source.copy, original));
+      onRepaired({
+        projectName: result.project.name.value,
+        repaired: result.repaired,
+        backupKey: original === null ? null : source.backupKey,
+      });
+    }
+    if (tell === 'tell' && result.loadRepairs.length > 0) {
+      onLoadRepaired({projectName: result.project.name.value, lines: result.loadRepairs.map(repair => repair.text)});
+    }
+    return result;
+  }
+
+  /** A design read from opened file text (a file, a backup being restored, an archive entry). */
+  function openExportedText(text: string, tell: LoadRepairTelling): OpenedProject | string[] {
+    const opened = exportedFiles.open(text);
+    if (opened.kind === 'newer') {
+      return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads}). The file is unchanged: reload this page to get the latest OpenISD, then open it again`];
+    }
+    const result = openRepairing(opened.text, null, tell);
+    if (!Array.isArray(result)) claimId(result.project);
+    return result;
+  }
+
+  /** The last session write reached the store; a session read from it is held by definition. */
+  let sessionHeld = true;
+
+  function sessionEntriesOf(projects: readonly OpenISDProject[], traceHidden: ReadonlySet<OpenISDProject>): OpenSessionEntry[] {
+    return projects.map((project): OpenSessionEntry => ({ id: project.uuid(), text: project.toStoredText(), modified: '', traceHidden: traceHidden.has(project) }));
+  }
+
+  /** Whether the stored open session already holds `entries` focused on `focusedId`. */
+  function storesSameSession(entries: readonly OpenSessionEntry[], focusedId: string | null): boolean {
+    const text = storage.get(OPEN_SESSION_STORAGE_KEY);
+    if (text === null) return false;
+    let parsed: unknown;
+    try { parsed = JSON.parse(text); } catch { return false; }
+    const stored = openSessionPayload(parsed);
+    if (!stored || stored.focusedId !== focusedId || stored.entries.length !== entries.length) return false;
+    return stored.entries.every((e, i) => e.id === entries[i].id && e.traceHidden === entries[i].traceHidden
+      && e.text === entries[i].text);
+  }
+
+function projectNameOf(text: string): string | null {
+  try {
+    const parsed: unknown = JSON.parse(text);
+    if (!parsed || typeof parsed !== 'object') return null;
+    if ('label' in parsed && typeof parsed.label === 'string') return parsed.label;
+    if ('saved' in parsed && isRecord(parsed.saved) && isRecord(parsed.saved.meta) && typeof parsed.saved.meta.name === 'string') {
+      return parsed.saved.meta.name;
+    }
+    if ('project' in parsed && isRecord(parsed.project) && typeof parsed.project.name === 'string') {
+      return parsed.project.name;
+    }
+    if ('meta' in parsed && isRecord(parsed.meta) && typeof parsed.meta.name === 'string') {
+      return parsed.meta.name;
+    }
+    return null;
+  } catch (err) {
+    console.error(createStoredDataFault('project', `stored project text is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
+    return null;
+  }
+}
+
+  /** The collection text already kept whole and reported, so each unreadable text is handled once. */
+  let keptUnreadable: string | null = null;
+
+  /** A saved-projects list that exists but cannot be read is never replaced by the single-project
+   *  keys: its raw text is kept whole in a pre-repair copy and the fault is reported. The primary
+   *  list's fault is raised at start-up (`migrateStoredProjects`); a legacy list's is raised here. */
+  function keepUnreadableCollection(key: string, text: string, why: string): void {
+    if (keptUnreadable === text) return;
+    keptUnreadable = text;
+    backup.keepPreRepairCopy('projects', text);
+    if (key !== PROJECTS_STORAGE_KEY) console.error(createStoredDataFault('project', `stored projects collection ${key} ${why}`));
+  }
+
+  function readStoredEntries(): StoredProjectEntry[] {
+    for (const key of [PROJECTS_STORAGE_KEY, LEGACY_PROJECTS_STORAGE_KEY]) {
+      const collectionText = storage.get(key);
+      if (collectionText === null) continue;
+      let payload: StoredProjectsPayload | null;
+      try {
+        payload = storedProjectsPayload(JSON.parse(collectionText));
+      } catch {
+        keepUnreadableCollection(key, collectionText, 'is not valid JSON');
+        return [];
+      }
+      // A readable list is the answer even when empty: the user deleted the last one, and the
+      // single-project keys below would bring it back.
+      if (payload) return payload.entries;
+      keepUnreadableCollection(key, collectionText, 'has an invalid shape');
+      return [];
+    }
+    for (const key of [PROJECT_STORAGE_KEY, LEGACY_PROJECT_STORAGE_KEY]) {
+      const text = storage.get(key);
+      if (text !== null) return [{ id: 'legacy', text, modified: new Date(0).toISOString() }];
+    }
+    return [];
+  }
+
+  function writeStoredEntries(entries: StoredProjectEntry[]): void {
+    const payload: StoredProjectsPayload = { entries };
+    const text = JSON.stringify(payload);
+    if (!backup.write(PROJECTS_STORAGE_KEY, text)) {
+      throw new Error('browser storage is full');
+    }
+  }
+
+/** The session stored as `text` without project `id`, or null when it holds no such entry (or
+ *  cannot be read, which is the session loader's to repair, not Delete's). */
+function sessionWithout(text: string | null, id: string): OpenSessionPayload | null {
+  if (text === null) return null;
+  let parsed: unknown;
+  try { parsed = JSON.parse(text); } catch { return null; }
+  const payload = openSessionPayload(parsed);
+  if (!payload || !payload.entries.some(e => e.id === id)) return null;
+  return {
+    entries: payload.entries.filter(e => e.id !== id),
+    focusedId: payload.focusedId === id ? null : payload.focusedId,
+  };
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+/** Whether moving the chamber Qicl to the box Qiclfr changed `root`. */
+function dropRetiredFields(root: unknown): boolean {
+  const before = JSON.stringify(root);
+  withMovedChamberQicl(root);
+  return JSON.stringify(root) !== before;
+}
+
+function migratePayloadText(text: string): { text: string; changed: boolean } {
+  try {
+    const parsed: unknown = JSON.parse(text);
+    if (dropRetiredFields(parsed)) {
+      return { text: stringifyWithOverflow(parsed, {}), changed: true };
+    }
+  } catch (err) {
+    console.error(createStoredDataFault('project', `stored project payload is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
+  }
+  return { text, changed: false };
+}
+
+function migrateEntries<T extends { text: string }>(entries: readonly T[]): { entries: T[]; changed: boolean } {
+  let changed = false;
+  const migrated = entries.map(entry => {
+    const res = migratePayloadText(entry.text);
+    if (res.changed) changed = true;
+    return { ...entry, text: res.text };
+  });
+  return { entries: migrated, changed };
+}
+
+  function migrateStoredProjects(): void {
+    const text = storage.get(PROJECTS_STORAGE_KEY);
+    if (text === null) return;
+    try {
+      const parsed: unknown = JSON.parse(text);
+      const payload = storedProjectsPayload(parsed);
+      if (!payload) {
+        console.error(createStoredDataFault('project', 'stored projects collection has an invalid shape'));
+        return;
+      }
+      const migrated = migrateEntries(payload.entries);
+      if (migrated.changed) {
+        backup.guard('startUpRewrite', () => {
+          backup.keepPreRepairCopy('projects', text);
+          writeStoredEntries(migrated.entries);
+        });
+      }
+    } catch (err) {
+      console.error(createStoredDataFault('project', `stored projects collection is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
+    }
+  }
+
+  function migrateOpenSessions(): void {
+    const text = storage.get(OPEN_SESSION_STORAGE_KEY);
+    if (text === null) return;
+    try {
+      const parsed: unknown = JSON.parse(text);
+      const payload = openSessionPayload(parsed);
+      if (!payload) {
+        console.error(createStoredDataFault('project', 'open project session has an invalid shape'));
+        return;
+      }
+      const migrated = migrateEntries(payload.entries);
+      if (migrated.changed) {
+        backup.guard('startUpRewrite', () => {
+          backup.keepPreRepairCopy('openSessions', text);
+          storage.set(OPEN_SESSION_STORAGE_KEY, JSON.stringify({ entries: migrated.entries, focusedId: payload.focusedId } satisfies OpenSessionPayload));
+        });
+      }
+    } catch (err) {
+      console.error(createStoredDataFault('project', `open project session is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
+    }
+  }
+
+  function migrateAutosaveState(): void {
+    const text = storage.get(PROJECT_STORAGE_KEY);
+    if (text === null) return;
+    const res = migratePayloadText(text);
+    if (res.changed) {
+      backup.guard('startUpRewrite', () => {
+        backup.keepPreRepairCopy('state', text);
+        storage.set(PROJECT_STORAGE_KEY, res.text);
+      });
+    }
+  }
+
+  // Start-up repair: takes ONE backup of each store's original text, before any change,
+  // and never overwrites a backup within the same repair; then merge and migrate run on the data.
+  migrateStoredProjects();
+  migrateOpenSessions();
+  migrateAutosaveState();
+
+  /** The project's file text without its id, which a second copy of one file does not share:
+   *  two opens of one file have the same design text. */
+  function designOf(project: OpenISDProject): string {
+    const parsed: unknown = JSON.parse(project.toOwprText());
+    if (isRecord(parsed)) delete parsed.id;
+    return stringifyWithOverflow(parsed, {});
+  }
+
+  /** `project` may not take a stored project's place unless it is that project: when a stored entry has
+   *  its id, the same design keeps the id (it is the stored project, read again) and a different design
+   *  takes a new one, so a file, link or archive never overwrites a saved project. */
+  function claimId(project: OpenISDProject): void {
+    const held = readStoredEntries().find(entry => entry.id === project.uuid());
+    if (held === undefined) return;
+    const stored = readRepairing(held.text, null, 'silent');
+    if (Array.isArray(stored) || designOf(stored) !== designOf(project)) project.assignNewId();
+  }
+
+  /** `project` as the saved entry `id`: a project read from the store is its entry, so its id is the entry's. */
+  function asEntry(project: OpenISDProject, id: string): OpenISDProject {
+    if (project.uuid() !== id) project.adoptId(id);
+    return project;
+  }
+
+  /** A stored project text's saved checkpoint and unsaved layer, each as one text (null: no unsaved layer); null when
+   *  it is not a session. Each leaves out `charts` (view state and the trace colour opening stamps), as the project's
+   *  own unsaved-changes test does. */
+  function layersOf(text: string): { readonly saved: string; readonly edited: string | null } | null {
+    const design = (layer: Readonly<Record<string, unknown>>): string => {
+      const {charts: _charts, ...rest} = layer;
+      return stringifyWithOverflow(rest, {});
+    };
+    try {
+      const parsed: unknown = JSON.parse(text);
+      if (!isRecord(parsed) || !isRecord(parsed.saved)) return null;
+      return {saved: design(parsed.saved), edited: isRecord(parsed.edited) ? design(parsed.edited) : null};
+    } catch {
+      return null;
+    }
+  }
+
+  /** Saved entry `id` replaced by `text`, keeping its place and `modified` time. */
+  function rewriteEntry(id: string, text: string): 'written' | 'refused' | 'notStored' {
+    const entries = readStoredEntries();
+    const index = entries.findIndex(entry => entry.id === id);
+    const held = entries[index];
+    if (held === undefined) return 'notStored';
+    const rewritten = entries.slice();
+    rewritten[index] = {...held, text};
+    try {
+      writeStoredEntries(rewritten);
+    } catch {
+      return 'refused';
+    }
+    return 'written';
+  }
+
+  /** The time a save or a pull stamps an entry with: now, but always after this tab's last stamp and after
+   *  `previous` (the entry's own stamp), so a replaced entry never keeps its stamp. */
+  function nextStamp(previous: string | null): number {
+    const after = previous === null ? 0 : Date.parse(previous) + 1;
+    const now = Math.max(Date.now(), lastSavedAt + 1, Number.isNaN(after) ? 0 : after);
+    lastSavedAt = now;
+    return now;
+  }
+
+  function heldEntry(id: string): StoredProjectEntry | null {
+    return readStoredEntries().find(entry => entry.id === id) ?? null;
+  }
+
+  function saveToStorage(project: OpenISDProject): StorageSaveResult {
+    const entries = readStoredEntries();
+    const id = project.uuid();
+    const now = nextStamp(entries.find(candidate => candidate.id === id)?.modified ?? null);
+    const entry: StoredProjectEntry = { id, text: project.toStoredText(), modified: new Date(now).toISOString() };
+    
+    try {
+      writeStoredEntries([entry, ...entries.filter(candidate => candidate.id !== id)]);
+      if (!backup.write(PROJECT_STORAGE_KEY, entry.text)) {
+        throw new Error('browser storage is full');
+      }
+    } catch (e) {
+      return { kind: 'failed', reason: String(e) };
+    }
+    
+    onSaved();
+    return { kind: 'saved' };
+  }
+
+  return {
+    storeAddress,
+    storeLabel: `Projects saved in this browser at ${storeAddress}`,
+    async stateToUrl(project: OpenISDProject, view: ViewSnapshot): Promise<string> {
+      // The project travels as `.owpr` TEXT, exactly as it does to a file — one serialised form
+      // for every door, so a share link and a saved file hold the same bytes for the same design.
+      const payload: SharePayload = { project: project.toOwprText(), view };
+      const encoded = await gzipEncodeBase64Url(JSON.stringify(payload));
+      return location.origin + location.pathname + '#s=' + encoded;
+    },
+
+    async loadFromHash(): Promise<{ project: OpenISDProject; view: ViewSnapshot } | string[] | null> {
+      const m = (location.hash || '').match(/[#&]s=([^&]+)/);
+      if (!m) return null;
+      let parsed: unknown;
+      try { parsed = JSON.parse(await gzipDecodeBase64Url(m[1])); } catch { return null; }
+      // Every reader upgrades (bugs/BUG_20260822_share_links_and_file_imports_bypass_the_
+      // schema_upgrade.md). A payload already at the current schema passes through unchanged,
+      // so `sharePayload()` below stays the one validator for the current shape.
+      const current = upgrade.sharePayload(parsed);
+      if (current.kind === 'errors') return [...current.errors];
+
+      const payload = sharePayload(current.payload);
+      if (!payload) return ['share link is not a recognised session payload'];
+
+      const result = readRepairing(payload.project, null, 'tell');
+      if (Array.isArray(result)) return result;
+      claimId(result);
+      return { project: result, view: payload.view };
+    },
+
+    readProjectText(text: string): OpenISDProject | string[] {
+      const opened = openExportedText(text, 'tell');
+      return Array.isArray(opened) ? opened : opened.project;
+    },
+
+    openProjectText(text: string): OpenedProject | string[] {
+      return openExportedText(text, 'caller');
+    },
+
+    saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
+      return fileStorage.save(exportedFiles.stamp(project.toOwprText()),
+        naming.suggestedName, naming.mime, naming.label, naming.ext);
+    },
+
+    saveToNewFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
+      return fileStorage.saveAs(exportedFiles.stamp(project.toOwprText()),
+        naming.suggestedName, naming.mime, naming.label, naming.ext);
+    },
+
+    saveToStorage,
+
+    isStored(project: OpenISDProject): boolean {
+      return readStoredEntries().some(entry => entry.id === project.uuid());
+    },
+
+    storeNew(project: OpenISDProject): StorageSaveResult {
+      claimId(project);
+      return saveToStorage(project);
+    },
+
+    saveToStorageAs(project: OpenISDProject, id: string): StorageSaveResult {
+      return saveToStorage(asEntry(project, id));
+    },
+
+    importArchive(imported: readonly OpenISDProject[]): { added: number } {
+      const entries = readStoredEntries();
+      const existingNames = entries.map(e => projectNameOf(e.text)).filter((n): n is string => n !== null);
+      const addedEntries: StoredProjectEntry[] = [];
+      let now = Math.max(Date.now(), lastSavedAt + 1);
+      
+      for (const project of imported) {
+        const originalName = project.name.value;
+        let finalName = originalName;
+        if (existingNames.includes(finalName)) {
+          finalName = uniqueName(copyOfName(originalName), existingNames);
+        }
+        existingNames.push(finalName);
+        
+        project.name.set(finalName);
+        if (entries.some(e => e.id === project.uuid()) || addedEntries.some(e => e.id === project.uuid())) project.assignNewId();
+        addedEntries.push({ id: project.uuid(), text: project.toStoredText(), modified: new Date(now++).toISOString() });
+      }
+      if (addedEntries.length > 0) {
+        lastSavedAt = now;
+        writeStoredEntries([...addedEntries, ...entries]);
+        onSaved();
+      }
+      return { added: addedEntries.length };
+    },
+
+    loadFromStorage(): OpenISDProject | string[] | null {
+      const source = storage.get(PROJECT_STORAGE_KEY) !== null ? AUTOSAVE_SOURCE : LEGACY_AUTOSAVE_SOURCE;
+      const text = storage.get(source.key);
+      if (text === null) return null;
+      const project = readRepairing(text, source, 'tell');
+      if (Array.isArray(project)) return project;
+      return project;
+    },
+    listStoredProjects(): StoredProjectListing[] {
+      return readStoredEntries().map((entry): StoredProjectListing => {
+        const project = readRepairing(entry.text, null, 'silent');
+        return Array.isArray(project)
+          ? { kind: 'unreadable', id: entry.id, name: 'Unreadable project', modified: entry.modified, bytes: textBytes(entry.text) }
+          : { kind: 'readable', id: entry.id, name: project.name.value, modified: entry.modified, bytes: textBytes(entry.text), summary: ProjectSummary.of(project) };
+      }).sort((a, b) => b.modified.localeCompare(a.modified));
+    },
+    loadStoredProject(id: string): OpenISDProject | string[] {
+      const entry = readStoredEntries().find(candidate => candidate.id === id);
+      if (entry === undefined) return ['saved project not found'];
+      const project = readRepairing(entry.text, SAVED_PROJECTS_SOURCE, 'tell');
+      return Array.isArray(project) ? project : asEntry(project, id);
+    },
+    saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null, traceHidden: ReadonlySet<OpenISDProject>): void {
+      const entries = sessionEntriesOf(projects, traceHidden);
+      const focusedId = focused === null ? null : focused.uuid();
+      // Writing the session already stored would change nothing, and every other tab would rebuild all its projects.
+      if (storesSameSession(entries, focusedId)) { sessionHeld = true; return; }
+      const text = JSON.stringify({ entries, focusedId } satisfies OpenSessionPayload);
+      storage.set(OPEN_SESSION_STORAGE_KEY, text);
+      // The browser's storage swallows a write it cannot take: read it back.
+      sessionHeld = storage.get(OPEN_SESSION_STORAGE_KEY) === text;
+    },
+    openSessionIsStored(): boolean {
+      return sessionHeld;
+    },
+    loadOpenProjects(): OpenProjectSession | string[] | null {
+      const text = storage.get(OPEN_SESSION_STORAGE_KEY);
+      if (text === null) return null;
+      let parsed: unknown;
+      try { parsed = JSON.parse(text); } catch { return ['open project session is not valid JSON']; }
+      const payload = openSessionPayload(parsed);
+      if (!payload) return ['open project session has an invalid shape'];
+      sessionHeld = true;
+      const projects: OpenISDProject[] = [];
+      const refused: string[] = [];
+      const refusedEntries: RefusedEntry[] = [];
+      const traceHidden = new Set<OpenISDProject>();
+      let focusedIndex = 0;
+      for (const entry of payload.entries) {
+        const project = readRepairing(entry.text, OPEN_SESSION_SOURCE, 'tell');
+        if (Array.isArray(project)) {
+          refused.push(`entry ${entry.id}: ${project.join('; ')}`);
+          refusedEntries.push({ id: entry.id, text: entry.text });
+          continue;
+        }
+        asEntry(project, entry.id);
+        if (entry.traceHidden) traceHidden.add(project);
+        if (entry.id === payload.focusedId) focusedIndex = projects.length;
+        projects.push(project);
+      }
+      return { projects, focusedIndex, refused, refusedEntries, traceHidden };
+    },
+    watchOpenProjects(onChange: () => void): () => void {
+      return storage.watch(OPEN_SESSION_STORAGE_KEY, onChange);
+    },
+    keepRefusedEntries(entries: readonly RefusedEntry[]): number {
+      return entries.filter(entry => !backup.refuse('wouldNotLoad', refusedNameOf(entry.text), entry.text)).length;
+    },
+    storedDocs(): StoredDocsResult {
+      const text = storage.get(PROJECTS_STORAGE_KEY);
+      if (text === null) return { kind: 'ok', docs: [] };
+      try {
+        const parsed: unknown = JSON.parse(text);
+        const payload = storedProjectsPayload(parsed);
+        if (!payload) return { kind: 'unreadable' };
+        const storedLayout = parseLayout(storage.get(OPENISD_STORAGE_LAYOUT_KEY));
+        let layout = storedLayout;
+        if (layout === null) {
+          const stamped: unknown = JSON.parse(exportedFiles.stamp('{}'));
+          layout = typeof stamped === 'object' && stamped !== null && 'layout' in stamped && typeof stamped.layout === 'number'
+            ? stamped.layout
+            : 1;
+        }
+        return {
+          kind: 'ok',
+          docs: payload.entries.map(e => ({ id: e.id, body: e.text, layout })),
+        };
+      } catch {
+        return { kind: 'unreadable' };
+      }
+    },
+    putStoredDoc(id: string, body: string): 'done' | 'refused' {
+      const text = storage.get(PROJECTS_STORAGE_KEY);
+      let currentEntries: StoredProjectEntry[] = [];
+      if (text !== null) {
+        try {
+          const parsed: unknown = JSON.parse(text);
+          const payload = storedProjectsPayload(parsed);
+          if (!payload) return 'refused';
+          currentEntries = payload.entries;
+        } catch {
+          return 'refused';
+        }
+      }
+
+      const existingIdx = currentEntries.findIndex(e => e.id === id);
+      let finalBody = body;
+      const incomingName = projectNameOf(body);
+      if (incomingName !== null) {
+        const otherNames: string[] = [];
+        for (const e of currentEntries) {
+          if (e.id !== id) {
+            const name = projectNameOf(e.text);
+            if (name !== null) otherNames.push(name);
+          }
+        }
+        if (otherNames.includes(incomingName)) {
+          const finalName = uniqueName(incomingName, otherNames);
+          finalBody = setProjectNameInBody(finalBody, finalName);
+        }
+      }
+
+      // A new stamp, never the one the entry had: an open project tells by it that its entry was replaced.
+      const nowIso = new Date(nextStamp(existingIdx >= 0 ? currentEntries[existingIdx]?.modified ?? null : null)).toISOString();
+      if (existingIdx >= 0) {
+        const guarded = backup.guard('sync', () => {
+          const nextEntries = [...currentEntries];
+          nextEntries[existingIdx] = { id, text: finalBody, modified: nowIso };
+          writeStoredEntries(nextEntries);
+        });
+        return guarded.kind === 'ran' ? 'done' : 'refused';
+      }
+
+      try {
+        const nextEntries = [...currentEntries, { id, text: finalBody, modified: nowIso }];
+        writeStoredEntries(nextEntries);
+        return 'done';
+      } catch {
+        return 'refused';
+      }
+    },
+    storedIdOf(project: OpenISDProject): string | null {
+      return readStoredEntries().some(entry => entry.id === project.uuid()) ? project.uuid() : null;
+    },
+    storeWithUnsavedLayer(project: OpenISDProject, base: string | null): LayerWrite {
+      const id = project.uuid();
+      const entry = heldEntry(id);
+      if (entry === null) return {kind: 'notStored'};
+      const {text: held, modified: stamp} = entry;
+      const text = project.toStoredText();
+      const heldLayers = layersOf(held);
+      const ours = layersOf(text);
+      // The entry holds this project's design already (it may differ in view state only).
+      if (held === text || (heldLayers !== null && ours !== null && heldLayers.saved === ours.saved && heldLayers.edited === ours.edited)) {
+        return {kind: 'same', stamp};
+      }
+      // Nothing unsaved on either side: the entry is the project's checkpoint, as Save wrote it.
+      if (!project.isModified() && heldLayers !== null && heldLayers.edited === null) return {kind: 'idle'};
+      const sameCheckpoint = heldLayers !== null && ours !== null && heldLayers.saved === ours.saved && heldLayers.edited === null;
+      if (stamp !== base && !sameCheckpoint) return {kind: 'moved'};
+      const written = rewriteEntry(id, text);
+      return written === 'written' ? {kind: 'written', stamp} : {kind: written};
+    },
+    savedStampOf(id: string): string | null {
+      return heldEntry(id)?.modified ?? null;
+    },
+    dropUnsavedLayer(id: string): 'written' | 'same' | 'notStored' | 'refused' {
+      const entry = heldEntry(id);
+      if (entry === null) return 'notStored';
+      let parsed: unknown;
+      try { parsed = JSON.parse(entry.text); } catch { return 'same'; }
+      if (!isRecord(parsed) || !isRecord(parsed.edited)) return 'same';
+      return rewriteEntry(id, stringifyWithOverflow({...parsed, edited: null}, {}));
+    },
+    deleteStoredProject(id: string): 'done' | 'refused' {
+      const entries = readStoredEntries();
+      const gone = entries.find(e => e.id === id);
+      if (gone === undefined) return 'refused';
+      const guarded = backup.guard('delete', () => {
+        writeStoredEntries(entries.filter(e => e.id !== id));
+        if (storage.get(PROJECT_STORAGE_KEY) === gone.text) storage.remove(PROJECT_STORAGE_KEY);
+        for (const key of [OPEN_SESSION_STORAGE_KEY, QUARANTINE_SESSION_STORAGE_KEY]) {
+          const session = sessionWithout(storage.get(key), id);
+          if (session !== null) storage.set(key, JSON.stringify(session));
+        }
+      });
+      if (guarded.kind !== 'ran') return 'refused';
+      onSaved();
+      return 'done';
+    },
+    removeStoredDoc(id: string): 'done' | 'refused' {
+      const text = storage.get(PROJECTS_STORAGE_KEY);
+      if (text === null) return 'refused';
+      let payload: StoredProjectsPayload | null = null;
+      try {
+        const parsed: unknown = JSON.parse(text);
+        payload = storedProjectsPayload(parsed);
+      } catch {
+        return 'refused';
+      }
+      if (!payload) return 'refused';
+      const existingIdx = payload.entries.findIndex(e => e.id === id);
+      if (existingIdx < 0) return 'refused';
+
+      const nonNullPayload = payload;
+      const guarded = backup.guard('sync', () => {
+        const nextEntries = nonNullPayload.entries.filter(e => e.id !== id);
+        writeStoredEntries(nextEntries);
+      });
+      return guarded.kind === 'ran' ? 'done' : 'refused';
+    },
+  };
+}
+
+/** What a share link carries: the project as `.owpr` text, plus the chart view it was shared
+ *  showing. The view is this package's own concern — the domain has no opinion on it — which is
+ *  why the link is a wrapper around the project text rather than the project text itself. */
+interface SharePayload { project: string; view: ViewSnapshot }
+
+/** `value` as a `SharePayload`, or null when it is not one. A narrowing GUARD rather than a
+ *  cast: the link's bytes came off a URL a stranger may have written, so every field is checked
+ *  before any is read, and each is rebuilt at its own declared type rather than asserted. */
+function sharePayload(value: unknown): SharePayload | null {
+  if (!value || typeof value !== 'object') return null;
+  if (!('project' in value) || typeof value.project !== 'string') return null;
+  if (!('view' in value)) return null;
+  const view = viewSnapshot(value.view);
+  if (!view) return null;
+  return { project: value.project, view };
+}
+
+/** `value` as a `ViewSnapshot`, or null when it is not one. */
+function viewSnapshot(value: unknown): ViewSnapshot | null {
+  if (!value || typeof value !== 'object') return null;
+
+  const ui = 'ui' in value ? value.ui : null;
+  if (!ui || typeof ui !== 'object') return null;
+
+  return { ui: {...ui} };
+}
+
+/**
+ * Project name ↔ file name.
+ *
+ * The FILE NAME is the source of truth for a project's name: the name is the filename minus
+ * `.owpr`, and saving writes the name back unchanged. The two are one string, so a user
+ * reading their file list is reading their project list.
+ *
+ * The only transformation on the way to disk is dropping characters a filename genuinely
+ * cannot hold — `<>:"/\|?*`, control characters, and a leading/trailing dot or space (all
+ * illegal on Windows). Spaces, apostrophes, dashes and interior dots are ordinary name
+ * characters and are kept verbatim: substituting them would break the equivalence above on
+ * everyday names.
+ */
+
+/** The project file extension. A bare `.json` is also accepted on the way in. */
+export const PROJECT_EXT = '.owpr';
+
+/** Characters no Windows filename may contain (`/` is illegal on POSIX too). */
+const ILLEGAL_IN_FILENAME = /[<>:"/\\|?*]/g;
+/** Leading/trailing dots and spaces — legal in a project name, not in a Windows filename. */
+const EDGE_DOTS_AND_SPACES = /^[.\s]+|[.\s]+$/g;
+
+/** C0/DEL control characters, which no filename may hold. Matched by code point so the
+ *  source carries no literal control character (and needs no lint suppression). */
+function stripControls(s: string, replacement: string): string {
+  return Array.from(s).map((ch) => {
+    const cp = ch.codePointAt(0)!;
+    return cp < 0x20 || cp === 0x7f ? replacement : ch;
+  }).join('');
+}
+
+/** The project name a file of this name holds — the basename minus the project extension. */
+export function projectNameFromFilename(filename: string): string {
+  const base = filename.split(/[/\\]/).pop() ?? '';
+  const lower = base.toLowerCase();
+  if (lower.endsWith(PROJECT_EXT)) return base.slice(0, -PROJECT_EXT.length).trim();
+  if (lower.endsWith('.json')) return base.slice(0, -'.json'.length).trim();
+  return base.trim();
+}
+
+/** The file name a project of this name is saved as. */
+export function projectFilename(name: string): string {
+  const raw = name || '';
+  // A name with NO filename-legal character at all (e.g. "///") has no meaningful file name,
+  // so it falls back to "design" rather than to a row of underscores.
+  const legalChars = stripControls(raw, '').replace(ILLEGAL_IN_FILENAME, '').replace(EDGE_DOTS_AND_SPACES, '');
+  if (!legalChars) return 'design' + PROJECT_EXT;
+  const safe = stripControls(raw, '_').replace(ILLEGAL_IN_FILENAME, '_').replace(EDGE_DOTS_AND_SPACES, '');
+  return safe + PROJECT_EXT;
+}
+
+/** The name of a copy of this project. */
+export function copyOfName(name: string): string {
+  return 'Copy of ' + name;
+}
+
+/** `name`, or `name (2)`, `name (3)`… — the first form not already in `taken`. */
+export function uniqueName(name: string, taken: readonly string[]): string {
+  if (!taken.includes(name)) return name;
+  let n = 2;
+  while (taken.includes(`${name} (${n})`)) n++;
+  return `${name} (${n})`;
+}

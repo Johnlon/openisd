@@ -1,0 +1,311 @@
+import {describe, expect, it, beforeEach} from 'vitest';
+import {computed, defineComponent, effectScope, h, provide} from 'vue';
+import {renderToString} from 'vue/server-renderer';
+import {createEngine} from '@openisd/design/engine';
+import {ProjectBuilder} from '@openisd/design';
+import {SheetField} from '@openisd/design/fields';
+import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
+import {useOriginalWhatIf, type OriginalWhatIfAPI} from '../../src/hooks/OriginalWhatIf-hooks.js';
+import {runHook} from './runHook.js';
+import {testAppLogic} from './testAppLogic.js';
+import {APP_LOGIC, type AppLogic} from '../../src/logic/app.js';
+import type {AppState} from '../../src/logic/appState.js';
+
+let logic: AppLogic;
+let appState: AppState;
+
+beforeEach(() => {
+  logic = testAppLogic();
+  appState = logic.appState;
+});
+
+function createProject() {
+  const engine = createEngine();
+  const project = ProjectBuilder.empty(engine);
+  project.driver.specs.Fs_hz.set(40);
+  project.driver.specs.Qts.set(0.38);
+  project.driver.specs.Qes.set(0.45);
+  project.driver.specs.Vas_m3.set(0.03);
+  project.driver.specs.Sd_m2.set(0.02);
+  project.box.sealed.volume_m3.set(0.012);
+  return project;
+}
+
+async function renderHook(project = createProject()): Promise<OriginalWhatIfAPI> {
+  let api!: OriginalWhatIfAPI;
+  const Child = defineComponent({
+    setup() {
+      api = useOriginalWhatIf();
+      return () => null;
+    },
+  });
+  const Root = defineComponent({
+    setup() {
+      provide(APP_LOGIC, logic);
+      provideFocusedProject(computed(() => project));
+      return () => h(Child);
+    },
+  });
+  await renderToString(h(Root));
+  return api;
+}
+
+describe('OriginalWhatIf-hooks', () => {
+  it('builds the editable box rows and port-length rows for every box type', async () => {
+    const expectedByType = [
+      ['sealed', [], [SheetField.BOX_VOLUME], []],
+      ['vented', ['Port length'], [SheetField.BOX_VOLUME, SheetField.TUNING, SheetField.PORT_AREA], []],
+      ['bandpass4', ['Front port length'], [SheetField.REAR_VOLUME, SheetField.FRONT_VOLUME, SheetField.FRONT_TUNING, SheetField.PORT_AREA], []],
+      ['bandpass6', ['Rear port length'], [SheetField.REAR_VOLUME, SheetField.FRONT_VOLUME, SheetField.REAR_TUNING, SheetField.REAR_PORT_AREA, SheetField.FRONT_PORT_AREA], []],
+      ['abc', ['Rear port length'], [SheetField.REAR_VOLUME, SheetField.FRONT_VOLUME, SheetField.REAR_TUNING, SheetField.REAR_PORT_AREA, SheetField.FRONT_PORT_AREA, SheetField.INTRA_PORT_AREA], []],
+      ['box-passive-radiator', [], [SheetField.BOX_VOLUME, SheetField.PR_ADDED_MASS, SheetField.PR_COUNT], [SheetField.PR_COUNT]],
+    ] as const;
+    for (const [boxType, expectedPorts, expectedRows, expectedNullCellRows] of expectedByType) {
+      const project = createProject();
+      project.box.boxType.set(boxType);
+      const api = await renderHook(project);
+
+      expect(api.boxRows.value.map(row => row.field)).toEqual(expectedRows);
+      expect(api.boxRows.value.filter(row => row.cell === null).map(row => row.field)).toEqual(expectedNullCellRows);
+      expect(api.boxRows.value.filter(row => row.cell !== null).every(row => row.cell!.value === row.value)).toBe(true);
+      api.boxRows.value.filter(row => row.cell !== null).forEach(row => row.cell!.clear());
+      expect(api.portLengthRows.value.map(row => row.label)).toEqual(expectedPorts);
+      expect(api.portLengthRows.value.every(row => row.cell.value !== null)).toBe(true);
+      expect(api.sheetRows.map(row => row.key)).toEqual(['Fs_hz', 'Vas_m3', 'Qes', 'Qms']);
+    }
+  });
+
+  it('a write with no What-if open starts one, so the project stays unmodified', async () => {
+    const project = createProject();
+    project.save();
+    const api = await renderHook(project);
+
+    api.enterField('Fs_hz', 55);
+    api.clearField('Qes');
+    api.setVb_m3(0.02);
+
+    expect(project.isWhatIfActive()).toBe(true);
+    expect(project.driver.specs.Fs_hz.value).toBe(55);
+    expect(project.isModified()).toBe(false);
+  });
+
+  it('emptying Vb hands it back to the calculation, never stores 0, and leaves the project unchanged', async () => {
+    const project = createProject();
+    project.save();
+    const api = await renderHook(project);
+
+    api.vbCell.value.clear();
+
+    expect(project.isWhatIfActive()).toBe(true);
+    expect(api.vbCell.value.entered).toBe(false);
+    expect(api.vb_m3.value).not.toBe(0);
+    expect(project.isModified()).toBe(false);
+    api.close();
+    expect(project.box.sealed.volume_m3.value).toBe(0.012);
+  });
+
+  it('close ends the What-if: the project values are as before and not modified', async () => {
+    const project = createProject();
+    project.save();
+    const before = project.cloneSession();
+    const api = await renderHook(project);
+
+    api.enterField('Fs_hz', 55);
+    api.setVb_m3(0.02);
+    api.close();
+
+    expect(project.isWhatIfActive()).toBe(false);
+    expect(project.driver.specs.Fs_hz.value).toBe(40);
+    expect(project.box.sealed.volume_m3.value).toBe(0.012);
+    expect(project.isModified()).toBe(false);
+    expect(project.cloneSession()).toEqual(before);
+  });
+
+  it('unmounting the panel ends the What-if', () => {
+    const project = createProject();
+    project.save();
+    const scope = effectScope();
+    const api = scope.run(() => runHook(computed(() => project), useOriginalWhatIf, logic));
+    if (api === undefined) throw new Error('the hook did not run');
+    api.enterField('Fs_hz', 55);
+    scope.stop();
+    expect(project.isWhatIfActive()).toBe(false);
+    expect(project.driver.specs.Fs_hz.value).toBe(40);
+    expect(project.isModified()).toBe(false);
+  });
+
+  it('reset puts the project values back and keeps the What-if open', async () => {
+    const project = createProject();
+    project.save();
+    const api = await renderHook(project);
+
+    api.enterField('Fs_hz', 55);
+    await api.reset();
+
+    expect(project.isWhatIfActive()).toBe(true);
+    expect(project.driver.specs.Fs_hz.value).toBe(40);
+    expect(project.isModified()).toBe(false);
+  });
+
+  it('reads numeric driver fields and calculates ebp', async () => {
+    const api = await renderHook();
+    expect(api.cellVal('Fs_hz')).toBe(40);
+    expect(api.cellVal('Qes')).toBe(0.45);
+    expect(api.ebp.value).toBeCloseTo(40 / 0.45, 1);
+  });
+
+  it('updates and clears field values through enterField and clearField', async () => {
+    const project = createProject();
+    const api = await renderHook(project);
+
+    api.enterField('Fs_hz', 55);
+    expect(project.driver.specs.Fs_hz.value).toBe(55);
+    expect(api.cellVal('Fs_hz')).toBe(55);
+
+    api.clearField('Fs_hz');
+    expect(project.driver.specs.Fs_hz.value).toBeNull();
+  });
+
+  it('provides cellClass and dqNote for fields', async () => {
+    const api = await renderHook();
+    expect(api.cellClass('Fs_hz')).toBeDefined();
+    expect(typeof api.dqNote('Fs_hz')).toBe('string');
+  });
+
+  it('Mms is calculated by default, becomes entered when set, and returns to calculated when cleared', async () => {
+    const api = await renderHook();
+    expect(api.specField('Mms_kg').calculated).toBe(true);
+
+    api.enterField('Mms_kg', 0.0125);
+    const entered = api.specField('Mms_kg');
+    expect(entered.entered).toBe(true);
+    expect(entered.value).toBeCloseTo(0.0125, 6);
+
+    api.clearField('Mms_kg');
+    expect(api.specField('Mms_kg').calculated).toBe(true);
+  });
+
+  it('BL_Tm becomes entered when set directly', async () => {
+    const api = await renderHook();
+    api.enterField('BL_Tm', 9.5);
+    const blCell = api.specField('BL_Tm');
+    expect(blCell.entered).toBe(true);
+    expect(blCell.value).toBeCloseTo(9.5, 6);
+  });
+
+  it('a blank Q auto-solves from the other two, and re-tracks when a sibling changes', async () => {
+    const project = createProject();
+    project.driver.specs.Qms.set(4.0);
+    const api = await renderHook(project);
+
+    expect(api.specField('Qms').entered).toBe(true);
+
+    api.clearField('Qms');
+    expect(api.specField('Qms').calculated).toBe(true);
+    const solved = api.specField('Qms').value;
+    expect(solved).not.toBeNull();
+
+    api.enterField('Qes', 0.55);
+    expect(api.specField('Qms').value).not.toBeCloseTo(solved!, 6);
+  });
+
+  it('clearing a second Q of the trio leaves the dependents not-available, not falsely calculated', async () => {
+    const project = createProject();
+    project.driver.specs.Qms.set(4.0);
+    const api = await renderHook(project);
+
+    api.clearField('Qms');
+    api.clearField('Qes');
+    expect(api.specField('Qes').value).toBe(null);
+    expect(api.specField('Qms').value).toBe(null);
+    expect(api.specField('Qts').entered).toBe(true);
+  });
+
+  it('setVb_m3 writes and reads back through vb_m3 for every box type', async () => {
+    const boxTypes = ['sealed', 'vented', 'bandpass4', 'bandpass6', 'abc', 'box-passive-radiator'] as const;
+    for (const boxType of boxTypes) {
+      const project = createProject();
+      project.box.boxType.set(boxType);
+      const api = await renderHook(project);
+      api.setVb_m3(0.02);
+      expect(api.vb_m3.value).toBeCloseTo(0.02, 9);
+    }
+  });
+
+  it('setVb_m3 keeps full precision across write and read', async () => {
+    const api = await renderHook();
+    api.setVb_m3(0.012345678);
+    expect(api.vb_m3.value).toBeCloseTo(0.012345678, 12);
+  });
+
+  it('keeps a Vb typed in What-if? when the What-if layer is active', async () => {
+    const project = createProject();
+    project.beginWhatIf();
+    const api = await renderHook(project);
+
+    api.setVb_m3(0.02);
+    expect(api.vb_m3.value).toBeCloseTo(0.02, 9);
+    expect(project.isWhatIfActive()).toBe(true);
+
+    // Blurring the field is a pure display event — nothing the panel does after a write may
+    // put the project's volume back.
+    api.enterField('Fs_hz', 55);
+    expect(api.vb_m3.value).toBeCloseTo(0.02, 9);
+  });
+
+  /**
+   * The bug showed when focus left a field in the tuner, and only for Vb. `vb_m3` and `ebp` are CACHED computeds, and reading `project.value`
+   * alone does not invalidate them: the registry hands out the same instance for the project's
+   * whole life, so a write leaves their caches untouched. They must read `projectChanged` too —
+   * the same rule `createBoxVolume` in `boxFields.ts` already carries. The panel's
+   * driver fields are plain render-time functions and never had the problem; Vb kept answering
+   * the volume it held when the panel opened, and NumInput's blur reformat put that stale number
+   * back on screen.
+   */
+  it('re-reads Vb after a write rather than answering the cached one', async () => {
+    const project = createProject();
+    const opened = appState.openProjects().length;
+    appState.addProject(project);
+    try {
+      const api = await renderHook(project);
+      // Evaluate FIRST — this is the read whose cache the write has to invalidate.
+      expect(api.vb_m3.value).toBeCloseTo(0.012, 9);
+      api.setVb_m3(0.02);
+      expect(api.vb_m3.value).toBeCloseTo(0.02, 9);
+    } finally {
+      appState.removeProject(appState.openProjects().length - 1);
+      expect(appState.openProjects().length).toBe(opened);
+    }
+  });
+
+  it('shows a volume written by another panel, as the Box tab writes it', async () => {
+    const project = createProject();
+    const opened = appState.openProjects().length;
+    appState.addProject(project);
+    try {
+      // runHook, not renderToString: only a client-side computed caches, so only it can go stale.
+      const api = runHook(computed(() => project), useOriginalWhatIf, logic);
+      expect(api.vb_m3.value).toBeCloseTo(0.012, 9);
+      project.box.sealed.volume_m3.set(0.027);
+      expect(api.vb_m3.value).toBeCloseTo(0.027, 9);
+    } finally {
+      appState.removeProject(appState.openProjects().length - 1);
+      expect(appState.openProjects().length).toBe(opened);
+    }
+  });
+
+  it('re-reads ebp after a write rather than answering the cached one', async () => {
+    const project = createProject();
+    const opened = appState.openProjects().length;
+    appState.addProject(project);
+    try {
+      const api = await renderHook(project);
+      expect(api.ebp.value).toBeCloseTo(40 / 0.45, 6);
+      api.enterField('Fs_hz', 80);
+      expect(api.ebp.value).toBeCloseTo(80 / 0.45, 6);
+    } finally {
+      appState.removeProject(appState.openProjects().length - 1);
+      expect(appState.openProjects().length).toBe(opened);
+    }
+  });
+});

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Verify that a live Vite development server is serving the working tree.
+# Port: OPENISD_PREVIEW_PORT, default 4000 (the live preview). The health check passes its own port.
+set -euo pipefail
+PORT="${OPENISD_PREVIEW_PORT:-4000}"
+
+# Environment guard
+{ [ -n "${MSYSTEM:-}" ] || [ "$(uname -s)" = Linux ]; } || { echo "ERROR: must run in Git Bash on Windows, WSL or Linux, not PowerShell/cmd" >&2; exit 1; }
+
+echo "Verifying that http://localhost:$PORT/ is the live Vite app, and that it works..."
+
+# 1. Check HTTP response code
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/ || echo "000")
+if [ "$HTTP_STATUS" -ne 200 ]; then
+  echo "ERROR: Server on port $PORT is not responding with HTTP 200 (status code: $HTTP_STATUS)." >&2
+  exit 1
+fi
+
+# 2. The live app must expose Vite's development client. A static dist server is wrong here.
+VITE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT/@vite/client || echo "000")
+if [ "$VITE_STATUS" -ne 200 ]; then
+  echo "ERROR: Port $PORT is not serving the Vite development client (status: $VITE_STATUS)." >&2
+  echo "Start it with: bash scripts/preview-4000.sh" >&2
+  exit 1
+fi
+
+# 3. Confirm the HTML is the development document, not a production asset manifest.
+HTML_CONTENT=$(curl -s http://localhost:$PORT/)
+if ! printf '%s' "$HTML_CONTENT" | grep -q '/@vite/client'; then
+  echo "ERROR: Port $PORT returned HTML without Vite's live client." >&2
+  exit 1
+fi
+
+echo "Vite development server is live. Now checking that the app actually RUNS..."
+
+# 4. Load it in a real browser and fail on any uncaught exception or console error.
+#
+# Steps 1-3 compare FILENAMES. They prove the served bytes are CURRENT; they cannot prove they
+# are CORRECT, and they certified a build whose every driver-panel computation threw on load
+# (bugs/BUG_20260817_deploy_verifies_asset_freshness_but_never_that_the_app_runs.md). HTTP 200
+# is the SERVER answering, not the app working.
+node "$(dirname "$0")/verify-app-runs.mjs" http://localhost:$PORT/
+
+echo "SUCCESS: Port $PORT is serving the live working tree, and the app runs."
+exit 0

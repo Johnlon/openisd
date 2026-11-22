@@ -1,0 +1,141 @@
+/** Fixed-decimal number formatting for readouts. */
+
+export function formatFixed(v: number, decimals: number): string {
+  return v.toFixed(decimals);
+}
+
+/**
+ * `v` to `decimals` places with trailing zeros dropped down to two decimals (or `decimals` when
+ * fewer): 14.7 at 5 is "14.70", 7.1734 is "7.1734", 0.57 at 3 is "0.57" (QO454).
+ */
+export function formatTrimmed(v: number, decimals: number): string {
+  return formatTrimmedTo(v, decimals, Math.min(decimals, 2));
+}
+
+/** `v` to `decimals` places with trailing zeros dropped down to `keep` decimals (never more than `decimals`). */
+export function formatTrimmedTo(v: number, decimals: number, keep: number): string {
+  const out = v.toFixed(decimals);
+  let end = out.length;
+  for (let d = decimals; d > keep && out.charAt(end - 1) === '0'; d--) end--;
+  if (out.charAt(end - 1) === '.') end--; // every decimal went: no dangling point
+  return out.slice(0, end);
+}
+
+/** `v` to `decimals` places; a dash when `v` is missing or not finite. */
+export function formatFixedOrDash(v: number | null, decimals: number): string {
+  return v != null && isFinite(v) ? v.toFixed(decimals) : '—';
+}
+
+const pad2 = (n: number): string => String(n).padStart(2, '0');
+
+/** "2026-10-05" — local calendar date in ISO order, built by hand so the browser locale never shows through. */
+export function formatDate(d: Date): string {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
+
+/** "23:32" — local 24-hour clock, no seconds. Every user-visible time. */
+export function formatTime(d: Date): string {
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+/** "23:32:07" — local 24-hour clock with seconds, for event logs where minutes are too coarse. */
+export function formatClock(d: Date): string {
+  return `${formatTime(d)}:${pad2(d.getSeconds())}`;
+}
+
+/** "5 Oct 2026" — local date, for a label that names only the day. */
+export function formatDay(d: Date): string {
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/** "5 Oct 2026, 23:32" — local date and 24-hour clock, no seconds. Every date/time a user sees. */
+export function formatDateTime(d: Date): string {
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${formatTime(d)}`;
+}
+
+const STAMP = /^(\d{4})(\d{2})(\d{2})$/;
+const ISO_DAY = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
+const DAY_MONTH_YEAR = /^(\d{1,2}) ([A-Za-z]{3}) (\d{4})$/;
+
+/** The calendar day `year`/`month`/`day` names, or null when there is no such day (31 Feb). */
+function realDay(year: number, month: number, day: number): Date | null {
+  const d = new Date(year, month - 1, day);
+  return d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day ? d : null;
+}
+
+/** "16 Oct 2026" for a project's Created/Modified stamp "20261016" (WinISD's `YYYYMMDD`, which holds
+ *  no time). A stamp that is not a real day is shown as stored. */
+export function formatDateStamp(stamp: string): string {
+  const m = STAMP.exec(stamp);
+  const d = m ? realDay(Number(m[1]), Number(m[2]), Number(m[3])) : null;
+  return d ? formatDay(d) : stamp;
+}
+
+/** The `YYYYMMDD` stamp a typed date names: "16 Oct 2026" (any letter case), "2026-10-16" or
+ *  "20261016". `previous` when the text names no real day, so a half-typed date changes nothing. */
+export function dateStampFrom(text: string, previous: string): string {
+  const t = text.trim();
+  const dmy = DAY_MONTH_YEAR.exec(t);
+  const iso = STAMP.exec(t) ?? ISO_DAY.exec(t);
+  const month = dmy ? MONTHS.findIndex(name => name.toLowerCase() === dmy[2].toLowerCase()) + 1 : 0;
+  const d = dmy ? realDay(Number(dmy[3]), month, Number(dmy[1]))
+    : iso ? realDay(Number(iso[1]), Number(iso[2]), Number(iso[3])) : null;
+  return d ? `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}` : previous;
+}
+
+/** "2026-11-16" for a Date added held as WinISD's stamp "20261116" or already as an ISO day; any other
+ *  text is returned as stored. Catalogue records hold the dashed form, new records the stamp, and
+ *  every Date added box shows the dashed one. */
+export function isoDay(stored: string): string {
+  const m = STAMP.exec(stored) ?? ISO_DAY.exec(stored);
+  const d = m ? realDay(Number(m[1]), Number(m[2]), Number(m[3])) : null;
+  return d ? `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}` : stored;
+}
+
+const BASIC_UTC = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/;
+
+/** The instant an ISO 8601 basic UTC stamp names — "20260101T0102Z", "20260101T010203Z", a leading
+ *  `v` allowed — or null when `stamp` is not one. Stamps are what is stored and sent; this is the
+ *  one way back to a Date for display. */
+export function parseBasicUtc(stamp: string): Date | null {
+  const m = BASIC_UTC.exec(stamp);
+  if (!m) return null;
+  const [year, month, day, hour, minute, second] = [m[1], m[2], m[3], m[4], m[5], m[6] ?? '00'].map(Number);
+  if (month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59) return null;
+  const d = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+  return d.getUTCMonth() === month - 1 && d.getUTCDate() === day ? d : null;
+}
+
+/** "1,234,567" — a whole number grouped in thousands with commas, whatever the browser locale. */
+export function formatCount(n: number): string {
+  return String(Math.trunc(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/** "512 B", "12.3 KB", "1.2 MB", "2.3 GB" — a length in bytes, 1024 to the unit, one decimal above bytes. */
+export function formatByteSize(bytes: number): string {
+  if (bytes < 1024) return `${Math.trunc(bytes)} B`;
+  if (bytes < 1024 * 1024) return `${formatFixed(bytes / 1024, 1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${formatFixed(bytes / (1024 * 1024), 1)} MB`;
+  return `${formatFixed(bytes / (1024 * 1024 * 1024), 1)} GB`;
+}
+
+/** "1 project", "3 projects", "0 projects" — a count and its noun, plural unless exactly one. */
+export function formatCountOf(n: number, noun: string): string {
+  return `${formatCount(n)} ${noun}${n === 1 ? '' : 's'}`;
+}
+
+/** `v` to 3 significant figures, trailing zeros kept ("30.0"); never exponent form. */
+export function formatSignificant(v: number): string {
+  if (!Number.isFinite(v)) return String(v);
+  if (v === 0) return '0';
+  const magnitude = Math.floor(Math.log10(Math.abs(v)));
+  if (magnitude >= 2) return String(Math.round(v));
+  const places = 2 - magnitude;
+  const scale = 10 ** places;
+  return (Math.round(v * scale) / scale).toFixed(places);
+}
+
+/** Most significant digits a phone number box shows; the stored value keeps its full precision (360 px boxes clip longer text). */
+export const PHONE_MAX_SIGNIFICANT = 6;

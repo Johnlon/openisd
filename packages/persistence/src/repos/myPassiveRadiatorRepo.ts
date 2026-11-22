@@ -1,0 +1,77 @@
+/** REPO: the passive radiators the USER saved. Takes a storage, returns domain objects.
+ *
+ *  The radiator counterpart of `myDriverRepo` — same role, same lifecycle, and the SAME stored
+ *  envelope (`savedEntries.ts`): writable, held in the browser's key-value storage, and nothing
+ *  to do with the read-only radiators that ship in the bundle. This file supplies only the two
+ *  things specific to a radiator: which storage key, and which domain seam validates a record. */
+import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import type {KeyValueStorage} from '../storage/keyValueStorage.js';
+import {type BrokenEntry, createSavedEntries, type SavedEntries, type SavedRecordRepoWrites} from './savedEntries.js';
+import type {StorageBackup} from './storageBackup.js';
+import {OPENISD_MY_PASSIVE_RADIATORS_KEY} from './storageKeys.js';
+
+export const MY_PASSIVE_RADIATORS_KEY = OPENISD_MY_PASSIVE_RADIATORS_KEY;
+
+export type MyPassiveRadiatorsRead =
+  /** Bucket readable. `broken` entries are preserved in storage and surfaced, never hidden. */
+  | { kind: 'ok'; passiveRadiators: { uuid: string; passiveRadiator: OpenISDPassiveRadiatorStandalone }[]; broken: BrokenEntry[] }
+  /** Storage itself is inaccessible (private mode, browser policy). Not a corruption. */
+  | { kind: 'unavailable' }
+  /** The bucket's string is not a readable envelope. READ-ONLY until the user decides. */
+  | { kind: 'unreadable'; raw: string };
+
+/** The My Passive Radiators collection. Its writes (`SavedRecordRepoWrites`) take an `OpenISDPassiveRadiatorStandalone`. */
+export interface MyPassiveRadiatorRepo extends SavedRecordRepoWrites<OpenISDPassiveRadiatorStandalone> {
+  /** The bucket, with its failure states made explicit. */
+  read(): MyPassiveRadiatorsRead;
+  /** Every saved radiator, in saved order — `[]` when unavailable or unreadable. */
+  list(): { uuid: string; passiveRadiator: OpenISDPassiveRadiatorStandalone }[];
+}
+
+export function createMyPassiveRadiatorRepo(storage: KeyValueStorage, backup: StorageBackup, onSaved: () => void): MyPassiveRadiatorRepo {
+  const library: SavedEntries<OpenISDPassiveRadiatorStandalone> = createSavedEntries(storage, {
+    key: MY_PASSIVE_RADIATORS_KEY,
+    open: (record) => OpenISDPassiveRadiatorStandalone.fromConformingRecord(record),
+    snapshot: (pr) => pr.clonePassiveRadiator(),
+  }, backup);
+
+  return {
+    read() {
+      const s = library.read();
+      if (s.kind !== 'ok') return s;
+      return {
+        kind: 'ok',
+        passiveRadiators: s.entries.map(e => ({ uuid: e.uuid, passiveRadiator: e.value })),
+        broken: s.broken,
+      };
+    },
+    list: () => library.list().map(e => ({ uuid: e.uuid, passiveRadiator: e.value })),
+    replaceAll: (list) => {
+      const res = library.replaceAll(list);
+      if (res === 'done') onSaved();
+      return res;
+    },
+    upsert: (pr, uuid) => {
+      const res = library.upsert(pr, uuid);
+      if (res !== null) onSaved();
+      return res;
+    },
+    remove: (uuid) => {
+      const res = library.remove(uuid);
+      if (res === 'done') onSaved();
+      return res;
+    },
+    removeBroken: (key) => {
+      const res = library.removeBroken(key);
+      if (res === 'done') onSaved();
+      return res;
+    },
+    exportRaw: () => library.exportRaw(),
+    deleteAll: () => {
+      const res = library.deleteAll();
+      if (res === 'done') onSaved();
+      return res;
+    },
+  };
+}
+

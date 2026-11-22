@@ -1,0 +1,81 @@
+import {describe, expect, it, vi, beforeEach} from 'vitest';
+import {computed, defineComponent, h, provide} from 'vue';
+import {renderToString} from 'vue/server-renderer';
+import {createEngine} from '@openisd/design/engine';
+import {ProjectBuilder} from '@openisd/design';
+import {runHook} from './runHook.js';
+import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
+import {useAdvancedOptions, type AdvancedOptionsAPI} from '../../src/hooks/AdvancedOptions-hooks.js';
+import {testAppLogic} from './testAppLogic.js';
+import {APP_LOGIC, type AppLogic} from '../../src/logic/app.js';
+import type {AppState} from '../../src/logic/appState.js';
+
+let logic: AppLogic;
+let appState: AppState;
+
+beforeEach(() => {
+  logic = testAppLogic();
+  appState = logic.appState;
+});
+
+function createProject(boxType: 'sealed' | 'vented' | 'bandpass4' = 'sealed') {
+  const engine = createEngine();
+  const project = ProjectBuilder.empty(engine);
+  project.box.boxType.set(boxType);
+  return project;
+}
+
+async function renderHook(project = createProject()): Promise<AdvancedOptionsAPI> {
+  let api!: AdvancedOptionsAPI;
+  const Child = defineComponent({
+    setup() {
+      api = useAdvancedOptions();
+      return () => null;
+    },
+  });
+  const Root = defineComponent({
+    setup() {
+      provide(APP_LOGIC, logic);
+      provideFocusedProject(computed(() => project));
+      return () => h(Child);
+    },
+  });
+  await renderToString(h(Root));
+  return api;
+}
+
+describe('AdvancedOptions-hooks', () => {
+  it('identifies when box has a vent', async () => {
+    const sealedApi = await renderHook(createProject('sealed'));
+    expect(sealedApi.hasVent.value).toBe(false);
+
+    const ventedApi = await renderHook(createProject('vented'));
+    expect(ventedApi.hasVent.value).toBe(true);
+
+    const bp4Api = await renderHook(createProject('bandpass4'));
+    expect(bp4Api.hasVent.value).toBe(true);
+  });
+
+  it('hasVent follows the box type when it changes after the first read', () => {
+    const project = createProject('sealed');
+    appState.addProject(project);   // the change tick only fires for a project appState holds
+    const api = runHook(computed(() => project), useAdvancedOptions, logic);
+    expect(api.hasVent.value).toBe(false);
+    project.box.boxType.set('vented');
+    expect(api.hasVent.value).toBe(true);
+  });
+
+  it('exposes the inputChecked helper', async () => {
+    const api = await renderHook();
+
+    class FakeHTMLInputElement {
+      checked = true;
+    }
+    vi.stubGlobal('HTMLInputElement', FakeHTMLInputElement);
+
+    const fakeInput = new FakeHTMLInputElement();
+    const event = new Event('change');
+    Object.defineProperty(event, 'target', {value: fakeInput, configurable: true});
+    expect(api.inputChecked(event)).toBe(true);
+  });
+});

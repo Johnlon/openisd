@@ -1,0 +1,788 @@
+import {clearFocusedEnvironment, expect, openAProject, setFocusedBoxType, test} from '../fixtures.js';
+import type {BoxTypeName} from '../fixtures.js';
+import type {Page} from '@playwright/test';
+import {fillAndBlur, fillAndCommit} from '../fixtures/numField.js';
+
+/**
+ * The Original shell's Advanced tab: the air constants and their calculated readouts, the loss
+ * model selector, and the WinISD Compatibility panel: the "Enable WinISD-style" switches and the "Enable WinISD bugs"
+ * switch group.
+ */
+
+const soundVelocity = (page: Page) => page.locator('.field', { hasText: 'Sound velocity' }).locator('input');
+const airDensity = (page: Page) => page.locator('.field', { hasText: 'Air density' }).locator('input');
+const humidity = (page: Page) => page.locator('.field', { hasText: 'Relative humidity' }).locator('input');
+const temperature = (page: Page) => page.locator('.field', { hasText: 'Temperature' }).locator('input');
+const pressure = (page: Page) => page.locator('.field', { hasText: 'Air pressure' }).locator('input');
+const advancedTab = (page: Page) => page.locator('li', { hasText: /^Advanced$/ });
+
+/** Set the passive-radiator count on the Passive Radiator tab, then come back to the Advanced tab. */
+async function setPrCount(page: Page, n: number): Promise<void> {
+  await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
+  await page.locator('#og-pr-count').selectOption(String(n));
+  await advancedTab(page).click();
+}
+
+/** The ≠W cue by the passive-radiator count, on the Passive Radiator tab. */
+async function prCountCue(page: Page) {
+  await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
+  return page.locator('.field', { has: page.locator('#og-pr-count') }).locator('.winisd-deviation-cue');
+}
+
+/** Show the Advanced tab for a project whose box is `boxType`; the box is set through the domain. */
+async function showAdvancedOn(page: Page, boxType: BoxTypeName): Promise<void> {
+  await setFocusedBoxType(page, boxType);
+  await advancedTab(page).click();
+}
+
+/** The first chart's data table as the user reads it: every cell of the Data dialog, in one string. */
+async function firstChartTable(page: Page): Promise<string> {
+  const panel = page.locator('.chart-cell .gpanel').first();
+  await panel.getByRole('button', { name: 'Data' }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.locator('tbody tr').first()).toBeVisible();
+  const text = await dialog.locator('tbody').innerText();
+  await dialog.getByRole('button', { name: 'Close' }).click();
+  await expect(dialog).toBeHidden();
+  return text;
+}
+
+test.beforeEach(async ({ appPage: page }) => {
+  await page.goto('/');
+  await openAProject(page);
+  await advancedTab(page).click();
+});
+
+test.describe('Original Advanced tab', () => {
+  test.describe('air constants and readouts', () => {
+    test('air density is shown beside sound velocity, both at WinISD\'s own values', async ({ appPage: page }) => {
+      await expect(soundVelocity(page)).toHaveValue('343.99');
+      // WinISD prints 1.20095; the moist-air model gives 1.2009621, which rounds to 1.20096 at
+      // the 5 dp WinISD uses — 8.3 ppm from its stored 1.20095217714682.
+      await expect(airDensity(page)).toHaveValue('1.19885');
+    });
+
+    test('calculated air readouts stay with the three editable air constants', async ({ appPage: page }) => {
+      const airFields = page.locator('.adv-air-fields');
+      await expect(airFields.locator('label', { hasText: 'Temperature' })).toBeVisible();
+      await expect(airFields.locator('label', { hasText: 'Relative humidity' })).toBeVisible();
+      await expect(airFields.locator('label', { hasText: 'Air pressure' })).toBeVisible();
+      await expect(airFields.locator('label', { hasText: 'Sound velocity' })).toBeVisible();
+      await expect(airFields.locator('label', { hasText: 'Air density' })).toBeVisible();
+      await expect(airFields.locator('input[readonly]')).toHaveCount(0);
+    });
+
+    test('typing a sound velocity and an air density enters them; clearing returns them to calculated', async ({ appPage: page }) => {
+      const c = soundVelocity(page);
+      const rho = airDensity(page);
+      await expect(c).toHaveClass(/value-c/);
+      await expect(rho).toHaveClass(/value-c/);
+
+      await fillAndCommit(c, '222.5');
+      await expect(c).toHaveValue(/222\.5/);
+      await expect(c).not.toHaveClass(/value-c/);
+
+      await fillAndCommit(rho, '2.34567');
+      await expect(rho).toHaveValue(/2\.34567/);
+      await expect(rho).not.toHaveClass(/value-c/);
+      await expect(c).toHaveValue(/222\.5/);
+
+      await fillAndCommit(c, '');
+      await fillAndCommit(rho, '');
+      await expect(c).toHaveClass(/value-c/);
+      await expect(rho).toHaveClass(/value-c/);
+      await expect(c).toHaveValue('343.99');
+      await expect(rho).toHaveValue('1.19885');
+    });
+
+    test('a typed air density, and separately a typed sound velocity, change the chart data', async ({ appPage: page }) => {
+      const calculated = await firstChartTable(page);
+
+      await fillAndCommit(airDensity(page), '2.34567');
+      const withRho = await firstChartTable(page);
+      expect(withRho).not.toBe(calculated);
+      await fillAndCommit(airDensity(page), '');
+      expect(await firstChartTable(page)).toBe(calculated);
+
+      await fillAndCommit(soundVelocity(page), '222.5');
+      const withC = await firstChartTable(page);
+      expect(withC).not.toBe(calculated);
+      await fillAndCommit(soundVelocity(page), '');
+      expect(await firstChartTable(page)).toBe(calculated);
+    });
+
+    test('air constants and calculated readouts occupy two aligned columns', async ({ appPage: page }) => {
+      // Two columns need the room of a wide window; a narrow pane wraps the calculated column under the entered one (BUG_20261031).
+      await page.setViewportSize({width: 1920, height: 1080});
+      const positions = await page.locator('.adv-air-fields .field').evaluateAll(fields => fields.map(field => {
+        const rect=field.getBoundingClientRect();return {left:rect.left,top:rect.top,bottom:rect.bottom};
+      }));
+      expect(positions).toHaveLength(5);
+      expect(new Set(positions.slice(0,3).map(field=>field.left)).size).toBe(1);
+      expect(positions[3]!.left).toBeGreaterThan(positions[0]!.left);
+      expect(positions[4]!.left).toBe(positions[3]!.left);
+      expect(positions[3]!.top).toBe(positions[0]!.top);
+      expect(positions[4]!.top).toBe(positions[1]!.top);
+    });
+
+    test('a project\'s stored temperature, humidity and pressure are shown, not blank', async ({ appPage: page }) => {
+      // The sample project stores its own environment (generateSample.ts). A stored value wins over
+      // the Options environment because it was entered, not deleted.
+      await expect(temperature(page)).toHaveValue(/293\.15/);
+      await expect(humidity(page)).toHaveValue(/50/);
+      await expect(pressure(page)).toHaveValue(/101325/);
+    });
+
+    test('relative humidity moves both readouts — the input is not inert', async ({ appPage: page }) => {
+      await humidity(page).fill('100');
+      await humidity(page).blur();
+      await expect(airDensity(page)).toHaveValue('1.1936');
+      await expect(soundVelocity(page)).not.toHaveValue('343.99');
+    });
+
+    test('typing an environment value sticks — it does not reset to blank on blur', async ({ appPage: page }) => {
+      await fillAndBlur(temperature(page), '301');
+      await expect(temperature(page)).toHaveValue(/301/);
+      await fillAndBlur(humidity(page), '45');
+      await expect(humidity(page)).toHaveValue(/45/);
+    });
+
+    test('BUG (human, 2026-09-13): deleting any environment field drops the stored value and shows the app default as CALCULATED', async ({ appPage: page }) => {
+      // The BUG 8 test only cleared a field that was NEVER stored (a fresh project). This is the
+      // stored-then-cleared path, which reused the OLD value instead (temp/pressure) or corrupted
+      // the domain to '' (humidity — the raw v-model.number emits '' on clear, which the `!== null`
+      // guard passed through).
+      await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
+      const temp = temperature(page);
+      const hum = humidity(page);
+      const pres = pressure(page);
+
+      // COMPLETE_DRIVER_PROJECT_OWPR stores all three env fields explicitly (generateSample.ts),
+      // so they start ENTERED (green), not calculated — the calculated/app-default fallback is
+      // only exercised below, after each field is explicitly deleted.
+      await expect(temp).toHaveValue(/293\.15/);
+      await expect(hum).toHaveValue(/50/);
+      await expect(pres).toHaveValue(/101325/);
+      await expect(temp).not.toHaveClass(/value-c/);
+      await expect(hum).not.toHaveClass(/value-c/);
+      await expect(pres).not.toHaveClass(/value-c/);
+      await expect(temp.evaluate((el: Element) => el.closest('.ui-field')?.className)).resolves.toMatch(/ui-field-stored/);
+
+      // Type values — they stick and turn green "entered".
+      await fillAndCommit(temp, '301');
+      await fillAndCommit(hum, '45');
+      await fillAndCommit(pres, '99000');
+      await expect(temp).toHaveValue(/301/);
+      await expect(hum).toHaveValue(/45/);
+      await expect(pres).toHaveValue(/99000/);
+      await expect(temp).not.toHaveClass(/value-c/);
+
+      // DELETE each — the stored value must drop, the app default must flow through, and the
+      // field must present as CALCULATED again.
+      await fillAndCommit(temp, '');
+      await fillAndCommit(hum, '');
+      await fillAndCommit(pres, '');
+
+      await expect(temp).toHaveValue(/293\.15/);
+      await expect(hum).toHaveValue(/30/);
+      await expect(pres).toHaveValue(/101325/);
+      await expect(temp).toHaveClass(/value-c/);
+      await expect(hum).toHaveClass(/value-c/);
+      await expect(pres).toHaveClass(/value-c/);
+      await expect(temp.evaluate((el: Element) => el.closest('.ui-field')?.className)).resolves.toMatch(/ui-field-defaulted/);
+      await expect(hum.evaluate((el: Element) => el.closest('.ui-field')?.className)).resolves.toMatch(/ui-field-defaulted/);
+      await expect(pres.evaluate((el: Element) => el.closest('.ui-field')?.className)).resolves.toMatch(/ui-field-defaulted/);
+    });
+
+    test('a project\'s stored humidity survives a reload — not reset to the Options default on mount', async ({ appPage: page }) => {
+      // 55% is deliberately distinct from the app-level Options → General → Environment default
+      // (30%, presentationState.ts). BUG_20260823_advtemp_advhumidity_advpressure_overwrote_a_
+      // loaded_projects_env_on_mount.md: the Advanced-tab env inputs used to be local refs seeded
+      // from that default, pushed into the project by an `{immediate:true}` watch that fired again
+      // on every mount — so a reload silently reset a loaded project's own value back to 30%. This
+      // pins the fix: reload after the value is actually persisted, and it must come back as 55.
+      await humidity(page).fill('55');
+      await humidity(page).blur();
+
+      await expect.poll(async () => {
+        const raw = await page.evaluate(() => localStorage.getItem('openisd_open_sessions'));
+        if (!raw) return null;
+        try {
+          const session: unknown = JSON.parse(raw);
+          if (typeof session !== 'object' || session === null || !('entries' in session) || !Array.isArray(session.entries)) return null;
+          const entries: unknown[] = session.entries;
+          const first: unknown = entries[0];
+          const text = typeof first === 'object' && first !== null && 'text' in first && typeof first.text === 'string' ? first.text : undefined;
+          if (!text) return null;
+          const parsedProject: unknown = JSON.parse(text);
+          if (typeof parsedProject !== 'object' || parsedProject === null) return null;
+          const activeState: unknown = 'edited' in parsedProject && parsedProject.edited ? parsedProject.edited
+            : 'saved' in parsedProject ? parsedProject.saved : undefined;
+          // Persisted fields are cells — `{state, value}` — not bare numbers.
+          if (typeof activeState !== 'object' || activeState === null || !('environment' in activeState)) return null;
+          const environment: unknown = activeState.environment;
+          if (typeof environment !== 'object' || environment === null || !('humidity_pct' in environment)) return null;
+          const humidity: unknown = environment.humidity_pct;
+          if (typeof humidity !== 'object' || humidity === null || !('value' in humidity)) return null;
+          const value: unknown = humidity.value;
+          return typeof value === 'number' ? value : null;
+        } catch { return null; }
+      }).toBe(55);
+
+      await page.reload();
+      await page.locator('li', { hasText: /^Advanced$/ }).click();
+
+      await expect(humidity(page)).toHaveValue('55.00');
+    });
+  });
+
+  test.describe('a project with no stored environment', () => {
+    test('shows the Options environment and recomputes the readouts on input', async ({ appPage: page }) => {
+      // A freshly built project has no environment of its own, so the Advanced tab falls back to the
+      // Options environment and the derived c/ρ follow it.
+      await clearFocusedEnvironment(page);
+      await advancedTab(page).click();
+      const vel = soundVelocity(page);
+      const density = airDensity(page);
+      const hum = humidity(page);
+      const temp = temperature(page);
+
+      await expect(temp).toHaveValue(/293\.15/);
+      await expect(hum).toHaveValue(/30/);
+      await expect(pressure(page)).toHaveValue(/101325/);
+      // c = √(γRT) at 293.15 K → 343.68 m/s; ρ = p/(RT) → 1.20095 kg/m³.
+      await expect(vel).toHaveValue(/343\.68/);
+      await expect(density).toHaveValue(/1\.20\d/);
+
+      await fillAndBlur(temp, '301');
+      await expect(vel).toHaveValue(/348\.5\d/);
+      await expect(density).toHaveValue(/1\.16\d/);
+
+      // RH must BOTH stick AND move the derived constants: 80 % air is wetter, so c rises and ρ drops
+      // on top of the temperature effect.
+      const velAt301_30 = parseFloat(await vel.inputValue());
+      const rhoAt301_30 = parseFloat(await density.inputValue());
+      await fillAndBlur(hum, '80');
+      await expect(hum).toHaveValue(/80/);
+      await expect(vel).toHaveValue(/349\.7\d/);
+      expect(parseFloat(await vel.inputValue())).toBeGreaterThan(velAt301_30);
+      expect(parseFloat(await density.inputValue())).toBeLessThan(rhoAt301_30);
+
+      // 153 % is impossible air, so it is refused like every box (QO953.c14: refuse impossible,
+      // warn odd): red with the refusal note, and 80 % stays in
+      // the sums, so sound velocity and density do not move.
+      const velAt80 = await vel.inputValue();
+      const rhoAt80 = await density.inputValue();
+      await fillAndBlur(hum, '153');
+      await expect(hum).toHaveClass(/inp-bad/);
+      await expect(page.locator('.ui-field', { hasText: 'Relative humidity' }).locator('.ui-field-dq-btn'))
+        .toHaveAttribute('title', 'Relative humidity is above its maximum — enter a value between 0.00 and 100.00 %.');
+      await expect(vel).toHaveValue(velAt80);
+      await expect(density).toHaveValue(rhoAt80);
+      await hum.focus();
+      await hum.press('Escape');
+      await expect(hum).toHaveValue(/80/);
+    });
+
+    test('moves density with pressure while sound velocity stays flat', async ({ appPage: page }) => {
+      await clearFocusedEnvironment(page);
+      await advancedTab(page).click();
+      const pres = pressure(page);
+      const vel = soundVelocity(page);
+      const density = airDensity(page);
+
+      // A fresh project matches WinISD: ρ/c at WinISD's own 1.20095 / 343.68.
+      await expect(density).toHaveValue(/1\.20095/);
+      await expect(vel).toHaveValue(/343\.68/);
+
+      // ρ·c² = γ·p, so ρ scales with p while c stays flat.
+      await fillAndBlur(pres, '110000');
+      await expect(pres).toHaveValue(/110000/);
+      await expect(density).toHaveValue(/1\.30404/);
+      await expect(vel).toHaveValue(/343\.65/);
+
+      await fillAndBlur(pres, '101325');
+      await expect(density).toHaveValue(/1\.20095/);
+    });
+  });
+
+  test.describe('loss model', () => {
+    test('there is no loss model selector anywhere: Ql and Qa control the losses', async ({ appPage: page }) => {
+      await setFocusedBoxType(page, 'sealed');
+      await expect(page.locator('select#adv-lossmode')).toHaveCount(0);
+      await page.locator('.project-nav li', { hasText: 'Box' }).click();
+      await expect(page.locator('select#lossmode')).toHaveCount(0);
+    });
+
+    test('the compatibility box ends just below its last switch', async ({ appPage: page }) => {
+      const panel = (await page.locator('.sim-options-box').boundingBox())!;
+      // The switches sit in two columns: the lowest switch, whichever column it is in.
+      const bottoms = await page.locator('.sim-options-box label[data-field-key]').evaluateAll(
+        els => els.map(e => e.getBoundingClientRect().bottom));
+      expect(panel.y + panel.height - Math.max(...bottoms)).toBeLessThanOrEqual(10);
+    });
+  });
+
+  test.describe('WinISD Compatibility panel', () => {
+    test('WinISD\'s inductance model has no switch of its own — "Two-BL driver" covers it', async ({ appPage: page }) => {
+      await expect(page.locator('[data-field-key="winisdInductance"]')).toHaveCount(0);
+      const driverCalcs = page.locator('[data-field-key="winisdDriverModel"]');
+      await expect(driverCalcs).toHaveAttribute('title', /inductance/);
+      await expect(driverCalcs).toHaveAttribute('title', /WinISD bug/);
+    });
+
+    test('WinISD Compatibility labels say "optional" or "bug" and are unclipped', async ({ appPage: page }) => {
+      const panel = page.locator('.sim-options-box');
+      const labels = panel.locator('label[data-field-key]');
+      await expect(labels).toHaveText([/Phase wrapping/, /Uncapped flat response/, /Simplified ABC intra-port velocity/, /Impedance of one driver/, /Two-BL driver/, /Re without Rg/, /PR Npr resonance/, /Bessel high-pass/, /ABC group delay/, /Sealed picker volume/, /Coil wiring: Re and BL only/, /Coil coefficient from project/, /TL port without end correction/]);
+      // A pane too narrow for every column scrolls sideways: scrolled to its right end, nothing is clipped.
+      await page.locator('.tab-section.active').evaluate(el => { el.scrollLeft = el.scrollWidth; });
+      const panelBox = (await panel.boundingBox())!;
+      const clipRight = await panel.evaluate(el => {
+        // The visible right edge: the panel's own, or an ancestor's that clips it first.
+        let right = el.getBoundingClientRect().right;
+        for (let a = el.parentElement; a; a = a.parentElement) {
+          if (getComputedStyle(a).overflowX !== 'visible') right = Math.min(right, a.getBoundingClientRect().right);
+        }
+        return right;
+      });
+      for (const label of await labels.all()) {
+        const textRight = await label.evaluate(el => {
+          const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().right;
+        });
+        expect(textRight, await label.innerText()).toBeLessThanOrEqual(Math.min(panelBox.x + panelBox.width, clipRight));
+      }
+    });
+
+    test('Advanced layout: no air-field label text is clipped by its label box', async ({ appPage: page }) => {
+      const labels = page.locator('.adv-air-fields .field label');
+      await expect(labels).toHaveCount(5);
+      for (const label of await labels.all()) {
+        const [scroll, client] = await label.evaluate(el => [el.scrollWidth, el.clientWidth]);
+        expect(scroll, await label.innerText()).toBeLessThanOrEqual(client);
+      }
+    });
+
+    test('the panel has no preset or reset buttons, only a help link per group: an "Enable WinISD-style" group and an "Enable WinISD bugs" group of switches', async ({ appPage: page }) => {
+      const panel = page.locator('.sim-options-box');
+      await expect(panel.locator('button:not(.compat-help-link)')).toHaveCount(0);
+      await expect(panel.locator('button.compat-help-link')).toHaveCount(2);
+      await expect(panel.locator('.option-switch-group-head')).toHaveText('Enable WinISD-style …');
+      await expect(panel.locator('.error-switch-group-head')).toHaveText('Enable WinISD bugs');
+    });
+
+    // 'Use "transmission line"-model' / 'for port simulation'; "Simplified ABC
+    // intra-port" / "velocity". The break is in the label, not from a narrow column.
+    for (const [key, first, second] of [['tlPortModel', 'Use', 'for port'], ['winisdAbcIntraPortVelocity', 'Simplified', 'velocity']] as const) {
+      test(`Advanced layout: the "${key}" label breaks before "${second}"`, async ({ appPage: page }) => {
+        await showAdvancedOn(page, 'abc');
+        const label = page.locator(`label[data-field-key="${key}"]`);
+        await expect(label).toHaveText(new RegExp(`${first}.* ${second}`));
+        const [firstTop, secondTop] = await label.evaluate((el, [a, b]) => {
+          const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+          const texts: Text[] = [];
+          for (let n = walker.nextNode(); n; n = walker.nextNode()) if (n instanceof Text) texts.push(n);
+          const top = (word: string) => {
+            const t = texts.find(x => x.data.includes(word))!; const i = t.data.indexOf(word);
+            const r = document.createRange(); r.setStart(t, i); r.setEnd(t, i + 1); return r.getBoundingClientRect().top;
+          };
+          return [top(a), top(b)];
+        }, [first, second] as const);
+        expect(secondTop).toBeGreaterThan(firstTop);
+      });
+    }
+
+    test('the Advanced tab has no "WinISD Compatibility" heading', async ({ appPage: page }) => {
+      await expect(page.locator('.tab-section.active')).not.toContainText('WinISD Compatibility');
+    });
+
+    test('Advanced layout: simulation options have a clear gap beside the environment', async ({ appPage: page }) => {
+      const environment=(await page.locator('.adv-air-fields').boundingBox())!;
+      const options=(await page.locator('.checkbox-col').boundingBox())!;
+      expect(options.x-environment.x-environment.width).toBeGreaterThanOrEqual(8);
+    });
+
+    test('"Re without Rg" switches the VA chart and the power readout between WinISD\'s Re and the amplifier\'s Re + Rg (BUG_20260927)', async ({ appPage: page }) => {
+      const va = page.locator('[data-field-key="winisdVaModel"]');
+      await expect(va).toHaveAttribute('title', /Re \+ Rg/);
+      await expect(va).toHaveAttribute('title', /the VA chart/);
+      await expect(va).toHaveAttribute('title', /P = N·V²\/Re/);
+      await expect(va).toHaveAttribute('title', /"Rg is at driver side" on, Z already holds Rg and WinISD adds it again/);
+      await expect(va).toHaveAttribute('title', /Re \+ Rg throughout/);
+      await expect(va.locator('input')).not.toBeChecked();
+      await va.locator('input').check();
+      await expect(va.locator('input')).toBeChecked();
+      await va.locator('input').uncheck();
+      await expect(va.locator('input')).not.toBeChecked();
+    });
+
+    test('the VA chart carries the ≠W cue while "Re without Rg" is off', async ({ appPage: page }) => {
+      await page.locator('.chart-select').click();
+      await page.locator('.chart-item', { hasText: 'Amplifier apparent load power' }).click();
+      const cue = page.locator('.chart-deviation-cue');
+      await expect(cue).toHaveCount(1);
+      await expect(cue.locator('.winisd-deviation-cue')).toHaveAttribute('title', /WinISD uses Re, not Re \+ Rg/);
+      await page.locator('[data-field-key="winisdVaModel"] input').check();
+      await expect(cue).toHaveCount(0);
+    });
+
+    test('the ABC group delay chart carries the ≠W cue while "ABC group delay" is off', async ({ appPage: page }) => {
+      await showAdvancedOn(page, 'abc');
+      await page.locator('.chart-select').click();
+      await page.locator('.chart-item', { hasText: 'Group delay' }).first().click();
+      const cue = page.locator('.chart-deviation-cue');
+      await expect(cue).toHaveCount(1);
+      await expect(cue.locator('.winisd-deviation-cue')).toHaveAttribute('title', /ABC group delay leaves the driver out/);
+      await page.locator('[data-field-key="winisdAbcGroupDelay"] input').check();
+      await expect(cue).toHaveCount(0);
+    });
+
+    test('the passive-radiator count carries the ≠W cue at any count while "PR Npr resonance" is off', async ({ appPage: page }) => {
+      await showAdvancedOn(page, 'box-passive-radiator');
+      await setPrCount(page, 1);
+      const cue = await prCountCue(page);
+      await expect(cue).toHaveCount(1);
+      await setPrCount(page, 2);
+      await expect(await prCountCue(page)).toHaveCount(1);
+      await advancedTab(page).click();
+      await page.locator('[data-field-key="winisdPrNprResonance"] input').check();
+      await expect(await prCountCue(page)).toHaveCount(0);
+    });
+
+    test('Options "Show WinISD difference markers (≠W)" hides every cue, and ticking it brings them back', async ({ appPage: page }) => {
+      await showAdvancedOn(page, 'box-passive-radiator');
+      const cue = await prCountCue(page);
+      await expect(cue).toHaveCount(1);
+      const setMarkers = async (on: boolean) => {
+        await page.locator('.tb-btn[title="Options"]').click();
+        await page.locator('[data-testid="difference-cues"] input').setChecked(on);
+        await page.locator('[data-testid="settings-apply"]').click();
+      };
+      await setMarkers(false);
+      await expect(cue).toHaveCount(0);
+      await setMarkers(true);
+      await expect(cue).toHaveCount(1);
+    });
+
+    for (const [key, titleText] of [
+      ['winisdFlatModel', /with no limit/],
+    ] as const) {
+      test(`"${key}" is on by default, and can be switched off and on`, async ({ appPage: page }) => {
+        const box = page.locator(`[data-field-key="${key}"]`);
+        await expect(box).toHaveAttribute('title', titleText);
+        await expect(box.locator('input')).toBeChecked();
+        await box.locator('input').uncheck();
+        await expect(box.locator('input')).not.toBeChecked();
+        await box.locator('input').check();
+        await expect(box.locator('input')).toBeChecked();
+      });
+    }
+
+    test('the driver count has no ≠W cue and the Per-driver impedance switch is gone (QO941: one driver\'s impedance is WinISD\'s)', async ({ appPage: page }) => {
+      await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+      const drivers = page.locator('.field', { hasText: 'Num. of drivers' });
+      await drivers.locator('select').selectOption('2');
+      await expect(drivers.locator('.winisd-deviation-cue')).toHaveCount(0);
+      await page.locator('li', { hasText: /^Advanced$/ }).click();
+      await expect(page.locator('[data-field-key="winisdDriverCountModel"]')).toHaveCount(0);
+    });
+
+    // at a large browser zoom every switch label wrapped onto 2-3 lines. A page
+    // zoom of Z on a 1280×800 window lays out as a (1280/Z)×(800/Z) CSS-px viewport.
+    for (const [zoom, width, height] of [[100, 1280, 800], [125, 1024, 640], [150, 853, 533]] as const) {
+      test(`at ${zoom}% zoom every switch label is one line and stays inside its group`, async ({ appPage: page }) => {
+        await page.setViewportSize({width, height});
+        await showAdvancedOn(page, 'abc');
+        const labels = page.locator('.sim-switches label[data-field-key]');
+        await expect(labels).toHaveCount(13);
+        for (const label of await labels.all()) {
+          const m = await label.evaluate(el => {
+            const r = document.createRange(); r.selectNodeContents(el);
+            const text = r.getBoundingClientRect();
+            const group = el.closest('.option-switch-group, .error-switch-group')!.getBoundingClientRect();
+            const fontPx = parseFloat(getComputedStyle(el).fontSize);
+            const paneBottom = el.closest('.tab-section')!.getBoundingClientRect().bottom;
+            const box = el.getBoundingClientRect();
+            return {textHeight: text.height, textRight: text.right, labelRight: box.right, labelBottom: box.bottom, groupRight: group.right, paneBottom, fontPx};
+          });
+          const name = await label.innerText();
+          // eslint-disable-next-line playwright/no-conditional-in-test
+          const lines = await label.getAttribute('data-field-key') === 'winisdAbcIntraPortVelocity' ? 2 : 1;
+          expect(m.textHeight, `${name}: ${lines} line(s)`).toBeLessThan((lines + 0.5) * 1.3 * m.fontPx);
+          expect(m.textRight, `${name}: text inside its label`).toBeLessThanOrEqual(m.labelRight + 1);
+          expect(m.labelRight, `${name}: label inside its group`).toBeLessThanOrEqual(m.groupRight + 1);
+          expect(m.labelBottom, `${name}: not cut off by the bottom of the tab`).toBeLessThanOrEqual(m.paneBottom + 1);
+        }
+      });
+    }
+
+    // Two columns — options left, bugs right, one switch per line; the
+    // standard WinISD options left of both, one line each; a narrow pane scrolls sideways.
+    for (const [zoom, width, height] of [[100, 1280, 800], [125, 1024, 640], [150, 853, 533]] as const) {
+      test(`at ${zoom}% zoom the standard options, the options group and the bugs group sit side by side, each one column of one-line labels`, async ({ appPage: page }) => {
+        await page.setViewportSize({width, height});
+        await showAdvancedOn(page, 'abc');
+        for (const label of await page.locator('.checkbox-col label').all()) {
+          const [textHeight, fontPx] = await label.evaluate(el => {
+            const r = document.createRange(); r.selectNodeContents(el);
+            return [r.getBoundingClientRect().height, parseFloat(getComputedStyle(el).fontSize)];
+          });
+          // eslint-disable-next-line playwright/no-conditional-in-test
+          const lines = await label.getAttribute('data-field-key') === 'tlPortModel' ? 2 : 1;
+          expect(textHeight, `${await label.innerText()}: ${lines} line(s)`).toBeLessThan((lines + 0.5) * 1.3 * fontPx);
+        }
+        const standard = (await page.locator('.checkbox-col').boundingBox())!;
+        const compat = (await page.locator('.sim-options-box').boundingBox())!;
+        expect(compat.x).toBeGreaterThanOrEqual(standard.x + standard.width);
+        const options = (await page.locator('.option-switch-group').boundingBox())!;
+        const bugs = (await page.locator('.error-switch-group').boundingBox())!;
+        expect(bugs.x).toBeGreaterThanOrEqual(options.x + options.width);
+        expect(Math.abs(bugs.y - options.y)).toBeLessThanOrEqual(1);
+        for (const group of ['.option-switch-group', '.error-switch-group']) {
+          const lefts = await page.locator(`${group} label[data-field-key]`).evaluateAll(
+            els => els.map(e => Math.round(e.getBoundingClientRect().left)));
+          expect(new Set(lefts).size, `${group}: one column`).toBe(1);
+        }
+      });
+    }
+
+    // BUG_20261031: T607's wider air rows pushed the Advanced tab to 1225 px wide; it scrolled sideways below 1600.
+    for (const [width, height] of [[1280, 800], [1366, 768]] as const) {
+      test(`the Advanced tab fits at ${width}x${height} with no sideways scroll and the switch groups side by side`, async ({ appPage: page }) => {
+        await page.setViewportSize({width, height});
+        const pane = page.locator('.tab-section.active');
+        const [scroll, client] = await pane.evaluate(el => [el.scrollWidth, el.clientWidth]);
+        expect(scroll, `pane scrolls sideways at ${width}x${height}`).toBeLessThanOrEqual(client);
+        const options = (await page.locator('.option-switch-group').boundingBox())!;
+        const bugs = (await page.locator('.error-switch-group').boundingBox())!;
+        expect(bugs.x).toBeGreaterThanOrEqual(options.x + options.width);
+        expect(Math.abs(bugs.y - options.y)).toBeLessThanOrEqual(1);
+      });
+    }
+
+    // Keep the T390 cue/switch containment check at the wide viewport required by
+    // the fixed column order; narrower panes are exercised below.
+    test('at 1600×900 on a vented box the whole Advanced tab fits: no sideways scroll, no switch cut off', async ({ appPage: page }) => {
+      await page.setViewportSize({width: 1600, height: 900});
+      await showAdvancedOn(page, 'vented');
+      await expect(page.locator('label[data-field-key="tlPortModel"] .winisd-deviation-cue')).toBeVisible();
+      const pane = page.locator('.tab-section.active');
+      const [scroll, client] = await pane.evaluate(el => [el.scrollWidth, el.clientWidth]);
+      expect(scroll, 'pane scrolls sideways').toBeLessThanOrEqual(client);
+      const paneBox = (await pane.boundingBox())!;
+      for (const label of await page.locator('.sim-switches label[data-field-key]').all()) {
+        const textRight = await label.evaluate(el => {
+          const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().right;
+        });
+        expect(textRight, await label.innerText()).toBeLessThanOrEqual(paneBox.x + paneBox.width);
+      }
+    });
+
+    test('BUG_20261019: on the desktop Advanced tab at 1600×900 and 1920×1080, every switch in "Enable WinISD bugs" is fully inside the panel without clipping or new scrollbars', async ({ appPage: page }) => {
+      for (const [width, height] of [[1600, 900], [1920, 1080]] as const) {
+        await page.setViewportSize({width, height});
+        await showAdvancedOn(page, 'vented');
+        const pane = page.locator('.tab-section.active');
+        const [scrollW, clientW, scrollH, clientH] = await pane.evaluate(el => [el.scrollWidth, el.clientWidth, el.scrollHeight, el.clientHeight]);
+        expect(scrollW, `at ${width}x${height} pane scrolls sideways`).toBeLessThanOrEqual(clientW);
+        expect(scrollH, `at ${width}x${height} pane scrolls vertically`).toBeLessThanOrEqual(clientH);
+        // Every tab shares one panel, as deep as its minimum or the tallest tab: the Advanced tab must not deepen it.
+        const [advancedH, panelFloorH] = await page.locator('.content-panel').evaluate(panel => {
+          const contentH = (section: Element) => Math.max(0, ...[...section.children].map(c => c.getBoundingClientRect().bottom + parseFloat(getComputedStyle(c).marginBottom) - section.getBoundingClientRect().top));
+          const sections = [...panel.querySelectorAll('.content-tabs > .tab-section')];
+          const isActive = (s: Element) => s.classList.contains('active');
+          const css = getComputedStyle(panel);
+          const minInnerH = parseFloat(css.minHeight) - parseFloat(css.paddingTop) - parseFloat(css.paddingBottom);
+          return [Math.max(...sections.filter(isActive).map(contentH)), Math.max(minInnerH, ...sections.filter(s => !isActive(s)).map(contentH))];
+        });
+        expect(advancedH, `at ${width}x${height} the Advanced tab deepens the shared panel`).toBeLessThanOrEqual(panelFloorH);
+        const paneBox = (await pane.boundingBox())!;
+        const labels = await page.locator('.error-switch-group label[data-field-key]').all();
+        expect(labels.length).toBeGreaterThan(0);
+        for (const label of labels) {
+          const textRight = await label.evaluate(el => {
+            const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().right;
+          });
+          expect(textRight, `at ${width}x${height}: ${await label.innerText()}`).toBeLessThanOrEqual(paneBox.x + paneBox.width);
+        }
+      }
+    });
+
+    test('the error group fits inside the Compatibility panel', async ({ appPage: page }) => {
+      await showAdvancedOn(page, 'abc');
+      const panel = page.locator('.sim-options-box');
+      const panelBox = (await panel.boundingBox())!;
+      const rights = await panel.locator('.error-switch-group, .error-switch-group *').evaluateAll(
+        els => els.map(e => e.getBoundingClientRect().right));
+      expect(Math.max(...rights)).toBeLessThanOrEqual(panelBox.x + panelBox.width + 1);
+    });
+  });
+
+  test.describe('WinISD bugs group', () => {
+    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdSealedPicker', 'winisdCoilWiringReBlOnly', 'winisdTlPortNoEndCorrection', 'winisdProjectAlfaVC'];
+    /** The box type each error switch acts on; a switch that applies everywhere is shown on an ABC box. */
+    const BOX_FOR: Record<string, BoxTypeName> = {winisdPrNprResonance: 'box-passive-radiator', winisdSealedPicker: 'sealed'};
+    /** The Bessel switch acts only on a project with a Bessel high-pass filter, so it cannot be ticked here. */
+    const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass' && key !== 'winisdTlPortNoEndCorrection' && key !== 'winisdCoilWiringReBlOnly' && key !== 'winisdProjectAlfaVC');
+    const DESIGN_KEYS = ['winisdWrapPhase', 'winisdFlatModel', 'winisdAbcIntraPortVelocity'];
+
+    test('the error switches carry the warning class, unticked and ticked', async ({ appPage: page }) => {
+      for (const key of TICKABLE_KEYS) {
+        await showAdvancedOn(page, BOX_FOR[key] ?? 'abc');
+        // eslint-disable-next-line playwright/no-conditional-in-test
+        if (key === 'winisdPrNprResonance') await setPrCount(page, 2);
+        const label = page.locator(`label[data-field-key="${key}"]`);
+        const box = label.locator('input[type=checkbox]');
+        await expect(label, key).toHaveClass(/error-switch-marked/);
+        await expect(label.locator('.error-switch-mark')).toBeVisible();
+        for (const want of [false, true]) {
+          await box.setChecked(want);
+          await expect(label, `${key} ticked=${want}`).toHaveClass(/error-switch-marked/);
+          await expect(label).toHaveClass(want ? /error-switch-on/ : /^(?!.*error-switch-on)/);
+        }
+      }
+    });
+
+    test('TL port without end correction is greyed until the transmission line tickbox is ticked, then ticks', async ({ appPage: page }) => {
+      await showAdvancedOn(page, 'vented');
+      const tl = page.locator('label[data-field-key="tlPortModel"] input');
+      const label = page.locator('label[data-field-key="winisdTlPortNoEndCorrection"]');
+      await tl.setChecked(false);
+      await expect(label.locator('input')).toBeDisabled();
+      await tl.setChecked(true);
+      await expect(label.locator('input')).toBeEnabled();
+      await label.locator('input').setChecked(true);
+      await expect(label).toHaveClass(/error-switch-on/);
+    });
+
+    test('Coil coefficient from project is greyed with a cold coil and a catalogue driver (AlfaVC 0): it changes no sum', async ({ appPage: page }) => {
+      await showAdvancedOn(page, 'sealed');
+      const label = page.locator('label[data-field-key="winisdProjectAlfaVC"]');
+      await expect(label).toHaveClass(/error-switch-marked/);
+      await expect(label.locator('input')).toBeDisabled();
+      await expect(label.locator('input')).not.toBeChecked();
+    });
+
+    test('the design-choice switches do not carry it', async ({ appPage: page }) => {
+      await page.locator('li', {hasText: /^Advanced$/}).click();
+      for (const key of [...DESIGN_KEYS, 'simVcInductance', 'rgAtDriverSide']) {
+        await expect(page.locator(`label[data-field-key="${key}"]`), key).not.toHaveClass(/error-switch-marked/);
+      }
+    });
+
+    test('every bug switch tooltip starts "Ticking brings back a WinISD bug."', async ({ appPage: page }) => {
+      await page.locator('li', {hasText: /^Advanced$/}).click();
+      for (const key of ERROR_KEYS) {
+        await expect(page.locator(`label[data-field-key="${key}"]`), key).toHaveAttribute('title', /^Ticking brings back a WinISD bug\.\n/);
+      }
+    });
+
+    test('the bug switches sit under one "Enable WinISD bugs" heading with its own tooltip', async ({ appPage: page }) => {
+      await page.locator('li', {hasText: /^Advanced$/}).click();
+      const group = page.locator('.error-switch-group');
+      await expect(group).toHaveCount(1);
+      await expect(group.locator('.error-switch-group-head')).toHaveText('Enable WinISD bugs');
+      await expect(group).toHaveAttribute('title', /^Enable WinISD bugs: /);
+      for (const key of ERROR_KEYS) await expect(group.locator(`label[data-field-key="${key}"]`)).toHaveCount(1);
+      for (const key of DESIGN_KEYS) await expect(group.locator(`label[data-field-key="${key}"]`)).toHaveCount(0);
+    });
+
+    test('the ABC velocity switch (a WinISD convention, not an error switch) is editable on an ABC box only', async ({ appPage: page }) => {
+      const box = page.locator('label[data-field-key="winisdAbcIntraPortVelocity"] input');
+      await showAdvancedOn(page, 'vented');
+      await expect(box).toBeDisabled();
+      await expect(page.locator('label[data-field-key="winisdAbcIntraPortVelocity"]')).toHaveClass(/compat-switch-na/);
+      await showAdvancedOn(page, 'abc');
+      await expect(box).toBeEnabled();
+      await expect(page.locator('label[data-field-key="winisdAbcIntraPortVelocity"]')).not.toHaveClass(/compat-switch-na/);
+    });
+
+    test('the Bessel high-pass switch is editable only while a Bessel high-pass filter exists', async ({ appPage: page }) => {
+      const label = page.locator('label[data-field-key="winisdBesselHighpass"]');
+      await page.locator('li', {hasText: /^Advanced$/}).click();
+      await expect(label.locator('input')).toBeDisabled();
+      await expect(label).toHaveClass(/error-switch-na/);
+      await expect(label).toHaveClass(/error-switch-marked/);
+      await expect(label.locator('.error-switch-mark')).toBeVisible();
+    });
+
+    test('the ABC group delay switch is editable on an ABC box only', async ({ appPage: page }) => {
+      const label = page.locator('label[data-field-key="winisdAbcGroupDelay"]');
+      await showAdvancedOn(page, 'bandpass6');
+      await expect(label.locator('input')).toBeDisabled();
+      await expect(label).toHaveClass(/error-switch-na/);
+      await showAdvancedOn(page, 'abc');
+      await expect(label.locator('input')).toBeEnabled();
+      await expect(label).not.toHaveClass(/error-switch-na/);
+    });
+
+    test('the PR Npr switch is editable on a passive radiator box with 2 or more radiators only', async ({ appPage: page }) => {
+      const label = page.locator('label[data-field-key="winisdPrNprResonance"]');
+      await showAdvancedOn(page, 'vented');
+      await expect(label.locator('input')).toBeDisabled();
+      await expect(label).toHaveClass(/error-switch-na/);
+      await showAdvancedOn(page, 'box-passive-radiator');
+      await setPrCount(page, 1);
+      await expect(label.locator('input')).toBeDisabled();
+      await expect(label).toHaveClass(/error-switch-na/);
+      await setPrCount(page, 2);
+      await expect(label.locator('input')).toBeEnabled();
+      await expect(label).not.toHaveClass(/error-switch-na/);
+    });
+  });
+});
+
+test('desktop environment labels retain their production single-line form at 1280px', async ({page}) => {
+  await page.setViewportSize({width:1280,height:900});
+  await page.goto('/');
+  await openAProject(page);
+  await page.locator('.project-nav li', {hasText:'Advanced'}).click();
+  const labels = await page.locator('.adv-air-fields .ui-field-label').evaluateAll(labels => labels.map(label => {
+    const text = document.createRange(); text.selectNodeContents(label);
+    const canvas=document.createElement('canvas').getContext('2d');if(canvas===null)throw new Error('No canvas');canvas.font=getComputedStyle(label).font;
+    return {label:label.textContent, width:label.getBoundingClientRect().width, textWidth:canvas.measureText(label.textContent??'').width, font:canvas.font, lines:new Set([...text.getClientRects()].map(rect => Math.round(rect.top))).size};
+  }));
+  expect(labels).toHaveLength(5);
+  expect(labels.filter(label => label.lines !== 1)).toEqual([]);
+});
+
+
+test('environment boxes and unit columns align within each air column', async ({appPage: page}) => {
+  const geometry = await page.locator('.adv-air-fields .ui-field').evaluateAll(rows => rows.map(row => {
+    const input = row.querySelector('input')!.getBoundingClientRect();
+    const unit = row.querySelector('.ui-field-unit')!.getBoundingClientRect();
+    return {width:input.width, unitOffset:unit.left-input.left};
+  }));
+  expect(geometry).toHaveLength(5);
+  for (const row of geometry.slice(0,3)) expect(row).toEqual(geometry[0]);
+  for (const row of geometry.slice(3)) expect(row).toEqual(geometry[3]);
+  expect(geometry[3]!.width, 'every air box is one width (field-layout rule 4)').toBe(geometry[0]!.width);
+});
+
+test('simulation options occupy column three before compatibility groups', async ({appPage: page}) => {
+  const air = (await page.locator('.adv-air-fields').boundingBox())!;
+  const options = (await page.locator('.adv-options').boundingBox())!;
+  const bugs = (await page.locator('.error-switch-group').boundingBox())!;
+  expect(options.x).toBeGreaterThanOrEqual(air.x + air.width);
+  expect(Math.abs(options.y-air.y)).toBeLessThanOrEqual(1);
+  expect(bugs.x).toBeGreaterThanOrEqual(options.x + options.width);
+  expect(bugs.x).toBeGreaterThanOrEqual(air.x + air.width);
+});
+
+
+// Column order: air inputs, calculated air, standard checkboxes, then compatibility.
+// Preserve these columns in narrow panes; verify every switch can be scrolled into view.
+for (const width of [1280,1440]) test(`Advanced columns remain accessible at ${width}px`, async ({appPage:page}) => {
+ await page.setViewportSize({width,height:800});
+ const pane=page.locator('.tab-section.active');
+ for(const label of await page.locator('.error-switch-group label[data-field-key]').all()) {
+  await label.scrollIntoViewIfNeeded();
+  const p=(await pane.boundingBox())!,r=(await label.boundingBox())!;
+  expect(r.x).toBeGreaterThanOrEqual(p.x);
+  // Scroll offsets round to whole CSS pixels; allow subpixel edge rounding.
+  expect(r.x+r.width).toBeLessThanOrEqual(p.x+p.width+1);
+  expect(r.y+r.height).toBeLessThanOrEqual(p.y+p.height);
+ }
+ const vertical=await pane.evaluate(el=>({scroll:el.scrollHeight,client:el.clientHeight}));
+ expect(vertical.scroll).toBeLessThanOrEqual(vertical.client);
+});

@@ -1,0 +1,246 @@
+{
+  "added": {
+    "value": "2026-09-24"
+  },
+  "brand": {
+    "value": "Dayton Audio"
+  },
+  "curves": {
+    "frequency_response": {
+      "origin": "manufacturer_product_page",
+      "value": {
+        "data_format": "frd",
+        "local_path": "response_data/response.frd",
+        "type": "FILE"
+      }
+    },
+    "impedance": {
+      "origin": "manufacturer_product_page",
+      "value": {
+        "data_format": "zma",
+        "local_path": "response_data/response.zma",
+        "type": "FILE"
+      }
+    }
+  },
+  "data_sources": {
+    "value": {
+      "manufacturer_datasheet": "https://daytonaudio.com/images/resources/295-332-dayton-audio-da215-8-specifications-46942 (2).pdf",
+      "manufacturer_product_page": "https://daytonaudio.com/product/12/da215-8-8-aluminum-cone-woofer"
+    }
+  },
+  "description": {
+    "value": "The aluminum cone on this driver is extremely rigid yet well damped, making the bass and midbass region very clean and low in distortion. Product Highlights Great looking and sounding woofer One-piece aluminum cone Cosmetic stamped steel frame Flat frequency response in passband region Impressive output capabilities when used in MTM designs Very low distortion"
+  },
+  "driver_type": {
+    "value": [
+      "woofer"
+    ]
+  },
+  "manufacturer": {
+    "value": "Dayton Audio"
+  },
+  "model": {
+    "value": "DA215-8 8\" Aluminum Cone Woofer"
+  },
+  "product_image": {
+    "value": "https://www.daytonaudio.com/images/product/large/12.jpg"
+  },
+  "provided_by": {
+    "value": "OpenIsd"
+  },
+  "schemaVersion": 4,
+  "series": {
+    "value": "Specialty Drivers Series"
+  },
+  "sku": {
+    "value": "da215-8"
+  },
+  "specs": {
+    "woofer": {
+      "BL_Tm": {
+        "precision": 0.005,
+        "state": "E",
+        "value": 10
+      },
+      "Basket_m": {
+        "precision": 0.0005,
+        "state": "E",
+        "value": 0.18
+      },
+      "Cms_m_per_N": {
+        "precision": 0.000005,
+        "state": "E",
+        "value": 0.00068
+      },
+      "Dd_m": {
+        "precision": 0.000019411009008485358,
+        "state": "C",
+        "value": 0.16398420407102215
+      },
+      "EBP_hz": {
+        "precision": 0.9728395062822415,
+        "state": "C",
+        "value": 77.55555555555556
+      },
+      "Fs_hz": {
+        "precision": 0.05,
+        "state": "E",
+        "value": 34.9
+      },
+      "Gloss": {
+        "precision": 0.0004732758234725354,
+        "state": "C",
+        "value": 0.038479924862210746
+      },
+      "Le_H": {
+        "precision": 0.000005,
+        "state": "E",
+        "value": 0.00144
+      },
+      "Mms_kg": {
+        "precision": 0.00005,
+        "state": "E",
+        "value": 0.0303
+      },
+      "Mpow_N_per_sqrtW": {
+        "precision": 0.016016033591137457,
+        "state": "C",
+        "value": 3.834824944236852
+      },
+      "Pe_W": {
+        "precision": 0.5,
+        "state": "E",
+        "value": 60
+      },
+      "Qes": {
+        "precision": 0.005,
+        "state": "E",
+        "value": 0.45
+      },
+      "Qms": {
+        "precision": 0.005,
+        "state": "E",
+        "value": 1.95
+      },
+      "Qts": {
+        "precision": 0.005,
+        "state": "E",
+        "value": 0.37
+      },
+      "Re_ohm": {
+        "precision": 0.05,
+        "state": "E",
+        "value": 6.8
+      },
+      "Rme_kg_per_s": {
+        "precision": 0.2095744823886747,
+        "state": "C",
+        "value": 14.765066592851548
+      },
+      "Rms_kg_per_s": {
+        "precision": 0.019240922770391574,
+        "state": "C",
+        "value": 3.4073230598888187
+      },
+      "SPL_dB": {
+        "precision": 0.05,
+        "state": "E",
+        "value": 88.7
+      },
+      "SPLmaxLF_dB": {
+        "precision": 0.08399867365227463,
+        "state": "C",
+        "value": 81.54380726909217
+      },
+      "SPLmax_dB": {
+        "precision": 0.08619120682595849,
+        "state": "C",
+        "value": 103.48151250383644
+      },
+      "Sd_m2": {
+        "precision": 0.000005,
+        "state": "E",
+        "value": 0.02112
+      },
+      "USPL_dB": {
+        "precision": 0.0819334177890596,
+        "state": "C",
+        "value": 89.41063958342345
+      },
+      "Vas_m3": {
+        "precision": 0.00005,
+        "state": "E",
+        "value": 0.0427
+      },
+      "Vcd_m": {
+        "precision": 0.0005,
+        "state": "E",
+        "value": 0.036
+      },
+      "Vd_m3": {
+        "precision": 0.0000010824999999977996,
+        "state": "C",
+        "value": 0.000111936
+      },
+      "Xmax_m": {
+        "precision": 0.00005,
+        "state": "E",
+        "value": 0.0053
+      },
+      "Znom_ohm": {
+        "precision": 0.5,
+        "state": "E",
+        "value": 8
+      },
+      "c_m_per_s": {
+        "state": "C",
+        "value": 343.68412096215235
+      },
+      "freq_high_hz": {
+        "precision": 0.5,
+        "state": "E",
+        "value": 8000
+      },
+      "freq_low_hz": {
+        "precision": 0.5,
+        "state": "E",
+        "value": 35
+      },
+      "gamma_m_per_s2_A": {
+        "precision": 0.7096254180112281,
+        "state": "C",
+        "value": 330.03300330033005
+      },
+      "no": {
+        "precision": 0.00006503680847298396,
+        "state": "C",
+        "value": 0.003922590547092252
+      },
+      "power_peak_W": {
+        "precision": 0.5,
+        "state": "E",
+        "value": 120
+      },
+      "roo_kg_per_m3": {
+        "state": "C",
+        "value": 1.2009521771468228
+      },
+      "weight_kg": {
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "--",
+            "rejected": "no-numeric-value"
+          }
+        },
+        "state": "N"
+      }
+    }
+  },
+  "surround_material": {
+    "value": "Rubber"
+  },
+  "uuid": {
+    "value": "90d342be-ed6c-4e6c-8263-e61c89e00a3e"
+  }
+}

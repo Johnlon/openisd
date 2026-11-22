@@ -1,0 +1,300 @@
+<script setup lang="ts">
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
+import OriginalShell from './shells/original/OriginalShell.vue';
+import './joined-fields.css';
+import FieldCatalogue from './components/FieldCatalogue.vue';
+const fieldCatalogue = new URLSearchParams(window.location.search).has('field-catalogue');
+import MobileShell from './shells/mobile/MobileShell.vue';
+import OriginalNewProject from './shells/original/OriginalNewProject.vue';
+import MobileNewProject from './shells/mobile/MobileNewProject.vue';
+import OriginalWhatIf from './shells/original/OriginalWhatIf.vue';
+import DriverBrowser from './components/DriverBrowser.vue';
+import DriverEditorModal from './components/DriverEditorModal.vue';
+import {PHONE_DRIVER_EDITOR_SKIN} from './components/driverEditorSkin.js';
+import Flash from './components/Flash.vue';
+import DiagnosticsModal from './components/DiagnosticsModal.vue';
+import SplashModal from './components/SplashModal.vue';
+import AnnouncementsModal from './components/AnnouncementsModal.vue';
+import WinisdDifferencesModal from './components/WinisdDifferencesModal.vue';
+import ConfirmDialog from './components/ConfirmDialog.vue';
+import FeedbackDialog from './components/FeedbackDialog.vue';
+import {bootApplication} from '../logic/boot.js';
+import {startSessionSync} from '../logic/sessionSync.js';
+import {startStoringNewProjects} from '../logic/newProjectStore.js';
+import {showStoragePopup} from '../logic/storagePopup.js';
+import {storedUseOf} from '../logic/storedUse.js';
+import {heldFocusedProject, provideFocusedProject} from '../logic/focusedProjectContext.js';
+import {useApp} from '../logic/app.js';
+import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
+import {createAppUpdateUi, provideAppUpdateUi} from '../hooks/appUpdateUi.js';
+import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hooks.js';
+import {provideDiagnosticsModal} from '../hooks/DiagnosticsModal-hooks.js';
+import {createViewportWatch} from '../logic/viewport.js';
+import {useTelemetryUi, usePerf} from '../hooks/telemetryContext.js';
+import {useAnnouncementCenter} from '../hooks/Announcements-hooks.js';
+import {createFeedbackDialog, injectFeedbackServices, provideFeedbackDialog} from '../hooks/FeedbackDialog-hooks.js';
+import CrashScreen from './components/CrashScreen.vue';
+import {createLabelColumns, type LabelColumns} from '../hooks/labelColumns.js';
+
+const { designIO, projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId, persistence, browserStorage, storageUsage, saves } = useApp();
+const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
+const { state: confirmState } = confirmPort;
+const perf = usePerf();
+const { launch, actions: recentActions, crashReports, featureUse } = useTelemetryUi();
+const announcements = useAnnouncementCenter();
+
+watch(() => presentationState.newProjectOpen, open => { if (open) recentActions.record('dialog:new-project'); });
+watch(() => presentationState.editDriverInfo, open => { if (open) recentActions.record('dialog:driver-editor'); });
+watch(() => presentationState.editDriver, open => { if (open) recentActions.record('dialog:whatif'); });
+watch(() => presentationState.browseOpen, open => { if (open) recentActions.record('dialog:driver-browser'); });
+
+// The automatic half of the skin switch. Read `matchMedia` SYNCHRONOUSLY here — before this
+// component's first render — so a phone loads straight into the mobile shell with no
+// desktop-then-swap flash, and so the 19 browser specs gated on `.original-root` never race a
+// deferred switch. `createViewportWatch()` seeds `narrow.value` synchronously from the current
+// `matchMedia().matches`, which is what makes this safe to read immediately rather than waiting
+// for `onMounted`. The manual, persisted override (`presentationState.ui.skinOverride`, restored
+// by `boot.ts` phase 4) is applied afterward as a correction, in `onMounted` below — it can only
+// be known once `viewStateRepo` has been read.
+const viewportWatch = createViewportWatch();
+presentationState.narrowViewport = viewportWatch.narrow.value;
+watch(viewportWatch.narrow, v => { presentationState.narrowViewport = v; });
+
+/** Which shell to render: the manual override wins when set; otherwise follow the viewport. */
+const activeSkin = computed(() => presentationState.shownSkin());
+
+// On the desktop skin every field group's label column is as wide as its longest label (QO466.c12).
+const appRoot = ref<HTMLElement | null>(null);
+let labelColumns: LabelColumns | null = null;
+watch([appRoot, activeSkin], ([root, skin]) => {
+  labelColumns?.stop();
+  labelColumns = root !== null && skin !== 'mobile' && !fieldCatalogue ? createLabelColumns(root) : null;
+}, {flush: 'post'});
+
+// App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash) and the global
+// overlays. The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus
+// the empty placeholders, and the toolbar's global actions (New / Open / Options / Drivers /
+// Info) stay reachable. The shell's own `projectOpen` gate keeps every project-bound panel out
+// of the DOM until a project exists.
+//
+// The focused project is provided non-null: only a descendant mounted inside the shell's
+// `projectOpen` gate reads it, and while that gate tears a panel down the panel keeps the project
+// it was showing (`heldFocusedProject`), so closing the last project never throws.
+provideFocusedProject(heldFocusedProject(focusedProject, requireFocusedProject));
+
+// One splash for the whole app: it raises itself for a first visitor, and the toolbar's Info
+// menu reopens it. Provided here so the shell's menu and the modal share one instance. The
+// catalogue counts it shows are the bundled indexes' own lengths, fetched only once the splash
+// is actually on screen.
+const splash = provideSplashModal(presentationState, {
+  driverCount: async () => (await bundledDrivers.index()).length,
+  passiveRadiatorCount: async () => (await bundledPassiveRadiators.index()).length,
+}, versionIndex);
+// About's Force refresh asks the same question the update prompt does, and only when a reload would lose something.
+provideAppUpdateUi(createAppUpdateUi(appUpdate, confirmPort.port));
+
+// One help page "OpenISD and WinISD differences": the Help menus, the WinISD Compatibility group
+// headings and the ≠W cues all open this instance.
+provideWinisdDifferencesModal();
+
+// One diagnostics modal for the whole app.
+const diagnostics = provideDiagnosticsModal();
+
+// One feedback dialog for both skins: the Info menu opens it, and at app start, just after the splash closes, it may offer itself,
+// but never over the welcome screen, the What's new popup, the update banner, a crash report or any other dialog.
+const feedbackServices = injectFeedbackServices();
+const feedback = createFeedbackDialog({
+  outbox: feedbackServices.outbox,
+  storage: feedbackServices.storage,
+  now: () => Date.now(),
+  skin: () => presentationState.shownSkin(),
+  screen: feedbackServices.screen,
+  busy: () => splash.open.value || announcements.open.value || diagnostics.open.value || confirmState.current.value !== null
+    || appUpdate.state.value.kind === 'offered' || crashReports.pending.value !== null
+    || presentationState.newProjectOpen || presentationState.browseOpen || presentationState.optionsOpen
+    || presentationState.openDialogOpen || presentationState.editDriverInfo || presentationState.editDriver,
+  splashOpen: splash.open,
+  onlineAgain: feedbackServices.onlineAgain,
+  defer: fn => { window.setTimeout(fn, 2000); },
+  promptOutcome: outcome => featureUse.feedbackPrompt({kind: 'feedback_prompt', outcome}),
+});
+provideFeedbackDialog(feedback);
+
+/** Whether a project is focused right now. The overlays below are project-bound: the shell
+ *  renders without one, they must not. */
+const projectOpen = computed(() => { void projectChanged.value; return focusedProject() !== null; });
+
+async function handleHashChange() {
+  const saved = await projectRepo.loadFromHash();
+  if (Array.isArray(saved)) logging.flash('Could not load shared link: ' + saved.join('; '));
+  else if (saved) applyState(saved);
+}
+
+let stopSessionSync: () => void = () => {};
+let stopStoringNewProjects: () => void = () => {};
+
+onMounted(async () => {
+  // ONE ordered restore (`logic/boot.ts`), then persistence. Nothing writes storage while the
+  // boot is still reading it, and no phase runs before the one it depends on has returned.
+  await perf.restoring(() => bootApplication({
+    projectRepo,
+    viewStateRepo,
+    logging,
+    appState,
+    presentation: presentationState,
+    recordedProjectId,
+  }));
+  void announcements.load();
+  viewStateRepo.save(currentViewSnapshot());
+  projectRepo.saveOpenProjects(openProjects(), focusedProject(), hiddenTraces(openProjects()));
+  stopSessionSync = startSessionSync({ projectRepo, viewStateRepo, appState });
+  stopStoringNewProjects = startStoringNewProjects({ projectRepo, appState, onFailed: () => void designIO.reportStorageFull() });
+  window.addEventListener('hashchange', handleHashChange);
+  launch.report(activeSkin.value);
+  perf.bootReady();
+  void showStoragePopup({
+    persistence,
+    browserStorage,
+    readUse: () => storedUseOf(projectRepo, storageUsage),
+    confirm: confirmPort.port,
+    saves,
+    splashOpen: splash.open,
+  });
+});
+
+onUnmounted(() => {
+  feedback.stop();
+  stopSessionSync();
+  stopStoringNewProjects();
+  window.removeEventListener('hashchange', handleHashChange);
+  viewportWatch.stop();
+  labelColumns?.stop();
+});
+</script>
+
+<template>
+  <!-- Every `position: fixed` overlay in the app (the wizards, DriverBrowser, DriverEditorModal,
+       OptionsModal, DiagnosticsModal, SplashModal, ...) is a SIBLING of the shell here, not a
+       descendant of it — so none of them can be contained by anything the shell itself does.
+       `.app-root`'s `transform` (see the style block) makes THIS element the containing block
+       for every `position: fixed` descendant in the whole app, per the CSS spec — exactly what
+       constrains them to the phone-width pane below when the mobile skin is centered inside a
+       full desktop browser window, without editing every overlay component individually. In
+       desktop mode this element is unconstrained (full width), so the same rule is a no-op —
+       `position: fixed` against a full-viewport containing block behaves identically to `fixed`
+       against the real viewport. -->
+  <div ref="appRoot" class="app-root joined-fields" :class="{ 'app-root-mobile': activeSkin === 'mobile' || fieldCatalogue }">
+    <!-- The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus the
+         empty placeholders, and the toolbar's global actions stay reachable. All overlays
+         self-gate on their own presentationState booleans. Which shell mounts is `activeSkin`:
+         the manual override when set, else the live viewport. -->
+    <FieldCatalogue v-if="fieldCatalogue" />
+    <MobileShell v-else-if="activeSkin === 'mobile'" />
+    <OriginalShell v-else />
+    <!-- Global overlays — each self-gates internally and is safe with no project open. -->
+    <MobileNewProject v-if="presentationState.newProjectOpen && activeSkin === 'mobile'" @close="presentationState.newProjectOpen = false" />
+    <OriginalNewProject v-else-if="presentationState.newProjectOpen" @close="presentationState.newProjectOpen = false" />
+    <!-- Saved-driver editing owns a detached library draft and needs no project.
+         Project-driver editing and What-if still require an open project. -->
+    <DriverEditorModal v-if="presentationState.editDriverInfo && (projectOpen || selection.editSubject().kind === 'myDriver')" :skin="activeSkin === 'mobile' ? PHONE_DRIVER_EDITOR_SKIN : undefined" @close="presentationState.editDriverInfo = false" />
+    <OriginalWhatIf v-if="presentationState.editDriver && projectOpen" />
+    <!-- The wizard's step-1 driver picker sits ON TOP of the wizard modal (both z-index 100). -->
+    <DriverBrowser :phone="activeSkin === 'mobile'" />
+    <!-- The phone shows messages in its own strip above the tab bar (MobileShell). -->
+    <Flash v-if="activeSkin !== 'mobile'" />
+    <!-- Offers to send a report after an uncaught error. -->
+    <CrashScreen />
+    <!-- Raises itself on the first uncaught error, rejection or console.error. -->
+    <DiagnosticsModal />
+    <!-- What OpenISD is — raised for a first visitor, reopened from Info → About OpenISD. -->
+    <SplashModal />
+    <!-- Versioned announcements remain available from Info/App menus after dismissal. -->
+    <AnnouncementsModal />
+    <!-- Help → "OpenISD and WinISD differences"; also opened by the group headings and ≠W cues. -->
+    <WinisdDifferencesModal />
+    <!-- "Do you like OpenISD?": one tap on a face sends it. Info menu, or offered once after a save. -->
+    <FeedbackDialog />
+    <!-- In-app confirm dialog, hosted once for both skins. -->
+    <ConfirmDialog :state="confirmState" />
+  </div>
+</template>
+
+<style scoped>
+.app-root-mobile {
+  max-width: 480px;
+  margin: 0 auto;
+  /* No explicit height here on purpose: MobileShell.vue's .mobile-root sets its OWN height from
+     a JS-measured visible viewport height (more robust than any CSS vh/dvh — see visibleViewport.ts);
+     sideways that height is the window width, so the document scrolls and the grey is a drag surface.
+     Every other child of this element is position:fixed (out of normal flow), so with no height
+     of its own, this element's auto height just matches .mobile-root's exactly — no risk of the
+     two disagreeing and one clipping or gapping past the other. */
+  box-shadow: 0 0 0 1px #C7CDCB;
+  /* Establishes the containing block for every position:fixed descendant app-wide — see the
+     template comment above. The exact transform doesn't matter (translateZ(0) is a common,
+     visually inert choice); only that one is present. */
+  transform: translateZ(0);
+  overflow-x: hidden;
+}
+/* Bug: the openisd button should open the splash as a full
+   width scrolling page, not a popup (a popup is fine in the main app) — SplashModal.vue already scrolls
+   its own content (.sp's overflow:auto), the complaint is the 24px backdrop padding + centred
+   width cap leaving visible grey margins on a phone. Scoped to mobile only — SplashModal.vue
+   itself is shared with desktop, where the centred/padded look is unchanged. */
+.app-root-mobile :deep(.sp-backdrop) {
+  padding: 0;
+}
+.app-root-mobile :deep(.wd-overlay) {
+  padding: 0;
+}
+.app-root-mobile :deep(.wd-modal) {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  border-radius: 0;
+  border: none;
+}
+.app-root-mobile :deep(.sp) {
+  width: 100%;
+  max-height: 100%;
+  border-radius: 0;
+}
+
+/* The driver editor is the whole phone screen. Its fields, tabs and buttons are the shared phone ones
+   (DriverEditorModal's `skin`); `!important` outranks the component's own fixed desktop box. */
+.app-root-mobile :deep(.de-modal) {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  border-radius: 0 !important;
+}
+/* Bug (the driver editor buttons are tiny): the tabs, the close cross and
+   the footer buttons are at least 44 px tall on a phone, 44 wide. */
+.app-root-mobile :deep(.de-tab) { min-height: 44px; }
+.app-root-mobile :deep(.de-modal h2 .x) { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.app-root-mobile :deep(.de-footer button) { min-height: 44px; min-width: 44px; }
+
+/* Bug (something eclipses the bottom of the Use and Cancel buttons when
+   picking a driver): DriverBrowser.vue's own .wb-modal is fixed at 770x535 (a weak max-width/
+   max-height safety net, same gap DriverEditorModal's .de-modal had before its own override
+   above) — on a phone whose actual viewport is shorter than ~630px (535px / the 85vh cap), the
+   modal's real height clamps below what DriverLibrary.vue's list+preview+footer need, and
+   nothing in that fixed-height box was scrollable enough to compensate. Full-screen removes the
+   ceiling entirely, the same fix as .de-modal just above. */
+.app-root-mobile :deep(.wb-modal) {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+}
+/* T510 (classic phone, screen 6): the picker's title bar is 48 px with a 44 px close, and the library
+   runs edge to edge with no padding round it. */
+.app-root-mobile :deep(.wb-modal) { position: relative !important; }
+.app-root-mobile :deep(.wb-modal h2) { height: 48px; box-sizing: border-box; padding: 0 8px 0 16px !important; font-size: 16px !important; }
+.app-root-mobile :deep(.wb-modal h2 .x) { min-width: 44px; min-height: 44px; display: inline-flex !important; align-items: center; justify-content: center; }
+.app-root-mobile :deep(.wb-modal .body) { padding: 0 !important; gap: 0 !important; }
+</style>

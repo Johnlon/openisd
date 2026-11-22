@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": 410,
+    "message": "The page token is invalid.",
+    "errors": [
+      {
+        "reason": "pageTokenExpired",
+        "message": "The page token is invalid."
+      }
+    ]
+  }
+}

@@ -1,0 +1,1554 @@
+<script setup lang="ts">
+// The shell — a faithful recreation of WinISD 0.7.0.950's window, holding NO logic.
+//
+// Architecture: 1-to-1 correspondence between Vue and hook — every ref,
+// computed, watcher, lifecycle hook and store/domain write this component needs lives in
+// src/hooks/OriginalShell-hooks.ts (`useOriginalShell`), where it is a plain composable that
+// gets unit-tested without a DOM. This `<script setup>` is nothing but a hook call plus the
+// child-component imports; the template reads the destructured API surface only.
+import {APP_UPDATE_TEXT, CompatSwitchGroup, DesktopLabels, NO_PROJECT_OPEN, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
+import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
+import UIField from '../../components/UIField.vue';
+import PortShapeToggle from '../../components/PortShapeToggle.vue';
+import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
+import DriverCoilWiring from '../../components/DriverCoilWiring.vue';
+import DriverWiring from '../../components/DriverWiring.vue';
+import UIFixedField from '../../components/UIFixedField.vue';
+import UISettlingField from '../../components/UISettlingField.vue';
+import {provideCellScope} from '../../components/cellScope.js';
+import {useApp} from '../../../logic/app.js';
+import GraphPanel from '../../components/GraphPanel.vue';
+import ExportMenu from '../../components/ExportMenu.vue';
+import ToolbarIcon from '../../components/ToolbarIcon.vue';
+import OriginalFilters from './OriginalFilters.vue';
+import PRBrowser from '../../components/PRBrowser.vue';
+import PREditorDialog from '../../components/PREditorDialog.vue';
+import PRInfoDialog from '../../components/PRInfoDialog.vue';
+import OptionsModal from '../../components/OptionsModal.vue';
+import AdvancedOptions from '../../components/AdvancedOptions.vue';
+import ErrorSwitch from '../../components/ErrorSwitch.vue';
+import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
+import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
+import CompatGroupHelpLink from '../../components/CompatGroupHelpLink.vue';
+import ToggleLabel from '../../components/ToggleLabel.vue';
+import DesktopBand from '../../components/DesktopBand.vue';
+import DesktopHelpPanel from '../../components/DesktopHelpPanel.vue';
+import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
+import {injectDiagnosticsModal} from '../../../hooks/DiagnosticsModal-hooks.js';
+import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
+import CloudSyncBadge from '../../components/CloudSyncBadge.vue';
+import CloudSyncDialog from '../../components/CloudSyncDialog.vue';
+import OriginalProjectList from './OriginalProjectList.vue';
+import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
+import {OpenableFiles} from '../../../fileFormat.js';
+import {INSTALL_URL} from '../../siteLinks.js';
+import {useAnnouncementCenter} from '../../../hooks/Announcements-hooks.js';
+import {injectFeedbackDialog} from '../../../hooks/FeedbackDialog-hooks.js';
+
+const {
+  cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog,
+  handleCloudConnect, handleCloudSyncNow, handleCloudReconnect, handleCloudDismissReconnect,
+  updateOffered, reloadForUpdate, dismissUpdate,
+  handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
+  handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
+  toggleDropdown, openDd, infoMenuRoot, chartMenuRoot, openClick, closeDropdown, presentationState, isModified,
+  projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
+  projectListRef, duplicateProject, exportProject, cycleProjectColor, setProjectColor, copyProjectCharts, saveProjectRow, renameProject,
+  binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
+  saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, aboutLabel, optionsOpen,
+  chartLabel, chartItems, selectChart, toggleChart,
+  hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
+  startNudge, stopNudge, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectedOption,
+  WINISD_TRACE, cycleColor, resetChartView, chartMax,
+  mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown,
+  setTraceVisible, projectDisplayName, project, projectOpen,
+  requestCloseProject, closeChallenge, saveThenClose, closeProject,
+  genOn, toggleGenerate, genHz, setCompatSwitch,
+  boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
+  showEnclosureTab, enclosureNavLabel,
+  helpPanel, closeHelp, openSectionHelp, openTabHelp, tabHelpShown, rearChamberHelp, frontChamberHelp, passiveRadiatorHelp, userOptionsHelp,
+  placementHelp, advancedOptionsHelp, listeningPlaceHelp, signalSourceHelp, limitsHelp, ventHelp,
+  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, abcVelocityApplies, oneDriverImpedanceApplies, errorSwitches, chartDeviations, prNprDeviationShown, projectAlfaVCDeviationShown,
+  boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
+  sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
+  sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
+  ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
+  ventedAlignmentVolume_m3, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
+  ventedAlignmentSuitabilityLabel,
+  activeTuning, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP,
+  boxResonance, rearQtc, prSystemTuningDq,
+  fbUnreachable, fbUnreachableMsg, isDual,
+  frontVolumeCell, rearTuningCell, rearResonance,
+  model, startEdit, showDriverDisagreements, showDriverInfo, startWhatIf, driverConsistencyReasons,
+  ventPorts, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS,
+  prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, prEditor, startEditPR, defineNewPREntry, prInfoOpen, prInfo, openPRInfo,
+  prResonanceMassDq, prFsMass_hz,
+  advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
+  envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
+  envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
+  resetAirToAppDefaults,
+  powerLocked, rsOhm, minimumPower,
+  projectName, projectCreator, projectCreated, projectModified, projectDateCommits, projectDescription,
+  lossesOpen, openLossGroups, resetBoxLosses,
+  onFile, fileInput,
+} = useOriginalShell();
+const winisdDifferences = injectWinisdDifferencesModal();
+const diagnostics = injectDiagnosticsModal();
+const announcements = useAnnouncementCenter();
+const feedback = injectFeedbackDialog();
+// The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
+const { projectChanged } = useApp().appState;
+provideCellScope({ revision: projectChanged, written: () => {} });
+</script>
+
+<template>
+  <div class="original-root">
+    <!-- ================= Toolbar ================= -->
+    <div class="toolbar">
+      <div class="tb-icons">
+        <button type="button" class="tb-btn" aria-label="Open project" title="Open project" @click="openClick">
+          <ToolbarIcon name="open" />
+        </button>
+        <button type="button" class="tb-btn" aria-label="New project" title="New project — choose box type + starting volume, then a driver." @click="presentationState.newProjectOpen = true">
+          <ToolbarIcon name="new" />
+        </button>
+        <button type="button" class="tb-btn" :class="{ dirty: isModified, disabled: !projectOpen }" :disabled="!projectOpen" aria-label="Save" title="Save - saves the file to browser storage. Use Export to save as file" @click="saveProject">
+          <ToolbarIcon name="save" />
+        </button>
+        <button type="button" class="tb-btn" :class="{ dirty: anyUnsaved, disabled: !anyUnsaved }" :disabled="!anyUnsaved" aria-label="Save all" :title="anyUnsaved ? 'Save all — saves every open project with unsaved changes to browser storage.' : 'Save all — no open project has unsaved changes.'" @click="saveAllProjects">
+          <ToolbarIcon name="saveAll" />
+        </button>
+        <button type="button" class="tb-btn" :class="{ disabled: !isModified }" :disabled="!isModified" aria-label="Revert" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="resetProjectToGround(confirmDiscard)">
+          <ToolbarIcon name="revert" />
+        </button>
+        <ExportMenu class="tb-btn" :disabled="!projectOpen" title="Save As / Export — OpenISD project, WinISD project, driver file, or a share link.">
+          <ToolbarIcon name="saveAs" />
+        </ExportMenu>
+        <div class="tb-sep"></div>
+        <button type="button" class="tb-btn" aria-label="Manage Drivers" title="Manage Drivers — browse the library." @click="presentationState.browseOpen = true">
+          <ToolbarIcon name="drivers" />
+        </button>
+        <button type="button" class="tb-btn" aria-label="Options" title="Options" @click="optionsOpen = true">
+          <ToolbarIcon name="options" />
+        </button>
+        <div
+          v-if="cloudAvailable"
+          class="tb-btn cloud-sync-tb-btn"
+          :title="cloudDisplay.tooltip"
+        >
+          <CloudSyncBadge :display="cloudDisplay" @tap="openCloudDialog" />
+        </div>
+        <div ref="infoMenuRoot" class="tb-menu">
+          <button type="button" class="tb-btn has-menu" aria-label="Info" aria-haspopup="menu" :aria-expanded="openDd === 'info-dropdown'" title="Info" @click.stop="toggleDropdown('info-dropdown')">
+            <ToolbarIcon name="info" />
+            <span class="caret">&#9662;</span>
+          </button>
+          <div class="dropdown-menu" :class="{ open: openDd === 'info-dropdown' }" @click.stop>
+            <div class="menu-item" @click="about(); closeDropdown()">{{ aboutLabel }}</div>
+            <div class="menu-item" @click="announcements.showList(); closeDropdown()">Announcements</div>
+            <div class="menu-item" data-testid="menu-send-feedback" @click="feedback.show(); closeDropdown()">{{ feedback.texts.menuLabel }}</div>
+            <a class="menu-item" :href="INSTALL_URL" target="_blank" rel="noopener" title="How to add OpenISD to your desktop or dock as an app." @click="closeDropdown()">Add to desktop as an app</a>
+            <div
+              v-if="cloudAvailable"
+              class="menu-item"
+              :title="cloudDisplay.tooltip"
+              @click="openCloudDialog(); closeDropdown()"
+            >{{ CLOUD_SYNC_MENU_LABEL }}</div>
+            <div class="menu-item" title="Where OpenISD differs from WinISD: the WinISD bugs it fixes, and the options." @click="winisdDifferences.show(); closeDropdown()">OpenISD and WinISD differences</div>
+            <div class="menu-item" title="Diagnostic report and stored data health." @click="diagnostics.show(); closeDropdown()">Diagnostics</div>
+            <div class="menu-item" title="Switch to a phone-friendly layout. Remembered on this device — use the same menu there to switch back." @click="switchToMobile(); closeDropdown()">Switch to Mobile view</div>
+            <div v-if="!skinIsAutomatic" class="menu-item" title="Choose the layout from the window size again, as when you first opened OpenISD." @click="useAutomaticSkin(); closeDropdown()">Automatic view</div>
+          </div>
+        </div>
+        <div class="tb-sep"></div>
+        <div ref="chartMenuRoot" class="chart-select" @click.stop="toggleDropdown('chart-dropdown')" title="Choose which charts the graph shows — click a name to show it alone, tick boxes to stack several">
+          <ToolbarIcon name="chart" />
+          <span class="chart-name" :title="chartLabel">{{ chartLabel }}</span>
+          <span class="caret">&#9662;</span>
+          <div class="dropdown-menu" :class="{ open: openDd === 'chart-dropdown' }" @click.stop>
+            <template v-for="item in chartItems" :key="item.tab">
+              <hr v-if="item.sep">
+              <div class="menu-item chart-item" :class="{ current: item.open }" @click="selectChart(item)" title="Show only this chart">
+                <input type="checkbox" :checked="item.open" @click.stop="toggleChart(item.tab)" title="Add this chart to the stack, or remove it">
+                <span>{{ item.label }}</span>
+              </div>
+            </template>
+          </div>
+        </div>
+        <WinisdDeviationCue v-for="d in chartDeviations" :key="d.title" :deviation="d" class="chart-deviation-cue" />
+      </div>
+      <div class="app-brand" title="OpenISD">
+        <img class="brand-icon" src="/icon.svg" alt="" aria-hidden="true">
+        <span>OpenISD</span>
+      </div>
+      <div class="cursor-readout">
+        <span class="ro-hz">
+          <button class="nudge-btn"
+                  @pointerdown="startNudge(-1)"
+                  @pointerup="stopNudge"
+                  @pointerleave="stopNudge"
+                  title="Spin frequency down logarithmically within chart limits (hold to spin)">◄</button>
+          <input class="ro-hz-input"
+                 type="text"
+                 :value="hzInputText"
+                 @input="hzInputText = inputValue($event)"
+                 @focus="onHzInputFocus"
+                 @blur="onHzInputBlur"
+                 @keydown="onHzKeydown"
+                 @wheel.prevent="onHzWheel"
+                 placeholder="—"
+                 title="Cursor frequency in Hz (XXXXX.XX). Type or use ArrowUp/ArrowDown/wheel/◄► to spin logarithmically." />
+          <button class="nudge-btn"
+                  @pointerdown="startNudge(1)"
+                  @pointerup="stopNudge"
+                  @pointerleave="stopNudge"
+                  title="Spin frequency up logarithmically within chart limits (hold to spin)">►</button>
+          <span class="ro-hz-unit">{{ ReadoutFormat.CURSOR_FREQUENCY_HZ.unitLabel(unitTokens) }}</span>
+          <span style="display:none">{{ cursorHzText }}</span>
+        </span>
+        <span class="ro-val">{{ cursorVal != null ? ReadoutFormat.CURSOR_LEVEL.text(cursorVal, '') + ' ' + (chartMeta?.unit ?? '') : '— ' + (chartMeta?.unit ?? '') }}</span>
+        <label class="chart-high" title="Charts high. This many charts stack one under the other, sharing the height; more open charts add columns, up to three.">
+          <span>Charts high</span>
+          <select :value="chartsHigh" @change="e => { const n = selectedOption(e, CHARTS_HIGH_OPTIONS); if (n !== null) chartsHigh = n; }">
+            <option v-for="o in CHARTS_HIGH_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
+          </select>
+        </label>
+        <button class="chart-max-btn" title="Reset all charts — clears the shared frequency-range zoom and every chart's Y-axis zoom back to the default range."
+                @click="resetChartView">⟲</button>
+        <button class="chart-max-btn" :title="chartMax ? 'Restore the normal layout (bring back the side and bottom panels)' : 'Maximise the chart over the whole page — the toolbar stays, so the chart type can still be changed'"
+                @click="chartMax = !chartMax">{{ chartMax ? '⤡' : '⛶' }}</button>
+<div v-if="projectOpen" class="color-btn chart-color-btn" :style="{ background: WINISD_TRACE }" title="Click to cycle the current design's curve colour" @click="cycleColor">Color</div>
+        </div>
+    </div>
+
+    <!-- Cloud sync strips / notices in flow directly under toolbar -->
+    <div v-if="updateOffered" class="cloud-conflict-notice update-strip" role="status" data-testid="update-strip">
+      <span class="cloud-strip-label">{{ APP_UPDATE_TEXT.offer }}</span>
+      <span class="cloud-strip-actions">
+        <button type="button" class="cloud-strip-btn pri" data-testid="update-reload" @click="reloadForUpdate">{{ APP_UPDATE_TEXT.reload }}</button>
+        <button type="button" class="cloud-strip-btn" data-testid="update-later" @click="dismissUpdate">{{ APP_UPDATE_TEXT.later }}</button>
+      </span>
+    </div>
+    <div v-else-if="cloudAvailable && cloudDisplay.strip" class="cloud-reconnect-strip" data-testid="reconnect-strip">
+      <span class="cloud-strip-label">{{ cloudDisplay.strip.text }}</span>
+      <span class="cloud-strip-actions">
+        <button type="button" class="cloud-strip-btn pri" @click="handleCloudReconnect">{{ cloudDisplay.strip.button }}</button>
+        <button type="button" class="cloud-strip-btn" data-testid="reconnect-later" @click="handleCloudDismissReconnect">{{ cloudDisplay.strip.dismiss }}</button>
+      </span>
+    </div>
+    <div v-else-if="cloudAvailable && cloudDisplay.conflictNotice" class="cloud-conflict-notice">
+      <span class="cloud-strip-label">{{ cloudDisplay.conflictNotice.text }}</span>
+      <button type="button" class="cloud-strip-btn pri" @click="handleViewConflicts">{{ cloudDisplay.conflictNotice.button }}</button>
+    </div>
+    <div v-else-if="cloudAvailable && cloudDisplay.hint" class="cloud-hint">
+      <span class="cloud-strip-label">{{ cloudDisplay.hint.text }}</span>
+      <div class="cloud-hint-actions">
+        <button type="button" class="cloud-strip-btn pri" @click="handleHintTurnOn">{{ cloudDisplay.hint.yes }}</button>
+        <button type="button" class="cloud-strip-btn" @click="handleHintDismiss">{{ cloudDisplay.hint.no }}</button>
+      </div>
+    </div>
+
+    <!-- ================= Main: 2×2 quadrants + splitters ================= -->
+    <div ref="mainEl" class="main" :class="{ 'chart-max': chartMax, 'nav-collapsed': navCollapsed, 'bottom-collapsed': bottomCollapsed }" :style="mainStyle">
+      <!-- top-left quadrant -->
+      <div class="quad-topleft">
+        <OriginalProjectList
+          ref="projectListRef"
+          :projectRows="projectRows"
+          :shownProjects="shownProjects"
+          :projectsFooter="projectsFooter"
+          :searchOffered="searchOffered"
+          :projectQuery="projectQuery"
+          :projectOrder="projectOrder"
+          :projectOrders="projectOrders"
+          :projectScope="projectScope"
+          :binRows="binRows"
+          :binTotal="binTotal"
+          :binOpen="binOpen"
+          :binLabel="binLabel"
+          :storeLabel="storeLabel"
+          @update:projectQuery="val => projectQuery = val"
+          @update:projectOrder="val => projectOrder = val"
+          @update:projectScope="val => projectScope = val"
+          @update:binOpen="val => binOpen = val"
+          @choose="chooseProject"
+          @close="requestCloseProject"
+          @setTraceVisible="setTraceVisible"
+          @cycleColor="cycleProjectColor"
+          @setColor="setProjectColor"
+          @copyCharts="copyProjectCharts"
+          @saveProject="saveProjectRow"
+          @duplicate="duplicateProject"
+          @export="exportProject"
+          @rename="renameProject"
+          @resolve="openCloudDialog"
+          @moveToBin="moveToBin"
+          @restoreFromBin="restoreFromBin"
+          @deleteForever="deleteForever"
+          @emptyBin="emptyBin"
+          @exportAll="exportProjectsArchive"
+          @newProject="presentationState.newProjectOpen = true"
+          @import="openFromDisk"
+        />
+
+        <div class="quad-signalgen-wrap">
+          <div class="panel-title">Signal Generator</div>
+          <div class="signal-gen-row" title="Play a real sine tone out of the audio output for testing speakers.">
+            <label class="signal-gen-switch" title="Generate tone">
+              <input type="checkbox" v-model="genOn" aria-label="Generate tone" @change="toggleGenerate">
+              <span aria-hidden="true"></span>
+            </label>
+            <UIFixedField class="signal-gen-field" :field="NumberField.SIGNAL_GENHZ_HZ" label="" :value="genHz" @update:value="v => { genHz = v; }" />
+          </div>
+        </div>
+      </div>
+
+      <!-- vertical splitter: drag to resize the left panel; toggle collapses it -->
+      <div class="split-v" title="Drag to resize the left panel" @pointerdown="onNavSplitDown" @dblclick="navCollapsed = !navCollapsed">
+        <button class="split-toggle" :title="navCollapsed ? 'Expand the left panel (Projects / Signal Generator)' : 'Collapse the left panel to give the graph more width'"
+                :aria-expanded="!navCollapsed" @pointerdown.stop @click="navCollapsed = !navCollapsed"><svg class="split-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 4 6 8 10 12" /></svg></button>
+      </div>
+
+      <!-- top-right quadrant: graph -->
+      <div class="graph-area">
+        <div class="graph-wrap">
+          <div v-if="projectOpen && !pending" ref="chartStackEl" class="chart-stack" :style="chartStackStyle">
+            <div v-for="id in openCharts" :key="id" class="chart-cell">
+              <GraphPanel :chartId="id" :bare="true" :primaryColor="WINISD_TRACE" :overlays="overlays" />
+              <button v-if="openCharts.length > 1" class="chart-close" title="Remove this chart from the stack" @click="toggleChart(id)">✕</button>
+            </div>
+          </div>
+          <div v-else-if="projectOpen" class="graph-empty">
+            <template v-if="pending">
+              <div class="graph-empty-h">{{ boxLabel }}</div>
+              <p>Response model pending — this enclosure type isn't modelled by the engine yet, so no curve is drawn.</p>
+            </template>
+            <template v-else>
+              <div class="graph-empty-h">{{ chartLabel }}</div>
+              <p>This chart isn't available in the engine yet.</p>
+            </template>
+          </div>
+          <div v-else class="graph-empty">
+            <div class="graph-empty-brand">
+              <img src="/icon.svg" alt="" aria-hidden="true">
+              <span>OpenISD</span>
+            </div>
+            <div class="graph-empty-h">{{ NO_PROJECT_OPEN }}</div>
+            <div class="graph-empty-actions">
+              <button class="graph-empty-link" @click="presentationState.newProjectOpen = true"><ToolbarIcon name="new" /> <span>New project</span></button>
+              <button class="graph-empty-link" @click="openClick"><ToolbarIcon name="open" /> <span>Open project</span></button>
+              <button class="graph-empty-link" @click="openFromDisk"><ToolbarIcon name="import" /> <span>Import project</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- horizontal splitter: drag to resize the bottom section; toggle collapses it -->
+      <div class="split-h" @dblclick="bottomCollapsed = !bottomCollapsed">
+        <button class="split-toggle" :title="bottomCollapsed ? 'Expand the bottom section (project tabs)' : 'Collapse the bottom section to give the graph more height'"
+                :aria-expanded="!bottomCollapsed" @pointerdown.stop @click="bottomCollapsed = !bottomCollapsed"><svg class="split-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 4 6 8 10 12" /></svg></button>
+      </div>
+
+      <!-- bottom-left quadrant: tab rail -->
+      <div class="quad-bottomleft">
+        <div class="panel-title">Project</div>
+        <ul class="project-nav">
+          <li :class="{ active: activeTab === 'box' }" @click="activeTab = 'box'">Box</li>
+          <li :class="{ active: activeTab === 'driver' }" @click="activeTab = 'driver'">Driver</li>
+          <li v-if="showEnclosureTab" :class="{ active: activeTab === 'enclosure' }" @click="activeTab = 'enclosure'">{{ enclosureNavLabel }}</li>
+          <li :class="{ active: activeTab === 'filters' }" @click="activeTab = 'filters'">Filters</li>
+          <li :class="{ active: activeTab === 'signal' }" @click="activeTab = 'signal'">Signal</li>
+          <li :class="{ active: activeTab === 'advanced' }" @click="activeTab = 'advanced'">Advanced</li>
+          <li :class="{ active: activeTab === 'project' }" @click="activeTab = 'project'">Project</li>
+        </ul>
+      </div>
+
+      <!-- bottom-right quadrant: 7 tabs -->
+      <div class="content-panel">
+        <template v-if="projectOpen">
+        <div class="content-tabs">
+
+        <!-- ===== Box tab ===== -->
+        <section class="tab-section" :class="{ active: activeTab === 'box' }">
+          <div class="box-tab-row">
+          <div class="box-tab-main">
+          <div class="field-row" style="flex-wrap: nowrap;">
+            <div class="field" style="gap:8px;"><label style="width:auto;">Box Type</label>
+              <select id="og-box-type" :value="selectedBox" @change="e => { const b = selectedOption(e, BOX_TYPE_OPTIONS); if (b !== null) selectedBox = b; }" style="width:170px">
+                <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.includes(o.value) }">{{ o.label }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="box-layout">
+            <div v-if="!isDual" class="box-fields-col" style="width: 412px;">
+              <DesktopBand :section="rearChamberHelp" @help="openSectionHelp" />
+              <div class="field-row">
+                <UIField class="field" input-id="og-box-volume" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" />
+                <button v-if="selectedBox === 'sealed'" class="link-btn" title="Choose a sealed-box alignment and calculate its volume" @click="sealedAlignmentEditor.openEditor">{{ DesktopLabels.ALIGNMENT }}</button>
+                <button v-if="selectedBox === 'vented'" class="link-btn" title="Choose a vented-box alignment and calculate its volume and tuning" @click="ventedAlignmentEditor.openEditor">{{ DesktopLabels.ALIGNMENT }}</button>
+              </div>
+              <div class="field-row" style="flex-wrap: nowrap;">
+                <!-- A vented chamber's tuning is a real design choice (the port is an extra
+                     degree of freedom), so WinISD makes it entered and solves the vent LENGTH
+                     from it. A sealed chamber's Vb, Fsc and Qtc fix each other: enter any one and
+                     the other two are calculated. Per-chamber, not per-box. -->
+                <template v-if="selectedBox === 'vented'">
+                  <UIField id="og-fb-target-field" class="field" input-id="og-fb-target" :title="FB_TARGET_TIP" :field="NumberField.BOX_FB_HZ" :cell="activeTuning" />
+                </template>
+                <template v-else-if="selectedBox === 'sealed'">
+                  <UIField class="field" input-id="og-box-resonance" :field="NumberField.BOX_FSC_HZ" :cell="sealedFscCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" />
+                </template>
+                <template v-else-if="selectedBox === 'box-passive-radiator'">
+                  <UIField class="field" input-id="og-box-resonance" :title="prSystemTuningDq.dq.length > 0 ? prSystemTuningDq.dq.join('; ') + '\n\n' + FH_TARGET_TIP : FH_TARGET_TIP" :field="NumberField.BOX_FH_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" :deviation="WinisdDeviation.PR_BOX_TUNING" />
+                </template>
+                <UIFixedField v-else class="field" input-id="og-box-resonance" :field="NumberField.BOX_FH_HZ" :value="boxResonance" readonly />
+              </div>
+              <div v-if="selectedBox === 'sealed'" class="field-row">
+                <UIField class="field" input-id="og-box-qtc" :field="NumberField.BOX_QTC_VALUE" :cell="sealedQtcCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" />
+              </div>
+              <p v-if="selectedBox === 'vented' && fbUnreachable" id="og-fb-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
+              <button class="link-btn" @click="lossesOpen = 'whole'">{{ DesktopLabels.LOSSES_LINK }}</button>
+            </div>
+
+            <template v-else>
+              <div class="box-fields-col">
+                <DesktopBand :section="rearChamberHelp" @help="openSectionHelp" />
+                <div class="field-row"><UIField class="field" input-id="og-box-volume" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" /></div>
+                <div class="field-row">
+                  <UIField v-if="rearTuningCell && (selectedBox === 'bandpass6' || selectedBox === 'abc')" class="field" :field="NumberField.BOX_FRC_HZ" :cell="rearTuningCell" />
+                  <UIFixedField v-else class="field" :field="NumberField.BOX_REARRESONANCE_HZ" :label="selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq'" :value="rearResonance" readonly />
+                </div>
+                <div v-if="selectedBox === 'bandpass4'" class="field-row">
+                  <UIFixedField class="field" :field="NumberField.QTS" label="Qtc" :value="rearQtc" :format="ReadoutFormat.QTC" readonly />
+                </div>
+                <button class="link-btn" @click="lossesOpen = 'rear'">{{ DesktopLabels.LOSSES_LINK }}</button>
+              </div>
+              <div class="box-fields-col">
+                <DesktopBand :section="frontChamberHelp" @help="openSectionHelp" />
+                <div class="field-row"><UIField v-if="frontVolumeCell" class="field" input-id="og-front-volume" :field="NumberField.BOX_VF_L" :cell="frontVolumeCell" /></div>
+                <div class="field-row">
+                  <UIField id="og-ffc-target-field" class="field" input-id="og-ffc-target" :title="FB_TARGET_TIP" :field="NumberField.BOX_FFC_HZ" :cell="activeTuning" />
+                </div>
+                <p v-if="fbUnreachable" id="og-ffc-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
+                <button class="link-btn" @click="lossesOpen = 'front'">{{ DesktopLabels.LOSSES_LINK }}</button>
+              </div>
+            </template>
+
+          </div>
+          </div>
+          <div class="box-diagram-col">
+              <BoxTypeDiagram :box-type="selectedBox" />
+            </div>
+            <!-- Notes sit BESIDE the diagram, not under the row: stacked below, they grew the
+                 pane (and so the whole bottom track, which is auto-sized) whenever a box type
+                 with notes was picked, shifting the chart above. -->
+            <div class="box-notes-col">
+              <p class="hint"><b>Rear chamber</b> is the chamber behind the driver, <b>front chamber</b> the one in front of it. Closed, vented and passive radiator boxes have a rear chamber only.</p>
+              <p v-if="selectedBox === 'sealed'" class="hint"><b>Sealed (Fsc):</b> System resonance frequency where the speaker impedance peaks and below which the response rolls off at 12 dB/octave. Volume, Fsc and Qtc fix each other: type any one and the other two follow.</p>
+              <p v-if="selectedBox === 'vented'" class="hint"><b>Vented (Fb):</b> Helmholtz resonance of the box volume and port. At Fb, port output is maximized and driver cone excursion is minimized.</p>
+              <p v-if="selectedBox === 'box-passive-radiator'" class="hint"><b>Passive radiator (Fh):</b> Helmholtz tuning frequency of the passive radiator and Vb. Lowered by adding mass (Madd) to the radiator cone.</p>
+              <p v-if="selectedBox === 'bandpass4'" class="hint"><b>Bandpass 4th order:</b> Uses sealed rear chamber resonance (Frc) for low-end control, and front chamber port tuning (Fb) to bandpass-filter the output.</p>
+              <p v-if="selectedBox === 'bandpass6'" class="hint"><b>Bandpass 6th order:</b> Dual-tuned bandpass filter. Front and rear chambers are both tuned to separate port frequencies to shape the passband.</p>
+              <p v-if="selectedBox === 'abc'" class="hint">ABC's driver mounts on the outer baffle, firing straight into the room — unlike 4th/6th order bandpass, where the driver is fully enclosed and fires only into the two internal chambers.</p>
+              <p v-if="pending" class="hint pending-note"><b>Response model pending.</b> The engine doesn't model this enclosure type yet — the diagram and chamber volumes are editable, but no curve is computed.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Driver tab ===== -->
+        <section class="tab-section" :class="{ active: activeTab === 'driver' }">
+          <div class="field-row driver-id-row">
+            <div class="field tight"><label>Brand</label><input type="text" style="width:130px" :value="project.driver.brand.value" readonly></div>
+            <div class="field tight driver-model-field"><label>Model</label><input type="text" :value="model" readonly></div>
+            <button class="edit-btn" title="Swap in a different driver for this project." @click="presentationState.browseOpen = true">Select Driver</button>
+            <button type="button" class="edit-btn" title="View information about this project’s driver" @click="showDriverInfo">Info</button>
+            <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
+          </div>
+          <div class="two-col driver-columns" style="margin-top:6px;">
+            <div class="short-pick-fields">
+              <DesktopBand :section="placementHelp" style="margin-bottom:4px;" @help="openSectionHelp" />
+              <div class="field-row" style="margin-bottom:4px;">
+                <UIFixedField class="field" input-id="og-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="DesktopLabels.NUM_DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" />
+              </div>
+              <DriverWiring />
+              <DriverCoilWiring />
+            </div>
+            <div>
+              <DesktopBand :section="advancedOptionsHelp" @help="openSectionHelp" />
+              <div class="beside-hint">
+                <div class="driver-advanced-fields">
+                  <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_VCTEMPRISE_K" :value="project.vcTempRise_K.value" @update:value="v => project.vcTempRise_K.set(v)" /></div>
+                  <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_ADDEDMASS_G" :value="project.driverAddedMass_kg.value" @update:value="v => project.driverAddedMass_kg.set(v)" /></div>
+                  <div class="field-row"><UIFixedField class="field" :field="NumberField.ALFAVC_PER_K" :value="project.alfaVC_per_K.value" @update:value="v => project.alfaVC_per_K.set(v)" :deviation="projectAlfaVCDeviationShown ? WinisdDeviation.PROJECT_ALFAVC : undefined" /></div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          <div class="driver-hint-row">
+            <DriverConsistencyList inline :count="driverConsistencyReasons.length" @open="showDriverDisagreements" />
+          </div>
+        </section>
+
+        <!-- ===== Enclosure / Vents tab ===== -->
+        <section v-if="showEnclosureTab" class="tab-section" :class="{ active: activeTab === 'enclosure' }">
+          <!-- No Box Type selector here. It lives on the Box tab, which is the one place the
+               box type is chosen; a second copy of it on this tab put the passive radiator's
+               own [Select PR] [Edit] row underneath a control that is not about the PR. -->
+          <!-- passive radiator -->
+          <div v-if="selectedBox === 'box-passive-radiator'">
+            <div class="field-row driver-id-row" style="margin-bottom:8px;">
+              <div class="field tight entered" :title="TextField.PR_NAME.description"><label>{{ TextField.PR_NAME.label }}</label><input id="og-pr-name" type="text" style="width:330px" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))"></div>
+              <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">{{ DesktopLabels.SELECT_PASSIVE_RADIATOR }}</button>
+              <button type="button" class="edit-btn" id="og-pr-info" title="View information about this project’s passive radiator" @click="openPRInfo">Info</button>
+              <button id="og-pr-edit" type="button" class="edit-btn" title="Full editor for this passive radiator in the current project." @click="startEditPR">{{ DesktopLabels.EDIT_PASSIVE_RADIATOR }}</button>
+            </div>
+            <div class="two-col pr-controls" style="gap:10px;">
+              <div>
+                <DesktopBand :section="passiveRadiatorHelp" title="Passive radiator parameters" @help="openSectionHelp" />
+                <div style="display: grid; grid-template-columns: auto auto; column-gap: 5px; row-gap: 0; margin-bottom: 0;">
+                  <UIField class="field" input-id="og-pr-vas" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" />
+                  <UIField class="field" input-id="og-pr-qms" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" />
+                  <UIField class="field" input-id="og-pr-fs" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" />
+                  <UIField class="field" :field="NumberField.PR_SD_CM2" :cell="project.box.passiveRadiator.radiator.spec.Sd_m2" />
+                  <UIField class="field" input-id="og-pr-mms" :field="NumberField.MMS_KG" :cell="project.box.passiveRadiator.radiator.spec.Mms_kg" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" />
+                  <UIField class="field" input-id="og-pr-cms" :field="NumberField.CMS_M_PER_N" :cell="project.box.passiveRadiator.radiator.spec.Cms_m_per_N" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" />
+                  <UIField class="field" input-id="og-pr-rms" :field="NumberField.RMS_KG_PER_S" :cell="project.box.passiveRadiator.radiator.spec.Rms_kg_per_s" />
+                  <UIField class="field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" />
+                </div>
+              </div>
+              <div>
+                <DesktopBand :section="userOptionsHelp" @help="openSectionHelp" />
+                <div class="field-row" style="margin-bottom:3px;">
+                  <UIFixedField class="field" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" @update:value="n => project.box.passiveRadiator.count.set(n)" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined" />
+                </div>
+                <div class="field-row" style="margin-bottom:3px;">
+                  <UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" />
+                </div>
+                <div class="field-row" style="margin-bottom:3px; gap:8px;">
+                  <UIField class="field" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
+                </div>
+                <div class="field-row" style="margin-bottom:3px;">
+                  <UIFixedField :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly />
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+<!-- Closed (sealed) has NO enclosure pane: the Box tab is the single home of
+               Volume + Fsc, and showEnclosureTab drops the nav entry for sealed. -->
+          <div v-else-if="ventPorts.length > 0" class="vent-pane-tight vent-labels-left port-columns">
+            <!-- Every ported box shares the same columns; slotted Width and Height occupy separate rows. -->
+            <div class="vent-groups">
+              <div v-for="port in ventPorts" :key="port.name" class="vent-col">
+                <DesktopBand class="vent-col-band" title-class="vent-col-title" :section="ventHelp(port.name)" :title="ventPorts.length === 1 ? 'Vents' : port.name" @help="openSectionHelp" />
+                <div class="vent-port-row port-tuning-row">
+                  <UIField v-if="port.tuning" :id="ventPorts.length === 1 ? 'og-vent-fb-target-field' : undefined" class="field" :input-id="ventPorts.length === 1 ? 'og-vent-fb-target' : `og-vent-tuning-${port.name.toLowerCase()}`" :title="FB_TARGET_TIP" :field="port.tuning.field" :cell="port.tuning.cell" />
+                  <div v-else class="port-tuning-placeholder" aria-hidden="true"></div>
+                </div>
+                <div class="vent-port-row port-count-row">
+                  <div class="field port-count-field">
+                    <label>{{ DesktopLabels.VENT_COUNT }}</label>
+                    <select :id="ventPorts.length === 1 ? 'vent-count' : `og-vent-count-${port.name.toLowerCase()}`" :value="port.vent.count.value" @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) port.vent.count.set(n); }">
+                      <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
+                    </select>
+                  </div>
+                  <PortShapeToggle :slotted="port.vent.shape.value === 'slotted'" @update:slotted="slotted => port.vent.shape.set(slotted ? 'slotted' : 'round')" />
+                </div>
+                <div class="vent-port-row port-dimensions-row">
+                  <template v-if="port.vent.shape.value === 'slotted'">
+                    <UIField class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-width-${port.name.toLowerCase()}`" :field="NumberField.VENT_W_CM" :cell="port.vent.width_m" />
+                    <UIField class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-height-${port.name.toLowerCase()}`" :field="NumberField.VENT_H_CM" :cell="port.vent.height_m" />
+                  </template>
+                  <UIField v-else class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-diameter-${port.name.toLowerCase()}`" :field="NumberField.VENT_D_CM" :cell="port.vent.diameter_m" />
+                </div>
+                <div class="vent-port-row">
+                  <UIField class="field" :input-id="ventPorts.length === 1 ? 'og-vent-length' : `og-vent-length-${port.name.toLowerCase()}`" :field="NumberField.VENT_L_CM" :cell="port.vent.length_m" />
+                  <div class="field">
+                    <label>{{ DesktopLabels.VENT_END_CORRECTION }}</label>
+                    <select :value="port.vent.endCorrection_m.value" @change="e => { const k = selectedOption(e, END_CORRECTION_OPTIONS); if (k !== null) port.vent.endCorrection_m.set(k); }">
+                      <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value" :title="o.label">{{ o.compactLabel }} ({{ o.value }})</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="vent-port-row">
+                  <UIFixedField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_CROSSAREA_M2" :value="port.vent.totalArea_m2()" readonly />
+                  <UIFixedField class="field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="port.portPipeResonance_hz" readonly />
+                </div>
+              </div>
+              <div v-if="ventPorts.length === 1" class="vent-settings-col">
+                <DesktopBand :section="limitsHelp" @help="openSectionHelp" />
+                <div class="field-row"><UIFixedField class="field" input-id="og-vent-velocity-limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :value="project.portVelocityLimit_m_per_s.value" @update:value="v => project.portVelocityLimit_m_per_s.set(v)" /></div>
+                <p v-if="fbUnreachable" id="og-vent-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Filters tab — OriginalFilters, wired to the project's filter chain ===== -->
+        <section class="tab-section" :class="{ active: activeTab === 'filters' }">
+          <OriginalFilters :api="originalFilters" />
+        </section>
+
+        <!-- ===== Signal tab ===== -->
+        <section class="tab-section" :class="{ active: activeTab === 'signal' }">
+          <div class="two-col">
+            <div>
+              <DesktopBand :section="listeningPlaceHelp" @help="openSectionHelp" />
+              <div class="field-row"><div class="field"><label>Distance</label><input type="text" class="greyed" :value="NumberField.SIGNAL_DISTANCE_M.format(1)" disabled><span class="unit">{{ NumberField.SIGNAL_DISTANCE_M.unitLabel() }}</span></div></div>
+              <div class="field-row"><div class="field"><label>{{ DesktopLabels.ANGLE }}</label><input type="text" class="greyed" :value="NumberField.SIGNAL_ANGLE_RAD.format(0)" disabled><span class="unit">{{ NumberField.SIGNAL_ANGLE_RAD.unitLabel() }}</span></div></div>
+              <p class="hint">Listening distance/angle are not modelled yet.</p>
+            </div>
+            <div>
+              <DesktopBand :section="signalSourceHelp" @help="openSectionHelp" />
+              <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :min="minimumPower" :readonly="powerLocked" /></div>
+              <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_DRIVEV_V" :cell="project.driveVoltage_V" /></div>
+              <div class="field-row"><UIFixedField class="field" :field="NumberField.SIGNAL_RS_OHM" :value="rsOhm" @update:value="v => project.Rs_ohm.set(v)" /></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Advanced tab ===== -->
+        <section class="tab-section" :class="{ active: activeTab === 'advanced' }">
+          <div class="two-col adv-two-col">
+            <div class="adv-left-col">
+              <div class="adv-air-fields">
+                <div class="adv-air-col">
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-warnings="envTempDq.warnings" :dq-state="envTempDq.dqState" stepper allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-warnings="envHumidityDq.warnings" :dq-state="envHumidityDq.dqState" stepper /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-warnings="envPressureDq.warnings" :dq-state="envPressureDq.dqState" stepper allow-out-of-range /></div>
+                </div>
+                <div class="adv-air-col">
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-warnings="envSoundVelocityDq.warnings" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-warnings="envAirDensityDq.warnings" :dq-state="envAirDensityDq.dqState" allow-out-of-range /></div>
+                <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
+                </div>
+              </div>
+              <div class="checkbox-col">
+                <AdvancedOptions />
+              </div>
+            </div>
+            <div class="sim-options-box">
+              <div class="sim-switches">
+                <div class="sim-switch-col">
+                <div class="option-switch-group" :title="CompatSwitchGroup.OPTIONS.tooltip">
+                <div class="option-switch-group-headrow"><div class="option-switch-group-head">{{ CompatSwitchGroup.OPTIONS.heading }}</div><CompatGroupHelpLink :group="CompatSwitchGroup.OPTIONS" /></div>
+                <div>
+                  <label data-field-key="winisdWrapPhase" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_WINISDWRAPPHASE.description">
+                    <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => setCompatSwitch(project.winisdWrapPhase, inputChecked(e))"> {{ ToggleField.ADV_WINISDWRAPPHASE.label }}
+                  </label>
+                </div>
+                <div>
+                  <label data-field-key="winisdFlatModel" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :title="ToggleField.ADV_WINISDFLATMODEL.description">
+                    <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => setCompatSwitch(project.winisdFlatModel, inputChecked(e))"> {{ ToggleField.ADV_WINISDFLATMODEL.label }}
+                  </label>
+                </div>
+                <div>
+                  <label data-field-key="winisdAbcIntraPortVelocity" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :class="{ 'compat-switch-na': !abcVelocityApplies }" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
+                    <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => setCompatSwitch(project.winisdAbcIntraPortVelocity, inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY" />
+                  </label>
+                </div>
+                <div>
+                  <label data-field-key="winisdOneDriverImpedance" style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px;" :class="{ 'compat-switch-na': !oneDriverImpedanceApplies }" :title="ToggleField.ADV_WINISDONEDRIVERIMPEDANCE.description">
+                    <input type="checkbox" :checked="project.winisdOneDriverImpedance.value" :disabled="!oneDriverImpedanceApplies" @change="e => setCompatSwitch(project.winisdOneDriverImpedance, inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDONEDRIVERIMPEDANCE" />
+                  </label>
+                </div>
+                </div>
+                </div>
+                <div class="sim-switch-col">
+                <ErrorSwitchGroup>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdDriverModel" style="font-size: 12px;" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" :title="ToggleField.ADV_WINISDDRIVERMODEL.description">
+                      <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => setCompatSwitch(project.winisdDriverModel, inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERMODEL.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdVaModel" style="font-size: 12px;" :marked="errorSwitches.vaModel.marked" :applicable="errorSwitches.vaModel.applicable" :reproduces-error="errorSwitches.vaModel.reproducesError" :title="ToggleField.ADV_WINISDVAMODEL.description">
+                      <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => setCompatSwitch(project.winisdVaModel, inputChecked(e))"> {{ ToggleField.ADV_WINISDVAMODEL.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdPrNprResonance" style="font-size: 12px;" :marked="errorSwitches.prNprResonance.marked" :applicable="errorSwitches.prNprResonance.applicable" :reproduces-error="errorSwitches.prNprResonance.reproducesError" :title="ToggleField.ADV_WINISDPRNPRRESONANCE.description">
+                      <input type="checkbox" :checked="project.winisdPrNprResonance.value" :disabled="!errorSwitches.prNprResonance.applicable" @change="e => setCompatSwitch(project.winisdPrNprResonance, inputChecked(e))"> {{ ToggleField.ADV_WINISDPRNPRRESONANCE.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdBesselHighpass" style="font-size: 12px;" :marked="errorSwitches.besselHighpass.marked" :applicable="errorSwitches.besselHighpass.applicable" :reproduces-error="errorSwitches.besselHighpass.reproducesError" :title="ToggleField.ADV_WINISDBESSELHIGHPASS.description">
+                      <input type="checkbox" :checked="project.winisdBesselHighpass.value" :disabled="!errorSwitches.besselHighpass.applicable" @change="e => setCompatSwitch(project.winisdBesselHighpass, inputChecked(e))"> {{ ToggleField.ADV_WINISDBESSELHIGHPASS.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdAbcGroupDelay" style="font-size: 12px;" :marked="errorSwitches.abcGroupDelay.marked" :applicable="errorSwitches.abcGroupDelay.applicable" :reproduces-error="errorSwitches.abcGroupDelay.reproducesError" :title="ToggleField.ADV_WINISDABCGROUPDELAY.description">
+                      <input type="checkbox" :checked="project.winisdAbcGroupDelay.value" :disabled="!errorSwitches.abcGroupDelay.applicable" @change="e => setCompatSwitch(project.winisdAbcGroupDelay, inputChecked(e))"> {{ ToggleField.ADV_WINISDABCGROUPDELAY.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdSealedPicker" style="font-size: 12px;" :marked="errorSwitches.sealedPicker.marked" :applicable="errorSwitches.sealedPicker.applicable" :reproduces-error="errorSwitches.sealedPicker.reproducesError" :title="ToggleField.ADV_WINISDSEALEDPICKER.description">
+                      <input type="checkbox" :checked="project.winisdSealedPicker.value" :disabled="!errorSwitches.sealedPicker.applicable" @change="e => setCompatSwitch(project.winisdSealedPicker, inputChecked(e))"> {{ ToggleField.ADV_WINISDSEALEDPICKER.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdCoilWiringReBlOnly" style="font-size: 12px;" :marked="errorSwitches.coilWiringReBlOnly.marked" :applicable="errorSwitches.coilWiringReBlOnly.applicable" :reproduces-error="errorSwitches.coilWiringReBlOnly.reproducesError" :title="ToggleField.ADV_WINISDCOILWIRINGREBLONLY.description">
+                      <input type="checkbox" :checked="project.winisdCoilWiringReBlOnly.value" :disabled="!errorSwitches.coilWiringReBlOnly.applicable" @change="e => setCompatSwitch(project.winisdCoilWiringReBlOnly, inputChecked(e))"> {{ ToggleField.ADV_WINISDCOILWIRINGREBLONLY.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdProjectAlfaVC" style="font-size: 12px;" :marked="errorSwitches.projectAlfaVC.marked" :applicable="errorSwitches.projectAlfaVC.applicable" :reproduces-error="errorSwitches.projectAlfaVC.reproducesError" :title="ToggleField.ADV_WINISDPROJECTALFAVC.description">
+                      <input type="checkbox" :checked="project.winisdProjectAlfaVC.value" :disabled="!errorSwitches.projectAlfaVC.applicable" @change="e => setCompatSwitch(project.winisdProjectAlfaVC, inputChecked(e))"> {{ ToggleField.ADV_WINISDPROJECTALFAVC.label }}
+                    </ErrorSwitch>
+                  </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdTlPortNoEndCorrection" style="font-size: 12px;" :marked="errorSwitches.tlPortEndCorrection.marked" :applicable="errorSwitches.tlPortEndCorrection.applicable" :reproduces-error="errorSwitches.tlPortEndCorrection.reproducesError" :title="ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.description">
+                      <input type="checkbox" :checked="project.winisdTlPortNoEndCorrection.value" :disabled="!errorSwitches.tlPortEndCorrection.applicable" @change="e => setCompatSwitch(project.winisdTlPortNoEndCorrection, inputChecked(e))"> {{ ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.label }}
+                    </ErrorSwitch>
+                  </div>
+                </ErrorSwitchGroup>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Project tab ===== -->
+        <section class="tab-section project-tab" :class="{ active: activeTab === 'project' }">
+          <div class="two-col">
+            <div>
+              <div class="field-row"><div class="field"><label>Name</label><input type="text" style="width:200px" v-model="projectName"></div></div>
+              <div class="field-row"><div class="field"><label>Creator</label><input type="text" style="width:200px" v-model="projectCreator"></div></div>
+              <div class="field-row"><div class="field"><label>Created</label><input :key="projectDateCommits" type="text" style="width:120px" v-model.lazy="projectCreated"></div></div>
+              <div class="field-row"><div class="field"><label>Modified</label><input :key="projectDateCommits" type="text" style="width:120px" v-model.lazy="projectModified"></div></div>
+            </div>
+            <div class="description-col">
+              <label>Description</label>
+              <textarea class="description" rows="6" v-model="projectDescription"></textarea>
+            </div>
+          </div>
+        </section>
+        </div>
+
+        <!-- Save rail — stacked on the right edge so the buttons consume no vertical space. -->
+        <div class="save-rail">
+          <button v-if="projectOpen && tabHelpShown" type="button" class="tab-help-btn" aria-label="Help: this tab" title="What this tab is for" @click="openTabHelp">?</button>
+          <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try values &amp; watch the charts. Your project will not be updated." @click="startWhatIf"><svg class="whatif-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3 13 1.5V10.5" /><path d="M6 3V12" /><ellipse cx="4.2" cy="12.2" rx="2.2" ry="1.6" /><ellipse cx="11.2" cy="10.7" rx="2.2" ry="1.6" /></svg> What-if</button>
+          <button v-if="projectOpen" class="edit-btn project-save-btn" title="Save the project to browser storage" @click="saveProject">Save</button>
+          <button v-if="projectOpen" class="edit-btn revert-btn" :disabled="!isModified" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="resetProjectToGround(confirmDiscard)">Revert</button>
+        </div>
+        </template>
+        <!-- No project open: the tab pane says so plainly. -->
+        <div v-else class="no-project-tabmsg">
+          <p>No projects open</p>
+        </div>
+      </div>
+      <DesktopHelpPanel v-if="helpPanel !== null" :title="helpPanel.title" :sections="helpPanel.sections" @close="closeHelp" />
+    </div>
+
+    <ProvenanceLegend>
+      <span v-if="isModified" class="unsaved-label" title="This project has unsaved changes."><span class="unsaved-dot"></span>Unsaved changes</span>
+    </ProvenanceLegend>
+
+    <!-- ===== Box losses modal: the one chamber set whose Advanced-> opened it ===== -->
+    <div class="overlay" :class="{ open: lossesOpen !== null }" @click.self="lossesOpen = null">
+      <div class="modal narrow">
+        <div class="modal-titlebar">
+          <div class="tb-left"><span class="app-icon"></span><span>Box losses</span></div>
+          <div class="win-controls"><span class="close-btn" @click="lossesOpen = null">&#10005;</span></div>
+        </div>
+        <div class="modal-body">
+          <template v-for="g in openLossGroups" :key="g.chamber">
+            <div v-if="g.heading !== null" class="section-header">{{ g.heading }}</div>
+            <div class="field-row"><UISettlingField class="field" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" @clear="g.Ql.clear()" /></div>
+            <div class="field-row"><UISettlingField class="field" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" @clear="g.Qa.clear()" /></div>
+            <div class="field-row" v-if="g.Qp !== null"><UISettlingField class="field" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" @clear="g.Qp?.clear()" /></div>
+            <div class="field-row" v-if="g.Qicl !== null"><UISettlingField class="field" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" @clear="g.Qicl?.clear()" /></div>
+          </template>
+          <p class="hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
+        </div>
+        <div class="modal-footer">
+          <span class="hint">Changes apply live to the graph.</span>
+          <div class="footer-buttons"><button id="og-box-losses-reset" class="ok-btn" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100, Qicl 100" @click="resetBoxLosses">Reset</button><button class="ok-btn" @click="lossesOpen = null">OK</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Close an unsaved project: three named outcomes ===== -->
+    <!-- A confirm() cannot express three, so its "Cancel" would have had to secretly mean
+         "discard my work". Each button here says what it does to the work. -->
+    <div v-if="closeChallenge" class="overlay on">
+      <div class="modal narrow">
+        <div class="modal-titlebar">
+          <div class="tb-left"><span class="app-icon"></span><span>Close project</span></div>
+          <div class="win-controls"><span class="close-btn" @click="closeChallenge = null">&#10005;</span></div>
+        </div>
+        <div class="modal-body">
+          <p><b>{{ (closeChallenge && projectDisplayName(closeChallenge)) || 'This project' }}</b> has unsaved changes.</p>
+          <div class="close-actions">
+            <button class="btn" title="Save the project to its file, then close it" @click="saveThenClose(closeChallenge)">Save and close</button>
+            <button class="btn" title="Close the project and lose the changes made since it was last saved" @click="closeProject(closeChallenge)">Close without saving</button>
+            <button class="btn" title="Leave the project open exactly as it is" @click="closeChallenge = null">Keep it open</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- The What-if? panel (`<OriginalWhatIf>`) is rendered by App.vue, not here, so it survives a box-type
+         change that re-renders this shell's enclosure pane (QO134). Its open/close state and
+         refresh persistence stay on `presentationState.editDriver`, watched below. -->
+    <div v-if="sealedAlignmentOpen" class="overlay on alignment-overlay">
+      <div class="modal alignment-modal">
+        <div class="modal-titlebar">
+          <div class="tb-left"><span class="app-icon"></span><span>Choose Sealed Alignment</span></div>
+          <div class="win-controls"><span class="close-btn" @click="sealedAlignmentEditor.cancel">&#10005;</span></div>
+        </div>
+        <div class="modal-body">
+          <p class="hint">WinISD uses numeric target Qtc choices. Select one to calculate the sealed box volume for the current driver.</p>
+          <div class="field-row"><div class="field alignment-field"><label>Alignment</label>
+            <select class="alignment-select" :value="sealedAlignmentSelected?.value ?? ''" @change="e => { const qtc = selectedOption(e, sealedAlignmentOptions); if (qtc !== null) sealedAlignmentEditor.selectQtc(qtc); }">
+              <option v-for="option in sealedAlignmentOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+            </select>
+            <WinisdDeviationCue v-if="sealedAlignmentDeviationShown" :deviation="WinisdDeviation.SEALED_PICKER" />
+          </div></div>
+          <div class="field-row"><UIFixedField class="field" input-id="og-sealed-alignment-volume" :field="NumberField.BOX_VB_L" label="Volume" :value="sealedAlignmentVolume_m3" @update:value="v => { sealedAlignmentVolume_m3 = v; }" /></div>
+          <div class="alignment-readout"><span class="alignment-icon" :class="sealedAlignmentSuitability ?? 'unknown'">●</span>
+            <span>EBP {{ ReadoutFormat.EBP.text(sealedAlignmentEbp, '—', unitTokens) }} {{ ReadoutFormat.EBP.unitLabel(unitTokens) }} — {{ sealedAlignmentSuitabilityLabel }}</span>
+          </div>
+          <p class="hint">EBP is Fs ÷ Qes. It is a rule-of-thumb suitability guide: below 50 generally favors sealed, above 100 generally favors vented, and the middle range can use either.</p>
+          <p class="hint">The volume uses the driver's Qts and Vas. Editing Volume changes the resulting Qtc and selects the closest numeric alignment.</p>
+        </div>
+        <div class="modal-footer"><div></div><div class="footer-buttons"><button class="cancel-btn" @click="sealedAlignmentEditor.cancel">Cancel</button><button class="ok-btn" @click="sealedAlignmentEditor.accept">Accept</button></div></div>
+      </div>
+    </div>
+
+    <div v-if="ventedAlignmentOpen" class="overlay on alignment-overlay">
+      <div class="modal alignment-modal">
+        <div class="modal-titlebar">
+          <div class="tb-left"><span class="app-icon"></span><span>Choose Vented Alignment</span></div>
+          <div class="win-controls"><span class="close-btn" @click="ventedAlignmentEditor.cancel">&#10005;</span></div>
+        </div>
+        <div class="modal-body">
+          <p class="hint">Select a named vented alignment to calculate the box volume and tuning frequency for the current driver.</p>
+          <div class="field-row"><div class="field alignment-field"><label>Alignment</label>
+            <select class="alignment-select" :value="ventedAlignmentSelected" @change="e => { const a = selectedOption(e, ventedAlignmentOptions); if (a !== null) ventedAlignmentEditor.selectAlignment(a); }">
+              <option v-for="option in ventedAlignmentOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+            </select>
+          </div></div>
+          <div class="field-row"><UIFixedField class="field" :field="NumberField.BOX_VB_L" label="Volume" :value="ventedAlignmentVolume_m3" :format="ReadoutFormat.ALIGNMENT_VOLUME_L" readonly /></div>
+          <div class="field-row"><UIFixedField class="field" :field="NumberField.BOX_FB_HZ" label="Tuning freq (Fb)" :value="ventedAlignmentTuning_hz" :format="ReadoutFormat.TUNING_HZ" readonly /></div>
+          <div class="alignment-readout"><span class="alignment-icon" :class="ventedAlignmentSuitability ?? 'unknown'">●</span>
+            <span>EBP {{ ReadoutFormat.EBP.text(ventedAlignmentEbp, '—', unitTokens) }} {{ ReadoutFormat.EBP.unitLabel(unitTokens) }} — {{ ventedAlignmentSuitabilityLabel }}</span>
+          </div>
+          <p class="hint">EBP is Fs ÷ Qes. It is a rule-of-thumb suitability guide: below 50 generally favors sealed, above 100 generally favors vented, and the middle range can use either.</p>
+          <p class="hint">Volume and tuning are calculated from the driver's Fs, Qts, and Vas for the selected alignment.</p>
+        </div>
+        <div class="modal-footer"><div></div><div class="footer-buttons"><button class="cancel-btn" @click="ventedAlignmentEditor.cancel">Cancel</button><button class="ok-btn" @click="ventedAlignmentEditor.accept">Accept</button></div></div>
+      </div>
+    </div>
+
+    <PRBrowser v-if="prBrowseOpen" :editor="prEditor" @close="prBrowseOpen = false"
+      @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
+    <PRInfoDialog v-if="prInfoOpen && prInfo" :info="prInfo" @close="prInfoOpen = false" />
+    <PREditorDialog v-if="!prBrowseOpen && prEditor.cells.value" :editor="prEditor" :cells="prEditor.cells.value" />
+
+    <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
+
+    <div v-if="cloudAvailable && cloudDialogOpen" class="cloud-modal-backdrop" @click.self="closeCloudDialog">
+      <div class="cloud-modal" role="dialog" aria-labelledby="cloud-dialog-title" aria-modal="true">
+        <header class="cloud-modal-header">
+          <h2 id="cloud-dialog-title">{{ cloudDisplay.dialog.title }}</h2>
+          <button class="cloud-modal-x" type="button" :title="cloudDisplay.dialog.closeLabel" @click="closeCloudDialog">&times;</button>
+        </header>
+        <div class="cloud-modal-body">
+          <CloudSyncDialog
+            :model="cloudDisplay.dialog"
+            @connect="handleCloudConnect"
+            @sync-now="handleCloudSyncNow"
+            @reconnect="handleCloudReconnect"
+            @disconnect="handleCloudDisconnect"
+            @open-conflict="handleCloudOpenConflict"
+          />
+        </div>
+        <footer class="cloud-modal-footer">
+          <button class="cloud-modal-close-btn" type="button" @click="closeCloudDialog">{{ cloudDisplay.dialog.closeLabel }}</button>
+        </footer>
+      </div>
+    </div>
+
+
+    <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="onFile">
+  </div>
+</template>
+
+<style scoped>
+/* Class names, layout and chrome follow WinISD's own window. The WinISD-light palette and
+   the --chart-* custom properties keep the shared GraphPanel/canvas rendering light without
+   a fork, and the `:deep(input)` rules give the shared NumInput's inner <input> the same
+   `.field` styling as every other field here. */
+.original-root *, .original-root *::before, .original-root *::after { box-sizing: border-box; }
+.original-root {
+  /* Light-theme palette overrides — like .classic-root. Without these, reused
+     components + the global `button { color: var(--fg) }` reset inherit the app's
+     dark-theme --fg (near-white) and render invisibly on the skin's light fills. */
+  --bg:#f2f2f2; --panel:#f7f7f7; --panel2:#ececec; --line:#bbb;
+  --fg:#1a1a1a; --mut:#555; --acc:#1868d1; --acc2:#b8790f; --good:#1b7d1b; --bad:#b02a2a;
+  --chart-bg:#ffffff; --chart-grid:#dde3ea; --chart-text:#5a6b7b;
+  --chart-cross:#00000055; --chart-band:rgba(0,0,0,0.05); --chart-band-line:rgba(0,0,0,0.3);
+  --readout-bg:rgba(248,250,252,0.92);
+  display:flex; flex-direction:column; width:100%; height:100vh; background:#f2f2f2;
+  overflow:hidden; color:#1a1a1a; font-family:var(--font-ui); font-size:14px;
+}
+.original-root button, .original-root select, .original-root input, .original-root textarea { font-family:inherit; font-size:14px; }
+
+.app-icon { width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #888, #333 70%); display:inline-block; }
+.app-brand { display:flex; align-items:center; gap:6px; flex:0 0 auto; min-width:0; overflow:hidden; white-space:nowrap; font-weight:600; }
+.brand-icon { width:20px; height:20px; display:block; }
+
+
+/* ---------- Toolbar ---------- */
+.toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
+.tb-icons { display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; flex:0 1 auto; min-width:0; }
+.tb-btn { display:flex; align-items:center; justify-content:center; flex:none; width:34px; height:30px; padding:0; font:inherit; color:inherit; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
+.tb-menu { position:relative; flex:none; }
+.tb-btn .caret { position:absolute; bottom:2px; right:2px; }
+.tb-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
+.tb-btn.disabled { opacity:.4; cursor:default; pointer-events:none; }
+.tb-btn.disabled:hover { background:#f7f7f7; border-color:#bbb; }
+.tb-btn.dirty { border-color:#d9a441; background:#fff3e0; }
+.tb-btn.dirty:hover { background:#ffe4b0; border-color:#c9971b; }
+.tb-sep { width:1px; flex:none; align-self:stretch; background:#ccc; margin:0 4px; }
+.tb-btn svg { display:block; }
+.caret { font-size:10px; margin-left:2px; color:#555; }
+.cloud-sync-tb-btn { padding: 0; }
+.cloud-sync-tb-btn .cloud-sync-badge { width: 100%; height: 100%; }
+.chart-select { display:flex; align-items:center; gap:6px; flex:0 1 180px; width:180px; min-width:140px; box-sizing:border-box; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
+/* 270 px where the window has room; 180 px below, so the toolbar fits at 1280 px with every chart open. */
+@media (min-width: 1440px) { .chart-select { flex-basis:270px; width:270px; } }
+.chart-select:hover { border-color:#7fb3ff; }
+.chart-select .chart-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
+
+/* ---------- Cloud strips & modal ---------- */
+.cloud-reconnect-strip,
+.cloud-conflict-notice,
+.cloud-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--line, #bbb);
+  flex: none;
+}
+.cloud-reconnect-strip {
+  background: color-mix(in srgb, var(--acc2, #b8790f) 15%, var(--panel, #f7f7f7));
+  border-bottom-color: var(--acc2, #b8790f);
+  color: color-mix(in srgb, var(--acc2, #b8790f) 60%, black);
+}
+.cloud-conflict-notice {
+  background: color-mix(in srgb, var(--acc, #1868d1) 15%, var(--panel, #f7f7f7));
+  border-bottom-color: var(--acc, #1868d1);
+  color: color-mix(in srgb, var(--acc, #1868d1) 60%, black);
+}
+.cloud-hint {
+  background: var(--panel2, #ececec);
+  border-bottom-color: var(--line, #bbb);
+  color: var(--fg, #1a1a1a);
+}
+.cloud-strip-actions { display: flex; gap: 6px; }
+.cloud-strip-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+.cloud-strip-btn {
+  font-size: 12px;
+  padding: 3px 10px;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+.cloud-strip-btn:hover {
+  background: #f0f0f0;
+}
+.cloud-strip-btn.pri {
+  background: var(--acc, #1868d1);
+  color: #fff;
+  border-color: var(--acc, #1868d1);
+}
+.cloud-strip-btn.pri:hover {
+  opacity: 0.9;
+}
+.cloud-hint-actions {
+  display: flex;
+  gap: 6px;
+}
+.cloud-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cloud-modal {
+  background: var(--panel, #fff);
+  color: var(--fg, #1a1a1a);
+  border: 1px solid var(--line, #bbb);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  width: min(520px, 92vw);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 18px;
+  font-size: 13px;
+}
+.cloud-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e5e5;
+}
+.cloud-modal-header h2 {
+  font-size: 15px;
+  margin: 0;
+  font-weight: 600;
+}
+.cloud-modal-x {
+  border: none;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--mut, #666);
+  padding: 2px 6px;
+}
+.cloud-modal-x:hover {
+  color: var(--fg, #111);
+}
+.cloud-modal-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+.cloud-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e5e5;
+}
+.cloud-modal-close-btn {
+  padding: 5px 14px;
+  font-size: 13px;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+}
+.cloud-modal-close-btn:hover {
+  background: #f0f0f0;
+}
+.cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:4px 12px; white-space:nowrap; flex:1 1 auto; min-width:0; flex-wrap:wrap; margin-left:auto; }
+.cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; }
+.ro-hz-input {
+  width: 82px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 6px;
+  border: 1px solid var(--line, #bbb);
+  border-radius: 3px;
+  background: var(--panel, #fff);
+  color: var(--fg, #222);
+}
+.ro-hz-input:focus {
+  outline: none;
+  border-color: var(--acc, #1868d1);
+}
+.ro-hz .nudge-btn {
+  font-size: 10px;
+  padding: 1px 4px;
+  background: none;
+  border: 1px solid var(--line, #bbb);
+  border-radius: 3px;
+  color: var(--mut, #666);
+  cursor: pointer;
+  margin: 0 2px;
+}
+.ro-hz .nudge-btn:hover {
+  color: var(--fg, #222);
+  border-color: var(--acc, #1868d1);
+}
+.ro-hz-unit {
+  font-size: 12px;
+  color: var(--mut, #666);
+  margin-left: 3px;
+}
+.cursor-readout .ro-val { min-width:76px; text-align:right; }
+
+/* dropdown menus */
+.dropdown-menu { display:none; position:absolute; top:34px; left:0; background:#fdfdfd; border:1px solid #999; box-shadow:2px 3px 8px rgba(0,0,0,.25); z-index:50; min-width:260px; padding:4px 0; max-height:calc(100vh - 90px); overflow-y:auto; }
+.dropdown-menu.open { display:block; }
+.dropdown-menu .menu-item { padding:3px 14px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px; }
+.dropdown-menu .menu-item:hover { background:#dbeaff; }
+.dropdown-menu a.menu-item { color:inherit; text-decoration:none; }
+.dropdown-menu .menu-item.current::before { content:"\25CF"; font-size:8px; color:#222; width:10px; display:inline-block; }
+.dropdown-menu .menu-item:not(.current)::before { content:""; width:10px; display:inline-block; }
+.dropdown-menu hr { border:none; border-top:1px solid #ddd; margin:4px 0; }
+.dropdown-menu .menu-item.has-submenu { position:relative; display:flex; justify-content:space-between; align-items:center; }
+.dropdown-menu .submenu { display:none; position:absolute; left:100%; top:0; background:#fdfdfd; border:1px solid #999; box-shadow:2px 3px 8px rgba(0,0,0,.25); padding:4px 0; z-index:100; min-width:200px; }
+.dropdown-menu .menu-item.has-submenu:hover .submenu { display:block; }
+
+/* ---------- Main: 2x2 quadrants + draggable splitters ---------- */
+/* Track sizes come from the inline mainStyle (presentationState.ui.originalNavW,
+   0px when a panel is collapsed; the bottom track is always `auto`: the tallest tab, never dragged); these template values are only the no-JS fallback. */
+.main { position:relative; display:grid; grid-template-columns:175px 7px 1fr; grid-template-rows:1fr 7px auto;
+  grid-template-areas:"nav vsplit graph" "hsplit hsplit hsplit" "rail rail content";
+  flex:1 1 auto; min-height:0; overflow:hidden; }
+.quad-topleft { grid-area:nav; background:#f7f7f7; display:flex; flex-direction:column; padding:10px; gap:10px; overflow-y:auto; overflow-x:hidden; min-height:0; min-width:0; }
+/* splitters — the drag handles between the panels; each carries a collapse toggle */
+/* The collapse toggle is a small rounded chevron tab protruding from the splitter,
+   near its START edge (top / left) — away from the middle where a resize drag
+   naturally grabs (a centred toggle would swallow the drag). */
+.split-v { grid-area:vsplit; cursor:col-resize; background:#e6e6e6; border-left:1px solid #ccc; border-right:1px solid #ccc; position:relative; z-index:4; touch-action:none; }
+.split-h { grid-area:hsplit; background:#e6e6e6; border-top:1px solid #ccc; border-bottom:1px solid #ccc; position:relative; z-index:4; touch-action:none; }
+.split-v:hover, .split-h:hover { background:#cfe0f5; }
+.split-toggle { position:absolute; display:grid; place-items:center; background:#f0f0f0; border:1px solid #aaa; color:#555; border-radius:4px; cursor:pointer; font-size:9px; line-height:1; padding:0; }
+.split-v .split-toggle { top:8px; left:50%; transform:translateX(-50%); width:15px; height:34px; }
+.split-h .split-toggle { left:calc(var(--sidebar-width, 175px) + 15px); top:50%; transform:translateY(-50%); height:15px; width:34px; }
+/* A hidden panel puts its splitter at the window edge: the 15 px button would stick 4 px out of
+   the 7 px splitter there, so it sits flush with the edge instead of centred. */
+.main.nav-collapsed .split-v .split-toggle { left:0; transform:none; }
+.main.bottom-collapsed .split-h .split-toggle { top:auto; bottom:0; transform:none; }
+.split-icon {width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+.split-v .split-toggle[aria-expanded="false"] .split-icon {transform:rotate(180deg);}
+.split-h .split-icon {transform:rotate(-90deg);}
+.split-h .split-toggle[aria-expanded="false"] .split-icon {transform:rotate(90deg);}
+.split-v::after {content:"";position:absolute;top:50%;left:1px;height:24px;border-left:2px dotted #a5adb6;pointer-events:none;}
+.split-toggle {background:linear-gradient(#fff,#e8edf2);border-color:#a5adb6;border-radius:6px;box-shadow:0 1px 2px #0002;}
+.split-toggle:focus-visible {outline:2px solid #1868d1;outline-offset:2px;}
+.split-toggle:hover { background:#dbeaff; border-color:#7fb3ff; color:#1868d1; }
+/* collapsed panels: the grid track is 0px (mainStyle); hide the content so padding
+   doesn't leave a sliver. The splitter (with its expand toggle) stays visible. */
+.main.nav-collapsed .quad-topleft, .main.nav-collapsed .quad-bottomleft { display:none; }
+.main.bottom-collapsed .quad-bottomleft, .main.bottom-collapsed .content-panel { display:none; }
+/* chart maximised: only the graph area renders; the toolbar above is untouched so the
+   chart type can still be changed while maximised. */
+.main.chart-max { grid-template-columns:1fr; grid-template-rows:1fr; grid-template-areas:"graph"; }
+.main.chart-max .quad-topleft, .main.chart-max .quad-bottomleft, .main.chart-max .content-panel,
+.main.chart-max .split-v, .main.chart-max .split-h { display:none; }
+/* Chart maximise/restore lives in the toolbar's right cluster (never over the chart's
+   own cursor readout, and still reachable while maximised). */
+.chart-max-btn { width:30px; height:28px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px;
+  cursor:pointer; font-size:13px; line-height:1; display:grid; place-items:center; }
+.chart-max-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
+/* overflow:visible + a stacking context ABOVE the content panel lets the active
+   tab extend past the column edge and paint over the panel's left spine, so it
+   reads as one continuous shape with the panel (the break-through notch). */
+.quad-bottomleft {
+  grid-area: rail;
+  background: #fcfcfc;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  padding: 0px 10px 2px 10px;
+  border-right: none;
+  min-height: 0;
+  min-width: 0;
+  box-sizing: border-box;
+  z-index: 3;
+}
+.quad-bottomleft .panel-title {
+  margin-top: 2px;
+  margin-bottom: 1px;
+  line-height: 1.15;
+}
+.panel-title { color:#7d9fc9; font-weight:600; margin-bottom:4px; font-size:14px; }
+/* In a short window the nav column scrolls rather than squeezing the project drawer until its footer buttons are cut (T737). */
+.quad-projects-wrap { flex:1 1 auto; min-height:180px; display:flex; flex-direction:column; }
+.quad-signalgen-wrap { flex:none; }
+/* Action row under the list — stands in for WinISD's right-click project menu. */
+.close-actions { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+.close-actions .btn { width:100%; }
+.close-btn { color:#b02a2a; }
+.close-btn:disabled { color:#999; cursor:default; text-decoration:none; opacity:.6; }
+.signal-gen-row { display:flex; flex-wrap:nowrap; align-items:center; gap:4px; }
+.signal-gen-switch { position:relative; display:block; flex:none; width:29px; height:17px; cursor:pointer; }
+.signal-gen-switch input { position:absolute; inset:0; z-index:1; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+.signal-gen-switch > span { position:absolute; inset:1px 0; border:1px solid #87919a; border-radius:9px; background:#d6dadd; transition:background-color .12s ease; }
+.signal-gen-switch > span::after { content:""; position:absolute; top:1px; left:1px; width:11px; height:11px; border-radius:50%; background:#fff; box-shadow:0 1px 2px #0005; transition:transform .12s ease; }
+.signal-gen-switch input:checked + span { border-color:#1769c2; background:#1769c2; }
+.signal-gen-switch input:checked + span::after { transform:translateX(12px); }
+.signal-gen-switch input:focus-visible + span { outline:2px solid #145ea8; outline-offset:2px; }
+.signal-gen-field { min-width:0; --ctl-stepper-w:11px; }
+.signal-gen-field :deep(.ui-field-unit) { font-size:11px; padding:0 2px; }
+.signal-gen-field :deep(.ui-field-dq), .signal-gen-field :deep(.ui-field-dev) { display: none; }
+.project-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  width: 100%;
+}
+.project-nav li {
+  padding: 2px 6px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #1b1b1b;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  list-style-type: none;
+  line-height: 1.2;
+}
+.project-nav li:hover {
+  background: #eef2f7;
+}
+.project-nav li.active {
+  background: #cfe4f7;
+  font-weight: 600;
+}
+.color-btn { border:1px solid #999; text-align:center; cursor:pointer; font-weight:600; }
+.color-btn:hover { filter:brightness(1.05); }
+/* Docked in the toolbar's cursor-readout, beside the chart-max button. */
+.chart-color-btn { padding:3px 12px; font-size:11px; border-radius:3px; color:#fff; text-shadow:0 0 2px rgba(0,0,0,.55); }
+.graph-area { grid-area:graph; position:relative; flex:1 1 auto; min-width:0; min-height:0; padding:8px 14px; display:flex; flex-direction:column; }
+.graph-wrap { flex:1 1 auto; min-height:0; border:1px solid #999; background:#fff; position:relative; display:flex; }
+.chart-stack { flex:1; min-width:0; display:grid; overflow-y:auto; }
+.chart-cell { min-width:0; min-height:0; position:relative; display:flex; outline:1px solid #999; outline-offset:-1px; }
+.graph-wrap :deep(.gpanel) { flex:1; height:100%; min-height:0; border:none; border-radius:0; }
+.chart-cell:has(.chart-close) :deep(.gtitle) { left:24px; }
+.chart-close { position:absolute; left:3px; top:3px; z-index:3; width:17px; height:17px; padding:0; line-height:15px; font-size:10px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; color:#444; }
+.chart-close:hover { background:#dbeaff; }
+.chart-high { display:inline-flex; align-items:center; gap:4px; font-size:12px; color:#444; }
+.original-root .chart-high select { font-size:12px; padding:1px 2px; }
+.dropdown-menu .chart-item input { margin:0; cursor:pointer; }
+.dropdown-menu .chart-item::before { display:none !important; }
+.graph-empty { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px 8px; color:#777; gap:6px; }
+.graph-empty-brand { display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:22px; font-weight:600; color:#333; }
+.graph-empty-brand img { width:36px; height:36px; display:block; }
+.graph-empty-h { font-size:16px; font-weight:600; color:#333; }
+.graph-empty-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:4px 12px; margin-top:4px; }
+.graph-empty-link { display:inline-flex; align-items:center; gap:5px; border:0; padding:2px 4px; background:transparent; color:var(--acc); text-decoration:underline; cursor:pointer; }
+.graph-empty-link:hover { color:#0b4f9e; }
+
+/* ---------- Content panel ---------- */
+.content-panel { grid-area:content; max-height:60vh; min-height:267px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:7px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
+.content-tabs { flex:1 1 auto; min-width:0; min-height:0; overflow-y:auto; display:flex; flex-direction:column; }
+.save-rail { flex:none; display:flex; flex-direction:column; align-items:stretch; gap:6px; align-self:stretch; }
+.save-rail > .tab-help-btn { align-self:flex-end; }
+/* Save and Revert sit directly under What-if, in its column, with one button height of gap above
+   Save (QO453.c7); not at the panel bottom. */
+/* The unsaved-changes yellow the rail already uses for its dot and label — Revert is the
+   action that clears exactly what that dot is reporting. */
+.tab-help-btn { flex:none; width:22px; height:22px; padding:0; border:1px solid #999; border-radius:50%; background:#fff; color:#1868d1; font-weight:700; font-size:13px; line-height:1; cursor:pointer; }
+.tab-help-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
+.save-rail .project-save-btn { margin-top:24px; background:#22803e; border-color:#19632f; color:#fff; font-weight:600; }
+.save-rail .project-save-btn:hover { background:#19632f; }
+.save-rail .revert-btn { background:#e0a800; border-color:#b88a00; color:#3a2600; font-weight:600; }
+.save-rail .revert-btn:hover:not(:disabled) { background:#f0b80c; }
+.save-rail .revert-btn:disabled { background:#e8e8e8; border-color:#ccc; color:#999; font-weight:normal; cursor:default; }
+/* Every tab stacks in ONE grid cell and only the active one is visible, so the panel is as deep as
+   the tallest tab shown and stays that deep while the tab is switched. `.content-panel` min-height is
+   the tallest tab of any box type (bandpass6 or ABC, slotted, 267 px, measured by original-bottom-panel-height), so
+   the height never changes with box type either. */
+.content-tabs { display:grid; grid-template-columns:minmax(0,1fr); }
+.tab-section { grid-area:1 / 1; visibility:hidden; overflow:hidden; min-height:0; }
+/* Real WinISD is a Win32 window: child controls sit at fixed offsets and the client area
+   CLIPS when the window shrinks — nothing reflows, nothing overlaps. The pane reproduces
+   that by keeping every control at its natural width (the `flex:none` rules below) and
+   letting the PANE scroll when the sum no longer fits. `overflow:auto` on both axes is
+   what makes the clipped content still reachable, which a Win32 window cannot offer. */
+/* The Driver tab's last row: the consistency summary left of the grey hint line, on one line (T662). */
+.driver-hint-row { display:flex; align-items:baseline; min-width:0; min-height:18px; }
+.tab-section.active { visibility:visible; min-height:0; overflow-x:auto; overflow-y:auto; }
+.section-header, .desk-band-wrap :deep(.section-header) { background:#e2e2e2; border:1px solid #ccc; padding:2px 8px; font-weight:600; line-height:1.25; margin-bottom:4px; }
+/* Columns keep their natural width and never shrink below their contents. A shrinking
+   column (`flex:0 1 auto` with `min-width:0`) let the next column's origin slide left
+   while this one's controls kept their own width, so the two painted on top of each
+   other — the exact overlap `original-shell-layout.browser.spec.ts` locks out. */
+.two-col { display:flex; gap:24px; align-items:flex-start; justify-content:flex-start; }
+.two-col > div { flex:none; }
+.box-layout { display:flex; gap:var(--box-col-gap); align-items:flex-start; }
+.box-fields-col { flex:none; width:var(--box-col-w); }
+.box-fields-col :deep(.ui-field) { align-items:center; }
+/* The field span is fixed at the WIDEST box layout (the dual-chamber types: two field
+   columns + the gap), so the diagram column starts at the same x for every box type
+   instead of being pushed to the far right whenever the fields need less room. */
+.box-tab-row { display:flex; gap:24px; align-items:flex-start; min-height:100%; --box-col-w:302px; --box-col-gap:24px; }
+.box-tab-row .field-row { margin-bottom: 4px; }
+.box-tab-row .section-header { margin-bottom: 4px; padding: 2px 8px; }
+.box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }
+/* Width tracks the diagrams' own scale (each SVG height is 0.7 of its drawn size), so the
+   column stays snug around the widest cut-through rather than padding it with slack. */
+.box-diagram-col { flex:none; width:119px; display:flex; align-items:flex-start; justify-content:center; }
+/* Third span, right of the diagram. Text WRAPS rather than overflowing, so unlike the
+   fixed-width control columns this one may shrink without reintroducing the overlap. */
+/* The fields column sets the row height; this column follows it (size containment keeps its text
+   out of the row's height) and scrolls inside when its text is taller, so the bottom panel never
+   grows per box type. */
+.box-notes-col { flex:1 1 240px; min-width:140px; max-width:260px; display:flex; flex-direction:column; gap:8px; align-self:stretch; min-height:0; contain:size; overflow-y:auto; overflow-x:hidden; }
+.box-notes-col > * { flex:none; }
+.box-notes-col .hint { margin:0; }
+.pending-note { color:#7a5b1a; }
+.vent-groups { display:flex; gap:20px; }
+.vent-port-row { display:flex; gap:12px; margin-bottom:2px; }
+.vent-pane-tight .vent-col-band { margin-bottom:2px; }
+.vent-pane-tight .vent-col-band :deep(.vent-col-title) { margin-bottom:0; }
+.vent-pane-tight .vent-port-row { gap:8px; }
+.vent-pane-tight .vent-port-row > .field:not(.ui-field) { display:grid; grid-template-rows:auto auto; justify-content:start; align-items:center; column-gap:4px; row-gap:0; }
+.vent-pane-tight .vent-port-row > .field:not(.ui-field) > label { grid-row:1; width:auto; }
+.vent-pane-tight .field:not(.ui-field) select { grid-row:2; width:138px; height:20px; padding:0 6px; }
+.vent-pane-tight .vent-groups { gap:16px; }
+.vent-pane-tight .vent-port-row { display:grid; grid-template-columns:repeat(2,max-content); gap:8px; }
+.vent-labels-left .vent-port-row > .field:not(.ui-field) { grid-template-columns:var(--label-w,var(--ctl-label-w)) 138px; grid-template-rows:auto; }
+.vent-labels-left .vent-port-row > .field:not(.ui-field) > label { grid-column:1; grid-row:1; }
+.vent-labels-left .field:not(.ui-field) select { grid-column:2; grid-row:1; }
+/* One layout at every width: every port value in one column; row 2 is Number of ports with the shape toggle beside it. */
+/* Each column is as wide as its fields: the label columns follow their longest label (labelColumns.ts). */
+.port-columns .vent-col, .port-columns .vent-settings-col { width:max-content; flex:none; }
+.port-columns .vent-col { display:grid; grid-template-columns:max-content; column-gap:8px; row-gap:2px; align-content:start; align-items:center; }
+.port-columns .vent-col-band { grid-column:1 / -1; grid-row:1; }
+.port-columns .vent-port-row { display:contents; }
+.port-columns .vent-port-row > .field { grid-column:1; }
+.port-columns .vent-port-row.port-count-row { display:flex; grid-column:1; align-items:center; gap:6px; min-width:0; }
+.port-columns .vent-port-row.port-count-row > .field.port-count-field:not(.ui-field) { grid-template-columns:119px 93px; }
+.port-columns .vent-port-row.port-count-row > .field.port-count-field:not(.ui-field) select { width:93px; }
+.port-columns .port-count-row > .port-shape-toggle { height:20px; margin-right:2px; }
+.port-columns .port-tuning-row > .ui-field, .port-columns .port-tuning-placeholder { grid-column:1; grid-row:2; }
+.port-columns .port-tuning-placeholder { min-height:var(--ctl-h,20px); }
+.port-columns .vent-port-row > .field:not(.ui-field) { grid-template-columns:var(--label-w,var(--ctl-label-w)) var(--port-select-w); }
+/* End Correction ends where the number boxes' ▲▼ end. */
+.port-columns .vent-port-row > .field:not(.ui-field) select:not([id]) { padding:0 4px; }
+.port-columns .vent-port-row > .field:not(.ui-field):not(:has(select[id])) select { width:var(--port-select-w); }
+.port-columns .vent-port-row > .field:has(select:not([id])) { column-gap:2px; }
+.port-columns { container: og-pane / inline-size; }
+/* For a pane 660-830px wide (1024px window: 691px) the three ABC columns cannot keep 262px each: they share the pane, and each field's label
+   and box split the column. Narrower than 660px (a 780px window: 447px) three columns cannot fit, so the 262px columns stay and the pane scrolls sideways. */
+@container og-pane (min-width:660px) and (max-width:830px) {
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) { gap:4px; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .ui-field { grid-template-columns:74px 93px 38px 0px; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .port-tuning-placeholder { width:auto; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col { min-width:0; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:not(.ui-field) { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .field select { width:100%; min-width:0; }
+  /* The columns share the pane: a column asks for 266 px (the count field and its Round/Slotted toggle on one line), three would be 810 px.
+     Here the toggle drops to a line of its own under the count, so the label and the select keep their room. */
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col { width:auto; flex:1 1 0; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row.port-count-row { flex-wrap:wrap; row-gap:2px; grid-column:1 / -1; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:not(.ui-field):not(.port-count-field) { grid-column:1 / -1; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row.port-count-row > .field.port-count-field:not(.ui-field) { flex:1 1 100%; min-width:0; }
+}
+.vent-col { flex:none; }
+.vent-col-band { margin-bottom:4px; }
+.vent-col-band :deep(.vent-col-title) { font-weight:600; color:#444; margin-bottom:0; }
+.vent-col-hint { color:#888; font-size:11px; font-style:italic; margin-bottom:4px; }
+.vent-col .field label { width:auto; }
+.project-tab .field label { width: 70px; }
+.vent-config-col .field label {
+  width: 116px;
+  margin-right: 6px;
+}
+.vent-dims-col .field label {
+  width: 100px;
+  margin-right: 6px;
+}
+.field-row { display:flex; align-items:baseline; gap:8px; margin-bottom:6px; flex-wrap:nowrap; justify-content:flex-start; }
+.field:not(.ui-field) { display:flex; align-items:baseline; gap:4px; justify-content:flex-start; flex:none; }
+.field:where(:not(.ui-field)) label { color:#333; display:inline-block; width:var(--label-w, 150px); text-align:left; flex:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.field:where(:not(.ui-field)) input[type=text], .field:where(:not(.ui-field)) input[type=number], .field:where(:not(.ui-field)) select,
+.field:where(:not(.ui-field)) :deep(input) { border:1px solid #999; padding:4px 6px; border-radius:2px; background:#fff; width:90px; flex:none; }
+.field.tight label { width:auto; margin-right:2px; }
+.driver-id-row { align-items:center; gap:10px; }
+/* The Model box is 420 px, and shrinks only when the panel is too narrow, so Select Driver, Info and Edit stay on one line inside it. */
+.driver-id-row .driver-model-field { flex:0 1 auto; min-width:0; }
+.driver-id-row .driver-model-field :deep(input) { flex:0 1 420px; min-width:0; width:420px; }
+.driver-id-row > .edit-btn { flex:none; white-space:nowrap; }
+/* These rules belong to the hand-built legacy fields only. UIFieldBody owns the standard
+   component's value box, provenance colour and unit-chip geometry. */
+.field:where(:not(.ui-field)) :deep(input.greyed) { background:#e9e9e9; color:#777; }
+.field:where(:not(.ui-field)) :deep(input.calculated) { color:#1868d1; }
+/* Two columns of rows (entered, then calculated). They wrap under each other when the pane is too narrow for both, so the tab never scrolls sideways. */
+.adv-air-fields { display:flex; flex-wrap:wrap; column-gap:8px; align-items:flex-start; }
+.adv-air-col { flex:none; }
+.adv-air-fields .field { gap:2px; }
+.adv-air-fields .field input, .adv-air-fields :deep(input) { width:82px; padding:4px 3px; }
+.adv-air-fields .field .unit { min-width:auto; }
+.adv-air-fields .field.ui-field { --ui-field-column-gap:2px; grid-template-columns:108px max-content max-content auto; column-gap:var(--ui-field-column-gap); }
+.adv-air-fields .field.ui-field :deep(.ui-field-unit), .adv-air-fields .field.ui-field :deep(.ui-field-dq) { width:auto; }
+.adv-air-fields .field.ui-field :deep(.ui-field-value) { width:auto; }
+.adv-air-fields .field.ui-field :deep(.ui-field-dev) { display:none; }
+.adv-air-fields .field-row { margin-bottom: 3px; }
+.adv-air-col:nth-child(2) .field-row label { width:108px; margin-right:0; }
+.adv-air-fields .reset-air-btn { margin-top:2px; }
+.reset-air-btn { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:4px 8px; cursor:pointer; color:#333; }
+/* A solved length of zero or less is not a port that can be built — it reads as the failure it
+   is, matching the red unreachable notice below the pane rather than looking like a dimension. */
+.field:where(:not(.ui-field)) :deep(input.calculated.impossible) { color:#a11; border-color:#a11; }
+.field.entered :deep(input), .field.entered input { color:#1b7d1b; border-color:#1b7d1b; }
+.field.ui-field-stored :deep(input) { color:#1b7d1b; }
+.field.ui-field-defaulted :deep(input) { color:#1868d1; }
+/* DQ — the generic "flagged field" rule: redline every field whose cell carries a data-quality
+   flag. The entered one (the cause) gets the attention ring; the calculated ones (the symptom)
+   are redlined too but stay calmer. Overrides the entered/calculated green/blue borders. */
+.field.dq-flag input, .field.dq-flag :deep(input) {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+.field.dq-flag { border-color: var(--bad); }
+.field .unit { color:#555; min-width:3.5em; }
+textarea.comment, textarea.description { width:100%; border:1px solid #999; border-radius:2px; padding:6px; resize:vertical; }
+.radio-group { display:flex; align-items:center; gap:14px; }
+.radio-group label { display:flex; align-items:center; gap:4px; }
+.edit-btn, .link-btn, .action-btn { background:#f0f0f0; border:1px solid #999; border-radius:3px; padding:4px 10px; cursor:pointer; }
+.what-if-btn .whatif-icon { width:12px; height:12px; vertical-align:-2px; fill:currentColor; stroke:currentColor; stroke-width:1.4; }
+.edit-btn:hover, .link-btn:hover, .action-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
+/* What-if? — the one coloured button on this rail. */
+.what-if-btn { background:#2f76d6; border-color:#2a68bd; color:#fff; }
+.what-if-btn:hover { background:#4189e8; border-color:#2a68bd; }
+.link-btn { background:none; border:none; color:#1868d1; text-decoration:underline; padding:2px 0; }
+.link-btn:disabled { color:#999; cursor:default; text-decoration:none; opacity:.6; }
+/* The tab pane's no-project placeholder — the lower-right quadrant stays in the grid and
+   the tab RAIL keeps its place, only the panel content swaps to this message. */
+.no-project-tabmsg { flex:1 1 auto; min-width:0; display:flex; align-items:center; justify-content:center; color:#777; font-style:italic; font-size:13px; }
+.alignment-modal { width:520px; max-width:92vw; }
+.alignment-modal .field-row { width:100%; }
+.alignment-modal :deep(.field-row > .ui-field) { width:100%; min-width:0; flex:1 1 auto; }
+.alignment-field { width:100%; }
+.alignment-modal :deep(.ui-field-readout) { grid-template-columns: 150px minmax(90px, 1fr) 34px 16px minmax(16px, max-content); }
+.alignment-modal :deep(.ui-field-readout .ui-field-value) { width:100%; }
+.alignment-modal :deep(.ui-field-readout .ui-field-value input) { width:100%; }
+.alignment-modal .alignment-select { flex:1; min-width:0; width:100%; }
+.alignment-readout { display:flex; align-items:center; gap:7px; margin:10px 0 4px; font-weight:600; color:#444; }
+.alignment-icon { font-size:18px; line-height:1; }
+.alignment-icon.sealed { color:#2f9e44; }
+.alignment-icon.either { color:#d08a00; }
+.alignment-icon.vented { color:#2878c8; }
+.alignment-icon.unknown { color:#888; }
+.hint { color:#888; font-size:12px; font-style:italic; }
+/* Hints beside (not below) their fields keep the pane shallow so the chart stays tall. */
+.beside-hint { display:flex; gap:16px; align-items:flex-start; }
+.side-hint { flex:none; width:220px; margin:0; }
+/* Unit text may widen its field; wrap the adjacent explanation within the remaining pane. */
+.driver-columns > :last-child { flex: 1 1 auto; min-width: 0; }
+.driver-columns .beside-hint > :first-child { flex: none; }
+.driver-columns .side-hint { flex: 1 1 220px; min-width: 0; max-width: 220px; }
+.env-arrow { align-self:flex-start; margin:6px 0 0; }
+/* > .two-col beats the .two-col > div flex:0 default so the description fills the width */
+.two-col > .description-col { flex:1 1 auto; display:flex; flex-direction:column; gap:4px; }
+/* Fixed width, not shrink-to-fit: without it the column collapsed under pressure and the
+   longest option wrapped to one word per line. */
+.checkbox-col { display:flex; flex-direction:column; gap:8px; margin-left:24px; flex:none; width:290px; }
+.checkbox-col label { display:flex; align-items:center; gap:6px; }
+.checkbox-col label input[type=checkbox] { flex:none; }
+
+.adv-two-col { gap: 8px; align-items: flex-start; }
+.adv-left-col { display:contents; }
+.adv-two-col > .adv-air-fields { flex:0 1 auto; }
+/* The standard WinISD options: one line each, as wide as the longest. */
+.adv-two-col .checkbox-col { margin-left: 0; width: max-content; }
+.adv-two-col .checkbox-col :deep(.adv-options) {
+  display: grid;
+  grid-template-columns: max-content;
+  column-gap: 16px;
+  row-gap: 0;
+}
+.adv-two-col .checkbox-col :deep(label) { white-space: nowrap; }
+.adv-two-col .side-hint { width: 190px; }
+.adv-two-col .sim-options-box {
+  margin-left:auto;
+  border: 1px solid #c8c8c8;
+  background: #f4f6f9;
+  border-radius: 4px;
+  padding: 4px;
+  /* Shrinks to its widest group, never below: the groups wrap, the labels never do. */
+  flex: 0 1 auto;
+  min-width: min-content;
+  align-self: flex-start;
+}
+/* Options group left, WinISD bugs group right, one switch per line; never stacked: a narrow pane scrolls sideways. */
+.sim-switches { display: flex; flex-flow: row nowrap; align-items: flex-start; gap: 4px 8px; }
+.sim-switches label[data-field-key] { white-space: nowrap; }
+.option-switch-group { display: flex; flex-direction: column; gap: 1px; }
+.option-switch-group-headrow { display: flex; align-items: center; gap: 6px; }
+.option-switch-group-head { font-size: 11px; font-weight: 600; color: #555; }
+.sim-switch-col { display: flex; flex-direction: column; gap: 0; flex: none; }
+.compat-switch-na { opacity: 0.45; cursor: default; }
+
+/* filters tab fills the panel */
+.tab-section.active :deep(.fpanel), .tab-section.active :deep(.filters) { min-height:0; }
+
+
+/* ---------- parstate legend + save bar ---------- */
+/* OpenISD-only actions (not a WinISD feature) — kept deliberately small and muted
+   so they don't dominate the panel like a native WinISD control would. */
+.save-btn { border:1px solid #ccc; background:#f4f4f4; color:#666; font-weight:400; border-radius:3px; padding:1px 7px; cursor:pointer; font-size:11px; }
+.save-btn:hover:not(:disabled) { background:#e9e9e9; color:#333; border-color:#aaa; }
+.save-btn:disabled { opacity:.45; cursor:default; }
+.save-btn.dirty { border-color:#d9a441; background:#fff3e0; color:#8a5a00; font-weight:600; }
+.save-btn.dirty:hover:not(:disabled) { background:#ffe4b0; }
+.unsaved-label { margin-left:auto; display:flex; align-items:center; justify-content:flex-start; gap:6px; color:#8a5a00; font-weight:600; font-size:11px; }
+.unsaved-dot { width:8px; height:8px; border-radius:50%; background:#e0a800; display:inline-block; animation:unsaved-pulse 1.6s ease-in-out infinite; }
+.value-legend { display:flex; flex-direction:column; gap:4px; color:#555; font-size:10px; white-space:nowrap; }
+.value-legend span { display:flex; align-items:center; gap:4px; }
+.legend-swatch { width:9px; height:9px; border:1px solid #777; display:inline-block; }
+.legend-entered { background:#1b7d1b; border-color:#1b7d1b; }
+.legend-calculated { background:#1868d1; border-color:#1868d1; }
+.legend-normal { background:#333; border-color:#333; }
+@keyframes unsaved-pulse { 0%, 100% { opacity:1; } 50% { opacity:.35; } }
+
+/* ---------- Modal overlay ---------- */
+.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.18); z-index:100; align-items:flex-start; justify-content:center; }
+.overlay.open { display:flex; }
+.modal { margin-top:8vh; background:#f7f7f7; border:1px solid #888; box-shadow:3px 6px 18px rgba(0,0,0,.35); width:620px; max-width:92vw; }
+.modal.narrow { width:460px; }
+.modal-titlebar { display:flex; align-items:center; justify-content:space-between; background:#e9e9e9; border-bottom:1px solid #bbb; padding:8px 12px; font-size:15px; }
+.modal-titlebar .tb-left { display:flex; align-items:center; gap:8px; }
+.modal-titlebar .win-controls { display:flex; gap:12px; color:#555; }
+.modal-titlebar .win-controls span { cursor:pointer; padding:1px 6px; }
+.modal-titlebar .win-controls .close-btn:hover { background:#e64545; color:#fff; }
+.modal-body { padding:16px 20px; max-height:65vh; overflow:auto; }
+.modal-footer { display:flex; align-items:center; justify-content:space-between; border-top:1px solid #ccc; padding:10px 20px; background:#eee; }
+.footer-buttons { display:flex; gap:8px; }
+.footer-buttons button { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:6px 14px; cursor:pointer; }
+.footer-buttons button:hover { background:#dbeaff; border-color:#7fb3ff; }
+.footer-buttons button.ok-btn { color:#1b7d1b; }
+
+/* Style overrides to make shared modals look native in original Win32 skin */
+.original-root :deep(.modal) {
+  border-radius: 0;
+  border: 1px solid #888;
+  background: #f7f7f7;
+  box-shadow: 3px 6px 18px rgba(0,0,0,.35);
+}
+.original-root :deep(.modal h2) {
+  background: #e9e9e9;
+  border-bottom: 1px solid #bbb;
+  padding: 8px 12px;
+  font-size: 15px;
+  margin: 0;
+  font-weight: normal;
+  font-family: inherit;
+}
+.original-root :deep(.de-tabs) {
+  border-bottom: none;
+}
+</style>

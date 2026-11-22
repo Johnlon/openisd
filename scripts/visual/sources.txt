@@ -1,0 +1,9 @@
+# Pathspecs (relative to the repo root) of the sources the baseline pictures are taken from.
+# A task that changes any file under these must re-take the baselines (scripts/visual/update.sh).
+packages/ui/src
+packages/ui/index.html
+packages/ui/public
+packages/design/fields
+packages/design/chart
+packages/design/engine
+packages/design/domain/project/compatSwitch.ts

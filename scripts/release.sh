@@ -1,0 +1,336 @@
+#!/usr/bin/env bash
+# Promotes a tested snapshot build to a release. Builds nothing, downloads nothing: same bytes.
+#   bash scripts/release.sh --public <n.n.n> <stamp>   e.g. --public 7.0.952 20260101T0102Z
+#   bash scripts/release.sh --prepare --public <n.n.n> [--notes-file F] <stamp>
+#   bash scripts/release.sh --approve-prepared <manifest>
+#   bash scripts/release.sh --latest <stamp>   mark an existing release Latest (rollback)
+#   bash scripts/release.sh --notes-file F <stamp>   promote with notes from F; without it the
+#                                                    snapshot's own notes are kept
+# --public is the release's public number (OpenISD 7.0.951, 7.0.952, ...): required to promote, and it
+# must be greater than the highest number already in a release title. It goes in the release title
+# "OpenISD <n.n.n>" and in RELEASES.md.
+# --prepare runs every slow release check and writes a 7-day readiness record without publishing.
+# --approve-prepared revalidates that exact snapshot, production, test, main and release branch state,
+# then publishes without repeating browser checks. The approval command itself is the approval.
+# The ordinary --public path still runs the checks and publishes in one command.
+# It then adds tag v<stamp> on the same commit (the snap- tag stays), turns the pre-release into a
+# release marked Latest, and moves the read-only branch `release` to it by fast-forward (a merge keeps hotfix commits that
+# are only on `release`). The move is worked out and dry-run checked before anything is published.
+# Editing the release triggers .github/workflows/release.yml (the tag push does not), which
+# redeploys the site.
+# Before any outward step (publish and --prepare, and --approve-prepared again) the snapshot's
+# cloudflare/announcements/src/index.js must carry the announcement id openisd-<n.n.n>; no
+# announcement, no release. After the publish it deploys the production announcements Worker from
+# the snapshot and checks the live list carries that id (RELEASE_ANNOUNCE_DEPLOY and
+# RELEASE_ANNOUNCE_URL override the command and the list URL). A failure there exits non-zero but
+# the release is already out: rerun the command it prints.
+# The RELEASES.md row lands itself: a new task (scripts/new-task.sh, RELEASE_NEW_TASK), the row in
+# that task's worktree, a commit, scripts/ship.sh (RELEASE_LAND), which opens a pull request that merges
+# itself when its checks pass. Before that the worktree must have its dependencies (RELEASE_INSTALL, default npm ci,
+# runs when one is missing: ship.sh typechecks there). The starting folder is never written.
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+STAMP_RE='^[0-9]{8}T[0-9]{4}Z$'
+refuse() { echo "release: $*" >&2; exit 1; }
+
+LATEST_ONLY=0
+MODE=publish
+APPROVAL_MANIFEST=''
+NOTES_FILE=''
+PUBLIC=''
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --latest) LATEST_ONLY=1; shift ;;
+    --prepare) [ "$MODE" = publish ] || refuse "choose one release mode"; MODE=prepare; shift ;;
+    --approve-prepared)
+      [ "$MODE" = publish ] && [ "$#" -ge 2 ] || refuse "usage: release.sh --approve-prepared <manifest>"
+      MODE=approve; APPROVAL_MANIFEST="$2"; shift 2 ;;
+    --notes-file) NOTES_FILE="${2:-}"; [ -f "$NOTES_FILE" ] || refuse "no notes file '$NOTES_FILE'"; shift 2 ;;
+    --public) PUBLIC="${2:-}"; shift 2 ;;
+    *) break ;;
+  esac
+done
+if [ "$MODE" = approve ]; then
+  [ "$LATEST_ONLY" = 0 ] && [ -z "$PUBLIC" ] && [ -z "$NOTES_FILE" ] && [ "$#" = 0 ] \
+    && [ -n "$APPROVAL_MANIFEST" ] && [ -f "$APPROVAL_MANIFEST" ] \
+    || refuse "usage: release.sh --approve-prepared <manifest>"
+  APPROVAL_MANIFEST="$(realpath "$APPROVAL_MANIFEST")"
+  node - "$APPROVAL_MANIFEST" <<'NODE' || refuse "invalid release-readiness record"
+const fs = require('node:fs');
+const m = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+if (m.version !== 1 || m.checks?.hostedCopies !== 'passed' || m.checks?.uiGallery !== 'passed'
+    || m.checks?.upgradeFromProduction !== 'passed'
+    || typeof m.public !== 'string' || !/^\d+\.\d+\.\d+$/.test(m.public)
+    || typeof m.stamp !== 'string' || !/^\d{8}T\d{4}Z$/.test(m.stamp)
+    || !/^[0-9a-f]{40}$/.test(m.snapshotSha) || !/^[0-9a-f]{40}$/.test(m.mainSha)
+    || typeof m.latestTag !== 'string' || typeof m.releaseTip !== 'string' || typeof m.releasePush !== 'string'
+    || typeof m.notesFile !== 'string' || typeof m.notesSha256 !== 'string'
+    || typeof m.testVersion !== 'string' || typeof m.productionVersion !== 'string'
+    || !Number.isSafeInteger(m.preparedAt) || !Number.isSafeInteger(m.expiresAt)
+    || m.expiresAt <= m.preparedAt || m.expiresAt > m.preparedAt + 7 * 24 * 60 * 60) process.exit(1);
+NODE
+  manifest_value() { node -e 'const m=require(process.argv[1]); const v=m[process.argv[2]]; if(v==null) process.exit(1); process.stdout.write(String(v));' "$APPROVAL_MANIFEST" "$1"; }
+  PUBLIC="$(manifest_value public)"
+  STAMP="$(manifest_value stamp)"
+  NOTES_FILE="$(manifest_value notesFile)"
+  PREPARED_SNAPSHOT_SHA="$(manifest_value snapshotSha)"
+  PREPARED_MAIN_SHA="$(manifest_value mainSha)"
+  PREPARED_LATEST_TAG="$(manifest_value latestTag)"
+  PREPARED_RELEASE_TIP="$(manifest_value releaseTip)"
+  PREPARED_RELEASE_PUSH="$(manifest_value releasePush)"
+  PREPARED_NOTES_SHA="$(manifest_value notesSha256)"
+  PREPARED_TEST_VERSION="$(manifest_value testVersion)"
+  PREPARED_PROD_VERSION="$(manifest_value productionVersion)"
+  PREPARED_AT="$(manifest_value preparedAt)"
+  EXPIRES_AT="$(manifest_value expiresAt)"
+else
+  STAMP="${1:-}"
+  [ "$#" -eq 0 ] || shift
+  [ "$#" = 0 ] || refuse "unexpected argument after the build stamp"
+fi
+[[ "${STAMP:-}" =~ $STAMP_RE ]] || { echo "usage: release.sh --public <n.n.n> [--notes-file F] <stamp> | --prepare --public <n.n.n> [--notes-file F] <stamp> | --approve-prepared <manifest> | --latest <stamp>" >&2; exit 2; }
+[ "$LATEST_ONLY" = 0 ] || [ "$MODE" = publish ] || refuse "--latest cannot be combined with preflight modes"
+SNAP="snap-$STAMP"
+REL="v$STAMP"
+
+dispatch_production_deploy() {
+  local release_tag="$1"
+  # Pages only permits the main branch in its deployment environment. The caller already has
+  # authenticated gh access to promote this release; dispatch from that allowed branch and have
+  # deploy.yml verify that the public build ID is this release before it reports success.
+  gh workflow run deploy.yml --ref main --field publish_production=true --field expected_build_id="$release_tag"
+  echo "release: production deploy dispatched from main for $release_tag"
+}
+
+if [ "$LATEST_ONLY" = 1 ]; then
+  pre="$(gh release view "$REL" --json isPrerelease --jq .isPrerelease 2> /dev/null)" || refuse "no release $REL"
+  [ "$pre" = false ] || refuse "$REL is a pre-release, not a release; promote it first"
+  gh release edit "$REL" --latest
+  dispatch_production_deploy "$REL"
+  echo "release: $REL is now Latest"
+  exit 0
+fi
+
+PUBLIC_RE='^[0-9]+\.[0-9]+\.[0-9]+$'
+[[ "$PUBLIC" =~ $PUBLIC_RE ]] || { echo "release: --public <n.n.n> is required (like 7.0.952)" >&2; exit 2; }
+# The highest number any release title carries; a new number must beat it.
+LAST_PUBLIC="$(gh release list --exclude-pre-releases --limit 200 --json name --jq '.[].name' | sed -n 's/^OpenISD \([0-9]*\.[0-9]*\.[0-9]*\)$/\1/p' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)"
+if [ -n "$LAST_PUBLIC" ] && [ "$(printf '%s\n%s\n' "$LAST_PUBLIC" "$PUBLIC" | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)" != "$PUBLIC" -o "$LAST_PUBLIC" = "$PUBLIC" ]; then
+  refuse "public number $PUBLIC is not greater than the last, $LAST_PUBLIC"
+fi
+[ -n "$(git ls-remote --tags origin "refs/tags/$SNAP")" ] || refuse "no snapshot $SNAP on the remote"
+[ -z "$(git ls-remote --tags origin "refs/tags/$REL")" ] || refuse "$REL already exists; use --latest $STAMP to make it Latest"
+
+open_fixes="$(grep -lE '^status:[[:space:]]*open[[:space:]]*$' tasks/fixes/*.yml 2> /dev/null || true)"
+[ -z "$open_fixes" ] || refuse "an F is open, fix it first: $(echo "$open_fixes" | xargs -n1 basename | tr '\n' ' ')"
+
+git fetch --quiet origin "refs/tags/$SNAP:refs/tags/$SNAP"
+SHA="$(git rev-parse "refs/tags/$SNAP^{commit}")"
+# No announcement, no release (T716): the snapshot itself must carry this release's announcement id.
+git show "$SHA:cloudflare/announcements/src/index.js" 2> /dev/null | grep -Fq "id: 'openisd-$PUBLIC'" \
+  || refuse "$SNAP has no announcement openisd-$PUBLIC; land an announcement for OpenISD $PUBLIC first"
+LATEST_TAG="$(gh release view --json tagName --jq .tagName 2> /dev/null || true)"
+MAIN_SHA="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+[ -n "$MAIN_SHA" ] || refuse "cannot read origin/main"
+RELEASE_TIP="$(git ls-remote origin refs/heads/release | awk '{print $1}')"
+
+if [ "$MODE" != publish ]; then
+  [ "$SHA" = "$MAIN_SHA" ] || refuse "$SNAP is not the current main build; create a snapshot of current main first"
+  TEST_VERSION="$(curl -fsS https://test.openisd.app/build-info.json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{process.stdout.write(JSON.parse(s).version||"")}catch{process.exit(1)}})')" \
+    || refuse "cannot read the test build ID"
+  [ "$TEST_VERSION" = "v$STAMP" ] || refuse "test.openisd.app is $TEST_VERSION, expected v$STAMP"
+  PRODUCTION_VERSION="$(curl -fsS https://openisd.app/build-info.json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{process.stdout.write(JSON.parse(s).version||"")}catch{process.exit(1)}})')" \
+    || refuse "cannot read the production build ID"
+  [ -n "$LATEST_TAG" ] && [ "$PRODUCTION_VERSION" = "$LATEST_TAG" ] \
+    || refuse "production is $PRODUCTION_VERSION, while GitHub Latest is ${LATEST_TAG:-none}"
+fi
+
+# The read-only `release` branch only ever moves forward, and git must accept the move. Work out the
+# move and check the remote will take it BEFORE any outward step (tag push, gh release edit), so a
+# rejected push can never leave a live release with `release` not moved. The push itself comes right
+# after the publish step. Never a force-push.
+#   release already contains $SHA             -> nothing (an older snapshot leaves the branch alone)
+#   release is an ancestor of $SHA            -> push $SHA (fast-forward)
+#   otherwise (a hotfix sits only on release) -> push a merge commit: tree of $SHA, parents the old
+#                                                release tip and $SHA, so the tree is exactly the
+#                                                promoted build and the hotfix history is kept
+RELEASE_PUSH=''
+if [ -n "$RELEASE_TIP" ]; then
+  git fetch --quiet origin "refs/heads/release:refs/remotes/origin/release" || refuse "cannot fetch origin/release"
+  [ "$(git rev-parse refs/remotes/origin/release)" = "$RELEASE_TIP" ] || refuse "release branch changed while preparing"
+fi
+if [ -z "$RELEASE_TIP" ]; then
+  RELEASE_PUSH="$SHA"
+else
+  if git merge-base --is-ancestor "$SHA" "$RELEASE_TIP"; then
+    echo "release: branch release already contains $SHA"
+  elif git merge-base --is-ancestor "$RELEASE_TIP" "$SHA"; then
+    RELEASE_PUSH="$SHA"
+  else
+    # Deterministic: the same release tip, snapshot, number and stamp always give the same commit id, so the id
+    # --prepare records is the id --approve-prepared rebuilds (a clock in the commit made every approval refuse, 17 Nov 2026).
+    MERGE_DATE="$(git log -1 --format=%cI "$SHA")"
+    RELEASE_PUSH="$(GIT_AUTHOR_NAME='OpenISD release' GIT_AUTHOR_EMAIL='release@openisd.invalid' GIT_AUTHOR_DATE="$MERGE_DATE" \
+      GIT_COMMITTER_NAME='OpenISD release' GIT_COMMITTER_EMAIL='release@openisd.invalid' GIT_COMMITTER_DATE="$MERGE_DATE" \
+      git commit-tree "$SHA^{tree}" -p "$RELEASE_TIP" -p "$SHA" -m "Release $PUBLIC: $STAMP onto release (keeps hotfix history)")"
+    echo "release: branch release holds commits not in $SHA; moving it with merge $RELEASE_PUSH"
+  fi
+fi
+if [ -n "$RELEASE_PUSH" ]; then
+  git push --quiet --dry-run origin "$RELEASE_PUSH:refs/heads/release" || refuse "the release branch would reject the move; nothing was published"
+fi
+
+if [ "$MODE" = approve ]; then
+  NOW="$(date -u +%s)"
+  [ "$NOW" -le "$EXPIRES_AT" ] || refuse "readiness record expired; prepare again"
+  [ "$SHA" = "$PREPARED_SNAPSHOT_SHA" ] || refuse "snapshot changed since preparation"
+  [ "$MAIN_SHA" = "$PREPARED_MAIN_SHA" ] || refuse "main changed since preparation; prepare again"
+  [ "$LATEST_TAG" = "$PREPARED_LATEST_TAG" ] || refuse "Latest release changed since preparation"
+  [ "$RELEASE_TIP" = "$PREPARED_RELEASE_TIP" ] || refuse "release branch changed since preparation"
+  # The move must be the prepared one. A record written before the commit was deterministic holds an id that cannot be
+  # rebuilt; it still counts when its commit (if this clone has it) has exactly the same tree and parents.
+  if [ "$RELEASE_PUSH" != "$PREPARED_RELEASE_PUSH" ]; then
+    [ -n "$RELEASE_PUSH" ] && git cat-file -e "$PREPARED_RELEASE_PUSH^{commit}" 2> /dev/null \
+      && [ "$(git rev-parse "$PREPARED_RELEASE_PUSH^{tree}")" = "$(git rev-parse "$RELEASE_PUSH^{tree}")" ] \
+      && [ "$(git rev-list --parents -n1 "$PREPARED_RELEASE_PUSH" | cut -d' ' -f2-)" = "$(git rev-list --parents -n1 "$RELEASE_PUSH" | cut -d' ' -f2-)" ] \
+      || refuse "release-branch move changed since preparation"
+  fi
+  [ "$TEST_VERSION" = "$PREPARED_TEST_VERSION" ] && [ "$PRODUCTION_VERSION" = "$PREPARED_PROD_VERSION" ] \
+    || refuse "a hosted build changed since preparation"
+  [ -z "$NOTES_FILE" ] || { [ -f "$NOTES_FILE" ] && [ "$(sha256sum "$NOTES_FILE" | cut -d' ' -f1)" = "$PREPARED_NOTES_SHA" ]; } \
+    || refuse "notes changed since preparation"
+fi
+
+if [ "$MODE" != approve ]; then
+  # The e2e checks build the app from the checkout they run in, so they run in a temporary detached
+  # worktree at $SHA, the commit being released (T706), never in the checkout this script started in.
+  START_DIR="$(pwd)"
+  CHECK_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/release-check.XXXXXX")"
+  remove_check_worktree() {
+    rm -rf "$CHECK_ROOT" # symlinked node_modules are unlinked, never followed
+    git -C "$START_DIR" worktree prune
+  }
+  trap remove_check_worktree EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM HUP
+  CHECK_DIR="$CHECK_ROOT/src"
+  git worktree add --quiet --detach "$CHECK_DIR" "$SHA" || refuse "cannot check out $SHA for the release checks"
+  # node_modules is not tracked: share the starting checkout's installs.
+  for nm in node_modules packages/*/node_modules; do
+    if [ -d "$START_DIR/$nm" ] && [ -d "$CHECK_DIR/$(dirname "$nm")" ] && [ ! -e "$CHECK_DIR/$nm" ]; then
+      ln -s "$START_DIR/$nm" "$CHECK_DIR/$nm"
+    fi
+  done
+  # Every release starts in a browser that already runs the live build (T396). A failure stops it.
+  (cd "$CHECK_DIR" && node scripts/hosting/test/hosted-copies.e2e.mjs) || refuse "hosted copies end-to-end test failed"
+  # The upgrade journey (T649): a phone profile running the LIVE production worker is updated to this
+  # build, stays usable meanwhile, and picks a radiator offline with every box filled.
+  (cd "$CHECK_DIR" && node scripts/hosting/test/offline-catalogue.e2e.mjs --previous https://openisd.app) || refuse "upgrade from the live production worker failed"
+
+  # Compare this snapshot with current Latest and save the gallery outside the source tree.
+  BEFORE=none
+  [ -z "$LATEST_TAG" ] || BEFORE="https://snapshots.openisd.app/v/${LATEST_TAG#v}/"
+  node scripts/ui-gallery/capture.mjs --after "https://snapshots.openisd.app/snap/$STAMP/" --before "$BEFORE" || refuse "UI gallery capture failed"
+fi
+
+if [ "$MODE" = prepare ]; then
+  MANIFEST="$(pwd)/build/release-preflight/$STAMP-$PUBLIC.json"
+  mkdir -p "$(dirname "$MANIFEST")"
+  PREPARED_AT="$(date -u +%s)"
+  EXPIRES_AT=$((PREPARED_AT + 7 * 24 * 60 * 60))
+  NOTES_SHA=''
+  [ -z "$NOTES_FILE" ] || NOTES_SHA="$(sha256sum "$NOTES_FILE" | cut -d' ' -f1)"
+  node - "$MANIFEST" "$PUBLIC" "$STAMP" "$SHA" "$MAIN_SHA" "$LATEST_TAG" "$RELEASE_TIP" "$RELEASE_PUSH" "$NOTES_FILE" "$NOTES_SHA" "$TEST_VERSION" "$PRODUCTION_VERSION" "$PREPARED_AT" "$EXPIRES_AT" <<'NODE'
+const fs = require('node:fs');
+const [path, publicNumber, stamp, snapshotSha, mainSha, latestTag, releaseTip, releasePush,
+  notesFile, notesSha256, testVersion, productionVersion, preparedAt, expiresAt] = process.argv.slice(2);
+const record = {
+  version: 1, public: publicNumber, stamp, snapshotSha, mainSha, latestTag,
+  releaseTip, releasePush, notesFile, notesSha256, testVersion, productionVersion,
+  preparedAt: Number(preparedAt), expiresAt: Number(expiresAt),
+  checks: {hostedCopies: 'passed', uiGallery: 'passed', upgradeFromProduction: 'passed'},
+};
+fs.writeFileSync(path, `${JSON.stringify(record, null, 2)}\n`, {mode: 0o600});
+NODE
+  echo "release: preflight passed for OpenISD $PUBLIC from $SNAP ($SHA)"
+  echo "release: approval command: bash scripts/release.sh --approve-prepared \"$MANIFEST\""
+  exit 0
+fi
+
+git tag "$REL" "$SHA"
+git push --quiet origin "refs/tags/$REL"
+NOTES_ARGS=()
+[ -z "$NOTES_FILE" ] || NOTES_ARGS=(--notes-file "$NOTES_FILE")
+gh release edit "$SNAP" --tag "$REL" --title "OpenISD $PUBLIC" --prerelease=false --latest ${NOTES_ARGS[@]+"${NOTES_ARGS[@]}"}
+
+[ -z "$RELEASE_PUSH" ] || git push --quiet origin "$RELEASE_PUSH:refs/heads/release"
+
+dispatch_production_deploy "$REL"
+
+# Deploy the production announcements Worker from the snapshot's own file, then check the live list.
+# A failure is remembered, not fatal here: the ledger row below still lands, then the exit is non-zero.
+ANNOUNCE_URL="${RELEASE_ANNOUNCE_URL:-https://openisd-announcements.john-lonergan-0e9.workers.dev/announcements}"
+ANNOUNCE_CMD="${RELEASE_ANNOUNCE_DEPLOY:-bash \"\$START_DIR/../openisd-stats/cf.sh\" deploy --config \"\$ANNOUNCE_DIR/cloudflare/announcements/wrangler.production.toml\"}"
+ANNOUNCE_FAILED=''
+START_DIR="$(pwd)"
+ANNOUNCE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/release-announce.XXXXXX")"
+export ANNOUNCE_DIR="$ANNOUNCE_ROOT/src" START_DIR
+if git worktree add --quiet --detach "$ANNOUNCE_DIR" "$SHA" && (cd "$ANNOUNCE_DIR" && bash -c "$ANNOUNCE_CMD"); then
+  if curl -fsS "$ANNOUNCE_URL" | grep -Fq "\"id\":\"openisd-$PUBLIC\""; then
+    echo "release: announcement openisd-$PUBLIC is live"
+  else
+    ANNOUNCE_FAILED="the live announcements list at $ANNOUNCE_URL does not carry openisd-$PUBLIC"
+  fi
+else
+  ANNOUNCE_FAILED="the announcements Worker deploy failed"
+fi
+rm -rf "$ANNOUNCE_ROOT"; git worktree prune
+
+# RELEASES.md: one row per release, newest first. Written in its own task worktree and shipped with
+# ship.sh as a pull request, never in the folder this script started in: main moves only by pull request
+# (QO481), so land.sh, which pushes main, is refused there.
+DATE="$(date -u -d "${STAMP:0:8} ${STAMP:9:2}:${STAMP:11:2}" '+%-d %b %Y, %H:%M')"
+DAY="$(date -u -d "${STAMP:0:8}" '+%-d %b %Y')"   # the release's own day, for the ledger task's why
+if [ -n "$NOTES_FILE" ]; then NOTE_TEXT="$(cat "$NOTES_FILE")"; else NOTE_TEXT="$(gh release view "$REL" --json body --jq .body)"; fi
+SUBJECT="$(printf '%s\n' "$NOTE_TEXT" | node scripts/hosting/releaseNotes.mjs headline | tr '|' '/')"
+ROW="| $PUBLIC | $STAMP | $DATE | \`${SHA:0:9}\` | [v/$STAMP](https://snapshots.openisd.app/v/$STAMP/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/$REL) | $SUBJECT |"
+GOAL="Record OpenISD $PUBLIC in the release ledger"
+NEW_TASK_OUT="$(${RELEASE_NEW_TASK:-bash scripts/new-task.sh} release "$GOAL" | tail -1)"
+TASK_ID="${NEW_TASK_OUT%% *}"; TASK_DIR="${NEW_TASK_OUT#* }"
+[[ "$TASK_ID" =~ ^T[0-9]+$ ]] && [ -d "$TASK_DIR" ] || refuse "new-task gave no task and worktree ('$NEW_TASK_OUT'); the release is out, record $PUBLIC in RELEASES.md by hand"
+(
+  cd "$TASK_DIR"
+  # ship.sh typechecks in this worktree. new-task.sh hardlinks node_modules from the main checkout, which can be older than
+  # the lockfile (7.0.960: "Cannot find module 'lz-string'"), so check that every dependency named by a package.json here
+  # resolves, and install from the lockfile (RELEASE_INSTALL, default npm ci) when one does not. Never skip the typecheck.
+  missing="$(node --input-type=module -e '
+import fs from "node:fs";
+const pkgs = ["package.json", ...(fs.existsSync("packages") ? fs.readdirSync("packages").map((d) => `packages/${d}/package.json`) : [])].filter((f) => fs.existsSync(f));
+const gone = [];
+for (const f of pkgs) {
+  const dir = f.replace(/package\.json$/, "");
+  const {dependencies = {}, devDependencies = {}} = JSON.parse(fs.readFileSync(f, "utf8"));
+  for (const name of Object.keys({...dependencies, ...devDependencies})) {
+    if (!fs.existsSync(`${dir}node_modules/${name}`) && !fs.existsSync(`node_modules/${name}`)) gone.push(name);
+  }
+}
+console.log([...new Set(gone)].join(" "));
+')" || exit 1
+  if [ -n "$missing" ]; then
+    echo "release: the ledger worktree lacks dependencies ($missing); installing them"
+    ${RELEASE_INSTALL:-npm ci --no-audit --no-fund} || { echo "release: the dependency install in $TASK_DIR failed ($missing), so ship.sh would fail its typecheck" >&2; exit 1; }
+  fi
+  if [ ! -f RELEASES.md ]; then
+    printf '# Releases\n\nNewest first. `scripts/release.sh` adds a row when it promotes a snapshot. Dates are UTC.\n\n| Version | Stamp | Date | Commit | Hosted | GitHub | Notes |\n|---|---|---|---|---|---|---|\n' > RELEASES.md
+  fi
+  awk -v row="$ROW" '{print} /^\|---/ && !done {print row; done=1}' RELEASES.md > RELEASES.md.new && mv RELEASES.md.new RELEASES.md
+  # why: the pull request's task check asks every new task file who decided and when (T767)
+  printf 'id: %s\nrelease_note: internal\nrepo: openisd\nowner: release\nstatus: open\ngoal: %s\nwhy: "Release, %s: release OpenISD %s"\ndone_test: grep -Fq "| %s | %s |" RELEASES.md\nfiles:\n  - RELEASES.md\n  - tasks/%s.yml\n' \
+    "$TASK_ID" "$GOAL" "$DAY" "$PUBLIC" "$PUBLIC" "$STAMP" "$TASK_ID" > "tasks/$TASK_ID.yml"
+  git add RELEASES.md "tasks/$TASK_ID.yml"
+  git commit --quiet -m "(auto) $TASK_ID: $GOAL"
+  ${RELEASE_LAND:-bash scripts/ship.sh} "$TASK_ID"
+) || refuse "landing the ledger row ($TASK_ID in $TASK_DIR) failed; the release is out, finish that landing by hand"
+echo "release: $REL is Latest at $SHA; ledger row shipped as $TASK_ID (a pull request that merges itself)"
+[ -z "$ANNOUNCE_FAILED" ] || { echo "release: $REL is out, but $ANNOUNCE_FAILED; rerun: $ANNOUNCE_CMD (from a checkout of $SHA, ANNOUNCE_DIR set to it)" >&2; exit 1; }

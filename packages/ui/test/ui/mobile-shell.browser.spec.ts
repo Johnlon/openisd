@@ -1,0 +1,117 @@
+/**
+ * The mobile shell's navigation and empty state — Phase 1 of the mobile-first skin. Each tab's
+ * own field behaviour has its own spec file; this one covers routing, the empty state, and that
+ * the bottom tab bar shows/hides the right destinations. The top bar, splash and New project wizard
+ * are `mobile-topbar`, `mobile-splash` and `mobile-new-project-wizard`.
+ *
+ * Every test forces the mobile skin via a persisted override (not a narrow viewport) — deciding
+ * WHICH skin renders is `skin-selection.browser.spec.ts`'s job; these specs assume the
+ * mobile skin and test what it does once showing.
+ */
+import {expect, openAMobileProject, test} from '../fixtures.js';
+import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
+
+test.beforeEach(async ({ appPage: page }) => {
+  await forceMobileSkin(page, 'window');
+});
+
+test('a cold start with no project shows the empty state with New/Open actions', async ({ appPage: page }) => {
+  await page.goto('/');
+  await expect(page.locator('.mobile-root')).toBeVisible();
+  await expect(page.locator('.mob-empty')).toBeVisible();
+  await expect(page.getByText('No project open')).toBeVisible();
+  await expect(page.getByText('New project')).toBeVisible();
+  await expect(page.getByText('Open project')).toBeVisible();
+  await expect(page.getByText('Import project')).toBeVisible();
+  await expect(page.locator('.mob-tabbar')).toHaveCount(0);
+  await expect(page.locator('.mob-project-title')).toHaveCount(0);
+});
+
+test('the empty state shows the app logo and name above the New/Open buttons', async ({ appPage: page }) => {
+  await page.goto('/');
+  const empty = page.locator('.mob-empty');
+  const brand = empty.locator('.mob-empty-brand', { hasText: 'OpenISD' });
+  // Vite inlines the small icon.svg as a data: URL, so the img is found by place, not by src.
+  const logo = brand.locator('img');
+  await expect(logo).toBeVisible();
+  // A fixed CSS size makes the img visible before it has decoded; wait for the decode itself.
+  await expect.poll(() => logo.evaluate((img: HTMLImageElement) => (img.complete ? img.naturalWidth : 0))).toBeGreaterThan(0);
+  await expect(brand).toBeVisible();
+  const brandBox = await brand.boundingBox();
+  const ctaBox = await empty.locator('.mob-cta').first().boundingBox();
+  expect(brandBox && ctaBox && brandBox.y + brandBox.height <= ctaBox.y).toBe(true);
+});
+
+// The mobile chart screen used to allow only New and Open a file, not opening from browser storage. The empty state now matches desktop's empty chart: New project, Open project
+// (the menu's saved-project sheet), Import project (a file).
+test('the empty state opens a project saved in the browser', async ({ appPage: page }) => {
+  await page.goto('/');
+  await openAMobileProject(page);
+  await tapMobileMenuItem(page, /^Save$/);
+  await tapMobileMenuItem(page, 'Projects');
+  const pane = page.locator('.mob-projects-pane');
+  await pane.locator('.mob-project-menu-btn').first().click();
+  await page.locator('.mob-action-sheet .mob-action-close').click();
+  await pane.locator('.mob-dlg-close').click();
+
+  const empty = page.locator('.mob-empty');
+  await expect(empty.locator('button')).toHaveText(['New project', 'Open project', 'Import project', 'Switch to Desktop view']);
+  await empty.getByRole('button', { name: 'Open project' }).click();
+  const projectsPane = page.locator('.mob-projects-pane');
+  await expect(projectsPane.locator('.mob-project-row')).toHaveCount(1);
+
+  await projectsPane.locator('.mob-project-info').first().click();
+  await expect(projectsPane).toHaveCount(0);
+  await expect(empty).toHaveCount(0);
+  await expect(page.locator('.mob-tabbar')).toBeVisible();
+});
+
+// Closing the last project shows the init screen, and a refresh must not bring it back. Closing empties the open list; the saved copy stays.
+test('closing the last project stays closed after a reload, and Open project still lists it', async ({ appPage: page }) => {
+  await page.goto('/');
+  await openAMobileProject(page);
+  await tapMobileMenuItem(page, /^Save$/);
+  await tapMobileMenuItem(page, 'Projects');
+  const pane = page.locator('.mob-projects-pane');
+  await pane.locator('.mob-project-menu-btn').first().click();
+  await page.locator('.mob-action-sheet .mob-action-close').click();
+  await expect(page.locator('.mob-empty')).toBeVisible();
+
+  await page.reload();
+
+  const empty = page.locator('.mob-empty');
+  await expect(empty.locator('button')).toHaveText(['New project', 'Open project', 'Import project', 'Switch to Desktop view']);
+  await expect(page.locator('.mob-tabbar')).toHaveCount(0);
+  await empty.getByRole('button', { name: 'Open project' }).click();
+  await expect(page.locator('.mob-projects-pane .mob-project-row')).toHaveCount(1);
+});
+
+test('opening a project swaps the empty state for the tab bar, defaulting to the Box tab', async ({ appPage: page }) => {
+  await page.goto('/');
+  await openAMobileProject(page);
+  await expect(page.locator('.mob-empty')).toHaveCount(0);
+  await expect(page.locator('.mob-tabbar')).toBeVisible();
+  await expect(page.locator('.mob-tab.active')).toHaveText('Box');
+  await expect(page.locator('.mob-band-title').first()).toHaveText('Box');
+});
+
+test('the tab bar switches between Box, Driver, Signal and Graph', async ({ appPage: page }) => {
+  await page.goto('/');
+  await openAMobileProject(page);
+
+  await page.locator('.mob-tab', { hasText: 'Driver' }).click();
+  await expect(page.locator('.mob-tab.active')).toHaveText('Driver');
+  await expect(page.locator('.mob-band-title').first()).toHaveText('User options');   // QO946.c118
+
+  await page.locator('.mob-tab', { hasText: 'Signal' }).click();
+  await expect(page.locator('.mob-tab.active')).toHaveText('Signal');
+  await expect(page.locator('.mob-band-title').first()).toHaveText('Signal');
+
+  await page.locator('.mob-tab', { hasText: 'Graph' }).click();
+  await expect(page.locator('.mob-tab.active')).toHaveText('Graph');
+  await expect(page.locator('.mob-chart-view')).toBeVisible();
+  await expect(page.locator('.mob-tabbar')).toBeVisible();
+
+  await page.locator('.mob-tab', { hasText: 'Box' }).click();
+  await expect(page.locator('.mob-band-title').first()).toHaveText('Box');
+});

@@ -1,0 +1,14 @@
+{
+  "name": "openisd-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Optional Electron shell for OpenISD. Deliberately outside the root npm workspace so a normal `npm install` never downloads Electron.",
+  "main": "main.cjs",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^43.2.0"
+  }
+}

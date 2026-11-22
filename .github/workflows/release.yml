@@ -1,0 +1,22 @@
+name: release
+
+# Release events run on a tag, which the github-pages environment does not allow. The local
+# scripts/release.sh command dispatches deploy.yml from main after promotion instead.
+on:
+  release:
+    types: [published, edited]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    if: github.ref_type == 'branch'
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

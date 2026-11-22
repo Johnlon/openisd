@@ -1,0 +1,175 @@
+/**
+ * `Engine.vented.plausibility()` — is a designed vented box a box anyone could build?
+ *
+ * The alignment formulas keep PARITY with WinISD at every Qts: WinISD does not
+ * clamp, so `ventedAlignment()` does not either (C4 at a source-loaded Qts of
+ * 1.0 designs a 1684 L box tuned to 5.4 Hz). The number is not changed — it is MARKED. This is
+ * the marking, and nothing here may alter a designed value.
+ *
+ * Two separate judgements:
+ *   - non-physical — zero, negative, or not a finite number. Always an issue, whatever the
+ *     limits say: no setting makes a zero-litre box a box.
+ *   - out-of-range  — finite and positive, but outside the plausibility band. The band is an
+ *     APPLICATION SETTING the user owns (Settings tab), never a constant in here, so every
+ *     assertion below states its own limits rather than leaning on the factory ones.
+ */
+import {describe, it} from 'vitest';
+import assert from 'node:assert/strict';
+import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, type AppSettings} from '../../engine/appSettings.js';
+import {createEngine, type Engine} from '../../engine/Engine.js';
+import type {VentedDesignLimits} from '../../engine/plausibility.js';
+
+/** The band is an application SETTING, so an engine is constructed with the settings under
+ *  test — the same seam the composition root uses (`createEngine(appSettingsRepo)`). */
+function engineWith(ventedLimits: VentedDesignLimits): Engine {
+  const settings: AppSettings = {ventedLimits: () => ventedLimits, envDefaults: () => DEFAULT_ENV_DEFAULTS};
+  return createEngine(settings);
+}
+
+/** A band wide enough that nothing in these tests is out of range by accident. */
+const wide = engineWith({minVb_m3: 1e-9, maxVb_m3: 1e9, minFb_hz: 1e-9, maxFb_hz: 1e9});
+
+/** 1 L … 1000 L, 10 Hz … 150 Hz — the same shape as the factory band, stated locally. */
+const narrow = engineWith({minVb_m3: 0.001, maxVb_m3: 1.0, minFb_hz: 10, maxFb_hz: 150});
+
+describe('Engine.ventedPlausibility', () => {
+  it('passes a buildable box', () => {
+    assert.deepEqual(narrow.vented.plausibility({Vb: 0.05, Fb: 35}), []);
+  });
+
+  it('marks a zero or negative volume non-physical however wide the band', () => {
+    const issues = wide.vented.plausibility({Vb: 0, Fb: 35});
+    assert.deepEqual(issues, [wide.issues.nonPhysicalQuantity('Vb', 0)]);
+    assert.deepEqual(
+      wide.vented.plausibility({Vb: -0.02, Fb: 35}),
+      [wide.issues.nonPhysicalQuantity('Vb', -0.02)]);
+  });
+
+  it('marks a zero or negative tuning non-physical however wide the band', () => {
+    assert.deepEqual(
+      wide.vented.plausibility({Vb: 0.05, Fb: 0}),
+      [wide.issues.nonPhysicalQuantity('Fb', 0)]);
+    assert.deepEqual(
+      wide.vented.plausibility({Vb: 0.05, Fb: -3}),
+      [wide.issues.nonPhysicalQuantity('Fb', -3)]);
+  });
+
+  it('a non-physical issue does NOT claim WinISD parity — that evidence covers only normal outputs', () => {
+    // The 60-capture parity evidence (Qts 0.15–1.0, Ql 10) never exercised a degenerate input,
+    // so a non-physical sentence may not assert what WinISD does there (BUG_20261001
+    // nonphysical-parity-text-overreach). The out-of-range sentence keeps the claim.
+    const issues = wide.vented.plausibility({Vb: Number.POSITIVE_INFINITY, Fb: 35});
+    assert.equal(issues.length, 1);
+    assert.ok(!issues[0].text.includes('WinISD'),
+      `non-physical text must not claim WinISD parity, got: ${issues[0].text}`);
+    const band = narrow.vented.plausibility({Vb: 1.684, Fb: 35});
+    assert.ok(band[0].text.includes('WinISD'),
+      `out-of-range text keeps the parity sentence, got: ${band[0].text}`);
+  });
+
+  it('marks NaN and Infinity non-physical', () => {
+    const nan = wide.vented.plausibility({Vb: Number.NaN, Fb: 35});
+    assert.equal(nan.length, 1);
+    assert.equal(nan[0].kind, 'non-physical');
+    assert.deepEqual(
+      wide.vented.plausibility({Vb: 0.05, Fb: Number.POSITIVE_INFINITY}),
+      [wide.issues.nonPhysicalQuantity('Fb', Number.POSITIVE_INFINITY)]);
+  });
+
+  it('reports both quantities when both are wrong', () => {
+    assert.deepEqual(wide.vented.plausibility({Vb: 0, Fb: -1}), [
+      wide.issues.nonPhysicalQuantity('Vb', 0),
+      wide.issues.nonPhysicalQuantity('Fb', -1),
+    ]);
+  });
+
+  it('marks a volume above the band, naming the limit it broke', () => {
+    assert.deepEqual(narrow.vented.plausibility({Vb: 1.684, Fb: 35}), [
+      narrow.issues.quantityOutOfBand('Vb', 1.684, 0.001, 1.0),
+    ]);
+  });
+
+  it('marks a volume below the band', () => {
+    assert.deepEqual(narrow.vented.plausibility({Vb: 0.0000027, Fb: 35}), [
+      narrow.issues.quantityOutOfBand('Vb', 0.0000027, 0.001, 1.0),
+    ]);
+  });
+
+  it('marks a tuning below and above the band', () => {
+    assert.deepEqual(narrow.vented.plausibility({Vb: 0.05, Fb: 5.4}), [
+      narrow.issues.quantityOutOfBand('Fb', 5.4, 10, 150),
+    ]);
+    assert.deepEqual(narrow.vented.plausibility({Vb: 0.05, Fb: 400}), [
+      narrow.issues.quantityOutOfBand('Fb', 400, 10, 150),
+    ]);
+  });
+
+  it('accepts a value exactly on a limit', () => {
+    assert.deepEqual(narrow.vented.plausibility({Vb: 1.0, Fb: 10}), []);
+    assert.deepEqual(narrow.vented.plausibility({Vb: 0.001, Fb: 150}), []);
+  });
+
+  it('obeys the band it is given, not a constant of its own', () => {
+    const design = {Vb: 1.684, Fb: 5.4};
+    assert.equal(narrow.vented.plausibility(design).length, 2);
+    assert.deepEqual(wide.vented.plausibility(design), []);
+  });
+
+  it('asks its settings on every call, so a Settings edit lands without a new engine', () => {
+    // What makes the app's notify → recall → repaint route work: the engine must not snapshot
+    // the band at construction, or an already-open project would keep judging by the old one.
+    const bands: VentedDesignLimits[] = [
+      {minVb_m3: 0.001, maxVb_m3: 1.0, minFb_hz: 10, maxFb_hz: 150},
+      {minVb_m3: 0.001, maxVb_m3: 2.0, minFb_hz: 5, maxFb_hz: 150},
+    ];
+    let current = 0;
+    const live = createEngine({ventedLimits: () => bands[current]!, envDefaults: () => DEFAULT_ENV_DEFAULTS});
+    const design = {Vb: 1.684, Fb: 5.4};
+    assert.equal(live.vented.plausibility(design).length, 2);
+    current = 1;
+    assert.deepEqual(live.vented.plausibility(design), []);
+  });
+
+  it('marks WinISD\'s own extrapolated C4 design, both quantities', () => {
+    // WinISD's literal answer for the capture driver (Fs 40, Vas 0.02, Qms 4, Re 6, Rg 0.1) at
+    // Qes 1.333333 — a 1684 L box tuned to 5.4 Hz. `vented-alignment.test.ts` proves the engine
+    // reproduces it; this proves we mark it rather than clamp it.
+    const design = {Vb: 1.68448856574925, Fb: 5.40253768331173};
+    assert.deepEqual(narrow.vented.plausibility(design).map(i => i.quantity), ['Vb', 'Fb']);
+  });
+});
+
+describe('Engine.ventedVolumeIssue / Engine.ventedTuningIssue', () => {
+  // A CELL carries one quantity, so it can only be marked for that quantity's own issue. The
+  // whole-design call answers for the wizard's step-4 readout, which shows both at once.
+  it('judges a volume without being told a tuning', () => {
+    assert.equal(narrow.vented.volumeIssue(0.05), null);
+    assert.deepEqual(narrow.vented.volumeIssue(1.684),
+      narrow.issues.quantityOutOfBand('Vb', 1.684, 0.001, 1.0));
+    assert.deepEqual(wide.vented.volumeIssue(-0.02),
+      wide.issues.nonPhysicalQuantity('Vb', -0.02));
+  });
+
+  it('judges a tuning without being told a volume', () => {
+    assert.equal(narrow.vented.tuningIssue(35), null);
+    assert.deepEqual(narrow.vented.tuningIssue(5.4),
+      narrow.issues.quantityOutOfBand('Fb', 5.4, 10, 150));
+    assert.deepEqual(wide.vented.tuningIssue(0),
+      wide.issues.nonPhysicalQuantity('Fb', 0));
+  });
+
+  it('agrees with the whole-design judgement', () => {
+    const design = {Vb: 1.684, Fb: 5.4};
+    assert.deepEqual(narrow.vented.plausibility(design), [
+      narrow.vented.volumeIssue(design.Vb), narrow.vented.tuningIssue(design.Fb),
+    ]);
+  });
+});
+
+describe('DEFAULT_VENTED_DESIGN_LIMITS', () => {
+  it('is the band the Settings tab starts from, and is frozen', () => {
+    assert.ok(Object.isFrozen(DEFAULT_VENTED_DESIGN_LIMITS));
+    assert.deepEqual(engineWith(DEFAULT_VENTED_DESIGN_LIMITS).vented.plausibility({Vb: 0.05, Fb: 35}), []);
+    assert.equal(engineWith(DEFAULT_VENTED_DESIGN_LIMITS).vented.plausibility({Vb: 1.684, Fb: 5.4}).length, 2);
+  });
+});

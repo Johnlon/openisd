@@ -1,0 +1,642 @@
+import {beforeAll, describe, expect, it, vi, beforeEach} from 'vitest';
+import {ref} from 'vue';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {createLogging, type Logging} from '../../src/logging/flash.js';
+import {createApplicationIO, type DesignIO} from '../../src/logic/applicationIO.js';
+import {DesignFiles} from '../../src/logic/fileImportExport.js';
+import {createFileOpen, createFileStorage, createMemoryStorage, type FileOpen, type FilePick, type FileStorage} from '@openisd/persistence';
+import {createEngine} from '@openisd/design/engine';
+import {ensureSampleProject, OLD_BASKET_PROJECT_OWPR, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+import type {ConfirmPort} from '../../src/logic/confirmPort.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {AppState} from '../../src/logic/appState.js';
+import type {PresentationState} from '../../src/logic/presentationState.js';
+import {backupRepoOn, projectRepoOn, exportedFilesOn, storageUsageOn} from '../fixtures/repoOn.js';
+import type {TelemetryEvent} from '../../src/logic/telemetry/events.js';
+import {ChartData, ChartLayout, FrequencyAxis, LevelAxis} from '@openisd/design/chart';
+import {dqOfCell} from '../../src/logic/cellDataQuality.js';
+
+let appState: AppState;
+let presentationState: PresentationState;
+
+beforeEach(() => {
+  const fixture = createAppStateFixture();
+  appState = fixture.appState;
+  presentationState = fixture.presentation;
+});
+
+// SAMPLE_PROJECT_OWPR is read directly (not through readSampleProject()) below, so the
+// generated fixture has to exist before that read runs — ensured here, once, the same way
+// every other consumer of this generated file ensures it (packages/ui/test/fixtures/sampleProject.ts).
+ensureSampleProject();
+
+// Backup export/import is exercised on its own in persistence/test/backupRepo.test.ts — every
+// createApplicationIO() call here just needs a BackupRepo to satisfy the dependency, never one
+// backed by the SAME storage another test in this file is asserting against.
+const backup = backupRepoOn(createMemoryStorage());
+
+// Fake confirm port for tests — always confirms
+const fakeConfirmPort: ConfirmPort = {
+  ask: async () => true,
+};
+
+beforeAll(() => {
+  // shareLink() reads location.{origin,pathname} (the project repo's stateToUrl) and writes to the
+  // clipboard/history — none exist in this suite's node environment. Stubbed exactly as
+  // urlAppState.test.ts stubs `location`, plus the two calls shareLink() itself makes.
+  vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+  vi.stubGlobal('history', { replaceState: () => {} });
+  vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
+});
+
+/**
+ * bugs/archive/BUG_20260822_wpr_import_leaves_previous_projects_meta_in_state_and_reexports_it.md —
+ * the Verification section's round-trip: import a `.wpr` with distinct creator/description/
+ * date while a differently-named project is open; `state.project.*` must adopt the FILE's
+ * values (name from the filename, per the name↔file rule); a following export must emit the
+ * file's own `[ProjectInfo]`, never the pre-import project's.
+ *
+ * The fixture is a REAL WinISD-written golden (`packages/winisd/test/fixtures/winisd-parity/
+ * goldens/sealed-small.wpr` — an independent oracle, not this codebase's own writer), with its
+ * empty `Description=` line patched to a probe value so a stale-empty field cannot pass as a
+ * synced one.
+ */
+describe('.wpr import syncs state.project from the file, and export round-trips it', () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const GOLDEN_SEALED = join(here, '..', '..', '..', 'design', 'test', 'winisd', 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
+
+  it('meta flows file → state.project on import, and state → [ProjectInfo] on export', async () => {
+    const wprText = readFileSync(GOLDEN_SEALED, 'utf8')
+      .replace(/^Description=$/m, 'Description=probe-description-123456');
+
+    // Node has no FileReader/download DOM; stub the minimum importFile/exportWpr touch.
+    const alerts: string[] = [];
+    const downloadedBodies: (string | Uint8Array)[] = [];
+    vi.stubGlobal('alert', (msg: string) => { alerts.push(msg); });
+    vi.stubGlobal('URL', { createObjectURL: () => 'blob:x', revokeObjectURL: () => {} });
+    vi.stubGlobal('Blob', class {
+      constructor(parts: unknown[]) {
+        const part = parts[0];
+        if (typeof part !== 'string' && !(part instanceof Uint8Array)) {
+          throw new Error('exportWpr must download a string or bytes');
+        }
+        downloadedBodies.push(part);
+      }
+    });
+    vi.stubGlobal('document', {
+      createElement: (_tag: string) => ({ href: '', download: '', click: () => {} }),
+    });
+    vi.stubGlobal('FileReader', class {
+      onload: null | (() => void) = null;
+      onerror: null | (() => void) = null;
+      result: ArrayBuffer | null = null;
+      // Node's global `File`/`Blob` (available since Node 20) are the real spec classes, so
+      // `readAsArrayBuffer` reads them the same way the browser's own FileReader would —
+      // through `Blob.arrayBuffer()` — rather than a bespoke fake shape `importFile` would
+      // need a cast to accept.
+      readAsArrayBuffer(file: File): void {
+        void file.arrayBuffer().then(buf => {
+          this.result = buf;
+          queueMicrotask(() => this.onload?.());
+        });
+      }
+    });
+    try {
+      const engine = createEngine();
+      const repo = projectRepoOn(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
+      const logging = createLogging();
+      const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState });
+
+      // A DIFFERENT project is open before the import — these exact values must all be gone
+      // after. The app starts with NO project (QO121), so this opens the one it then dirties.
+      appState.newProject();
+      appState.requireFocusedProject().name.set('stale-name-999999');
+      appState.requireFocusedProject().description.set('stale-description-999999');
+      appState.requireFocusedProject().creator.set('stale-creator-999999');
+      appState.requireFocusedProject().created.set('stale-created-999999');
+
+      const fakeFile = new File([new TextEncoder().encode(wprText)], 'imported-design.wpr');
+      io.importFile(fakeFile);
+      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      assert.deepEqual(alerts, [], 'the import must succeed');
+      // `projectNameFromFilename` strips only OpenISD's own extensions (.owpr/.json) — a
+      // foreign `.wpr` keeps its extension in the derived name.
+      assert.equal(appState.requireFocusedProject().name.value, 'imported-design.wpr', 'name comes from the FILE NAME');
+      assert.equal(appState.requireFocusedProject().description.value, 'probe-description-123456');
+      assert.equal(appState.requireFocusedProject().creator.value, 'winisd_research overnight harness');
+      assert.equal(appState.requireFocusedProject().created.value, '20260813');
+
+      io.exportWpr();
+      assert.equal(downloadedBodies.length, 1, 'exportWpr must produce exactly one download');
+      const exportedBody = downloadedBodies[0];
+      if (typeof exportedBody === 'string') throw new Error('exportWpr must download bytes, not a string');
+      const exported = new TextDecoder().decode(exportedBody);
+      assert.match(exported, /^Description=probe-description-123456$/m);
+      assert.match(exported, /^Creator=winisd_research overnight harness$/m);
+      assert.match(exported, /^CreateDate=20260813$/m);
+      // F4 parity: the golden's box values survive the import→export round trip.
+      assert.match(exported, /^BType=0$/m);
+      assert.match(exported, /^Vr=0\.02$/m);
+
+      // A filter above WinISD's order 10 is exported as order 10, and the export says so.
+      appState.requireFocusedProject().filters.set(
+        [{type: 'lowpass', enabled: true, family: 'butterworth', order: 15, fc: 50, Q: 0.707}]);
+      appState.requireFocusedProject().save();
+      io.exportWpr();
+      const clamped = downloadedBodies[1];
+      if (clamped === undefined || typeof clamped === 'string') throw new Error('second export must download bytes');
+      assert.match(new TextDecoder().decode(clamped), /^filter0params=0;1;10;50;0\.707$/m);
+      assert.match(logging.message.value, /lowpass order 15 written as order 10/);
+    } finally {
+      vi.unstubAllGlobals();
+      // beforeAll's own stubs are cleared by unstubAllGlobals too — restore them for any
+      // test vitest orders after this one.
+      vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+      vi.stubGlobal('history', { replaceState: () => {} });
+      vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
+    }
+  });
+
+  it('an .owpr that is not a project logs the FULL parse error list to the console, before the message (QO152)', async () => {
+    const consoleErrors: unknown[][] = [];
+    vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => { consoleErrors.push(args); });
+    vi.stubGlobal('FileReader', class {
+      onload: null | (() => void) = null;
+      onerror: null | (() => void) = null;
+      result: ArrayBuffer | null = null;
+      readAsArrayBuffer(file: File): void {
+        void file.arrayBuffer().then(buf => {
+          this.result = buf;
+          queueMicrotask(() => this.onload?.());
+        });
+      }
+    });
+    try {
+      const engine = createEngine();
+      const repo = projectRepoOn(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
+      const logging = createLogging();
+      const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState });
+
+      // Not a project at all — every required top-level member is missing — so there is nothing a
+      // field-level repair can keep (a project with bad fields loads repaired instead). Two members are named, so a fix that only logs `errors[0]` is caught.
+      const fakeFile = new File([new TextEncoder().encode('{}')], 'broken.owpr');
+      io.importFile(fakeFile);
+      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      assert.match(logging.message.value, /^Could not import broken\.owpr: /, 'the malformed file must still tell the user');
+      assert.equal(consoleErrors.length, 1, 'the malformed file must log to the console exactly once');
+      const [, loggedRaw] = consoleErrors[0];
+      if (typeof loggedRaw !== 'string') throw new Error('console.error\'s second argument must be the error text');
+      const logged = loggedRaw;
+      assert.match(logged, /label/);
+      assert.match(logged, /saved/, 'the full error list must name BOTH missing members, not just the first');
+    } finally {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+      vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+      vi.stubGlobal('history', { replaceState: () => {} });
+      vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
+    }
+  });
+
+  it('Save commits the project to browser storage without opening a file picker', async () => {
+    const storage = createMemoryStorage();
+    const fileStorage: FileStorage = {
+      save: async () => { throw new Error('toolbar Save must not open a file picker'); },
+      saveAs: async () => { throw new Error('toolbar Save must not open a file picker'); },
+      openFileName: () => null,
+      forget: () => {},
+    };
+    const engine = createEngine();
+    const repo = projectRepoOn(engine, fileStorage, storage, 'http://localhost');
+    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState });
+
+    appState.newProject();
+    appState.requireFocusedProject().name.set('Saved from toolbar');
+    const saved = await io.saveProject();
+
+    assert.equal(saved, true);
+    const restored = repo.loadFromStorage();
+    assert.ok(!Array.isArray(restored) && restored);
+    assert.equal(restored.name.value, 'Saved from toolbar');
+  });
+
+  it('a Save that browser storage refuses leaves the project showing its unsaved changes', async () => {
+    const full = createMemoryStorage();
+    const storage = { ...full, set: () => { /* the browser is full: nothing lands */ } };
+    const fileStorage: FileStorage = {
+      save: async () => { throw new Error('toolbar Save must not open a file picker'); },
+      saveAs: async () => { throw new Error('toolbar Save must not open a file picker'); },
+      openFileName: () => null,
+      forget: () => {},
+    };
+    const engine = createEngine();
+    const repo = projectRepoOn(engine, fileStorage, storage, 'http://localhost');
+    const declinesExport: ConfirmPort = { ask: async () => false };
+    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: declinesExport, appState, presentation: presentationState });
+
+    appState.newProject();
+    const project = appState.requireFocusedProject();
+    project.name.set('Never stored');
+    const saved = await io.saveProject();
+
+    assert.equal(saved, false);
+    assert.equal(project.isModified(), true, 'the project still has unsaved changes');
+  });
+
+  it('Save all commits every open project with unsaved edits, the unfocused ones too', async () => {
+    const storage = createMemoryStorage();
+    const fileStorage: FileStorage = {
+      save: async () => { throw new Error('Save all must not open a file picker'); },
+      saveAs: async () => { throw new Error('Save all must not open a file picker'); },
+      openFileName: () => null,
+      forget: () => {},
+    };
+    const engine = createEngine();
+    const repo = projectRepoOn(engine, fileStorage, storage, 'http://localhost');
+    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState });
+
+    appState.newProject();
+    appState.requireFocusedProject().name.set('First of two');
+    appState.newProject();
+    appState.requireFocusedProject().name.set('Second of two');
+    const dirtyBefore = appState.openProjects().filter(p => p.isModified()).length;
+    const saved = await io.saveAllProjects();
+
+    assert.equal(saved, dirtyBefore);
+    const storedNames = repo.listStoredProjects().map(l => l.name);
+    assert.ok(storedNames.includes('First of two') && storedNames.includes('Second of two'), `both were stored: ${storedNames.join(', ')}`);
+    assert.ok(appState.openProjects().every(p => !p.isModified()), 'every open project is clean after Save all');
+  });
+});
+
+/** BUG_20260929_file-open-dialog-seeded-to-winisd: File > Open uses the system open dialog with
+ *  one "OpenISD and WinISD files" filter, and falls back to the shell's file input without it. */
+describe('openFromDisk — one named filter, fallback to the file input', () => {
+  function ioPicking(pick: FilePick, filters: unknown[]) {
+    const fileOpen: FileOpen = { pickFile: async (filter) => { filters.push(filter); return pick; } };
+    const engine = createEngine();
+    const repo = projectRepoOn(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
+    return createApplicationIO({ engine,  logging: createLogging(), fileStorage: createFileStorage(), fileOpen, projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState });
+  }
+
+  it('asks the dialog for all four formats under one filter, and imports the picked file', async () => {
+    vi.stubGlobal('FileReader', class {
+      onload: null | (() => void) = null;
+      onerror: null | (() => void) = null;
+      result: ArrayBuffer | null = null;
+      readAsArrayBuffer(file: File): void {
+        void file.arrayBuffer().then(buf => { this.result = buf; queueMicrotask(() => this.onload?.()); });
+      }
+    });
+    const filters: unknown[] = [];
+    const fallback = vi.fn();
+    const io = ioPicking({ kind: 'picked', file: new File([readFileSync(SAMPLE_PROJECT_OWPR)], 'picked-design.owpr') }, filters);
+
+    await io.openFromDisk(fallback);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    assert.deepEqual(filters, [{
+      description: 'OpenISD and WinISD files',
+      accept: {
+        'application/x-openisd-project': ['.owpr'],
+        'application/x-winisd-project': ['.wpr'],
+        'application/x-openisd-driver': ['.owdr'],
+        'application/x-winisd-driver': ['.wdr'],
+      },
+    }]);
+    assert.equal(fallback.mock.calls.length, 0);
+    assert.equal(appState.requireFocusedProject().name.value, 'picked-design');
+    vi.unstubAllGlobals();
+    vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+    vi.stubGlobal('history', { replaceState: () => {} });
+    vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
+  });
+
+  it('opens the shell\'s file input where the browser has no open dialog', async () => {
+    const fallback = vi.fn();
+    await ioPicking({ kind: 'unsupported' }, []).openFromDisk(fallback);
+    assert.equal(fallback.mock.calls.length, 1);
+  });
+
+  it('does nothing when the user cancels the dialog', async () => {
+    const fallback = vi.fn();
+    await ioPicking({ kind: 'cancelled' }, []).openFromDisk(fallback);
+    assert.equal(fallback.mock.calls.length, 0);
+  });
+});
+
+/** "when a driver or project has been imported/exported we need a little
+ *  message". Every export, Save As and import says what it did, naming the thing and the file. */
+describe('every import and export says what it did', () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const GOLDEN_SEALED = join(here, '..', '..', '..', 'design', 'test', 'winisd', 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
+
+  function stubDom(downloads: { name: string; body: string | Uint8Array }[]): void {
+    let pending: string | Uint8Array = '';
+    vi.stubGlobal('alert', () => { throw new Error('no import or export may raise an alert'); });
+    vi.stubGlobal('URL', { createObjectURL: () => 'blob:x', revokeObjectURL: () => {} });
+    vi.stubGlobal('Blob', class {
+      constructor(parts: unknown[]) {
+        const part = parts[0];
+        if (typeof part !== 'string' && !(part instanceof Uint8Array)) throw new Error('download a string or bytes');
+        pending = part;
+      }
+    });
+    vi.stubGlobal('document', {
+      createElement: () => {
+        const a = { href: '', download: '', click: () => { downloads.push({ name: a.download, body: pending }); } };
+        return a;
+      },
+    });
+    vi.stubGlobal('FileReader', class {
+      onload: null | (() => void) = null;
+      onerror: null | (() => void) = null;
+      result: ArrayBuffer | null = null;
+      readAsArrayBuffer(file: File): void {
+        void file.arrayBuffer().then(buf => { this.result = buf; queueMicrotask(() => this.onload?.()); });
+      }
+    });
+  }
+
+  function restoreGlobals(): void {
+    vi.unstubAllGlobals();
+    vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+    vi.stubGlobal('history', { replaceState: () => {} });
+    vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.resolve() } });
+  }
+
+  async function settle(): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+
+  function ioWith(fileStorage: FileStorage) {
+    const logging: Logging = { message: ref(''), flash: vi.fn() };
+    const engine = createEngine();
+    const repo = projectRepoOn(engine, fileStorage, createMemoryStorage(), 'http://localhost');
+    const io = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState });
+    return { io, flash: logging.flash };
+  }
+
+  function fakeFileStorage(result: { name: string | null; cancelled: boolean; written: boolean }): FileStorage {
+    return { save: async () => result, saveAs: async () => result, openFileName: () => null, forget: () => {} };
+  }
+
+  async function importGolden(io: DesignIO): Promise<void> {
+    io.importFile(new File([readFileSync(GOLDEN_SEALED)], 'MyBox.wpr'));
+    await settle();
+    appState.requireFocusedProject().driver.brand.set('Tang Band');
+    appState.requireFocusedProject().driver.model.set('W5-1138SMF');
+  }
+
+  function expectFiniteTransferFunction(): void {
+    const sweep = appState.requireFocusedProject().sweep({fmin: 10, fmax: 1000});
+    expect(sweep.values?.tfMag.length).toBeGreaterThan(0);
+    expect(sweep.values?.tfMag.every(Number.isFinite)).toBe(true);
+  }
+
+  it('an imported passive radiator with an infinite resonance shows an unavailable readout with its reason', async () => {
+    const bytes = readFileSync(new URL('../fixtures/pr-resonance-underflow.owpr', import.meta.url));
+    stubDom([]);
+    try {
+      const {io, flash} = ioWith(createFileStorage());
+      await io.importFile(new File([new Uint8Array(bytes)], 'pr-resonance-underflow.owpr'));
+      expect(flash).toHaveBeenCalledWith('Project imported from pr-resonance-underflow.owpr');
+
+      const readout = appState.requireFocusedProject().box.passiveRadiator.resonanceWithAddedMass_hz;
+      expect(dqOfCell(readout).dq).toContainEqual(expect.stringMatching(/passive radiator resonance with added mass.*infinite/i));
+      expect(readout.value).toBeNull();
+      expect(readout.provenance).toBe('N');
+    } finally { restoreGlobals(); }
+  });
+
+  it('project import, .wpr export, .wdr and .owdr export, and a driver import each flash', async () => {
+    const downloads: { name: string; body: string | Uint8Array }[] = [];
+    stubDom(downloads);
+    try {
+      const { io, flash } = ioWith(createFileStorage());
+      await importGolden(io);
+      expect(flash).toHaveBeenCalledExactlyOnceWith('Project imported from MyBox.wpr');
+      const {specs} = appState.requireFocusedProject().driver;
+      for (const field of [specs.Thick_m, specs.Depth_m, specs.MagDepth_m, specs.Magnet_m,
+        specs.Basket_m, specs.Outer_m, specs.Vcd_m, specs.DVol_m3]) {
+        expect(field.value).toBe(0);
+        expect(field.dq).toContainEqual(expect.objectContaining({kind: 'invalid-value', value: 0}));
+      }
+      expectFiniteTransferFunction();
+
+      io.exportWpr();
+      expect(flash).toHaveBeenLastCalledWith('Project exported as Tang_Band_W5-1138SMF.wpr');
+      io.exportWdr();
+      expect(flash).toHaveBeenLastCalledWith('Driver exported as Tang_Band_W5-1138SMF.wdr');
+      io.exportOwdr();
+      expect(flash).toHaveBeenLastCalledWith('Driver exported as Tang_Band_W5-1138SMF.owdr');
+
+      const wdr = downloads.find(d => d.name.endsWith('.wdr'));
+      if (!wdr) throw new Error('exportWdr must download a .wdr');
+      io.importFile(new File([typeof wdr.body === 'string' ? wdr.body : new Uint8Array(wdr.body)], 'probe.wdr'));
+      await settle();
+      expect(flash).toHaveBeenLastCalledWith('Driver imported from probe.wdr: Tang Band W5-1138SMF');
+
+      io.exportBackup();
+      expect(flash).toHaveBeenLastCalledWith(expect.stringMatching(/^Backup downloaded as openisd-backup-\d{4}-\d{2}-\d{2}\.json$/));
+    } finally { restoreGlobals(); }
+  });
+
+  it('keeps and flags an overflowing basket with only the normal import message and a finite sweep', async () => {
+    stubDom([]);
+    try {
+      const {io, flash} = ioWith(createFileStorage());
+      const projectText = readFileSync(OLD_BASKET_PROJECT_OWPR, 'utf8').replace('"value":2.37744', '"value":1e999');
+      await io.importFile(new File([projectText], 'overflow.owpr'));
+      expect(flash).toHaveBeenCalledExactlyOnceWith('Project imported from overflow.owpr');
+      const project = appState.requireFocusedProject();
+      expect(project.driver.specs.Basket_m.value).toBe(Infinity);
+      expect(project.driver.specs.Basket_m.dq).toContainEqual(expect.objectContaining({kind: 'invalid-value', value: Infinity}));
+      expectFiniteTransferFunction();
+
+      const driverText = project.driver.toOwdrText();
+      project.driver.specs.Basket_m.set(0.15);
+      vi.mocked(flash).mockClear();
+      await io.importFile(new File([driverText], 'overflow.owdr'));
+      expect(flash).toHaveBeenCalledExactlyOnceWith(
+        'Driver imported from overflow.owdr: Dayton Audio DSA115-8 4" Designer Series Aluminum Cone Woofer 8 Ohm',
+      );
+      expect(project.driver.specs.Basket_m.value).toBe(Infinity);
+      expect(project.driver.specs.Basket_m.dq).toContainEqual(expect.objectContaining({kind: 'invalid-value', value: Infinity}));
+      expectFiniteTransferFunction();
+    } finally { restoreGlobals(); }
+  });
+
+  it('a .wpr export that had to change the design still says it exported', async () => {
+    stubDom([]);
+    try {
+      const { io, flash } = ioWith(createFileStorage());
+      await importGolden(io);
+      appState.requireFocusedProject().filters.set(
+        [{type: 'lowpass', enabled: true, family: 'butterworth', order: 15, fc: 50, Q: 0.707}]);
+      appState.requireFocusedProject().save();
+      io.exportWpr();
+      expect(flash).toHaveBeenLastCalledWith(expect.stringMatching(/^Project exported as Tang_Band_W5-1138SMF\.wpr: .*lowpass order 15 written as order 10/));
+    } finally { restoreGlobals(); }
+  });
+
+  it('a file that cannot be read flashes why, naming the file', async () => {
+    stubDom([]);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const { io, flash } = ioWith(createFileStorage());
+      io.importFile(new File([new TextEncoder().encode('{}')], 'broken.owpr'));
+      await settle();
+      expect(flash).toHaveBeenCalledWith(expect.stringMatching(/^Could not import broken\.owpr: /));
+    } finally { vi.restoreAllMocks(); restoreGlobals(); }
+  });
+
+  it('Share link shows the link in a message when the clipboard refuses, never a prompt dialog', async () => {
+    appState.newProject();
+    const promptSpy = vi.fn();
+    vi.stubGlobal('prompt', promptSpy);
+    vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+    vi.stubGlobal('history', { replaceState: () => {} });
+    vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.reject(new Error('refused')) } });
+    try {
+      const { io, flash } = ioWith(fakeFileStorage({ name: null, cancelled: false, written: false }));
+      await io.shareLink();
+      await settle();
+      expect(flash).toHaveBeenCalledWith(expect.stringMatching(/^Could not copy the share link\. Copy it from here: https:\/\/openisd\.test/));
+      expect(promptSpy).not.toHaveBeenCalled();
+    } finally { restoreGlobals(); }
+  });
+
+  it('Save As download says the project stays unsaved only when it has unsaved changes', async () => {
+    appState.newProject();
+    appState.requireFocusedProject().name.set('MyBox');
+    appState.requireFocusedProject().save();
+    expect(appState.isModified.value).toBe(false);
+    const clean = ioWith(fakeFileStorage({ name: null, cancelled: false, written: false }));
+    await clean.io.saveProjectAs();
+    expect(clean.flash).toHaveBeenCalledWith('Project downloaded as MyBox.owpr');
+
+    appState.requireFocusedProject().name.set('MyBox2');
+    expect(appState.isModified.value).toBe(true);
+    const dirty = ioWith(fakeFileStorage({ name: null, cancelled: false, written: false }));
+    await dirty.io.saveProjectAs();
+    expect(dirty.flash).toHaveBeenCalledWith('Project downloaded as MyBox2.owpr. It stays marked unsaved.');
+  });
+
+  /** An io whose usage events land in `events`. */
+  function ioRecording(fileStorage: FileStorage) {
+    const events: TelemetryEvent[] = [];
+    const logging: Logging = { message: ref(''), flash: vi.fn() };
+    const engine = createEngine();
+    const repo = projectRepoOn(engine, fileStorage, createMemoryStorage(), 'http://localhost');
+    const io = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState, telemetry: { record: e => events.push(e), flush: () => {} } });
+    return { io, events };
+  }
+
+  it('a Save As that downloads the file counts as an .owpr save', async () => {
+    appState.newProject();
+    const { io, events } = ioRecording(fakeFileStorage({ name: null, cancelled: false, written: false }));
+    await io.saveProjectAs();
+    expect(events).toContainEqual(expect.objectContaining({ kind: 'project_save', format: 'owpr' }));
+  });
+
+  it('a driver file imported counts as a driver pick from an import, with a project open or not', async () => {
+    const downloads: { name: string; body: string | Uint8Array }[] = [];
+    stubDom(downloads);
+    try {
+      const { io: maker } = ioWith(createFileStorage());
+      await importGolden(maker);
+      maker.exportWdr();
+      const wdr = downloads.find(d => d.name.endsWith('.wdr'));
+      if (!wdr) throw new Error('exportWdr must download a .wdr');
+      const file = () => new File([typeof wdr.body === 'string' ? wdr.body : new Uint8Array(wdr.body)], 'probe.wdr');
+
+      const open = ioRecording(createFileStorage());
+      open.io.importFile(file());
+      await settle();
+      expect(open.events).toContainEqual({ kind: 'driver_pick', source: 'import', id: '', name: '' });
+
+      while (appState.openProjects().length > 0) appState.removeProject(0);
+      const none = ioRecording(createFileStorage());
+      none.io.importFile(file());
+      await settle();
+      expect(none.events).toContainEqual({ kind: 'driver_pick', source: 'import', id: '', name: '' });
+    } finally { restoreGlobals(); }
+  });
+
+  it('a backup download counts as backup, and a restore that worked as restore', async () => {
+    const downloads: { name: string; body: string | Uint8Array }[] = [];
+    stubDom(downloads);
+    try {
+      const { io, events } = ioRecording(createFileStorage());
+      io.exportBackup();
+      expect(events).toContainEqual({ kind: 'feature', name: 'backup' });
+
+      expect(io.importBackup('not a backup', { replaceEverything: false }).kind).toBe('invalid');
+      expect(events).not.toContainEqual({ kind: 'feature', name: 'restore' });
+      const file = downloads[0]?.body;
+      if (typeof file !== 'string') throw new Error('exportBackup must download text');
+      expect(io.importBackup(file, { replaceEverything: false }).kind).toBe('ok');
+      expect(events).toContainEqual({ kind: 'feature', name: 'restore' });
+    } finally { restoreGlobals(); }
+  });
+
+  it('a chart data download or copy counts as chart data', async () => {
+    stubDom([]);
+    try {
+      appState.newProject();
+      const data = ChartData.of('SPL', {
+        series: [{xs: [10, 20], ys: [80, 85], color: '#000', name: 'Sub'}], ymin: 60, ymax: 100, logy: false, unit: 'dB', fmin: 10, fmax: 1000,
+        freqAxis: new FrequencyAxis(10, 1000), levelAxis: new LevelAxis(60, 100, false), rolloffs: [], layout: ChartLayout.CHART,
+      });
+      const downloaded = ioRecording(createFileStorage());
+      downloaded.io.downloadChartData(data);
+      expect(downloaded.events).toContainEqual({ kind: 'feature', name: 'chart_data' });
+
+      const copied = ioRecording(createFileStorage());
+      await copied.io.copyChartData(data);
+      expect(copied.events).toContainEqual({ kind: 'feature', name: 'chart_data' });
+    } finally { restoreGlobals(); }
+  });
+
+  it('export all chart data downloads one ZIP named after the project, counts as chart data, and says so', () => {
+    const downloads: { name: string; body: string | Uint8Array }[] = [];
+    stubDom(downloads);
+    try {
+      appState.newProject();
+      appState.requireFocusedProject().name.set('My sub');
+      const exported = ioRecording(createFileStorage());
+      exported.io.downloadAllChartData();
+      expect(exported.events).toContainEqual({ kind: 'feature', name: 'chart_data' });
+      expect(downloads.map(d => d.name)).toEqual(['My sub - all chart data.zip']);
+      const body = downloads[0]?.body;
+      if (typeof body === 'string') throw new Error('the ZIP must be bytes');
+      expect(new TextDecoder().decode(body)).toContain('project.json');
+    } finally { restoreGlobals(); }
+  });
+
+  it('Save As names the file written, or says the download is unconfirmed', async () => {
+    appState.newProject();
+    appState.requireFocusedProject().name.set('MyBox');
+    const written = ioWith(fakeFileStorage({ name: 'MyBox.owpr', cancelled: false, written: true }));
+    await written.io.saveProjectAs();
+    expect(written.flash).toHaveBeenCalledWith('Project saved as MyBox.owpr');
+
+    const downloaded = ioWith(fakeFileStorage({ name: null, cancelled: false, written: false }));
+    await downloaded.io.saveProjectAs();
+    expect(downloaded.flash).toHaveBeenCalledWith(expect.stringMatching(/^Project downloaded as MyBox\.owpr/));
+
+    const cancelled = ioWith(fakeFileStorage({ name: null, cancelled: true, written: false }));
+    await cancelled.io.saveProjectAs();
+    expect(cancelled.flash).not.toHaveBeenCalled();
+  });
+});

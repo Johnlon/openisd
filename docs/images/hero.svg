@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#11151c"/>
+      <stop offset="1" stop-color="#0b0e13"/>
+    </linearGradient>
+    <!-- both curves fade out to the right so the plot "runs out" past the name -->
+    <linearGradient id="spl" gradientUnits="userSpaceOnUse" x1="800" y1="0" x2="1155" y2="0">
+      <stop offset="0" stop-color="#4fb0ff" stop-opacity="0.95"/>
+      <stop offset="0.7" stop-color="#4fb0ff" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#4fb0ff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="imp" gradientUnits="userSpaceOnUse" x1="800" y1="0" x2="1155" y2="0">
+      <stop offset="0" stop-color="#ffb454" stop-opacity="0.9"/>
+      <stop offset="0.7" stop-color="#ffb454" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ffb454" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="320" rx="24" fill="url(#bg)"/>
+
+  <!-- driver-cone mark (the "O") -->
+  <g transform="translate(160 160)">
+    <circle r="112" fill="none" stroke="#4fb0ff" stroke-width="26"/>
+    <circle r="68"  fill="none" stroke="#4fb0ff" stroke-width="15" opacity="0.55"/>
+    <circle r="34"  fill="#4fb0ff"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="330" y="150" font-size="92" font-weight="800" fill="#e6edf3" letter-spacing="-1">
+    Open<tspan fill="#4fb0ff">ISD</tspan>
+  </text>
+
+  <!-- response curves rippling out to the right of the name -->
+  <!-- faint frequency axis -->
+  <line x1="800" y1="182" x2="1150" y2="182" stroke="#2b3a49" stroke-width="1.5"/>
+  <!-- orange: vented-box impedance, the classic twin peaks straddling Fb -->
+  <path d="M800 164 C 818 164 830 150 842 118 C 850 96 864 96 876 116
+           C 888 138 902 152 914 152 C 928 152 940 120 952 100
+           C 962 86 978 86 990 106 C 1006 128 1044 154 1150 160"
+        fill="none" stroke="url(#imp)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- blue: SPL response — low-end rolloff rising into a flat passband -->
+  <path d="M800 172 C 826 172 838 152 856 124 C 872 108 890 106 908 112
+           C 948 120 1000 115 1150 115"
+        fill="none" stroke="url(#spl)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- taglines -->
+  <text x="334" y="198" font-size="30" font-weight="500" fill="#9fb3c8">
+    Open loudspeaker enclosure simulator — runs in any browser
+  </text>
+  <text x="334" y="238" font-size="22" font-weight="400" fill="#6b7f95">
+    A free, open, community-owned alternative to WinISD.
+  </text>
+</svg>

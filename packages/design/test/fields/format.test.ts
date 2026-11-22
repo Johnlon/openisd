@@ -1,0 +1,58 @@
+import {describe, it, expect} from 'vitest';
+import {formatFixed, formatByteSize, formatCountOf, formatFixedOrDash, formatTime, formatTrimmed} from '../../fields/format.js';
+import {NumberField} from '../../fields/field.js';
+
+describe('fixed-decimal number formatting', () => {
+  it('formatFixed: the value to the decimals asked', () => {
+    expect(formatFixed(1.234, 1)).toBe('1.2');
+    expect(formatFixed(2, 3)).toBe('2.000');
+  });
+
+  it('formatFixedOrDash: a dash for missing or non-finite', () => {
+    expect(formatFixedOrDash(3.14159, 2)).toBe('3.14');
+    expect(formatFixedOrDash(null, 2)).toBe('—');
+    expect(formatFixedOrDash(Number.NaN, 2)).toBe('—');
+    expect(formatFixedOrDash(Number.POSITIVE_INFINITY, 2)).toBe('—');
+  });
+
+  it('formatByteSize: bytes, then KB or MB to one decimal', () => {
+    expect(formatByteSize(0)).toBe('0 B');
+    expect(formatByteSize(1023)).toBe('1023 B');
+    expect(formatByteSize(1024)).toBe('1.0 KB');
+    expect(formatByteSize(12595)).toBe('12.3 KB');
+    expect(formatByteSize(1024 * 1024 * 1.25)).toBe('1.3 MB');
+  });
+
+  it('formatCountOf: a count with its noun, plural unless one', () => {
+    expect(formatCountOf(0, 'project')).toBe('0 projects');
+    expect(formatCountOf(1, 'project')).toBe('1 project');
+    expect(formatCountOf(1200, 'project')).toBe('1,200 projects');
+  });
+
+  it('formatTime: "23:32" — local 24-hour clock, padded hours and minutes', () => {
+    expect(formatTime(new Date(2026, 9, 13, 23, 32))).toBe('23:32');
+    expect(formatTime(new Date(2026, 9, 13, 9, 5))).toBe('09:05');
+    expect(formatTime(new Date(2026, 9, 13, 0, 0))).toBe('00:00');
+  });
+});
+
+
+describe('QO454 decimals rule: at least 2 decimals, no trailing zeros past 2', () => {
+  it('formatTrimmed drops zeros past the second decimal', () => {
+    expect(formatTrimmed(14.7, 5)).toBe('14.70');
+    expect(formatTrimmed(7.17, 5)).toBe('7.17');
+    expect(formatTrimmed(7.1734, 5)).toBe('7.1734');
+    expect(formatTrimmed(2.28816, 5)).toBe('2.28816');
+    expect(formatTrimmed(0.57, 3)).toBe('0.57');
+    expect(formatTrimmed(5, 3)).toBe('5.00');
+    expect(formatTrimmed(5, 0)).toBe('5');
+    expect(formatTrimmed(5.5, 1)).toBe('5.5');
+  });
+
+  it('NumberField.format applies it', () => {
+    expect(NumberField.BL_TM.format(14.7)).toBe('14.70');
+    expect(NumberField.BL_TM.format(7.17)).toBe('7.17');
+    expect(NumberField.BL_TM.format(7.1734)).toBe('7.1734');
+    expect(NumberField.QES.format(0.57)).toBe('0.57');
+  });
+});

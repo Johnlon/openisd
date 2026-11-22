@@ -1,0 +1,245 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Frequently asked questions
+    </title>
+    <link rel="stylesheet" href="../winisd.css" type="text/css" />
+  </head>
+  <body>
+    <p class="header">
+      Linearteam WinISD Pro
+    </p>
+    <h1>
+      Frequently asked questions
+    </h1>
+    <hr />
+    <p>
+      Since the release of WinISD, many emails have been received from folks pertaining to many
+      issues of the program. While most of these issues are in fact discussed and explained in the
+      Help File itself, most people (myself included) don't actually get around to reading Help
+      Files unless we get stuck. So, with that in mind, I will continue to update the Help File
+      with this FAQ section based on actual popular questions.
+    </p>
+    <hr />
+    <h2>
+      <a name="TOC" id="TOC">Table Of Contents</a>
+    </h2>
+    <h3>
+      1. General Questions
+    </h3>
+    <ul>
+      <li>
+        <a href="#FAQ_1_0">You had the EBP text bass-ackwards in the Help File?</a>
+      </li>
+    </ul>
+    <h3>
+      2. GUI Questions
+    </h3>
+    <ul>
+      <li>
+        <a href="#FAQ_2_0">How do I change the units of measurement from metric to standard
+        etc?</a>
+      </li>
+      <li>
+        <a href="#FAQ_2_1">What happened to vent mach calculator?</a>
+      </li>
+    </ul>
+    <h3>
+      3. Box design Questions
+    </h3>
+    <ul>
+      <li>
+        <a href="#FAQ_3_0">Does WinISD add brace/driver/port displacements to calculated box
+        volume?</a>
+      </li>
+      <li>
+        <a href="#FAQ_3_1">What calculated port length means? How it is measured?</a>
+      </li>
+    </ul>
+    <h3>
+      4. Calculation Questions
+    </h3>
+    <ul>
+      <li>
+        <a href="#FAQ_4_0">Why driver editor calculates different value for Vas/Bl or some other
+        parameter than in driver's manufacturer specs have?</a>
+      </li>
+      <li>
+        <a href="#FAQ_4_1">Why WinISD calculates different result for plot x with driver y in
+        enclosure z?</a>
+      </li>
+      <li>
+        <a href="#FAQ_4_2">Why frequency range is limited to low frequencies by default?</a>
+      </li>
+      <li>
+        <a href="#FAQ_4_3">Why there is no option for nonlinear simulation?</a>
+      </li>
+    </ul>
+    <hr />
+    <p class="faqQ">
+      <a name="FAQ_1_0" id="FAQ_1_0"></a> Q. You had the EBP text bass-ackwards in the Help
+      File.<br />
+      A. from JJ Richard (JJRichard@linearteam.org)<br />
+    </p>
+    <hr />
+    <p>
+      Yes, I most certainly did. Thanks to Choong for pointing that out to me. (5/26/99)
+    </p>
+    <p>
+      <a href="#TOC">Table Of Contents</a>
+    </p>
+    <hr />
+    <p class="faqQ">
+      <a name="FAQ_2_0" id="FAQ_2_0"></a> Q. How do I change the units of measurement from metric
+      to standard etc....<br />
+      A: from JJ Richard (JJRichard@linearteam.org)<br />
+    </p>
+    <hr />
+    <p>
+      After you load a driver, simply click on the name of the unit over and over until your unit
+      of choice is displayed. For example, if the unit is shown as 15 mm, then click on the "mm",
+      and it will toggle through all available units! Easy, huh? WinISD will "remember" which unit
+      you choose, and will subsequently default to that unit in the future. (5/26/99)
+    </p>
+    <p>
+      <a href="#TOC">Table Of Contents</a>
+    </p>
+    <hr />
+    <p class="faqQ">
+      <a name="FAQ_2_1" id="FAQ_2_1"></a> Q. What happened to vent mach calculator?<br />
+      A. From Janne Ahonen (janne@linearteam.org)<br />
+    </p>
+    <hr />
+    <p>
+      Vent mach calculator was replaced by much more useful tool, <a href=
+      "usingwinisd/graphs.html#airvel">vent air velocity graph</a>, which gives not only the value
+      of velocity, but also the frequency, where you could expect problems, if any.
+    </p>
+    <p>
+      <a href="#TOC">Table Of Contents</a>
+    </p>
+    <hr />
+    <p class="faqQ">
+      <a name="FAQ_3_0" id="FAQ_3_0"></a> Q. Does WinISD add brace/driver/port displacements to
+      calculated box volume?<br />
+      A. From Janne Ahonen (janne@lineateam.org)<br />
+    </p>
+    <hr />
+    <p>
+      No. WinISD doesn't do guessing, and therefore shows <b>net volume</b> for your box. It would
+      be hard to predict, how you are going to mount your driver. Or the port. Or how much and
+      which kind of bracing you are going to use inside your box. For example, you could mount port
+      completely external to the box, which case "usual" guess would be completely wrong. Bottom
+      line is, that you must calculate and add any displacements by yourself to calculated box
+      volume.
+    </p>
+    <p>
+      <a href="#TOC">Table Of Contents</a>
+    </p>
+    <hr />
+    <p class="faqQ">
+      <a name="FAQ_3_1" id="FAQ_3_1"></a> Q. What calculated port length means? How it is
+      measured?<br />
+      A. From Janne Ahonen (janne@linearteam.org)<br />
+    </p>
+    <hr />
+    <p>
+      WinISD calculates port length assuming that there are one flanged and one free end, i.e. port
+      is mounted to the wall of the box, and another end is freely inside the box. So end
+      correction factor is 0.732 by default. Port length in box wall is counted to port length. If
+      you want do convert the result to different end correction, then add 0.732 times diameter of
+      the port to calculated port length. This gives you needed acoustical length of port. Then add
+      end correction as you like. See also article about <a href=
+      "../articles/portterminology.html#physlen">port terminology</a>.
+    </p>
+    <p>
+      <a href="#TOC">Table Of Contents</a>
+    </p>
+    <hr />
+    <p class="faqQ">
+      <a name="FAQ_4_0" id="FAQ_4_0"></a> Q. Why driver editor calculates different value for
+      Vas/Bl or some other parameter than in driver's manufacturer specs have?<br />
+      A: from Janne Ahonen (janne@linearteam.org)<br />
+    </p>
+    <hr />
+    <p>
+      Most common reason why this is happening are the air properties. Since Vas depends on current
+      air properties, there is no absolutely "correct" Vas value existing. So every time you'll
+      adjust your room temperature, air properties will change, and your Vas will be different. My
+      advice is to avoid entering Vas whenever possible. I also have personally found out that
+      manufacturer's specs are not always in complete accordance with T/S model. So when in doubt,
+      it is best that you verify parameters from driver manufacturer.
+    </p>
+    <p>
+      <a href="#TOC">Table Of Contents</a>
+    </p>
+    <hr />
+    <p class="faqQ">
+      <a name="FAQ_4_1" id="FAQ_4_1"></a> Q. Why WinISD calculates different result for plot x with
+      driver y in enclosure z?<br />
+      A. from Janne Ahonen (janne@linearteam.org)<br />
+    </p>
+    <hr />
+    <p>
+      Most differences come from different input parameters. For example, vented box has quite a
+      few other parameters than just box volume and tuning frequency. More complicated explanation
+      is probably that calculation may use different model or different source parameters. If you
+      go through all the relevant parameters, and still can't find the cause, please e-mail me.
+      I'll have look at it then. After all, it is not at all impossible that we have made some
+      mistakes somewhere.
+    </p>
+    <p>
+      <a href="#TOC">Table Of Contents</a>
+    </p>
+    <hr />
+    <p class="faqQ">
+      <a name="FAQ_4_2" id="FAQ_4_2"></a> Q. Why frequency range is limited to low frequencies by
+      default?<br />
+      A. From Janne Ahonen (janne@linearteam.org)<br />
+    </p>
+    <hr />
+    <p>
+      That is limitation of used equivalent circuit models. They are valid only in pistonic range
+      of driver, or about 200-300 Hz. Anything beyond that, is very inaccurate. Possibility to
+      change the plot frequency range is provided just for convenience.
+    </p>
+    <p>
+      <a href="#TOC">Table Of Contents</a>
+    </p>
+    <hr />
+    <p class="faqQ">
+      <a name="FAQ_4_3" id="FAQ_4_3"></a> Q. Why there is no option for nonlinear simulation?<br />
+      A. From Janne Ahonen (janne@linearteam.org)<br />
+    </p>
+    <hr />
+    <p>
+      This is <b>not</b> a trivial topic as it may first seem. It is very hard to make accurate
+      non-linear simulations, because for example considering the nonlinearities in the driver
+      would require much more extra parameters to input to be able to simulate accurately. There
+      are so many kinds of nonlinearities in drivers, that you would be running on the walls before
+      you finished entering all the parameters. Hysteresis and thixotropic effects in
+      spider/surround, inductance modulation due pole, Bl and Cms nonlinearity, you name it. Driver
+      is not only source of nonlinearity, box air compression is adiabatic process. Vent air flow
+      becomes nonlinear at some point. And so on. Because there are no consensus, how the
+      nonlinearities would be best described driver manufacturers won't generally give you any hint
+      what kind and how much nonlinearity is expected from particular drive unit. Therefore,
+      without the info, it would be just guessing, which is not good thing. There are actually some
+      programs which calculate "nonlinear simulations", but if you don't have option to enter extra
+      information about nonlinearities, the results are somewhat questionable. Yes, they are
+      <b>closer</b> to the reality, but still they are inaccurate because lack of nonlinearity
+      information. Furthermore, if the cone moves non-sinusoidally, then we'll have harmonics. Now,
+      what should be plotted in SPL window? Just the fundamental or combined SPL considering
+      fundamental and harmonics? Many kinds of questions arise.<br />
+    </p>
+    <p>
+      <a href="#TOC">Table Of Contents</a>
+    </p>
+    <hr />
+    <p class="footer">
+      This page originally written by JJ Richard (JJRichard@linearteam.org) and revised by Janne
+      Ahonen (janne@linearteam.org)
+    </p>
+  </body>
+</html>

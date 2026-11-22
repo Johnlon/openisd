@@ -1,0 +1,266 @@
+name: suite
+
+# The full suite on GitHub's runners (T251, T252, T258). Pull requests run only the fast gates (pr.yml); this runs on
+# main after each merge (T758, QO501 A) and a red opens a `main-red` issue (job report below). No retries: a flake is a red.
+# One job builds the suite's app; the browser shards download it and serve it (built by
+# scripts/build-test-app.sh). The unit tests run in two halves and typecheck in its own job.
+on:
+  push:
+    # land/<task>: the candidate of the old landing path (land.sh), kept as it was.
+    # main: the full suite after each merge (T761, QO501 A), only in the copy (portingle/openisd), where merges happen.
+    # A push to Johnlon main (the mirror's deploy-key push) skips every job: each job with no `needs` carries the
+    # guard below, and a job that needs a skipped job is skipped with it.
+    branches: ['land/**', main]
+  # Called by the pull request check (.github/workflows/pr.yml, T749) with the commit under test.
+  workflow_call:
+    inputs:
+      sha:
+        description: Commit to test
+        required: true
+        type: string
+      shards:
+        required: false
+        default: '10'
+        type: string
+      workers:
+        required: false
+        default: '4'
+        type: string
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit to test (default the head of main)
+        required: false
+        type: string
+      shards:
+        description: Browser shards
+        required: false
+        default: '10'
+        type: string
+      workers:
+        description: Playwright workers per shard
+        required: false
+        default: '4'
+        type: string
+
+permissions:
+  contents: read
+
+# A run is never cancelled: each run is its own group.
+concurrency:
+  group: suite-${{ inputs.sha || github.sha }}-${{ github.run_id }}
+  cancel-in-progress: false
+
+env:
+  SHA: ${{ inputs.sha || github.sha }}
+  SHARDS: ${{ inputs.shards || '10' }}
+  WORKERS: ${{ inputs.workers || '4' }}
+  # One port everywhere, so the build's folder name (build/test-dist-<port>) matches what the shards serve.
+  OPENISD_TEST_PORT: '4300'
+
+jobs:
+  plan:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.repository == 'portingle/openisd' }}
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.list.outputs.shards }}
+    steps:
+      - id: list
+        run: echo "shards=$(seq -s, 1 "$SHARDS" | sed 's/^/[/;s/$/]/')" >> "$GITHUB_OUTPUT"
+
+  # The unit tests in two halves: one job alone was the longest of the run.
+  unit:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.repository == 'portingle/openisd' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        half: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: unit tests
+        run: node_modules/.bin/vitest run --shard=${{ matrix.half }}/2 2>&1 | tee unit.log; exit "${PIPESTATUS[0]}"
+      # Uploads below are diagnosis, not verdict: a failed one warns (next step) and does not fail the job.
+      - uses: actions/upload-artifact@v4
+        id: upload_unit_log
+        continue-on-error: true
+        if: ${{ !cancelled() }}
+        with:
+          name: unit-log-${{ matrix.half }}
+          path: unit.log
+      - name: warn that the upload_unit_log upload failed
+        if: ${{ !cancelled() && steps.upload_unit_log.outcome == 'failure' }}
+        run: |
+          echo "::warning title=artifact upload failed::unit-log-${{ matrix.half }} did not upload; the verdict is unchanged"
+          echo "- upload of artifact unit-log-${{ matrix.half }} failed (verdict unchanged)" >> "$GITHUB_STEP_SUMMARY"
+
+  typecheck:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.repository == 'portingle/openisd' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
+  # Every shell test under scripts/**/test/ (T400): nothing else runs them, and a red one sat unseen. Red refuses the landing.
+  shell:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.repository == 'portingle/openisd' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+          fetch-depth: 0
+      - name: git identity for the tests' scratch repos
+        run: |
+          git config --global user.email ci@example.invalid
+          git config --global user.name ci
+          git config --global init.defaultBranch main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - uses: actions/setup-python@v5
+        with:
+          # The runner image moved to Python 3.14 on 1 Nov 2026, which has no pillow 10.4.0 wheel;
+          # pin the interpreter so the pinned wheels below install without a source build.
+          python-version: '3.12'
+      - name: Pillow, numpy and PyYAML for the feedback-page and land tools
+        # PyYAML too: the land scripts read task files with it, and the pinned interpreter
+        # does not carry the runner image's system python3-yaml.
+        run: python3 -m pip install pillow==10.4.0 numpy==2.1.3 pyyaml==6.0.2
+      - name: shell tests
+        run: bash scripts/test-shell.sh
+
+  build:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.repository == 'portingle/openisd' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: build the suite's app
+        run: bash -c "$(node --input-type=module -e "import('./playwright.config.js').then(m => process.stdout.write(m.BUILD_TEST_APP))")"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-app
+          path: |
+            build/test-dist-${{ env.OPENISD_TEST_PORT }}
+            build/test-bundle-${{ env.OPENISD_TEST_PORT }}
+            packages/ui/public/build-info.json
+          retention-days: 1
+
+  browser:
+    needs: [plan, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    # The saved test machine (.github/ci-image, built by ci-image.yml): the laptop's distribution and
+    # fonts, plus Playwright's Chromium, so pictures match the laptop baselines and nothing downloads per run.
+    container:
+      # Built by ci-image.yml inside this repo, so its Actions can pull it with GITHUB_TOKEN.
+      image: ghcr.io/portingle/openisd-ci-runner@sha256:51e24d3e3c17259a560ce8ee15a89d635011c9a3eba0abf920cc0690f79799f7
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      options: --ipc=host
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-app
+          path: .
+      - name: stale mobile worker recovery
+        if: matrix.shard == 1
+        run: node scripts/hosting/test/legacy-refresh.e2e.mjs
+      - name: installed app starts offline
+        if: matrix.shard == 1
+        run: node scripts/hosting/test/offline-start.e2e.mjs
+      - name: browser tests
+        env:
+          OPENISD_TEST_WORKERS: ${{ env.WORKERS }}
+        # The shard's spec files, split by measured time (scripts/ci/shard-specs.mjs), not Playwright's
+        # --shard, which split by count and left one shard twice as long as another.
+        run: npx playwright test $(node scripts/ci/shard-specs.mjs ${{ matrix.shard }} ${{ env.SHARDS }}) --retries=0
+      - name: name the report by shard
+        if: ${{ !cancelled() }}
+        run: mv build/pw-report.json build/pw-report-${{ matrix.shard }}.json || true
+      - uses: actions/upload-artifact@v4
+        id: upload_report
+        continue-on-error: true
+        if: ${{ !cancelled() }}
+        with:
+          name: report-${{ matrix.shard }}
+          path: build/pw-report-${{ matrix.shard }}.json
+      - name: warn that the upload_report upload failed
+        if: ${{ !cancelled() && steps.upload_report.outcome == 'failure' }}
+        run: |
+          echo "::warning title=artifact upload failed::report-${{ matrix.shard }} did not upload; the verdict is unchanged"
+          echo "- upload of artifact report-${{ matrix.shard }} failed (verdict unchanged)" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        id: upload_failures
+        continue-on-error: true
+        if: ${{ failure() }}
+        with:
+          name: failures-${{ matrix.shard }}
+          path: test-results/
+      - name: warn that the upload_failures upload failed
+        if: ${{ !cancelled() && steps.upload_failures.outcome == 'failure' }}
+        run: |
+          echo "::warning title=artifact upload failed::failures-${{ matrix.shard }} did not upload; the verdict is unchanged"
+          echo "- upload of artifact failures-${{ matrix.shard }} failed (verdict unchanged)" >> "$GITHUB_STEP_SUMMARY"
+
+  # Red on main: open one issue naming the commit and the run, once per red commit (T758). The fix is a pull request
+  # labelled `fixes` that says "Fixes #<issue>" (docs/DEV_PROCESS.md).
+  report:
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(needs.*.result, 'failure') }}
+    needs: [unit, typecheck, shell, build, browser]
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: open the red-main issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create main-red --color B60205 --description "the full suite is red on main" 2>/dev/null || true
+          gh issue create --label main-red --title "Main is red at ${SHA:0:10}" \
+            --body "The full suite failed on main at $SHA. Run: $RUN_URL. Fix it with a pull request labelled fixes that says Fixes #<this issue>."

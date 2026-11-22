@@ -1,0 +1,55 @@
+import { writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import type { TestSolverQuantities } from './testSolver.js';
+import { sweepDriver, solveConsistencyGroup } from './testSolver.js';
+import {createEngine} from '../../engine/Engine.js';
+import {readGoldenFixture, sweepParamsOf} from '../fixtures/goldenFixture.js';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const fixturesDir = join(here, '..', 'fixtures', 'golden');
+
+const NAMES = [
+  'sealed-single',
+  'vented-single',
+  'bandpass4-single',
+  'pr-single',
+  'sealed-2drv',
+  'vented-2drv',
+];
+
+const engine = createEngine();
+
+for (const name of NAMES) {
+  const filePath = join(fixturesDir, name + '.json');
+  const fixture = readGoldenFixture(filePath);
+  const { design: { driverRaw, box, P } } = fixture;
+
+  const q: TestSolverQuantities = {
+    Fs_hz: driverRaw.Fs, Re_ohm: driverRaw.Re, Znom_ohm: driverRaw.Znom,
+    Qts: driverRaw.Qts, Qes: driverRaw.Qes, Qms: driverRaw.Qms,
+    Vas_m3: driverRaw.Vas, Sd_m2: driverRaw.Sd, Dd_m: driverRaw.Dd,
+    BL_Tm: driverRaw.BL, Mms_kg: driverRaw.Mms, Cms_m_per_N: driverRaw.Cms,
+    Rms_kg_per_s: driverRaw.Rms, Xmax_m: driverRaw.Xmax, Pe_W: driverRaw.Pe,
+  };
+  const solved = solveConsistencyGroup(q);
+  const drv: TestSolverQuantities = {
+    ...solved,
+    Re_terminal_ohm: solved.Re_ohm === undefined ? undefined
+      : solved.Re_ohm,
+    BL_terminal_Tm: solved.BL_Tm === undefined ? undefined
+      : solved.BL_Tm,
+  };
+  const sw = engine.simulation.sweep(sweepDriver(drv), driverRaw.Le, box, sweepParamsOf(P)).values;
+  const mx = engine.simulation.maxCurves(sweepDriver(drv), driverRaw.Le, box, sweepParamsOf(P)).values;
+
+  if (!sw || !mx) {
+    throw new Error(`Engine refused fixture ${name}`);
+  }
+
+  fixture.sweep = sw;
+  fixture.maxCurves = mx;
+
+  writeFileSync(filePath, JSON.stringify(fixture, null, 2) + '\n', 'utf8');
+  console.log(`Updated golden fixture: ${name}.json`);
+}

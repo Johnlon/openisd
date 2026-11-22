@@ -1,0 +1,364 @@
+:root {
+  /* WinISD-light palette. Applies to the global overlays App.vue mounts outside the shell
+     (driver library, driver editor, flash); the shell re-declares the same tokens on
+     `.original-root` for everything it draws itself. */
+  --bg: #f2f2f2; --panel: #f7f7f7; --panel2: #ececec; --line: #bbb;
+  --fg: #1a1a1a; --mut: #555; --acc: #1868d1; --acc2: #b8790f; --good: #1b7d1b; --bad: #b02a2a;
+  /* Chart theming — read by ui/canvas.ts and .gpanel. */
+  --chart-bg: #ffffff; --chart-grid: #e0e0e0; --chart-text: #555;
+  --chart-cross: #00000033; --chart-band: rgba(0,0,0,0.03); --chart-band-line: rgba(0,0,0,0.15);
+}
+* { box-sizing: border-box }
+body { margin:0; font:13px/1.45 var(--font-ui); background:var(--bg); color:var(--fg) }
+/* One font per skin (SkinFonts, packages/design/fields/appFonts.ts; QO466): --font-ui is the desktop font, and the
+   phone skin's root switches it to the phone font. The variables are set from SkinFonts at start (main.ts). */
+:root { --font-ui: var(--font-desktop) }
+.app-root-mobile { --font-ui: var(--font-phone) }
+.app-root { font-family: var(--font-ui) }
+/* Form controls do not inherit the page font by default: they take the browser's own, so they inherit it here. */
+input, select, textarea, button { font-family: inherit }
+pre, code, kbd, samp { font-family: var(--font-mono) }
+h1 { font-size:15px; margin:0; font-weight:600; letter-spacing:.3px }
+h1 small { color:var(--mut); font-weight:400; font-size:11px }
+header { display:flex; align-items:center; gap:14px; padding:8px 14px; background:var(--panel); border-bottom:1px solid var(--line) }
+header .logo { flex-shrink:0; display:block; margin-right:-6px }
+header .sp { flex:1 }
+.layout { display:flex; height:calc(100vh - 41px) }
+.side { width:429px; min-width:429px; background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; transition:width .15s ease }
+.side--collapsed { width:28px !important; min-width:28px !important }
+.side-toggle { flex-shrink:0; width:100%; height:28px; border:none; border-bottom:1px solid var(--line); background:var(--panel2); color:var(--mut); cursor:pointer; font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; padding:0 }
+.side-toggle:hover { background:var(--panel); color:var(--fg) }
+.side-body { flex:1; overflow-y:auto; padding:10px }
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden }
+canvas { display:block; width:100%; height:100% }
+.gtoolbar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:6px 10px; background:var(--panel); border-bottom:1px solid var(--line) }
+.gchip { padding:3px 9px; border:1px solid var(--line); border-radius:12px; font-size:11px; color:var(--mut); cursor:pointer; user-select:none }
+.gchip.on { background:var(--acc); color:#06223a; border-color:var(--acc); font-weight:600 }
+.gtoolbar .sep { width:1px; align-self:stretch; background:var(--line); margin:0 4px }
+.gtoolbar .lab { font-size:11px; color:var(--mut) }
+.ggrid { flex:1; display:grid; gap:8px; padding:8px 10px; overflow:auto; grid-auto-rows:minmax(160px,1fr) }
+.gpanel { position:relative; border:1px solid var(--line); border-radius:6px; background:var(--chart-bg, #0e1218); overflow:hidden; min-height:160px }
+.gpanel canvas { position:absolute; inset:0 }
+.gpanel .gtitle { position:absolute; left:8px; top:4px; font-size:11px; line-height:12px; white-space:nowrap; color:var(--mut); pointer-events:none; z-index:2 }
+.gpanel .gread { position:absolute; right:6px; top:5px; font-size:10.5px; background:var(--readout-bg, rgba(10,14,20,.82)); color:var(--fg); border:1px solid var(--line); border-radius:4px; padding:3px 6px; z-index:2; pointer-events:none; display:none; max-width:60% }
+.gpanel .gread b { color:var(--fg) }
+.drvsum { display:flex; align-items:center; gap:8px; padding:6px 8px; background:var(--panel2); border-radius:5px; cursor:pointer }
+.drvsum .nm { flex:1; font-weight:600; color:var(--fg); font-size:12px }
+.drvsum .ed { font-size:10px; color:var(--acc); border:1px solid var(--line); border-radius:4px; padding:2px 7px }
+.drvsum:hover .ed { border-color:var(--acc) }
+.drvlinks a { font-size:9px; font-weight:600; color:var(--acc); text-decoration:none; border:1px solid var(--acc); border-radius:2px; padding:1px 4px }
+.drvlinks a:hover { background:var(--acc); color:var(--bg) }
+.drvspecs { font-size:10.5px; color:var(--mut); padding:4px 8px 2px; line-height:1.7 }
+.ds { white-space:nowrap; }
+.drvspecs b { color:var(--acc2) }
+.drvsource { font-size:10px; color:var(--mut); padding:2px 8px 4px; opacity:0.7; word-break:break-all }
+.drv-issues { background:rgba(255,180,84,.12); border:1px solid var(--acc2); border-radius:5px; padding:5px 8px; margin-bottom:6px; font-size:10.5px; line-height:1.4 }
+.drv-issues.is-error { background:rgba(255,107,107,.12); border-color:var(--bad) }
+.drv-issues-head { display:flex; align-items:flex-start; gap:6px; color:var(--acc2); font-weight:600 }
+.drv-issues.is-error .drv-issues-head { color:var(--bad) }
+.drv-issues-head span { flex:1 }
+.drv-issues-list { margin:4px 0 0; padding:0 0 0 16px; list-style:disc }
+.drv-issues-list li { margin:2px 0 }
+.drv-issues-list li.error { color:var(--bad) }
+.drv-issues-list li.warn { color:var(--acc2) }
+.drv-warn-x { padding:0 4px; min-width:auto; font-size:11px; border-color:var(--acc2); color:var(--acc2); background:transparent; line-height:1.4 }
+.drv-issues.is-error .drv-warn-x { border-color:var(--bad); color:var(--bad) }
+.drv-warn-x:hover { background:var(--acc2); color:var(--bg) }
+.drv-issues.is-error .drv-warn-x:hover { background:var(--bad); color:var(--bg) }
+.flash { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; color:var(--fg); border:2px solid var(--acc); font-weight:600; padding:14px 28px; border-radius:8px; font-size:15px; box-shadow:0 4px 20px rgba(0,0,0,.25); z-index:80; transition:opacity .4s; pointer-events:none ; white-space:pre-line; box-sizing:border-box; max-width:calc(100vw - 32px); overflow-wrap:anywhere }
+fieldset { border:1px solid var(--line); border-radius:6px; margin:0 0 10px; padding:8px 10px }
+legend { color:var(--acc); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.5px; padding:0 4px }
+/* A box type OpenISD has not finished (`IMPLEMENTED_BOX_TYPES`): dim grey, still selectable. */
+option.not-implemented { color:#999 }
+.row { display:flex; align-items:center; gap:6px; margin:3px 0 }
+.row label { flex:1; color:var(--mut) }
+.row input, .row select { width:96px; background:var(--panel2); border:1px solid var(--line); color:var(--fg); border-radius:4px; padding:3px 5px; font:inherit; text-align:right }
+.row input.inp-bad { border-color:var(--bad); background:rgba(255,107,107,.1); color:var(--bad) }
+.row select { text-align:left; width:auto; flex:1 }
+/* Driver provenance marks — the CellClass values from composables/driverCells.ts, styled
+   ONCE so the driver editor and What-if? can never disagree about what
+   Entered / Calculated / Not-entered looks like. Two selector shapes: the class lands on the
+   <input> itself (NumInput fallthrough) or on a wrapper around it. */
+input.value-e, .value-e input { color:var(--good) }
+input.value-c, .value-c input { color:var(--acc) }
+input.value-n, .value-n input { color:var(--mut) }
+/* Required-but-missing. Red is reserved for genuine alerts, and a field the simulation cannot
+   run without is one. Bold border = this field is required; red = and it is empty.
+   !important because an alert must outrank a container's own border styling: a panel that
+   sets `border: 1px solid #999` on its inputs does so from a scoped rule, which otherwise
+   wins on specificity and silently swallows the warning. */
+input.de-input-mandatory { border-width:2px !important }
+input.de-input-empty { border-color:var(--bad) !important; box-shadow:0 0 0 1px color-mix(in srgb, var(--bad) 25%, transparent) !important }
+/* Empty field allowed to stay empty: marked red (T211). */
+input.value-empty { border-color: var(--bad) !important; background-color: color-mix(in srgb, var(--bad) 10%, transparent) !important; }
+/* Field-level DQ mark — a value that is recorded and wrong (not physical, or contradicting the
+   other members of its consistency group). Styled ONCE, like the provenance marks above, so the
+   driver editor and What-if? show one driver's data quality the same way. Amber: a
+   warning about data, not an alert that stops anything. The title attribute carries the reason,
+   hence the help cursor. */
+.de-dq { font-size:11px; color:var(--acc2); flex-shrink:0; cursor:help }
+button { background:var(--panel2); border:1px solid var(--line); color:var(--fg); border-radius:5px; padding:5px 10px; cursor:pointer; font:inherit }
+button:hover { border-color:var(--acc) }
+button.pri { background:var(--acc); color:#06223a; border-color:var(--acc); font-weight:600 }
+.subsect { font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut); margin:8px 0 2px; padding-top:6px; border-top:1px solid var(--line) }
+.opt-lbl { font-size:9px; color:var(--mut); opacity:0.6; font-style:italic; margin-left:2px }
+.pr-tabs { display:flex; gap:4px; margin:4px 0 6px }
+.pr-tabs button { flex:1; font-size:11px; padding:3px 0 }
+.pr-tabs button.active { border-color:var(--acc); color:var(--acc) }
+.pr-param-head { display:flex; align-items:center; gap:6px; margin:8px 0 2px; padding-top:6px; border-top:1px solid var(--line) }
+.pmbadge { font-size:9px; text-transform:uppercase; letter-spacing:.06em; border-radius:3px; padding:1px 5px; border:1px solid; white-space:nowrap }
+.pmbadge-in  { color:var(--good); border-color:var(--good) }
+.pmbadge-dv  { color:var(--mut);  border-color:var(--line) }
+.pr-derived { opacity:0.65 }
+.pr-roval { font-size:11px; color:var(--acc2); text-align:right; flex:0 0 96px; font-style:italic }
+/* A genuine unreachable-target warning, so --acc2 (the reserved attention colour) is correct
+   here — this is not helper text. See .claude/rules/openisd-ui-design.md, alert-colour reserve. */
+.pr-warn { color:var(--acc2); font-size:10.5px; line-height:1.45; margin:2px 0 6px }
+.btns { display:flex; gap:6px; flex-wrap:wrap; margin-top:4px }
+.btns button:disabled { opacity:.4; cursor:not-allowed }
+.save-dlg { margin-top:6px; display:flex; flex-direction:column; gap:5px; padding:8px; background:var(--panel2); border:1px solid var(--line); border-radius:5px }
+.save-lbl { font-size:10.5px; color:var(--mut) }
+.save-name-input { width:100%; padding:4px 6px; background:var(--bg); border:1px solid var(--acc); border-radius:4px; color:var(--fg); font:inherit; font-size:12px }
+.save-btns { display:flex; gap:6px }
+.ebp { margin-top:6px; padding:6px; background:var(--panel2); border-radius:5px; font-size:11px }
+.ebp b { color:var(--acc2) }
+.ts-refs { font-size:10px; color:var(--mut); margin-top:4px; display:flex; gap:5px; flex-wrap:wrap }
+.stat { display:flex; flex-wrap:wrap; gap:4px 14px; padding:6px 14px; background:var(--panel); border-top:1px solid var(--line); font-size:11px; color:var(--mut) }
+.stat b { color:var(--fg) }
+.hint { color:var(--mut); font-size:10.5px; margin:2px 0 6px }
+a { color:var(--acc) }
+.overlay { position:fixed; inset:0; background:rgba(4,8,14,.66); display:none; align-items:center; justify-content:center; z-index:50 }
+.overlay.on { display:flex }
+.modal { width:min(720px,92vw); max-height:86vh; display:flex; flex-direction:column; background:var(--panel); border:1px solid var(--line); border-radius:9px; overflow:hidden }
+.modal h2 { margin:0; font-size:14px; padding:11px 14px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px }
+.modal h2 .x { margin-left:auto; cursor:pointer; color:var(--mut); font-size:18px; line-height:1 }
+.modal .body { padding:12px 14px; overflow-y:auto }
+.srcrow { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px }
+.srcrow select, .srcrow input { background:var(--panel2); border:1px solid var(--line); color:var(--fg); border-radius:5px; padding:5px 7px; font:inherit }
+.srcrow input { flex:1; min-width:160px }
+.srcmeta { font-size:11px; color:var(--mut); margin:2px 0 10px }
+.srcmeta a { color:var(--acc) }
+.filter { width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--fg); border-radius:5px; padding:6px 8px; font:inherit; margin-bottom:8px }
+.dlist { border:1px solid var(--line); border-radius:6px; max-height:42vh; overflow-y:auto }
+.ditem { padding:6px 10px; cursor:pointer; border-bottom:1px solid var(--line); font-size:12px }
+.ditem:last-child { border-bottom:none }
+.ditem:hover { background:var(--panel2) }
+.ditem b { color:var(--acc2) }
+.ditem .stag { float:right; font-size:10px; color:var(--mut); background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:1px 5px; margin-left:6px }
+.pr-lib { border:1px solid var(--line); border-radius:5px; margin-top:4px }
+.pr-lib-item { display:flex; align-items:center; padding:5px 8px; border-bottom:1px solid var(--line); font-size:12px }
+.pr-lib-item:last-child { border-bottom:none }
+.pr-lib-name { flex:1; cursor:pointer; color:var(--acc2) }
+.pr-lib-name:hover { color:var(--acc) }
+.pr-lib-del { background:none; border:none; color:var(--mut); cursor:pointer; padding:0 4px; font-size:13px }
+.pr-lib-del:hover { color:var(--bad) }
+.status { font-size:12px; color:var(--mut); padding:8px 2px }
+.status.err { color:var(--bad) }
+.status.loading { padding:24px 8px; text-align:center; animation:pulse 1.4s ease-in-out infinite }
+@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
+
+/* Win32 modal/options chrome — the global overlays App.vue mounts outside the shell. */
+.modal,
+.opt-modal {
+  border-radius: 0 !important;
+  border: 1px solid #888 !important;
+  background: #f7f7f7 !important;
+  box-shadow: 3px 6px 18px rgba(0,0,0,.35) !important;
+}
+.modal h2,
+.opt-h2 {
+  background: #e9e9e9 !important;
+  border-bottom: 1px solid #bbb !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  margin: 0 !important;
+  font-weight: bold !important;
+  font-family: inherit !important;
+  color: #1b1b1b !important;
+}
+.de-tabs,
+.opt-tabs {
+  border-bottom: none !important;
+}
+
+/* A UIField as a phone row (Box and Enclosure tabs alike), laid out like the other phone rows: the
+   label on its own line, then the value (with ▲▼) filling the width, the ⚠ and the unit. Global, not
+   in one tab's scoped style, so every mobile tab gets the same row; `.mob-ui-field.ui-field` outranks
+   UIField's own scoped desktop grid. */
+.mob-ui-field-tap { cursor: pointer; }
+.mob-ui-field.ui-field {
+  /* value | ⚠ | unit, sized so the ▲▼ end and the unit start where the older .mob-field-row rows put
+     them (value area ends 40px from the edge, unit 30px wide): the two kinds of row line up. */
+  grid-template-columns: 1fr 10px 30px;
+  column-gap: 0; row-gap: var(--mob-label-gap);
+  padding: var(--mob-row-pad-y) 12px var(--mob-row-pad-y) 14px; min-height: var(--mob-row-min);
+  border-left: 3px solid transparent; border-top: 1px solid var(--line);
+}
+.mob-ui-field.ui-field > label { grid-column: 1 / -1; font-size: 13px; line-height: var(--mob-label-lh); color: var(--mut); white-space: normal; }
+.mob-ui-field.ui-field .ui-field-value { grid-column: 1; display: flex; gap: 6px; width: auto; min-width: 0; }
+.mob-ui-field.ui-field .ui-field-dq { grid-column: 2; }
+/* The ≠W cue sits on the label's line, at the right, so a row with a cue lines up with one without. */
+.mob-ui-field.ui-field:has(.ui-field-dev) > label { grid-column: 1 / 3; grid-row: 1; }
+.mob-ui-field.ui-field .ui-field-dev { grid-column: 3; grid-row: 1; width: auto; justify-self: end; align-self: center; }
+.mob-ui-field.ui-field .ui-field-unit { grid-column: 3; width: 30px; }
+.mob-ui-field.ui-field .ui-field-value .num-input-wrap { flex: 1 1 auto; width: 0; min-width: 0; }
+.mob-ui-field.ui-field .ui-field-value .num-input-wrap > input { width: 100%; }
+.mob-ui-field.ui-field .ui-field-value select { flex: 1 1 auto; width: 100%; min-width: 0; min-height: var(--mob-input-h); font: inherit; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.mob-ui-field.ui-field .ui-field-value input {
+  flex: 1 1 auto; width: auto; min-width: 0; height: auto; min-height: var(--mob-input-h);
+  font-size: 18px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff;
+}
+.mob-ui-field.ui-field.ui-field-readout, .mob-ui-field.ui-field.ui-field-defaulted { border-left-color: var(--acc); }
+.mob-ui-field.ui-field.ui-field-stored { border-left-color: var(--good); }
+.mob-ui-field.ui-field .ui-field-value > .mob-readonly { font-size: 18px; font-variant-numeric: tabular-nums; color: var(--acc); }
+.mob-ui-field.ui-field .num-stepper-btn,
+.mob-what-if-rows .num-stepper-btn {
+  width: 64px !important;
+  height: 32px !important;
+  font-size: 16px !important;
+}
+/* The ▲▼ pair is as tall as the row's box (32 px on the tabs, 44 px where the screen sets the sheet's
+   row sizes, as the driver editor does). */
+.mob-ui-field.ui-field .num-stepper-btn { height: var(--mob-input-h, 32px) !important; }
+.mob-ui-field.ui-field .num-stepper,
+.mob-what-if-rows .num-stepper {
+  margin-left: 6px !important;
+}
+/* Steppers are on by default (desktop). On the phone they stay only where a row is laid out for a
+   touch-sized pair: the UIField rows and the Tune and What-if sheets. Everywhere else (wizard, dialogs,
+   Advanced) they stay hidden until those screens are laid out for them. */
+.mobile-root .num-stepper { display: none !important; }
+.mobile-root .mob-ui-field .num-stepper,
+.mobile-root .mob-what-if-rows .num-stepper,
+.mobile-root .mob-sheet .num-stepper { display: inline-flex !important; }
+.mob-ui-field.ui-field .num-mark-overlay,
+.mob-what-if-rows .num-mark-overlay {
+  padding: 2px 8px;
+  font-size: 18px;
+}
+
+/* The phone touch button, the one for every screen: at least PhoneRowSizes.BUTTON_PX (44 px, --mob-button-h)
+   tall. PhoneButton.vue renders it. `-primary` is the filled call to action, `-secondary` the outlined one. */
+.mob-btn {
+  flex: 1;
+  min-height: var(--mob-button-h);
+  border: 1px solid var(--acc);
+  border-radius: 4px;
+  background: var(--acc);
+  color: #fff;
+  font: inherit;
+}
+.mob-btn-primary { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 600; cursor: pointer; }
+.mob-btn-plain { background: #f2f2f2; border-color: #b4b4b4; color: #222; cursor: pointer; }
+.mob-btn-plain:active { background: #e2e2e2; }
+.mob-btn-secondary { background: var(--panel); border-color: var(--acc); color: var(--acc); font-weight: 600; cursor: pointer; }
+/* Classic phone pages (PHONE_CLASSIC_BUILD_SPEC §2): Box, Driver and Signal. Every size is a --mob-row-*
+   or --mob-col-* variable from packages/design (PhoneRowSizes, PhoneRowColumns). Row: label | value box |
+   ▲▼ area, 40 px high; the unit chip sits inside the box's right edge, the ≠W badge and ⚠ left of it. */
+.mob-classic { --mob-edge: var(--mob-col-edge, 16px); --mob-box-line: #c4c4c4; background: #fff; }
+.mob-classic .mob-ui-field.ui-field {
+  --mob-chip: var(--mob-col-chip-min); --mob-tail: var(--mob-col-stepper);
+  display: grid; grid-template-columns: var(--mob-col-label) minmax(0, 1fr); column-gap: 0; row-gap: 0; align-items: center;
+  box-sizing: border-box; height: var(--mob-row-min); min-height: var(--mob-row-min); padding: 0 var(--mob-edge);
+  border: none; box-shadow: inset 0 -1px 0 #e6e6e6; overflow: visible;
+}
+.mob-classic .mob-ui-field.ui-field:has(.unit-wide) { --mob-chip: var(--mob-col-chip-wide); }
+.mob-classic .mob-ui-field.ui-field > label {
+  grid-column: 1; grid-row: 1; padding-right: 8px; font-size: 14px; line-height: var(--mob-label-lh); color: #555; white-space: normal; overflow-wrap: normal;
+}
+.mob-classic .mob-ui-field.ui-field .ui-field-value { grid-column: 2; grid-row: 1; display: flex; align-items: center; gap: 0; width: auto; min-width: 0; }
+.mob-classic .mob-ui-field.ui-field .ui-field-value .num-input-wrap { flex: 1 1 auto; width: 0; min-width: 0; }
+.mob-classic .mob-ui-field.ui-field .ui-field-value input {
+  width: 100%; height: var(--mob-input-h); min-height: var(--mob-input-h); box-sizing: border-box; border: 1px solid var(--mob-box-line); border-radius: 4px; background: #fff;
+  font-size: 15px; padding: 0 var(--mob-chip) 0 var(--mob-col-gutter); text-align: left;
+}
+.mob-classic .mob-ui-field.ui-field .ui-field-value select {
+  width: 100%; height: var(--mob-input-h); min-height: var(--mob-input-h); box-sizing: border-box; border: 1px solid var(--mob-box-line); border-radius: 4px; background: #fff;
+  font-size: 15px; padding: 0 0 0 var(--mob-col-gutter);
+}
+.mob-classic .mob-ui-field.ui-field .num-mark-overlay { padding: 0 0 0 calc(var(--mob-col-gutter) + 1px); font-size: 15px; }
+.mob-classic .mob-ui-field.ui-field .ui-field-value > .mob-readonly {
+  flex: 1 1 auto; width: 0; min-width: 0; margin-right: var(--mob-col-stepper); box-sizing: border-box; height: var(--mob-input-h);
+  display: flex; align-items: center; padding: 0 var(--mob-chip) 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background: #f4f4f4;
+  font-size: 15px; color: var(--acc);
+}
+.mob-classic .mob-ui-field.ui-field .num-stepper { margin-left: 6px !important; gap: 4px; width: calc(var(--mob-col-stepper) - 6px); flex: none; }
+.mob-classic .mob-ui-field.ui-field .num-stepper-btn {
+  width: 40px !important; height: 36px !important; font-size: 18px !important; color: #222;
+  border: 1px solid #999 !important; border-radius: 6px !important; background: linear-gradient(#fdfdfd, #e2e2e2); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.mob-classic .mob-ui-field.ui-field .ui-field-unit {
+  grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; box-sizing: border-box; width: auto; min-width: var(--mob-chip);
+  height: var(--mob-input-h); margin-right: calc(var(--mob-tail) + 1px); display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+/* Signal tab (T720): the typing box holds PhoneRowColumns.signalInputChars() digits (rule 11), its text gutter and its unit chip,
+   left edge unchanged; the unit chip stays on the box's right edge. */
+.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-value .num-input-wrap { width: var(--mob-signal-w); justify-self: start; }
+/* A registered length, so the row resolves its 1ch (the box's own 15 px digit) once and the chip and the arrows, in other fonts, read pixels. */
+@property --mob-signal-w { syntax: '<length>'; inherits: true; initial-value: 0px; }
+/* 1ch is a digit of the number box's own font: this row sets it to the box's 15 px. */
+.mob-classic.mob-signal .mob-ui-field.ui-field { font-size: 15px; font-family: var(--font-ui); --mob-signal-w: round(up, calc(var(--mob-col-input-chars) * 1ch + var(--mob-col-gutter) + var(--mob-chip)), 1px); }
+.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-unit { margin-right: calc(100% - var(--mob-signal-w)); }
+.mob-classic.mob-signal .mob-ui-field.ui-field .ui-field-value .num-stepper { grid-column: 2; grid-row: 1; justify-self: start; margin-left: var(--mob-signal-w) !important; }
+/* Phone chips sit inside the value box and retain their own divider. A mandatory
+   value's stronger top/bottom outline must continue through the unit segment. */
+.mob-classic .mob-ui-field.ui-field .ui-field-unit.unit-toggle { height: var(--mob-input-h); }
+/* Read-only and writable quantities share the same box width and unit edge.
+   A readout omits the buttons without stretching its numeric box into their track. */
+.mob-classic .mob-ui-field.ui-field .ui-field-dev {
+  grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; width: auto;
+  margin-right: calc(var(--mob-tail) + var(--mob-chip) + var(--mob-col-gap) / 2);
+}
+.mob-classic .mob-ui-field.ui-field .ui-field-dq { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; width: var(--mob-col-dq); margin-right: calc(var(--mob-tail) + var(--mob-chip) + var(--mob-col-gap)); }
+/* Put warnings beside the label so long values keep their full value rail. */
+.mob-classic .mob-ui-field.ui-field .ui-field-dq { grid-column: 1; margin-right: calc(var(--mob-col-gap) / 2); }
+.mob-classic .mob-ui-field.ui-field:has(.ui-field-dq-btn) > label { padding-right: calc(var(--mob-col-dq) + var(--mob-col-gap)); }
+
+.mob-classic .mob-band { display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; height: 28px; margin-top: 12px; padding: 0 16px; background: #ececec; color: #333; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.mob-classic > .mob-band:first-child, .mob-classic > .mob-csection:first-child > .mob-band:first-child { margin-top: 0; }
+.mob-classic .mob-band-help { width: 22px; height: 22px; padding: 0; border: 1px solid #999; border-radius: 50%; background: #fff; color: #333; font: inherit; font-size: 12px; font-weight: 600; line-height: 1; cursor: pointer; }
+.mob-help-overlay { position: absolute; inset: 0; z-index: 215; display: flex; align-items: flex-end; background: rgba(0, 0, 0, 0.35); }
+.mob-help-sheet { width: 100%; max-height: 80%; overflow-y: auto; box-sizing: border-box; padding: 0 16px 16px; background: #fff; border-radius: 8px 8px 0 0; font-size: 14px; line-height: 1.5; color: #333; }
+.mob-help-head { display: flex; align-items: center; justify-content: space-between; height: 48px; font-size: 16px; font-weight: 600; }
+.mob-help-close { all: unset; cursor: pointer; padding: 8px; color: var(--mut); }
+.mob-help-intro, .mob-help-row { margin: 0 0 8px; }
+.mob-help-links { margin: 0; padding-left: 18px; overflow-wrap: anywhere; }
+.mob-help-links a { color: var(--acc); }
+.mob-help-more { all: unset; cursor: pointer; color: var(--acc); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+
+.mob-classic .mob-crow { display: flex; align-items: center; box-sizing: border-box; height: var(--mob-row-min); padding: 0 var(--mob-edge); box-shadow: inset 0 -1px 0 #e6e6e6; }
+.mob-classic .mob-crow-label { flex: none; width: var(--mob-col-label); box-sizing: border-box; padding-right: 8px; font-size: 14px; line-height: var(--mob-label-lh); color: #555; }
+.mob-classic .mob-cselect {
+  flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: var(--mob-input-h); margin-right: var(--mob-col-stepper);
+  padding: 0 0 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background-color: #fff; color: inherit; font: inherit; font-size: 15px; text-overflow: ellipsis;
+}
+.mob-classic .mob-cselect-wide { margin-right: 0; }
+/* The Box type dropdown ends where the number boxes below it end. A page with a ≠W cue row reserves the cue column, which ends those boxes 10px sooner (field-layout rule 4). */
+.mob-classic:has(.mob-ui-field .ui-field-dev) .mob-cselect-aligned { margin-right: calc(var(--mob-col-stepper) + 10px); }
+/* The Box type dropdown is as wide as its longest name needs, never less than where the number boxes below it end and never more than the row (field-layout rules 2 and 4; T770: "Passive Radiator" and "4th Order Bandpass" were cut). */
+.mob-classic .mob-cselect-fit { flex: none; margin-right: 0; field-sizing: content; width: auto; padding-right: 6px; min-width: calc(100% - var(--mob-col-label) - var(--mob-col-stepper)); max-width: calc(100% - var(--mob-col-label)); }
+.mob-classic:has(.mob-ui-field .ui-field-dev) .mob-cselect-fit { min-width: calc(100% - var(--mob-col-label) - var(--mob-col-stepper) - 10px); }
+.mob-classic .mob-cname { flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: var(--mob-input-h); padding: 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background: #f4f4f4; font: inherit; font-size: 15px; font-weight: 600; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }
+/* A dropdown in a pick row ends where the number boxes above and below it end: it leaves the up/down buttons' column blank, as the number boxes do (field-layout rule 4). */
+.mob-classic .ui-pick-field.mob-ui-field .ui-field-value select { margin-right: var(--mob-col-stepper); }
+.mob-classic:has(.mob-ui-field .ui-field-dev) .ui-pick-field.mob-ui-field .ui-field-value select { margin-right: calc(var(--mob-col-stepper) + 10px); }
+/* The driver-name button shows a long name whole, on as many lines as it needs (T736). */
+.mob-classic .mob-cname-button { height: auto; min-height: var(--mob-input-h); padding-top: 4px; padding-bottom: 4px; white-space: normal; overflow-wrap: anywhere; overflow: visible; text-overflow: clip; line-height: 1.25; }
+/* The row that holds the name button grows with it (BUG_20261115_phone-driver-name-button-clipped-under-header, field-layout rule 2): a fixed-height row centred a 3-line name, so its first line sat under the header and its last over the buttons below. A one-line name keeps the 40 px row. */
+.mob-classic .mob-crow:has(> .mob-cname-button) { height: auto; min-height: var(--mob-row-min); padding-top: 3px; padding-bottom: 3px; }
+.mob-classic .mob-cbtns { display: flex; gap: 8px; box-sizing: border-box; padding: 6px var(--mob-edge); border-bottom: 1px solid #e6e6e6; }
+.mob-classic .mob-cbtns button:not(.mob-btn) { flex: 1; min-width: 0; height: 44px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 13px; font-weight: 500; white-space: nowrap; padding: 0 4px; cursor: pointer; }
+.mob-classic .mob-clinks { display: flex; justify-content: flex-start; gap: 4px; padding: 0 4px; border-bottom: 1px solid #e6e6e6; }
+.mob-classic .mob-clink { min-width: 0; height: 32px; padding: 0 4px; border: none; background: none; font: inherit; font-size: 14px; line-height: 1.5; white-space: nowrap; color: var(--mut); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.mob-classic .mob-clink-end { margin-left: auto; }
+.mob-classic .mob-cpic { display: flex; justify-content: center; box-sizing: border-box; height: 158px; padding: 16px 0; border-bottom: 1px solid #e6e6e6; }
+.mob-classic .mob-cpic svg { height: 100%; width: auto; }
+.mob-classic .mob-chint { margin: 8px 16px; font-size: 12.5px; color: var(--mut); line-height: 18px; }
+.mob-classic .mob-chint-warn { color: var(--acc2); }
+.mob-classic .mob-cnote { margin: 0; padding: 2px 16px 6px; font-size: 12px; line-height: 18px; color: #777; font-style: italic; }
+
+/* Footer buttons (Back, Next, Cancel, OK, Close, Defaults, Reset): one size on every desktop dialog, from DesktopSizes. */
+.modal-footer .footer-buttons button, .opt-footer button, .what-if-btns button {
+  box-sizing: border-box; min-width: var(--ctl-btn-w); height: var(--ctl-btn-h);
+}

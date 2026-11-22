@@ -1,0 +1,47 @@
+import {describe, expect, it} from 'vitest';
+import type {CalculationIssue} from '../../engine/consistency.js';
+import {createEngine} from '../../engine/Engine.js';
+type Q = 'a' | 'b' | 'c' | 'd';
+
+const engine = createEngine();
+
+describe('a calculation issue names its own fields', () => {
+  it('an inconsistent-inputs issue names the group it marks', () => {
+    const issue: CalculationIssue<Q> = engine.issues.inconsistentInputs<Q>('a', ['a', 'b'], 'a = b', 1, 2, 1);
+    expect(issue.fields).toEqual(['a', 'b']);
+  });
+
+  it('a missing-dependencies issue names its target plus the missing inputs only', () => {
+    const issue: CalculationIssue<Q> = engine.issues.missingDependencies<Q>('a',
+      [{ formula: 'a = b + c', required: ['b', 'c'], missing: ['c'] }]);
+    expect(issue.fields).toEqual(['a', 'c']);
+  });
+});
+
+describe('Engine.issueFormula', () => {
+  it('returns the formula directly for an inconsistent-inputs issue', () => {
+    const issue: CalculationIssue<Q> = engine.issues.inconsistentInputs<Q>('a', ['a', 'b'], 'a = b', 1, 2, 1);
+    expect(engine.issues.issueFormula(issue)).toBe('a = b');
+  });
+
+  it('joins every route formula for a missing-dependencies issue', () => {
+    const issue: CalculationIssue<Q> = engine.issues.missingDependencies<Q>('a', [
+      { formula: 'a = b + c', required: ['b', 'c'], missing: ['c'] },
+      { formula: 'a = d', required: ['d'], missing: ['d'] },
+    ]);
+    expect(engine.issues.issueFormula(issue)).toBe('a = b + c; or a = d');
+  });
+});
+
+describe('outOfRange', () => {
+  it('names the field, its value, and the limit it fell below', () => {
+    // decimal()'s own rule: below 0.1 in magnitude renders to 2 significant figures.
+    expect(engine.issues.outOfRange('Qts', 0.02, 0.1, 'below').text)
+      .toBe('Qts 0.020 is below the physical limit 0.1.');
+  });
+
+  it('names the field, its value, and the limit it rose above', () => {
+    expect(engine.issues.outOfRange('Qts', 12, 2, 'above').text).toBe('Qts 12 is above the physical limit 2.');
+  });
+});
+

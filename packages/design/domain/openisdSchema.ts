@@ -1,0 +1,1000 @@
+/**
+ * THE openisd RECORD, DECLARED ONCE, AS A SCHEMA — the ONLY description of what an openisd record
+ * is, and the only thing that decides whether an untrusted value is one.
+ *
+ * ITS OWN FILE because it is a different kind of thing from the domain objects in
+ * `openisdDomain.ts`: those are behaviour over a record that has already been checked, this is
+ * the check itself, and the boundary between "untrusted value" and "record" is exactly the line
+ * the two sit either side of. It also keeps the record's SHAPE readable on its own, apart from
+ * the domain code.
+ *
+ * DATA SHAPES ONLY: the zod schemas, their inferred types, and the small hand-written interfaces
+ * (`Reading`, `DriverSpecsSection`, `PassiveRadiatorSpecsSection`) that describe the same shapes
+ * the schemas validate. The logic that reads or builds these shapes — voice-coil wiring
+ * (`voiceCoilWiring.ts`), spec-entry helpers (`specEntry.ts`), `.wdr` importimport
+ * (`winIsdDriverImport.ts`), a brand-new box's defaults (`boxDefaults.ts`) and
+ * `OpenISDDeviceJson`'s own parse/serialise boundary (`openIsdDeviceJsonIo.ts`) — lives in its own
+ * module, named for what it does, and imports the type it needs from here.
+ *
+ * PRIVATE TO THE DOMAIN. `domain/index.ts` does not re-export it: a caller that wants to know
+ * whether a value is a record asks `driverFromConformingRecord` or `driverYmlToOpenIsdRecord`,
+ * which answer in the caller's own vocabulary. Publishing the schema would publish the record
+ * shape, which is the thing this package exists to keep private.
+ *
+ * STRICT THROUGHOUT (`z.strictObject`). An undeclared key is REFUSED at its own path rather than
+ * quietly dropped, so a record that gains a field the app does not model is a loud failure instead
+ * of a silent loss.
+ */
+import {z} from 'zod';
+import {READER_VALUES} from './reader.js';
+import type {OpenISDDriver} from './driver/openISDDriver.js';
+import type {BoxType, Filter, PassFamily} from '../engine/index.js';
+import type {VentShape} from './vent.js';
+
+/**
+ * One SOURCE'S READING of one field, as the scraper recorded it. Names are the corpus's own.
+ *
+ * `actual_reading` is the literal the document printed; `read_value` is its SI parse. Neither is
+ * derived from the other — both come from one parse of the literal, so a record shows what was
+ * printed AND what it meant.
+ */
+export type Reading = ReadingJson;
+
+// `SpecEntryJson` — one SPEC field, ONE VALUE, ONE FLAG (T11) — is declared further down as
+// `z.infer<typeof specEntryJsonSchema>` (see that schema's own doc comment), not here: the type
+// alias forward-references the schema (legal — TS resolves type-level bindings for the whole
+// module in one pass, unlike a `const`), so every field below sees the real shape and the two
+// can never drift apart the way a hand-duplicated interface could.
+
+/** The parameters a driver states, in one section.
+ *  Not just TS parameters, but any parameter we collect off the datasheets.
+ *
+ *  EVERY FIELD IS OPTIONAL — a key is ABSENT when the driver does not state that parameter, not
+ *  present holding a null or a zero. That is what a scraped record actually looks like: a
+ *  datasheet giving four parameters produces four keys. `Cell` already reports `value: null` for
+ *  a key that is not there, so a reader sees absence the same way whichever field is missing.
+ *
+ *  Populates as `woofer: <DriverSpecsSection>` and/or `tweeted: <DriverSpecsSection>` in OpenIsdDriver.
+ *  It also means an EMPTY driver is `{ woofer: {} }` — a section present and nothing in it. No
+ *  invented zeros, and `OpenISDDriver.sectionOf()` is satisfied, which is what lets a project be
+ *  constructed before its driver is written in.
+ *
+ *  Keys are the canonical application names, including their SI units. The same name is used by
+ *  storage, domain, engine and UI. WinISD's unsuffixed keys are translated only while parsing or
+ *  serialising its external file formats. */
+export interface DriverSpecsSection {
+    // Thiele/Small.
+    readonly Fs_hz?: SpecEntryJson;
+    readonly Re_ohm?: SpecEntryJson;
+    readonly Le_H?: SpecEntryJson;
+    readonly fLe_hz?: SpecEntryJson;
+    readonly KLe_H_sqrtHz?: SpecEntryJson;
+    readonly Znom_ohm?: SpecEntryJson;
+    readonly Qts?: SpecEntryJson;
+    readonly Qes?: SpecEntryJson;
+    readonly Qms?: SpecEntryJson;
+    readonly Vas_m3?: SpecEntryJson;
+    readonly Sd_m2?: SpecEntryJson;
+    readonly BL_Tm?: SpecEntryJson;
+    readonly Mms_kg?: SpecEntryJson;
+    readonly Cms_m_per_N?: SpecEntryJson;
+    readonly Rms_kg_per_s?: SpecEntryJson;
+    readonly Xmax_m?: SpecEntryJson;
+    readonly Xlim_m?: SpecEntryJson;
+    readonly SPL_dB?: SpecEntryJson;
+    readonly Pe_W?: SpecEntryJson;
+    readonly Dd_m?: SpecEntryJson;
+    readonly EBP_hz?: SpecEntryJson;
+    readonly numVC?: SpecEntryJson;
+    readonly VCCon?: WiringEntryJson;
+    // Ordinarily derived, but WinISD lets a human TYPE any of them, and an entered value is a fact.
+    readonly Vd_m3?: SpecEntryJson;
+    readonly no?: SpecEntryJson;
+    readonly SPLmax_dB?: SpecEntryJson;
+    readonly SPLmaxLF_dB?: SpecEntryJson;
+    readonly USPL_dB?: SpecEntryJson;
+    readonly alfaVC_per_K?: SpecEntryJson;
+    readonly Rt_K_per_W?: SpecEntryJson;
+    readonly Ct_J_per_K?: SpecEntryJson;
+    readonly gamma_m_per_s2_A?: SpecEntryJson;
+    readonly Rme_kg_per_s?: SpecEntryJson;
+    readonly Mpow_N_per_sqrtW?: SpecEntryJson;
+    readonly Mcost_kg_per_s?: SpecEntryJson;
+    readonly Gloss?: SpecEntryJson;
+    // `c` and `roo` are the air the DRIVER states — the conditions its own figures were measured
+    // or computed at. `OpenISDEnvironment` on the project is what a simulation runs on; these two
+    // are not that, and the record keeps them per driver because WinISD does.
+    readonly c_m_per_s?: SpecEntryJson;
+    readonly roo_kg_per_m3?: SpecEntryJson;
+    // Descriptive and dimensional.
+    readonly Vcd_m?: SpecEntryJson;
+    readonly Hg_m?: SpecEntryJson;
+    readonly Hc_m?: SpecEntryJson;
+    readonly freq_low_hz?: SpecEntryJson;
+    readonly freq_high_hz?: SpecEntryJson;
+    readonly power_peak_W?: SpecEntryJson;
+    readonly weight_kg?: SpecEntryJson;
+    readonly Thick_m?: SpecEntryJson;
+    readonly Depth_m?: SpecEntryJson;
+    readonly MagDepth_m?: SpecEntryJson;
+    readonly Magnet_m?: SpecEntryJson;
+    readonly Basket_m?: SpecEntryJson;
+    readonly Outer_m?: SpecEntryJson;
+    readonly OuterX_m?: SpecEntryJson;
+    readonly OuterY_m?: SpecEntryJson;
+    readonly DVol_m3?: SpecEntryJson;
+}
+
+/** The passive-radiator section — A DIFFERENT SCHEMA from a driver's, not a narrowed `DriverSpecsSection`
+ *  (it has only a few exposed fields and no electrical ones). A radiator has no motor and no voice coil, so `Re`, `Le`,
+ *  `Znom`, `Qes`, `BL`, `numVC` and the thermal parameters describe nothing on one. Typing it as
+ *  `DriverSpecsSection` would publish every one of them as a readable field. */
+export interface PassiveRadiatorSpecsSection {
+    readonly Fs_hz?: SpecEntryJson;
+    readonly Qms?: SpecEntryJson;
+    readonly Cms_m_per_N?: SpecEntryJson;
+    readonly Mms_kg?: SpecEntryJson;
+    readonly Rms_kg_per_s?: SpecEntryJson;
+    readonly Sd_m2?: SpecEntryJson;
+    readonly Vas_m3?: SpecEntryJson;
+    readonly Vd_m3?: SpecEntryJson;
+    readonly Xmax_m?: SpecEntryJson;
+    readonly Xlim_m?: SpecEntryJson;
+    readonly Dd_m?: SpecEntryJson;
+    readonly DVol_m3?: SpecEntryJson;
+    // Mounting dimensions — a radiator sits on a baffle exactly as a driver does.
+    readonly Thick_m?: SpecEntryJson;
+    readonly Depth_m?: SpecEntryJson;
+    readonly Basket_m?: SpecEntryJson;
+    readonly Outer_m?: SpecEntryJson;
+    readonly OuterX_m?: SpecEntryJson;
+    readonly OuterY_m?: SpecEntryJson;
+    readonly weight_kg?: SpecEntryJson;
+}
+
+
+/** One reader's read of one datasheet cell: the cell as that reader read it, verbatim, and the
+ *  number and half-width it gave. Both are null exactly when the cell holds no number. */
+const readerReadJsonSchema = z.strictObject({
+    actual_reading: z.string(),
+    read_value: z.number().nullable(),
+    read_precision: z.number().nullable(),
+}).refine(r => r.read_value !== null || r.read_precision === null, 'read_precision needs a read_value');
+export type ReaderReadJson = z.infer<typeof readerReadJsonSchema>;
+
+/** The fields both kinds of reading carry. A spread of this shape, not an extended class: the two
+ *  variants below are strict objects, so a key one variant lacks is refused there. */
+const readingCommonShape = {
+    // `_KEY_PRIORITY_LIST` (`model_driver.py:1509`) is the canonical key order — the emitter's
+    // own, applied by `canonical_yaml`. Not the pydantic class's field order, which differs.
+    // What the source PRINTED comes first, then any repair of it, then the numbers parsed out,
+    // then whether the read was refused, then the measurement condition.
+    actual_reading: z.string().optional(),
+    // A printed literal the scraper had to REPAIR to parse, and the rule that repaired it —
+    // `conformed_reading: 3.5 Ω` beside `conformed_by: unit-glyph-unreadable`. Placed here, next
+    // to the literal they qualify, so "this is not what the page printed" is read in one glance.
+    conformed_reading: z.string().optional(),
+    conformed_by: z.string().optional(),
+} as const;
+const readingTailShape = {
+    // THE MEASUREMENT CONDITION, on a closed vocabulary (`record_registries.MeasurementNote`).
+    // It qualifies THAT source's number: a sensitivity taken at 2.83 V/1 m is 3 dB louder than
+    // the same driver at 1 W/1 m on 4 ohms (`model_driver.py`).
+    note: z.string().optional(),
+    // Every reader's read of this datasheet cell; the fields above are the preferred reader's. Only
+    // a datasheet reading has it. Agreement between the readers is derived from it
+    // (`readerVerdict`) and never stored.
+    reads: z.partialRecord(z.enum(READER_VALUES), readerReadJsonSchema).refine(
+        r => Object.keys(r).length > 0, 'expected at least one reader').optional(),
+} as const;
+
+/** A reading with a number: `read_value` is a number, and `read_precision` is its half-width. */
+const usableReadingJsonSchema = z.strictObject({
+    ...readingCommonShape,
+    read_value: z.number(),
+    read_precision: z.number().optional(),
+    ...readingTailShape,
+});
+/** Why a reading has NO number: the source printed no numeric value, or printed no unit the field's
+ *  conversion table knows (Mms "327.7" with no unit). The printed text is kept either way
+ *  (the scraper collects facts it read). One list per variant; add a reason
+ *  here and every exhaustive match sees it. */
+export const UNPARSED_REJECTION_REASONS = ['no-numeric-value', 'unit-not-recognised', 'multiple-values'] as const;
+/** Why a number WAS read but is refused: a digit merged in from an ohm glyph, or a number outside the
+ *  field's physical band (a unit slip such as `750 kHz` for 750 Hz, or `-0.55 mH`). The refused number
+ *  stays in `read_value`; it never wins (ruling QO934, QO935). */
+export const PARSED_REJECTION_REASONS = ['ohm-glyph-merged-as-digit', 'out-of-physical-range'] as const;
+export type UnparsedRejectionReason = typeof UNPARSED_REJECTION_REASONS[number];
+export type ParsedRejectionReason = typeof PARSED_REJECTION_REASONS[number];
+
+/** Rejected, no number read: the printed text ("N/A", "banana") is in `actual_reading`. */
+const rejectedUnparsedReadingJsonSchema = z.strictObject({
+    ...readingCommonShape,
+    rejected: z.enum(UNPARSED_REJECTION_REASONS),
+    ...readingTailShape,
+});
+/** Rejected, a number was read but is refused: `read_value` is what was read. */
+const rejectedParsedReadingJsonSchema = z.strictObject({
+    actual_reading: z.string(),
+    conformed_reading: z.string().optional(),
+    conformed_by: z.string().optional(),
+    read_value: z.number(),
+    read_precision: z.number().optional(),
+    rejected: z.enum(PARSED_REJECTION_REASONS),
+    ...readingTailShape,
+});
+
+/** A reason string no list above names. A newer scraper may write one; the loader keeps the
+ *  reading and its raw reason (repair, never reset) and the converter raises one named warning. */
+const unrecognisedReason = z.string().refine(
+    reason => !isKnownRejectionReason(reason), 'a recognised rejection reason belongs to its own variant');
+function isKnownRejectionReason(reason: string): boolean {
+    return [...UNPARSED_REJECTION_REASONS, ...PARSED_REJECTION_REASONS].some(known => known === reason);
+}
+/** Rejected for a reason this app does not know, no number read. */
+const rejectedUnrecognisedUnparsedReadingJsonSchema = z.strictObject({
+    ...readingCommonShape,
+    rejected: unrecognisedReason,
+    ...readingTailShape,
+});
+/** Rejected for a reason this app does not know, a number was read. */
+const rejectedUnrecognisedParsedReadingJsonSchema = z.strictObject({
+    actual_reading: z.string(),
+    conformed_reading: z.string().optional(),
+    conformed_by: z.string().optional(),
+    read_value: z.number(),
+    read_precision: z.number().optional(),
+    rejected: unrecognisedReason,
+    ...readingTailShape,
+});
+
+/**
+ * One source's reading of one parameter: Usable, RejectedParsed or RejectedUnparsed (or, for a
+ * reason this app does not know, the same two with an Unrecognised reason, kept as written).
+ *
+ * - Usable `{actual_reading?, read_value: number}`: the printed text parsed to a number.
+ * - RejectedParsed `{actual_reading, read_value, rejected}`: a number was read and refused, e.g.
+ *   `ohm-glyph-merged-as-digit` or `out-of-physical-range`.
+ * - RejectedUnparsed `{actual_reading?, rejected}`: no number was read, e.g. `no-numeric-value`.
+ *   It has no `read_value`.
+ *
+ * The reason decides the variant, and a reason on the wrong variant is refused. A spec reading
+ * keeps the text the source printed, even when it is not a number (a spec that
+ * says N/A or banana stores the read value as that value). A .wdr holds only a flag and a
+ * number: a rejected reading is written to .wdr as state N, value 0, with the
+ * printed text in the .wdr comment; loading a .wdr never produces a rejected reading (and never NaN).
+ *
+ * Worked examples:
+ * - Sd printed "N/A": RejectedUnparsed `{actual_reading: 'N/A', rejected: 'no-numeric-value'}`.
+ * - Sd printed "banana": RejectedUnparsed `{actual_reading: 'banana', rejected: 'no-numeric-value'}`.
+ * - Sd printed "143c cm²": RejectedUnparsed `{actual_reading: '143c cm²', rejected: 'no-numeric-value'}`.
+ * - A field nobody printed: no reading at all, not a Rejected one.
+ * - Fs printed "21 Hz": Usable `{actual_reading: '21 Hz', read_value: 21}`.
+ *
+ * Exported so `driverRecordConverter.ts` validates a scraper's driver.yml readings against the
+ * SAME shape this record stores, rather than a hand-duplicated copy free to drift.
+ */
+export const readingJsonSchema = z.union([
+    usableReadingJsonSchema, rejectedParsedReadingJsonSchema, rejectedUnparsedReadingJsonSchema,
+    rejectedUnrecognisedParsedReadingJsonSchema, rejectedUnrecognisedUnparsedReadingJsonSchema,
+]);
+export type ReadingJson = z.infer<typeof readingJsonSchema>;
+export type UsableReadingJson = z.infer<typeof usableReadingJsonSchema>;
+export type RejectedParsedReadingJson = z.infer<typeof rejectedParsedReadingJsonSchema>;
+export type RejectedUnparsedReadingJson = z.infer<typeof rejectedUnparsedReadingJsonSchema>;
+export type RejectedUnrecognisedParsedReadingJson = z.infer<typeof rejectedUnrecognisedParsedReadingJsonSchema>;
+export type RejectedUnrecognisedUnparsedReadingJson = z.infer<typeof rejectedUnrecognisedUnparsedReadingJsonSchema>;
+/** Every rejected reading: a number read or not, a reason known or not. */
+export type RejectedReadingJson =
+    | RejectedParsedReadingJson | RejectedUnparsedReadingJson
+    | RejectedUnrecognisedParsedReadingJson | RejectedUnrecognisedUnparsedReadingJson;
+
+/** The voice-coil wiring as a stored value: its name (QO914, #514). WinISD's 1/2 code exists only
+ *  in the `.wdr`/`.wpr` adapter. */
+const wiringValueSchema = z.enum(['series', 'parallel']);
+
+/** A source's reading of VCCon with the wiring read: `read_value` is the name, `actual_reading`
+ *  the quote that states it (QO914). A wiring is not a measurement, so there is no
+ *  `read_precision`; a numeric `read_value` (the retired 1/2 code) is refused. */
+const usableWiringReadingJsonSchema = z.strictObject({
+    ...readingCommonShape,
+    read_value: wiringValueSchema,
+    note: z.string().optional(),
+});
+/** One source's reading of VCCon: the wiring read, or rejected with no value read. */
+export const wiringReadingJsonSchema = z.union([
+    usableWiringReadingJsonSchema, rejectedUnparsedReadingJsonSchema, rejectedUnrecognisedUnparsedReadingJsonSchema,
+]);
+export type WiringReadingJson = z.infer<typeof wiringReadingJsonSchema>;
+export type UsableWiringReadingJson = z.infer<typeof usableWiringReadingJsonSchema>;
+
+/** An entered spec entry: a `value` plus `state:'E'`, and the precision it states. Nothing else is
+ *  stored (QO395: openisd.json is the slim model): which source won, every
+ *  source's reading and the cross-source verdict stay in driver.json. */
+const enteredEntrySchema = z.strictObject({
+    state: z.literal('E'),
+    value: z.number(),
+    /** Half-width of what this value STATES, in SI — written by whatever entered it, because the
+     *  stored number cannot be read back for it: a field showing 2 decimals of grams states
+     *  30 g to ±0.005 g, and `0.03` kg no longer says so. Absent on a value that arrived as a
+     *  plain number, where its own decimals are the statement (`0.5` kg is 1 dp of a kilogram).
+     *  Never the precision the FIELD supports — that is a display question. */
+    precision: z.number().positive().optional(),
+});
+
+/** A calculated spec entry: a `value` plus `state:'C'` and the precision it inherits. */
+const calculatedEntrySchema = z.strictObject({
+    state: z.literal('C'),
+    value: z.number(),
+    /** Half-width the value inherits from its most precise entered input, in SI — stored as an
+     *  entered value's `precision` is. Absent when no entered width reaches it. */
+    precision: z.number().positive().optional(),
+});
+
+/** A spec field where no reading wins (T018): every
+ *  reading is rejected ("N/A", "banana") or physically impossible (a passive radiator's Sd of
+ *  9 m²). `state:'N'`, no `value`. The rejected readings stay on the entry only so the Driver
+ *  Editor can say what the maker printed under Re and BL (`unknownVoiceCoilReading`); QO420
+ *  (open) decides whether that note goes, and with it these readings. */
+const notAvailableEntrySchema = z.strictObject({
+    state: z.literal('N'),
+    readings: z.record(z.string(), readingJsonSchema).refine(
+        r => Object.keys(r).length > 0, 'expected at least one reading').optional(),
+});
+
+/**
+ * A spec field: `value` + `state` (T11) and the precision the value states.
+ *
+ * ONE VALUE, ONE FLAG (T11): `value` is the number, `state` says whether it was TYPED ('E') or DERIVED ('C') —
+ * and 'N' says no reading gave one. There is no separate value channel for a calculated figure: a
+ * `'C'` entry writes the SAME `value` field an `'E'` entry does, so a reader never juggles two
+ * numbers wondering which one is live.
+ *
+ * Origin, readings, the corroboration verdict and the data-quality marks are not part of this
+ * model (QO395, QO414): a file saved before `schemaVersion` 3 carries them, and the load upgrade
+ * (`schemaVersion.ts`) turns the stated reading precision into `precision` and drops the rest
+ * before this schema reads the record.
+ */
+export const specEntryJsonSchema =
+    z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema, notAvailableEntrySchema]);
+
+export type SpecEntryJson = z.infer<typeof specEntryJsonSchema>;
+
+// File literals beyond the numeric range still state a dimension. Keep signed overflow so
+// the field can flag it in place. Other spec fields retain their finite-number validation.
+const dimensionValueSchema = z.union([z.number(), z.literal(Infinity), z.literal(-Infinity)]);
+const driverDimensionEntryJsonSchema = z.discriminatedUnion('state', [
+    enteredEntrySchema.extend({value: dimensionValueSchema}),
+    calculatedEntrySchema.extend({value: dimensionValueSchema}),
+    notAvailableEntrySchema,
+]);
+/**
+ * VCCon, the wiring Re and BL were measured in (QO914, #514): `state` + the wiring's NAME, and no
+ * `precision` (a name is not a measurement). An unknown wiring is an absent key; `N` is a
+ * reading that gave no wiring, as on every spec field.
+ */
+export const wiringEntryJsonSchema = z.discriminatedUnion('state', [
+    z.strictObject({state: z.literal('E'), value: wiringValueSchema}),
+    z.strictObject({state: z.literal('C'), value: wiringValueSchema}),
+    notAvailableEntrySchema,
+]);
+export type WiringEntryJson = z.infer<typeof wiringEntryJsonSchema>;
+
+/** The Entered and Calculated variants alone: a value that is never not-available, so it fits a spec
+ *  entry and a signal entry alike. */
+export type EnteredEntryJson = z.infer<typeof enteredEntrySchema>;
+export type CalculatedEntryJson = z.infer<typeof calculatedEntrySchema>;
+
+// ── THE THREE FIELD ENVELOPES ─────────────────────────────────────────────────────────────────
+//
+// A record never stores a bare value: it stores the value with the provenance that answers where
+// it came from. THREE different answers, so three envelopes (`model_driver.py`, `FieldEnvelope`
+// and its subclasses).
+//
+// `definition` — what a field MEANS — is on all three in the scraper and appears on NONE of them
+// here. It is driver.yml's, and never reaches an openisd.yml or a .wdr. A
+// consumer of this record already knows what `Fs` is.
+
+/** A text-like field: its value, nothing else. Which source it was read off, what each one said
+ *  and the scraper's notes stay in driver.json (QO395). */
+const valueFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({value});
+
+/** A fact about the RECORD, not about the driver — a uuid, where its sources were. Nothing was
+ *  read and nothing was derived, so neither origin nor grounds. (`BookkeepingField`,
+ *  model_driver.py:202.) */
+const bookkeepingFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({
+    value,
+});
+
+const textField = valueFieldOf(z.string());
+
+/** A driver's roles: one or more, each once (`DriverRoles`, winisd_tools QT84). The scraper stores
+ *  them in `DriverType` declaration order, so one record has one canonical list. A record written
+ *  before QT84 holds one role as a bare string; it reads as a one-role list (repair, never refuse:
+ *  the whole corpus and every stored project still carry the string). */
+const driverRolesField = valueFieldOf(
+    z.union([z.string().transform(role => [role]), z.string().array()])
+        .pipe(z.string().array().min(1).refine(roles => new Set(roles).size === roles.length, {message: 'a role appears twice'})),
+);
+
+// ── THE SPEC SECTIONS, BY NAME ────────────────────────────────────────────────────────────────
+//
+// Named sections and named fields, not `record(string, record(string, …))`. `SpecSection` in the
+// scraper forbids extra keys and its field set is asserted against the registry, so a section
+// carrying a field nobody declared is a record the pipeline could not have written. A loose
+// record accepts it and the app then reads a field no code knows about.
+//
+// A FUNCTION, not a shared object: a module-scoped literal would be state, and each schema gets
+// its own (`test/architecture-no-globals.test.ts`).
+const driverSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema, d: typeof driverDimensionEntryJsonSchema) => z.strictObject({
+    Fs_hz: e, Re_ohm: e, Le_H: e, fLe_hz: e, KLe_H_sqrtHz: e, Znom_ohm: e,
+    Qts: e, Qes: e, Qms: e, Vas_m3: e, Sd_m2: e, BL_Tm: e,
+    Mms_kg: e, Cms_m_per_N: e, Rms_kg_per_s: e, Xmax_m: e, Xlim_m: e, SPL_dB: e,
+    Pe_W: e, Dd_m: e, EBP_hz: e, numVC: e, VCCon: wiringEntryJsonSchema,
+    Vd_m3: e, no: e, SPLmax_dB: e, SPLmaxLF_dB: e, USPL_dB: e, alfaVC_per_K: e,
+    Rt_K_per_W: e, Ct_J_per_K: e, gamma_m_per_s2_A: e, Rme_kg_per_s: e, Mpow_N_per_sqrtW: e, Mcost_kg_per_s: e,
+    Gloss: e, c_m_per_s: e, roo_kg_per_m3: e, Vcd_m: d, Hg_m: e, Hc_m: e,
+    freq_low_hz: e, freq_high_hz: e, power_peak_W: e, weight_kg: e, Thick_m: d, Depth_m: d,
+    MagDepth_m: d, Magnet_m: d, Basket_m: d, Outer_m: d, OuterX_m: d, OuterY_m: d,
+    DVol_m3: d,
+}).partial();
+
+/** A radiator has no motor and no voice coil, so `Re`, `Le`, `Znom`, `Qes`, `BL`, `numVC` and the
+ *  thermal parameters describe nothing on one — a DIFFERENT schema, not a narrowed driver's. */
+const passiveRadiatorSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strictObject({
+    Fs_hz: e, Qms: e, Cms_m_per_N: e, Mms_kg: e, Rms_kg_per_s: e, Sd_m2: e,
+    Vas_m3: e, Vd_m3: e, Xmax_m: e, Xlim_m: e, Dd_m: e,
+    DVol_m3: e, Thick_m: e, Depth_m: e, Basket_m: e, Outer_m: e, OuterX_m: e,
+    OuterY_m: e, weight_kg: e,
+}).partial();
+
+/** A DRIVER's spec sections: the woofer section the app simulates — always — and, on a coaxial
+ *  only, a tweeter section beside it. */
+const driverSpecsJsonSchema = z.strictObject({
+    woofer: driverSpecsSectionJsonSchema(specEntryJsonSchema, driverDimensionEntryJsonSchema),
+    tweeter: driverSpecsSectionJsonSchema(specEntryJsonSchema, driverDimensionEntryJsonSchema).optional(),
+});
+
+export function isDriverDimension(key: keyof DriverSpecsSection): boolean {
+    return driverSpecsJsonSchema.shape.woofer.shape[key].unwrap() === driverDimensionEntryJsonSchema;
+}
+
+/** A PASSIVE RADIATOR's spec sections: exactly one, its own. */
+const radiatorSpecsJsonSchema = z.strictObject({
+    'passive-radiator': passiveRadiatorSpecsSectionJsonSchema(specEntryJsonSchema),
+});
+
+/** `specs` is a SUM TYPE — a device is a driver OR a radiator. Three optional sections would
+ *  have admitted `{}` and `{woofer, 'passive-radiator'}` as well-typed records and left every
+ *  reader to re-discover the contradiction; here both are refused AT THE PARSE.
+ *
+ *  Dispatched by hand rather than through `z.union`: a union that fails reports ONE issue on
+ *  `specs` and swallows the member's own findings, so a driver record with two bad readings
+ *  inside `Fs_hz` would have come back as "specs: invalid" instead of naming each reading
+ *  (`domain/driver-record.test.ts` "names EVERY bad reading"). The key that is present says which member the
+ *  value claims to be; that member then parses it and its issues pass through, paths intact. */
+const SPECS_SHAPE = "a driver (a 'woofer' section, optionally with a 'tweeter' section) or a "
+    + "passive radiator (a 'passive-radiator' section) — not both, not neither";
+const specsJsonSchema = z.unknown().transform((value, ctx): DriverSpecsJson | RadiatorSpecsJson => {
+    const keyed = typeof value === 'object' && value !== null && !Array.isArray(value);
+    const claimsDriver = keyed && 'woofer' in value;
+    const claimsRadiator = keyed && 'passive-radiator' in value;
+    if (claimsDriver === claimsRadiator) {
+        ctx.issues.push({code: 'custom', message: SPECS_SHAPE, input: value});
+        return z.NEVER;
+    }
+    const member = claimsDriver ? driverSpecsJsonSchema.safeParse(value) : radiatorSpecsJsonSchema.safeParse(value);
+    if (!member.success) {
+        // Re-raised at the member's own path, so `specs.woofer.Fs_hz.…` survives the dispatch.
+        for (const issue of member.error.issues) {
+            ctx.issues.push({code: 'custom', message: issue.message, path: [...issue.path], input: value});
+        }
+        return z.NEVER;
+    }
+    return member.data;
+});
+
+/** The `specs` a DRIVER record carries. */
+export type DriverSpecsJson = z.infer<typeof driverSpecsJsonSchema>;
+/** The `specs` a PASSIVE RADIATOR record carries. */
+export type RadiatorSpecsJson = z.infer<typeof radiatorSpecsJsonSchema>;
+
+/** Narrow a record's `specs` to the driver member of the sum, or null when the record is a
+ *  radiator. A reader that needs the woofer section asks this ONCE and then reads typed fields;
+ *  the `in` check is the discriminator, since a strict driver object never carries the
+ *  radiator's key. */
+export function driverSpecsOf(json: OpenISDDeviceJson): DriverSpecsJson | null {
+    return 'woofer' in json.specs ? json.specs : null;
+}
+
+/** The radiator counterpart of `driverSpecsOf()`. */
+export function radiatorSpecsOf(json: OpenISDDeviceJson): RadiatorSpecsJson | null {
+    return 'passive-radiator' in json.specs ? json.specs : null;
+}
+
+export const openISDDeviceJsonSchema = z.strictObject({
+    // DO NOT REORDER. Field order matches `_KEY_PRIORITY_LIST` (`model_driver.py:1509`) and `driver.yml`.
+    // Zod's `safeParse` preserves this declaration order; reordering here causes diff noise on save.
+    // Envelope types (scraped/derived/bookkeeping) exactly match `OpenIsdYmlFile` definitions.
+    uuid: bookkeepingFieldOf(z.string()),
+    manufacturer: textField,
+    brand: textField,
+    model: textField,
+    sku: valueFieldOf(z.string()),
+    driver_type: driverRolesField,
+    series: textField.optional(),
+    // The links the app opens (QO395): a datasheet, a product page and a listing page, the maker's
+    // and, when the maker publishes no datasheet, the distributor's copy (QO282).
+    // Any other source stays in driver.json.
+    data_sources: bookkeepingFieldOf(z.strictObject({
+        manufacturer_datasheet: z.string().optional(),
+        manufacturer_product_page: z.string().optional(),
+        manufacturer_listing_page: z.string().optional(),
+        distributor_datasheet: z.string().optional(),
+        distributor_product_page: z.string().optional(),
+        distributor_listing_page: z.string().optional(),
+    })),
+    product_image: textField.optional(),
+    description: textField.optional(),
+    surround_material: textField.optional(),
+    provided_by: textField.optional(),
+    comment: textField.optional(),
+    added: textField.optional(),
+    specs: specsJsonSchema,
+    // A curve is a `CurveEntry` — value and origin — and its payload names where the
+    // data is. `local_path` is absent when the datasheet only PLOTS the curve and nothing
+    // extracted the numbers (`CurvePayload`, model_driver.py:1079).
+    curves: z.record(z.string(), z.strictObject({
+        value: z.strictObject({
+            type: z.string(),
+            data_format: z.string().optional(),
+            local_path: z.string().optional(),
+            extracted_data_path: z.string().optional(),
+        }),
+        origin: z.string(),
+    })).optional(),
+    // Which format this record is in (`schemaVersion.ts`). Last, so a save adds no diff noise to
+    // the keys above. Set by the load upgrade; a record the app builds itself gets it when saved.
+    schemaVersion: z.number().optional(),
+});
+
+/**
+ * THE openisd.yml RECORD, declared as a type — every key one carries, and no key it does not.
+ *
+ * Required versus optional follows the model that WRITES the file — `OpenIsdYmlFile` in
+ * winisd_tools `scrapers/scrapers/lib/model_openisd.py:55-73`, which is `extra="forbid"`. A field
+ * declared there without a `= None` default is required here. Counting the corpus agrees on
+ * these ten but cannot tell "the schema requires it" from "every record we hold happens to have
+ * it", so the schema is the authority.
+ * `test/architecture-record-matches-openisd-yml.test.ts` holds the two in agreement, because a
+ * type that models a SUBSET of the file is silent — it does not fail, it just cannot carry what
+ * it left out.
+ */
+export type OpenISDDeviceJson = z.infer<typeof openISDDeviceJsonSchema>;
+
+/** A device record whose `specs` is a driver's. */
+export type DriverDeviceJson = Omit<OpenISDDeviceJson, 'specs'> & {specs: DriverSpecsJson};
+/** A device record whose `specs` is a passive radiator's. */
+export type RadiatorDeviceJson = Omit<OpenISDDeviceJson, 'specs'> & {specs: RadiatorSpecsJson};
+
+/** `json` as a driver record, or null when it is a radiator's. */
+export function asDriverDevice(json: OpenISDDeviceJson): DriverDeviceJson | null {
+    const specs = driverSpecsOf(json);
+    return specs === null ? null : {...json, specs};
+}
+
+/** `json` as a radiator record, or null when it is a driver's. */
+export function asRadiatorDevice(json: OpenISDDeviceJson): RadiatorDeviceJson | null {
+    const specs = radiatorSpecsOf(json);
+    return specs === null ? null : {...json, specs};
+}
+
+/** A project's driver slot: a device record that must be a driver. */
+export const driverDeviceJsonSchema = openISDDeviceJsonSchema.transform((json, ctx): DriverDeviceJson => {
+    const driver = asDriverDevice(json);
+    if (driver === null) ctx.issues.push({code: 'custom', message: 'the driver slot holds a passive-radiator record', input: json});
+    return driver ?? z.NEVER;
+});
+
+/** A box's radiator slot: a device record that must be a passive radiator. */
+export const radiatorDeviceJsonSchema = openISDDeviceJsonSchema.transform((json, ctx): RadiatorDeviceJson => {
+    const radiator = asRadiatorDevice(json);
+    if (radiator === null) ctx.issues.push({code: 'custom', message: 'the radiator slot holds a driver record', input: json});
+    return radiator ?? z.NEVER;
+});
+
+
+/** One port's stored geometry. `diameter_m` applies to a round vent, `height_m` (against the
+ *  live `width_m`) to a slotted one — which pair is meaningful follows `shape`, and the other
+ *  stays absent rather than carrying a stale number from a shape the user has since switched
+ *  away from. `area_m2` is a solved pair with whichever of those two is active (S7-e); `width_m`
+ *  itself is never solved, so it keeps the plain nullable shape. */
+const ventJsonSchema = z.strictObject({
+    shape: z.enum(['round', 'slotted'] satisfies readonly VentShape[]),
+    // A solver-set slot (S7-a/S7-e): absent = not-available, `state:'E'` = entered, `state:'C'`
+    // = derived — not a plain nullable number.
+    diameter_m: specEntryJsonSchema.optional(),
+    width_m: z.number().nullable(),
+    height_m: specEntryJsonSchema.optional(),
+    length_m: specEntryJsonSchema.optional(),
+    // How many identical ports share the chamber. Same slot shape as `numVC`: absent =
+    // not-available, and the domain reads that (or a value that is not a whole number ≥ 1) as
+    // the calculated `calcVentCount()` — never refused at parse time.
+    count: specEntryJsonSchema.optional(),
+    area_m2: specEntryJsonSchema.optional(),
+    endCorrection_m: z.number(),
+});
+export type VentJson = z.infer<typeof ventJsonSchema>;
+
+/** The four loss shapes a chamber can actually have, matching `losses.ts`'s four `*Losses` read
+ *  interfaces field-for-field (BUG_20260824's live-confirmed per-box-type/chamber-role shapes):
+ *  no port on the chamber means no `Qp`; no coupling to another chamber means no `Qicl`. Each box
+ *  type's chamber in `openISDBoxJsonSchema` below stores exactly the shape it has — there is no
+ *  shared superset schema, because the superset was never real: WinISD itself never shows `Qp`
+ *  or `Qicl` controls for a sealed box. */
+const sealedLossesJsonSchema = z.strictObject({
+    Ql: z.number(),
+    Qa: z.number(),
+});
+export type SealedLossesJson = z.infer<typeof sealedLossesJsonSchema>;
+
+const ventedLossesJsonSchema = z.strictObject({
+    Ql: z.number(),
+    Qa: z.number(),
+    Qp: z.number(),
+});
+export type VentedLossesJson = z.infer<typeof ventedLossesJsonSchema>;
+
+/** A chamber with its own volume and tuning, parameterised by which loss shape it has. */
+const chamberJsonSchemaOf = <L extends z.ZodType>(losses: L) => z.strictObject({
+    // `null`: left blank by the owner — shown with a ⚠, and nothing that needs it is calculated.
+    volume_m3: z.number().nullable(),
+    // A solver-set slot (S7-a) — see `ventJsonSchema.length_m`'s note.
+    tuning_goal_hz: specEntryJsonSchema.optional(),
+    losses,
+});
+const ventedChamberJsonSchema = chamberJsonSchemaOf(ventedLossesJsonSchema);
+export type ChamberJson = z.infer<typeof ventedChamberJsonSchema>;
+
+/** The passive-radiator box's own record — its own schema (a PR is a different device), so no
+ *  `wdr` and not a driver spec field. */
+const passiveRadiatorJsonSchema = z.strictObject({
+    volume_m3: z.number().nullable(),
+    // A solver-set slot (S7-a) — see `ventJsonSchema.length_m`'s note.
+    tuning_goal_hz: specEntryJsonSchema.optional(),
+    count: z.number(),
+    addedMass_kg: specEntryJsonSchema.optional(),
+    // The two PR OUTPUTS (S2-7d2): always calculated, never entered — but still a solver-set
+    // slot, not a readout computed fresh at every read, so the project
+    // cascade has somewhere to write them and a reader never re-solves on read.
+    resonanceWithAddedMass_hz: specEntryJsonSchema.optional(),
+    systemTuning_hz: specEntryJsonSchema.optional(),
+    losses: sealedLossesJsonSchema,
+    // The box's PR, stored as a full driver record (a PR IS a purchasable component, same as
+    // a driver) — blank until `configurePR()` picks one. Reuses `openISDDeviceJsonSchema`
+    // rather than a second driver schema, per QO116.
+    component: radiatorDeviceJsonSchema,
+});
+
+/** The project schema, nested throughout (QO116: box and environment as nested
+ *  strictObjects; the whole project is validated in a single .parse() at the load boundary, not
+ *  as three standalone schemas). `openISDBoxJsonSchema`, `openISDEnvironmentJsonSchema` and the
+ *  rest below exist only to be composed into `openISDProjectJsonSchema` — none is a second
+ *  standalone entry point. */
+const openISDBoxJsonSchema = z.strictObject({
+    boxType: z.enum([
+        'sealed', 'vented', 'bandpass4', 'bandpass6', 'box-passive-radiator', 'abc',
+    ] satisfies readonly BoxType[]),
+    // The port air velocity every port-velocity chart draws as its limit line, m/s. Per project
+    // Optional: absent reads as 17 m/s, matching every project saved before it.
+    portVelocityLimit_m_per_s: z.number().optional(),
+    sealed: z.strictObject({
+        volume_m3: z.number().nullable(), losses: sealedLossesJsonSchema,
+        // A solver-set slot (S7-a) — see `ventJsonSchema.length_m`'s note; a slot for the
+        // sealed-alignment solve to write, wired up in S2-7d.
+        Qtc: specEntryJsonSchema.optional(),
+        // The sealed box's entered or calculated system resonance Fsc, a third way to state the box.
+        Fsc: specEntryJsonSchema.optional(),
+    }),
+    vented: z.strictObject({ chamber: ventedChamberJsonSchema, vent: ventJsonSchema }),
+    bandpass4: z.strictObject({
+        rear: chamberJsonSchemaOf(sealedLossesJsonSchema),
+        front: ventedChamberJsonSchema,
+        frontVent: ventJsonSchema,
+        Qiclfr: z.number(),
+    }),
+    bandpass6: z.strictObject({
+        rear: ventedChamberJsonSchema,
+        front: ventedChamberJsonSchema,
+        rearVent: ventJsonSchema,
+        frontVent: ventJsonSchema,
+        Qiclfr: z.number(),
+    }),
+    abc: z.strictObject({
+        rear: ventedChamberJsonSchema,
+        front: ventedChamberJsonSchema,
+        rearVent: ventJsonSchema,
+        frontVent: ventJsonSchema,
+        // The connecting port between rear and front. No live WinISD evidence was ever captured
+        // for its own loss controls (BUG_20260824) — it stores no losses of its own here, and
+        // none should be invented without that evidence.
+        intraVent: ventJsonSchema,
+        Qiclfr: z.number(),
+    }),
+    passiveRadiator: passiveRadiatorJsonSchema,
+});
+export type OpenISDBoxJson = z.infer<typeof openISDBoxJsonSchema>;
+
+/**
+ * The air the design sits in: five entries, temperature, humidity, pressure, c and ρ, each 'E'
+ * where the user stated it and 'C' where the air solver worked it out (from the other entered
+ * ones, else from the app's Options value). A value the record lacks loads empty and the solver
+ * fills it. The reference constants themselves stay in `@openisd/engine` (`air.ts`'s
+ * `T_REF_K`/`RH_REF_PCT`/`P_REF_PA`) — a second copy here would drift from them silently.
+ */
+/** Projects saved before 2026-10-05 carry `useWinisdAirModel`, the switch for the removed
+ *  CIPM-2007 air model. WinISD's air model is now the only one, so the value is dropped. */
+function dropLegacyUseWinisdAirModel(value: unknown): unknown {
+    if (typeof value !== 'object' || value === null || !('useWinisdAirModel' in value)) return value;
+    const {useWinisdAirModel: _dropped, ...rest} = value;
+    return rest;
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** A record saved before c and ρ were stored (it has neither key) holds its temperature, humidity
+ *  and pressure as 'C' entries: every resolve then wrote the app's Options value there. They are
+ *  the file's own values, so they load as 'E'. A record that has c or ρ is the current layout,
+ *  where a 'C' temperature, humidity or pressure really was calculated, and is left alone. */
+function oldAirLoadsAsEntered(value: unknown): unknown {
+    if (!isRecord(value) || 'c_m_per_s' in value || 'roo_kg_per_m3' in value) return value;
+    const entered = (entry: unknown): unknown => {
+        if (!isRecord(entry) || entry.state !== 'C') return entry;
+        const {state: _state, dq_calculated: _dq, ...rest} = entry;
+        return {state: 'E', ...rest};
+    };
+    return {
+        ...value,
+        temperature_K: entered(value.temperature_K),
+        humidity_pct: entered(value.humidity_pct),
+        pressure_Pa: entered(value.pressure_Pa),
+    };
+}
+
+const openISDEnvironmentJsonSchema = z.preprocess(
+    value => oldAirLoadsAsEntered(dropLegacyUseWinisdAirModel(value)),
+    z.strictObject({
+        temperature_K: specEntryJsonSchema.optional(),
+        humidity_pct: specEntryJsonSchema.optional(),
+        pressure_Pa: specEntryJsonSchema.optional(),
+        c_m_per_s: specEntryJsonSchema.optional(),
+        roo_kg_per_m3: specEntryJsonSchema.optional(),
+    }));
+export type OpenISDEnvironmentJson = z.infer<typeof openISDEnvironmentJsonSchema>;
+
+/** The keys of a project's air entries, one per air quantity. */
+export type AirKey = 'temperature_K' | 'humidity_pct' | 'pressure_Pa' | 'c_m_per_s' | 'roo_kg_per_m3';
+
+const signalEntryJsonSchema = z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema]);
+export type SignalEntryJson = z.infer<typeof signalEntryJsonSchema>;
+
+/** What drives the system: drive power `power_W` and drive voltage `voltage_V`, each an entry.
+ *  An absent `voltage_V` reads as the 1 V default; an absent `power_W` reads as not-available. */
+const openISDSignalJsonSchema = z.strictObject({power_W: signalEntryJsonSchema.optional(), voltage_V: signalEntryJsonSchema.optional()});
+export type OpenISDSignalJson = z.infer<typeof openISDSignalJsonSchema>;
+
+/** WinISD Project tab: Creator/Created/Modified/Description, plus the project's own name. */
+const openISDProjectMetaJsonSchema = z.strictObject({
+    name: z.string(),
+    creator: z.string(),
+    created: z.string(),
+    modified: z.string(),
+    description: z.string(),
+});
+export type OpenISDProjectMetaJson = z.infer<typeof openISDProjectMetaJsonSchema>;
+
+/** WinISD's low/high-pass "Subtype" choices, plus the pass filters' Q/order — see the engine's
+ *  `PassFamily`. */
+const passFamilyJsonSchema = z.enum([
+    'butterworth', 'linkwitzRiley', 'bessel', 'sos',
+] satisfies readonly PassFamily[]);
+
+/** One signal-chain filter — one of WinISD's 8 Filter Editor types, plus the two OpenISD-only
+ *  shelves, each its own strict shape (engine's `FilterSpec`, a discriminated union, not a bag
+ *  of optional fields). `id` is optional (the UI's list key); `enabled` is required on every
+ *  variant. QO169: an old `{type:'lowpass', fc, Q}`-shaped saved filter has no `family`/`order`
+ *  and simply fails this schema — no migration. */
+const filterJsonSchema = z.discriminatedUnion('type', [
+    z.strictObject({id: z.string().optional(), type: z.literal('lowpass'), enabled: z.boolean(),
+        family: passFamilyJsonSchema, order: z.number(), fc: z.number(), Q: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('highpass'), enabled: z.boolean(),
+        family: passFamilyJsonSchema, order: z.number(), fc: z.number(), Q: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('allpass'), enabled: z.boolean(),
+        order: z.number(), t: z.number(), Q: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('linkwitz'), enabled: z.boolean(),
+        f0: z.number(), Q0: z.number(), fp: z.number(), Qp: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('peaking'), enabled: z.boolean(),
+        fc: z.number(), Q: z.number(), gain: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('peakHighpass'), enabled: z.boolean(),
+        fpk: z.number(), gainPk: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('staticGain'), enabled: z.boolean(),
+        gain: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('raisedCosine'), enabled: z.boolean(),
+        fc: z.number(), bwOct: z.number(), gain: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('lowshelf'), enabled: z.boolean(),
+        fc: z.number(), Q: z.number(), gain: z.number()}),
+    z.strictObject({id: z.string().optional(), type: z.literal('highshelf'), enabled: z.boolean(),
+        fc: z.number(), Q: z.number(), gain: z.number()}),
+]) satisfies z.ZodType<Filter>;
+
+/** The signal-chain filter list. */
+const filtersJsonSchema = z.strictObject({
+    filters: filterJsonSchema.array(),
+});
+export type FiltersJson = z.infer<typeof filtersJsonSchema>;
+
+/** Projects saved on 2026-09-26 before the rename carry `useWinisdDriverModel`; read it as
+ *  `winisdDriverModel`. Every save writes the new name. */
+function renameLegacyWinisdDriverModel(value: unknown): unknown {
+    if (typeof value !== 'object' || value === null || !('useWinisdDriverModel' in value)) return value;
+    const {useWinisdDriverModel, ...rest} = value;
+    return {...rest, winisdDriverModel: useWinisdDriverModel};
+}
+
+/** WinISD's top-level Advanced pane settings that are not project-array facts about the driver:
+ *  force-flat auto-EQ, and the port simulation model. */
+const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.strictObject({
+    // WinISD Advanced tab: "Force flat response".
+    forceFlatResponse: z.boolean(),
+    // WinISD Advanced tab: "Use transmission line-model for port simulation".
+    useTransmissionLinePortModel: z.boolean(),
+    // WinISD Advanced tab: "Rg is at driver side" — whether the amplifier's source resistance
+    // (`OpenISDDriverEmbeddingJson.Rs_ohm`) is applied per driver or once across the whole array.
+    rgAtDriverSide: z.boolean(),
+    // WinISD Advanced tab: "Simulate voice coil inductance" — includes Le in the acoustic circuit
+    // model (gyrator) rather than just the impedance plot (winisd). 'winisdGyrator' is the
+    // inductance-on model WinISD itself uses (BUG_20260926).
+    circuitModel: z.enum(['winisd', 'gyrator', 'winisdGyrator']),
+    // WinISD Advanced tab: "SPL graph is Xmax limited" — whether the SPL chart shows the drive
+    // backed off wherever peak excursion exceeds Xmax (`splXlimCurve`) instead of the unclamped
+    // `spl` curve. Display only: the unclamped curve still feeds the transfer-function chart, the
+    // F3/F6/F10 read-outs and every compare trace regardless.
+    splGraphIsXmaxLimited: z.boolean(),
+    // Retired: the sealed-box loss-model choice is gone; the only model is
+    // WinISD's lossy one and Ql/Qa control the losses. Older files still carry the key, so it
+    // parses; the loader (`retireLossMode`) turns it into Ql/Qa and drops it, and OpenISD never
+    // writes it.
+    lossMode: z.enum(['lossless', 'conventional-lossy', 'winisd-lossy']).optional(),
+    // The WinISD bug and option switches below are optional: absent parses to
+    // `CompatSwitch.winisdValue`, so an absent bug switch is OFF (bug fixed) and an absent option
+    // is ON (WinISD's way).
+    // Bug switch "Two-BL driver": the simulation mixes the entered BL with the BL implied
+    // by Fs, Qes and Vas, as WinISD does. Absent parses to OFF.
+    winisdDriverModel: z.boolean().optional(),
+    // Bug switch "Re without Rg": Re where Re + Rg belongs, as WinISD does: the
+    // amplifier apparent load power chart P·Re·|Hf|²/|Z + Rg|, and the power/voltage relation
+    // P = N·V²/Re. Absent parses to OFF.
+    winisdVaModel: z.boolean().optional(),
+    // Option "Simplified ABC intra-port velocity": the ABC intra-port velocity chart as WinISD
+    // draws it, the leak term left out. Absent parses to ON, WinISD's convention.
+    winisdAbcIntraPortVelocity: z.boolean().optional(),
+    // Bug switch "PR Npr resonance": the passive-radiator box's fixed-loss frequency as WinISD
+    // computes it, Npr times below the tuning. Absent parses to OFF.
+    winisdPrNprResonance: z.boolean().optional(),
+    // Bug switch "Bessel high-pass": Bessel high-pass filters as WinISD computes them,
+    // not the mirror of the low-pass. Absent parses to OFF.
+    winisdBesselHighpass: z.boolean().optional(),
+    // Bug switch "ABC group delay": the ABC group delay as WinISD computes it, the
+    // driver part held at the chart frequency while the box is stepped. Absent parses to OFF.
+    winisdAbcGroupDelay: z.boolean().optional(),
+    // Bug switch "TL port without end correction": with the transmission-line port model on, the port pipe
+    // as WinISD builds it, without the end correction, so the tuning rises. Absent parses to OFF.
+    winisdTlPortNoEndCorrection: z.boolean().optional(),
+    // Bug switch "Coil wiring: Re and BL only" (QO942.c62): a coil wiring other than the driver's converts Re and BL only, as WinISD's
+    // routine does; Le and Znom stay as published. Absent parses to OFF (they convert too).
+    winisdCoilWiringReBlOnly: z.boolean().optional(),
+    // Bug switch "Coil coefficient from project" (QO953.c16, T917): the voice coil is heated with the project's AlfaVC only,
+    // as WinISD does, not the driver's own AlfaVC where it states one other than 0. Absent parses to OFF.
+    winisdProjectAlfaVC: z.boolean().optional(),
+    // "Phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
+    winisdWrapPhase: z.boolean().optional(),
+    // Retired (QO941) switch "Per-driver impedance": the impedance chart is always one driver's, as WinISD's. Old files carry it; it is read and ignored.
+    winisdDriverCountModel: z.boolean().optional(),
+    // Bug switch "Sealed picker volume": the sealed alignment picker gives WinISD's volume (Rg 0.1 and
+    // Qa 100 fixed, Ql ignored), not the volume at which the Box tab shows the picked Qtc. Absent parses to OFF.
+    winisdSealedPicker: z.boolean().optional(),
+    // "Uncapped flat response": force flat as WinISD does it, every point to the TF 0 dB, uncapped;
+    // off, boost only to the passband reference, capped. Optional: absent parses to ON.
+    winisdFlatModel: z.boolean().optional(),
+    // Option "Impedance of one driver" (QO946.c131, plan 4.1): the impedance chart shows one driver as WinISD's does, not the
+    // amplifier's load for the project's Driver wiring. The first option that is OFF where a file does not say. Absent parses to OFF.
+    winisdOneDriverImpedance: z.boolean().optional(),
+}));
+export type OpenISDAdvancedJson = z.infer<typeof openISDAdvancedJsonSchema>;
+
+
+/** The chart panels' own project-scoped view state: which charts are open. `N` (sweep point
+ *  count) absent means the engine's own default (`SimulationEngine.sweep`: 400 points). `graphs` (which
+ *  charts are open) is PROJECT-scoped per S10/QO130 (reverses QO90 for this); optional, absent
+ *  meaning a project saved before S10. The cursor/selection (crosshair, pinned frequency,
+ *  drag-band) is ALSO project-scoped per QO130, but those four
+ *  fast-changing values (they write on every mousemove) are kept out of the saved record entirely —
+ *  `OpenISDProject` holds them as plain in-memory instance state, never in this schema; see
+ *  `OpenISDProject.cursorF` etc. */
+const openISDChartsJsonSchema = z.strictObject({
+    N: z.number().optional(),
+    graphs: z.array(z.string()).optional(),
+    /** The project's trace/legend colour, a CSS colour; absent until the project is first opened. */
+    traceColor: z.string().optional(),
+});
+export type OpenISDChartsJson = z.infer<typeof openISDChartsJsonSchema>;
+
+/** The embedded driver, plus the settings that describe how it sits in THIS project's array —
+ *  how many units, how they're wired together, the amplifier's source resistance loading them,
+ *  the coil's thermal rise under drive, and the added mass on the driver from this array's own
+ *  hardware. These are project-array facts, not facts about the driver itself, so they live
+ *  beside `device` rather than inside `OpenISDDeviceJson`. */
+const openISDDriverEmbeddingJsonSchema = z.strictObject({
+    device: driverDeviceJsonSchema,
+    // WinISD Driver tab: "Num. of drivers".
+    nDrivers: z.number(),
+    // WinISD Driver tab: "Voice coil connection".
+    // The project's coil wiring (QO941; QO942.c54, c56): how this project wires the driver's own voice coils, named as the driver's `VCCon`; WinISD's project VCCon. Absent means
+    // the driver's own VCCon (the wiring the maker measured in). Data version 5 renamed the old `wiring` key to `VCCon`, value kept (QO946.c18).
+    VCCon: z.enum(['series', 'parallel']).optional(),
+    // "Driver wiring" (QO946.c129, plan 4.1): how the project's `nDrivers` drivers are wired to the amplifier, not the coils inside one
+    // driver (that is `VCCon`). Absent means parallel, so a file from before this key opens as it always meant.
+    driverWiring: z.enum(['parallel', 'series']).optional(),
+    // WinISD Driver tab: "Voice coil temp rise".
+    vcTempRise_K: z.number(),
+    Rs_ohm: z.number(),
+    // WinISD Driver tab: "Added mass to cone".
+    driverAddedMass_kg: z.number(),
+    // WinISD Driver tab: "Standard" / "Iso-Barik" radio.
+    loading: z.enum(['standard', 'isobaric']),
+    // Pre-flag projects keep WinISD's numbers. New projects explicitly store false.
+    winisdIsobarik: z.boolean().optional(),
+    // WinISD Driver tab: "Voice coil resistance TC" — a project-level value independent of the
+    // driver's own datasheet `alfaVC_per_K` (WinISD stores these as two separate fields,
+    // `[Box] alfaVC` vs `[Driver] alfaVC`, that can and do diverge).
+    alfaVC_per_K: z.number(),
+});
+export type OpenISDDriverEmbeddingJson = z.infer<typeof openISDDriverEmbeddingJsonSchema>;
+
+/** THE project record, as ONE schema (QO116) — every nested section above exists only to build
+ *  this. `openISDProjectJsonSchema.parse()`/`.safeParse()` is the one validator for the whole
+ *  project at the load boundary; nothing downstream re-checks a section on its own. */
+export const openISDProjectJsonSchema = z.strictObject({
+    driverEmbedding: openISDDriverEmbeddingJsonSchema,
+    box: openISDBoxJsonSchema,
+    environment: openISDEnvironmentJsonSchema,
+    signal: openISDSignalJsonSchema,
+    meta: openISDProjectMetaJsonSchema,
+    filters: filtersJsonSchema,
+    advanced: openISDAdvancedJsonSchema,
+    charts: openISDChartsJsonSchema,
+});
+export type OpenISDProjectJson = z.infer<typeof openISDProjectJsonSchema>;
+
+/** A stored or `.owpr` project: its durable id first, then the name and the two states.
+ *  The id lives with the project forever, in browser storage and `.owpr`, and never in a `.wpr`. */
+export const openISDProjectSessionJsonSchema = z.strictObject({
+    id: z.string().min(1),
+    label: z.string(),
+    // Which format this file is in (`schemaVersion.ts`); written on every save, set by the load upgrade.
+    schemaVersion: z.number().optional(),
+    saved: openISDProjectJsonSchema,
+    edited: openISDProjectJsonSchema.nullable(),
+});
+export type OpenISDProjectSessionJson = z.infer<typeof openISDProjectSessionJsonSchema>;
+
+
+/**
+ * The spec section of a driver, named through `OpenISDDriver`'s own PUBLIC `spec` property rather
+ * than by importing the class behind it — that class is deliberately unexported, and this needs a
+ * name for a parameter, not access to anything design keeps private.
+ */
+export type DriverSpec = OpenISDDriver['specs'];
+

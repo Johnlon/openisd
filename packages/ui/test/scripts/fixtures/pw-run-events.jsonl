@@ -1,0 +1,6 @@
+{"event": "test-end", "file": "plain.spec.ts", "title": "plain pass", "status": "passed", "expected": true}
+{"event": "test-end", "file": "plain.spec.ts", "title": "expected failure that fails", "status": "failed", "expected": true}
+{"event": "test-end", "file": "plain.spec.ts", "title": "expected failure that passes", "status": "passed", "expected": false}
+{"event": "test-end", "file": "serial.spec.ts", "title": "first fails", "status": "failed", "expected": false}
+{"event": "test-end", "file": "serial.spec.ts", "title": "second is skipped after the failure", "status": "skipped", "expected": false}
+{"event": "test-end", "file": "serial.spec.ts", "title": "expected failure", "status": "skipped", "expected": false}

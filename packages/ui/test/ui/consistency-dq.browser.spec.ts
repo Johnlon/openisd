@@ -1,0 +1,169 @@
+/**
+ * The consistency-group DQ mark — workspace ledger QP18 and openisd ledger QO13's sibling
+ * QO12, one mechanism for both rulings:
+ *
+ *   "show a dq next to any field in a group that has lost consistency"          (QP18)
+ *   "if this causes dq error then please add dq note at side of affected fields" (QO12)
+ *
+ * What these tests pin: the mark lands on EVERY member of the group, it carries a tooltip
+ * naming the group and the size of the disagreement, a consistent driver has none, and it
+ * blocks nothing.
+ */
+import {expect, openAProject, openDriverEditor, test} from '../fixtures.js';
+import {owdrText} from '../fixtures/seedMyDrivers.js';
+import type {Page} from '@playwright/test';
+import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject} from '../fixtures/sampleProject.js';
+
+ensureSampleProject();
+const COMPLETE_OWPR = COMPLETE_DRIVER_PROJECT_OWPR;
+
+// Mms typed as 30 g on the demo driver — the exact repro recorded in QO12. Fs stays entered
+// at 37 Hz, Cms stays computed from Vas and Sd, and the three can no longer be reconciled:
+// Fs implied by Mms and Cms is ~26.6 Hz.
+const IMPOSSIBLE_MMS_G = '30';
+
+async function openWhatIf(page: Page) {
+  await page.goto('/');
+  await openAProject(page, COMPLETE_OWPR);
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'What-if' }).click();
+  await expect(page.locator('.what-if-panel')).toBeVisible();
+}
+
+const whatIfField = (page: Page, label: string) =>
+  page.locator('.what-if-panel .what-if-fld').filter({ has: page.locator('label', { hasText: new RegExp(`^${label}$`) }) });
+
+async function openEditorParameters(page: Page) {
+  await page.goto('/');
+  await openAProject(page, COMPLETE_OWPR);
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.edit-btn', { hasText: 'Edit' }).click();
+  await expect(page.locator('.de-modal')).toBeVisible();
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+}
+
+const editorField = (page: Page, label: string) =>
+  page.locator('.de-modal .de-fld', { has: page.locator('label', { hasText: new RegExp(`^${label}\\b`) }) });
+
+// ── The driver editor ─────────────────────────────────────────────────────────────────────
+test('driver editor: an inconsistent group marks every one of its members, with an actionable tooltip', async ({ page }) => {
+  await openEditorParameters(page);
+
+  // The demo driver reconciles, so nothing is marked to begin with — a mark on every driver
+  // would be wallpaper, and the whole point is that it means something.
+  for (const f of ['Fs', 'Mms', 'Cms']) {
+    await expect(editorField(page, f).locator('.ui-field-dq-btn')).toHaveCount(0);
+  }
+
+  const mms = editorField(page, 'Mms').locator('input').first();
+  await mms.click();
+  await mms.press('Control+a');
+  await mms.pressSequentially(IMPOSSIBLE_MMS_G);
+  await mms.blur();
+
+  // Fs, Mms AND Cms — the group is the unit, not the field that was typed.
+  for (const f of ['Fs', 'Mms', 'Cms']) {
+    await expect(editorField(page, f).locator('.ui-field-dq-btn')).toHaveCount(1);
+  }
+
+  // The tooltip names the group and how far out it is; "inconsistent" alone is not actionable.
+  const note = await editorField(page, 'Fs').locator('.ui-field-dq-btn').getAttribute('title');
+  expect(note).toContain('resonance (Fs)');
+  expect(note).toContain('moving mass (Mms)');
+  expect(note).toContain('compliance (Cms)');
+  expect(note).toMatch(/disagree by \d/);
+  expect(note).toContain('Fs = 1/(2π·√(Mms·Cms))');
+
+  // A field outside the group is NOT marked.
+  await expect(editorField(page, 'Re').locator('.ui-field-dq-btn')).toHaveCount(0);
+
+  // Nothing is blocked — the ruling was a mark, not a gate.
+  await expect(page.locator('.de-modal .de-footer button:has-text("OK")')).toBeEnabled();
+  await expect(page.locator('.de-modal .de-footer').getByRole('button', { name: 'Export', exact: true })).toBeEnabled();
+});
+
+// ── The Original skin's docked What-if panel ──────────────────────────────────────────────
+test('What-if: the same mark appears on every member of the group as the driver is scrubbed', async ({ page }) => {
+  await openWhatIf(page);
+
+  await expect(page.locator('.what-if-panel .ui-field-dq-btn')).toHaveCount(0);
+
+  const mms = whatIfField(page, 'Mms').locator('input');
+  await mms.click();
+  await mms.press('Control+a');
+  await mms.pressSequentially(IMPOSSIBLE_MMS_G);
+  await mms.blur();
+
+  // Fs and Mms are both on this panel and both carry it. (Cms is a member too, but the What-if?
+  // panel does not show Cms — a mark can only appear beside a field that is on screen.)
+  await expect(whatIfField(page, 'Fs').locator('.ui-field-dq-btn')).toHaveCount(1);
+  await expect(whatIfField(page, 'Mms').locator('.ui-field-dq-btn')).toHaveCount(1);
+  await expect(whatIfField(page, 'Re').locator('.ui-field-dq-btn')).toHaveCount(0);
+
+  // The ⚠ opens the reason under the field (the shared field row's note), not a hover popup.
+  const note = whatIfField(page, 'Mms').locator('.ui-field-note');
+  await whatIfField(page, 'Mms').locator('.ui-field-dq-btn').click();
+  await expect(note).toBeVisible();
+  expect(await note.textContent()).toMatch(/disagree by \d/);
+
+  // Withdrawing the override hands Mms back to the calculation, and the group reconciles again.
+  await mms.click();
+  await mms.press('Control+a');
+  await mms.press('Delete');
+  await mms.blur();
+  await expect(page.locator('.what-if-panel .ui-field-dq-btn')).toHaveCount(0);
+});
+
+
+test('What-if: clicking the alert icon shows the reason in a popup and clicking it again hides it', async ({ page }) => {
+  await openWhatIf(page);
+
+  const mms = whatIfField(page, 'Mms').locator('input');
+  await mms.click();
+  await mms.press('Control+a');
+  await mms.pressSequentially(IMPOSSIBLE_MMS_G);
+  await mms.blur();
+
+  const dqIcon = whatIfField(page, 'Mms').locator('.ui-field-dq-btn');
+  await expect(dqIcon).toBeVisible();
+  const note = whatIfField(page, 'Mms').locator('.ui-field-note');
+  await expect(note).toBeHidden();
+
+  await dqIcon.click();
+  await expect(note).toBeVisible();
+  await expect(note).toContainText('disagree by');
+
+  // The note is a popup: it is read inside the window, never off its edge.
+  const inside = await note.evaluate(el => {
+    const r = el.getBoundingClientRect();
+    return r.left >= 0 && r.right <= window.innerWidth && r.top >= 0 && r.bottom <= window.innerHeight;
+  });
+  expect(inside).toBe(true);
+
+  await dqIcon.click();
+  await expect(note).toBeHidden();
+});
+
+test('chart failure lists the missing circuit values returned by the sweep', async ({ page }) => {
+  await page.goto('/');
+  await openAProject(page, COMPLETE_OWPR);
+
+  // The user swaps in a driver file that carries no electrical or mechanical values.
+  await openDriverEditor(page);
+  await page.locator('.de-modal input[type=file]').setInputFiles({
+    name: 'blank.owdr', mimeType: 'application/x-openisd-driver',
+    buffer: Buffer.from(owdrText({ brand: 'Blank', model: 'Driver', specs: {} }, '00000000-0000-4000-8000-0000000000b1')),
+  });
+  await page.locator('.de-footer button.pri', { hasText: 'OK' }).click();
+  await page.locator('.de-body').waitFor({ state: 'hidden' });
+
+  const chartMessage = page.locator('.gmsg');
+  await expect(chartMessage).toBeVisible();
+  await expect(chartMessage).toContainText('cone area (Sd)');
+  await expect(chartMessage).toContainText('coil resistance (Re)');
+  await expect(chartMessage).toContainText('force factor (BL)');
+  await expect(chartMessage).toContainText('compliance (Cms)');
+  await expect(chartMessage).toContainText('moving mass (Mms)');
+  await expect(chartMessage).toContainText('mechanical resistance (Rms)');
+  await expect(chartMessage).not.toContainText('Simulation produced no usable values');
+});

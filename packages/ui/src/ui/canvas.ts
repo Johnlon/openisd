@@ -1,0 +1,252 @@
+import {NumberField} from '@openisd/design/fields';
+import type {FrequencyAxis, PlotData} from '@openisd/design/chart';
+import type {DragRange, Geo} from '../types.js';
+import {showReadout} from './readout.js';
+
+/** How a chart is dressed. The phone Graph page shows its legend once above the charts and writes
+ *  each reference line's words on the line, so its charts draw neither a legend nor a key. */
+export interface DrawStyle {
+  /** The named series listed in a key inside the plot. */
+  readonly keyInPlot: boolean;
+  /** Each reference line (0 dB, −3 dB, the air speed limit) carries its words on the line. */
+  readonly labelReferenceLines: boolean;
+}
+
+export const DESKTOP_DRAW_STYLE: DrawStyle = {keyInPlot: true, labelReferenceLines: false};
+export const PHONE_DRAW_STYLE: DrawStyle = {keyInPlot: false, labelReferenceLines: true};
+
+// Returns geo so the caller can map pixel → frequency for crosshair.
+export function drawOne(
+  canvas: HTMLCanvasElement | null,
+  plotData: PlotData | null,
+  cursorF: number | null,
+  readEl: HTMLElement | null,
+  dragRange: DragRange | null,
+  style: DrawStyle = DESKTOP_DRAW_STYLE,
+): Geo | null {
+  if (!canvas || !plotData) return null;
+  const ctx = canvas.getContext('2d')!;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.clientWidth || 300, H = canvas.clientHeight || 180;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  // Chart colours are read from CSS custom properties on the canvas (inherited from the
+  // app root), so the chart follows the palette with no fork.
+  const cs = getComputedStyle(canvas);
+  const cvar = (name: string, fallback: string) => (cs.getPropertyValue(name).trim() || fallback);
+  const COL = {
+    grid:     cvar('--chart-grid', '#243040'),
+    text:     cvar('--chart-text', '#7c8a9c'),
+    cross:    cvar('--chart-cross', '#ffffff55'),
+    band:     cvar('--chart-band', 'rgba(255,255,255,0.07)'),
+    bandLine: cvar('--chart-band-line', 'rgba(255,255,255,0.35)'),
+    // A DIFFERENT custom property from the app's own `--chart-bg` (used elsewhere for the
+    // .gpanel div's background, and inherited by every canvas — reading THAT one here would
+    // make every render see a non-empty value and always fillRect, even with no user override).
+    // `--chart-bg-override` is only ever set inline on the canvas by GraphPanel.vue when the
+    // user has actually picked one in Options → Plot Window → Colors, so it stays empty (no
+    // fillRect, transparent canvas as today) until then.
+    bg:       cvar('--chart-bg-override', ''),
+    // The amber trace used for the Pe(power)-limited segment of an Xmax/Pe-split curve — the
+    // one hardcoded chart-line color left in this file, and the closest OpenISD equivalent to
+    // WinISD's "Xmax limit" Options swatch (see OptionsModal.vue header comment: WinISD's own
+    // Xmax-limited segment reuses the trace's own per-project color, not a single constant, so
+    // this override customizes the Pe-limited tint, not literally an "Xmax-limited" tint).
+    peLimit:  cvar('--chart-pelimit', '#ffb454'),
+  };
+  if (COL.bg) { ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, W, H); }
+
+  const { layout } = plotData;
+  const m = { ...layout.margin };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  const { freqAxis, levelAxis } = plotData;
+  const hz = NumberField.PLOT_FMIN_HZ.unitLabel();
+  const X = (f: number) => m.l + freqAxis.fraction(f) * pw;
+  const Y = (v: number) => m.t + (1 - levelAxis.fraction(v)) * ph;
+
+  // frequency grid
+  ctx.strokeStyle = COL.grid; ctx.fillStyle = COL.text; ctx.font = layout.font(layout.tickFontPx, false, cs.fontFamily); ctx.lineWidth = 1;
+  const freqLabels: { text: string; x: number }[] = [];
+  for (const line of freqAxis.gridLines()) {
+    const x = X(line.f); ctx.globalAlpha = line.major ? 0.85 : 0.28;
+    ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); ctx.stroke();
+    if (line.labelled) freqLabels.push({ text: freqAxis.tickLabel(line.f), x });
+  }
+  const labelXs = layout.freqLabelCentres(freqLabels.map(l => l.x), freqLabels.map(l => ctx.measureText(l.text).width), W);
+  ctx.globalAlpha = 1; ctx.textAlign = 'center';
+  freqLabels.forEach((l, i) => ctx.fillText(l.text, labelXs[i], m.t + ph + 11));
+  ctx.globalAlpha = 1;
+
+  // y grid
+  ctx.textAlign = 'right';
+  for (const tick of levelAxis.ticks(ph)) {
+    const y = Y(tick.value); if (y < m.t - 1 || y > m.t + ph + 1) continue;
+    const isMajor = tick.major;
+
+    if (isMajor) {
+      ctx.globalAlpha = 0.55;
+      ctx.lineWidth = 1.1;
+    } else {
+      ctx.globalAlpha = 0.18;
+      ctx.lineWidth = 0.8;
+    }
+
+    ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + pw, y); ctx.stroke();
+
+    if (tick.labelled) {
+      ctx.globalAlpha = isMajor ? 1.0 : 0.45;
+      ctx.fillText(levelAxis.tickLabel(tick.value), m.l - 5, y + layout.levelLabelBaselinePx);
+    }
+  }
+  ctx.globalAlpha = 1;
+  ctx.lineWidth = 1;
+
+  // series
+  for (const s of plotData.series) {
+    if (s.phantom) continue;
+    // The focused project's own trace, drawn heavier so it reads apart from compare overlays.
+    ctx.lineWidth = s.dash ? 1.1 : (s.lineWidth ?? 1.7);
+    if (s.dash) ctx.setLineDash([5, 4]); else ctx.setLineDash([]);
+    if (s.xlim) {
+      // Two-pass: Xmax-limited (design color) then Pe-limited (amber)
+      for (const [isXlim, passColor] of [[true, s.color], [false, COL.peLimit]] as const) {
+        ctx.strokeStyle = passColor;
+        ctx.beginPath(); let started = false;
+        for (let i = 0; i < s.xs.length; i++) {
+          if (s.xlim[i] !== isXlim) { started = false; continue; }
+          const y = Y(s.ys[i]); if (!isFinite(y)) { started = false; continue; }
+          if (!started) { ctx.moveTo(X(s.xs[i]), y); started = true; } else ctx.lineTo(X(s.xs[i]), y);
+        }
+        ctx.stroke();
+      }
+    } else {
+      ctx.strokeStyle = s.color;
+      const wraps = new Set(s.wraps);
+      // A reference line is level: centre it on a device-pixel row so it draws one crisp row.
+      const at = s.reference ? (v: number) => layout.crispRowY(Y(v), dpr) : Y;
+      ctx.beginPath(); let started = false;
+      for (let i = 0; i < s.xs.length; i++) {
+        const y = at(s.ys[i]); if (!isFinite(y)) { started = false; continue; }
+        if (!started || wraps.has(i)) { ctx.moveTo(X(s.xs[i]), y); started = true; } else ctx.lineTo(X(s.xs[i]), y);
+      }
+      ctx.stroke();
+      // The ±180° cut-over is an artefact of wrapping, not part of the response: dotted, in the trace's own width and colour.
+      if (wraps.size) {
+        ctx.save(); ctx.setLineDash([1, 3]);
+        ctx.beginPath();
+        for (const i of wraps) { ctx.moveTo(X(s.xs[i - 1]), Y(s.ys[i - 1])); ctx.lineTo(X(s.xs[i]), Y(s.ys[i])); }
+        ctx.stroke(); ctx.restore();
+      }
+    }
+  }
+  ctx.setLineDash([]);
+
+  if (style.labelReferenceLines) {
+    // The words sit just above their line, right-aligned in the plot, on a halo of the panel's colour; a
+    // label that would touch the one above goes under its own line instead.
+    const halo = getComputedStyle(canvas.parentElement ?? canvas).backgroundColor;
+    ctx.font = layout.font(layout.tickFontPx, true, cs.fontFamily); ctx.textAlign = 'right'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+    let lastY = Number.NEGATIVE_INFINITY;
+    for (const s of plotData.series) {
+      if (!s.reference || s.phantom || s.ys.length === 0) continue;
+      const y = Y(s.ys[0]);
+      if (!isFinite(y) || y < m.t || y > m.t + ph) continue;
+      const ty = y - 5 - lastY < 14 ? y + 15 : y - 5; lastY = ty;
+      ctx.strokeStyle = halo; ctx.strokeText(s.lineLabel ?? s.name, m.l + pw - 4, ty);
+      ctx.fillStyle = s.color; ctx.fillText(s.lineLabel ?? s.name, m.l + pw - 4, ty);
+    }
+    ctx.lineWidth = 1; ctx.textAlign = 'left';
+  }
+
+  // legend — only when there are multiple named series
+  const namedSeries = plotData.series.filter(s => s.name);
+  if (style.keyInPlot && namedSeries.length > 1) {
+    ctx.font = layout.font(layout.tickFontPx, false, cs.fontFamily); ctx.textAlign = 'left';
+    const lh = 13, lx = m.l + 6;
+    let ly = m.t + 6;
+    for (const s of namedSeries) {
+      ctx.strokeStyle = s.color; ctx.lineWidth = s.dash ? 1.1 : (s.lineWidth ?? 1.7);
+      if (s.dash) ctx.setLineDash([4, 3]); else ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(lx, ly + 3); ctx.lineTo(lx + 14, ly + 3); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = layout.font(layout.tickFontPx, s.current === true, cs.fontFamily);
+      ctx.fillStyle = s.color; ctx.fillText(s.name, lx + 17, ly + 6);
+      ly += lh;
+    }
+  }
+
+  const geo: Geo = { m, pw, ph, X, Y, axis: freqAxis };
+
+  // drag range — shaded band between two frequencies with measurement readout
+  if (dragRange) {
+    const band = freqAxis.clampBand(dragRange.fLo, dragRange.fHi);
+    const x1 = X(band.lo), x2 = X(band.hi);
+    ctx.fillStyle = COL.band;
+    ctx.fillRect(x1, m.t, x2 - x1, ph);
+    ctx.strokeStyle = COL.bandLine; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(x1, m.t); ctx.lineTo(x1, m.t + ph); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x2, m.t); ctx.lineTo(x2, m.t + ph); ctx.stroke();
+    // level lines — where the current design's curve crosses EACH selection cursor
+    const prim = plotData.series.find(s => s.current) ?? plotData.series.find(s => !s.dash && !s.phantom);
+    if (prim && prim.xs.length) {
+      for (const f of [dragRange.fLo, dragRange.fHi]) {
+        const y = Y(prim.ys[freqAxis.nearestIndex(prim.xs, f)]);
+        if (!isFinite(y) || y < m.t || y > m.t + ph) continue;
+        ctx.beginPath(); ctx.moveTo(m.l, y); ctx.lineTo(m.l + pw, y); ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
+    if (readEl) {
+      const u = plotData.unit;
+      const st = dragRange.stats;
+      let html = `<b>${freqAxis.bandLabel(dragRange.fLo)} ${hz}</b> – <b>${freqAxis.bandLabel(dragRange.fHi)} ${hz}</b>`;
+      if (st) {
+        html += `  Δ <b>${levelAxis.statLabel(st.ripple)} ${u}</b>`;
+        html += `<br>peak <b>${levelAxis.statLabel(st.peak)} ${u}</b>  trough <b>${levelAxis.statLabel(st.trough)} ${u}</b>`;
+      }
+      html += rolloffLine(plotData, freqAxis, hz);
+      showReadout(readEl, html);
+    }
+  }
+
+  // crosshair
+  const s0 = plotData.series.find(s => s.current) ?? plotData.series[0];
+  const bi = cursorF && s0 ? freqAxis.crosshairIndex(s0.xs, cursorF) : null;
+  if (bi !== null && s0) {
+    const fx = s0.xs[bi];
+    ctx.strokeStyle = COL.cross; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(X(fx), m.t); ctx.lineTo(X(fx), m.t + ph); ctx.stroke();
+    // level line — where the current design's curve crosses the cursor frequency
+    const prim = plotData.series.find(s => s.current) ?? plotData.series.find(s => !s.dash && !s.phantom);
+    if (prim) {
+      const py = Y(prim.ys[bi]);
+      if (isFinite(py) && py >= m.t && py <= m.t + ph) {
+        ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + pw, py); ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]);
+    let html = `<b>${freqAxis.cursorLabel(fx)}${hz}</b>`;
+    for (const s of plotData.series) {
+      if (s.dash || s.phantom) continue;
+      const y = s.ys[bi];
+      ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(X(fx), Y(y), 2.6, 0, 7); ctx.fill();
+      html += ` <span style="color:${s.color}">${levelAxis.readout(y, plotData.unit)}</span>`;
+    }
+    html += rolloffLine(plotData, freqAxis, hz);
+    if (readEl) showReadout(readEl, html);
+  } else if (readEl && !dragRange) {
+    readEl.style.display = 'none';
+  }
+
+  return geo;
+}
+
+/** The readout's F3/F10 line on the transfer function chart: `F3 52 Hz  F10 38 Hz`, or `not reached`
+ *  for a level the trace never gets to; empty on every other chart. */
+function rolloffLine(plotData: PlotData, freqAxis: FrequencyAxis, hz: string): string {
+  if (!plotData.rolloffs.length) return '';
+  const parts = plotData.rolloffs.map(r => `${r.label} <b>${r.f === null ? 'not reached' : `${freqAxis.cursorLabel(r.f)} ${hz}`}</b>`);
+  return `<br>${parts.join('  ')}`;
+}

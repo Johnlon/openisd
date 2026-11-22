@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "useDefineForClassFields": true,
+    "paths": {
+      "@openisd/design": ["./packages/design/domain/index.ts"],
+      "@openisd/design/engine": ["./packages/design/engine/index.ts"],
+      "@openisd/design/filter": ["./packages/design/filter/index.ts"],
+      "@openisd/design/fields": ["./packages/design/fields/index.ts"],
+      "@openisd/design/winisd": ["./packages/design/winisd/index.ts"],
+      "@openisd/design/ini": ["./packages/design/ini/index.ts"],
+      "@openisd/persistence": ["./packages/persistence/src/index.ts"]
+    }
+  }
+}

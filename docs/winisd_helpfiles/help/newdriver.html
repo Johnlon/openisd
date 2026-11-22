@@ -1,0 +1,339 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Entering your own drivers
+    </title>
+    <link rel="stylesheet" href="../winisd.css" type="text/css" />
+  </head>
+  <body>
+    <p class="header">
+      Linearteam WinISD Pro
+    </p>
+    <h1>
+      Entering your own drivers
+    </h1>
+    <p>
+      If you want to create your own drivers, open the New Project window (CTRL-N is a shortcut),
+      click on the "New" button next to the down arrow of the drop down on the New Project window.
+      This opens up the Driver Editor window:
+    </p><img src="images/drvedit01.png" width="620" height="456" alt="Image" />
+    <p>
+      Again, driver editor is split into several tabs, which we will discuss now. Let's begin with
+      first "General"-Tab.
+    </p>
+    <p>
+      Most of the parameters in "General"-tab are self-explanatory, but perhaps short explanation
+      is in place anyway.<br />
+    </p>
+    <ul>
+      <li>Manufacturer is the name of the company who actually made the physical driver, e.g. name
+      of the OEM factory.
+      </li>
+      <li>Brand is the marketing name of the driver.
+      </li>
+      <li>Model is type marking on the driver.
+      </li>
+      <li>Data provided by field is by default filled by user name.
+      </li>
+      <li>For comment field, you can enter your own findings about particular driver.
+      </li>
+    </ul>
+    <p>
+      At bottom of the driver editor window, there is a "Auto calculate unknowns" option. As you'll
+      later notice, it is very great help when entering parameters. In fact, it is recommended that
+      you enter as few parameters as possible, because then Driver editor will ensure, that your
+      data is in perfect accordance with Thiele/Small-model.
+    </p><img src="images/drvedit02.png" width="621" height="457" alt="Image" />
+    <p>
+      In Parameters tab, you enter the <a href="../articles/thielesmall.html">Thiele/Small</a>
+      Parameters of the driver that you wish to add to your database. If you wish to change the
+      mathematical units in which your parameters are given in, simply click on the unit and WinISD
+      will toggle through the available units and make the conversion for you. For instance, if you
+      put a speaker diameter of 8.0 in., and you'd rather have that value in cm, mm, etc., simply
+      click on the value (in. in this case), and watch as WinISD converts it over for you. The area
+      and distance systems are used for Ports and 1w/1m (SPL) measurements.
+    </p>
+    <p>
+      All of the drivers that you create are automatically saved in the \drivers subdirectory
+      (folder) of your \WinISD directory (folder) and, as such, will not be deleted or overwritten
+      when you update the WinISD database from the WinISD home page. The driver name that you
+      provide will be the actual name of the file in the \drivers directory, so don't include any
+      \'s or anything else in the driver name that would be illegal as a Windows file name.
+    </p>
+    <p>
+      The bare minimum information that must be entered is the last three fields of first
+      subsection (Qts, Vas, and Fs). Note that you won't get anything else but minimum set of
+      graphs with these three parameters, so be sure to enter all relevant parameters. As you enter
+      the parameters, driver editor will continuously check if new parameters can be calculated
+      from parameters, which you have so far entered.
+    </p>
+    <p>
+      Parameter status is indicated by different colors. Green means user entered parameter, Blue
+      means calculated parameter. Black means not entered nor calculated parameter. You can change
+      entered parameters anytime, and the editor will re-calculate all calculated parameters all
+      over again.
+    </p>
+    <p>
+      <b>Important note for 0.50a7 and above:</b><br />
+      The driver editor won't accept erraneous entries anymore. Your data must be perfect (i.e. not
+      over-defined by entering "too much" parameters), for you to be able to save it. If you try to
+      enter too many of them, editor will display an error dialog when you try to save the data.
+    </p><img src="images/drvedit05.png" alt="Image" />
+    <p>
+      In above tab, you can enter dimensional information of your driver. It shows then approximate
+      displacement volume DVol. It is probably most accurate that can be obtained using just these
+      dimensions. Most evident neglected volume is the driver frame. On the right, there is
+      illustration for what most dimensions mean. Only one which is not illustrated, is the voice
+      coil diameter, VCd. See also <a href=
+      "../articles/thielesmall.html#dimparams">Thiele/Small-parameters</a> section in articles.
+    </p>
+    <hr />
+    <p>
+      The suggested procedure for entering driver parameters is following (check first that "Auto
+      calculate unknowns" option is checked):
+    </p>
+    <p>
+      1. Enter <b>Mms</b> and <b>Cms</b>
+    </p>
+    <p>
+      This gives <b>fs</b>. If either is not available, then enter <b>fs</b> and other parameter.
+    </p>
+    <p>
+      2. Enter <b>Sd</b>, <b>Bl</b> and <b>Re</b>
+    </p>
+    <p>
+      Now, you should get all but <b>Qms</b> (and <b>Qts</b>), <b>Vas</b>. Please note that Vas may
+      not match exactly what is specified by manufacturer, because exact value of Vas depends on
+      environmental parameters. See <a href="../faq/faq.html">FAQ</a>.
+    </p>
+    <p>
+      3. Enter <b>Rms</b> or <b>Qms</b>.
+    </p>
+    <p>
+      Either one will do, although I tend to prefer <b>Qms</b> over <b>Rms</b>, because it can
+      usually be measured in driver measurement procedures.
+    </p>
+    <p>
+      4. Enter <b>Hc</b>, <b>Hg</b> and <b>Pe</b>.
+    </p>
+    <p>
+      If <b>Hc</b> or <b>Hg</b> or either is available, then enter <b>Xmax</b> and optionally
+      either <b>Hc</b> or <b>Hg</b> if available.
+    </p>
+    <p>
+      5. Enter number of voicecoils.
+    </p>
+    <p>
+      This procedure is most accurate. Also note that it also calculates true SPL (1W/1m) value. So
+      it might not match the marketing SPL value, which is generally somewhat vague. Not in all
+      cases, though.
+    </p>
+    <p>
+      6. Correct <b>Znom</b>, if necessary.
+    </p>
+    <p>
+      If there are several voicecoils, then you must be careful when entering parameters in that
+      case, because many manufacturers give <b>Bl</b> in voice coils in series, because it yields
+      double value for Bl against parallel connection. If driver manufacturer gives <b>Qes</b>,
+      <b>Bl</b> and <b>Cms</b> or <b>Mms</b>, then you can check how <b>Bl</b> is specified. For
+      that, you can enter following parameters to calculate <b>Re</b>: <b>Qes</b>, <b>Fs</b>,
+      <b>Mms</b> or <b>Cms</b> and <b>Bl</b>. Connection mode can be changed by changing the
+      combobox selection. The driver editor then converts Bl and Re values accordingly.
+    </p>
+    <p>
+      Equivalently, you can check for <b>Bl</b> by entering:
+    </p>
+    <p>
+      <b>Qes</b>, <b>Fs</b>, <b>Mms</b> or <b>Cms</b> and <b>Re</b> (for desired connection mode).
+    </p>
+    <p>
+      If you enter resistance for parallel connection and get about half of advertised <b>Bl</b>,
+      then you know, that <b>Bl</b> was specified that way.
+    </p>
+    <p>
+      Like in <a href="boxdesign.html#drivertab">Driver-tab</a> in project window, you'll probably
+      noticed the driver icon in bottom of the driver editor window. you can drag the driver object
+      into some project by just dragging the icon.
+    </p>
+    <hr />
+    <h3>
+      Worked example of entering driver data into program
+    </h3>
+    <p>
+      For example, Let's enter a entry for Scan-Speak 21W/8555-00 driver, which has following
+      specs:
+    </p>
+    <table>
+      <tr>
+        <td>
+          Characteristic sensitivity (2.83V / 1m)
+        </td>
+        <td>
+          87 dB
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Recommended frequency range
+        </td>
+        <td>
+          20 - 600 Hz
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Free air resonance frequency, fs
+        </td>
+        <td>
+          20 Hz
+        </td>
+      </tr>
+      <tr>
+        <td>
+          DC resistance, Re
+        </td>
+        <td>
+          5.5 ohm
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Voice coil inductance, Le
+        </td>
+        <td>
+          0.4 mH
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Effective piston area, Sd
+        </td>
+        <td>
+          220 cm&#178;
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Moving mass incl. air, md
+        </td>
+        <td>
+          32 g
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Mechanical loss, Rm
+        </td>
+        <td>
+          0.9 Ns/m
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Force factor, BL
+        </td>
+        <td>
+          8.2 Tm
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Equivalent volume, Vas
+        </td>
+        <td>
+          136 ltr.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Mechanical Q-factor, Qms
+        </td>
+        <td>
+          4.5
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Electrical Q-factor, Qes
+        </td>
+        <td>
+          0.33
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Total Q-factor, Qts
+        </td>
+        <td>
+          0.31
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Excursion, lin./max.
+        </td>
+        <td>
+          &#177;6.5 / &#177;12 mm
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Voice coil diameter
+        </td>
+        <td>
+          42 mm
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Rated power handling
+        </td>
+        <td>
+          100 W
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Net weight
+        </td>
+        <td>
+          2.4 kg
+        </td>
+      </tr>
+    </table>
+    <p>
+      So what specs should be entered?<br />
+      Based on guidelines given above, let's enter fs, Mms, Qms, Re, Bl, Sd, Le, Xmax and Pe. If
+      you have incorrect unit displayed, just click on it until it matches with driver data units.
+      As you enter the values, note how driver editor continuously calculates missing fields.<br />
+      After entering those specs as suggested above, we obtain following entries in editor window:
+    </p><img src="images/drvedit03.png" width="621" height="457" alt="Image" />
+    <p>
+      As you can see, we got ourselves some of the specs what weren't even specified by the
+      manufacturer. Calculated SPL 1w/1m spec matches also quite well, which is not the case with
+      some of the brands. If you compare calculated Vas against manufacturer's spec, you'll notice
+      that it matches quite well. So we can be quite confident that our data is reasonably
+      correct.<br />
+      <br />
+      When you have entered all the specs, you can check the "Advanced parameters"-tab, and see
+      some statistics of your entered driver (calculated from the parameters we just entered):
+    </p><img src="images/drvedit04.png" width="621" height="457" alt="Image" />
+    <p>
+      There, we can see, that this driver is definitely not suitable for horizontal mounting, Gloss
+      is almost 10 percent! Also, using single woofer like this doesn't certainly be an SPL
+      subwoofer, maximum predicted closed box SPL at 20 Hz at maximum excursion is only 83.7 dB.
+      You can also see the air properties, which WinISD used when it calculated missing fields.
+    </p>
+    <p>
+      Finally, you can click "Save"-button to save the entered data. Driver editor suggests a
+      filename for our driver.
+    </p>
+    <hr />
+    <p class="footer">
+      This page originally written by JJ Richard (JJRichard@linearteam.org) and revised by Janne
+      Ahonen (janne@linearteam.org)
+    </p>
+  </body>
+</html>

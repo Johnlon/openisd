@@ -1,0 +1,51 @@
+{
+  "kind": "drive#fileList",
+  "nextPageToken": "next-page-token-123",
+  "files": [
+    {
+      "id": "file-1",
+      "name": "project-abc-123.owpr",
+      "mimeType": "text/plain",
+      "headRevisionId": "rev-1",
+      "appProperties": {
+        "app": "openisd",
+        "kind": "project",
+        "uuid": "abc-123",
+        "layout": "2",
+        "parentRevision": "rev-0",
+        "seq": "5",
+        "writer": "device-1",
+        "hash": "a1b2c3d4e5f6",
+        "deleted": "0"
+      }
+    },
+    {
+      "id": "file-other",
+      "name": "some-other-file.txt",
+      "mimeType": "text/plain",
+      "headRevisionId": "rev-other",
+      "appProperties": {
+        "app": "other-app",
+        "kind": "document",
+        "uuid": "other-123"
+      }
+    },
+    {
+      "id": "file-2",
+      "name": "driver-def-456.json",
+      "mimeType": "application/json",
+      "headRevisionId": "rev-2",
+      "appProperties": {
+        "app": "openisd",
+        "kind": "driver",
+        "uuid": "def-456",
+        "layout": "2",
+        "parentRevision": "rev-1",
+        "seq": "3",
+        "writer": "device-2",
+        "hash": "b2c3d4e5f6a7",
+        "deleted": "0"
+      }
+    }
+  ]
+}

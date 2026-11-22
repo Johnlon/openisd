@@ -1,0 +1,199 @@
+import {defineConfig} from '@playwright/test';
+import os from 'os';
+import fs from 'fs';
+
+// Each worker's chromium (browser process + renderer) has cost the WSL VM real OOM incidents
+// mid-suite — see bugs/BUG_20260913_oom_kills_wsl_vm_during_ui_tests.md. os.freemem() reports
+// raw MemFree, which undercounts reclaimable page cache and made this over-throttle; /proc/
+// meminfo's MemAvailable is the kernel's own "safe to hand out" estimate, so read that first.
+function availableMemGB() {
+  try {
+    const meminfo = fs.readFileSync('/proc/meminfo', 'utf8');
+    const match = meminfo.match(/^MemAvailable:\s+(\d+)\s*kB/m);
+    if (match) return Number(match[1]) / (1024 * 1024);
+  } catch {
+    // Not Linux (e.g. config loaded under Git Bash on Windows) — fall through.
+  }
+  return os.freemem() / (1024 * 1024 * 1024);
+}
+
+// Budget per worker: measured via /proc/<pid>/smaps_rollup's Pss field (Proportional Set
+// Size), not summed RSS — RSS double-counts pages Chromium's ~10-13 subprocesses per worker
+// share (its own binary text, libGL, libc), so summed RSS overstated this by roughly 2x in an
+// earlier pass. PSS divides each shared page by how many processes map it, giving actual
+// physical memory. Peak observed sampling a --workers=3 run of packages/ui/test/ui/ every 2s:
+// 1.80 GB PSS at peak load, ~0.6 GB/worker; the app's own bundle is 11 MB, so this is Chromium's
+// per-instance overhead, not app weight. Rounded up for headroom on a worse-case page. reserveGB
+// keeps room for vite, the OS, and whatever else is running so the suite backs off instead of
+// being the straw that triggers the VM's OOM killer.
+const MEM_PER_WORKER_GB = 0.7;
+const RESERVE_GB = 2;
+const MAX_SAFE_WORKERS = 2;
+
+function computeWorkerCount() {
+  const cpuCapped = Math.min(MAX_SAFE_WORKERS, Math.ceil(os.cpus().length / 2));
+  const memCapped = Math.floor((availableMemGB() - RESERVE_GB) / MEM_PER_WORKER_GB);
+  return Math.max(1, Math.min(cpuCapped, memCapped));
+}
+
+// scripts/test-browser.sh (via scripts/test-concurrency.sh) sets these after atomically
+// reserving a slot against what OTHER concurrent runs have already claimed — see
+// bugs/BUG_20260913_oom_kills_wsl_vm_during_ui_tests.md "Still open" for why a single process
+// computing this alone isn't enough once more than one run can be going at a time. A direct
+// `npx playwright test` invocation (bypassing that wrapper) has neither var set and falls back
+// to this process's own single-run numbers, uncoordinated with anything else running.
+const WORKERS = process.env.OPENISD_TEST_WORKERS ? Number(process.env.OPENISD_TEST_WORKERS) : computeWorkerCount();
+
+// Ports 4100-4107 belong to scripts/test-concurrency.sh, which hands one out under a lock so
+// concurrent gate runs never share a vite. An uncoordinated `npx playwright test` used to
+// default to 4100 — the first pooled port — and its webServer command opens with
+// `kill-http.sh <PORT>`, so it SHOT DOWN a coordinated run's server and that run failed in a
+// scattered, irreproducible way (bugs/BUG_20260926_browser-specs-fail-in-company-pass-alone.md).
+// An uncoordinated run now takes a free port well above the pool and cannot touch anyone else.
+const COORDINATED_POOL_END = 4189;
+const ADHOC_POOL_START = 4200;
+const ADHOC_POOL_END = 4399;
+
+/** Every TCP port something is listening on, from the kernel's own tables. Empty where those
+ *  tables cannot be read, which only costs this a collision check it never had before. */
+function listeningPorts() {
+  const ports = new Set();
+  for (const table of ['/proc/net/tcp', '/proc/net/tcp6']) {
+    let text;
+    try {
+      text = fs.readFileSync(table, 'utf8');
+    } catch {
+      continue;
+    }
+    for (const line of text.split('\n').slice(1)) {
+      const cols = line.trim().split(/\s+/);
+      // local_address is host:port in hex; state 0A is LISTEN.
+      if (cols.length > 3 && cols[3] === '0A' && cols[1]?.includes(':')) {
+        ports.add(parseInt(cols[1].split(':')[1], 16));
+      }
+    }
+  }
+  return ports;
+}
+
+function adhocPort() {
+  const busy = listeningPorts();
+  for (let p = ADHOC_POOL_START; p <= ADHOC_POOL_END; p++) {
+    if (!busy.has(p)) return String(p);
+  }
+  return String(COORDINATED_POOL_END + 1);
+}
+
+// Written back into the environment, not just held here: the runner re-imports this config in
+// every worker it forks, and a second call to adhocPort() would skip the port the webServer is
+// now listening on and hand the workers a port nothing is serving. Workers inherit the runner's
+// environment, so the first choice is the only choice.
+if (!process.env.OPENISD_TEST_PORT) process.env.OPENISD_TEST_PORT = adhocPort();
+const PORT = process.env.OPENISD_TEST_PORT;
+
+// Specs that reach a third-party site. The default gate must depend on THIS repo only:
+// combined with "A SKIP IS A FAIL" below, an outage at micka.de would otherwise turn
+// `npx playwright test` and the post-land run red for a cause outside the codebase.
+// They stay fully runnable — `npm run test:crosscheck` sets OPENISD_EXTERNAL=1, and so can
+// any ad-hoc run: `OPENISD_EXTERNAL=1 npx playwright test <path>`.
+const EXTERNAL_NETWORK_SPECS = ['**/micka-crosscheck.browser.spec.ts'];
+
+// The suite's app: built once BEFORE Playwright starts (scripts/build-test-app.sh; the GitHub Actions suite builds it
+// in one job and every shard serves it, .github/workflows/suite.yml), then served by the webServer below.
+// One bundle dir per PORT, like the dist dir: concurrent runs never empty each other's catalogue (T489).
+export const TEST_BUNDLE_DIR = `build/test-bundle-${PORT}`;
+export const BUILD_TEST_APP = `bash scripts/kill-http.sh ${PORT} && node scripts/version-info.mjs && node scripts/test-bundle.mjs ${TEST_BUNDLE_DIR} && node_modules/.bin/vite build --mode test --outDir ../../build/test-dist-${PORT} --emptyOutDir`;
+const SERVE_TEST_APP = `OPENISD_DRIVERS_BUNDLE_DIR=${TEST_BUNDLE_DIR} node_modules/.bin/vite preview --outDir ../../build/test-dist-${PORT} --port ${PORT} --strictPort --host 0.0.0.0`;
+
+export default defineConfig({
+  testDir: './packages/ui/test',
+  testMatch: '**/*.browser.spec.ts',
+  testIgnore: process.env.OPENISD_EXTERNAL === '1' ? [] : EXTERNAL_NETWORK_SPECS,
+  // Hang guards, not pace-setters. A passing step returns the moment its condition holds, so a
+  // long limit costs nothing on green; it only stops a spec flickering red when the machine is
+  // loaded by other sessions. A genuinely hung step still dies at the limit. There is NO whole-test
+  // limit (0): a spec that keeps making progress must never be cut off, and a stuck run is caught
+  // by the idle watchdog in scripts/quiet-test.sh instead.
+  timeout: 0,
+  // toHaveScreenshot (packages/ui/test/visual): committed baselines, no pixel tolerance.
+  expect: {
+    timeout: 20000,
+    toHaveScreenshot: { maxDiffPixels: 0, animations: 'disabled', caret: 'hide' },
+  },
+  // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-playwright.js.
+  // The json reporter is what makes "is the suite faster?" answerable at all: `list` prints a
+  // wall clock to a terminal that scrolls away, so every speed claim about this suite has so far
+  // been unbacked. This persists per-test and per-run durations to build/pw-report.json on EVERY
+  // run, so the next comparison reads two files instead of re-running a benchmark.
+  // telemetry-reporter appends one json line per test event as the run goes, so a long run can
+  // be analysed (and a dead run post-mortemed) without waiting for a summary that only exists
+  // at the end. Cheap enough to leave on for every run; scripts/run-ui-telemetry.sh relies on
+  // it being here rather than passing --reporter, which would drop the no-skips gate below.
+  reporter: [['list'], ['json', { outputFile: 'build/pw-report.json' }], ['./scripts/telemetry-reporter.mjs'], ['./scripts/test-reporters/no-skips-playwright.js'], ['./scripts/test-reporters/timing-playwright.mjs']],
+  // A stray `test.only` must not silently narrow the suite either.
+  forbidOnly: true,
+  // Baselines use the bundled Inter font (see canvas.ts), which renders identically on
+  // every OS — so drop the {platform} segment and keep one snapshot set for all platforms.
+  snapshotPathTemplate: '{testDir}/{testFileDir}/{testFileName}-snapshots/{arg}{ext}',
+  retries: 0,
+  // STOP a collapsed run rather than let it manufacture a total. `reuseExistingServer` means a
+  // vite that dies mid-run is never restarted, so every remaining test fails identically on
+  // ERR_CONNECTION_REFUSED — once turning one server death into "210 failed", an hour spent
+  // producing a number that measured nothing about the code.
+  // bugs/BUG_20260909_the_playwright_vite_server_dies_mid_run_and_fakes_hundreds_of_failures.md
+  //
+  // Set well ABOVE any plausible real red so it never truncates a genuine result: the suite's
+  // worst honest run to date was 161. This bites only when the run has stopped measuring the
+  // code at all.
+  maxFailures: 180,
+  // Runs tests within a single file in parallel.
+  fullyParallel: true,
+  // Scale workers based on cores (up to 8) to speed up local runs, further capped by available
+  // memory so the suite backs off instead of OOM-killing the WSL VM under memory pressure.
+  workers: WORKERS,
+  use: {
+    // One time zone for every machine: a time on a screen is formatted in the browser's zone, and CI's is UTC (a picture read 13:00 here, 12:00 there).
+    timezoneId: 'UTC',
+    actionTimeout: 20000,
+    // A page load under heavy machine load (other sessions running suites) can take tens of
+    // seconds; 20 s flickered red at load ~18.
+    navigationTimeout: 60000,
+    browserName: 'chromium',
+    // `channel: 'chromium'` selects the full browser. WITHOUT it Playwright launches
+    // `chrome-headless-shell`, and on this machine that binary is SIGKILLed (exit 137) the
+    // moment it forks a renderer, under concurrent load. Reproduced with a single standalone
+    // launch — no test runner, no server — while the full binary launched cleanly in the same
+    // window; `--version` works on both, only the render path dies. The kill is external and
+    // arrives ~26 ms after fork, before Playwright can attach. `free` reported 15 GB available
+    // and /dev/shm empty at the time and `dmesg` showed no OOM record, but neither rules out a
+    // kernel OOM kill: dmesg is restricted under WSL2 and the Windows-side memory budget is
+    // not what `free` measures.
+    channel: 'chromium',
+    headless: true,
+    baseURL: `http://localhost:${PORT}`,
+    launchOptions: {
+      args: ['--disable-gpu', '--disable-software-rasterizer', '--disable-dev-shm-usage', '--no-sandbox'],
+    },
+  },
+  webServer: {
+    // version-info.mjs stamps packages/ui/public/build-info.json, which this vite serves at
+    // /build-info.json — the toolbar's version chip (toolbar-version browser spec) reads it.
+    // PORT varies per run (see WORKERS/PORT above) so concurrent runs don't collide on 4100.
+    // The suite's vite serves the small test catalogue (six reference devices, cut from the
+    // tracked one by scripts/test-bundle.mjs — no corpus needed) and runs no file watcher.
+    // The suite runs against a BUILT app: `vite build --mode test` once, then `vite preview` serves
+    // static files. The dev server compiled every page on demand: under load a page took 50–80 s and
+    // 19 of 23 failures on 11 Oct 2026 were 60 s goto timeouts. Mode `test` is the only build that
+    // installs the fixtures' seam (packages/ui/src/logic/testHooks.ts). One dist per PORT.
+    command: SERVE_TEST_APP,
+    url: `http://localhost:${PORT}`,
+    // Never latch onto a server already on this port: it belongs to another run. test-browser.sh frees
+    // the reserved port first, so a busy port here is a collision and must fail, not be shared.
+    reuseExistingServer: false,
+    // The server start only; the build is not here. Playwright reads 0 as its 60 s default, so the deterministic
+    // build runs before Playwright starts (scripts/build-test-app.sh, called by test-browser.sh and run-ui-telemetry.sh).
+    timeout: 300000,
+  },
+
+
+});

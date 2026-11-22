@@ -1,0 +1,330 @@
+
+ WinISD versions (versions.txt in program path)
+ Copyright (c) 1996-2004 Juha Hartikainen, Janne Ahonen.
+ - dates are in dd.mm.yyyy format
+ -------------------------------------------------------------
+
+#0.50alpha7 [11.09.2004] Juha Hartikainen / Janne Ahonen
+
+ New:
+  - If project file is changed, program now asks if user wants
+    to save the project. (Juha)
+  - Added voice coil thermal simulation fields. Now you can
+    simulate effect of voice coil heating based on temperature
+    rise that you specify. You can also specify resistance
+    temperature coefficient of voice coil material. (Janne)
+  - Added several alignment options for closed and vented box.
+    Program now suggests different alignments based on Qts
+    value. (Janne)
+  - Box alignment calculation now considers external
+    resistance and reduction of Q as box has some absorption
+    loss. Leak losses are not considered when calculating
+    alignments. (Janne)
+  - Added passive radiator extra mass dragging for passive
+    radiator. Dragging vertically changes passive radiator
+    extra mass => tuning frequency is changed. This requires
+    that you enter some initial extra mass for passive
+    radiator for this to work. (Janne)
+  - Added showing of air density value to "Environment tab".
+    (Janne)
+  - Added option to "cross-calculate" vents. User can now
+    specify physical vent properties, and tuning frequency is
+    calculated according that length. This can help when
+    studying existing boxes. No more guesswork. (Janne)
+  - When changing environment values, physical vent dimensions
+    stay constant, and box tuning is recalculated. This allows
+    you to investigate temperature sensitivity of your design.
+    (Janne)
+  - Added calculation of first port resonance frequency. This
+    shows frequency of first "organ pipe" resonance. Others
+    are multiplies of this frequency. (Janne)
+  - Added option to change end correction factor.  (Janne)
+  - Added drawing of -3 dB line. (Janne)
+  - Added drawing of excursion limit. (Janne)
+  - Added option to configure rms, peak or peak-to-peak
+    excursion and air velocities. (Janne)
+  - Added calculation of off-axis responses. User can now
+    specify off-axis angle. (Janne)
+  - Added simulation of various types of prototype filters.
+    This is very nice feature, since now you can add various
+    combinations of these filters, and see their combined
+    impact on frequency response (magnitude and phase), cone
+    excursion and group delay. You can also plot frequency
+    response or group delay of equalizer/filter chain.
+    EQ/Filter transfer function magnitude plot has its own
+    plot limits. (Janne, Juha)
+  - Added option relative cursor readings. Just doubleclick in
+    plot window after setting to reference point to enable
+    relative cursor readings. (Janne)
+  - Added option to change and specify voice coil connection
+    mode, all VCs in parallel or in series. (Janne)
+  - Added amplifier apparent power graph. This shows apparent
+    power taken from the feeding amplifier, to assess amplifier
+    loading. (Janne)
+  - Added parameter tracking to the driver editor. Now driver
+    editor tracks which parameters were entered and which were
+    calculated. (Janne)
+  - Driver editor now internally recalculates all calculated
+    parameters, when user enters new value for already entered
+    parameter. This makes easy to correct entries. (Janne)
+  - Driver editor now checks all parameters by calculating through
+    all relations between parameters. This assures that data is always
+    correct. (Janne)
+
+ Changes:
+  - Moved "check internet for new version" under "Help/online"
+    menu (Juha)
+  - Changed online support to point forums instead of email
+    (Juha)
+  - Changed text "Frc" to "Fsc" for more consistency, like
+    Qts => Qtc. (Janne)
+  - Calculation of models rewritten for better clarity. (Janne)
+
+ Bugs fixed:
+  - 'New project'-window now remembers last driver (Juha)
+  - Many cosmetic fixes. (Juha)
+  - Fixed toolbar colours if user was using customized colour
+    scheme. (Juha)
+  - Fixed bug where certain editboxes were hard to edit by
+    hand (program was overwriting what you just typed) (Juha)
+
+
+#0.50alpha6 [27.05.2002] Juha Hartikainen
+
+ New:
+  - Added uninstall icon to program group (altought you'll
+    never need it).
+  - Vent tab in project window now displays vent cross area.
+  - Added new drivers to database.
+  - Distribution is now packaged with Wise Installer 9.0.
+  - Driver Editor/Dimensions is now functional.
+  - Some more drivers to database.
+  - Help file now contains some great stuff :-)
+  - Frequency labels in plot window. (finally!)
+  - Added Gloss driver parameter. It describes how many
+    percent the driver cone will move down when driver is
+    faced down.
+  - Added initial support for printing plots. There is a
+    "Print" button in plot window for that.
+  - Added new simulation "Maximum SPL", which tells the maximum
+    SPL possible to get limited by either temperature or cone
+    excursion.
+  - Driver editor: Added calculation of Sd from Vas and Cms.
+
+ Changes:
+  - Unit labels are now with a little bigger font.
+  - Tuned closed box Qtc and Frc calculation formula a bit.
+  - Removed "Print" from main menu, as you can do it directly
+    from plot window.
+  - Options: 'OK'-button is now default, so you can easilly
+    exit accepting changes with just hitting ENTER anywhere.
+    ESC cancels all the changes and closes Options-window.
+  - It is now possible to scroll plot window toolbar if it
+    does not fit in window.
+  - Driver editor asks wether existing file should be
+    overwritten or not.
+  - Tweaked driver database handling to be a bit more quicker
+    I hope.
+
+ Bugs fixed:
+  - "Check internet for updates" shows it correctly if you
+    already have the latest version.
+  - Shortcut to help file pointed to wrong location.
+  - Driver Editor : Sometimes Xlim, KLe and fLe were not
+    cleared.
+  - Fixed bug where plot window frequency limits were not
+    updated when changed from options(restart was needed).
+
+
+#0.50alpha5 [03.03.2002] Juha Hartikainen
+
+ Info:
+  - Your comments about new design and new features is very
+    important now, as I will release future versions based
+    on YOUR comments.
+
+ New:
+  - Added more drivers to driver database.
+  - Added (yet incomplete) explanation of different driver
+    parameters to Help file.
+  - Installer now asks wether you want to use metric or
+    imperial unit system as default.
+  - Added more tips to controls. (You can turn them on by
+    clicking the "question mark"-button from toolbar.
+  - Added initial support for Passive Radiator simulation.
+  - Most tool windows (eg. signal generator) will now close
+    with ESC key.
+  - New button images for main window toolbar.
+  - Added "Explanation of plot types" to help file.
+  - "Open project" button has small arrow, and by clicking it
+    you can quickly open some project from projects directory.
+  - Active project window will be automatically raised to top
+    after you release mouse button in plot window.
+  - "File/Check internet for updates" is now functional.
+  - Signal generator's "Get frequency from cursor" is now
+    functional.
+  - "Save project" from main menu is now functional.
+  - Driver editor has now option to turn off auto calculation
+    of unknown values. (Auto Calculate Unknowns)
+  - If toolwindow (eg. Signal generator) gets behind other
+    window (eg. plot window), hitting its button will bring
+    it visible again.
+  - You can close tiny value editor window by clicking enter
+    or escape.
+
+ Changes:
+  - Older version  history can be found from versions_old.txt.
+  - Restructured the plot-type selection menu + some visual
+    enhancements.
+  - Grouped main window's buttons.
+  - Changed driver editor that it will fit in 800x600 screen.
+  - Redesigned plot window a bit (once again).
+
+ Bugs fixed:
+  - Driver editor might have locked if user entered Re value
+    below 0.6.
+  - Fixed the "Maximum Power"-plot for boxes with more than
+    one driver. (Now shows overall system power handling)
+  - Fixed problems on loading project files from systems with
+    different date/decimal separator settings.
+  - Driver editor: If driver to be saved contained characters
+    not allowed in filenames in "Brand" or "Model" fields,
+    program refused to save it. (illegal characters will be
+    replaced by _ character)
+  - Impedance plot was "calculated" even with insufficient
+    driver parameters.
+  - Clear button in driver editor now actually works.
+  - Fixed several bugs in About box :-D
+
+
+#0.50alpha4 [10.01.2002] Juha Hartikainen
+
+ New:
+  - Driver data editor has now "Clear" button, which clears
+    all fields (handy in case you are adding new driver from
+    scratch).
+  - Driver data editor defaults "Date Added" field to current
+    date and "Data provided by" to Windows user name for all
+    new drivers
+  - When saving driver to disk, program suggest Brand+Model
+    as filename.
+
+ Changes:
+  - Removed "SPL <- Fs, Vas, Qes" calculation from driver data
+    editor because its inaccuracy.
+
+
+#0.50alpha3 [01.01.2002] Juha Hartikainen
+
+ New:
+  - Driver data editor can now calculate Cms from Fs and Mms.
+  - Projects will now go to their own directory (Projects\)
+    as default.
+  - Plot window has button to bring up the Options dialog.
+
+ Changes:
+  - Series resistance of signal source is now set to 0.1 ohms
+    at default (was 0.0 ohms).
+  - Editing vent length is now disabled because reverse
+    calculation (from length to tuning frequency) is not (yet)
+    implemented.
+
+ Fixes:
+  - Tiny driver parameter window: "dia" replaced by Dd.
+  - Fixed tab-order in driver data editor.
+
+
+#0.50alpha2 [12.12.2001] Juha Hartikainen
+
+ New:
+  - Driver editor has now more advanced "Calculate unknowns"
+    funtionality.
+  - Rewritten driver editor.
+  - Signal generator has limited support for decimals, so
+    now you can play your favourite 21.9820 Hz tune.
+  - Added "Help mode" button to main windows toolbar. When
+    this button is checked, you will see small help regarding
+    each control you move the mouse over.
+  - Started to write new help files from the scratch.
+  - Improved plot window horizontal line drawing routine.
+    Lines are now drawn also below 1 values, and only
+    for multiples of 1, 2 or 5.
+  - New outlook for project window.
+  - You are now able to control delta-mass (=added mass to
+    driver cone) for driver in project window.
+  - This version is now able to save/load projects. File
+    format is completely different to previous, and thus
+    the file extension has been changed to .wpr
+  - Added possibility to drag driver parameters from project
+    to another. There is small driver icon in "Driver" tab,
+    just drag it to another project's tab-selector and
+    parameters gets copied.
+  - Added "Signal source" tab to project window, where you can
+    specify signal source power, and Rg and also listening
+    distance (affects SPL plot).
+  - Program warns user if illegal value is entered in Relative
+    Humidity or Temperature on environment settings.
+
+ Fixes:
+  - Units got resetted (back to SI)sometimes mysteriously (fixed).
+  - Plot drawing routine didn't draw last rightmost pixel in
+    plot window.
+  - "Snap to grid" works for plot window again.
+  - Fixed strange problems with units after project was saved
+    to different directory than program is at.
+  - Impedance plot was slight off when multiple drivers were
+    used in project.
+  - "Save window positions" works again also for plot window.
+  - If "New project" wizard suggested vented box, the picture
+    wasn't updated to show vented box.
+  - When user entered 0 in chamber volume or tuning frequency
+    field on project window, and tried to drag the values
+    with mouse, program caused floating point errors or
+    other similiar misbehaviour.
+  - Maximizing plot window caused "lockup", since there wasn't
+    restore button visible anymore. Maximize button is now
+    disabled.
+  - Relative air humidity can now be also exactly 0.
+    (Now don't ask me to come visit you if you have :)
+
+ Changes:
+  - Added kHz to frequency units.
+  - Relative Humidity is now in scale of 0-100 percent,
+    so people who have installed 0.50a1 NEED TO change
+    value from "Options" dialog to 30 or so.
+  - Changed "Gain" to read "Transfer function" in Options
+    dialog as it is now in plot window.
+
+
+#0.50alpha1 [09.10.2001] Juha Hartikainen
+ Info:
+  - Due very large changes in WinISD, some parts of the
+    program are unavailable.
+
+ New:
+  - Added "Environment settings" where you can set environment
+    parameters, such as temperature, air humidy and air
+    pressure.
+  - Added advanced settings(Ql, Qa, Qp) for chambers.
+  - Program is now able to simulate Cone excursion and
+    Impedance + others. (Thanks to Janne Ahonen)
+  - You can specify frequency limits (start and end) and
+    all Y-axis limits for different plot-types. Just go to
+    Options dialog (Alt-O).
+  - Qtc and Fr are now shown for closed box, and Fr is
+    shown for Bandpass 4th order.
+
+ Changes:
+  - Driver editor has now groups for "basic" and "advanced"
+    parameters. You need to know all parameters in "advanced"
+    group the get all the simulations out.
+  - In project window, rear chamber now means the chamber
+    behind the driver. So closed and vented box only has rear
+    chamber.
+  - Box parameters changing by mouse "drag" : volume changing
+    reversed, it "controlling" the frequency response a bit
+    easier.
+  - Added some more decimals to certain units.
+
+
+

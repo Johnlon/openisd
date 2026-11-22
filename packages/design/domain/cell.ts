@@ -1,0 +1,535 @@
+import type {DqIssue, SolverField, SolverInput} from '@openisd/design/engine';
+import type {SpecEntryJson} from './openisdSchema.js';
+import {halfUlp} from './precision.js';
+import {nonFiniteResult} from '../calculatedResult.js';
+import {NumberField} from '../fields/field.js';
+
+// ───────────────────────────────── Capability atoms ─────────────────────────────────────────────
+//
+// A field the domain exposes is an intersection of these, declared inline at its site. Absence
+// is `null` in `V`; a field whose `V` excludes `null` is always present.
+
+/** The badge letter a field shows: `E` entered, `C` calculated, `N` no value. */
+export type ProvenanceLetter = 'E' | 'C' | 'N';
+
+/** Read: the current value, the field's name, its provenance and its diagnostic notes. */
+export interface Readable<V> {
+  readonly name: string;
+  readonly value: V;
+  /** `E` when a person entered the value, `C` when it was derived, else `N`. */
+  readonly provenance: ProvenanceLetter;
+  readonly dq: readonly DqIssue[];
+  /** The project needs this field and cannot derive it — a `missing-dependencies` issue on
+   *  `dq` names it, so something depending on it is blocked until it is stated. NOT an
+   *  `inconsistent-inputs` issue, which is a contradiction between values already stated. */
+  readonly mandatoryAndUnsatisfied: boolean;
+}
+
+/** A person can have put the value there: `entered` is true when they did. */
+export interface Entered {
+  readonly entered: boolean;
+}
+
+/** The value can be derived: `calculated` is true when the solver (or a clear-default) wrote it. */
+export interface Calculated {
+  readonly calculated: boolean;
+}
+
+/** Half-width of the value's interval: what an entered value STATES (D13), or what a
+ *  calculated one inherits from the entered values it was derived from; `null` when neither is
+ *  known. A consistency check widens an input's contribution by it, so a value stated as "0.49"
+ *  is not flagged against one stated as "0.495"; a display shows the decimals it supports. */
+export interface Precise {
+  readonly precision: number | null;
+}
+
+/** The project owner can enter a new value. `precision` is the half-width of what that value
+ *  STATES, in SI — an editor showing 2 decimals of grams passes 0.000005 — and is omitted where
+ *  the caller has nothing better to say than the number itself (D13, `entryPrecision`). */
+export interface Writable<T> {
+  set(v: T, precision?: number): void;
+}
+
+/** The project owner can retract a stated value: to `null` where `V` admits it, else to the
+ *  field's own default. */
+export interface Clearable {
+  clear(): void;
+}
+
+/** The solver's writes: a derived value with optional notes and the half-width it inherits from
+ *  its inputs, or notes alone. */
+export interface Calculatable<T> {
+  setCalculated(value: T, dq?: readonly DqIssue[], precision?: number): void;
+  setDq(dq?: readonly DqIssue[]): void;
+}
+
+/** The solver could not derive a value: reads `null` afterwards unless the value was entered. */
+export interface Unsolvable {
+  setNotAvailable(): void;
+}
+
+/** A stored value with no provenance — config, losses, catalogue facts the schema always fills. */
+export interface SimpleField<T> {
+  readonly value: T;
+  set(v: T): void;
+}
+
+// ───────────────────────────────── Internal cell ─────────────────────────────────────────────────
+
+/** One read of a field's slot. Internal to the implementations below — a field exposes
+ *  `name`/`value`/`entered`/`calculated`/`dq` itself, never the cell. */
+export interface FieldCell<V> {
+  readonly name: string;
+  readonly value: V;
+  readonly entered: boolean;
+  readonly calculated: boolean;
+  /** Half-width of the value's interval, entered or calculated; `null` when unknown (D13). */
+  readonly precision: number | null;
+  readonly dq: readonly DqIssue[];
+}
+
+export function enteredCell<V>(name: string, value: V, dq?: readonly DqIssue[], precision: number | null = null): FieldCell<V> {
+  return { name, value, entered: true, calculated: false, precision, dq: dq ?? [] };
+}
+
+export function calculatedCell<V>(name: string, value: V, dq?: readonly DqIssue[], precision: number | null = null): FieldCell<V> {
+  return { name, value, entered: false, calculated: true, precision, dq: dq ?? [] };
+}
+
+export function absentCell<T>(name: string, dq?: readonly DqIssue[]): FieldCell<T | null> {
+  return { name, value: null, entered: false, calculated: false, precision: null, dq: dq ?? [] };
+}
+
+function finiteCell<V>(cell: FieldCell<V>): FieldCell<V | null> {
+  if (!cell.calculated || typeof cell.value !== 'number') return cell;
+  const issue = nonFiniteResult(cell.name, calculatedFieldLabel(cell.name), cell.value);
+  return issue === null ? cell : absentCell(cell.name, [...cell.dq, issue]);
+}
+
+function calculatedFieldLabel(name: string): string {
+  switch (name) {
+    case 'naturalTuning_hz': return 'Passive radiator tuning with no added mass';
+    case 'addedMassForTuning_kg': return 'Passive radiator added mass';
+    case 'ventAchievedFb': return 'Achieved vent tuning';
+    case 'ventMaxReachableFb': return 'Maximum vent tuning';
+    case 'resonance_hz': return 'Box resonance';
+    default: return NumberField.named(name)?.label ?? name;
+  }
+}
+
+// ──────────────── Write plumbing the impls below take in their constructors ────────────────────
+
+/** `entered(v)`: the one write a solver never makes — a project fact. `precision` is what that
+ *  fact states, per `Writable`. */
+export interface Enterable<V> {
+  entered(v: V, precision?: number): void;
+}
+
+/** `calculated(v, precision)`/`dq(list)` — the solver's writes. */
+export interface SolverWritable<V> {
+  calculated(v: V, precision?: number): void;
+  dq(dq: readonly DqIssue[]): void;
+  notAvailable?(): void;
+}
+
+// ───────────────────────────────── Implementations ──────────────────────────────────────────────
+//
+// The domain API's getters declare their return type as an intersection of the atoms above,
+// never one of these classes. The classes are exported because `openisdDomain.ts` builds fields
+// with `new` directly; nothing outside this file names one as a type. One class per combination
+// of atoms in use — each `implements` exactly its own list, nothing borrowed from a shared base
+// beyond `Readable<V>`.
+
+export class ReadableFieldImpl<V> implements Readable<V> {
+  constructor(protected readonly readCell: () => FieldCell<V>) {}
+
+  get name(): string { return this.readCell().name; }
+  get value(): V { return this.readCell().value; }
+  get provenance(): ProvenanceLetter {
+    const cell = this.readCell();
+    if (cell.entered) return 'E';
+    if (cell.calculated) return 'C';
+    return 'N';
+  }
+  get dq(): readonly DqIssue[] { return this.readCell().dq; }
+  get mandatoryAndUnsatisfied(): boolean {
+    return this.dq.some(issue => issue.kind === 'missing-dependencies' || issue.kind === 'required-value');
+  }
+}
+
+/** A stated-or-absent fact: entered by the project owner, never derived. `clear()` empties the
+ *  slot to `null`. */
+export class EnteredFieldImpl<T> extends ReadableFieldImpl<T | null> implements Entered, Precise, Writable<T>, Clearable {
+  constructor(
+    readCell: () => FieldCell<T | null>,
+    private readonly writes: Enterable<T> & Clearable,
+  ) {
+    super(readCell);
+  }
+
+  get entered(): boolean { return this.readCell().entered; }
+  get precision(): number | null { return this.readCell().precision; }
+  set(v: T, precision?: number): void { this.writes.entered(v, precision); }
+  clear(): void { this.writes.clear(); }
+}
+
+/** A fact the owner enters and clears, whose value reads as calculated by the owner's own formula
+ *  while none is entered. The solver never writes it. */
+export class DerivableFieldImpl<T> extends EnteredFieldImpl<T> implements Calculated {
+  constructor(readCell: () => FieldCell<T | null>, writes: Enterable<T> & Clearable) {
+    super(() => finiteCell(readCell()), writes);
+  }
+
+  get calculated(): boolean { return this.readCell().calculated; }
+}
+
+/** Read-only: the solver derives this value or reports it absent, and nothing ever enters it. */
+export class CalculatedFieldImpl<V> extends ReadableFieldImpl<V | null> implements Calculated {
+  constructor(readCell: () => FieldCell<V>) {
+    super(() => finiteCell(readCell()));
+  }
+
+  get calculated(): boolean { return this.readCell().calculated; }
+}
+
+/** Owner and solver both write. A pure lens over `writes`/`readCell`, never a store of its own —
+ *  every read re-reads the record `writes` targets, so nothing here can fall out of step with
+ *  it (T11). */
+export class DualWriteFieldImpl<T> extends ReadableFieldImpl<T | null>
+  implements Entered, Calculated, Writable<T>, Clearable, Calculatable<T>, Unsolvable, SolverField<T> {
+  constructor(
+    readCell: () => FieldCell<T | null>,
+    private readonly writes: Enterable<T> & Clearable & SolverWritable<T>,
+  ) {
+    super(readCell);
+  }
+
+  get entered(): boolean { return this.readCell().entered; }
+  get calculated(): boolean { return this.readCell().calculated; }
+  get precision(): number | null { return this.readCell().precision; }
+  set(v: T, precision?: number): void { this.writes.entered(v, precision); }
+  clear(): void { this.writes.clear(); }
+
+  /** Never removes an entered value — only the project itself retracts a stated fact; the
+   *  solver merely reports that it could not derive one. */
+  setNotAvailable(): void {
+    if (this.writes.notAvailable) {
+      this.writes.notAvailable();
+    } else if (!this.entered) {
+      this.writes.clear();
+    }
+  }
+
+  setCalculated(value: T, dq?: readonly DqIssue[], precision?: number): void {
+    this.writes.calculated(value, precision);
+    if (dq !== undefined) this.writes.dq(dq);
+  }
+
+  setDq(dq?: readonly DqIssue[]): void {
+    this.writes.dq(dq ?? []);
+  }
+}
+
+/** Owner and solver both write, and the value is never absent: an empty slot reads a calculated
+ *  default. `clear()` never makes it null: it drops the entered value, so the field reads C —
+ *  the default, or the solver's value — again. */
+export class DefaultingFieldImpl<T> extends ReadableFieldImpl<T>
+  implements Entered, Calculated, Writable<T>, Clearable, Calculatable<T> {
+  constructor(
+    readCell: () => FieldCell<T>,
+    private readonly writes: Enterable<T> & Clearable & SolverWritable<T>,
+  ) {
+    super(readCell);
+  }
+
+  get entered(): boolean { return this.readCell().entered; }
+  get calculated(): boolean { return this.readCell().calculated; }
+  get precision(): number | null { return this.readCell().precision; }
+  set(v: T, precision?: number): void { this.writes.entered(v, precision); }
+  clear(): void { this.writes.clear(); }
+
+  setCalculated(value: T, dq?: readonly DqIssue[], precision?: number): void {
+    this.writes.calculated(value, precision);
+    if (dq !== undefined) this.writes.dq(dq);
+  }
+
+  setDq(dq?: readonly DqIssue[]): void {
+    this.writes.dq(dq ?? []);
+  }
+}
+
+/** The owner sets it and never clears it — `set()` only: the type omits `clear()` rather than
+ *  expose one that throws. */
+export class SetOnlyFieldImpl<T, R extends T | null = T> extends ReadableFieldImpl<R> implements Entered, Writable<T> {
+  constructor(
+    readCell: () => FieldCell<R>,
+    private readonly writes: Enterable<T>,
+  ) {
+    super(readCell);
+  }
+
+  get entered(): boolean { return this.readCell().entered; }
+  set(v: T): void { this.writes.entered(v); }
+}
+
+// ───────────────────────────────── Factories ────────────────────────────────────────────────────
+
+/** A `SimpleField` over a closure-held slot: `read` on every `.value`, `write` on `set`. */
+export function simpleField<T>(read: () => T, write: (v: T) => void): SimpleField<T> {
+  return {
+    get value() { return read(); },
+    set: write,
+  };
+}
+
+export function focus<P, K extends keyof P>(parent: SimpleField<P>, key: K): SimpleField<P[K]> {
+  return {
+    get value() { return parent.value[key]; },
+    set: (v) => parent.set({ ...parent.value, [key]: v }),
+  };
+}
+
+/** A field that resolves after every write from outside `onWrite` itself (S2-7c cascade):
+ *  `set(v)` writes through to `field`, then runs `onWrite()` — unless the write came from
+ *  `onWrite`, guarded by a reentrancy flag. Without the guard, a solve's own `setCalculated`
+ *  writes (which travel through this same field) would trigger another resolve, which writes
+ *  again, forever. */
+export function resolvingField<T>(field: SimpleField<T>, onWrite: () => void): SimpleField<T> {
+  let resolving = false;
+  return {
+    get value() { return field.value; },
+    set: (v) => {
+      field.set(v);
+      if (resolving) return;
+      resolving = true;
+      try {
+        onWrite();
+      } finally {
+        resolving = false;
+      }
+    },
+  };
+}
+
+/** A plain entered-or-absent numeric slot — no `Calculated`/`Unsolvable`, because nothing ever
+ *  derives this value. Today's only caller is a vent's `width_m`: `OpenISDProject`'s own
+ *  `#resolveVentGeometry` reads it to solve a slotted vent's `area_m2`, but the relation only
+ *  runs one further — width itself is never solved back. */
+export function nullableField<K extends PropertyKey, T extends Record<K, number | null>>(
+  field: SimpleField<T>,
+  key: K,
+  getDq?: (value: number | null) => DqIssue | null,
+): Readable<number | null> & Entered & Precise & Writable<number> & Clearable {
+  return settlingNullableField(field, key, () => null, getDq);
+}
+
+/** `nullableField` for a box that must not stay empty: a clear writes `settle()` as the entered
+ *  value (`null` leaves it blank). */
+export function settlingNullableField<K extends PropertyKey, T extends Record<K, number | null>>(
+  field: SimpleField<T>,
+  key: K,
+  settle: () => number | null,
+  getDq?: (value: number | null) => DqIssue | null,
+): Readable<number | null> & Entered & Precise & Writable<number> & Clearable {
+  return new EnteredFieldImpl<number>(
+    () => {
+      const v = field.value[key];
+      let dqList: DqIssue[] | undefined = undefined;
+      if (getDq) {
+        const d = getDq(v);
+        if (d) dqList = [d];
+      }
+      return v === null ? absentCell<number>(String(key), dqList) : enteredCell<number | null>(String(key), v, dqList);
+    },
+    {
+      entered: (v) => field.set({ ...field.value, [key]: v }),
+      clear: () => field.set({ ...field.value, [key]: settle() }),
+    },
+  );
+}
+
+/** A stored value a person can empty without it going blank: a clear writes `fallback`. */
+export function defaultedField<T>(field: SimpleField<T>, fallback: T): SimpleField<T> & Clearable {
+  return {
+    get value() { return field.value; },
+    set: (v) => field.set(v),
+    clear: () => field.set(fallback),
+  };
+}
+
+export function requiredField<K extends PropertyKey, T extends Record<K, number>>(
+  field: SimpleField<T>,
+  key: K,
+  getDq?: (value: number) => DqIssue | null,
+): Readable<number> & Entered & Writable<number> {
+  return new SetOnlyFieldImpl<number>(
+    () => {
+      const v = field.value[key];
+      let dqList: DqIssue[] | undefined = undefined;
+      if (getDq) {
+        const d = getDq(v);
+        if (d) dqList = [d];
+      }
+      return enteredCell<number>(String(key), v, dqList);
+    },
+    {
+      entered: (v) => field.set({ ...field.value, [key]: v }),
+    },
+  );
+}
+
+/** Builds the field over one C/E-flagged entry slot — the one factory every entry-shaped
+ *  quantity (driver spec, vent, PR, sealed `Qtc`, …) shares (S2-7b): absent reads `null`;
+ *  `state:'E'` reads `entered`; `state:'C'` reads `calculated`.
+ *
+ *  `dq` cannot round-trip through the persisted mark (a `DqMark`'s `detail` is a string, a
+ *  `DqIssue` is not). A driver spec field's own `entryField` lives on a driver object the
+ *  project holds durably, so a plain closure variable survives between one `#resolve()` and the
+ *  next caller's read. A vent/PR/sealed group field does not: `OpenISDProject#box` builds a
+ *  fresh window on every access, discarding any closure a previous window's `#resolve()` wrote
+ *  into. `issuesSource`, when given, replaces that closure — the caller reads its own durable
+ *  cache (`this.#issues`-shaped) live, on every read, the same way `driveVoltage_V` already
+ *  reads `#issues.signal`.
+ *
+ *  `getDq`, when given, is a SECOND, independent dq source computed fresh from the CURRENT
+ *  value on every read and appended to whichever of the two above applies — the same shape as
+ *  `requiredField`'s own `getDq` (BUG_20260927_driver-bad-value-decided-in-ui.md: a driver spec
+ *  field's positivity floor, `Engine.positiveValueIssue`, must show up immediately on `.set()`,
+ *  before any `resolve()` has run, exactly like a box volume's). */
+export function entryField(
+  slot: SimpleField<SpecEntryJson | undefined>,
+  name: string,
+  issuesSource?: () => readonly DqIssue[],
+  getDq?: (value: number) => DqIssue | null,
+): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
+  let liveDq: readonly DqIssue[] = [];
+  const readCell = (): FieldCell<number | null> => {
+    const entry = slot.value;
+    const dq = issuesSource ? issuesSource() : liveDq;
+    if (entry === undefined || entry.state === 'N') return absentCell<number>(name, dq);
+    const extra = getDq ? getDq(entry.value) : null;
+    const fullDq = extra ? [...dq, extra] : dq;
+    return entry.state === 'E'
+      ? enteredCell<number | null>(name, entry.value, fullDq, entryPrecision(entry))
+      : finiteCell(calculatedCell<number | null>(name, entry.value, fullDq, entry.precision ?? null));
+  };
+  return new DualWriteFieldImpl<number>(readCell, {
+    entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
+    clear: () => { liveDq = []; slot.set(undefined); },
+    calculated: (v, precision) => {
+      const issue = nonFiniteResult(name, calculatedFieldLabel(name), v);
+      liveDq = issue === null ? [] : [issue];
+      if (issue === null) slot.set({state: 'C', value: v, precision});
+      else if (slot.value?.state === 'C') slot.set(undefined);
+    },
+    dq: (list) => { liveDq = list; },
+    notAvailable: () => {
+      liveDq = [];
+      if (slot.value?.state === 'C') {
+        slot.set(undefined);
+      }
+    },
+  });
+}
+
+/** D13 — the STATED precision of this value, never the precision the field could support.
+ *
+ *  Two sources, in order of how directly each one knows what was stated:
+ *  1. the entry's own `precision`, written when the value was entered: the entering unit's
+ *     least significant digit, in SI. A value typed into a field showing 2 decimals of grams
+ *     states 30 g to ±0.005 g, and the conversion to `0.03` kg is not allowed to lose that. A
+ *     scraped value gets it from the winning reading's `read_precision` when the bridge writes
+ *     the record, or the load upgrade works it out (`slimModel.ts`);
+ *  2. the printed decimals of the stored value. A record stating `0.5` kg states one decimal of
+ *     a kilogram and nothing finer — `0.5` is not `0.50000` — so this is the right answer for a
+ *     value that arrived as a number in a file and never went through a field. */
+function entryPrecision(entry: Extract<SpecEntryJson, {state: 'E'}>): number {
+  return entry.precision ?? halfUlp(entry.value);
+}
+
+/** `entryField` for a value that is never N: an empty slot reads `fallback()` as calculated.
+ *  `clear()` empties the slot, so an E value goes back to C. */
+export function defaultingEntryField(
+  slot: SimpleField<SpecEntryJson | undefined>,
+  name: string,
+  fallback: () => number,
+): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
+  let liveDq: readonly DqIssue[] = [];
+  return new DefaultingFieldImpl<number>(() => {
+    const entry = slot.value;
+    if (entry === undefined || entry.state === 'N') return calculatedCell(name, fallback(), liveDq);
+    return entry.state === 'E' ? enteredCell(name, entry.value, liveDq) : calculatedCell(name, entry.value, liveDq);
+  }, {
+    entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
+    clear: () => { liveDq = []; slot.set(undefined); },
+    calculated: (v) => { liveDq = []; slot.set({ state: 'C', value: v }); },
+    dq: (list) => { liveDq = list; },
+  });
+}
+
+/** A `SolverInput` over a plain "no flag" read — a box volume, a vent's geometry, a radiator's
+ *  own T/S spec: a number a solve needs but never writes back to, so it never had a C/E state to
+ *  report. `entered` is simply "a value is present" (`read() !== null`), matching how every one
+ *  of these solve inputs is treated today (`Vb_m3 != null`, never `Vb_m3.entered`). */
+export function inputOf<T>(read: () => T | null): SolverInput<T> {
+  return {
+    get value() { return read(); },
+    get entered() { return read() !== null; },
+  };
+}
+
+/** The other member of a solved pair, read lazily (the two members are built one after the other). */
+export type PairPartner = () => Readable<number | null> & Entered & Precise & Writable<number>;
+
+/** Builds one half of a solved pair (vent `tuning_goal_hz` ↔ `length_m`, PR `addedMass_kg` ↔
+ *  `tuning_goal_hz`) — entering or explicitly clearing this member atomically clears the sibling
+ *  too, in the same write (S2-7d2). One write, not two: writing this member then separately
+ *  clearing the sibling would let a resolve run in between on the intermediate state — this
+ *  member's new fact, the sibling's still-stale one — and re-derive the sibling right back from a
+ *  value the caller is in the middle of retracting. `commitPair(entry)` must replace this
+ *  member's own slot with `entry` and the sibling's with `undefined`, in one call to whatever
+ *  slot (or slots) they share — the caller already knows both concrete field names and, when the
+ *  pair spans two different parent records (a vent's own `length_m` vs. its chamber's
+ *  `tuning_goal_hz`), which ancestor slot reaches both, so it writes the literal itself; no
+ *  computed-key indexing here to lose type safety over.
+ *
+ *  `clear()` is the pair-aware retraction below, while `setNotAvailable()` — the solver's own
+ *  "could not derive this" signal, called on every resolve where the pair is incomplete, entered
+ *  or not — is routed to `ownEntry` and stays self-only: routing it through the atomic pair-clear
+ *  would wipe a just-entered sibling on every routine "can't derive this today," not only on a
+ *  real user retraction. `ownEntry` is this member's own plain `entryField` — reused for the
+ *  read, and for `calculated`/`dq`/`setNotAvailable`, none of which ever touch the sibling.
+ *
+ *  The `clear` write only cascades when this member is currently the pair's
+ *  stated fact (`entered`): clearing a merely calculated field — the sibling's own
+ *  derived echo, not a fact anyone stated — must not reach across and erase the other member's
+ *  real entered value. Only retracting the actual target resets the pair. */
+export function pairedField(
+  commitPair: (entry: SpecEntryJson | undefined) => void,
+  ownEntry: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable,
+  /** The other member of the pair. Retracting this member's stated value re-states the partner at
+   *  its current value (E), so this member is the group's one calculated (C) value. Where the partner holds no value there is nothing to calculate from: both go to
+   *  N, with no starting value written. */
+  partner: PairPartner,
+  /** What the partner is entered as when it holds no value, so this member is calculated from it
+   *  rather than blank: a passive radiator's added mass is 0 when none is stated. Absent: both go
+   *  to N. */
+  partnerDefault: number | null = null,
+  /** Precision to state when the calculated partner has no measurement precision. */
+  partnerHalfWidth?: number,
+): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
+  const field: DualWriteFieldImpl<number> = new DualWriteFieldImpl<number>(() => ownEntry, {
+    entered: (v: number, precision?: number) => commitPair({ state: 'E', value: v, precision }),
+    clear: () => {
+      const other = partner();
+      if (other.value !== null && field.entered) other.set(other.value, other.precision ?? partnerHalfWidth);
+      else if (other.value === null && field.entered && partnerDefault !== null) other.set(partnerDefault);
+      else if (field.entered || other.value === null) commitPair(undefined);
+      else ownEntry.clear();
+    },
+    calculated: (v: number) => ownEntry.setCalculated(v),
+    dq: (list) => ownEntry.setDq([...list]),
+    notAvailable: () => ownEntry.setNotAvailable(),
+  });
+  return field;
+}

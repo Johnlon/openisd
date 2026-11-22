@@ -1,0 +1,174 @@
+import {describe, expect, it} from 'vitest';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {OpenISDProject} from '../../domain/project/openISDProject.js';
+import {createEngine} from '../../engine/Engine.js';
+import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../../fields/defaults.js';
+import {DEFAULT_VENTED_ALIGNMENT} from '../../fields/options.js';
+import {oneDriver} from '../fixtures/driveLoad.js';
+
+function driver(): OpenISDDriver {
+  const d = OpenISDDriver.empty(createEngine());
+  d.specs.Fs_hz.set(40);
+  d.specs.Qes.set(0.4);
+  d.specs.Qms.set(4);
+  d.specs.Vas_m3.set(0.02);
+  d.specs.Re_ohm.set(6.4);
+  d.specs.Sd_m2.set(0.021);
+  d.specs.Xmax_m.set(0.008);
+  d.specs.Dd_m.set(0.13);
+  return d;
+}
+
+function sealedProject(): OpenISDProject {
+  return new ProjectBuilder(driver(), createEngine()).sealed().volume_m3(0.03).build();
+}
+
+describe('box starting values on a type switch', () => {
+  it('sealed: the flat (Qtc 0.707) volume', () => {
+    const p = new ProjectBuilder(driver(), createEngine()).vented().volume_m3(0.03).tuning_goal_hz(35).build();
+    p.box.boxType.set('sealed');
+    const losses = {Ql: p.box.sealed.losses.Ql.value, Qa: p.box.sealed.losses.Qa.value};
+    expect(p.box.sealed.volume_m3.value).toBe(p.driver.sealedVolumeForQtc(0.707, oneDriver(DEFAULT_SOURCE_RESISTANCE_OHM), losses));
+    // The Box tab then shows the flat Qtc the volume was designed for.
+    expect(p.box.sealed.q_tc.value).toBeCloseTo(0.707, 3);
+  });
+
+  it('vented: the default-alignment (C4) design for the source-loaded Qts, a 50 mm vent', () => {
+    const p = sealedProject();
+    p.box.boxType.set('vented');
+    const design = p.driver.ventedDesign(DEFAULT_VENTED_ALIGNMENT, oneDriver(DEFAULT_SOURCE_RESISTANCE_OHM), p.box.vented.losses.Ql.value)!;
+    expect(p.box.vented.volume_m3.value).toBe(design.Vb);
+    expect(p.box.vented.tuning_goal_hz.value).toBe(design.Fb);
+    expect(p.box.vented.vent.diameter_m.value).toBe(0.05);
+  });
+
+  // A passive radiator's added mass to cone is 0 — the tuning follows from it.
+  it('passive radiator: 7 L, no added mass, a placeholder radiator sized off the driver', () => {
+    const p = sealedProject();
+    p.box.boxType.set('box-passive-radiator');
+    const pr = p.box.passiveRadiator;
+    expect(pr.volume_m3.value).toBe(0.007);
+    expect(pr.addedMass_kg.value).toBe(0);
+    expect(pr.addedMass_kg.entered).toBe(true);
+    expect(pr.tuning_goal_hz.entered).toBe(false);
+    expect(pr.radiator.brand.value).toBe('Placeholder');
+    expect(pr.radiator.model.value).toBe('Dummy PR');
+    expect(pr.radiator.spec.Sd_m2.value).toBe(0.021);        // the driver's own Sd
+    expect(pr.radiator.spec.Xmax_m.value).toBe(0.016);       // twice the driver's Xmax
+    // A complete mechanical seed: Fs/Vas/Qms stated; Cms/Mms/Rms calculated consistently.
+    expect(pr.radiator.spec.Fs_hz.value).toBeCloseTo(31.8310, 4);
+    expect(pr.radiator.spec.Qms.value).toBe(5);
+    expect(pr.radiator.spec.Rms_kg_per_s.value).toBeCloseTo(2, 6);
+    expect(pr.radiator.spec.Cms_m_per_N.calculated).toBe(true);
+    expect(pr.radiator.spec.Cms_m_per_N.value).toBeCloseTo(0.0005, 8);
+    expect(pr.radiator.spec.Mms_kg.value).toBeCloseTo(0.05, 6);
+  });
+
+  it('switching sealed to passive radiator supplies a consistent mechanical Q and damping', () => {
+    const p = sealedProject();
+    p.box.boxType.set('box-passive-radiator');
+    const spec = p.box.passiveRadiator.radiator.spec;
+    expect(spec.Qms.value).toBe(5);
+    expect(spec.Rms_kg_per_s.value).toBeCloseTo(2, 6);
+    expect(spec.Fs_hz.value).toBeCloseTo(31.8309886, 6);
+    expect(spec.Mms_kg.value).toBeCloseTo(0.05, 8);
+    expect(spec.Cms_m_per_N.value).toBeCloseTo(0.0005, 8);
+    expect([spec.Fs_hz, spec.Qms, spec.Mms_kg, spec.Cms_m_per_N, spec.Rms_kg_per_s].flatMap(field => field.dq)).toEqual([]);
+  });
+
+  it('seeds a complete Dummy PR while the newly created project is still sealed', () => {
+    const p = sealedProject();
+    const pr = p.box.passiveRadiator.radiator;
+    expect(pr.model.value).toBe('Dummy PR');
+    expect(pr.spec.Qms.value).toBe(5);
+    expect(pr.spec.Vd_m3.value).toBeGreaterThanOrEqual(p.driver.specs.Vd_m3.value!);
+    expect([pr.spec.Fs_hz, pr.spec.Qms, pr.spec.Mms_kg, pr.spec.Cms_m_per_N, pr.spec.Rms_kg_per_s].flatMap(field => field.dq)).toEqual([]);
+  });
+
+  it('repairs a saved legacy ReplaceMe dummy when switching a sealed project to PR', () => {
+    const original = sealedProject();
+    original.box.boxType.set('box-passive-radiator');
+    original.box.passiveRadiator.radiator.model.set('ReplaceMe');
+    original.box.passiveRadiator.radiator.spec.Qms.clear();
+    original.box.boxType.set('sealed');
+    original.save();
+    const reopened = OpenISDProject.fromOwprText(original.toOwprText(), createEngine());
+    if (Array.isArray(reopened)) throw new Error(reopened.join('\n'));
+    reopened.box.boxType.set('box-passive-radiator');
+    const pr = reopened.box.passiveRadiator.radiator;
+    expect(pr.model.value).toBe('Dummy PR');
+    expect(pr.spec.Qms.value).toBe(5);
+    expect([pr.spec.Fs_hz, pr.spec.Qms, pr.spec.Mms_kg, pr.spec.Cms_m_per_N, pr.spec.Rms_kg_per_s].flatMap(field => field.dq)).toEqual([]);
+  });
+
+  it('sizes the dummy radiator for the complete active driver array', () => {
+    const p = sealedProject();
+    p.nDrivers.set(4);
+    p.box.boxType.set('box-passive-radiator');
+    const pr = p.box.passiveRadiator;
+    expect(pr.radiator.spec.Vd_m3.value! * pr.count.value).toBeGreaterThanOrEqual(p.driver.specs.Vd_m3.value! * p.nDrivers.value);
+  });
+
+  it('returning to passive radiator preserves an edited radiator name and mechanical Q', () => {
+    const p = sealedProject();
+    p.box.boxType.set('box-passive-radiator');
+    p.box.passiveRadiator.radiator.model.set('My radiator');
+    p.box.passiveRadiator.radiator.spec.Qms.set(9);
+    p.box.boxType.set('sealed');
+    p.box.boxType.set('box-passive-radiator');
+    expect(p.box.passiveRadiator.radiator.model.value).toBe('My radiator');
+    expect(p.box.passiveRadiator.radiator.spec.Qms.value).toBe(9);
+  });
+
+  it('does not invent a mechanical Q for a named radiator whose Qms is unknown', () => {
+    const p = sealedProject();
+    p.box.passiveRadiator.radiator.model.set('Real radiator with unknown Qms');
+    p.box.passiveRadiator.radiator.spec.Qms.clear();
+    p.box.boxType.set('box-passive-radiator');
+    expect(p.box.passiveRadiator.radiator.spec.Qms.value).toBeNull();
+  });
+
+  it('passive radiator with a driver stating no Sd/Xmax: the flat 20 cm² Sd, no Xmax', () => {
+    const p = ProjectBuilder.empty(createEngine());
+    p.box.boxType.set('box-passive-radiator');
+    expect(p.box.passiveRadiator.radiator.spec.Sd_m2.value).toBe(0.02);
+    expect(p.box.passiveRadiator.radiator.spec.Xmax_m.value).toBeNull();
+  });
+
+  it('vented with a slotted vent: width is the driver diameter, height 3 cm; 10 cm width without a diameter', () => {
+    const p = sealedProject();
+    p.box.vented.vent.shape.set('slotted');
+    p.box.boxType.set('vented');
+    expect(p.box.vented.vent.width_m.value).toBe(0.13);
+    expect(p.box.vented.vent.height_m.value).toBe(0.03);
+    const q = ProjectBuilder.empty(createEngine());
+    q.box.vented.vent.shape.set('slotted');
+    q.box.boxType.set('vented');
+    expect(q.box.vented.vent.width_m.value).toBe(0.1);
+  });
+
+  it('bandpass4: 7 L rear, 10 L front tuned to 35 Hz through a 50 mm vent', () => {
+    const p = sealedProject();
+    p.box.boxType.set('bandpass4');
+    expect(p.box.bandpass4.chambers.rear.volume_m3.value).toBe(0.007);
+    expect(p.box.bandpass4.chambers.front.volume_m3.value).toBe(0.01);
+    expect(p.box.bandpass4.chambers.front.tuning_goal_hz.value).toBe(35);
+    expect(p.box.bandpass4.vents.front.diameter_m.value).toBe(0.05);
+  });
+
+  it('an entered volume is never overwritten', () => {
+    const p = sealedProject();
+    p.box.vented.volume_m3.set(0.05);
+    p.box.boxType.set('vented');
+    expect(p.box.vented.volume_m3.value).toBe(0.05);
+  });
+
+  it('a driver without Qts/Vas gives no sealed or vented starting value', () => {
+    const p = ProjectBuilder.empty(createEngine());
+    p.box.boxType.set('vented');
+    expect(p.box.vented.volume_m3.value).toBe(0);
+    p.box.boxType.set('sealed');
+    expect(p.box.sealed.volume_m3.value).toBe(0);
+  });
+});

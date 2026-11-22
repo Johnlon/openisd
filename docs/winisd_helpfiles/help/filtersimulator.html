@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Filter/equalizer simulator
+    </title>
+    <link rel="stylesheet" href="../winisd.css" type="text/css" />
+  </head>
+  <body>
+    <p class="header">
+      Linearteam WinISD Pro
+    </p>
+    <h1>
+      Filter/equalizer behavioral simulator
+    </h1>
+    <p>
+      WinISD pro supports behavioral simulation of various filter types, such as:
+    </p>
+    <ul>
+      <li>Butterworth low- and highpass, orders 1 thru 10.
+      </li>
+      <li>Linkwitz-Riley low- and highpass (fourth order only).
+      </li>
+      <li>Second order high- or lowpass section, with user specifier Q and fc.
+      </li>
+      <li>Bessel low- and highpass, orders 1 thru 10.
+      </li>
+      <li>Allpass.
+      </li>
+      <li>Linkwitz transform.
+      </li>
+      <li>Parametric EQ.
+      </li>
+      <li>Second order highpass with user specified peak gain and peak frequency.
+      </li>
+      <li>Static Gain.
+      </li>
+    </ul>
+    <p>
+      The behavioral simulation means, that WinISD simulates filter as "black box", it does not
+      consider what black contains internally. Filter can be passive or active, as long it does
+      what is simulated.
+    </p><img src="images/fltedit07.png" alt="Image" />
+    <p>
+      Any combination of cascaded filters can be simulated. Filters are connected logically in
+      series. Individual filters can be turned on and off by checking/unchecking the checkbox in
+      the listbox. Graphs are updated immediately, so effect can be investigated.
+    </p>
+    <p>
+      Filter system is logically located at electrical side. 0 dB gain at filter chain means that
+      voltage at driver terminal is equal that is specified at "signal"-tab. If filter/EQ chain
+      gain is 6 dB at particular frequency, then voltage at that frequency is twice that is
+      specified, and so on.
+    </p>
+    <hr />
+    <h2>
+      Lowpass filters
+    </h2>
+    <p>
+      <img src="images/fltedit01.png" alt="Image" />
+    </p>
+    <p>
+      The following lowpass filter subtypes can be simulated:
+    </p>
+    <ul>
+      <li>Butterworth (orders 1 thru 10)
+      </li>
+      <li>Linkwitz-Riley (4th order only)
+      </li>
+      <li>Bessel
+      </li>
+      <li>Second order section (SOS) with user specified fc and Q.
+      </li>
+    </ul>
+    <h3>
+      Explanation of the filter subtypes
+    </h3>
+    <p>
+      <b>Butterworth</b><br />
+      Butterworth is probably most common filter type. It is so called "maximally flat" filter.
+      This means that amplitude response stays practically flat until fc frequency is reached,
+      where it is -3 dB down. Response then falls rapidly according the filter order.
+    </p>
+    <p>
+      <b>Linkwitz-Riley</b><br />
+      Linkwitz-Riley is filter type, where two second order butterworth filters are cascaded as one
+      fourth order filter. This means that frequency response magnitude is -6 dB down at fc. It is
+      different from fourth order butterworth, where magnitude response is -3 dB down. Transient
+      response is better than butterworth, but still worse than bessel.
+    </p>
+    <p>
+      <b>Bessel</b><br />
+      Bessel filter is fundamentally different from two above. Whereas butterworth is built on
+      amplitude response approximation, the Bessel filter is maximally flat group delay
+      approximation filter. fc is frequency, where the phase is half of the maximum phase shift (90
+      degrees times the filter order). This filter exhibits best transient properties of analog
+      filters, but roll-off starts rather slowly.
+    </p>
+    <p>
+      <b>Second order section</b><br />
+      This filter type is for advanced users. Second order section can be considered as "typeless"
+      second order lowpass. Parameters are fc and Q. fc determines the frequency, where the filter
+      gain is Q or 20*lg(Q) dB. This can be used to compose new "all-pole"-filters, by adding
+      several sections in cascade.
+    </p>
+    <h2>
+      Highpass filters a.k.a. Subsonic
+    </h2>
+    <p>
+      Highpass type contains same subtypes as lowpass filter. See explanation above. Only
+      difference is that cut-off is below fc, not above, as is logical.
+    </p>
+    <h3>
+      Lowpass/highpass filter parameters
+    </h3>
+    <p>
+      <b>Order</b> determines how rapidly the response magnitude decreases after cut-off point.
+      Greater the order, steeper the roll-off. This has it's price, however. Faster you make it
+      roll-off, worse the group delay behaviour. 1st order filter has roll-off of 6 dB per octave,
+      2nd order filter 12 dB per octave, and so on. Realization of high-order filters is very
+      difficult to achieve, due to high tolerance requirements. Generally, anything over 4th order
+      should be considered very carefully.
+    </p>
+    <p>
+      <b>fc</b> Cut-off frequency or critical frequency. For butterworth class of filters, this is
+      the -3 dB point.
+    </p>
+    <p>
+      <b>Q</b> is only used with Second order section-type. This makes possible for the user to
+      experiment with filters with peaky response (however, this is seldom done with lowpass
+      filters). Q is the quality factor of the filter. It determines the shape of frequency
+      response near the fc frequency. One physical meaning for Q is that gain at frequency fc is Q
+      (in linear scale, not dB).
+    </p>
+    <hr />
+    <h2>
+      Peaking second order highpass
+    </h2><img src="images/fltedit04.png" alt="Image" />
+    <p>
+      This type of filter is commonly used as subwoofer equalizer. It suits quite well to ported or
+      passive radiator type boxes. Because tuning frequency of the box is quite near the roll-off,
+      response can be boosted several dB's before cut-off, extending the frequency response. After
+      the peaking, response starts to roll off quickly. This is convenient, since it serves as an
+      subsonic filter also. However, all this comes with a price tag: it introduces quite high
+      amount of delay distortion depending of the amount of peaking.
+    </p>
+    <h3>
+      parameters
+    </h3>
+    <p>
+      <b>Peak freq</b> is frequency of maximum equalization.<br />
+      <b>Peak mag</b> is amount of equalization in dB you want to apply at peak freq.
+    </p>
+    <hr />
+    <h2>
+      Allpass
+    </h2><img src="images/fltedit02.png" alt="Image" />
+    <p>
+      This is so called phase correction filter. It alters only phase, gain is unity at all
+      frequencies. Only first and second order allpass filters are implemented.
+    </p>
+    <h3>
+      allpass filter parameters
+    </h3>
+    <p>
+      <b>Order</b> determines how fast the delay will reduce, after cut-off point. And of course,
+      the practical implementation is quite different.
+    </p>
+    <p>
+      <b>Q</b> or the quality factor. This is relevant only with second order all-pass. Higher the
+      Q, higher the peak in group delay.
+    </p>
+    <p>
+      <b>Delay time</b> is desired signal delay time. Delay approaches this value asymptotically
+      when frequency approaches zero. Higher you set this value, earlier it rolls off.
+    </p>
+    <hr />
+    <h2>
+      Parametric EQ
+    </h2><img src="images/fltedit03.png" alt="Image" />
+    <p>
+      This type of filter is implemented in commonly available equalizers. They might come as
+      freely adjustable, where center frequency, boost/cut and quality factor are all adjustable
+      (they are called as parametric equalizer), or partially adjustable, where one parameter is
+      fixed (semi-parametric equalizer) or only boost/cut amount is adjustable (they are called
+      graphic equalizers).<br />
+      You can boost or cut desired band.
+    </p>
+    <h3>
+      parametric EQ parameters
+    </h3>
+    <p>
+      <b>Center freq</b> is frequency of maximum boost or cut.
+    </p>
+    <p>
+      <b>Q</b> controls bandwidth of the boost/cut. Higher the Q, narrower the equalization is.
+    </p>
+    <p>
+      <b>Gain</b> adjusts amount of the boost/cut. Use negative values for cut, positive for boost.
+    </p>
+    <hr />
+    <h2>
+      Linkwitz transform
+    </h2><img src="images/fltedit05.png" alt="Image" />
+    <p>
+      This is an elegant way to equalize closed box subwoofer.The good thing about this is that it
+      introduces no excess phase shift, which would be inevitable introduced if for example,
+      parametric equalizer would be used. In practice, Linkwitz transform makes closed box look
+      like the specified parameters. So called S-plane representation would be nice way to show how
+      this thing works, but it is too difficult concept to grasp without engineering background.
+    </p>
+    <h3>
+      Linkwitz transform parameters
+    </h3>
+    <p>
+      <b>f0</b> is fsc of original closed box system. WinISD automagically fills this field, if
+      adding to closed box system.
+    </p>
+    <p>
+      <b>Q0</b> is Qtc of original closed box system. This is also filled automagically, like f0.
+    </p>
+    <p>
+      <b>fp</b> is fsc of the transformed system. This can be rather freely specified, of course
+      one should consider the physical limits.
+    </p>
+    <p>
+      <b>Qp</b> is Qtc of the transformed system. This is also up to user. General guideline is to
+      keep this below 0.707, or otherwise peaking will occur.
+    </p>
+    <hr />
+    <h2>
+      Static gain
+    </h2><img src="images/fltedit06.png" alt="Image" />
+    <p>
+      this "filter" just adds described amount of dB to the eq/filter response curve. It can be
+      used to normalize the response, to user preference. For example, there has been a debate
+      whether the linkwitz transform should be normalized at high or low frequencies. With this, it
+      could be either.
+    </p>
+    <hr />
+    <h2>
+      Graphs related to the filter simulator
+    </h2>
+    <p>
+      There are three purely EQ/Filter-related graphs in WinISD:
+    </p>
+    <ul>
+      <li>EQ/Filter transfer function magnitude
+      </li>
+      <li>EQ/Filter transfer function phase
+      </li>
+      <li>EQ/Filter group delay
+      </li>
+    </ul>
+    <p>
+      These are same curves than system curves, but calculated just for the filter part.
+    </p>
+    <hr />
+    <p class="footer">
+      This page written by Janne Ahonen (janne@linearteam.org).
+    </p>
+  </body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Plot types
+    </title>
+    <link rel="stylesheet" href="../winisd.css" type="text/css" />
+  </head>
+  <body>
+    <p class="header">
+      Linearteam WinISD Pro
+    </p>
+    <p>
+      <b>Transfer function magnitude</b><br />
+      This graph shows gain in dB related to driver's limit efficiency n0. Which it theoretically
+      reaches at infinite frequency. This is the basic graph, which is needed most.
+    </p>
+    <p>
+      <b>SPL</b><br />
+      SPL graph shows Sound Pressure Level at specified distance at specified powerlevel, radiated
+      to half(2pi) space. To get the full-space value, subtract 6 dB from the reading. Because
+      driver's efficiency is related to ambient conditions, changing for example the project's
+      temperature, will change the calculated SPL level.
+    </p>
+    <p>
+      <b>Transfer function phase</b><br />
+      Phase shows the phase difference between the electrical input signal and acoustic output
+      signal. See the illustration below.
+    </p>
+    <p>
+      <b>Group delay</b><br />
+      Group delay describes how long spectrally infitesimally narrow sine burst signal takes to
+      travel through speaker's acoustic "filter". The flatter the group delay, the better. The
+      value itself is not a concern, other that if delay becomes too large, then it might be
+      difficult to match the design to other speaker's which might have less group delay. Large
+      groupdelay variations usually means large ringing when transient signals are applied to the
+      system. Mathematically it is the derivative of negative phase versus frequency in
+      radians/sec. So when phase changes linearly versus frequency, then the group delay has a
+      constant value. If you are wondering why the group delay of vented box is very different from
+      WinISD version 0.43 and below, the reason is that it calculated it wrong.
+    </p>
+    <p>
+      <b>Cone Excursion</b><br />
+      Cone excursion shows how much driver cone moves with sinusoidal excitation at chosen
+      powerlevel. The powerlevel is controlled in "plot"-tab. The power applied can be related to
+      excitation voltage with following relation: Eg=sqrt(P*Re), or P=Eg^2/Re where Eg is the RMS
+      voltage applied to driver's terminals, P is the input power in watts and Re is the DC
+      resistance of the voice coil. Please note that there is few different ways to express this
+      value. WinISD can be configured to show RMS, Peak, Peak-to-peak (p-p) values of the cone
+      excursion. RMS value is defined just as RMS value of any sine waveform. Peak value is the
+      difference between zero and the maximum value of sinusoidal waveform. Peak-to-peak is twice
+      the peak value, i.e. difference between minimum and maximum point of waveform. The peak value
+      is perhaps a most practical expression, because driver parameter Xmax indicates how much cone
+      can be deflected from it's rest position linearly, in either direction. If you want to
+      maximize power handling of any box, then adjust the box parameters so that cone excursion is
+      kept at minimum value possible. Of course the transfer function magnitude graph should be
+      taken into consideration also. In closed box, the minimum excursion is obtained, when
+      enclosure is as small as possible. Same basically applies to vented box, but there is a local
+      minimum at port tuning frequency. When comparing graphs between programs, please note that
+      many programs give the RMS excursion which is "wrong", in my opinion. I have seen some
+      programs, where the calculated excursion is RMS value, and limit is shown as peak. That gives
+      over-optimistic power handling impression. Please also note that this graph doesn't take
+      nonlinearities into consideration. But it let's you see when the nonlinearities are becoming
+      too great.
+    </p>
+    <p>
+      <b>Air velocity - front/rear port</b><br />
+      Air velocity graph shows how fast air mass travels in port. In order to keep chuffing noise
+      low, you should limit the peak velocity at 5% of velocity of sound, or about 17 m/s. Like the
+      cone excursion graph, the desired powerlevel is set also by same watts setting. Note that if
+      air velocity peaks exceeds previously mentioned level. This graph can also be configured to
+      show RMS, peak or peak-to-peak value. See the cone excursion graph explanation for RMS, peak
+      and peak-to-peak values.
+    </p>
+    <p>
+      <b>Gain - front/rear port</b><br />
+      This graph shows n0 (the driver reference efficiency) relative magnitude output of the front
+      or rear port. In conventional vented box, this graph shows relative sound pressure
+      contribution of the vent.
+    </p>
+    <p>
+      <b>Maximum power</b><br />
+      Maximum power indicates, what is the maximum powerhandling of the speaker at each frequency.
+      It shows either the Pe, which is maximum electrical input power based on thermal power
+      handling. Or if it is less, then it shows, how much power is needed to drive the cone to
+      maximum excursion Xmax. Again, you can obtain the required drive voltage by equation
+      Eg=sqrt(P*Re), where the Eg is RMS terminal input voltage of the driver, P is the input power
+      and Re is DC resistance of the driver voice coil.
+    </p>
+    <p>
+      <b>Impedance/impedance phase</b><br />
+      Impedance graph shows, what kind of impedance load the amplifier will see. The impedance
+      shown is the impedance of each driver, if there is many of them or there is an isobarik
+      configuration. In LspCAD terms, drivers have "Separate Sources". The lower the reading, then
+      higher the load on the amplifier. Impedance graphs shows actually the modulus of the complex
+      impedance and phase angle (impedance phase) graph shows whether the load is resistive (phase
+      about 0 degrees), inductive (phase positive) or capacitive (phase negative). Reactive load
+      doesn't actually dissipate any power, but instead of dissipating it, it returns it to driving
+      amplifier. In classic linear amplifier, this power is wasted. D-class amplifiers utilize this
+      and return this energy to the power supply. High capacitive load is difficult for any
+      feedbacked amplifier, because it eats the phase margin of the amplifier and may cause it to
+      begin oscillating. This impedance gives only steady-state impedance for sinusoidal signal.
+      For more complex input signal, the current drawn from the amplifier may be greater than
+      calculated with this graph, because of energy storage of the impedance, although this may be
+      very rare with normal audio signals. There is an AES paper about this written by Matti Otala
+      and Pertti Huttunen.
+    </p>
+  </body>
+</html>

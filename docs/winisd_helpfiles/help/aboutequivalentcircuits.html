@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Introduction to equivalent circuits
+    </title>
+    <link rel="stylesheet" href="../winisd.css" type="text/css" />
+  </head>
+  <body>
+    <p class="header">
+      Linearteam WinISD Pro
+    </p>
+    <h1>
+      Introduction to equivalent circuits
+    </h1>
+    <p>
+      These are the models which WinISD graph calculations are based on. Models are documented here
+      for reference. Most box-program authors are not documenting publicly these things. They are
+      also useful, if someone wishes to evaluate validity of used models. Most people don't need
+      these.
+    </p>
+    <p>
+      Circuits are reduced to acoustical side. Models for currently supported enclosure types are:
+    </p>
+    <ul>
+      <li>
+        <a href="closed.html">Closed box</a>
+      </li>
+      <li>
+        <a href="vented.html">Vented box</a>
+      </li>
+      <li>
+        <a href="pr.html">Passive radiator</a>
+      </li>
+      <li>
+        <a href="bp4.html">4th order bandpass</a>
+      </li>
+      <li>
+        <a href="bp6a.html">6th order bandpass type A</a>
+      </li>
+    </ul>
+    <p></p>
+    <p>
+      Voltage source, Uad, is so called "constant pressure generator". Resistance models acoustic
+      resistance, capacitor models compliance (volumes) and inductor models mass. There are several
+      ways to determine component values. One, which is used in WinISD pro, is where we start on
+      driver Vas to determine Ccas:<br />
+      <br />
+      Ccas = Vas/(roo&#183;c&#178;)<br />
+      <br />
+      Then, we'll use fs to determine Lmas:<br />
+      <br />
+      Lmas = 1/((2&#183;pi&#183;fs)&#178;&#183;Ccas)<br />
+      <br />
+      Then, Qes and Qms is used to determine Rae and Ram:<br />
+      <br />
+      Rae = 1/(2&#183;pi&#183;fs&#183;Qes&#183;Ccas)<br />
+      Ram = 1/(2&#183;pi&#183;fs&#183;Qms&#183;Ccas)<br />
+      <br />
+      Now, we'll calculate box volume modelling capacitor Ccab just like Ccas. If we have closed
+      box, we'll have only determine the leak and absorption modelling resistors. These are
+      determined by so called Q-factors. For lack of better models, these are determined at
+      resonance frequency of boxed driver.
+    </p>
+    <h3>
+      Determining frequency response
+    </h3>
+    <p>
+      When all component values are in place, then we'll just simulate completed circuit, using any
+      circuit simulation program, e.g. SPICE (<b>S</b>imulation <b>P</b>rogram with
+      <b>I</b>ntegrated <b>C</b>ircuit <b>E</b>mphasis). Frequency response is calculatable from
+      determining the volume velocity through Ccab. Using one well-known relation, we can get to
+      far-field pressure value from volume velocity:<br />
+      <br />
+      p(r) = roo&#183;s&#183;U0(w)/(2&#183;pi&#183;r)&#183;exp(-j&#183;k&#183;r)<br />
+      <br />
+      where k is so called wave number (k=w/c), and r is distance from diaphraghm. U0 is total
+      volume velocity produced by box. If there is only one chamber, then U0 is current through
+      Ccab. If there are several chambers, like in bandpass enclosures, then total volume velocity
+      is <b>vector</b> sum of all volume velocities of chambers. Latter exp()..-part is the phase
+      factor (which has always gain of unity), which is neglected in WinISD, in order to show more
+      clear graph. Pressure is therefore complex valued. Now, when we have obtained absolute
+      pressure level, we may use reference pressure of 20 &#956;Pa, the 0 dB reference.
+    </p>
+    <h3>
+      Group delay
+    </h3>
+    <p>
+      Group delay can be extracted from frequency response data by numerically derivating the phase
+      by mathematical definition: gd(w)=-d(arg(H(f)))/dw, where arg(H(f)) is phase part of transfer
+      function. In practice, it is done by just calculating two phase values on very small
+      interval, and then just approximating above differential by (arg(H(f+d))-arg(H(f-d)))/(2&#183;d).
+    </p>
+    <h3>
+      Cone excursion
+    </h3>
+    <p>
+      Cone excursion is calculated by first determining volume velocity through driver. Then,
+      volume velocity is integrated, and the result is then divided by Sd to get cone excursion.
+      Still, we need to scale result by sqrt(2) if we want to get peak value and 2&#183;sqrt(2) if we
+      want peak-to-peak value.
+    </p>
+    <h3>
+      Port velocity
+    </h3>
+    <p>
+      Port velocity is like cone excursion. Again, volume velocity through port is determined.
+      Since we need port velocity, then, we just divide volume velocity by port area. This gives us
+      RMS port velocity, which is optionally scaled, like cone excursion.
+    </p>
+    <h3>
+      Impedance
+    </h3>
+    <p>
+      Impedance is calculated by first calculating acoustical impedance seen by Uad and Rae is
+      subtracted. By using conversion formula, Zem = Bl&#178;/(Sd&#178;&#183;Za), where Za is aforementioned
+      acoustical impedance and Zem is additional motional impedance reflected from mechanical
+      circuit. Then final electrical impedance Ze is calculated by Ze = Re + jw&#183;Le + Zem. All
+      impedances are complex.
+    </p>
+    <hr />
+    <p class="footer">
+      This concludes this brief introduction how simulations work in WinISD internally. For more
+      detailed description, there are many good books about the subject. One good one is written by
+      W. Marshall Leach, Jr.:<br />
+      <br />
+      Introduction to electroacoustics and audio amplifier design<br />
+      W. Marshall Leach, Jr.<br />
+      Kendall/Hunt publishing company<br />
+      ISBN 0-7872-7861-0<br />
+    </p>
+  </body>
+</html>

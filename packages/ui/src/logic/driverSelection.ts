@@ -1,0 +1,219 @@
+import type {OpenISDDriverStandalone} from '@openisd/design';
+import type {AppState} from './appState.js';
+import type {PresentationState} from './presentationState.js';
+import type {DesignFiles} from './fileImportExport.js';
+import type {DriverFileFormat} from '../fileFormat.js';
+
+// The ONE implementation of "the user chose a driver" (ARCHITECTURE.md §7, "Components decide nothing").
+//
+// WORKFLOW, so it lives in `logic`: choosing a driver decides what the app does next — it
+// embeds the driver in the project, closes the picker and moves the baseline. A repository
+// cannot do that without reaching back into the store, which is what inverted the arrow when
+// this lived under `db/`. It CALLS the repository to read and write saved drivers.
+//
+// docs/design/STATE_MODEL.md's memory layers, applied to the library picker:
+//   library / My Drivers / disk  →  the project's OWN driver  →  editor draft
+//
+// Choosing EMBEDS. WinISD has no driver database and no live link from a project to a
+// driver file: its driver manager handles one driver on disk, disconnected from any open
+// project, and selecting one copies it in. OpenISD follows that model, so `selectDriver`
+// builds a Driver, copies it into the project, and closes the picker — the user lands back
+// in the project, not in an editor.
+//
+// Editing is a separate act, and THE EDITOR OWNS ITS OWN DRAFT (docs/plans/
+// PROMPT_RELEASE_HARDENING.md D22): this module decides WHICH driver is being edited and
+// hands the editor a SEED to build its own detached draft from — it does not hold a draft of
+// its own, and it does not receive the edited driver back. `subject` records which of the
+// editor's two consequences applies: the PROJECT's own copy (OK changes the design), or a
+// driver from MY DRIVERS (OK saves that entry and the design is not involved). The project is
+// never written back into My Drivers — a saved driver changes only through the editor's own
+// explicit save.
+//
+// The pickers own markup and CSS. They must not parse, fetch, commit, or decide what a
+// selection means — they call this.
+
+/** Outcome of a selection. `error` is a message the picker shows in its own status line. */
+export type SelectionResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+// ---- reading a driver file off the user's own disk -------------------------------------
+// Driver file IO that is not bound to a project — Load File… lands a driver in My Drivers,
+// never in the open project, so it belongs beside the rest of this module's "driver file IO
+// not bound to a project" work (`modelOf()` above) rather than in a project-scoped module.
+
+/** A driver read off the user's disk, or the reason the file could not be read. The driver is
+ *  the public domain object — never the record shape. */
+export type FileReadResult =
+  | { ok: true; driver: OpenISDDriverStandalone }
+  | { ok: false; error: string };
+
+/**
+ * Read a driver file the user picked off their own disk.
+ *
+ * `format` is the caller's classification (`fileFormat.ts`'s `DriverFileFormat.ofFileName`/
+ * `sniff`) — this module names no private type, parses nothing, and sniffs no format itself.
+ *
+ * The file name also supplies the MODEL when the file itself carries neither brand nor model
+ * — a `.wdr` written by another tool need not fill those in, and a driver with no
+ * `<brand>/<model>` has no identity to be saved under. The name is the file's own, not an
+ * invented value.
+ */
+export function driverFromFileText(files: DesignFiles, text: string, format: DriverFileFormat, fileName: string): FileReadResult {
+  const parsed = files.driverFromText(text, format);
+  if (!parsed.value) return { ok: false, error: parsed.errors[0]?.message ?? `${fileName} could not be read` };
+  const driver = parsed.value;
+
+  // A driver IS its <brand>/<model>, so one with neither cannot be filed. The file name is the
+  // last thing that can name it; if that is empty too, say so rather than saving it nameless.
+  const brand = driver.brand.value?.trim().toLowerCase();
+  const model = driver.model.value?.trim().toLowerCase();
+  if ((!brand || brand === 'n/a') && (!model || model === 'n/a')) {
+    const base = fileName.replace(/\.[^.]*$/, '').trim();
+    if (!base) return { ok: false, error: `${fileName} carries no brand or model, and its name gives none` };
+    driver.model.set(base);
+  }
+  return { ok: true, driver };
+}
+
+// ---- what the editor is editing --------------------------------------------------------
+// The one editor dialog serves two subjects with different consequences: the PROJECT's own
+// driver (OK changes the design) and a SAVED driver from My Drivers (OK changes the library
+// entry, and the design is not involved at all). The subject is set when the editor opens
+// and read by the title, so the user can never be unsure which one they are changing.
+//
+// A saved driver being edited is remembered by the identity it had when the editor opened —
+// which is what lets a rename REPLACE that entry rather than orphan it, while a rename that
+// collides with a different saved driver still overwrites that one, exactly as Save does.
+
+type EditorSubject =
+  | { kind: 'project' }
+  | { kind: 'myDriver'; openedAs: string };
+
+/** What the editor should build its OWN draft from. `seed` is a detached copy, handed once —
+ *  the editor owns it from there; this module keeps nothing for it to hand back. `seed: null`
+ *  means the editor builds its own (a blank `OpenISDDriver.empty()` for a fresh My Driver, or
+ *  the project's committed driver via `requireFocusedProject().committedDriverText()` for the project
+ *  subject — this module does not construct either, since it is not a licensed constructor). */
+export type EditorDraftSeed =
+  | { kind: 'project' }
+  | { kind: 'myDriver'; openedAs: string; seed: OpenISDDriverStandalone | null };
+
+export interface DriverSelection {
+  selectDriver(d: OpenISDDriverStandalone): Promise<SelectionResult>;
+  editMyDriver(d: OpenISDDriverStandalone, uuid?: string): void;
+  editOverviewDriver(d: OpenISDDriverStandalone): Promise<SelectionResult>;
+  /** Open the editor on the project's driver; `showDisagreements` opens it with the disagreement list showing. */
+  editProjectDriver(showDisagreements?: boolean): void;
+  openNewDriver(): void;
+  /** What the editor is open on right now, and what to seed its own draft from. */
+  editSubject(): EditorDraftSeed;
+  /** The editor is done — cancelled, or committed elsewhere (the editor commits through the
+   *  domain API directly; this only resets which subject is open). */
+  closeEditor(): void;
+}
+
+/** What the selection service writes to: the focused project and the dialog flags. */
+export interface DriverSelectionDeps {
+  appState: AppState;
+  presentation: PresentationState;
+  /** Told which driver the user chose, for usage statistics. Omitted means nobody is told. */
+  driverPicked?: (driver: OpenISDDriverStandalone) => void;
+}
+
+export function createDriverSelection(deps: DriverSelectionDeps): DriverSelection {
+  const { requireFocusedProject } = deps.appState;
+  const presentationState = deps.presentation;
+  let subject: EditorSubject = { kind: 'project' };
+  let editSeed: OpenISDDriverStandalone | null = null;
+
+  /**
+   * Choosing a driver COPIES it into the project and returns the user to the project.
+   *
+   * This is WinISD's model, which OpenISD follows: there is no live link from a project back
+   * to wherever the driver came from. The library row, the saved My Driver and the file on
+   * disk are all sources; once chosen, the project owns its own copy and later edits change
+   * that copy alone. Editing is a separate act, from the Driver panel's Edit button.
+   */
+  function adoptIntoProject(driver: OpenISDDriverStandalone): void {
+    requireFocusedProject().setDriver(driver);
+  }
+
+  function embedInProject(driver: OpenISDDriverStandalone): void {
+    adoptIntoProject(driver);
+    presentationState.browseOpen = false;
+  }
+
+  function closeEditor(): void {
+    subject = { kind: 'project' };
+    editSeed = null;
+    presentationState.editDriverInfo = false;
+  }
+
+  return {
+    /**
+     * The user chose a driver from the library. Takes a detached copy and embeds it in the
+     * project. The picker closes and the user is back in the project; the source driver — a
+     * bundled row or a saved My Driver — is left exactly as it was.
+     */
+    async selectDriver(d) {
+      embedInProject(d.detach());
+      deps.driverPicked?.(d);
+      return { ok: true };
+    },
+
+    // GAP (fork investigation 2026-09-07, PLAN_DELETE_PACKAGES_MODEL.md §4b/§4c/§4e):
+    // `@openisd/design`'s `OpenISDDriver` has no `.uuid()` — deliberately removed with the rest
+    // of the killed accessor surface, and no replacement identity for a My Drivers entry has
+    // been decided. `openedAs` is left `''` below rather than inventing an identity scheme (a
+    // hash, a brand/model key, ...); until it is decided what identifies a My Drivers row, OK
+    // on this editor files every save as a NEW entry rather than replacing the one opened.
+    /** Open the editor on a saved driver. Its OK writes to My Drivers, never to the project. */
+    editMyDriver(d, uuid = '') {
+      subject = { kind: 'myDriver', openedAs: uuid };
+      editSeed = d.detach();
+      presentationState.editDriverInfo = true;
+    },
+
+    /** Open the editor on a driver selected in the library overview. Its OK/Save writes to My Drivers. */
+    async editOverviewDriver(d) {
+      // See the GAP note on `editMyDriver` above — `.uuid()` no longer exists, so a saved
+      // driver cannot be reopened "as itself"; every OK from here also files as a new entry.
+      subject = { kind: 'myDriver', openedAs: '' };
+      editSeed = d.detach();
+      presentationState.editDriverInfo = true;
+      return { ok: true };
+    },
+
+    /** Open the editor on the project's own driver. */
+    editProjectDriver(showDisagreements = false) {
+      subject = { kind: 'project' };
+      editSeed = null;
+      presentationState.editDriverShowDisagreements = showDisagreements;
+      presentationState.editDriverInfo = true;
+    },
+
+    /**
+     * Open the editor to CREATE a new driver from scratch. The editor's OK stays disabled until
+     * the user supplies brand and model, so the driver cannot be saved without the
+     * `<brand>/<model>` identity it will be filed under.
+     *
+     * Uses the myDriver subject, so OK saves it into My Drivers and leaves the open project's
+     * driver alone.
+     */
+    openNewDriver() {
+      subject = { kind: 'myDriver', openedAs: '' };
+      editSeed = null;
+      presentationState.browseOpen = false;
+      presentationState.editDriverInfo = true;
+    },
+
+    editSubject() {
+      return subject.kind === 'myDriver'
+        ? { kind: 'myDriver', openedAs: subject.openedAs, seed: editSeed }
+        : { kind: 'project' };
+    },
+
+    closeEditor,
+  };
+}

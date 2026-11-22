@@ -1,0 +1,148 @@
+import {silentPerf} from '../fixtures/silentPerf.js';
+/**
+ * The driver list's filters. Filters are kept between openings, but the list says which
+ * are on; Favorites cannot be switched on with no favourites; one action clears every filter.
+ */
+import {NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
+import {FeatureUse} from '../../src/logic/telemetry/featureUse.js';
+import {describe, expect, it, vi} from 'vitest';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {ref} from 'vue';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import {createBundledDriverRepo, createFileStorage, createMemoryStorage, createPrefsRepo} from '@openisd/persistence';
+import type {Logging} from '../../src/logging/flash.js';
+import {createDriverSelection} from '../../src/logic/driverSelection.js';
+import {createDriverBrowsingState} from '../../src/logic/driverBrowsingState.js';
+import {SizeClass} from '@openisd/design/filter';
+import {activeFilterLabels, searchSubjectOfDriver, type SearchCriteria} from '../../src/logic/driverDisplay.js';
+import {DesignFiles} from '../../src/logic/fileImportExport.js';
+import {ProjectFileFormat} from '../../src/fileFormat.js';
+import {DriverScope} from '../../src/driverScope.js';
+import {myDriverRepoOn, projectRepoOn, exportedFilesOn} from '../fixtures/repoOn.js';
+
+const NONE: SearchCriteria = {
+  query: '', typeStates: {}, fsMin: '', fsMax: '', rangeFrom: '', rangeTo: '', rangeKeepUnstated: true, sdMin: '', sdMax: '', selZ: [], sizes: [], favoritesOnly: false, favorites: [],
+};
+
+describe('activeFilterLabels: which filters are on, in words', () => {
+  it('is empty when no filter is on', () => {
+    expect(activeFilterLabels(NONE, DriverScope.All)).toEqual([]);
+  });
+
+  it('names every filter that is on', () => {
+    expect(activeFilterLabels({
+      ...NONE, query: ' W5-1138 ', typeStates: {tweet: 'include', sub: 'exclude'},
+      fsMin: '20', fsMax: '40', sdMin: '90', selZ: ['4', '8'], favoritesOnly: true,
+    }, DriverScope.Mine)).toEqual([
+      '"W5-1138"', 'not Sub', 'Tweet', 'Fs 20–40 Hz', 'Sd ≥ 90 cm²', 'Z 4Ω or 8Ω', 'My Drivers only', 'Favorites',
+    ]);
+  });
+
+  it('names the size classes, saying they are worked out from Sd', () => {
+    expect(activeFilterLabels({...NONE, sizes: ['10', '8']}, DriverScope.All)).toEqual(['Size ≈ 8 or 10 in (from Sd)']);
+  });
+
+  it('names a maximum alone', () => {
+    expect(activeFilterLabels({...NONE, fsMax: '40'}, DriverScope.Bundled)).toEqual(['Fs ≤ 40 Hz', 'Bundled only']);
+    expect(activeFilterLabels({...NONE, rangeFrom: '40', rangeTo: '2000'}, DriverScope.All)).toEqual(['Range 40–2000 Hz']);
+    expect(activeFilterLabels({...NONE, rangeFrom: '40'}, DriverScope.All)).toEqual(['Range from 40 Hz']);
+    expect(activeFilterLabels({...NONE, rangeTo: '2000'}, DriverScope.All)).toEqual(['Range to 2000 Hz']);
+    expect(activeFilterLabels({...NONE, rangeFrom: '40', rangeKeepUnstated: false}, DriverScope.All)).toEqual(['Range from 40 Hz, stated only']);
+  });
+});
+
+describe('the driver list filters', () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const GOLDEN = join(here, '..', '..', '..', 'design', 'test', 'winisd', 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
+
+  function setUp() {
+    const {appState, presentation} = createAppStateFixture();
+    const engine = appState.engine;
+    const storage = createMemoryStorage();
+    const files = new DesignFiles(engine, projectRepoOn(engine, createFileStorage(), storage, 'http://localhost'), exportedFilesOn());
+    const logging: Logging = {message: ref(''), flash: vi.fn()};
+    const myDriverRepo = myDriverRepoOn(storage, engine);
+    const project = files.projectFromText(readFileSync(GOLDEN, 'utf8'), ProjectFileFormat.Wpr).value;
+    if (!project) throw new Error('the golden must load');
+    const mine = project.driver.detach();
+    const saved = myDriverRepo.upsert(mine);
+    if (!saved) throw new Error('the driver must save');
+    const browsing = createDriverBrowsingState({perf: silentPerf(), 
+      driverRepo: createBundledDriverRepo({
+        bundle: () => Promise.reject(new Error('catalogue not used')), engine, maxAge_ms: 1, now: Date.now,
+      }),
+      myDriverRepo, prefs: createPrefsRepo(storage, () => undefined), logging,
+      selection: createDriverSelection({appState, presentation}), files, confirmReset: {ask: async () => true},
+      exportNotice: {exported: () => undefined}, appState, presentation, driverPicked: () => undefined, featureUse: new FeatureUse(new NoTelemetry()),
+    });
+    browsing.reloadMyDrivers();
+    return {browsing, uuid: saved.uuid, driverUuid: mine.uuid()};
+  }
+
+  it('Favorites cannot be switched on with no favourites', () => {
+    const {browsing} = setUp();
+    expect(browsing.favoritesAvailable.value).toBe(false);
+    browsing.toggleFavoritesOnly();
+    expect(browsing.favoritesOnly.value).toBe(false);
+  });
+
+  it('a starred driver is listed under Favorites', () => {
+    const {browsing} = setUp();
+    const row = browsing.myDrivers.value[0];
+    browsing.toggleFavorite(browsing.driverId(row.driver));
+    expect(browsing.favoritesAvailable.value).toBe(true);
+    browsing.toggleFavoritesOnly();
+    expect(browsing.favoritesOnly.value).toBe(true);
+    expect(browsing.filteredMyDrivers.value.map(r => r.uuid)).toEqual([row.uuid]);
+  });
+
+  it('un-starring the last favourite switches Favorites off, so the list is not left empty', () => {
+    const {browsing} = setUp();
+    const id = browsing.driverId(browsing.myDrivers.value[0].driver);
+    browsing.toggleFavorite(id);
+    browsing.toggleFavoritesOnly();
+    browsing.toggleFavorite(id);
+    expect(browsing.favoritesOnly.value).toBe(false);
+    expect(browsing.filteredMyDrivers.value).toHaveLength(1);
+  });
+
+  it('the size chips narrow My Drivers by the class worked out from Sd, and Clear filters turns them off', () => {
+    const {browsing} = setUp();
+    const own = searchSubjectOfDriver(browsing.myDrivers.value[0].driver).sizeFromSd_in;
+    expect(own).not.toBeNull();
+    const other = SizeClass.ALL.find(c => c.inches !== own);
+    if (!other) throw new Error('there is more than one class');
+    browsing.toggleSize(other.value);
+    expect(browsing.filteredMyDrivers.value).toHaveLength(0);
+    expect(browsing.activeFilters.value).toEqual([SizeClass.filterLabel([other.value])]);
+    browsing.toggleSize(String(own));
+    expect(browsing.filteredMyDrivers.value).toHaveLength(1);
+    browsing.toggleSize(other.value);
+    browsing.toggleSize(String(own));
+    browsing.clearParamFilters();
+    expect(browsing.selSizes.value).toEqual([]);
+  });
+
+  it('says which filters are on, and Clear filters clears every one', () => {
+    const {browsing} = setUp();
+    browsing.toggleFavorite(browsing.driverId(browsing.myDrivers.value[0].driver));
+    browsing.filterQ.value = 'nothing like this';
+    browsing.toggleType('tweet');
+    browsing.fsMin.value = '20'; browsing.sdMax.value = '300';
+    browsing.toggleZ('4');
+    browsing.toggleFavoritesOnly();
+    browsing.cycleDriverScope();
+    expect(browsing.filtersOn.value).toBe(true);
+    expect(browsing.activeFilters.value).toHaveLength(7);
+    expect(browsing.listedCount.value).toBe(0);
+
+    browsing.clearAllFilters();
+    expect(browsing.activeFilters.value).toEqual([]);
+    expect(browsing.filtersOn.value).toBe(false);
+    expect(browsing.driverScope.value).toBe(DriverScope.All);
+    expect(browsing.favoritesOnly.value).toBe(false);
+    expect(browsing.filteredMyDrivers.value).toHaveLength(1);
+  });
+});

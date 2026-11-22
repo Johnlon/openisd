@@ -1,0 +1,1134 @@
+import { describe, expect, it } from 'vitest';
+import type {RadiatorPicks} from '../../src/logic/telemetry/radiatorPick.js';
+import {DEFAULT_ENV_DEFAULTS, type Engine, createEngine, type VentedDesignLimits} from '@openisd/design/engine';
+import { OpenISDDriver, ProjectBuilder, WizardStep } from '@openisd/design';
+import { DEFAULT_ALFAVC_PER_K, DEFAULT_NEW_PROJECT_QA, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VC_TEMP_RISE_K, NumberField } from '@openisd/design/fields';
+import { NEW_PROJECT_VENTED_QL, type NewProjectPassiveRadiatorRepos, useOgNewProject } from '../../src/hooks/OriginalNewProject-hooks.js';
+import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
+import { type BundledPassiveRadiatorRepo, createMemoryStorage } from '@openisd/persistence';
+import { vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { createAppStateFixture } from '../fixtures/appStateFixture.js';
+import { nextTick } from 'vue';
+import {myPassiveRadiatorRepoOn} from '../fixtures/repoOn.js';
+
+/** No bundled catalogue: a test that reaches it has gone somewhere it did not mean to. */
+const noBundled: BundledPassiveRadiatorRepo = {
+  index: () => Promise.reject(new Error('no bundled catalogue in this test')),
+  load: () => Promise.reject(new Error('no bundled catalogue in this test')),
+};
+
+/** Saved radiators over memory storage, and no bundled catalogue. */
+function testPassiveRadiators(bundled: BundledPassiveRadiatorRepo = noBundled): NewProjectPassiveRadiatorRepos {
+  return { saved: myPassiveRadiatorRepoOn(createMemoryStorage()), bundled };
+}
+
+/** A radiator stating the five parameters WinISD's wizard step asks for. */
+function testRadiator(model: string): OpenISDPassiveRadiatorStandalone {
+  const pr = OpenISDPassiveRadiatorStandalone.empty();
+  pr.model.set(model);
+  pr.spec.Vas_m3.set(0.05);
+  pr.spec.Qms.set(5);
+  pr.spec.Fs_hz.set(20);
+  pr.spec.Sd_m2.set(0.05);
+  pr.spec.Xmax_m.set(0.01);
+  return pr;
+}
+
+/** An engine judging designed vented boxes against `band` — the shape the Settings tab writes. */
+const engineWithBand = (band: VentedDesignLimits) =>
+  createEngine({ ventedLimits: () => band, envDefaults: () => DEFAULT_ENV_DEFAULTS });
+
+interface TestDriverParams {
+  Fs?: number; Qes?: number; Qms?: number; Qts?: number; Re_ohm?: number; Vas_m3?: number;
+}
+
+function createTestDriver(engine: Engine, params?: TestDriverParams) {
+  const driver = OpenISDDriver.empty(engine);
+  driver.model.set('Test Woofer');
+  driver.brand.set('Test Brand');
+  driver.specs.Fs_hz.set(params?.Fs ?? 40);
+  driver.specs.Qes.set(params?.Qes ?? 0.45);
+  if (params?.Qms != null) driver.specs.Qms.set(params.Qms);
+  driver.specs.Qts.set(params?.Qts ?? 0.38);
+  if (params?.Re_ohm != null) driver.specs.Re_ohm.set(params.Re_ohm);
+  driver.specs.Vas_m3.set(params?.Vas_m3 ?? 0.03); // 30 L
+  return driver;
+}
+
+/** The WinISD capture driver (winisd_research/runs/vented_alignments.jsonl): Fs 40, Vas 20 L,
+ *  Qms 4, Re 6, Qes 0.432133 → Qts 0.39. */
+function captureDriver(engine: Engine) {
+  return createTestDriver(engine, { Fs: 40, Qes: 0.432133, Qms: 4, Qts: 0.39, Re_ohm: 6, Vas_m3: 0.02 });
+}
+
+describe('useOgNewProject', () => {
+  it('creates a sealed project with a complete dummy PR sized for the chosen driver count', () => {
+    const engine = createEngine();
+    const driver = captureDriver(engine);
+    driver.specs.Sd_m2.set(0.021);
+    driver.specs.Xmax_m.set(0.008);
+    const wizard = useOgNewProject({appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver});
+    wizard.nDrivers.value = 4;
+    wizard.boxType.value = 'sealed';
+    const project = wizard.createProject();
+    expect(project).not.toBeNull();
+    const pr = project!.box.passiveRadiator;
+    expect(pr.radiator.model.value).toBe('Dummy PR');
+    expect(pr.radiator.spec.Qms.value).toBe(5);
+    expect(pr.radiator.spec.Vd_m3.value! * pr.count.value).toBeGreaterThanOrEqual(project!.driver.specs.Vd_m3.value! * 4);
+  });
+
+  it('initializes at step 1 and requires a driver selection before advancing', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine });
+
+    expect(wizard.step.value).toBe(WizardStep.DRIVER);
+    expect(wizard.canBack.value).toBe(false);
+    expect(wizard.canNext.value).toBe(false);
+
+    const driver = createTestDriver(engine);
+    wizard.selectDriver(driver);
+
+    expect(wizard.selectedDriver.value).toBe(driver);
+    expect(wizard.canNext.value).toBe(true);
+  });
+
+  it('step 1 previews the chosen driver as Fs / Qts / Vas display strings, empty when nothing is chosen', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine });
+    expect(wizard.selectedDriverSpecs.value).toEqual([]);
+
+    wizard.selectDriver(createTestDriver(engine, { Fs: 40, Qts: 0.38, Vas_m3: 0.03 }));
+    expect(wizard.selectedDriverSpecs.value).toEqual(['Fs: 40 Hz', 'Qts: 0.38', 'Vas: 30.00 L']);
+  });
+
+  it('initializes with pre-loaded driver if provided', () => {
+    const engine = createEngine();
+    const driver = createTestDriver(engine);
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+
+    expect(wizard.selectedDriver.value).toBe(driver);
+    expect(wizard.canNext.value).toBe(true);
+  });
+
+  it('navigates through all 5 steps when box type is sealed', () => {
+    const engine = createEngine();
+    const driver = createTestDriver(engine);
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+
+    // Step 1 -> 2
+    expect(wizard.step.value).toBe(WizardStep.DRIVER);
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.COUNT);
+
+    // Step 2 -> 3
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
+    expect(wizard.boxType.value).toBe('sealed');
+
+    // Step 3 -> 4 (Sealed Alignment)
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
+    expect(wizard.currentStepNumber.value).toBe(4);
+    expect(wizard.totalSteps.value).toBe(5);
+
+    // Step 4 -> 5 (Project Info)
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
+    expect(wizard.currentStepNumber.value).toBe(5);
+    expect(wizard.totalSteps.value).toBe(5);
+
+    // Navigating back 5 -> 4 -> 3 -> 2 -> 1
+    wizard.back();
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
+    wizard.back();
+    expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
+    wizard.back();
+    expect(wizard.step.value).toBe(WizardStep.COUNT);
+    wizard.back();
+    expect(wizard.step.value).toBe(WizardStep.DRIVER);
+  });
+
+  it('gives bandpass4 a step 4 (its chambers), the same slot every box type uses', () => {
+    const engine = createEngine();
+    const driver = createTestDriver(engine);
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+
+    wizard.next();
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
+
+    wizard.boxType.value = 'bandpass4';
+    expect(wizard.totalSteps.value).toBe(5);
+
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
+    expect(wizard.stepLabel.value).toBe('Chambers');
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
+    expect(wizard.currentStepNumber.value).toBe(5);
+
+    wizard.back();
+    wizard.back();
+    expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
+  });
+
+  it('gives vented a step 4 (alignment), same slot sealed uses', () => {
+    const engine = createEngine();
+    const driver = createTestDriver(engine);
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+
+    wizard.next();
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
+
+    wizard.boxType.value = 'vented';
+    expect(wizard.totalSteps.value).toBe(5);
+
+    // Step 3 -> 4 (Vented Alignment)
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
+    expect(wizard.currentStepNumber.value).toBe(4);
+
+    // Step 4 -> 5 (Project Info)
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
+    expect(wizard.currentStepNumber.value).toBe(5);
+
+    // Back 5 -> 4 -> 3
+    wizard.back();
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
+    wizard.back();
+    expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
+  });
+
+  it('offers WinISD\'s five vented alignments and opens on C4/SC4', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: captureDriver(engine) });
+    wizard.boxType.value = 'vented';
+
+    expect(wizard.VENTED_ALIGNMENT_OPTIONS.map(o => o.value)).toEqual(['qb3', 'bb4', 'c4', 'ebs3', 'ebs6']);
+    expect(wizard.selectedVentedAlignment.value).toBe('c4');
+  });
+
+  it('designs the vented box as WinISD does: source-loaded Qts at the project\'s Rg, box Ql, chosen alignment', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: captureDriver(engine) });
+    wizard.boxType.value = 'vented';
+
+    // WinISD capture, C4 at Qts 0.39 with Rg 0.1 Ω, Ql 10: Vb 17.2885792662035 L, Fb 40.6761517251006 Hz.
+    expect(wizard.ventedVolume_L.value).toBeCloseTo(17.2885792662035, 9);
+    expect(wizard.ventedTuning_hz.value).toBeCloseTo(40.6761517251006, 9);
+
+    // EBS6 at the same Qts: Vb 37.6196150654936 L, Fb 23.8186393055339 Hz.
+    wizard.selectVentedAlignment('ebs6');
+    expect(wizard.selectedVentedAlignment.value).toBe('ebs6');
+    expect(wizard.ventedVolume_L.value).toBeCloseTo(37.6196150654936, 9);
+    expect(wizard.ventedTuning_hz.value).toBeCloseTo(23.8186393055339, 9);
+
+    const project = wizard.createProject();
+    expect(project?.box.vented.volume_m3.value).toBeCloseTo(wizard.ventedVolume_L.value / 1000, 12);
+    expect(project?.box.vented.tuning_goal_hz.value).toBeCloseTo(wizard.ventedTuning_hz.value, 12);
+  });
+
+  it("the wizard preview's Ql is the SCHEMA's new-project Ql, not a hook-local copy", () => {
+    // The preview constant and the box record's starting value must be ONE declaration: if the
+    // schema's NO_VENTED_LOSSES ever changes, a hook-local `10` would silently disagree with
+    // the project the wizard creates. The design is made from the created project's OWN Ql
+    // (openisdTransforms afterWrap), so the preview must read the same source.
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: captureDriver(engine) });
+    wizard.boxType.value = 'vented';
+    wizard.selectVentedAlignment('bb4');
+    const previewVb_m3 = wizard.ventedVolume_L.value / 1000;
+
+    const project = wizard.createProject();
+    expect(project).not.toBeNull();
+    if (!project) return;
+    const qtsLoaded = project.driver.sourceLoadedQts(project.Rs_ohm.value);
+    expect(qtsLoaded).not.toBeNull();
+    if (qtsLoaded === null) return;
+    const fromProject = engine.vented.alignment(
+      'bb4', 40, qtsLoaded, 0.02, project.box.vented.losses.Ql.value,
+    );
+    expect(previewVb_m3).toBeCloseTo(fromProject.Vb, 12);
+    // And the constants are literally shared — the hook no longer carries its own literal.
+    expect(NEW_PROJECT_VENTED_QL).toBe(project.box.vented.losses.Ql.value);
+  });
+
+  it('the preview uses the same Rg and Ql the created project carries', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: captureDriver(engine) });
+    wizard.boxType.value = 'vented';
+    wizard.selectVentedAlignment('bb4');
+    const previewVb_m3 = wizard.ventedVolume_L.value / 1000;
+
+    const project = wizard.createProject();
+    expect(project).not.toBeNull();
+    if (!project) return;
+    const qtsLoaded = project.driver.sourceLoadedQts(project.Rs_ohm.value);
+    expect(qtsLoaded).not.toBeNull();
+    if (qtsLoaded === null) return;
+    const fromProject = engine.vented.alignment('bb4', 40, qtsLoaded, 0.02, project.box.vented.losses.Ql.value);
+    expect(previewVb_m3).toBeCloseTo(fromProject.Vb, 12);
+  });
+
+  it('computes EBP and suitability readout correctly', () => {
+    const engine = createEngine();
+    // Driver with Fs=35, Qes=0.8 -> EBP = 43.75 < 50 -> Sealed preferred
+    const sealedDriver = createTestDriver(engine, { Fs: 35, Qes: 0.8 });
+    const wizardSealed = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: sealedDriver });
+
+    expect(wizardSealed.ebp.value).toBeCloseTo(43.75, 1);
+    expect(wizardSealed.ebpSuitability.value).toBe('sealed');
+    expect(wizardSealed.ebpSuitabilityLabel.value).toBe('Sealed preferred');
+
+    // Driver with Fs=30, Qes=0.2 -> EBP = 150 -> Vented preferred
+    const ventedDriver = createTestDriver(engine, { Fs: 30, Qes: 0.2 });
+    const wizardVented = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: ventedDriver });
+
+    expect(wizardVented.ebp.value).toBeCloseTo(150, 1);
+    expect(wizardVented.ebpSuitability.value).toBe('vented');
+    expect(wizardVented.ebpSuitabilityLabel.value).toBe('Vented preferred');
+  });
+
+  it('calculates sealed volume on step 4 when selecting Qtc alignment', () => {
+    const engine = createEngine();
+    // Qts = 0.38, Vas = 0.03 m3 (30 L)
+    const driver = createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 });
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+
+    wizard.selectSealedAlignment(0.707);
+    expect(wizard.sealedVolume_m3.value).toBeGreaterThan(0);
+    expect(wizard.qtc.value).toBeCloseTo(0.707, 2);
+    expect(wizard.selectedSealedAlignment.value?.value).toBeCloseTo(0.707, 2);
+
+    // Editing volume directly updates qtc and closest alignment option
+    wizard.setSealedVolume_m3(0.015);
+    expect(wizard.sealedVolume_m3.value).toBe(0.015);
+    expect(wizard.qtc.value).toBeGreaterThan(0);
+    expect(wizard.selectedSealedAlignment.value).not.toBeNull();
+  });
+
+  it('a passive-radiator project keeps the starting volume — the sealed alignment volume never leaks into it', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine });
+    wizard.selectDriver(createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 }));
+    wizard.boxType.value = 'box-passive-radiator';
+    wizard.defineNewPassiveRadiator();
+    wizard.projName.value = 'PR';
+
+    // Picking the driver derives the 0.707 sealed volume — a different number from the 7 L default.
+    expect(wizard.sealedVolume_m3.value).not.toBeCloseTo(0.007, 6);
+    expect(wizard.volume_m3.value).toBe(0.007);
+
+    const project = wizard.createProject();
+    expect(project?.box.passiveRadiator.volume_m3.value).toBeCloseTo(0.007, 6);
+  });
+
+  // T902: the UI is display only: no calcs, defaults, option lists, rounding or decisions in packages/ui.
+  // The wizard stores the engine's volume, as the Box tab's picker does; the volume field shows it to 2dp litres.
+  it('stores the derived sealed volume as the engine gives it, and the volume field shows it to 2dp litres', () => {
+    const engine = createEngine();
+    const driver = createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 });
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+
+    wizard.selectSealedAlignment(0.6);
+
+    // The volume that shows Qtc 0.6 on the Box tab (lossy, default Rg and box losses), as the engine gives it.
+    const raw = driver.sealedVolumeForQtc(0.6, {Rs_ohm: DEFAULT_SOURCE_RESISTANCE_OHM, nDrivers: 1, loading: 'standard', alfaVC_per_K: DEFAULT_ALFAVC_PER_K, vcTempRise_K: DEFAULT_VC_TEMP_RISE_K}, {Ql: NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA})!;
+    expect(wizard.sealedVolume_m3.value).toBe(raw);
+    expect(wizard.sealedVolume_m3.value).toBe(0.02049685518650786);
+    expect(NumberField.BOX_VB_L.format(wizard.sealedVolume_m3.value)).toBe('20.50');
+  });
+
+  it('a picked Qtc becomes the new project\'s entered volume, with Qtc calculated', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine });
+    wizard.selectDriver(createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 }));
+    wizard.projName.value = 'Picked';
+    wizard.selectSealedAlignment(0.8);
+
+    const sealed = wizard.createProject()?.box.sealed;
+    expect(sealed?.volume_m3.entered).toBe(true);
+    expect(sealed?.volume_m3.value).toBeCloseTo(wizard.sealedVolume_m3.value, 9);
+    expect(sealed?.q_tc.entered).toBe(false);
+  });
+
+  it('a volume typed after the pick is the project\'s entered volume, with Qtc calculated', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine });
+    wizard.selectDriver(createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 }));
+    wizard.projName.value = 'Typed';
+    wizard.selectSealedAlignment(0.8);
+    wizard.setSealedVolume_m3(0.025);
+
+    const sealed = wizard.createProject()?.box.sealed;
+    expect(sealed?.volume_m3.entered).toBe(true);
+    expect(sealed?.volume_m3.value).toBe(0.025);
+    expect(sealed?.q_tc.entered).toBe(false);
+  });
+
+  it('picking a driver on step 1 moves the wizard on to step 2 — "Use" advances, it does not just arm Next', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine });
+
+    expect(wizard.step.value).toBe(WizardStep.DRIVER);
+    wizard.selectDriver(createTestDriver(engine));
+
+    expect(wizard.step.value).toBe(WizardStep.COUNT);
+  });
+
+  it('preserves state when navigating Back and Next', () => {
+    const engine = createEngine();
+    const driver = createTestDriver(engine);
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+
+    // Step 2: edit nDrivers
+    wizard.next();
+    wizard.nDrivers.value = 2;
+
+    // Step 3: edit boxType and volume
+    wizard.next();
+    wizard.boxType.value = 'bandpass4';
+    wizard.volume_m3.value = 0.025;
+    wizard.frontVolume_m3.value = 0.015;
+
+    // Step 5: edit project name
+    wizard.next();
+    wizard.projName.value = 'Subwoofer Deluxe';
+    wizard.projDescription.value = 'Custom 4th order bandpass';
+
+    // Navigate back to step 1
+    wizard.back(); // 3
+    wizard.back(); // 2
+    wizard.back(); // 1
+
+    // Verify all preserved
+    expect(wizard.nDrivers.value).toBe(2);
+    expect(wizard.boxType.value).toBe('bandpass4');
+    expect(wizard.volume_m3.value).toBe(0.025);
+    expect(wizard.frontVolume_m3.value).toBe(0.015);
+    expect(wizard.projName.value).toBe('Subwoofer Deluxe');
+    expect(wizard.projDescription.value).toBe('Custom 4th order bandpass');
+  });
+
+  it('creates a project with all configured parameters on completion', () => {
+    const engine = createEngine();
+    const driver = createTestDriver(engine);
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+
+    wizard.nDrivers.value = 2;
+    wizard.boxType.value = 'sealed';
+    wizard.setSealedVolume_m3(0.02);
+    wizard.projName.value = 'My Sealed Sub';
+    wizard.projDescription.value = 'Test description';
+
+    const project = wizard.createProject();
+    expect(project).not.toBeNull();
+    if (project) {
+      expect(project.name.value).toBe('My Sealed Sub');
+      expect(project.description.value).toBe('Test description');
+      expect(project.nDrivers.value).toBe(2);
+      expect(project.box.boxType.value).toBe('sealed');
+      expect(project.box.sealed.volume_m3.value).toBeCloseTo(0.02, 4);
+    }
+  });
+
+  describe('default project name', () => {
+    it('defaults to "<driver model> <box type>" when user does not edit the name', () => {
+      const engine = createEngine();
+      const driver = createTestDriver(engine);
+      driver.model.set('W5-1138SMF');
+      const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+      wizard.boxType.value = 'vented';
+      expect(wizard.projName.value).toBe('W5-1138SMF vented');
+
+      const project = wizard.createProject();
+      expect(project?.name.value).toBe('W5-1138SMF vented');
+    });
+
+    it('updates the default project name when changing box type if the user has not edited it', () => {
+      const engine = createEngine();
+      const driver = createTestDriver(engine);
+      driver.model.set('W5-1138SMF');
+      const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+      expect(wizard.projName.value).toBe('W5-1138SMF closed');
+
+      wizard.boxType.value = 'vented';
+      expect(wizard.projName.value).toBe('W5-1138SMF vented');
+
+      wizard.boxType.value = 'bandpass4';
+      expect(wizard.projName.value).toBe('W5-1138SMF 4th order bandpass');
+    });
+
+    it('a renamed project keeps its name even when box type changes', () => {
+      const engine = createEngine();
+      const driver = createTestDriver(engine);
+      driver.model.set('W5-1138SMF');
+      const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+      wizard.boxType.value = 'vented';
+      wizard.projName.value = 'Custom Vented Sub';
+
+      wizard.boxType.value = 'bandpass4';
+      expect(wizard.projName.value).toBe('Custom Vented Sub');
+
+      const project = wizard.createProject();
+      expect(project?.name.value).toBe('Custom Vented Sub');
+    });
+
+    it('falls back to default name if user clears the name', () => {
+      const engine = createEngine();
+      const driver = createTestDriver(engine);
+      driver.model.set('W5-1138SMF');
+      const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+      wizard.boxType.value = 'vented';
+      wizard.projName.value = '   ';
+
+      const project = wizard.createProject();
+      expect(project?.name.value).toBe('W5-1138SMF vented');
+    });
+  });
+});
+
+describe('useOgNewProject — bandpass6 and ABC take both chambers and both tunings', () => {
+  for (const type of ['bandpass6', 'abc'] as const) {
+    it(`${type}: is dual, and the project carries the entered volumes and tunings`, () => {
+      const engine = createEngine();
+      const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: createTestDriver(engine) });
+      wizard.boxType.value = type;
+      expect(wizard.isDual.value).toBe(true);
+      wizard.volume_m3.value = 0.031;
+      wizard.frontVolume_m3.value = 0.017;
+      wizard.rearTuning_hz.value = 41.5;
+      wizard.frontTuning_hz.value = 52.5;
+
+      const project = wizard.createProject();
+      expect(project).not.toBeNull();
+      if (!project) return;
+      const chambers = type === 'bandpass6' ? project.box.bandpass6.chambers : project.box.abc.chambers;
+      expect(chambers.rear.volume_m3.value).toBe(0.031);
+      expect(chambers.front.volume_m3.value).toBe(0.017);
+      expect(chambers.rear.tuning_goal_hz.value).toBe(41.5);
+      expect(chambers.front.tuning_goal_hz.value).toBe(52.5);
+    });
+  }
+
+  it('bandpass4 is dual and has no tuning inputs in its project', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: createTestDriver(engine) });
+    wizard.boxType.value = 'bandpass4';
+    expect(wizard.isDual.value).toBe(true);
+    expect(wizard.hasTunings.value).toBe(false);
+    wizard.boxType.value = 'bandpass6';
+    expect(wizard.hasTunings.value).toBe(true);
+  });
+});
+
+describe('useOgNewProject — dual-chamber starting values come from the design package', () => {
+  function wizardOf() {
+    const engine = createEngine();
+    return useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: createTestDriver(engine) });
+  }
+
+  for (const type of ['bandpass6', 'abc'] as const) {
+    it(`${type}: starts at 30 L / 20 L, 35 Hz / 25 Hz and builds what box.boxType.set gives`, async () => {
+      const wizard = wizardOf();
+      wizard.boxType.value = type;
+      await nextTick();
+      expect(wizard.volume_m3.value).toBe(0.03);
+      expect(wizard.frontVolume_m3.value).toBe(0.02);
+      expect(wizard.rearTuning_hz.value).toBe(35);
+      expect(wizard.frontTuning_hz.value).toBe(25);
+
+      const project = wizard.createProject();
+      expect(project).not.toBeNull();
+      if (!project) return;
+      const engine = createEngine();
+      const reference = new ProjectBuilder(createTestDriver(engine), engine).sealed().build();
+      reference.box.boxType.set(type);
+      const got = type === 'bandpass6' ? project.box.bandpass6.chambers : project.box.abc.chambers;
+      const want = type === 'bandpass6' ? reference.box.bandpass6.chambers : reference.box.abc.chambers;
+      expect(got.rear.volume_m3.value).toBe(want.rear.volume_m3.value);
+      expect(got.front.volume_m3.value).toBe(want.front.volume_m3.value);
+      expect(got.rear.tuning_goal_hz.value).toBe(want.rear.tuning_goal_hz.value);
+      expect(got.front.tuning_goal_hz.value).toBe(want.front.tuning_goal_hz.value);
+    });
+  }
+
+  it('bandpass4 starts at 7 L / 10 L; switching to bandpass6 resets the volumes to 30 L / 20 L', async () => {
+    const wizard = wizardOf();
+    wizard.boxType.value = 'bandpass4';
+    await nextTick();
+    expect(wizard.volume_m3.value).toBe(0.007);
+    expect(wizard.frontVolume_m3.value).toBe(0.01);
+    wizard.boxType.value = 'bandpass6';
+    await nextTick();
+    expect(wizard.volume_m3.value).toBe(0.03);
+    expect(wizard.frontVolume_m3.value).toBe(0.02);
+  });
+
+  it('an edit survives a re-set of the same type', async () => {
+    const wizard = wizardOf();
+    wizard.boxType.value = 'bandpass6';
+    await nextTick();
+    wizard.volume_m3.value = 0.041;
+    wizard.boxType.value = 'bandpass6';
+    await nextTick();
+    expect(wizard.volume_m3.value).toBe(0.041);
+  });
+});
+
+/**
+ * Step 4's vented readout says when the designed box is implausible.
+ *
+ * WinISD does not clamp its alignment polynomials and OpenISD matches
+ * it bit-exact, so the number on screen matches WinISD and stays put. The readout MARKS it instead: the wizard is the one surface
+ * where the user meets a designed value before a project exists to carry a cell's DQ.
+ *
+ * The band is an application setting, so every test here states its own rather than leaning on
+ * whatever the factory band happens to be.
+ */
+describe('useOgNewProject — vented plausibility readout', () => {
+  /** Rejects nothing an ordinary driver designs. */
+  const WIDE: VentedDesignLimits = { minVb_m3: 1e-9, maxVb_m3: 1e9, minFb_hz: 1e-9, maxFb_hz: 1e9 };
+
+  /** A wizard sitting on step 4 with a vented box and the capture driver chosen. */
+  function ventedWizard(engine: Engine) {
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: captureDriver(engine) });
+    wizard.boxType.value = 'vented';
+    return wizard;
+  }
+
+  it('says nothing when the designed box is inside the band', () => {
+    const wizard = ventedWizard(engineWithBand(WIDE));
+
+    expect(wizard.ventedVolumeWarning.value).toBeNull();
+    expect(wizard.ventedTuningWarning.value).toBeNull();
+  });
+
+  it('warns about the volume when the designed box is outside the band', () => {
+    // maxVb 1 mL — every real design is above it, so this asks the question without depending
+    // on which alignment the wizard happens to start on.
+    const band: VentedDesignLimits = { ...WIDE, maxVb_m3: 0.000001 };
+    const wizard = ventedWizard(engineWithBand(band));
+
+    const warning = wizard.ventedVolumeWarning.value;
+    expect(warning).not.toBeNull();
+    expect(warning).toMatch(/WinISD/);
+    expect(wizard.ventedTuningWarning.value).toBeNull();
+  });
+
+  it('warns about the tuning when the designed tuning is outside the band', () => {
+    const band: VentedDesignLimits = { ...WIDE, minFb_hz: 10000 };
+    const wizard = ventedWizard(engineWithBand(band));
+
+    expect(wizard.ventedTuningWarning.value).not.toBeNull();
+    expect(wizard.ventedVolumeWarning.value).toBeNull();
+  });
+
+  it('leaves the designed numbers exactly as WinISD designs them — the mark is not a clamp', () => {
+    const wide = ventedWizard(engineWithBand(WIDE));
+    const narrow = ventedWizard(engineWithBand({ ...WIDE, maxVb_m3: 0.000001, minFb_hz: 10000 }));
+
+    expect(narrow.ventedVolume_L.value).toBe(wide.ventedVolume_L.value);
+    expect(narrow.ventedTuning_hz.value).toBe(wide.ventedTuning_hz.value);
+  });
+
+  it('says nothing for a sealed design — there is no vented box to judge', () => {
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(),
+      areas: engineWithBand({ ...WIDE, maxVb_m3: 0.000001, minFb_hz: 10000 }),
+      initialDriver: captureDriver(engineWithBand(WIDE)),
+    });
+    wizard.boxType.value = 'sealed';
+
+    expect(wizard.ventedVolumeWarning.value).toBeNull();
+    expect(wizard.ventedTuningWarning.value).toBeNull();
+  });
+
+  it('re-judges when the alignment changes — each alignment designs its own box', () => {
+    const wizard = ventedWizard(engineWithBand(WIDE));
+    expect(wizard.ventedVolumeWarning.value).toBeNull();
+
+    const narrow = ventedWizard(engineWithBand({ ...WIDE, maxVb_m3: 0.000001 }));
+    const first = narrow.ventedVolumeWarning.value;
+    narrow.selectVentedAlignment('c4');
+    const second = narrow.ventedVolumeWarning.value;
+
+    expect(first).not.toBeNull();
+    expect(second).not.toBeNull();
+  });
+});
+
+// WinISD's wizard has a passive-radiator step after the box type: pick or enter the radiator
+// (Vas / Qms / Fs / Sd / Xmax). bugs/archive/BUG_20261001_new-project-wizard-skips-the-passive-radiator-step.md
+describe('useOgNewProject — passive-radiator step', () => {
+  function atBoxTypeStep(passiveRadiators: NewProjectPassiveRadiatorRepos, reportFault?: (fault: Error) => void) {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture(undefined, undefined, reportFault).appState, passiveRadiators, areas: engine, initialDriver: createTestDriver(engine) });
+    wizard.next();
+    wizard.next();
+    wizard.boxType.value = 'box-passive-radiator';
+    return wizard;
+  }
+
+  it('a passive-radiator box gets step 4, the radiator, and Next waits until one is chosen', () => {
+    const wizard = atBoxTypeStep(testPassiveRadiators());
+    expect(wizard.totalSteps.value).toBe(5);
+
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
+    expect(wizard.stepLabel.value).toBe('Passive Radiator');
+    expect(wizard.canNext.value).toBe(false);
+
+    wizard.passiveRadiatorBrowseOpen.value = true;
+    wizard.defineNewPassiveRadiator();
+    expect(wizard.passiveRadiatorBrowseOpen.value).toBe(false);
+    expect(wizard.canNext.value).toBe(true);
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
+    wizard.back();
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
+  });
+
+  it('a saved radiator chosen at step 4 is the one the project is built with', () => {
+    const repos = testPassiveRadiators();
+    const saved = repos.saved.upsert(testRadiator('Saved PR'));
+    if (saved === null) throw new Error('memory storage refused the save');
+    const wizard = atBoxTypeStep(repos);
+    wizard.next();
+
+    wizard.loadSavedPassiveRadiator(saved.uuid);
+    wizard.next();
+    wizard.projName.value = 'With PR';
+    const project = wizard.createProject();
+
+    const radiator = project?.box.passiveRadiator.radiator;
+    expect(radiator?.model.value).toBe('Saved PR');
+    expect(radiator?.spec.Sd_m2.value).toBeCloseTo(0.05, 9);
+    expect(radiator?.spec.Fs_hz.value).toBeCloseTo(20, 9);
+  });
+
+  it('a radiator picked in the wizard is counted: bundled by its id, saved as mine', async () => {
+    const repos = testPassiveRadiators({ index: () => Promise.resolve([]), load: () => Promise.resolve(testRadiator('Bundled PR')) });
+    const saved = repos.saved.upsert(testRadiator('Saved PR'));
+    if (saved === null) throw new Error('memory storage refused the save');
+    const radiatorPicks: RadiatorPicks = {bundled: vi.fn(), saved: vi.fn()};
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: repos, areas: engine, initialDriver: createTestDriver(engine), radiatorPicks });
+    wizard.next();
+    wizard.next();
+    wizard.boxType.value = 'box-passive-radiator';
+    wizard.next();
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    expect(radiatorPicks.bundled).toHaveBeenCalledWith('bundled-1');
+    wizard.back();
+    wizard.next();
+    wizard.loadSavedPassiveRadiator(saved.uuid);
+    expect(radiatorPicks.saved).toHaveBeenCalledTimes(1);
+  });
+
+  it('a bundled radiator is loaded through the catalogue', async () => {
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() => Promise.resolve(testRadiator('Bundled PR')));
+    const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
+    wizard.next();
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+
+    expect(load).toHaveBeenCalledWith('bundled-1');
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Bundled PR');
+    expect(wizard.passiveRadiatorPickError.value).toBeNull();
+  });
+
+  // QO442: a pick moves on to the project page, as choosing a driver does.
+  it('picking a bundled radiator moves on to the project page; defining one stays on the step', async () => {
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() => Promise.resolve(testRadiator('Bundled PR')));
+    const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
+    wizard.next();
+    const radiatorStep = wizard.step.value;
+
+    wizard.defineNewPassiveRadiator();
+    expect(wizard.step.value).toBe(radiatorStep);
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
+  });
+
+  // QO379: on the phone a pick left every box blank and said nothing. A pick
+  // whose record cannot be loaded says so on the step and is recorded as a fault; it never fails
+  // silently.
+  it('a bundled radiator whose record cannot be loaded says so on the step and is recorded as a fault', async () => {
+    const reportFault = vi.fn<(fault: Error) => void>();
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() =>
+      Promise.reject(new Error('bundled catalogue: /drivers/x.json was not served (HTTP 404)')));
+    const engine = createEngine();
+    const wizard = useOgNewProject({
+      appState: createAppStateFixture().appState, areas: engine, initialDriver: createTestDriver(engine),
+      passiveRadiators: testPassiveRadiators({ index: () => Promise.resolve([]), load }), reportFault,
+    });
+    wizard.next(); wizard.next();
+    wizard.boxType.value = 'box-passive-radiator';
+    wizard.next();
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+
+    expect(wizard.passiveRadiatorView.value).toBeNull();
+    expect(wizard.passiveRadiatorPickError.value).toContain('HTTP 404');
+    expect(reportFault).toHaveBeenCalledTimes(1);
+    expect(reportFault.mock.calls[0]?.[0].message).toContain('HTTP 404');
+    expect(wizard.canNext.value).toBe(false);
+  });
+
+  it('a pick that fails and then one that loads clears the step\'s error', async () => {
+    let fail = true;
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() =>
+      fail ? Promise.reject(new Error('bundled catalogue: not served (HTTP 503)')) : Promise.resolve(testRadiator('Bundled PR')));
+    const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
+    wizard.next();
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    expect(wizard.passiveRadiatorPickError.value).toContain('HTTP 503');
+    fail = false;
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+
+    expect(wizard.passiveRadiatorPickError.value).toBeNull();
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Bundled PR');
+  });
+
+  // The repo hands out its one cached instance ("callers copy before editing", bundledRepo.ts).
+  // The step edits a copy: a value typed or cleared here never reaches the catalogue's instance,
+  // so the next pick of the same radiator shows the record, not the last wizard's edits.
+  it('editing a picked bundled radiator on the step leaves the catalogue\'s instance untouched', async () => {
+    const cached = testRadiator('Bundled PR');
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() => Promise.resolve(cached));
+    const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
+    wizard.next();
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    wizard.passiveRadiatorCells.Vas_m3.set(0.01);
+    wizard.passiveRadiatorCells.Qms.clear();
+    wizard.setPassiveRadiatorName('Renamed');
+
+    expect(wizard.passiveRadiatorView.value?.Vas_m3).toBeCloseTo(0.01, 9);
+    expect(cached.spec.Vas_m3.value).toBeCloseTo(0.05, 9);
+    expect(cached.spec.Qms.value).toBe(5);
+    expect(cached.model.value).toBe('Bundled PR');
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    expect(wizard.passiveRadiatorView.value?.Vas_m3).toBeCloseTo(0.05, 9);
+    expect(wizard.passiveRadiatorView.value?.Qms).toBe(5);
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Bundled PR');
+  });
+
+  it('a project made from a picked bundled radiator does not share the catalogue\'s instance', async () => {
+    const cached = testRadiator('Bundled PR');
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() => Promise.resolve(cached));
+    const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
+    wizard.next();
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    wizard.next();
+    wizard.projName.value = 'From bundled';
+
+    const radiator = wizard.createProject()?.box.passiveRadiator.radiator;
+    radiator?.spec.Vas_m3.set(0.02);
+
+    expect(cached.spec.Vas_m3.value).toBeCloseTo(0.05, 9);
+  });
+
+  // Two picks in flight: the later pick is the one the step ends up showing, whichever record
+  // arrives first.
+  it('when two picks are in flight the step shows the later pick', async () => {
+    let resolveFirst: (pr: OpenISDPassiveRadiatorStandalone) => void = () => {};
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>((uuid) =>
+      uuid === 'slow' ? new Promise(resolve => { resolveFirst = resolve; }) : Promise.resolve(testRadiator('Fast PR')));
+    const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
+    wizard.next();
+
+    const slow = wizard.loadBundledPassiveRadiator('slow');
+    await wizard.loadBundledPassiveRadiator('fast');
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Fast PR');
+    resolveFirst(testRadiator('Slow PR'));
+    await slow;
+
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Fast PR');
+  });
+
+  it('the real bundled E150HE-PR record fills every field of the step', async () => {
+    const record: unknown = JSON.parse(readFileSync(new URL('../../public/drivers/dayton-audio/e150he-pr.json', import.meta.url), 'utf8'));
+    const opened = OpenISDPassiveRadiatorStandalone.fromConformingRecord(record);
+    if (Array.isArray(opened)) throw new Error(opened.join('; '));
+    const wizard = atBoxTypeStep({ saved: testPassiveRadiators().saved, bundled: { index: () => Promise.resolve([]), load: () => Promise.resolve(opened) } });
+    wizard.next();
+
+    await wizard.loadBundledPassiveRadiator('e150he-pr');
+
+    const view = wizard.passiveRadiatorView.value;
+    expect(wizard.passiveRadiatorPickError.value).toBeNull();
+    expect(view?.name).toContain('E150HE-PR');
+    for (const key of ['Vas_m3', 'Qms', 'Fs_hz', 'Sd_m2', 'Xmax_m'] as const) {
+      expect(view?.[key], key).toEqual(expect.any(Number));
+    }
+  });
+
+  /** The real E150HE-PR record opened once, as the bundled repo holds it: one cached instance every pick returns. */
+  function cachedRealRadiator(): OpenISDPassiveRadiatorStandalone {
+    const record: unknown = JSON.parse(readFileSync(new URL('../../public/drivers/dayton-audio/e150he-pr.json', import.meta.url), 'utf8'));
+    const opened = OpenISDPassiveRadiatorStandalone.fromConformingRecord(record);
+    if (Array.isArray(opened)) throw new Error(opened.join('; '));
+    return opened;
+  }
+  const FIVE = ['Vas_m3', 'Qms', 'Fs_hz', 'Sd_m2', 'Xmax_m'] as const;
+
+  it('(b) picking the same cached radiator in a second wizard, after the first made a project, fills every box with the record values', async () => {
+    const cached = cachedRealRadiator();
+    const repos: NewProjectPassiveRadiatorRepos = { saved: testPassiveRadiators().saved, bundled: { index: () => Promise.resolve([]), load: () => Promise.resolve(cached) } };
+    const first = atBoxTypeStep(repos);
+    first.next();
+    await first.loadBundledPassiveRadiator('e150he-pr');
+    const before = { ...first.passiveRadiatorView.value };
+    first.passiveRadiatorCells.Vas_m3.set(0.5);
+    first.setPassiveRadiatorName('Edited');
+    first.next();
+    first.projName.value = 'P1';
+    expect(first.createProject()).not.toBeNull();
+
+    const second = atBoxTypeStep(repos);
+    second.next();
+    await second.loadBundledPassiveRadiator('e150he-pr');
+
+    expect(second.passiveRadiatorView.value).toEqual(before);
+    for (const key of FIVE) expect(second.passiveRadiatorView.value?.[key], key).toEqual(expect.any(Number));
+  });
+
+  it('(d) picking after a wizard was cancelled midway fills every box', async () => {
+    const cached = cachedRealRadiator();
+    const repos: NewProjectPassiveRadiatorRepos = { saved: testPassiveRadiators().saved, bundled: { index: () => Promise.resolve([]), load: () => Promise.resolve(cached) } };
+    const first = atBoxTypeStep(repos);
+    first.next();
+    await first.loadBundledPassiveRadiator('e150he-pr');
+    first.passiveRadiatorCells.Fs_hz.clear();
+    first.cancel();
+
+    const second = atBoxTypeStep(repos);
+    second.next();
+    await second.loadBundledPassiveRadiator('e150he-pr');
+    for (const key of FIVE) expect(second.passiveRadiatorView.value?.[key], key).toEqual(expect.any(Number));
+  });
+
+  it('(a) clearing a box then picking the same radiator again refills every box', async () => {
+    const cached = cachedRealRadiator();
+    const wizard = atBoxTypeStep({ saved: testPassiveRadiators().saved, bundled: { index: () => Promise.resolve([]), load: () => Promise.resolve(cached) } });
+    wizard.next();
+    await wizard.loadBundledPassiveRadiator('e150he-pr');
+    const full = { ...wizard.passiveRadiatorView.value };
+    wizard.passiveRadiatorCells.Vas_m3.clear();
+    expect(wizard.passiveRadiatorView.value?.Vas_m3).toBeNull();
+
+    await wizard.loadBundledPassiveRadiator('e150he-pr');
+
+    expect(wizard.passiveRadiatorView.value).toEqual(full);
+    expect(wizard.passiveRadiatorPickId.value).toBe(2);
+  });
+
+  // QO946.c115/c117: Define opens the passive-radiator editor; its OK makes the new radiator the wizard's.
+  it('Define opens the passive-radiator editor on a blank radiator; OK makes it the step\'s radiator and closes the picker; Cancel keeps nothing', () => {
+    const wizard = atBoxTypeStep(testPassiveRadiators());
+    wizard.next();
+    wizard.passiveRadiatorBrowseOpen.value = true;
+
+    wizard.startDefinePassiveRadiator();
+    expect(wizard.passiveRadiatorEditor.name.value).toBe('');
+    wizard.passiveRadiatorEditor.cancel();
+    expect(wizard.passiveRadiatorView.value).toBeNull();
+
+    wizard.startDefinePassiveRadiator();
+    wizard.passiveRadiatorEditor.setName('Wizard PR');
+    wizard.passiveRadiatorEditor.cells.value?.Xmax_m.set(0.009);
+    wizard.passiveRadiatorEditor.ok();
+
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Wizard PR');
+    expect(wizard.passiveRadiatorView.value?.Xmax_m).toBeCloseTo(0.009, 9);
+    expect(wizard.passiveRadiatorBrowseOpen.value).toBe(false);
+  });
+
+  it('a radiator defined at step 4 carries the five parameters typed into it', () => {
+    const wizard = atBoxTypeStep(testPassiveRadiators());
+    wizard.next();
+
+    wizard.defineNewPassiveRadiator();
+    const edits = wizard.passiveRadiatorCells;
+    edits.Vas_m3.set(0.04);
+    edits.Qms.set(6);
+    edits.Fs_hz.set(18);
+    edits.Sd_m2.set(0.06);
+    edits.Xmax_m.set(0.012);
+    expect(wizard.passiveRadiatorView.value?.Qms).toBe(6);
+    wizard.next();
+    wizard.projName.value = 'Typed PR';
+
+    const spec = wizard.createProject()?.box.passiveRadiator.radiator.spec;
+    expect(spec?.Vas_m3.value).toBeCloseTo(0.04, 9);
+    expect(spec?.Qms.value).toBeCloseTo(6, 9);
+    expect(spec?.Fs_hz.value).toBeCloseTo(18, 9);
+    expect(spec?.Sd_m2.value).toBeCloseTo(0.06, 9);
+    expect(spec?.Xmax_m.value).toBeCloseTo(0.012, 9);
+  });
+
+  it('typing a name or a parameter at step 4 defines the radiator with no pick first', () => {
+    const wizard = atBoxTypeStep(testPassiveRadiators());
+    wizard.next();
+    expect(wizard.passiveRadiatorView.value).toBeNull();
+    expect(wizard.canNext.value).toBe(false);
+
+    wizard.setPassiveRadiatorName('Typed direct');
+    wizard.passiveRadiatorCells.Sd_m2.set(0.05);
+
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Typed direct');
+    expect(wizard.passiveRadiatorView.value?.Sd_m2).toBeCloseTo(0.05, 9);
+    expect(wizard.canNext.value).toBe(true);
+  });
+});
+
+describe('useOgNewProject — vented volume and tuning stay typeable', () => {
+  function ventedWizard() {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: createTestDriver(engine) });
+    wizard.boxType.value = 'vented';
+    return wizard;
+  }
+
+  it('shows the alignment\'s volume and tuning until one is typed', () => {
+    const wizard = ventedWizard();
+    const designed = wizard.ventedVolume_m3.value;
+    expect(designed).toBeGreaterThan(0);
+    wizard.setVentedVolume_m3(0.05);
+    expect(wizard.ventedVolume_m3.value).toBe(0.05);
+    wizard.setVentedTuning_hz(33);
+    expect(wizard.ventedTuning_hz.value).toBe(33);
+  });
+
+  it('picking another alignment replaces what was typed', () => {
+    const wizard = ventedWizard();
+    wizard.setVentedVolume_m3(0.05);
+    wizard.setVentedTuning_hz(33);
+    wizard.selectVentedAlignment(wizard.VENTED_ALIGNMENT_OPTIONS[1].value);
+    expect(wizard.ventedVolume_m3.value).not.toBe(0.05);
+    expect(wizard.ventedTuning_hz.value).not.toBe(33);
+  });
+
+  it('the project is built with the typed volume and tuning', () => {
+    const wizard = ventedWizard();
+    wizard.setVentedVolume_m3(0.05);
+    wizard.setVentedTuning_hz(33);
+    const project = wizard.createProject();
+    expect(project?.box.vented.volume_m3.value).toBeCloseTo(0.05, 9);
+    expect(project?.box.vented.tuning_goal_hz.value).toBeCloseTo(33, 9);
+  });
+});
+
+describe('the radiator step holds all eight figures, stated or calculated (T703)', () => {
+  /** The wizard on the radiator step with one real bundled record picked, then Back to its boxes. */
+  async function pickedThenBack(path: string) {
+    const record: unknown = JSON.parse(readFileSync(new URL(`../../public/drivers/${path}.json`, import.meta.url), 'utf8'));
+    const opened = OpenISDPassiveRadiatorStandalone.fromConformingRecord(record);
+    if (Array.isArray(opened)) throw new Error(opened.join('; '));
+    const engine = createEngine();
+    const wizard = useOgNewProject({
+      appState: createAppStateFixture().appState,
+      passiveRadiators: testPassiveRadiators({index: () => Promise.resolve([]), load: () => Promise.resolve(opened)}),
+      areas: engine,
+      initialDriver: OpenISDDriver.empty(engine),
+    });
+    wizard.next();
+    wizard.next();
+    wizard.boxType.value = 'box-passive-radiator';
+    wizard.next();
+    await wizard.loadBundledPassiveRadiator(path);
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
+    wizard.back();
+    return wizard;
+  }
+
+  it('SP22R, which states no Qms and no Fs: both are calculated', async () => {
+    const {passiveRadiatorCells: cells} = await pickedThenBack('seas/sp22r');
+    expect(cells.Qms.value).toBeCloseTo(4.813, 2);
+    expect(cells.Fs_hz.value).toBeCloseTo(23.22, 1);
+    expect(cells.Qms.provenance).toBe('C');
+    expect(cells.Fs_hz.provenance).toBe('C');
+    expect(cells.Vas_m3.provenance).toBe('E');
+    expect(cells.Vas_m3.name).toBe('Vas_m3');
+    expect(cells.Vas_m3.mandatoryAndUnsatisfied).toBe(false);
+    expect(cells.Vas_m3.precision).toEqual(expect.any(Number));
+  });
+
+  it('ASP190: Rms is on show as stated and Qms is calculated from it', async () => {
+    const {passiveRadiatorCells: cells} = await pickedThenBack('accuton/asp190');
+    expect(cells.Rms_kg_per_s.value).toBe(2.2);
+    expect(cells.Rms_kg_per_s.provenance).toBe('E');
+    expect(cells.Qms.value).toBeCloseTo(4.70, 1);
+    expect(cells.Qms.provenance).toBe('C');
+  });
+
+  it('ASP250: Qms is calculated', async () => {
+    const {passiveRadiatorCells: cells} = await pickedThenBack('accuton/asp250');
+    expect(cells.Qms.value).toEqual(expect.any(Number));
+    expect(cells.Qms.provenance).toBe('C');
+  });
+
+  it('P173, which gives nothing to calculate Qms from: the box stays empty', async () => {
+    const {passiveRadiatorCells: cells} = await pickedThenBack('accuton/p173');
+    expect(cells.Qms.value).toBeNull();
+  });
+
+  it('a Cms typed over a record stating Vas reaches the project, with Vas, and both carry the conflict mark', async () => {
+    const wizard = await pickedThenBack('accuton/asp190');
+    // Vas = rho*c^2*Sd^2*Cms = 141853 Pa * 0.0202^2 m^4 * 0.002 m/N = 0.1158 m3 against the stated 0.027 m3: 4.3 times
+    // apart. (0.001 gave 0.0579 m3, 2.1 times apart, but a typed 0.001 carries 0.0005 of precision, which alone
+    // moves Vas by 0.0289 m3, so that pair was within the print's own slack once the air may differ by 2.5% (T804).)
+    wizard.passiveRadiatorCells.Cms_m_per_N.set(0.002);
+    expect(wizard.passiveRadiatorCells.Cms_m_per_N.entered).toBe(true);
+    expect(wizard.passiveRadiatorCells.Cms_m_per_N.dq.length).toBeGreaterThan(0);
+    expect(wizard.passiveRadiatorCells.Vas_m3.dq.length).toBeGreaterThan(0);
+    wizard.next();
+    wizard.projName.value = 'Typed Cms';
+
+    const spec = wizard.createProject()?.box.passiveRadiator.radiator.spec;
+    expect(spec?.Cms_m_per_N.entered).toBe(true);
+    expect(spec?.Cms_m_per_N.value).toBe(0.002);
+    expect(spec?.Vas_m3.value).toBe(0.027);
+  });
+
+  it('clearing Vas with a typed Cms calculates Vas from Cms and Sd; clearing a figure nothing gives leaves it empty', async () => {
+    const wizard = await pickedThenBack('accuton/asp190');
+    const cells = wizard.passiveRadiatorCells;
+    cells.Cms_m_per_N.set(0.001);
+    cells.Vas_m3.clear();
+    expect(cells.Vas_m3.provenance).toBe('C');
+    expect(cells.Vas_m3.value).toEqual(expect.any(Number));
+    expect(cells.Vas_m3.dq).toEqual([]);
+
+    cells.Sd_m2.clear();
+    cells.Cms_m_per_N.clear();
+    expect(cells.Sd_m2.value).toBeNull();
+  });
+
+  it('a calculated box typed over becomes stated and survives to the project', async () => {
+    const wizard = await pickedThenBack('seas/sp22r');
+    wizard.passiveRadiatorCells.Fs_hz.set(25);
+    expect(wizard.passiveRadiatorCells.Fs_hz.provenance).toBe('E');
+    wizard.next();
+    wizard.projName.value = 'Typed Fs';
+    expect(wizard.createProject()?.box.passiveRadiator.radiator.spec.Fs_hz.value).toBe(25);
+  });
+
+  it('a first write to any of the three new boxes defines a radiator', async () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: OpenISDDriver.empty(engine)});
+    expect(wizard.passiveRadiatorView.value).toBeNull();
+    expect(wizard.passiveRadiatorCells.Rms_kg_per_s.value).toBeNull();
+    wizard.passiveRadiatorCells.Rms_kg_per_s.set(2);
+    expect(wizard.passiveRadiatorView.value?.Rms_kg_per_s).toBe(2);
+  });
+});

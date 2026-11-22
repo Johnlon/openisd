@@ -1,0 +1,72 @@
+import {describe, expect, it} from 'vitest';
+import {computed, ref, shallowRef} from 'vue';
+import {OpenISDDriver, ProjectBuilder} from '@openisd/design';
+import {createEngine} from '@openisd/design/engine';
+import type {BoxType} from '@openisd/design/engine';
+import {NumberField} from '@openisd/design/fields';
+import {createVentReadouts} from '../../src/hooks/ventReadouts.js';
+
+function readoutsFor(type: 'bandpass6' | 'abc') {
+  const engine = createEngine();
+  const builder = new ProjectBuilder(OpenISDDriver.empty(engine), engine);
+  const project = type === 'bandpass6' ? builder.bandpass6().build() : builder.abc().build();
+  const projectRef = shallowRef(project);
+  const projectChanged = ref(0);
+  const readouts = createVentReadouts({
+    project: computed(() => projectRef.value),
+    projectChanged,
+    selectedBox: ref<BoxType>(type),
+    vent: engine.vent,
+  });
+  return {project, readouts, projectChanged};
+}
+
+describe('createVentReadouts on a two-chamber box with a ported front', () => {
+  for (const type of ['bandpass6', 'abc'] as const) {
+    it(`${type}: the active tuning and vent are the front chamber's, not the vented box's`, () => {
+      const {project, readouts} = readoutsFor(type);
+      readouts.activeTuning.value.set(31.3131);
+      readouts.activeVent.value.diameter_m.set(0.0777);
+      const chambers = type === 'bandpass6' ? project.box.bandpass6.chambers : project.box.abc.chambers;
+      const vents = type === 'bandpass6' ? project.box.bandpass6.vents : project.box.abc.vents;
+      expect(chambers.front.tuning_goal_hz.value).toBe(31.3131);
+      expect(vents.front.diameter_m.value).toBe(0.0777);
+      expect(project.box.vented.tuning_goal_hz.value).not.toBe(31.3131);
+    });
+  }
+
+  it('abc: ventPorts lists Rear, Front and Intra, each with its own first port resonance', () => {
+    const {project, readouts} = readoutsFor('abc');
+    const ports = readouts.ventPorts.value;
+    expect(ports.map(port => port.name)).toEqual(['Rear', 'Front', 'Intra']);
+    expect(ports[0]?.portPipeResonance_hz).not.toBeNull();
+    expect(ports[0]?.portPipeResonance_hz).not.toBe(ports[1]?.portPipeResonance_hz);
+    ports[2]?.vent.length_m.set(0.0777);
+    expect(project.box.abc.vents.intra.length_m.value).toBe(0.0777);
+  });
+
+  it('the active port resonance is calculated when its length and air are available', () => {
+    const {readouts} = readoutsFor('abc');
+    readouts.activeVent.value.length_m.set(0.2);
+    expect(readouts.portPipeResonance_hz.value).toBeGreaterThan(0);
+  });
+
+  it('a port whose tuning has no positive length says so on that port only', () => {
+    const {readouts, projectChanged} = readoutsFor('bandpass6');
+    readouts.ventPorts.value[0]?.tuning_goal_hz?.set(2000);
+    projectChanged.value++;
+    const [rear, front] = readouts.ventPorts.value;
+    expect(rear?.unreachable).toBe(true);
+    expect(rear?.unreachableMsg).not.toBe('');
+    expect(front?.unreachable).toBe(false);
+  });
+});
+
+for(const type of ['bandpass6','abc'] as const) it(`${type}: each tuning control edits its own port target and Intra has none`,()=>{
+ const {project,readouts}=readoutsFor(type);const ports=readouts.ventPorts.value;
+ expect(ports[0]?.tuning?.field).toBe(NumberField.BOX_FRC_HZ);expect(ports[1]?.tuning?.field).toBe(NumberField.BOX_FFC_HZ);
+ ports[0]?.tuning?.cell.set(33);ports[1]?.tuning?.cell.set(66);
+ const chambers=type==='abc'?project.box.abc.chambers:project.box.bandpass6.chambers;
+ expect(chambers.rear.tuning_goal_hz.value).toBe(33);expect(chambers.front.tuning_goal_hz.value).toBe(66);
+ expect(ports.filter(port=>port.name==='Intra').every(port=>port.tuning===null)).toBe(true);
+});

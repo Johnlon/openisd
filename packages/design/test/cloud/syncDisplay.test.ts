@@ -1,0 +1,803 @@
+import {describe, expect, it} from 'vitest';
+import {
+  DeviceId,
+  DriverId,
+  PrId,
+  ProjectId,
+  type ConflictCopy,
+  type SyncStatus,
+} from '../../cloud/syncStatus.js';
+import {syncDisplayOf, type SyncDisplayInputs} from '../../cloud/syncDisplay.js';
+
+function sampleConflict(
+  name = 'Sub 12 (conflict, 13 Oct 2026, Android phone)',
+  id: ConflictCopy['id'] = ProjectId.of('proj-1')!,
+  item = 'Sub 12',
+): ConflictCopy {
+  return {
+    id,
+    name,
+    item,
+    otherDevice: 'iPhone',
+    from: DeviceId.of('device-phone')!,
+    at_ms: 1776107100000,
+  };
+}
+
+describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () => {
+  // Test time: 13 Oct 2026, 23:32 local time
+  const sampleTime = new Date(2026, 9, 13, 23, 32).getTime();
+
+  const defaultInputs = (status: SyncStatus, configured = true): SyncDisplayInputs => ({
+    status,
+    conflicts: [],
+    activity: [],
+    conflictsSeen: 0,
+    hintDismissed: false,
+    launches: 1,
+    updateBannerShown: false,
+    reconnectDismissed: false,
+    configured,
+  });
+
+  const disconnectConfirm = {
+    title: 'Disconnect Google Drive?',
+    body: 'Your work stays in this browser and in your Drive. Changes made after this will not sync.',
+    yes: 'Disconnect',
+    no: 'Keep connected',
+  };
+
+  const privacy = {
+    lines: [
+      'Copies your saved projects, drivers, passive radiators, favourites and Options.',
+      'Keeps them in a hidden folder in your own Google Drive that only OpenISD can open.',
+      'Nobody else sees them, and no OpenISD server does. Disconnect stops it.',
+    ],
+    linkLabel: 'Privacy',
+  };
+
+  describe('6.1 display model rows', () => {
+    it('row 1: off', () => {
+      const display = syncDisplayOf(defaultInputs({kind: 'off'}));
+      expect(display.glyph).toBe('cloudOff');
+      expect(display.tone).toBe('muted');
+      expect(display.badge).toBeNull();
+      expect(display.shortText).toBe('Off');
+      expect(display.text).toBe('Cloud sync is off');
+      expect(display.tooltip).toBe('Sync your work across devices through your Google Drive. Tap to turn on.');
+      expect(display.tap).toBe('openDialog');
+      expect(display.strip).toBeNull();
+      expect(display.hint).toBeNull();
+      expect(display.conflictNotice).toBeNull();
+      expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        closeLabel: 'Close',
+        providerHeading: 'Google Drive',
+        tone: 'muted',
+        headline: 'Cloud sync is off',
+        account: null,
+        pendingLine: null,
+        privacy,
+        notConfiguredLine: null,
+        buttons: [{action: 'connect', label: 'Connect Google Drive', enabled: true, primary: true}],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
+        conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
+        disconnectConfirm,
+      });
+    });
+
+    it('lists what sync moved, newest first, one line each', () => {
+      const at = new Date(2026, 9, 14, 14, 56).getTime();
+      const display = syncDisplayOf({
+        ...defaultInputs({kind: 'synced', account: 'john@gmail.com', at_ms: sampleTime, conflicts: 0}),
+        activity: [
+          {kind: 'moved', at_ms: at, direction: 'down', change: 'saved', item: 'projectBin', name: 'Sub 12', device: 'iPhone'},
+          {kind: 'moved', at_ms: at, direction: 'up', change: 'saved', item: 'project', name: 'Sub 12', device: ''},
+        ],
+      });
+      expect(display.dialog.activityHeading).toBe('Recent activity');
+      expect(display.dialog.activity).toEqual([
+        '14:56  ↓ Project "Sub 12" moved to Bin on iPhone',
+        '14:56  ↑ Project "Sub 12" sent',
+      ]);
+    });
+
+    it('lists items moved in the same minute by name, however the uploads happened to finish', () => {
+      const at = new Date(2026, 9, 14, 14, 56).getTime();
+      const box = {kind: 'moved', direction: 'up', change: 'saved', item: 'project', device: ''} as const;
+      const lines = (activity: SyncDisplayInputs['activity']) => syncDisplayOf({
+        ...defaultInputs({kind: 'synced', account: 'john@gmail.com', at_ms: sampleTime, conflicts: 0}),
+        activity,
+      }).dialog.activity;
+      // newest first, as the ledger keeps them: the order depends on which upload Drive answered first
+      const finishedBAFirst = lines([{...box, at_ms: at + 7, name: 'Box A'}, {...box, at_ms: at + 3, name: 'Box B'}]);
+      const finishedABFirst = lines([{...box, at_ms: at + 7, name: 'Box B'}, {...box, at_ms: at + 3, name: 'Box A'}]);
+      expect(finishedBAFirst).toEqual(['14:56  ↑ Project "Box A" sent', '14:56  ↑ Project "Box B" sent']);
+      expect(finishedABFirst).toEqual(finishedBAFirst);
+    });
+
+    it('keeps a later minute above an earlier one, whatever the names', () => {
+      const early = new Date(2026, 9, 14, 14, 56).getTime();
+      const late = new Date(2026, 9, 14, 14, 57).getTime();
+      const box = {kind: 'moved', direction: 'up', change: 'saved', item: 'project', device: ''} as const;
+      const display = syncDisplayOf({
+        ...defaultInputs({kind: 'synced', account: 'john@gmail.com', at_ms: sampleTime, conflicts: 0}),
+        activity: [{...box, at_ms: late, name: 'Zed'}, {...box, at_ms: early, name: 'Alpha'}],
+      });
+      expect(display.dialog.activity).toEqual(['14:57  ↑ Project "Zed" sent', '14:56  ↑ Project "Alpha" sent']);
+    });
+
+    it('row 1: off when not configured', () => {
+      const display = syncDisplayOf(defaultInputs({kind: 'off'}, false));
+      expect(display.dialog.buttons).toEqual([
+        {action: 'connect', label: 'Connect Google Drive', enabled: false, primary: true},
+      ]);
+      expect(display.dialog.notConfiguredLine).toBe('Not set up yet.');
+      expect(display.dialog.privacy).toEqual(privacy);
+    });
+
+    it('row 2: connecting', () => {
+      const display = syncDisplayOf(defaultInputs({kind: 'connecting'}));
+      expect(display.glyph).toBe('cloudBusy');
+      expect(display.tone).toBe('accent');
+      expect(display.badge).toBeNull();
+      expect(display.shortText).toBe('Connecting');
+      expect(display.text).toBe('Connecting to Google Drive…');
+      expect(display.tooltip).toBe('Connecting to Google Drive…');
+      expect(display.tap).toBe('openDialog');
+      expect(display.strip).toBeNull();
+      expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        closeLabel: 'Close',
+        providerHeading: 'Google Drive',
+        tone: 'accent',
+        headline: 'Connecting to Google Drive…',
+        account: null,
+        pendingLine: null,
+        privacy: null,
+        notConfiguredLine: null,
+        buttons: [],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
+        conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
+        disconnectConfirm,
+      });
+    });
+
+    it('row 3: syncing', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'syncing',
+        account: 'john@gmail.com',
+      }));
+      expect(display.glyph).toBe('cloudBusy');
+      expect(display.tone).toBe('accent');
+      expect(display.badge).toBeNull();
+      expect(display.shortText).toBe('Syncing');
+      expect(display.text).toBe('Syncing…');
+      expect(display.tooltip).toBe('Syncing…');
+      expect(display.tap).toBe('openDialog');
+      expect(display.strip).toBeNull();
+      expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        closeLabel: 'Close',
+        providerHeading: 'Google Drive',
+        tone: 'accent',
+        headline: 'Syncing…',
+        account: 'john@gmail.com',
+        pendingLine: null,
+        privacy: null,
+        notConfiguredLine: null,
+        buttons: [{action: 'disconnect', label: 'Disconnect', enabled: true, primary: false}],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
+        conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
+        disconnectConfirm,
+      });
+    });
+
+    it('row 4: synced, no conflicts', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'synced',
+        account: 'john@gmail.com',
+        at_ms: sampleTime,
+        conflicts: 0,
+      }));
+      expect(display.glyph).toBe('cloudDone');
+      expect(display.tone).toBe('good');
+      expect(display.badge).toBeNull();
+      expect(display.shortText).toBe('Synced 23:32');
+      expect(display.text).toBe('Synced 13 Oct 2026, 23:32');
+      expect(display.tooltip).toBe('Up to date with Google Drive.');
+      expect(display.tap).toBe('openDialog');
+      expect(display.strip).toBeNull();
+      expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        closeLabel: 'Close',
+        providerHeading: 'Google Drive',
+        tone: 'good',
+        headline: 'Synced 13 Oct 2026, 23:32',
+        account: 'john@gmail.com',
+        pendingLine: null,
+        privacy: null,
+        notConfiguredLine: null,
+        buttons: [
+          {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
+          {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+        ],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
+        conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
+        disconnectConfirm,
+      });
+    });
+
+    it('row 5: a run that kept both versions of one project ends on the conflict mark, never the done cloud', () => {
+      const display = syncDisplayOf({
+        ...defaultInputs({kind: 'synced', account: 'john@gmail.com', at_ms: sampleTime, conflicts: 1}),
+        conflicts: [sampleConflict()],
+        conflictsSeen: 1,
+      });
+      expect(display.glyph).toBe('cloudAlert');
+      expect(display.badge).toBe(1);
+      expect(display.shortText).toBe('1 conflict');
+    });
+
+    it('row 5: synced, conflicts N', () => {
+      const conflict1 = sampleConflict('Sub 12 (conflict, 13 Oct 2026, Android phone)');
+      const conflict2 = sampleConflict('RS225 (conflict, 13 Oct 2026, Android phone)', DriverId.of('drv-2')!, 'RS225');
+      const display = syncDisplayOf({
+        ...defaultInputs({
+          kind: 'synced',
+          account: 'john@gmail.com',
+          at_ms: sampleTime,
+          conflicts: 2,
+        }),
+        conflicts: [conflict1, conflict2],
+        conflictsSeen: 2, // avoid conflict notice here to isolate row 5
+      });
+      expect(display.glyph).toBe('cloudAlert');
+      expect(display.tone).toBe('warn');
+      expect(display.badge).toBe(2);
+      expect(display.shortText).toBe('2 conflicts');
+      expect(display.text).toBe('Synced 13 Oct 2026, 23:32');
+      expect(display.tooltip).toBe('2 items changed on two devices. Both kept: Project "Sub 12", Driver "RS225". Tap to see them.');
+      expect(display.tap).toBe('openDialog');
+      expect(display.dialog.headline).toBe('Synced 13 Oct 2026, 23:32');
+      expect(display.dialog.account).toBe('john@gmail.com');
+      expect(display.dialog.pendingLine).toBeNull();
+      expect(display.dialog.buttons).toEqual([
+        {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
+        {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+      ]);
+      expect(display.dialog.conflicts).toEqual([
+        {id: conflict1.id, title: conflict1.name, sub: 'Project "Sub 12" kept both: yours and the copy from iPhone'},
+        {id: conflict2.id, title: conflict2.name, sub: 'Driver "RS225" kept both: yours and the copy from iPhone'},
+      ]);
+    });
+
+    it('row 6: pending N', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'pending',
+        account: 'john@gmail.com',
+        at_ms: sampleTime,
+        changes: 2,
+        nextAt_ms: null,
+      }));
+      expect(display.glyph).toBe('cloudBusy');
+      expect(display.tone).toBe('accent');
+      expect(display.badge).toBe(2);
+      expect(display.shortText).toBe('2 not synced');
+      expect(display.text).toBe('2 changes not synced');
+      expect(display.tooltip).toBe('2 changes will sync in a moment.');
+      expect(display.tap).toBe('openDialog');
+      expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        closeLabel: 'Close',
+        providerHeading: 'Google Drive',
+        tone: 'accent',
+        headline: '2 changes not synced',
+        account: 'john@gmail.com',
+        pendingLine: '2 changes not synced',
+        privacy: null,
+        notConfiguredLine: null,
+        buttons: [
+          {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
+          {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+        ],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
+        conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
+        disconnectConfirm,
+      });
+    });
+
+    it('row 7: offline N', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'offline',
+        account: 'john@gmail.com',
+        at_ms: sampleTime,
+        changes: 3,
+      }));
+      expect(display.glyph).toBe('cloudSlash');
+      expect(display.tone).toBe('muted');
+      expect(display.badge).toBe(3);
+      expect(display.shortText).toBe('Offline');
+      expect(display.text).toBe('Offline. 3 changes not synced');
+      expect(display.tooltip).toBe('No connection. They will sync when you are back online.');
+      expect(display.tap).toBe('openDialog');
+      expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        closeLabel: 'Close',
+        providerHeading: 'Google Drive',
+        tone: 'muted',
+        headline: 'Offline. 3 changes not synced',
+        account: 'john@gmail.com',
+        pendingLine: '3 changes not synced',
+        privacy: null,
+        notConfiguredLine: null,
+        buttons: [
+          {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
+          {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+        ],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
+        conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
+        disconnectConfirm,
+      });
+    });
+
+    it('row 7: offline with 0 changes', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'offline',
+        account: 'john@gmail.com',
+        at_ms: sampleTime,
+        changes: 0,
+      }));
+      expect(display.glyph).toBe('cloudSlash');
+      expect(display.tone).toBe('muted');
+      expect(display.badge).toBeNull();
+      expect(display.shortText).toBe('Offline');
+      expect(display.text).toBe('Offline');
+      expect(display.tooltip).toBe('No connection. They will sync when you are back online.');
+      expect(display.dialog.headline).toBe('Offline');
+      expect(display.dialog.pendingLine).toBeNull();
+    });
+
+    it('row 8: reconnect N', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'reconnect',
+        account: 'john@gmail.com',
+        changes: 3,
+      }));
+      expect(display.glyph).toBe('cloudAlert');
+      expect(display.tone).toBe('warn');
+      expect(display.badge).toBe(3);
+      expect(display.shortText).toBe('Reconnect');
+      expect(display.text).toBe('Google needs you to connect again. 3 changes not synced');
+      expect(display.tooltip).toBe('Google needs you to connect again. 3 changes not synced');
+      expect(display.tap).toBe('reconnect');
+      expect(display.strip).toEqual({
+        text: '⚠ Google needs you to connect again. 3 changes not synced.',
+        button: 'Reconnect',
+        dismiss: 'Not now',
+      });
+      expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        closeLabel: 'Close',
+        providerHeading: 'Google Drive',
+        tone: 'warn',
+        headline: 'Google needs you to connect again. 3 changes not synced',
+        account: 'john@gmail.com',
+        pendingLine: '3 changes not synced',
+        privacy: null,
+        notConfiguredLine: null,
+        buttons: [
+          {action: 'reconnect', label: 'Reconnect', enabled: true, primary: true},
+          {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+        ],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
+        conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
+        disconnectConfirm,
+      });
+    });
+
+    it('row 9: held N', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'held',
+        account: 'john@gmail.com',
+        at_ms: sampleTime,
+        heldDocs: 4,
+      }));
+      expect(display.glyph).toBe('cloudAlert');
+      expect(display.tone).toBe('warn');
+      expect(display.badge).toBe(4);
+      expect(display.shortText).toBe('Update app');
+      expect(display.text).toBe('Update the app to sync 4 projects saved by a newer version');
+      expect(display.tooltip).toBe('Update the app to sync 4 projects saved by a newer version');
+      expect(display.tap).toBe('openDialog');
+      expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        closeLabel: 'Close',
+        providerHeading: 'Google Drive',
+        tone: 'warn',
+        headline: 'Update the app to sync 4 projects saved by a newer version',
+        account: 'john@gmail.com',
+        pendingLine: null,
+        privacy: null,
+        notConfiguredLine: null,
+        buttons: [
+          {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
+          {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+        ],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
+        conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
+        disconnectConfirm,
+      });
+    });
+
+    it('row 10: refused', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'refused',
+        account: 'john@gmail.com',
+        reason: 'noRoom',
+      }));
+      expect(display.glyph).toBe('cloudAlert');
+      expect(display.tone).toBe('bad');
+      expect(display.badge).toBeNull();
+      expect(display.shortText).toBe('Not synced');
+      expect(display.text).toBe('Nothing synced. No room in this browser to back up first. Export, then try again.');
+      expect(display.tooltip).toBe('Nothing synced. No room in this browser to back up first. Export, then try again.');
+      expect(display.tap).toBe('openDialog');
+      expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        closeLabel: 'Close',
+        providerHeading: 'Google Drive',
+        tone: 'bad',
+        headline: 'Nothing synced. No room in this browser to back up first. Export, then try again.',
+        account: 'john@gmail.com',
+        pendingLine: null,
+        privacy: null,
+        notConfiguredLine: null,
+        buttons: [{action: 'disconnect', label: 'Disconnect', enabled: true, primary: false}],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
+        conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
+        disconnectConfirm,
+      });
+    });
+
+    it('row 6: pending says when the waiting changes sync', () => {
+      const at = new Date(2026, 9, 14, 13, 42).getTime();
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'pending', account: 'john@gmail.com', at_ms: sampleTime, changes: 2, nextAt_ms: at,
+      }));
+      expect(display.text).toBe('2 changes not synced, syncs at 13:42');
+    });
+
+    it('row 11: a request with no reply says so and when it tries again', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'failed',
+        account: 'john@gmail.com',
+        fault: {operation: 'list', status: 0, reason: 'Failed to fetch', reply: ''},
+        retryAt_ms: new Date(2026, 9, 14, 13, 43).getTime(),
+      }));
+      expect(display.text).toBe('Sync failed: list got no reply from Drive (Failed to fetch). Retrying at 13:43.');
+    });
+
+    it('row 11: a 403 says Google did not grant access', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'failed',
+        account: 'john@gmail.com',
+        fault: {operation: 'list', status: 403, reason: 'insufficientPermissions', reply: '{}'},
+        retryAt_ms: null,
+      }));
+      expect(display.text).toBe('Google did not grant Drive access. Disconnect and connect again.');
+    });
+
+    it('row 11: failed', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'failed',
+        account: 'john@gmail.com',
+        fault: {operation: 'list', status: 200, reason: 'Not a file list', reply: '{"files":[]}'},
+        retryAt_ms: null,
+      }));
+      expect(display.glyph).toBe('cloudAlert');
+      expect(display.tone).toBe('bad');
+      expect(display.badge).toBeNull();
+      expect(display.shortText).toBe('Sync failed');
+      expect(display.text).toBe('Sync failed: list, HTTP 200, Not a file list. Drive said: {"files":[]}');
+      expect(display.tooltip).toBe('Sync failed: list, HTTP 200, Not a file list. Drive said: {"files":[]}');
+      expect(display.tap).toBe('openDialog');
+      expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        closeLabel: 'Close',
+        providerHeading: 'Google Drive',
+        tone: 'bad',
+        headline: 'Sync failed: list, HTTP 200, Not a file list. Drive said: {"files":[]}',
+        account: 'john@gmail.com',
+        pendingLine: null,
+        privacy: null,
+        notConfiguredLine: null,
+        buttons: [
+          {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
+          {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+        ],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
+        conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
+        disconnectConfirm,
+      });
+    });
+  });
+
+  describe('type constraints: synced status cannot hold pending changes', () => {
+    it('synced and "N not synced" are never shown together', () => {
+      const status: SyncStatus = {
+        kind: 'synced',
+        account: 'john@gmail.com',
+        at_ms: sampleTime,
+        conflicts: 0,
+      };
+      const display = syncDisplayOf(defaultInputs(status));
+
+      expect(display.text).toMatch(/^Synced /);
+      expect(display.text).not.toContain('not synced');
+      expect(display.shortText).toMatch(/^Synced /);
+      expect(display.shortText).not.toContain('not synced');
+      expect(display.dialog.headline).toMatch(/^Synced /);
+      expect(display.dialog.pendingLine).toBeNull();
+    });
+  });
+
+  describe('banner/strip slot behaviors', () => {
+    it('updateBannerShown → strip is null even when reconnecting', () => {
+      const displayWithUpdateBanner = syncDisplayOf({
+        ...defaultInputs({
+          kind: 'reconnect',
+          account: 'john@gmail.com',
+          changes: 3,
+        }),
+        updateBannerShown: true,
+      });
+      expect(displayWithUpdateBanner.strip).toBeNull();
+
+      const displayWithoutUpdateBanner = syncDisplayOf({
+        ...defaultInputs({
+          kind: 'reconnect',
+          account: 'john@gmail.com',
+          changes: 3,
+        }),
+        updateBannerShown: false,
+      });
+      expect(displayWithoutUpdateBanner.strip).not.toBeNull();
+      expect(displayWithoutUpdateBanner.strip?.button).toBe('Reconnect');
+    });
+
+    it('Not now hides the reconnect strip; the strip offers Not now', () => {
+      const reconnecting = defaultInputs({kind: 'reconnect', account: 'john@gmail.com', changes: 0});
+      expect(syncDisplayOf(reconnecting).strip?.dismiss).toBe('Not now');
+      expect(syncDisplayOf({...reconnecting, reconnectDismissed: true}).strip).toBeNull();
+    });
+
+    it('hint only when launches >= 2, status off, and not dismissed', () => {
+      // launches < 2
+      expect(syncDisplayOf({
+        ...defaultInputs({kind: 'off'}),
+        launches: 1,
+        hintDismissed: false,
+      }).hint).toBeNull();
+
+      // launches >= 2, off, not dismissed
+      expect(syncDisplayOf({
+        ...defaultInputs({kind: 'off'}),
+        launches: 2,
+        hintDismissed: false,
+      }).hint).toEqual({
+        text: 'Sync your projects across devices?',
+        yes: 'Turn on',
+        no: 'No thanks',
+      });
+
+      // launches >= 2, off, but dismissed
+      expect(syncDisplayOf({
+        ...defaultInputs({kind: 'off'}),
+        launches: 2,
+        hintDismissed: true,
+      }).hint).toBeNull();
+
+      // launches >= 2, not off (e.g. syncing or synced)
+      expect(syncDisplayOf({
+        ...defaultInputs({kind: 'syncing', account: 'john@gmail.com'}),
+        launches: 2,
+        hintDismissed: false,
+      }).hint).toBeNull();
+    });
+
+    it('conflict notice only when conflicts.length > conflictsSeen', () => {
+      const conflict1 = sampleConflict('Sub 12 (conflict, 13 Oct 2026, Android phone)');
+      const conflict2 = sampleConflict('W5 (conflict, 13 Oct 2026, Android phone)', DriverId.of('drv-1')!, 'W5');
+
+      // 0 conflicts
+      expect(syncDisplayOf({
+        ...defaultInputs({kind: 'synced', account: 'john@gmail.com', at_ms: sampleTime, conflicts: 0}),
+        conflicts: [],
+        conflictsSeen: 0,
+      }).conflictNotice).toBeNull();
+
+      // 2 conflicts, none seen yet
+      expect(syncDisplayOf({
+        ...defaultInputs({kind: 'synced', account: 'john@gmail.com', at_ms: sampleTime, conflicts: 2}),
+        conflicts: [conflict1, conflict2],
+        conflictsSeen: 0,
+      }).conflictNotice).toEqual({
+        text: '2 items changed on two devices. Both kept: Project "Sub 12", Driver "W5".',
+        button: 'View',
+      });
+
+      // 2 conflicts, already seen 2
+      expect(syncDisplayOf({
+        ...defaultInputs({kind: 'synced', account: 'john@gmail.com', at_ms: sampleTime, conflicts: 2}),
+        conflicts: [conflict1, conflict2],
+        conflictsSeen: 2,
+      }).conflictNotice).toBeNull();
+
+      // 2 conflicts, but conflictsSeen is 3 (edge case: seen > length)
+      expect(syncDisplayOf({
+        ...defaultInputs({kind: 'synced', account: 'john@gmail.com', at_ms: sampleTime, conflicts: 2}),
+        conflicts: [conflict1, conflict2],
+        conflictsSeen: 3,
+      }).conflictNotice).toBeNull();
+    });
+
+    it('a mixed conflict list names each item with its kind', () => {
+      const projConflict = sampleConflict('A (conflict)', ProjectId.of('proj-1')!, 'A');
+      const driverConflict = sampleConflict('B (conflict)', DriverId.of('drv-1')!, 'B');
+      const prConflict = sampleConflict('C (conflict)', PrId.of('pr-1')!, 'C');
+      const display = syncDisplayOf({
+        ...defaultInputs({
+          kind: 'synced',
+          account: 'john@gmail.com',
+          at_ms: sampleTime,
+          conflicts: 3,
+        }),
+        conflicts: [projConflict, driverConflict, prConflict],
+        conflictsSeen: 0,
+      });
+      expect(display.tooltip).toBe('3 items changed on two devices. Both kept: Project "A", Driver "B", Passive radiator "C". Tap to see them.');
+      expect(display.conflictNotice).toEqual({
+        text: '3 items changed on two devices. Both kept: Project "A", Driver "B", Passive radiator "C".',
+        button: 'View',
+      });
+    });
+
+    it('a single conflict names the item, its kind and the other device', () => {
+      const driverConflict = sampleConflict('W5-1138SMF (conflict, 14 Oct 2026, Windows PC)', DriverId.of('drv-1')!, 'W5-1138SMF');
+      const display = syncDisplayOf({
+        ...defaultInputs({
+          kind: 'synced',
+          account: 'john@gmail.com',
+          at_ms: sampleTime,
+          conflicts: 1,
+        }),
+        conflicts: [driverConflict],
+        conflictsSeen: 0,
+      });
+      expect(display.tooltip).toBe('Driver "W5-1138SMF" kept both: yours and the copy from iPhone. Tap to see them.');
+      expect(display.conflictNotice).toEqual({
+        text: 'Driver "W5-1138SMF" kept both: yours and the copy from iPhone.',
+        button: 'View',
+      });
+    });
+  });
+
+  describe('module export and calling conventions', () => {
+    it('packages/design/cloud/index.js re-exports syncDisplayOf and ID classes', async () => {
+      const barrel = await import('../../cloud/index.js');
+      expect(typeof barrel.syncDisplayOf).toBe('function');
+      expect(typeof barrel.DeviceId).toBe('function');
+      expect(typeof barrel.ProjectId).toBe('function');
+      expect(typeof barrel.DriverId).toBe('function');
+      expect(typeof barrel.PrId).toBe('function');
+
+      // lowercase constructor functions and isX guards must not be exported
+      expect('deviceId' in barrel).toBe(false);
+      expect('projectId' in barrel).toBe(false);
+      expect('driverId' in barrel).toBe(false);
+      expect('prId' in barrel).toBe(false);
+      expect('isDeviceId' in barrel).toBe(false);
+      expect('isProjectId' in barrel).toBe(false);
+      expect('isDriverId' in barrel).toBe(false);
+      expect('isPrId' in barrel).toBe(false);
+
+      const res = barrel.syncDisplayOf(defaultInputs({kind: 'off'}));
+      expect(res.shortText).toBe('Off');
+    });
+  });
+
+  describe('ID classes (DeviceId, ProjectId, DriverId, PrId)', () => {
+    it('DeviceId: non-empty after trim returns instance, empty returns null, equals compares text', () => {
+      const id1 = DeviceId.of('device-1');
+      const id2 = DeviceId.of('  device-1  ');
+      const id3 = DeviceId.of('device-2');
+      expect(id1).not.toBeNull();
+      expect(id1?.text).toBe('device-1');
+      expect(id2?.text).toBe('device-1');
+      expect(id1?.equals(id2!)).toBe(true);
+      expect(id1?.equals(id3!)).toBe(false);
+      expect(DeviceId.of('')).toBeNull();
+      expect(DeviceId.of('   \t\n  ')).toBeNull();
+    });
+
+    it('ProjectId: non-empty after trim returns instance, empty returns null, equals compares text', () => {
+      const id1 = ProjectId.of('proj-1');
+      const id2 = ProjectId.of('  proj-1  ');
+      const id3 = ProjectId.of('proj-2');
+      expect(id1).not.toBeNull();
+      expect(id1?.text).toBe('proj-1');
+      expect(id2?.text).toBe('proj-1');
+      expect(id1?.equals(id2!)).toBe(true);
+      expect(id1?.equals(id3!)).toBe(false);
+      expect(ProjectId.of('')).toBeNull();
+      expect(ProjectId.of('   \t\n  ')).toBeNull();
+    });
+
+    it('DriverId: non-empty after trim returns instance, empty returns null, equals compares text', () => {
+      const id1 = DriverId.of('driver-1');
+      const id2 = DriverId.of('  driver-1  ');
+      const id3 = DriverId.of('driver-2');
+      expect(id1).not.toBeNull();
+      expect(id1?.text).toBe('driver-1');
+      expect(id2?.text).toBe('driver-1');
+      expect(id1?.equals(id2!)).toBe(true);
+      expect(id1?.equals(id3!)).toBe(false);
+      expect(DriverId.of('')).toBeNull();
+      expect(DriverId.of('   \t\n  ')).toBeNull();
+    });
+
+    it('PrId: non-empty after trim returns instance, empty returns null, equals compares text', () => {
+      const id1 = PrId.of('pr-1');
+      const id2 = PrId.of('  pr-1  ');
+      const id3 = PrId.of('pr-2');
+      expect(id1).not.toBeNull();
+      expect(id1?.text).toBe('pr-1');
+      expect(id2?.text).toBe('pr-1');
+      expect(id1?.equals(id2!)).toBe(true);
+      expect(id1?.equals(id3!)).toBe(false);
+      expect(PrId.of('')).toBeNull();
+      expect(PrId.of('   \t\n  ')).toBeNull();
+    });
+  });
+});
+
+
+describe('id classes are nominal', () => {
+  it('a ProjectId is not accepted where a DeviceId is expected', () => {
+    const project = ProjectId.of('p1');
+    // @ts-expect-error a ProjectId is not a DeviceId
+    const device: DeviceId | null = project;
+    expect(device?.text).toBe('p1');
+  });
+});

@@ -1,0 +1,180 @@
+/**
+ * The mobile Filters tab (PHONE_CLASSIC_BUILD_SPEC screen 10): a card per filter with standard field
+ * rows, a one-line chip carousel, filter frequencies in whole hertz. The filter chain itself is the
+ * desktop's logic (OriginalFilters); its own spec files cover how it behaves.
+ */
+import type {Locator} from '@playwright/test';
+import {expect, openAMobileProject, test} from '../fixtures.js';
+import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
+import {PHONE_FILTER_CHIPS, PhoneRowSizes} from '@openisd/design/fields';
+
+/** Where the chip strip sits on the screen. */
+async function chipFrame(strip: Locator): Promise<{left: number; width: number}> {
+  return strip.evaluate(el => { const r = el.getBoundingClientRect(); return {left: r.left, width: r.width}; });
+}
+
+/** Taps the next arrow while it shows, waiting for each scroll to come to rest, and calls `after` with the tap number. */
+async function tapUntilEnd(next: Locator, strip: Locator, after: (tap: number) => Promise<void>): Promise<void> {
+  for (let tap = 1; tap <= 12 && await next.isEnabled(); tap++) {
+    await next.click();
+    let last = -1;
+    await expect.poll(async () => { const now = await strip.evaluate(el => el.scrollLeft); const rested = now === last; last = now; return rested; }, {message: 'the strip has stopped scrolling'}).toBe(true);
+    await after(tap);
+  }
+}
+
+test.beforeEach(async ({ appPage: page }) => {
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await openAMobileProject(page);
+  await page.locator('.mob-tab', { hasText: 'Filters' }).click();
+});
+
+test('shows the quick-add row and an empty list with no filters yet', async ({ appPage: page }) => {
+  await expect(page.getByText('+ LP', { exact: true })).toBeVisible();
+  await expect(page.getByText('No filters active.')).toBeVisible();
+});
+
+for (const width of [320, 360, 374, 390]) {
+  test(`the initial filter strip shows the whole + PEQ button at ${width}px`, async ({appPage: page}) => {
+    await page.setViewportSize({width, height: 844});
+    await expect(page.getByRole('button', {name: '+ PEQ', exact: true})).toBeInViewport({ratio: 1});
+  });
+}
+
+test('adding a filter opens its editor immediately, and it survives switching tabs', async ({ appPage: page }) => {
+  await page.getByText('+ LP', { exact: true }).click();
+  await expect(page.getByText('Cutoff')).toBeVisible();
+
+  await page.locator('.mob-tab', { hasText: 'Box' }).click();
+  await page.locator('.mob-tab', { hasText: 'Filters' }).click();
+  await expect(page.getByText('Lowpass', { exact: false })).toBeVisible();
+});
+
+test('removing a filter clears the list back to empty', async ({ appPage: page }) => {
+  await page.getByText('+ HP', { exact: true }).click();
+  await expect(page.getByText('No filters active.')).toBeHidden();
+
+  await page.getByRole('button', { name: 'Remove HP' }).click();
+  await expect(page.getByText('No filters active.')).toBeVisible();
+});
+
+test('an order-4 allpass shows the WinISD deviation cue, and it opens the differences page at its entry, within the phone width', async ({ appPage: page }) => {
+  await page.getByText('+ AP', { exact: true }).click();
+  const order = page.locator('.mob-fcard .ui-field').filter({ has: page.locator('label:text-is("Order")') }).locator('input');
+  await order.fill('4');
+  await order.blur();
+  const cue = page.locator('button.winisd-deviation-cue');
+  await expect(cue).toBeVisible();
+  await cue.click();
+  const dialog = page.getByRole('dialog', { name: 'OpenISD and WinISD differences' });
+  const entry = dialog.locator('.wd-entry.current, .mob-dcard.current');
+  await expect(entry.locator('h4, .mob-dcard-title')).toHaveText('WinISD ignores allpass orders above 2');
+  await expect(entry.locator('dt', { hasText: 'Switch' })).toHaveCount(0);
+  const box = (await dialog.boundingBox())!;
+  const width = page.viewportSize()!.width;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(width);
+});
+
+test('Options "Show WinISD difference markers (≠W)" hides the cue, and ticking it brings it back', async ({ appPage: page }) => {
+  await page.getByText('+ AP', { exact: true }).click();
+  const cue = page.locator('button.winisd-deviation-cue');
+  await expect(cue).toBeVisible();
+  for (const on of [false, true]) {
+    await tapMobileMenuItem(page, 'Options');
+    await page.locator('[data-testid="difference-cues"] input').setChecked(on);
+    await page.locator('[data-testid="settings-apply"]').click();
+    await expect(cue).toHaveCount(on ? 1 : 0);
+  }
+});
+
+for (const [width, height] of [[374, 705], [360, 740]] as const) {
+  test(`the chips are a one-line carousel at ${width}x${height}: the strip scrolls sideways inside itself, the page does not, and nothing overlaps`, async ({ appPage: page }) => {
+    await page.setViewportSize({width, height});
+    const strip = page.locator('.mob-fstrip');
+    await expect(strip).toHaveAttribute('data-carousel', '');
+    const tops = await strip.locator('button').evaluateAll(els => els.map(e => Math.round(e.getBoundingClientRect().top)));
+    expect(new Set(tops).size, 'all chips on one line').toBe(1);
+    expect(await strip.evaluate(el => el.scrollWidth > el.clientWidth), 'more chips than fit').toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'the page does not scroll sideways').toBe(true);
+    const next = page.getByRole('button', { name: 'More filter types' });
+    await expect(next).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Earlier filter types' }), 'at the start the earlier arrow is greyed out').toBeDisabled();
+    await next.click();
+    await expect(page.getByRole('button', { name: 'Earlier filter types' })).toBeEnabled();
+    // No arrow sits on a chip, at the start or after scrolling.
+    const overlap = () => page.locator('.mob-fstrip-wrap').evaluate(wrap => {
+      const arrows = [...wrap.querySelectorAll('.mob-fstrip-nav')].filter(a => a.checkVisibility());
+      const frame = wrap.querySelector('.mob-fstrip')!.getBoundingClientRect();
+      const chips = [...wrap.querySelectorAll('.mob-fstrip .mob-btn')].map(c => c.getBoundingClientRect()).map(r => new DOMRect(Math.max(r.left, frame.left), r.top, Math.max(0, Math.min(r.right, frame.right) - Math.max(r.left, frame.left)), r.height));
+      const area = (a: DOMRect, b: DOMRect) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+      return arrows.flatMap(a => chips.map(c => area(a.getBoundingClientRect(), c))).filter(n => n > 4).length;
+    });
+    expect(await overlap(), 'arrow over a chip after scrolling').toBe(0);
+  });
+}
+
+for (const [width, height] of [[374, 705], [360, 740]] as const) {
+  test(`scrolling the chips sideways does not move them: the strip keeps its place and width from the start to the end at ${width}x${height} (BUG_20261118_phone-chip-strip-shifts-when-scrolled)`, async ({ appPage: page }) => {
+    await page.setViewportSize({width, height});
+    const strip = page.locator('.mob-fstrip');
+    const next = page.getByRole('button', { name: 'More filter types' });
+    const earlier = page.getByRole('button', { name: 'Earlier filter types' });
+    const atStart = await chipFrame(strip);
+    await expect(earlier, 'at the start the earlier arrow shows, greyed out').toBeVisible();
+    await expect(earlier).toBeDisabled();
+    await expect(next).toBeEnabled();
+    // A person taps the next arrow until the last chip is in view; the arrow with nothing more to show goes away each time.
+    await tapUntilEnd(next, strip, async tap => expect(await chipFrame(strip), `the strip after tap ${tap} sits where it did at the start`).toEqual(atStart));
+    await expect(next, 'at the end the next arrow shows, greyed out').toBeVisible();
+    await expect(next).toBeDisabled();
+    await expect(earlier).toBeEnabled();
+  });
+}
+
+test('the chip text is a little smaller than the 15 px of the other phone buttons, and still readable', async ({ appPage: page }) => {
+  const sizes = await page.locator('.mob-fstrip .mob-btn').evaluateAll(els => els.map(e => parseFloat(getComputedStyle(e).fontSize)));
+  for (const px of sizes) { expect(px).toBeLessThan(15); expect(px).toBeGreaterThanOrEqual(12); }
+});
+
+test('the chips and the arrows are the one phone button, PhoneRowSizes.BUTTON_PX tall', async ({ appPage: page }) => {
+  const buttons = page.locator('.mob-fstrip-wrap .phone-btn:visible');
+  await expect(buttons).toHaveCount(PHONE_FILTER_CHIPS.length + 2);   // both arrows always show; the one with nothing more to show is greyed out
+  const heights = await buttons.evaluateAll(els => els.map(e => e.getBoundingClientRect().height));
+  for (const h of heights) expect(h).toBeCloseTo(PhoneRowSizes.BUTTON_PX, 0);
+});
+
+test('a filter is a card: tapping its header folds the rows, and the tick switches it off', async ({ appPage: page }) => {
+  await page.getByText('+ PEQ', { exact: true }).click();
+  const card = page.locator('.mob-fcard');
+  await expect(card.locator('.ui-field')).toHaveCount(3);
+  await card.getByRole('button', { name: 'Fold PEQ' }).click();
+  await expect(card.locator('.ui-field')).toHaveCount(0);
+  await card.getByRole('button', { name: 'Open PEQ' }).click();
+  await expect(card.locator('.ui-field')).toHaveCount(3);
+  await card.getByRole('checkbox', { name: 'PEQ on' }).uncheck();
+  await expect(card.locator('.mob-fcard-cap')).toHaveClass(/mob-fcard-off/);
+});
+
+test('every filter type shows its rows as standard field rows, with frequencies in whole hertz', async ({ appPage: page }) => {
+  const labels: Record<string, readonly string[]> = {
+    '+ LP': ['Order', 'Q', 'Cutoff'], '+ AP': ['Order', 'Q', 't'], '+ LT': ['f0', 'Q0', 'fp', 'Qp'], '+ PEQ': ['fc', 'Gain', 'Q'],
+    '+ Peak HP': ['Gpk', 'fpk'], '+ Gain': ['Gain'], '+ DLP': ['fc', 'Gain', 'BW'], '+ LS': ['fc', 'Q', 'Gain'], '+ HS': ['fc', 'Q', 'Gain'],
+  };
+  for (const [chip, rows] of Object.entries(labels)) {
+    await page.getByText(chip, { exact: true }).click();
+    const card = page.locator('.mob-fcard').last();
+    await expect(card.locator('.ui-field .ui-field-label'), chip).toHaveText([...rows]);
+    const hz = card.locator('.ui-field', { has: page.locator('.ui-field-unit', { hasText: 'Hz' }) }).locator('input');
+    for (let k = 0; k < await hz.count(); k++) await expect(hz.nth(k), `${chip} frequency has no decimals`).toHaveValue(/^\d+$/);
+  }
+  await expect(page.locator('.mob-fcard select')).toHaveCount(0 + 1);   // the lowpass subtype
+});
+
+test('the ? on a card opens that filter\'s help', async ({ appPage: page }) => {
+  await page.getByText('+ LP', { exact: true }).click();
+  await page.getByRole('button', { name: 'Help: LP' }).click();
+  const help = page.getByRole('dialog', { name: 'Help: Lowpass' });
+  await expect(help).toContainText('cuts the highs above the cutoff');
+});

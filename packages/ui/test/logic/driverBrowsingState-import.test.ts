@@ -1,0 +1,103 @@
+import {silentPerf} from '../fixtures/silentPerf.js';
+import {NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
+import {FeatureUse} from '../../src/logic/telemetry/featureUse.js';
+import {afterEach, describe, expect, it, vi} from 'vitest';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {dirname, join} from 'node:path';
+import {ref} from 'vue';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import {
+  createBundledDriverRepo,
+  createFileStorage,
+  createMemoryStorage,
+  createPrefsRepo,
+  } from '@openisd/persistence';
+import type {Logging} from '../../src/logging/flash.js';
+import {createDriverSelection} from '../../src/logic/driverSelection.js';
+import {createDriverBrowsingState} from '../../src/logic/driverBrowsingState.js';
+import {DesignFiles, driverToWdrBytes} from '../../src/logic/fileImportExport.js';
+import {ProjectFileFormat} from '../../src/fileFormat.js';
+import type {ConfirmPort} from '../../src/logic/confirmPort.js';
+import {myDriverRepoOn, projectRepoOn, exportedFilesOn} from '../fixtures/repoOn.js';
+
+/** A driver file loaded into My Drivers says so, naming the driver; one that
+ *  cannot be loaded says why, naming the file. */
+describe('My Drivers Load File flashes what it did', () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const GOLDEN_SEALED = join(here, '..', '..', '..', 'design', 'test', 'winisd', 'fixtures', 'winisd-parity', 'goldens', 'sealed-small.wpr');
+
+  class FakeInput { value = 'picked'; constructor(readonly files: File[]) {} }
+
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  const fakeConfirmPort: ConfirmPort = { ask: async () => true };
+
+  function setUp() {
+    const { appState, presentation } = createAppStateFixture();
+    const engine = appState.engine;
+    const storage = createMemoryStorage();
+    const files = new DesignFiles(engine, projectRepoOn(engine, createFileStorage(), storage, 'http://localhost'), exportedFilesOn());
+    const logging: Logging = { message: ref(''), flash: vi.fn() };
+    const browsing = createDriverBrowsingState({perf: silentPerf(), 
+      driverRepo: createBundledDriverRepo({
+        bundle: () => Promise.reject(new Error('catalogue not used')), engine, maxAge_ms: 1, now: Date.now,
+      }),
+      myDriverRepo: myDriverRepoOn(storage, engine), prefs: createPrefsRepo(storage, () => undefined), logging,
+      selection: createDriverSelection({ appState, presentation }), files, confirmReset: fakeConfirmPort, exportNotice: {exported: () => undefined},
+      appState, presentation, driverPicked: () => undefined, featureUse: new FeatureUse(new NoTelemetry()),
+    });
+    vi.stubGlobal('HTMLInputElement', FakeInput);
+    vi.stubGlobal('FileReader', class {
+      onload: null | (() => void) = null;
+      onerror: null | (() => void) = null;
+      result: ArrayBuffer | null = null;
+      readAsArrayBuffer(file: File): void {
+        void file.arrayBuffer().then(buf => { this.result = buf; queueMicrotask(() => this.onload?.()); });
+      }
+    });
+    return { browsing, files, flash: logging.flash };
+  }
+
+  async function load(browsing: ReturnType<typeof setUp>['browsing'], file: File): Promise<void> {
+    const event = new Event('change');
+    Object.defineProperty(event, 'target', { value: new FakeInput([file]) });
+    browsing.loadFromDisk(event);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+
+  it('a .wdr file names the driver it put in My Drivers', async () => {
+    const { browsing, files, flash } = setUp();
+    const project = files.projectFromText(readFileSync(GOLDEN_SEALED, 'utf8'), ProjectFileFormat.Wpr).value;
+    if (!project) throw new Error('the golden must load');
+    project.driver.brand.set('Tang Band');
+    project.driver.model.set('W5-1138SMF');
+    const bytes = driverToWdrBytes(project.driver).value;
+    if (!bytes) throw new Error('the golden driver must export');
+
+    await load(browsing, new File([bytes], 'tb.wdr'));
+
+    expect(flash).toHaveBeenCalledWith('Driver imported to My Drivers: Tang Band W5-1138SMF');
+  });
+
+  it('a file that is not a driver says why, naming the file', async () => {
+    const { browsing, flash } = setUp();
+    await load(browsing, new File(['hello'], 'notes.txt'));
+    expect(flash).toHaveBeenCalledWith('Could not import notes.txt: it is not a driver file (expected .wdr or .owdr)');
+  });
+
+  it('cloning a driver files a copy named "Copy of ..." under a new id and previews it', () => {
+    const { browsing, files, flash } = setUp();
+    const project = files.projectFromText(readFileSync(GOLDEN_SEALED, 'utf8'), ProjectFileFormat.Wpr).value;
+    if (!project) throw new Error('the golden must load');
+    const source = project.driver.detach();
+    const sourceModel = source.model.value;
+
+    browsing.cloneDriver(source);
+
+    expect(flash).toHaveBeenCalledWith('Cloned to My Drivers');
+    expect(browsing.previewDriver.value?.model.value).toBe(`Copy of ${sourceModel}`);
+    expect(browsing.previewDriver.value?.uuid()).not.toBe(source.uuid());
+  });
+});

@@ -1,0 +1,202 @@
+/**
+ * `driverDraft.ts` — the driver editor's editing session, held in `logic/` rather than in the
+ * `.vue` file.
+ *
+ * The component holds no `OpenISDDriver`: it asks this module to open a draft, reads fields
+ * through the handle it gets back, and asks it to commit. Constructing and detaching drivers is
+ * this layer's job.
+ */
+import {describe, expect, it, beforeEach} from 'vitest';
+import assert from 'node:assert/strict';
+import {OpenISDDriver, OpenISDDriverStandalone, ProjectBuilder} from '@openisd/design';
+import {createEngine} from '@openisd/design/engine';
+import {DriverDrafts, wiringOptions} from '../../src/logic/driverDraft.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {AppState} from '../../src/logic/appState.js';
+import type {PresentationState} from '../../src/logic/presentationState.js';
+
+let appState: AppState;
+let presentationState: PresentationState;
+
+beforeEach(() => {
+  const fixture = createAppStateFixture();
+  appState = fixture.appState;
+  presentationState = fixture.presentation;
+});
+
+const scraped = <T,>(value: T) => ({ value });
+const spec = (read_value: number) =>
+  ({ state: 'E' as const, value: read_value, origin: 'manual', readings: { manual: { read_value } } });
+
+/** Each test builds its own driver — no shared fixture, so a failure is diagnosable from the
+ *  one block it sits in. */
+function aDriver(brand: string, model: string): OpenISDDriverStandalone {
+  const record = {
+    uuid: { value: '00000000-0000-4000-8000-000000000000' },
+    manufacturer: scraped(brand), brand: scraped(brand), model: scraped(model),
+    provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
+    sku: { value: '', grounds: [{ origin: 'manufacturer_datasheet', reading: '' }] },
+    driver_type: scraped(['woofer']),
+    data_sources: { value: {} },
+    quality: {
+      confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
+      parse_errors: [], cross_source_only: [],
+    },
+    specs: { woofer: { Fs_hz: spec(30), Qts: spec(0.4), Sd_m2: spec(0.02) } },
+  };
+  const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
+  if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
+  return driver;
+}
+
+describe('DriverDrafts.open — a My Driver subject', () => {
+  it('detaches the seed, so editing the draft leaves the seed alone', () => {
+    const seed = aDriver('SB Acoustics', 'SB23');
+
+    const draft = new DriverDrafts(createEngine(), appState.appContext).open({ kind: 'myDriver', openedAs: 'uuid-1', seed });
+    draft.driver.model.set('Edited');
+
+    assert.equal(draft.driver.model.value, 'Edited');
+    assert.equal(seed.model.value, 'SB23', 'the seed is the caller\'s, never written through');
+  });
+
+  it('builds a blank driver when the subject is a new My Driver with no seed', () => {
+    const draft = new DriverDrafts(createEngine(), appState.appContext).open({ kind: 'myDriver', openedAs: '', seed: null });
+
+    assert.equal(draft.driver.brand.value, '');
+    assert.equal(draft.driver.model.value, '');
+  });
+
+  it('stamps the blank driver\'s providedBy from the app\'s own Username setting', () => {
+    const previous = presentationState.ui.username;
+    presentationState.ui.username = 'johnl';
+    try {
+      const draft = new DriverDrafts(createEngine(), appState.appContext).open({ kind: 'myDriver', openedAs: '', seed: null });
+      assert.equal(draft.driver.providedBy.value, 'johnl');
+    } finally {
+      presentationState.ui.username = previous;
+    }
+  });
+
+  it('reset() throws the edits away and starts again from the same seed', () => {
+    const seed = aDriver('Dayton', 'RS225');
+    const draft = new DriverDrafts(createEngine(), appState.appContext).open({ kind: 'myDriver', openedAs: 'uuid-1', seed });
+    draft.driver.model.set('Edited');
+
+    draft.reset();
+
+    assert.equal(draft.driver.model.value, 'RS225');
+  });
+
+  it('replace() adopts a driver read from a file as the new draft', () => {
+    const draft = new DriverDrafts(createEngine(), appState.appContext).open({ kind: 'myDriver', openedAs: '', seed: null });
+
+    draft.replace(aDriver('Peerless', 'SLS-830667'));
+
+    assert.equal(draft.driver.model.value, 'SLS-830667');
+  });
+});
+
+describe('DriverDrafts.hasUnappliedChanges — what a reload would throw away (T829)', () => {
+  const drafts = () => new DriverDrafts(createEngine(), appState.appContext);
+
+  it('is false with no editor open, and with one open and left alone', () => {
+    const d = drafts();
+    expect(d.hasUnappliedChanges()).toBe(false);
+    d.open({ kind: 'myDriver', openedAs: 'uuid-1', seed: aDriver('Dayton', 'RS225') });
+    expect(d.hasUnappliedChanges()).toBe(false);
+  });
+
+  it('is false for a new blank My Driver nobody has typed into', () => {
+    const d = drafts();
+    d.open({ kind: 'myDriver', openedAs: '', seed: null });
+    expect(d.hasUnappliedChanges()).toBe(false);
+  });
+
+  it('is true once a value of the open draft differs from what it was opened on', () => {
+    const d = drafts();
+    const draft = d.open({ kind: 'myDriver', openedAs: 'uuid-1', seed: aDriver('Dayton', 'RS225') });
+    draft.driver.model.set('Edited');
+    expect(d.hasUnappliedChanges()).toBe(true);
+  });
+
+  it('is false again after reset(), and after the editor is released (OK or Cancel)', () => {
+    const d = drafts();
+    const draft = d.open({ kind: 'myDriver', openedAs: 'uuid-1', seed: aDriver('Dayton', 'RS225') });
+    draft.driver.model.set('Edited');
+    draft.reset();
+    expect(d.hasUnappliedChanges()).toBe(false);
+    draft.driver.model.set('Edited again');
+    draft.release();
+    expect(d.hasUnappliedChanges()).toBe(false);
+  });
+
+  it('is true when a driver read from a file replaced the draft', () => {
+    const d = drafts();
+    const draft = d.open({ kind: 'myDriver', openedAs: '', seed: null });
+    draft.replace(aDriver('Peerless', 'SLS-830667'));
+    expect(d.hasUnappliedChanges()).toBe(true);
+  });
+});
+
+describe('DriverDrafts.open — wiring, expressed without naming the domain', () => {
+  it('setWiring takes the UI word, so no component names the domain enum', () => {
+    const draft = new DriverDrafts(createEngine(), appState.appContext).open({ kind: 'myDriver', openedAs: '', seed: aDriver('A', 'B') });
+
+    draft.setWiring('series');
+    const series = draft.driver.specs.VCCon.value;
+    draft.setWiring('parallel');
+    const parallel = draft.driver.specs.VCCon.value;
+
+    expect(series).not.toBe(parallel);
+  });
+
+  it('clearWiring makes the measured wiring not stated again, so nothing is claimed', () => {
+    const draft = new DriverDrafts(createEngine(), appState.appContext).open({ kind: 'myDriver', openedAs: '', seed: aDriver('A', 'B') });
+    draft.setWiring('series');
+    expect(draft.driver.specs.VCCon.value).toBe('series');
+    draft.clearWiring();
+    expect(draft.driver.specs.VCCon.value).toBeNull();
+  });
+});
+
+describe('DriverDrafts — copies, project subjects and the auto-calculate switch', () => {
+  it('copyAsNew() gives an independent copy with the id the app context mints', () => {
+    const seed = aDriver('Dayton', 'RS225');
+    const ids = new DriverDrafts(createEngine(), {...appState.appContext, newId: () => 'minted-copy'});
+
+    const copy = ids.copyAsNew(seed);
+
+    assert.equal(copy.uuid(), 'minted-copy');
+    assert.equal(copy.model.value, 'RS225');
+    assert.notEqual(seed.uuid(), 'minted-copy');
+  });
+
+  it('a project subject opens a detached copy of the project\'s driver', () => {
+    const engine = createEngine();
+    const project = new ProjectBuilder(aDriver('Dayton', 'RS225'), engine).sealed().volume_m3(0.03).build();
+
+    const draft = new DriverDrafts(engine, appState.appContext).open({kind: 'project'}, () => project.driver);
+    draft.driver.model.set('Edited');
+
+    assert.equal(project.driver.model.value, 'RS225');
+  });
+
+  it('a project subject with no project driver is refused', () => {
+    assert.throws(() => new DriverDrafts(createEngine(), appState.appContext).open({kind: 'project'}), /needs the project driver/);
+  });
+
+  it('auto-calculate is on for a new draft and can be switched off and on', () => {
+    const draft = new DriverDrafts(createEngine(), appState.appContext).open({kind: 'myDriver', openedAs: '', seed: aDriver('A', 'B')});
+    assert.equal(draft.autoCalculate, true);
+
+    draft.setAutoCalculate(false);
+    assert.equal(draft.autoCalculate, false);
+    draft.setAutoCalculate(true);
+    assert.equal(draft.autoCalculate, true);
+  });
+
+  it('wiringOptions() lists the domain\'s coil wiring choices', () => {
+    assert.ok(wiringOptions().length > 1);
+  });
+});

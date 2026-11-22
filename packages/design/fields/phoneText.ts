@@ -1,0 +1,522 @@
+import type {BoxType, FilterType} from '../engine/index.js';
+import {NumberField, ToggleField} from './field.js';
+import {WinisdDeviation, WinisdFilterDeviation} from './winisdDeviation.js';
+import {WinisdDifference} from './winisdDifference.js';
+import {WinisdOption} from './winisdOption.js';
+
+/** One line of a help sheet: the row's label, then what it is. */
+export interface PhoneHelpRow {
+  readonly label: string;
+  readonly text: string;
+  /** The "OpenISD and WinISD differences" entry the line links to ("More in Differences"). */
+  readonly difference?: WinisdDifference;
+}
+
+/** A teaching page outside OpenISD: its title and its web address. */
+export interface HelpLink {
+  readonly title: string;
+  readonly url: string;
+}
+
+/** What a section band's ? opens: what the section is for, then one line per row in it. */
+export class PhoneHelpSection {
+  constructor(
+    readonly title: string,
+    readonly intro: string,
+    readonly rows: readonly PhoneHelpRow[],
+    readonly links: readonly HelpLink[] = [],
+  ) {}
+}
+
+/** The words of the colour key strip under the phone header (PHONE_CLASSIC_BUILD_SPEC §1). */
+export class KeyStripText {
+  static readonly ENTERED = 'Entered';
+  static readonly CALCULATED = 'Calculated';
+  static readonly NOT_AVAILABLE = 'Not Available';
+}
+
+/** The short row labels of the classic phone pages (WinISD's symbols; the bands carry the words). */
+export class PhoneLabels {
+  static readonly VB = 'Vb';
+  static readonly VF = 'Vf';
+  static readonly FB = 'Fb';
+  static readonly FSC = 'Fsc';
+  static readonly QTC = 'Qtc';
+  static readonly FH = 'Fh';
+  static readonly FRC = 'Frc';
+  static readonly FFC = 'Ffc';
+  /** The passive radiator's entered target tuning, first row of the Passive radiator section. */
+  static readonly PR_FP = 'Fp';
+  static readonly PR_ADDED_MASS = 'Added mass';
+  static readonly PR_FPR_MASS = 'Fpr with mass';
+  static readonly DRIVERS = 'Drivers';
+  static readonly POWER = 'Power';
+  static readonly VOLTS = 'Volts';
+  static readonly RS = 'Rs';
+  static readonly SUBTYPE = 'Subtype';
+  static readonly ORDER = 'Order';
+  static readonly Q = 'Q';
+  static readonly CUTOFF = 'Cutoff';
+  static readonly T = 't';
+  static readonly F0 = 'f0';
+  static readonly Q0 = 'Q0';
+  static readonly FP = 'fp';
+  static readonly QP = 'Qp';
+  static readonly FC = 'fc';
+  static readonly GAIN = 'Gain';
+  static readonly GPK = 'Gpk';
+  static readonly FPK = 'fpk';
+  static readonly BW = 'BW';
+  /** The driver editor's Dimensions rows: the short names the drawing uses (the full names do not fit the 82 px label column). */
+  static readonly THICK = 'Thick';
+  static readonly DEPTH = 'Depth';
+  static readonly MAG_DEPTH = 'MagDpt';
+  static readonly MAGNET = 'Magnet';
+  static readonly BASKET = 'Basket';
+  static readonly OUTER = 'Outer dia';
+  static readonly OUTER_X = 'OuterX';
+  static readonly OUTER_Y = 'OuterY';
+  static readonly WEIGHT = 'Weight';
+  static readonly VCD = 'Vcd';
+  static readonly DVOL = 'DVol';
+}
+
+/** The words of the Box page that are not field labels: the two links under the chamber rows, and the Intra vent note. */
+export class PhoneBoxText {
+  static readonly CHOOSE_ALIGNMENT_LINK = 'Choose alignment…';
+  static readonly BOX_LOSSES_LINK = 'Box losses (Qa, Ql, Qp)…';
+  static readonly FP_TIP = 'Fp: the box tuning you enter for the passive radiator box. The Fh row shows the natural tuning of the box and radiator with no added mass.';
+  static readonly INTRA_VENT_NOTE = 'Connects chambers; not open to outside';
+  /** The passive radiator's name row (QO946.c115): its figures are in the editor it opens. */
+  static readonly PR_EDIT_TIP = 'Edit this passive radiator: its name and figures, OK, Cancel or Save to My PRs.';
+  static readonly PR_UNNAMED = 'Unnamed passive radiator';
+  /** The line under the radiator's Key figures: the "2×" rule of thumb as a count of this
+   *  radiator. `required_m3` is twice the drivers' displacement; `count` the engine's smallest count reaching it. */
+  static twoTimesRule(required_m3: number, count: number): string {
+    const need = `2× rule: radiators need ≥ ${Math.round(required_m3 * 1e6)} cm³`;
+    return count <= 1 ? `${need} — 1 of these is enough` : `${need} — needs ${count} of these`;
+  }
+}
+
+/** One quick-add chip of the phone Filters tab, in WinISD's Filter Editor order, then the two OpenISD-only shelves. */
+export interface PhoneFilterChip {
+  readonly type: FilterType;
+  /** The short name on the chip after the "+" and in the card header. */
+  readonly short: string;
+}
+
+export const PHONE_FILTER_CHIPS: readonly PhoneFilterChip[] = Object.freeze([
+  {type: 'lowpass', short: 'LP'},
+  {type: 'highpass', short: 'HP'},
+  {type: 'allpass', short: 'AP'},
+  {type: 'linkwitz', short: 'LT'},
+  {type: 'peaking', short: 'PEQ'},
+  {type: 'peakHighpass', short: 'Peak HP'},
+  {type: 'staticGain', short: 'Gain'},
+  {type: 'raisedCosine', short: 'DLP'},
+  {type: 'lowshelf', short: 'LS'},
+  {type: 'highshelf', short: 'HS'},
+]);
+
+function bugLine(field: ToggleField, text: string, deviation: WinisdDeviation): PhoneHelpRow {
+  return {label: field.label, text, difference: WinisdDifference.forDeviation(deviation)};
+}
+
+function styleLine(option: WinisdOption, text: string): PhoneHelpRow {
+  return {label: option.switchField.label, text, difference: WinisdDifference.forOption(option)};
+}
+
+/**
+ * Every line of the Box, Driver, Signal and passive radiator help sheets, named. A skin that captions a row
+ * differently (the desktop) takes the line from here and gives it its own caption.
+ */
+export class PhoneHelpRows {
+  static readonly VB: PhoneHelpRow = {label: 'Vb (volume, box)', text: 'the space inside the box. A larger box plays lower bass and makes the low-end peak smaller.'};
+  static readonly CHOOSE_ALIGNMENT: PhoneHelpRow = {label: 'Choose alignment', text: 'sets the box volume and tuning from a standard recipe for this driver.'};
+  static readonly LOSSES: PhoneHelpRow = {label: 'Box losses (Qa, Ql, Qp)…', text: 'how much sound the box loses to its lining, to air leaks and in the vent. The defaults suit most boxes.'};
+  static readonly VENT_COUNT: PhoneHelpRow = {label: 'Number of Vents', text: 'how many identical vents the box has. The total area is shared between them.'};
+  static readonly VENT_SHAPE: PhoneHelpRow = {label: 'Shape', text: 'round tube or rectangular slot.'};
+  static readonly VENT_END_CORRECTION: PhoneHelpRow = {label: 'End Correction', text: 'an allowance for how the vent ends are fitted; it changes the effective length.'};
+  static readonly VENT_DIAMETER: PhoneHelpRow = {label: 'Vent diameter', text: 'the inside diameter of the vent. A larger vent lowers air speed.'};
+  static readonly VENT_LENGTH: PhoneHelpRow = {label: 'Vent length', text: 'the vent length needed for the box tuning frequency.'};
+  static readonly VENT_CROSS_AREA: PhoneHelpRow = {label: 'Cross area', text: 'the cross-section area of the vent.'};
+  static readonly VENT_FIRST_RESONANCE: PhoneHelpRow = {label: '1st port resonance', text: 'the frequency at which the vent itself resonates. Keep it well above the bass the box is designed to play, or it colours the sound.'};
+  static readonly VF: PhoneHelpRow = {label: 'Vf (volume, front)', text: 'the space inside the front chamber.'};
+  static readonly FFC: PhoneHelpRow = {label: 'Ffc (frequency, front chamber)', text: 'the frequency at which the front chamber\'s vent reinforces the bass most.'};
+  static readonly FB_VENT: PhoneHelpRow = {label: 'Fb (frequency, box)', text: 'the frequency at which the vent reinforces the bass most: the box and vent resonate together, so the vent gives the most output and the cone moves the least. Lower tuning reaches lower bass.'};
+  static readonly FB_FRONT_VENT: PhoneHelpRow = {label: 'Fb (frequency, box)', text: 'the frequency at which the vent reinforces the bass most. Lower tuning reaches lower bass.'};
+  static readonly SELECT_PR: PhoneHelpRow = {label: 'Select PR', text: 'picks a passive radiator from the library.'};
+  static readonly PR_INFO: PhoneHelpRow = {label: 'Info', text: 'shows the passive radiator\'s figures and where they come from.'};
+  static readonly PR_EDIT: PhoneHelpRow = {label: 'Edit', text: 'opens the passive radiator\'s editor: its name and figures, Export, Import and Copy to My PRs.'};
+  static readonly PR_MMS: PhoneHelpRow = {label: 'Mms', text: 'the moving mass of the cone. Added mass is often judged against it.'};
+  static readonly PR_SD: PhoneHelpRow = {label: 'Sd', text: 'the cone\'s area.'};
+  static readonly PR_VD: PhoneHelpRow = {label: 'Vd', text: 'the volume of air the cone moves at Xmax (Sd × Xmax), to set beside the driver\'s.'};
+  static readonly PR_FS: PhoneHelpRow = {label: 'Fs', text: 'the frequency at which the passive radiator vibrates most freely, out of a box.'};
+  static readonly PR_QMS: PhoneHelpRow = {label: 'Qms', text: 'how sharply the passive radiator resonates, from its suspension.'};
+  static readonly PR_VAS: PhoneHelpRow = {label: 'Vas', text: 'the volume of air that is as easy to compress as the passive radiator\'s suspension is to stretch.'};
+  static readonly PR_XMAX: PhoneHelpRow = {label: 'Xmax', text: 'how far the passive radiator can move each way before it distorts.'};
+  static readonly PR_COUNT: PhoneHelpRow = {label: 'Num. of PRs', text: 'the number of passive radiators.'};
+  static readonly PR_FP: PhoneHelpRow = {label: 'Fp (frequency, passive)', text: 'the tuning you want. The app adds mass to the radiator to reach it.'};
+  static readonly PR_ADDED_MASS: PhoneHelpRow = {label: 'Added mass', text: 'mass added to each passive radiator. More mass lowers the box tuning frequency.'};
+  static readonly PR_RESONANCE_WITH_MASS: PhoneHelpRow = {label: 'Resonance with mass', text: 'the frequency at which the passive radiator vibrates most freely, with the added mass.'};
+  static readonly VELOCITY_LIMIT: PhoneHelpRow = {label: 'Velocity limit', text: 'the air speed above which the charts mark the vent as likely to be noisy.'};
+  static readonly DRIVERS: PhoneHelpRow = {label: 'Drivers', text: 'the number of drivers in the box.'};
+  /** The project's Driver wiring: the approved help (`EnumField.PROJECT_DRIVERWIRING`), the body of the text after its title line; a test keeps them one text. */
+  static readonly DRIVER_WIRING: PhoneHelpRow = {label: 'Driver wiring', text: 'how the drivers are connected to the amplifier. Parallel: each driver gets the full amplifier voltage; the load is one driver\'s impedance divided by the number of drivers (4 × 8 Ω → 2 Ω). Series: the voltage is split between the drivers; the load is the impedance times the number (4 × 8 Ω → 32 Ω). This changes the impedance chart, the SPL and excursion for a given amplifier voltage, and how Rg acts. Not the same as Coil wiring, which connects the voice coils inside one driver.'};
+  /** The project's Coil wiring: the same words as `EnumField.PROJECT_VCCON`'s help (the test coil-wiring-help.test.ts keeps them one text). */
+  static readonly COIL_WIRING: PhoneHelpRow = {label: 'Coil wiring', text: 'how you wire this driver\'s voice coils in this project. If it differs from how the driver was measured, the calculations use the figures for your wiring (for 2 coils, Series gives Re, Le and nominal impedance ×4 and BL ×2 compared with Parallel; Fs, Q, Vas and Mms do not change). The driver\'s own figures are never changed. It can be changed only for a driver with 2 or more coils whose measured wiring is stated.'};
+  static readonly POWER: PhoneHelpRow = {label: 'Power', text: 'the amplifier power, measured into the driver\'s rated load in ohms.'};
+  static readonly VOLTS: PhoneHelpRow = {label: 'Volts', text: 'the voltage at your amplifier\'s output. Power and Volts set each other.'};
+  static readonly RS: PhoneHelpRow = {label: 'Rs', text: 'the resistance of the cable and amplifier between the amplifier and the driver.'};
+  static readonly FSC: PhoneHelpRow = {label: 'Fsc (frequency, sealed chamber)', text: 'the frequency at which the driver vibrates most freely in the sealed box. Below it the bass falls away.'};
+  static readonly QTC: PhoneHelpRow = {label: 'Qtc (Q, total, sealed box)', text: 'how sharply the driver resonates in the sealed box. Lower values give a smooth, gradual bass roll-off; higher values give a peak before it.'};
+  static readonly FH: PhoneHelpRow = {label: 'Fh (frequency, hybrid)', text: 'the tuning the box and passive radiator give.'};
+  static readonly VB_REAR_CHAMBER: PhoneHelpRow = {label: 'Vb (volume, rear chamber)', text: 'the space inside the rear chamber.'};
+  static readonly FSC_REAR_CHAMBER: PhoneHelpRow = {label: 'Fsc (frequency, sealed chamber)', text: 'the frequency at which the driver vibrates most freely in the sealed rear chamber.'};
+  static readonly FRC: PhoneHelpRow = {label: 'Frc (frequency, rear chamber)', text: 'the frequency at which the rear chamber\'s vent reinforces the bass most.'};
+}
+
+const VENT_ROWS: readonly PhoneHelpRow[] = [
+  PhoneHelpRows.VENT_COUNT,
+  PhoneHelpRows.VENT_SHAPE,
+  PhoneHelpRows.VENT_END_CORRECTION,
+  PhoneHelpRows.VENT_DIAMETER,
+  PhoneHelpRows.VENT_LENGTH,
+  PhoneHelpRows.VENT_CROSS_AREA,
+  PhoneHelpRows.VENT_FIRST_RESONANCE,
+];
+
+const PASS_ROWS: readonly PhoneHelpRow[] = [
+  {label: 'Subtype', text: 'the filter\'s shape: Butterworth is flattest, Linkwitz-Riley sums flat with its partner, Bessel keeps the timing, SOS takes your own Q.'},
+  {label: 'Order', text: 'how steeply the filter cuts: 6 dB per octave for each order.'},
+  {label: 'Q', text: 'how sharp the filter is around its frequency. Higher is sharper.'},
+];
+
+/** The help sheets of the Box, Driver and Signal pages; the words follow the box type where they differ. */
+export class PhoneHelp {
+  static readonly BOX = new PhoneHelpSection('Box', 'The enclosure type and its diagram.', [
+    {label: 'Box type', text: 'the enclosure type: sealed (listed as Closed), vented, passive radiator, 4th or 6th order bandpass, or ABC.'},
+  ]);
+  static readonly FRONT_CHAMBER = new PhoneHelpSection('Front chamber', 'The space in front of the driver, inside the box.', [
+    PhoneHelpRows.VF,
+    PhoneHelpRows.FFC,
+    PhoneHelpRows.LOSSES,
+  ]);
+  static readonly VENTS = new PhoneHelpSection('Vents', 'The vents that connect the box to the outside and set its tuning.', [
+    PhoneHelpRows.FB_VENT,
+    ...VENT_ROWS,
+  ]);
+  static readonly FRONT_VENT = new PhoneHelpSection('Front vent', 'The vent from the front chamber to the outside.', [
+    PhoneHelpRows.FB_FRONT_VENT,
+    ...VENT_ROWS,
+  ]);
+  static readonly REAR_VENT = new PhoneHelpSection('Rear vent', 'The vent from the rear chamber to the outside.', VENT_ROWS);
+  static readonly INTRA_VENT = new PhoneHelpSection('Intra vent', 'The vent between the two chambers. It does not open to the outside.', VENT_ROWS);
+  static readonly PASSIVE_RADIATOR = new PhoneHelpSection('Passive radiator', 'A cone with no magnet or coil, moved by the air in the box. It tunes the box in place of a vent.', [
+    PhoneHelpRows.SELECT_PR,
+    PhoneHelpRows.PR_INFO,
+    PhoneHelpRows.PR_EDIT,
+  ]);
+  /** The radiator's Key figures on the phone Box tab, as the Driver tab's. */
+  static readonly PR_KEY_FIGURES = new PhoneHelpSection('Key figures', 'The passive radiator\'s main figures, for reference. Tap one to edit the radiator.', [
+    PhoneHelpRows.PR_FS,
+    PhoneHelpRows.PR_MMS,
+    PhoneHelpRows.PR_SD,
+    PhoneHelpRows.PR_XMAX,
+    PhoneHelpRows.PR_VD,
+  ]);
+  static readonly USER_OPTIONS = new PhoneHelpSection('User options', 'The number of passive radiators and any mass added to them.', [
+    PhoneHelpRows.PR_COUNT,
+    PhoneHelpRows.PR_FP,
+    PhoneHelpRows.PR_ADDED_MASS,
+    PhoneHelpRows.PR_RESONANCE_WITH_MASS,
+  ]);
+  static readonly CHART = new PhoneHelpSection('Chart', 'Settings for the charts. They do not change the design.', [
+    PhoneHelpRows.VELOCITY_LIMIT,
+  ]);
+  /** Headed "User options", as the passive radiator's. */
+  static readonly DRIVER = new PhoneHelpSection('User options', 'The driver used in this design and how many of them the box holds.', [
+    {label: 'Select driver', text: 'picks a driver from the library.'},
+    {label: 'Edit', text: 'opens the driver\'s parameters.'},
+    PhoneHelpRows.DRIVERS,
+    PhoneHelpRows.DRIVER_WIRING,
+    PhoneHelpRows.COIL_WIRING,
+  ]);
+
+  /**
+   * The Driver tab's help for the project as it is on screen: "Driver wiring" is drawn only with 2 or more drivers,
+   * so its line is listed only then (help lists what the user can see, T882; desktop twin: DesktopHelp.placement).
+   */
+  static driver(driverWiringApplies: boolean): PhoneHelpSection {
+    const rows = driverWiringApplies ? PhoneHelp.DRIVER.rows : PhoneHelp.DRIVER.rows.filter(r => r !== PhoneHelpRows.DRIVER_WIRING);
+    return new PhoneHelpSection(PhoneHelp.DRIVER.title, PhoneHelp.DRIVER.intro, rows);
+  }
+  static readonly KEY_FIGURES = new PhoneHelpSection('Key figures', 'The driver\'s main parameters, for reference. Tap one to edit the driver.', [
+    {label: 'Fs', text: 'the frequency at which the driver vibrates most freely, out of a box. Lower Fs can reach lower bass.'},
+    {label: 'Qts', text: 'how sharply the driver resonates, from its motor and suspension together. It shows which box type suits the driver.'},
+    {label: 'Vas', text: 'the volume of air that is as easy to compress as the suspension is to stretch. A larger Vas needs a larger box.'},
+    {label: 'Re', text: 'the electrical resistance of the voice coil, measured with direct current.'},
+    {label: 'Xmax', text: 'how far the cone can move each way before the sound distorts.'},
+  ]);
+  static readonly DRIVER_SEARCH = new PhoneHelpSection('Search', 'Find a driver by brand or model. Filters opens the type, Fs, Sd, impedance and favourite filters; the number on it says how many are on.', [
+    {label: 'Search', text: 'type part of a brand or model name.'},
+    {label: 'Type', text: 'show only these driver types. Tap again to hide a type.'},
+    {label: 'Fs', text: 'the range of resonance frequencies to show.'},
+    {label: 'Sd', text: 'the range of cone areas to show.'},
+    {label: 'Z', text: 'show only drivers of this impedance.'},
+    {label: 'Show', text: 'which drivers to list: those bundled with the app, your own, or all. ★ shows only your favourites.'},
+  ]);
+  static readonly DRIVER_LIST_PICK = new PhoneHelpSection('Drivers', 'The drivers that match. Tap one to choose it, then Use driver.', []);
+  static readonly DRIVER_LIST_MANAGE = new PhoneHelpSection('Drivers', 'The drivers that match. Tap one to open it in the driver editor.', []);
+  static readonly SIGNAL = new PhoneHelpSection('Signal', 'The drive level from the amplifier.', [
+    PhoneHelpRows.POWER,
+    PhoneHelpRows.VOLTS,
+    PhoneHelpRows.RS,
+  ]);
+
+  static readonly EDITOR_OVERVIEW = new PhoneHelpSection('Driver editor: key fields', 'Core simulation data and optional chart-specific data have different roles. Required values can be entered or calculated from other parameters.', [
+    {label:'Fs', text:'Free-air resonance: sets the driver’s bass resonance.'},
+    {label:'Vas', text:'Equivalent compliance volume: describes the suspension’s compliance in acoustic terms.'},
+    {label:'Re', text:'Voice-coil DC resistance: part of the electrical load and drive calculations.'},
+    {label:'Sd', text:'Effective cone area: converts cone motion into displaced air.'},
+    {label:'Qes, Qms and Qts', text:'Enter any two. The editor calculates the third. These describe electrical, mechanical and total damping. All three do not need manual entry.'},
+    {label:'Core requirements', text:'Fs, Vas, Re and Sd must be available, together with enough Q information. Thick borders mark required fields; red highlights missing required data. Green numbers are entered; blue numbers are calculated.'},
+    {label:'Xmax — optional', text:'Not a core requirement. It supplies the limit line on the cone-excursion chart and contributes to excursion-limited maximum-output calculations. Without it, the cone-excursion curve can still be shown, but its Xmax limit line is absent.'},
+    {label:'Pe — optional', text:'The thermal power rating contributes to power-limited maximum-output calculations. A missing rating does not prevent basic response calculations.'},
+    {label:'Other fields', text:'Additional parameters support their associated calculations. Missing or conflicting data are explained by the field’s warning or provenance information.'},
+  ]);
+
+  /** The driver editor's section bands (screen 8); each ? opens the section's one-line meaning. */
+  static readonly EDITOR_THIELE_SMALL = new PhoneHelpSection("Thiele/Small parameters", "These are core inputs for the bass-response charts. Values may be entered or calculated from sufficient related data.", [
+    {"label": "Fs — core", "text": "Free-air resonance, in Hz: where the driver naturally resonates without an enclosure. It helps determine the response and enclosure tuning."},
+    {"label": "Vas — core", "text": "Equivalent compliance volume, normally in litres: the volume of air with the same compliance as the suspension. It is not a recommended box volume."},
+    {"label": "Qes, Qms, Qts — core group", "text": "Electrical, mechanical and total damping. Enter any two; the third is calculated. These values control resonance damping and the shape of the bass response."},
+  ]);
+  static readonly EDITOR_ELECTRO_MECHANICAL = new PhoneHelpSection("Electro-mechanical parameters", "Re and Sd are core simulation data. Other values describe the same physical driver and may be derived; the editor reports missing relationships rather than requiring every box to be typed.", [
+    {"label": "Re — core", "text": "Voice-coil DC resistance, in ohms. Used for the electrical load and drive calculations. This is not the nominal impedance rating."},
+    {"label": "Sd — core", "text": "Effective radiating cone area, normally in cm². Used to relate cone motion to air displacement and sound output."},
+    {"label": "Mms, Cms, Rms", "text": "Moving mass, suspension compliance and mechanical damping. They link to Fs, Vas and the Q values; calculated values are shown in blue."},
+    {"label": "BL and Dd", "text": "BL is motor force factor. Dd is effective cone diameter and can provide Sd; it is not the outside basket diameter."},
+    {"label": "Le, fLe and KLe — model-specific", "text": "Voice-coil inductance, its measurement frequency and the frequency-dependent inductance coefficient. These support inductance modelling and affect the electrical impedance/response when that model is enabled. They are not the same kind of core requirement as Re and Sd."},
+  ]);
+  static readonly EDITOR_LARGE_SIGNAL = new PhoneHelpSection("Large-signal parameters", "These values describe output limits. They are optional for basic response calculations, but the relevant limit or maximum-output result needs its supporting data.", [
+    {"label": "Xmax — chart-specific", "text": "One-way linear excursion, normally in mm. Adds the Xmax limit line to cone excursion and contributes to excursion-limited maximum output. Missing Xmax does not prevent the basic cone-excursion curve."},
+    {"label": "Pe — chart-specific", "text": "Continuous thermal power rating, in watts. Used for thermal power limits and maximum-output calculations; not required for the ordinary small-signal response."},
+    {"label": "Hc and Hg", "text": "Voice-coil winding height and magnetic gap height. They can provide a geometric estimate of Xmax; a manufacturer’s measured excursion specification may use a different criterion."},
+    {"label": "Vd", "text": "Displacement volume: cone area multiplied by one-way excursion. It describes how much air the cone can displace."},
+    {"label": "Xlim — optional reference", "text": "Mechanical travel limit. It is distinct from Xmax: staying within physical travel does not guarantee linear operation."},
+  ]);
+  static readonly EDITOR_MISCELLANEOUS = new PhoneHelpSection("Miscellaneous parameters", "These fields describe sensitivity, rated load and wiring. Optional reference figures are not additional core requirements.", [
+    {"label": "Efficiency, SPL and USPL", "text": "Efficiency and sensitivity describe how much sound is produced for a stated input. Power-based and voltage-based sensitivities use different reference conditions; they are not interchangeable."},
+    {"label": "Znom", "text": "Nominal impedance rating, such as 4 or 8 ohms, for amplifier matching. Re is the measured DC resistance."},
+    {"label": "Voicecoils and Coil wiring", "text": "The number of voice coils, and how the voice coils were wired when the maker measured this driver (Series or Parallel). It says what the published Re and BL mean; it changes no figure. Leave it Not stated if the datasheet does not say. The wiring you use in a project is that project\u2019s own Coil wiring, on its Driver tab."},
+    {"label": "Peak power — optional reference", "text": "Short-term power rating. It is not the continuous Pe rating used for thermal limits."},
+  ]);
+  static readonly EDITOR_THERMAL = new PhoneHelpSection("Thermal parameters", "Thermal information is separate from the core small-signal inputs.", [
+    {"label": "AlfaVC", "text": "How much voice-coil resistance changes per degree of temperature rise. Relevant when modelling a heated coil and its effect on response."},
+    {"label": "R(t)", "text": "Thermal resistance, in K/W: the temperature rise associated with each watt of heat flow."},
+    {"label": "C(t)", "text": "Thermal capacitance, in J/K: the heat needed to raise the coil/motor temperature by one degree. Missing thermal reference data do not by themselves prevent basic response calculations."},
+  ]);
+  static readonly EDITOR_FIGURE_OF_MERIT = new PhoneHelpSection("Figures of merit", "Derived comparison figures, not a list of extra mandatory inputs. A figure stays unavailable if the data needed to calculate it are missing.", [
+    {"label": "SPLmaxLF and SPLmax", "text": "Low-frequency and maximum-output figures. Their supporting excursion and power data matter; supplying only the core response parameters does not establish these limits."},
+    {"label": "Rme, gamma, Mpow and Mcost", "text": "Derived motor and mechanical comparison figures. Use each field’s explanation/provenance to see its calculation and inputs."},
+    {"label": "EBP", "text": "Efficiency bandwidth product, Fs divided by Qes. A rough enclosure-selection indicator, not a rule that a driver must use a particular box."},
+    {"label": "Gloss", "text": "Gravity sag expressed relative to excursion. It helps assess a driver mounted with its cone facing up or down and needs the relevant mechanical/excursion data."},
+  ]);
+  static readonly EDITOR_ENVIRONMENT = new PhoneHelpSection("Environment parameters", "These readouts show the air used for the driver calculations. They are calculated from the project environment, or the app\u2019s environment defaults when no project applies; they are not additional driver specifications to enter.", [
+    {"label": "c — speed of sound", "text": "How fast sound travels through air, in m/s. It relates frequency to wavelength and participates in acoustic/compliance calculations. Temperature changes it."},
+    {"label": "rho (ρ) — air density", "text": "Mass of air per unit volume, in kg/m³. It affects acoustic loading, the relation between Vas and compliance, and sound-output calculations. Temperature, pressure and humidity affect it."},
+    {"label": "Where to change them", "text": "Use the project’s Advanced environment settings, or Options for the app defaults. The driver editor shows the resulting values read-only. Stored legacy driver values do not override the project’s air."},
+  ]);
+  static readonly EDITOR_DIMENSIONS = new PhoneHelpSection("Dimensions", "Physical fit and reference information. These dimensions are not the core inputs that determine the bass response.", [
+    {"label": "Frame, basket and mounting dimensions", "text": "Use these to check the cut-out, fixing clearance and outside size against the manufacturer’s drawing."},
+    {"label": "Depth and magnet dimensions", "text": "Check space behind the baffle and clearance around the magnet, including any ventilation space required by the manufacturer."},
+    {"label": "Rectangular frame size", "text": "OuterX and OuterY are the two sides of a rectangular frame, for drivers whose frame is not round. WinISD has no such fields."},
+    {"label": "Weight", "text": "How much the whole driver weighs, as the maker states it. WinISD has no such field."},
+    {"label": "Voice-coil diameter", "text": "Physical coil size; it is not the effective radiating cone diameter used to determine Sd."},
+    {"label": "Driver volume", "text": "The volume occupied by the driver. Useful when planning net enclosure volume; keep physical displacement separate from the acoustic Vas parameter."},
+  ]);
+
+  static readonly PROJECT_DETAILS = new PhoneHelpSection('Project details', 'The project name and notes.', [
+    {label: 'Name', text: 'the name shown in the project list.'},
+    {label: 'Creator', text: 'who made the project.'},
+    {label: 'Created', text: 'the day the project was made.'},
+    {label: 'Modified', text: 'the day the project was last changed.'},
+    {label: 'Description', text: 'free-text notes.'},
+  ]);
+  static readonly ADVANCED_ENVIRONMENT = new PhoneHelpSection('Environment', 'The air this project plays into. It changes the speed of sound and the weight of the air, which moves the results a little. Clear a value to use the app\'s air.', [
+    {label: 'Temperature', text: 'how warm the air is.'},
+    {label: 'Relative humidity', text: 'how much water the air holds, as a share of the most it could hold.'},
+    {label: 'Air pressure', text: 'the weight of the air above you. Sea level is 101325 Pa.'},
+    {label: 'Sound velocity', text: 'how fast sound travels in this air. Worked out from the three above; type a value to set it yourself.'},
+    {label: 'Air density', text: 'how heavy the air is. Worked out from the three above; type a value to set it yourself.'},
+    {label: 'Reset to app levels', text: 'sets the air back to the levels in Options.'},
+  ]);
+  static readonly ADVANCED_SIMULATION = new PhoneHelpSection('Simulation options', 'How closely the charts follow the real speaker. They change the results, not the design.', [
+    {label: ToggleField.ADV_SIMVCINDUCTANCE.label, text: 'puts the voice coil inductance Le in the impedance and the SPL. Off, Le is left out of both, as WinISD does.'},
+    {label: ToggleField.ADV_FORCEFLATRESPONSE.label, text: 'adds EQ to make the response flat. The excursion and port speed charts then show what that costs.'},
+    {label: ToggleField.ADV_TLPORTMODEL.label, text: 'treats the port as a pipe with a length, not a lump of air. The charts then show the pipe\'s own notes.', difference: WinisdDifference.forDeviation(WinisdDeviation.TL_PORT_END_CORRECTION)},
+    {label: ToggleField.ADV_RGATDRIVERSIDE.label, text: 'ticked: each driver gets its own series resistance Rg. Unticked: Rg sits once, at the amplifier.'},
+    {label: ToggleField.ADV_SPLXMAXLIMITED.label, text: 'holds the SPL curve down where the cone would move past Xmax.'},
+  ]);
+  static readonly ADVANCED_WINISD_STYLE = new PhoneHelpSection('Enable WinISD-style', 'Places where WinISD calculates in its own way. OpenISD copies it by default. Untick a switch for the other form.', [
+    styleLine(WinisdOption.WRAP_PHASE, 'WinISD wraps phase at ±180°, which makes smooth curves jump. OpenISD wraps by default, as WinISD does. Untick for smooth.'),
+    styleLine(WinisdOption.FLAT_MODEL, 'WinISD\'s Force flat response cuts and boosts without limit, so the boost can be huge. OpenISD does the same by default. Untick for boost only, 20 dB at most.'),
+    styleLine(WinisdOption.ABC_INTRA_PORT_VELOCITY, 'WinISD drops a small leak term from the ABC intra-port velocity, so it is slightly off (up to 1.35 dB). OpenISD drops it too by default. Untick for the exact velocity.'),
+    styleLine(WinisdOption.ONE_DRIVER_IMPEDANCE, 'WinISD sizes the sound for drivers in parallel but draws only ONE driver\'s impedance, not the load the amplifier sees (4 × 8 Ω is 2 Ω). OpenISD draws the load for your Driver wiring. Tick for one driver\'s, as WinISD.'),
+  ]);
+  static readonly ADVANCED_WINISD_BUGS = new PhoneHelpSection('Enable WinISD bugs', 'Mistakes in WinISD\'s maths. OpenISD gets them right. A yellow switch brings WinISD\'s result back. A switch greyed out does nothing for this box.', [
+    bugLine(ToggleField.ADV_WINISDDRIVERMODEL, 'WinISD uses two BLs for one driver, so its charts show a driver that cannot exist. OpenISD uses one. Tick for WinISD\'s.', WinisdDeviation.DRIVER_MODEL),
+    bugLine(ToggleField.ADV_WINISDVAMODEL, 'WinISD leaves Rg out of the amplifier load, so the VA chart is low (23 % at Re 3.4 Ω, Rg 1 Ω). OpenISD counts it. Tick for WinISD\'s.', WinisdDeviation.VA_MODEL),
+    bugLine(ToggleField.ADV_WINISDPRNPRRESONANCE, 'With 2 or more radiators WinISD takes the box losses at a frequency that is Npr times too low. OpenISD uses the true tuning. Tick for WinISD\'s.', WinisdDeviation.PR_NPR_RESONANCE),
+    bugLine(ToggleField.ADV_WINISDBESSELHIGHPASS, 'WinISD\'s Bessel high-pass is not the mirror of its low-pass, so its shape is wrong (up to 6 % at order 4). OpenISD mirrors it. Tick for WinISD\'s.', WinisdFilterDeviation.BESSEL_HIGHPASS),
+    bugLine(ToggleField.ADV_WINISDABCGROUPDELAY, 'WinISD\'s ABC group delay leaves the driver out, so it disagrees with its own phase chart. OpenISD includes it. Tick for WinISD\'s.', WinisdDeviation.ABC_GROUP_DELAY),
+    bugLine(ToggleField.ADV_WINISDSEALEDPICKER, 'WinISD\'s sealed picker gives a volume for your Qtc, but the Box tab then shows a different one (0.800 picked, 0.787 shown). OpenISD\'s picker matches the Box tab. Tick for WinISD\'s.', WinisdDeviation.SEALED_PICKER),
+    bugLine(ToggleField.ADV_WINISDCOILWIRINGREBLONLY, 'WinISD converts only Re and BL when you rewire a multi-coil driver, so Le stays wrong (1.5 mH, should be 0.375 mH). OpenISD converts all. Tick for WinISD\'s.', WinisdDeviation.COIL_WIRING_RE_BL_ONLY),
+    bugLine(ToggleField.ADV_WINISDPROJECTALFAVC, 'WinISD heats the coil with the project\'s AlfaVC only and ignores the driver\'s, so an aluminium coil (0.0042) is heated as copper (hot Re 4.448 Ω, should be 4.544 Ω). OpenISD uses the driver\'s when it gives one. Tick for WinISD\'s.', WinisdDeviation.PROJECT_ALFAVC),
+    bugLine(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'with the transmission line model on, WinISD leaves out the port end correction and tunes the box higher (40.3 Hz for Fb 38 Hz). OpenISD tunes where the Box tab says. Tick for WinISD\'s.', WinisdDeviation.TL_PORT_END_CORRECTION),
+  ]);
+  static readonly ADVANCED_SECTIONS: readonly PhoneHelpSection[] = [
+    PhoneHelp.ADVANCED_ENVIRONMENT, PhoneHelp.ADVANCED_SIMULATION, PhoneHelp.ADVANCED_WINISD_STYLE, PhoneHelp.ADVANCED_WINISD_BUGS,
+  ];
+
+  /** The rear (or only) chamber: its rows follow the box type. */
+  static rearChamber(boxType: BoxType): PhoneHelpSection {
+    switch (boxType) {
+      case 'sealed':
+        return new PhoneHelpSection('Rear chamber', 'The space behind the driver, inside the box.', [
+          PhoneHelpRows.VB,
+          PhoneHelpRows.FSC,
+          PhoneHelpRows.QTC,
+          PhoneHelpRows.CHOOSE_ALIGNMENT, PhoneHelpRows.LOSSES,
+        ]);
+      case 'vented':
+        return new PhoneHelpSection('Rear chamber', 'The space behind the driver, inside the box.', [PhoneHelpRows.VB, PhoneHelpRows.CHOOSE_ALIGNMENT, PhoneHelpRows.LOSSES]);
+      case 'box-passive-radiator':
+        return new PhoneHelpSection('Rear chamber', 'The space behind the driver, inside the box.', [
+          PhoneHelpRows.VB,
+          PhoneHelpRows.FH,
+          PhoneHelpRows.LOSSES,
+        ]);
+      case 'bandpass4':
+        return new PhoneHelpSection('Rear chamber', 'The space behind the driver, inside the box.', [
+          PhoneHelpRows.VB_REAR_CHAMBER,
+          PhoneHelpRows.FSC_REAR_CHAMBER,
+          PhoneHelpRows.LOSSES,
+        ]);
+      case 'bandpass6':
+      case 'abc':
+        return new PhoneHelpSection('Rear chamber', 'The space behind the driver, inside the box.', [
+          PhoneHelpRows.VB_REAR_CHAMBER,
+          PhoneHelpRows.FRC,
+          PhoneHelpRows.LOSSES,
+        ]);
+    }
+  }
+
+  static readonly ADD_FILTER = new PhoneHelpSection('Add filter', 'Adds a filter to the signal before the driver. LP lowpass, HP highpass, AP allpass, LT Linkwitz transform, PEQ parametric EQ, Peak HP peaking highpass, Gain fixed gain, DLP raised-cosine EQ, LS low shelf, HS high shelf.', []);
+
+  /** The help sheet of one filter card: what the filter does, then one line per row. */
+  static filter(type: FilterType): PhoneHelpSection {
+    const enabled = {label: 'Tick', text: 'untick to switch the filter off without removing it.'};
+    const q = {label: 'Q', text: 'how sharp the filter is around its frequency. Higher is sharper.'};
+    const gain = {label: 'Gain', text: 'how much the filter boosts (positive) or cuts (negative).'};
+    const fc = {label: 'fc', text: 'the centre frequency.'};
+    switch (type) {
+      case 'lowpass':
+        return new PhoneHelpSection('Lowpass', 'Lets low frequencies through and cuts the highs above the cutoff.', [enabled, ...PASS_ROWS, {label: 'Cutoff', text: 'the frequency where the filter starts to cut.'}]);
+      case 'highpass':
+        return new PhoneHelpSection('Highpass', 'Lets high frequencies through and cuts the lows below the cutoff. Protects the driver from deep bass it cannot play.', [enabled, ...PASS_ROWS, {label: 'Cutoff', text: 'the frequency where the filter starts to cut.'}]);
+      case 'allpass':
+        return new PhoneHelpSection('Allpass', 'Changes the phase and delay without changing the level.', [enabled, PASS_ROWS[1], q, {label: 't', text: 'the delay the allpass adds.'}]);
+      case 'linkwitz':
+        return new PhoneHelpSection('Linkwitz transform', 'Moves the box\'s low-end resonance (f0, Q0) to a new one (fp, Qp), to reach lower or roll off more gently.', [
+          enabled,
+          {label: 'f0', text: 'the box\'s own low-end resonance.'},
+          {label: 'Q0', text: 'the box\'s own Q at f0.'},
+          {label: 'fp', text: 'the resonance you want instead.'},
+          {label: 'Qp', text: 'the Q you want at fp.'},
+        ]);
+      case 'peaking':
+        return new PhoneHelpSection('Parametric EQ', 'A boost or cut around one frequency.', [enabled, fc, gain, q]);
+      case 'peakHighpass':
+        return new PhoneHelpSection('Peaking 2nd order highpass', 'A highpass with a peak just above its corner.', [
+          enabled,
+          {label: 'Gpk', text: 'the height of the peak above the corner.'},
+          {label: 'fpk', text: 'the frequency of the peak.'},
+        ]);
+      case 'staticGain':
+        return new PhoneHelpSection('Static gain', 'Raises or lowers the whole response by a fixed amount.', [enabled, gain]);
+      case 'raisedCosine':
+        return new PhoneHelpSection('DLP Raised Cosine', 'A smooth boost or cut over a band.', [
+          enabled, fc, gain, {label: 'BW', text: 'the width of the band, in octaves.'},
+        ]);
+      case 'lowshelf':
+        return new PhoneHelpSection('Low shelf', 'Raises or lowers everything below a frequency.', [enabled, fc, q, gain]);
+      case 'highshelf':
+        return new PhoneHelpSection('High shelf', 'Raises or lowers everything above a frequency.', [enabled, fc, q, gain]);
+    }
+  }
+
+  /** The help sheet of one vent section, by the port it draws. */
+  static ventSection(port: 'Vent' | 'Front' | 'Rear' | 'Intra'): PhoneHelpSection {
+    switch (port) {
+      case 'Vent': return PhoneHelp.VENTS;
+      case 'Front': return PhoneHelp.FRONT_VENT;
+      case 'Rear': return PhoneHelp.REAR_VENT;
+      case 'Intra': return PhoneHelp.INTRA_VENT;
+    }
+  }
+}
+
+/** The words of the phone driver list (picker and Manage drivers): the search box and the Filters button. */
+export class PhoneDriverListText {
+  static readonly SEARCH_PLACEHOLDER = 'Brand or model';
+  static readonly FILTERS = 'Filters';
+  static readonly HIDE_FILTERS = 'Hide filters';
+  static readonly MAKER_PAGE = 'Maker page ↗';
+
+  /** The Filters button: "Filters ▾" shut, "Hide filters ▴" open, with how many filters are on in brackets. */
+  static filtersButton(open: boolean, activeCount: number): string {
+    const count = activeCount > 0 ? ` (${activeCount})` : '';
+    return open ? `${PhoneDriverListText.HIDE_FILTERS}${count} ▴` : `${PhoneDriverListText.FILTERS}${count} ▾`;
+  }
+}
+
+/** The one line under a passive radiator's name in the phone browser: its three datasheet figures. */
+export class PhonePrBrowserText {
+  static specsLine(sd: string, mms: string, cms: string): string {
+    return `Sd = ${sd} · Mms = ${mms} · Cms = ${cms}`;
+  }
+}
+
+/** The words of the phone driver editor's footer, "values disagree" bar and equation inspector (gaps-phone/equation-inspector.html). */
+export class PhoneEditorText {
+  static readonly MORE = 'More';
+  static readonly MORE_MARK = '▲';
+  /** The mark on a row whose value can be worked out from other rows; tapping it opens the equation inspector. */
+  static readonly FX_MARK = 'ƒ';
+  /** The More menu's two hint lines. */
+  static readonly HINT_UNIT = 'Tap a unit to change it.';
+  static readonly HINT_SPIN = 'Arrow keys spin a value.';
+
+  /** What a tap on the bar says while the inspector is open (the list would sit on the card). */
+  static readonly CLOSE_PROVENANCE_FIRST = 'Close provenance to open this list';
+
+  /** The tooltip on the Driver tab's "N values disagree" link, which opens the Driver Editor. */
+  static readonly OPEN_EDITOR_TO_FIX = 'Open the Driver Editor to see and fix these values';
+
+  /** The bar's heading: "3 values disagree", or "1 value disagrees". */
+  static disagreeHeading(count: number): string {
+    return count === 1 ? '1 value disagrees' : `${count} values disagree`;
+  }
+
+  /** A formula input in the inspector, with the value it has now: "Qes = 0.420", "Fs = 45.00 Hz". A key no field claims, or an input with no value yet, shows the key alone. */
+  static valueBadge(key: string, valueSI: number | null): string {
+    const field = NumberField.named(key);
+    if (field === undefined) return key;
+    if (valueSI === null) return field.label;
+    const unit = field.unitLabel();
+    return `${field.label} = ${field.format(valueSI)}${unit === '' ? '' : ` ${unit}`}`;
+  }
+}

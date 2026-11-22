@@ -1,0 +1,433 @@
+import {expect, openAProject, setFocusedBoxType, test} from '../fixtures.js';
+import type {Page} from '@playwright/test';
+
+/**
+ * The Original shell's frame: the panes (projects list, tab pane, chart), the splitters between
+ * them, the save rail, and how the frame behaves in a narrow or short window.
+ *
+ * Real WinISD is a Win32 window: child controls sit at fixed offsets and the client area CLIPS
+ * when the window is too small — controls never reflow and never paint over each other. The
+ * web port must match: a too-narrow content panel scrolls horizontally and must never overlap
+ * its controls (human-reported 2026-07-23). The geometry checks are CSS-agnostic, so any layout
+ * that reintroduces the class fails regardless of which property caused it.
+ */
+
+/** Widths a browser window realistically reaches; all must clip/scroll, never overlap. */
+const WIDTHS = [1280, 1024, 900, 780];
+
+type Overlap = { a: string; b: string; w: number; h: number };
+
+/**
+ * Pairwise intersection of every laid-out control in the ACTIVE pane. Controls are leaf
+ * boxes (`.field` wraps one label+input+unit; checkbox rows and hints are their own boxes),
+ * so no pair is ever an ancestor of the other and any intersection is a real collision.
+ */
+async function overlappingControls(page: Page): Promise<Overlap[]> {
+  return page.evaluate(() => {
+    const sel = '.tab-section.active .field, .tab-section.active .checkbox-col label, .tab-section.active .hint';
+    const nodes = [...document.querySelectorAll(sel)];
+    const boxes = nodes
+      .map(n => ({ r: n.getBoundingClientRect(), t: (n.textContent || '').trim().slice(0, 40) }))
+      .filter(b => b.r.width > 0 && b.r.height > 0);
+    const hits: Overlap[] = [];
+    for (let i = 0; i < boxes.length; i++) {
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i].r, b = boxes[j].r;
+        const w = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+        const h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+        // >1px on both axes: ignore sub-pixel rounding of adjacent boxes.
+        if (w > 1 && h > 1) hits.push({ a: boxes[i].t, b: boxes[j].t, w, h });
+      }
+    }
+    return hits;
+  });
+}
+
+test.beforeEach(async ({ appPage: page }) => {
+  await page.goto('/');
+  await openAProject(page);
+});
+
+test.describe('Original shell layout', () => {
+  test.describe('frame', () => {
+    test('choosing Original swaps to the ported WinISD shell (titlebar, projects, graph)', async ({ appPage: page }) => {
+      await expect(page.locator('.original-root')).toContainText('Projects');
+      await expect(page.locator('.original-root')).toContainText('Signal Generator');
+      await expect(page.locator('.graph-wrap .gpanel')).toBeVisible();
+    });
+
+    test('all seven project tabs render their ported content', async ({ appPage: page }) => {
+      await page.locator('.project-nav li', { hasText: 'Box' }).click();
+      await page.locator('#og-box-type').selectOption('vented');
+      const nav = page.locator('.project-nav li');
+      await expect(nav).toHaveCount(7);
+
+      await nav.filter({ hasText: 'Driver' }).click();
+      await expect(page.locator('.content-panel')).toContainText('Placement');
+      await expect(page.locator('.content-panel')).toContainText('Advanced options');
+      await expect(page.locator('.content-panel')).toContainText('Num. of drivers');
+
+      await nav.filter({ hasText: 'Signal' }).click();
+      await expect(page.locator('.content-panel')).toContainText('Listening place');
+      await expect(page.locator('.content-panel')).toContainText('Signal source');
+
+      await nav.filter({ hasText: 'Advanced' }).click();
+      await expect(page.locator('.content-panel')).toContainText('Sound velocity');
+
+      await nav.filter({ hasText: 'Project' }).click();
+      await expect(page.locator('.content-panel')).toContainText('Description');
+    });
+
+    test('What-if is at the rail top and unsaved status accompanies the bottom legend', async ({appPage:page}) => {
+      await setFocusedBoxType(page,'bandpass4');
+      await expect(page.locator('.save-rail .value-legend')).toHaveCount(0);
+      await expect(page.locator('.prov-legend .unsaved-label')).toBeVisible();
+      const rail=await page.locator('.save-rail').boundingBox(), whatIf=await page.locator('.save-rail .what-if-btn').boundingBox(), revert=await page.locator('.save-rail .revert-btn').boundingBox();
+      expect(rail).not.toBeNull();expect(whatIf).not.toBeNull();expect(revert).not.toBeNull();
+      expect(Math.abs(whatIf!.y-rail!.y)).toBeLessThanOrEqual(1);
+      expect(Math.abs(revert!.x+revert!.width-rail!.x-rail!.width)).toBeLessThanOrEqual(1);
+    });
+
+    test('Original save buttons sit in a right-edge rail beside the tabs (no vertical space consumed)', async ({ appPage: page }) => {
+      await page.locator('.project-nav li', { hasText: 'Box' }).click();
+      const { railLeft, tabsRight, railTop, tabsTop } = await page.evaluate((): { railLeft: number; tabsRight: number; railTop: number; tabsTop: number } => {
+        const railEl = document.querySelector('.save-rail');
+        const tabsEl = document.querySelector('.content-tabs');
+        if (!railEl || !tabsEl) throw new Error('save-rail/content-tabs not found');
+        const rail = railEl.getBoundingClientRect();
+        const tabs = tabsEl.getBoundingClientRect();
+        return { railLeft: rail.left, tabsRight: tabs.right, railTop: rail.top, tabsTop: tabs.top };
+      });
+      expect(railLeft).toBeGreaterThanOrEqual(tabsRight); // rail is beside the tab content, not above it
+      expect(Math.abs(railTop - tabsTop)).toBeLessThanOrEqual(4); // both start at the top of the panel
+    });
+
+    test('the Driver tab preserves the 130 px Brand box and widens Model to 420 px', async ({ appPage: page }) => {
+      await page.setViewportSize({ width: 1880, height: 900 });
+      await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+      const boxes = page.locator('.tab-section.active .driver-id-row input');
+      expect(Math.round((await boxes.nth(0).boundingBox())?.width ?? 0), 'Brand').toBe(130);
+      expect(Math.round((await boxes.nth(1).boundingBox())?.width ?? 0), 'Model').toBe(420);
+    });
+
+    test('Original skin buttons have readable dark text on their light fill', async ({ appPage: page }) => {
+      await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+      const btn = page.locator('.edit-btn', { hasText: 'Select Driver' });
+      const rgbSum = await btn.evaluate((el) => {
+        const m = getComputedStyle(el).color.match(/\d+/g);
+        return m ? Number(m[0]) + Number(m[1]) + Number(m[2]) : 999;
+      });
+      // Dark text (#1a1a1a → ~78) passes; the near-white --fg bug (#dfe6ee → ~691) fails.
+      expect(rgbSum).toBeLessThan(300);
+    });
+  });
+
+  test.describe('splitters', () => {
+    test('the left panel collapses and expands via the splitter toggle', async ({ appPage: page }) => {
+      await expect(page.locator('.quad-topleft')).toBeVisible();
+      await page.locator('.split-v .split-toggle').click();
+      await expect(page.locator('.quad-topleft')).toBeHidden();
+      await page.locator('.split-v .split-toggle').click();
+      await expect(page.locator('.quad-topleft')).toBeVisible();
+    });
+
+    test('the left panel resizes by dragging the vertical splitter', async ({ appPage: page }) => {
+      const before = (await page.locator('.quad-topleft').boundingBox())!;
+      const split = (await page.locator('.split-v').boundingBox())!;
+      await page.mouse.move(split.x + split.width / 2, split.y + split.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(split.x + split.width / 2 + 80, split.y + split.height / 2, { steps: 4 });
+      await page.mouse.up();
+      const after = (await page.locator('.quad-topleft').boundingBox())!;
+      expect(after.width).toBeGreaterThan(before.width + 50);
+    });
+
+    test('the bottom section collapses (chart grows) and expands via the splitter toggle', async ({ appPage: page }) => {
+      const graphBefore = (await page.locator('.graph-area').boundingBox())!;
+      await page.locator('.split-h .split-toggle').click();
+      await expect(page.locator('.content-panel')).toBeHidden();
+      const graphAfter = (await page.locator('.graph-area').boundingBox())!;
+      expect(graphAfter.height).toBeGreaterThan(graphBefore.height + 100);
+      await page.locator('.split-h .split-toggle').click();
+      await expect(page.locator('.content-panel')).toBeVisible();
+    });
+
+    // BUG_20261108_desktop-splitter-button-cut-when-panel-hidden: the 15 px button on a 7 px
+    // splitter stuck 4 px out of the window once its panel was hidden.
+    test("a hidden panel's splitter button shows whole", async ({ appPage: page }) => {
+      const main = (await page.locator('.main').boundingBox())!;
+      for (const selector of ['.split-v .split-toggle', '.split-h .split-toggle']) {
+        await page.locator(selector).click();
+        await expect(page.locator(selector)).toHaveAttribute('aria-expanded', 'false');
+        const box = (await page.locator(selector).boundingBox())!;
+        expect(box.x, selector).toBeGreaterThanOrEqual(main.x);
+        expect(box.y, selector).toBeGreaterThanOrEqual(main.y);
+        expect(box.x + box.width, selector).toBeLessThanOrEqual(main.x + main.width);
+        expect(box.y + box.height, selector).toBeLessThanOrEqual(main.y + main.height);
+        await page.locator(selector).click();
+      }
+    });
+
+    test('the bottom section cannot be dragged deeper, and a stored taller height is ignored', async ({ appPage: page }) => {
+      const before = (await page.locator('.content-panel').boundingBox())!;
+      const split = (await page.locator('.split-h').boundingBox())!;
+      await page.mouse.move(split.x + split.width / 2, split.y + split.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(split.x + split.width / 2, split.y + split.height / 2 - 60, { steps: 4 });
+      await page.mouse.up();
+      expect((await page.locator('.content-panel').boundingBox())!.height).toBe(before.height);
+
+      await page.evaluate(() => {
+        const stored: unknown = JSON.parse(localStorage.getItem('openisd_view') ?? '{}');
+        if (typeof stored !== 'object' || stored === null || Array.isArray(stored)) throw new Error('Expected stored view preferences');
+        const ui: unknown = 'ui' in stored ? stored.ui : {};
+        if (typeof ui !== 'object' || ui === null || Array.isArray(ui)) throw new Error('Expected stored UI preferences');
+        // This test changes only the obsolete bottom-height setting, retaining the sidebar
+        // width that a preceding resize test may have saved in the shared browser page.
+        localStorage.setItem('openisd_view', JSON.stringify({...stored, ui: {...ui, splashSeen: true, originalBottomH: 300}}));
+      });
+      await page.reload();
+      expect((await page.locator('.content-panel').boundingBox())!.height).toBe(before.height);
+    });
+  });
+
+  test.describe('narrow window', () => {
+    for (const width of WIDTHS) {
+      test(`no pane overlaps its own controls at ${width}px wide`, async ({ appPage: page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        const tabs = page.locator('.project-nav li');
+        const panes = await tabs.allInnerTexts();
+        expect(panes.length).toBeGreaterThan(4);        // guard: a silent nav change must not empty the sweep
+        for (let i = 0; i < panes.length; i++) {
+          await tabs.nth(i).click();
+          await expect(page.locator('.tab-section.active')).toBeVisible();
+          const hits = await overlappingControls(page);
+          expect(hits, `${panes[i]} pane at ${width}px: ${JSON.stringify(hits)}`).toEqual([]);
+        }
+      });
+    }
+
+    test('a too-narrow content pane scrolls horizontally instead of squeezing its columns', async ({ appPage: page }) => {
+      await page.setViewportSize({ width: 780, height: 900 });
+      await page.locator('.project-nav li', { hasText: /^Advanced$/ }).click();
+      const pane = page.locator('.tab-section.active');
+      await expect(pane).toBeVisible();
+      const { scrollW, clientW } = await pane.evaluate(el => ({ scrollW: el.scrollWidth, clientW: el.clientWidth }));
+      expect(scrollW).toBeGreaterThan(clientW);   // content kept its width — the pane scrolls
+    });
+  });
+
+  test.describe('box type changes', () => {
+    test('the bottom panel keeps ONE height across box types (no wobble from the tab count)', async ({ appPage: page }) => {
+      const select = page.locator('#og-box-type');
+      await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
+      const boxes = await select.locator('option').evaluateAll(os => os.map(o => {
+        if (!(o instanceof HTMLOptionElement)) throw new Error('locator("option") matched a non-<option> element');
+        return o.value;
+      }));
+      expect(boxes.length).toBeGreaterThan(3);
+
+      const heights: Record<string, number> = {};
+      let maxClip = 0;
+      for (const b of boxes) {
+        await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
+        await select.selectOption(b);
+        const m = await page.locator('.content-panel').evaluate(el => ({
+          h: Math.round(el.getBoundingClientRect().height),
+          // The left rail (tabs + projects list) shares the row; if the fixed height clips it
+          // the tabs would be unreachable. scrollHeight-clientHeight must stay ~0.
+          railClip: (() => {
+            const rail = el.parentElement!.querySelector('.quad-bottomleft');
+            return rail ? Math.round(rail.scrollHeight - rail.clientHeight) : 999;
+          })(),
+        }));
+        heights[b] = m.h;
+        maxClip = Math.max(maxClip, m.railClip);
+      }
+      const distinct = [...new Set(Object.values(heights))];
+      // One height for the tallest tab of any box type.
+      expect(distinct, `panel height per box type: ${JSON.stringify(heights)}`).toHaveLength(1);
+      expect(maxClip, 'the 7-tab rail must not be clipped by the fixed height').toBeLessThanOrEqual(1);
+      // The shared port grid includes tuning plus Width and Height for slotted ports.
+      // A regression that let the row grow toward 45vh (~405px at 900px tall) fails here.
+      expect(distinct[0]).toBeLessThan(300);
+    });
+  });
+
+  test.describe('short window', () => {
+    async function checkScrollbars(page: Page) {
+      return page.evaluate(() => {
+        const el = document.querySelector('.tab-section.active');
+        if (!el) return { hasVScroll: false, hasHScroll: false, error: 'Active tab-section not found' };
+    
+        // Check if vertical or horizontal scrollbar is present.
+        // scrollHeight > clientHeight (with 1px buffer to avoid subpixel/scaling rounding issues)
+        // scrollWidth > clientWidth (with 1px buffer)
+        const hasVScroll = el.scrollHeight > el.clientHeight + 1;
+        const hasHScroll = el.scrollWidth > el.clientWidth + 1;
+    
+        return {
+          hasVScroll,
+          hasHScroll,
+          scrollHeight: el.scrollHeight,
+          clientHeight: el.clientHeight,
+          scrollWidth: el.scrollWidth,
+          clientWidth: el.clientWidth
+        };
+      });
+    }
+
+    async function checkNoChildOverflows(page: Page) {
+      return page.evaluate(() => {
+        const container = document.querySelector('.tab-section.active');
+        if (!container) return { ok: false, error: 'Active tab-section not found' };
+    
+        const containerRect = container.getBoundingClientRect();
+        const children = container.querySelectorAll('*');
+        const overflows: string[] = [];
+    
+        for (const el of children) {
+          const rect = el.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0) continue;
+      
+          // Check if child bottom or right boundaries extend past container limits.
+          // Allow a subpixel rounding buffer of 1px.
+          if (rect.bottom > containerRect.bottom + 1) {
+            overflows.push(`${el.tagName}.${el.className.split(' ').join('.')} bottom(${rect.bottom.toFixed(1)}) > container(${containerRect.bottom.toFixed(1)})`);
+          }
+          if (rect.right > containerRect.right + 1) {
+            overflows.push(`${el.tagName}.${el.className.split(' ').join('.')} right(${rect.right.toFixed(1)}) > container(${containerRect.right.toFixed(1)})`);
+          }
+        }
+    
+        return {
+          ok: overflows.length === 0,
+          overflows
+        };
+      });
+    }
+
+    test.beforeEach(async ({ appPage: page }) => {
+      await page.setViewportSize({ width: 1600, height: 400 });
+    });
+
+    test('bottom panels at a short window height never get scrollbars and contents do not overflow', async ({ appPage: page }) => {
+      const boxTypes = ['vented', 'sealed', 'bandpass4', 'bandpass6', 'abc'] as const;
+  
+      for (const boxType of boxTypes) {
+        await setFocusedBoxType(page, boxType);
+    
+        // Iterate through all visible tabs for this box type
+        const tabs = page.locator('.project-nav li');
+        const count = await tabs.count();
+    
+        for (let i = 0; i < count; i++) {
+          const tabName = await tabs.nth(i).innerText();
+          await tabs.nth(i).click();
+      
+          const res = await checkScrollbars(page);
+          expect(
+            res.hasVScroll,
+            `Tab "${tabName}" for box type "${boxType}" should not have a vertical scrollbar. Details: ${JSON.stringify(res)}`
+          ).toBe(false);
+          expect(
+            res.hasHScroll,
+            `Tab "${tabName}" for box type "${boxType}" should not have a horizontal scrollbar. Details: ${JSON.stringify(res)}`
+          ).toBe(false);
+
+          const overflowRes = await checkNoChildOverflows(page);
+          expect(
+            overflowRes.ok,
+            `Tab "${tabName}" for box type "${boxType}" contains elements overflowing the container panel. Overflowing elements: ${JSON.stringify(overflowRes.overflows)}`
+          ).toBe(true);
+        }
+      }
+    });
+  });
+});
+
+
+test('desktop splitter buttons expose expanded state and remain keyboard operable',async({page})=>{
+ await page.goto('/');await openAProject(page);
+ for(const selector of ['.split-v .split-toggle','.split-h .split-toggle']){
+  const button=page.locator(selector);await expect(button).toHaveAttribute('aria-expanded','true');
+  await button.focus();await button.press('Enter');await expect(button).toHaveAttribute('aria-expanded','false');
+  await button.press('Enter');await expect(button).toHaveAttribute('aria-expanded','true');
+ }
+});
+
+test('desktop model and PR names have the requested wider boxes without hiding actions',async({page})=>{
+ await page.goto('/');await openAProject(page);await page.locator('.project-nav li').filter({hasText:/^Driver$/}).click();
+ const model=page.locator('.driver-id-row .field').filter({has:page.locator('label',{hasText:/^Model$/})}).locator('input');await expect(model).toHaveCSS('width','420px');
+ const pane=(await page.locator('.content-tabs').boundingBox())!;
+ for(const button of await page.locator('.tab-section.active .driver-id-row button').all()){const r=(await button.boundingBox())!;expect(r.x+r.width).toBeLessThanOrEqual(pane.x+pane.width);}
+ await setFocusedBoxType(page,'box-passive-radiator');await page.locator('.project-nav li').filter({hasText:/^Passive Radiator$/}).click();await expect(page.locator('#og-pr-name')).toHaveCSS('width','330px');
+ for(const button of await page.locator('.tab-section.active .driver-id-row button').all()){const r=(await button.boundingBox())!;expect(r.x+r.width).toBeLessThanOrEqual(pane.x+pane.width);}
+});
+
+
+test('green Save sits immediately above Revert and saves the open project', async ({appPage:page}) => {
+ await setFocusedBoxType(page,'bandpass4');
+ const save=page.locator('.save-rail').getByRole('button',{name:'Save',exact:true});
+ await expect(save).toBeVisible();
+ await expect(save).toHaveCSS('background-color','rgb(34, 128, 62)');
+ const saveBox=(await save.boundingBox())!,revert=(await page.locator('.save-rail .revert-btn').boundingBox())!;
+ expect(revert.y-saveBox.y-saveBox.height).toBeCloseTo(6,0);
+ expect(saveBox.x+saveBox.width).toBeCloseTo(revert.x+revert.width,0);
+ await expect(page.locator('.prov-legend .unsaved-label')).toBeVisible();
+ await save.click();
+ await expect(page.locator('.prov-legend .unsaved-label')).toHaveCount(0);
+ await expect(page.locator('.save-rail .revert-btn')).toBeDisabled();
+});
+
+test.describe('Save and Revert sit under What-if with a one-button gap (QO453.c7)', () => {
+  const BOXES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const;
+  for (const vp of [{ width: 1366, height: 768 }, { width: 1920, height: 1080 }]) {
+    test(`at ${vp.width}x${vp.height}, for every box type`, async ({ appPage: page }) => {
+      await page.setViewportSize(vp);
+      const panelHs: number[] = [];
+      for (const b of BOXES) {
+        await setFocusedBoxType(page, b);
+        const m = await page.evaluate(() => {
+          const r = (s: string) => { const e = document.querySelector(s); if (!e) throw new Error(s); return e.getBoundingClientRect(); };
+          const panel = document.querySelector('.content-panel');
+          if (!panel) throw new Error('panel');
+          return { plain: r('.driver-id-row .edit-btn'), w: r('.save-rail .what-if-btn'), s: r('.save-rail .project-save-btn'), v: r('.save-rail .revert-btn'), panel: panel.getBoundingClientRect(),
+            panelClip: panel.scrollHeight - panel.clientHeight, docScroll: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+        });
+        expect(m.w.height, `${b} What-if keeps the height of an ordinary button`).toBeCloseTo(m.plain.height, 0);
+        expect(Math.abs(m.s.left - m.w.left), `${b} Save left = What-if left`).toBeLessThanOrEqual(1);
+        expect(Math.abs(m.s.top - m.w.bottom - m.w.height), `${b} gap = one button height`).toBeLessThanOrEqual(2);
+        expect(Math.abs(m.v.left - m.s.left), `${b} Revert same column`).toBeLessThanOrEqual(1);
+        expect(m.v.top - m.s.bottom, `${b} Revert directly below Save`).toBeLessThanOrEqual(8);
+        expect(m.v.bottom, `${b} Revert inside panel`).toBeLessThanOrEqual(m.panel.bottom);
+        expect(m.v.bottom, `${b} Revert not at the panel bottom`).toBeLessThan(m.panel.bottom - 20);
+        expect(m.panelClip, `${b} nothing clipped`).toBeLessThanOrEqual(1);
+        expect(m.docScroll, `${b} no page scrollbar`).toBeLessThanOrEqual(0);
+        panelHs.push(m.panel.height);
+      }
+    });
+  }
+});
+
+test.describe('Box notes column shows every hint in full', () => {
+  const BOXES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const;
+  for (const vp of [{ width: 1366, height: 768 }, { width: 1920, height: 1080 }]) {
+    test(`at ${vp.width}x${vp.height}, no box type clips or scrolls its notes`, async ({ appPage: page }) => {
+      await page.setViewportSize(vp);
+      for (const b of BOXES) {
+        await setFocusedBoxType(page, b);
+        const m = await page.evaluate(() => {
+          const col = document.querySelector('.box-notes-col');
+          if (!col) throw new Error('.box-notes-col');
+          const hints = col.querySelectorAll('.hint');
+          const last = hints[hints.length - 1];
+          if (!last) throw new Error('no hint');
+          return { hidden: col.scrollHeight - col.clientHeight, lastBottom: last.getBoundingClientRect().bottom, colBottom: col.getBoundingClientRect().bottom };
+        });
+        expect(m.hidden, `${b} notes column hides no text`).toBeLessThanOrEqual(1);
+        expect(m.lastBottom, `${b} last hint inside the notes column`).toBeLessThanOrEqual(m.colBottom + 1);
+      }
+    });
+  }
+});

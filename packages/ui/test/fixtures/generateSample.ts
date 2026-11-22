@@ -1,0 +1,133 @@
+import {mkdirSync, readFileSync, renameSync, writeFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {z} from 'zod';
+import {type AppContext, createEngine, OpenISDDriver, ProjectBuilder, realAppContext} from '@openisd/design';
+import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
+import {COMPLETE_DRIVER_PROJECT_OWPR, FIXTURE_DATE, OLD_BASKET_PROJECT_OWPR, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
+
+// Only the fields this fixture generator mutates directly; `fromConformingRecord` re-validates
+// the whole record against the real schema, so this schema stays loose (`z.looseObject`) rather
+// than duplicating it.
+const driverRecordSchema = z.looseObject({
+  brand: z.looseObject({value: z.string()}),
+  model: z.looseObject({value: z.string()}),
+  specs: z.looseObject({woofer: z.unknown().optional()}),
+});
+
+/** Writes `text` to `path` whole or not at all. Every browser worker of a fresh checkout generates
+ *  these files at once, and a plain write empties the file first: a worker reading it then got
+ *  partial JSON ("Could not read sample-project.owpr: not valid JSON", GitHub Actions suite, T258).
+ *  A rename within one folder is atomic, so a reader sees the old file or the new one. */
+function writeWhole(path: string, text: string): void {
+  const partial = `${path}.${process.pid}.partial`;
+  writeFileSync(partial, text);
+  renameSync(partial, path);
+}
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+/** The ids and the clock a fixture is built with: the same every time it is generated (T834). A random id made a stored backup of the
+ *  project pack to a different size from run to run, and a picture of "4.7 KB" and "4.8 KB" cannot be the same. Each fixture has its
+ *  own `series`, so the sample and the complete project never share an id. */
+function fixtureContext(series: number): AppContext {
+  let n = 0;
+  return {...realAppContext, now: () => FIXTURE_DATE, newId: () => `00000000-0000-4000-${String(series).padStart(4, '0')}-${String(++n).padStart(12, '0')}`};
+}
+
+const driverStr = readFileSync(join(__dirname, '../../public/drivers/tang-band/w5-1138smf.json'), 'utf-8');
+const driverJson = driverRecordSchema.parse(JSON.parse(driverStr));
+const engine = createEngine();
+const maybeDriver = OpenISDDriver.fromConformingRecord(driverJson, engine);
+if (Array.isArray(maybeDriver)) {
+    throw new Error(`fixture driver is not conforming: ${maybeDriver.join(', ')}`);
+}
+const driver = maybeDriver;
+
+const builder = new ProjectBuilder(driver, engine, fixtureContext(1));
+
+// WinISD's default vented alignment (C4/SC4), designed as the New Project wizard does it
+// (docs/research/VENTED_ALIGNMENT_FORMULAS.md); a hardcoded volume/tuning here would drift from
+// what the wizard actually builds for this driver. Ql 10 is the new-project vented default.
+const qtsLoaded = engine.driver.sourceLoadedQts(
+  driver.specs.Qms.value!, driver.specs.Qes.value!, driver.specs.Re_ohm.value!, DEFAULT_SOURCE_RESISTANCE_OHM, driver.specs.Qts.value!,
+);
+const c4 = engine.vented.alignment('c4', driver.specs.Fs_hz.value!, qtsLoaded, driver.specs.Vas_m3.value!, 10);
+const project = builder.vented().volume_m3(c4.Vb).tuning_goal_hz(c4.Fb).build();
+project.name.set("W5-1138SMF Fixture");
+// The fixture is dated FIXTURE_DATE, never the day it was generated (F48). YYYYMMDD, as .wpr stores it.
+const fixtureStamp = FIXTURE_DATE.toISOString().slice(0, 10).replaceAll('-', '');
+project.created.set(fixtureStamp);
+project.modified.set(fixtureStamp);
+project.box.vented.vent.diameter_m.set(0.05);
+// ProjectBuilder supplies the same consistent Dummy PR as the wizard.
+project.envTempK.set(293.15);
+project.envPressurePa.set(101325);
+project.envHumidityPct.set(50);
+
+project.save();
+const owprText = project.toOwprText();
+mkdirSync(dirname(SAMPLE_PROJECT_OWPR), { recursive: true });
+writeWhole(SAMPLE_PROJECT_OWPR, owprText);
+console.log(`Generated ${SAMPLE_PROJECT_OWPR}`);
+
+// Generate complete driver project with zero consistency issues
+const completeRecord = driverRecordSchema.parse(JSON.parse(driverStr));
+completeRecord.brand.value = 'Fixture';
+completeRecord.model.value = 'Test Driver';
+const qts = 0.38;
+const qms = 4.5;
+const qes = (qts * qms) / (qms - qts);
+
+// Each reading states its own `read_precision` (D13), because the stored SI number cannot: JSON
+// drops trailing zeros, so a Vas read off a datasheet as "30.0 L" arrives as `0.03` and would
+// otherwise be taken to state ±0.005 m³ — five litres. Every figure below is stated the way a
+// datasheet states it, in the unit it is quoted in, converted to SI:
+//   Fs 37 Hz ±0.5   Vas 30.0 L ±0.05 L   Sd 212 cm² ±0.5 cm²   Le 0.80 mH ±0.005 mH
+//   Xmax 6.0 mm ±0.05 mm   Re 6.6 Ω ±0.05   Pe 150 W ±0.5   Znom 8 Ω ±0.5
+completeRecord.specs.woofer = {
+  Fs_hz: { state: 'E', value: 37, origin: 'entered', readings: { entered: { read_value: 37, read_precision: 0.5 } } },
+  Qts: { state: 'E', value: qts, origin: 'entered', readings: { entered: { read_value: qts, read_precision: 0.005 } } },
+  Qms: { state: 'E', value: qms, origin: 'entered', readings: { entered: { read_value: qms, read_precision: 0.05 } } },
+  Qes: { state: 'E', value: qes, origin: 'entered', readings: { entered: { read_value: qes, read_precision: 0.005 } } },
+  Vas_m3: { state: 'E', value: 0.03, origin: 'entered', readings: { entered: { read_value: 0.03, read_precision: 0.00005 } } },
+  Sd_m2: { state: 'E', value: 0.0212, origin: 'entered', readings: { entered: { read_value: 0.0212, read_precision: 0.00005 } } },
+  Re_ohm: { state: 'E', value: 6.6, origin: 'entered', readings: { entered: { read_value: 6.6, read_precision: 0.05 } } },
+  Le_H: { state: 'E', value: 0.0008, origin: 'entered', readings: { entered: { read_value: 0.0008, read_precision: 0.000005 } } },
+  Xmax_m: { state: 'E', value: 0.006, origin: 'entered', readings: { entered: { read_value: 0.006, read_precision: 0.00005 } } },
+  Pe_W: { state: 'E', value: 150, origin: 'entered', readings: { entered: { read_value: 150, read_precision: 0.5 } } },
+  Znom_ohm: { state: 'E', value: 8, origin: 'entered', readings: { entered: { read_value: 8, read_precision: 0.5 } } }
+};
+
+const completeDriver = OpenISDDriver.fromConformingRecord(completeRecord, engine);
+if (Array.isArray(completeDriver)) {
+    throw new Error(`complete driver is not conforming: ${completeDriver.join(', ')}`);
+}
+
+const completeBuilder = new ProjectBuilder(completeDriver, engine, fixtureContext(2));
+const completeProject = completeBuilder.vented().volume_m3(0.03).tuning_goal_hz(35).build();
+completeProject.name.set("Complete Fixture Project");
+completeProject.created.set(fixtureStamp);
+completeProject.modified.set(fixtureStamp);
+completeProject.box.vented.vent.diameter_m.set(0.05);
+// Keep ProjectBuilder’s consistent Dummy PR in this fixture too.
+completeProject.envTempK.set(293.15);
+completeProject.envPressurePa.set(101325);
+completeProject.envHumidityPct.set(50);
+
+completeProject.save();
+const completeOwprText = completeProject.toOwprText();
+writeWhole(COMPLETE_DRIVER_PROJECT_OWPR, completeOwprText);
+console.log(`Generated ${COMPLETE_DRIVER_PROJECT_OWPR}`);
+
+const daytonRecord = readFileSync(join(__dirname, '../../public/drivers/dayton-audio/dsa115-8.json'), 'utf-8');
+const dayton = OpenISDDriver.fromConformingRecord(JSON.parse(daytonRecord), engine);
+if (Array.isArray(dayton)) throw new Error(`fixture driver is not conforming: ${dayton.join(', ')}`);
+const oldBasket = new ProjectBuilder(dayton, engine, fixtureContext(3)).sealed().volume_m3(0.003).build();
+const {saved, ...session} = oldBasket.cloneSession();
+const {driverEmbedding} = saved;
+const {device} = driverEmbedding;
+// Write the legacy 2.37 m basket into the fixture file by hand, as an old file stored it.
+const legacyDevice = {...device, specs: {...device.specs, woofer: {...device.specs.woofer, Basket_m: {state: 'E', value: 2.37744}}}};
+writeWhole(OLD_BASKET_PROJECT_OWPR, JSON.stringify({...session, saved: {...saved, driverEmbedding: {...driverEmbedding, device: legacyDevice}}}));

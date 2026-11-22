@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenISD — modern-plus skin mockups</title>
+<link rel="stylesheet" href="proposal.css">
+<style>
+  .frame-wrap iframe{width:100%; height:760px; border:none; display:block; background:var(--bg)}
+  .thumb.dk{background-image:linear-gradient(135deg,#141b24,#0e1218)}
+  .thumb .mini{font-family:var(--mono); font-size:11px; color:var(--mut); text-align:center; line-height:1.7}
+</style>
+</head>
+<body>
+
+<div class="pagehead">
+  <span class="eye">OpenISD · UI skin · visual mockups</span>
+  <h1>The <span class="plus">modern-plus</span> skin</h1>
+  <p>Faithful, non-authoritative renders of the proposed responsive skin, built on the live app's real palette,
+     type, and chart colours. These are look-and-feel samples to react to — not final markup. Structure and flows
+     live in the design plan; this is what it would actually look like.</p>
+</div>
+
+<div class="viewport-tag">live preview · desktop ≥ 900px</div>
+<div class="frame-wrap">
+  <iframe src="modern-plus-desktop.html" title="modern-plus desktop mockup" loading="lazy"></iframe>
+</div>
+
+<div class="gallery">
+  <a class="gcard" href="modern-plus-desktop.html">
+    <div class="thumb dk"><div class="mini">┌──────┬───────────────┐<br>│ tabs │  SPL  · Excurs │<br>│ T/S  │  Z    · GD     │<br>└──────┴───────────────┘<br>desktop · 2×2 grid</div></div>
+    <div class="meta"><h3>Desktop variant</h3><p>Enclosure pills · tabbed card inputs with Basic/Advanced · multi-graph grid · stat bar · compare overlay.</p></div>
+  </a>
+  <a class="gcard" href="modern-plus-mobile.html">
+    <div class="thumb dk"><div class="mini">▏Inputs▕ · ▏Results▕<br><br>accordion inputs<br>↕<br>single chart + type chips</div></div>
+    <div class="meta"><h3>Mobile variant</h3><p>Same shell under 900px: accordion inputs, single full-width chart, bottom Inputs⇄Results toggle.</p></div>
+  </a>
+  <a class="gcard" href="classic-winisd.html">
+    <div class="thumb" style="background:#5a7a9a"><div class="mini" style="color:#e8eef4">▛▀▀▀▀▀▀▀▀▀▀▜<br>│ grey chrome │<br>│ single chart │<br>│ tab rail ▮ │<br>▙▄▄▄▄▄▄▄▄▄▄▟<br>WinISD homage</div></div>
+    <div class="meta"><h3>Classic skin <span style="color:var(--faint); font-weight:400; font-size:12px">· Phase 2</span></h3><p>Separate visual world: WinISD 0.7 grey chrome, single chart, Projects list + Signal Generator, bottom Project tab rail.</p></div>
+  </a>
+</div>
+
+<div class="caption">
+  <strong>Design notes.</strong> Dark-only by choice — the product commits to an instrument-screen look, so there
+  is no light theme here. Accent <code>#4fb0ff</code>, curve palette straight from <code>utils/series.ts</code>
+  (SPL blue, excursion amber, impedance red, group-delay violet). Disabled/unbuilt affordances stay honest:
+  <em>Iso-Barik → “not modelled”</em>, <em>Cut list / Export → “soon”</em>. Every region maps to an existing
+  component in <code>packages/ui/src/</code>; modern-plus is re-layout, not new physics.
+</div>
+</body>
+</html>

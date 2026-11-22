@@ -1,0 +1,63 @@
+{
+  "projects": [
+    {
+      "id": "00000000-0000-4000-8000-000000000020",
+      "name": "Echo",
+      "modified": "2026-01-01T01:02:03.004Z",
+      "summary": "Golden G-1 · vented"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000016",
+      "name": "Delta",
+      "modified": "2026-01-01T01:02:03.003Z",
+      "summary": "Golden G-1 · sealed"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000012",
+      "name": "Charlie",
+      "modified": "2026-01-01T01:02:03.002Z",
+      "summary": "Golden G-1 · bandpass4"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000008",
+      "name": "Bravo",
+      "modified": "2026-01-01T01:02:03.001Z",
+      "summary": "Golden G-1 · vented"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "name": "Alpha",
+      "modified": "2026-01-01T01:02:03.000Z",
+      "summary": "Golden G-1 · sealed"
+    }
+  ],
+  "drivers": [],
+  "radiators": [],
+  "openSession": null,
+  "settings": {
+    "vented": {
+      "minVb_m3": 0.002,
+      "maxVb_m3": 0.5,
+      "minFb_hz": 15,
+      "maxFb_hz": 120
+    },
+    "env": {
+      "tempK": 295.15,
+      "humidityPct": 40,
+      "pressurePa": 101000
+    },
+    "differenceCues": false
+  },
+  "favourites": {
+    "drivers": [
+      "00000000-0000-4000-8000-000000000101"
+    ],
+    "radiators": []
+  },
+  "view": {
+    "ui": {
+      "panel": "results",
+      "units": "metric"
+    }
+  }
+}

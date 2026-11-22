@@ -1,0 +1,39 @@
+body {
+  width: 800px;
+  margin-top: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: verdana, sans-serif;
+  font-size: 75%;
+}
+.header {
+  margin: 0px;
+  margin-bottom: 75px;
+  background: #d0d0d0 none repeat scroll 0%;
+  line-height: 1.5em;
+  padding-left: 0.5em;
+  font-style: italic;
+  font-size: 150%;
+}
+.faqQ {
+  color: red;
+}
+.footer {
+  color: #606060;
+  font-style: italic;
+}
+a {
+  text-decoration: none; 
+}
+a:hover {
+  text-decoration: underline;
+}
+h1 {
+  font-size: 200%;
+}
+h2 {
+  font-size: 150%;
+}
+h3 {
+  font-weight: bold;
+}

@@ -1,0 +1,561 @@
+import type {Air, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, DriverValues, IssueEngine, SolverInput, SweepDriver, Wiring, WiringIssue} from '../../engine/index.js';
+import {NumberField} from '../../fields/field.js';
+import type {ValueFloor} from '../../fields/field.js';
+import type {
+    Calculatable,
+    Calculated,
+    Clearable,
+    Entered,
+    Precise,
+    Readable,
+    SimpleField,
+    Unsolvable,
+    Writable
+} from '../cell.js';
+import {absentCell, calculatedCell, DualWriteFieldImpl, enteredCell, entryField} from '../cell.js';
+import type {DriverDeviceJson, SpecEntryJson, WiringEntryJson} from '../openisdSchema.js';
+import {calculatedWiring, enteredWiring, VoiceCoilWiring} from '../voiceCoilWiring.js';
+import {inferMeasuredWiring, titleNamesSeveralCoils} from './wiringInference.js';
+import {computedSlot} from './computedSlot.js';
+import {driverSection} from './driverSection.js';
+import type {DriverSpecFieldName, NumericDriverSpecFieldName} from './driverSpecFieldName.js';
+import {NO_SLOT} from './noSlot.js';
+
+/**
+ * Every `DriverSpecFieldName`'s floor, stated once. A spec field the registry has a `NumberField`
+ * for reads its floor off that field, beside its two bands; the seven the registry has no entry
+ * for (`VCCon` is a wiring name, never a number; the others nobody has stated a band for) state
+ * theirs here. The record is total over `DriverSpecFieldName`, so a new spec field without a floor
+ * fails to compile; `driver-spec-floor-coverage.test.ts` fails if the registry gains or loses a field
+ * this table treats the other way.
+ */
+const FLOORS: Readonly<Record<DriverSpecFieldName, ValueFloor>> = Object.freeze({
+    VCCon: 'none',
+    Fs_hz: NumberField.FS_HZ.floor,
+    Re_ohm: NumberField.RE_OHM.floor,
+    Le_H: NumberField.LE_H.floor,
+    fLe_hz: NumberField.FLE_HZ.floor,
+    KLe_H_sqrtHz: NumberField.KLE_H_SQRTHZ.floor,
+    Znom_ohm: NumberField.ZNOM_OHM.floor,
+    Qts: NumberField.QTS.floor,
+    Qes: NumberField.QES.floor,
+    Qms: NumberField.QMS.floor,
+    Vas_m3: NumberField.VAS_M3.floor,
+    Sd_m2: NumberField.SD_M2.floor,
+    BL_Tm: NumberField.BL_TM.floor,
+    Mms_kg: NumberField.MMS_KG.floor,
+    Cms_m_per_N: NumberField.CMS_M_PER_N.floor,
+    Rms_kg_per_s: NumberField.RMS_KG_PER_S.floor,
+    Xmax_m: NumberField.XMAX_M.floor,
+    Xlim_m: NumberField.XLIM_M.floor,
+    SPL_dB: NumberField.SPL_DB.floor,
+    Pe_W: NumberField.PE_W.floor,
+    Dd_m: NumberField.DD_M.floor,
+    EBP_hz: NumberField.EBP_HZ.floor,
+    numVC: NumberField.NUMVC.floor,
+    Vd_m3: NumberField.VD_M3.floor,
+    no: NumberField.NO.floor,
+    SPLmax_dB: NumberField.SPLMAX_DB.floor,
+    SPLmaxLF_dB: NumberField.SPLMAXLF_DB.floor,
+    USPL_dB: NumberField.USPL_DB.floor,
+    alfaVC_per_K: NumberField.ALFAVC_PER_K.floor,
+    Rt_K_per_W: NumberField.RT_K_PER_W.floor,
+    Ct_J_per_K: NumberField.CT_J_PER_K.floor,
+    gamma_m_per_s2_A: NumberField.GAMMA_M_PER_S2_A.floor,
+    Rme_kg_per_s: NumberField.RME_KG_PER_S.floor,
+    Mpow_N_per_sqrtW: NumberField.MPOW_N_PER_SQRTW.floor,
+    Mcost_kg_per_s: NumberField.MCOST_KG_PER_S.floor,
+    Gloss: NumberField.GLOSS.floor,
+    c_m_per_s: NumberField.C_M_PER_S.floor,
+    roo_kg_per_m3: NumberField.ROO_KG_PER_M3.floor,
+    Vcd_m: NumberField.VCD_M.floor,
+    Hg_m: NumberField.HG_M.floor,
+    Hc_m: NumberField.HC_M.floor,
+    freq_low_hz: 'positive',
+    freq_high_hz: 'positive',
+    power_peak_W: NumberField.POWER_PEAK_W.floor,
+    weight_kg: NumberField.WEIGHT_KG.floor,
+    Thick_m: NumberField.THICK_M.floor,
+    Depth_m: NumberField.DEPTH_M.floor,
+    MagDepth_m: NumberField.MAGDEPTH_M.floor,
+    Magnet_m: NumberField.MAGNET_M.floor,
+    Basket_m: NumberField.BASKET_M.floor,
+    Outer_m: NumberField.OUTER_M.floor,
+    OuterX_m: NumberField.OUTERX_M.floor,
+    OuterY_m: NumberField.OUTERY_M.floor,
+    DVol_m3: NumberField.DVOL_M3.floor,
+});
+
+/** `key`'s own floor. */
+export function driverSpecFloor(key: DriverSpecFieldName): ValueFloor {
+    return FLOORS[key];
+}
+
+/** `key`'s own floor, applied to `v` — no default arm: a `ValueFloor` variant added without a
+ *  case here fails to compile. */
+function floorIssue(key: DriverSpecFieldName, v: number, issues: IssueEngine): DqIssue | null {
+    switch (driverSpecFloor(key)) {
+        case 'positive':
+            return issues.positiveValueIssue(v);
+        case 'non-negative':
+            return issues.nonNegativeValueIssue(v);
+        case 'none':
+            return null;
+    }
+}
+
+/** Every `DriverQuantityName`, exactly once — the field list `#markDq` clears before
+ *  applying `resolve()`'s own issues (S2-7d2). Named here, once, in a form the compiler checks
+ *  (`satisfies`, not a cast) rather than read back off `params` via `Object.keys`, which answers
+ *  `string[]` regardless of what the object's own type declares. */
+const DRIVER_QUANTITY_NAMES = [
+    'Fs_hz', 'Re_ohm', 'Znom_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Qes', 'Qms', 'Qts', 'Vas_m3',
+    'Sd_m2', 'Dd_m', 'BL_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s', 'EBP_hz', 'Xmax_m', 'Vd_m3',
+    'Hc_m', 'Hg_m', 'Pe_W', 'no', 'SPLref_dB', 'SPL_dB', 'USPL_dB', 'SPLmax_dB', 'SPLmaxLF_dB',
+    'Rme_kg_per_s', 'Mpow_N_per_sqrtW', 'Mcost_kg_per_s', 'gamma_m_per_s2_A', 'Gloss', 'Vcd_m',
+    'Depth_m', 'MagDepth_m', 'Magnet_m', 'DVol_m3', 'c_m_per_s', 'roo_kg_per_m3',
+    'Re_terminal_ohm', 'BL_terminal_Tm', 'numVC', 'wiring',
+] as const satisfies readonly DriverQuantityName[];
+// Completeness, not merely validity: a `DriverQuantityName` missing from the list above fails to
+// compile here and the error NAMES it, rather than `#markDq` silently never clearing it.
+type _MissingFromDriverQuantityNames = Exclude<DriverQuantityName, typeof DRIVER_QUANTITY_NAMES[number]>;
+type _AssertDriverQuantityNamesComplete = _MissingFromDriverQuantityNames extends never ? true : never;
+const _assertDriverQuantityNamesComplete: _AssertDriverQuantityNamesComplete = true;
+void _assertDriverQuantityNamesComplete;
+
+/**
+ * Window onto a single `DriverSpecsSection` of a driver record.
+ *
+ * Field names carry their unit suffix (e.g. `Fs_hz`, `Rms_kg_per_s`) to report the stored SI unit.
+ * Dimensionless parameters (`Qts`, `Qes`, etc.) have no suffix.
+ *
+ * Fields are constructed eagerly to preserve object identity for reactivity.
+ */
+/** The wiring-dependent figures, null where the record states none. */
+export interface TerminalMotor {
+    readonly Re_ohm: number | null;
+    readonly BL_Tm: number | null;
+    readonly Le_H: number | null;
+    readonly Znom_ohm: number | null;
+}
+
+export class OpenIsdDriverSpec {
+    // Thiele/Small.
+    readonly Fs_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Re_ohm: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Le_H: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly fLe_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    /** `Le·√(2π·fLe)` — the Vanderkooy lossy-inductance coefficient (`WINISD_PARITY.md:1009`,
+     *  `winisd_research/archive/GHIDRA_FINDINGS.md:1105`). Henries times the square root of hertz; not dimensionless. */
+    readonly KLe_H_sqrtHz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Znom_ohm: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Qts: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Qes: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Qms: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Vas_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Sd_m2: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly BL_Tm: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Mms_kg: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Cms_m_per_N: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Rms_kg_per_s: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Xmax_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Xlim_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly SPL_dB: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Pe_W: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Dd_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly EBP_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    /** How many voice coils. `null` when the record does not state it: there is no default
+     *  (QO900 R1). */
+    readonly numVC: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    /** The wiring the manufacturer measured Re and BL in. A NAME, not WinISD's 1/2 — see
+     *  `VoiceCoilWiring`. Entered when the datasheet states it; calculated when `resolve()`
+     *  infers it from a printed per-coil nominal (QO903 R4); `null` when unknown — there is no
+     *  default (QO900 R1). Not read by the T/S relations. */
+    readonly VCCon: Readable<VoiceCoilWiring | null> & Entered & Calculated & Writable<VoiceCoilWiring> & Clearable & Calculatable<VoiceCoilWiring> & Unsolvable;
+    // Ordinarily derived, but WinISD lets a human type any of them, and an entered value is a fact.
+    readonly Vd_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly no: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly SPLmax_dB: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly SPLmaxLF_dB: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly USPL_dB: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly alfaVC_per_K: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Rt_K_per_W: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Ct_J_per_K: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    /** `Bxl/Mms` — the acceleration factor, acceleration per ampere. NOT dimensionless: WinISD's
+     *  own UI prints `N/(A*kg)`, which is the same dimension as cfuttrup's `m/(s²·A)`. */
+    readonly gamma_m_per_s2_A: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Rme_kg_per_s: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    /** `Bxl/√Re` — the motor power factor, newtons per square-root watt. */
+    readonly Mpow_N_per_sqrtW: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    /** `Rme·(1 + Xmax/min(Hc, Hg))` — the motor COST factor: how powerful the motor is, penalised
+     *  by how far the coil is overhung or underhung. It IS meant as an indicator of what the driver
+     *  costs to build, but the unit is not currency — the ratio is dimensionless, so the figure
+     *  carries `Rme`'s kg/s. WinISD's own help: "an indicator on the price of the driver, but
+     *  please forget about the unit". (Formula decompiled and reproduced exactly on 10 live WinISD
+     *  runs: `winisd_research/archive/GHIDRA_FINDINGS.md` §"Four advanced-panel formulas".) */
+    readonly Mcost_kg_per_s: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Gloss: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    /** The air THIS DRIVER states — the conditions its own figures were measured or computed at.
+     *  Not the environment a simulation runs on; `OpenISDEnvironment` on the project is that. */
+    readonly c_m_per_s: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly roo_kg_per_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    // Descriptive and dimensional.
+    readonly Vcd_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Hg_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Hc_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly freq_low_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly freq_high_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly power_peak_W: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly weight_kg: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Thick_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Depth_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly MagDepth_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Magnet_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Basket_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly Outer_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly OuterX_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly OuterY_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+    readonly DVol_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+
+    readonly #driver: DriverEngine;
+    readonly #issueEngine: IssueEngine;
+    /** The record's title, which may print a per-coil nominal impedance. */
+    readonly #title: () => string;
+    #issues: readonly DriverIssue[] = [];
+    /** The wiring the user builds with (the project's "Coil wiring"); undefined follows the measured one. */
+    readonly #myWiring: () => Wiring | undefined;
+    readonly #coilWiringReBlOnly: () => boolean;
+
+    constructor(
+        record: SimpleField<DriverDeviceJson>,
+        section: 'woofer' | 'tweeter',
+        driver: DriverEngine,
+        issues: IssueEngine,
+        /** The driver's air: what a not-entered `c_m_per_s`/`roo_kg_per_m3` reads as. */
+        air: () => Air,
+        /** Where a field's dq is read from when THIS spec object cannot be relied on to still
+         *  exist between the resolve that produced it and the read that wants it — the project's
+         *  embedded driver, rebuilt fresh on every access, which discards `entryField`'s own
+         *  closure along with the instance. Omitted by a standalone driver, which is a single
+         *  durable instance and keeps its own. Same rule, and same reason, as the vent/PR groups
+         *  (`entryField`'s `issuesSource`). */
+        durableIssues?: () => readonly DriverIssue[],
+        /** The project's "Coil wiring" choice; omitted by a standalone driver, which is not wired. */
+        myWiring: () => Wiring | undefined = () => undefined,
+        coilWiringReBlOnly: () => boolean = () => false,
+    ) {
+        this.#myWiring = myWiring;
+        this.#coilWiringReBlOnly = coilWiringReBlOnly;
+        this.#driver = driver;
+        this.#issueEngine = issues;
+        this.#title = () => record.value.model.value;
+
+        /** One `SpecEntryJson` slot inside this section — deletes the key when set to `undefined`
+         *  (T11: absence is 'N', not a stored null). */
+        const sectionLens = driverSection(record, section);
+        const sectionSlot = (key: NumericDriverSpecFieldName): SimpleField<SpecEntryJson | undefined> => ({
+            get value() {
+                return sectionLens.value[key];
+            },
+            set: (v) => {
+                const spec = sectionLens.value;
+                const {[key]: _removed, ...rest} = spec;
+                sectionLens.set(v === undefined ? rest : {...spec, [key]: v});
+            },
+        });
+        /** The `VCCon` slot: a wiring entry, not a numeric one. */
+        const wiringSlot: SimpleField<WiringEntryJson | undefined> = {
+            get value() {
+                return sectionLens.value.VCCon;
+            },
+            set: (v) => {
+                const {VCCon: _removed, ...rest} = sectionLens.value;
+                sectionLens.set(v === undefined ? rest : {...rest, VCCon: v});
+            },
+        };
+
+        /** Every numeric spec field, entry-backed (T11/S2-7c): the record itself holds the
+         *  derived value once `resolve()` has run — no live recompute at read time, no
+         *  `solvedNow` bag kept beside the record. `entryField` alone reports absent/entered/
+         *  calculated straight off what is actually stored. */
+        /** The issues `key` is named by, out of a durable list — the same split `#markDq`
+         *  makes: a `field`-carrying issue names one field, everything else names whatever
+         *  `issueFields` says. */
+        const dqFor = (key: DriverSpecFieldName): (() => readonly DqIssue[]) | undefined =>
+            durableIssues === undefined ? undefined : () => durableIssues().filter(issue =>
+                'field' in issue ? issue.field === key : issue.fields.some(f => f === key));
+        /** Every numeric spec field's OWN floor (`driverSpecFloor`, not one floor for every field —
+         *  BUG_20260927_driver-bad-value-decided-in-ui.md's follow-up), computed fresh from the
+         *  CURRENT value on every read so it shows up immediately on `.set()`, not only after
+         *  the next `resolve()`. */
+        const f =
+            (key: NumericDriverSpecFieldName, rangeIssue?: (value: number) => DqIssue | null | undefined):
+                Readable<number | null> &
+                Entered & Calculated &
+                Precise &
+                Writable<number> &
+                Clearable &
+                Calculatable<number> &
+                Unsolvable =>
+
+                entryField(
+                    sectionSlot(key),
+                    key,
+                    dqFor(key),
+                    v => floorIssue(key, v, issues) ?? rangeIssue?.(v) ?? null
+                );
+        // Descriptive dimensions need their own range check because the solver does not read them.
+        const descriptiveDimension = (key: NumericDriverSpecFieldName) => f(key, v => driver.rangeIssue(key, v));
+
+        /** The wiring field — `entryField` in every respect but the value's type, which is a
+         *  NAME rather than one of `DriverSpecsSection`'s numbers, so it cannot go through `f()`.
+         *
+         *  This reads what is stored, like every other quantity: entered, calculated (an
+         *  inferred wiring, written by `resolve()`), or absent — there is no default (QO900 R1). */
+        let wiringDq: readonly DqIssue[] = [];
+        this.VCCon = new DualWriteFieldImpl<VoiceCoilWiring>(
+            () => {
+                const entry = wiringSlot.value;
+                if (entry === undefined || entry.state === 'N') return absentCell<VoiceCoilWiring>('VCCon', wiringDq);
+                return entry.state === 'E'
+                    ? enteredCell<VoiceCoilWiring | null>('VCCon', entry.value, wiringDq)
+                    : calculatedCell<VoiceCoilWiring | null>('VCCon', entry.value, wiringDq);
+            },
+            {
+                entered: (v: VoiceCoilWiring) => {
+                    wiringDq = [];
+                    wiringSlot.set(enteredWiring(v));
+                },
+                calculated: (v: VoiceCoilWiring) => {
+                    wiringDq = [];
+                    wiringSlot.set(calculatedWiring(v));
+                },
+                clear: () => {
+                    wiringDq = [];
+                    wiringSlot.set(undefined);
+                },
+                dq: (list) => {
+                    wiringDq = list;
+                },
+            },
+        );
+
+        this.numVC = f('numVC');
+        this.Fs_hz = f('Fs_hz');
+        this.Re_ohm = f('Re_ohm');
+        this.Le_H = f('Le_H');
+        this.fLe_hz = f('fLe_hz');
+        this.KLe_H_sqrtHz = f('KLe_H_sqrtHz');
+        this.Znom_ohm = f('Znom_ohm');
+        this.Qts = f('Qts');
+        this.Qes = f('Qes');
+        this.Qms = f('Qms');
+        this.Vas_m3 = f('Vas_m3');
+        this.Sd_m2 = f('Sd_m2');
+        this.BL_Tm = f('BL_Tm');
+        this.Mms_kg = f('Mms_kg');
+        this.Cms_m_per_N = f('Cms_m_per_N');
+        this.Rms_kg_per_s = f('Rms_kg_per_s');
+        this.Xmax_m = f('Xmax_m');
+        this.Xlim_m = f('Xlim_m');
+        this.SPL_dB = f('SPL_dB');
+        this.Pe_W = f('Pe_W');
+        this.Dd_m = f('Dd_m');
+        this.EBP_hz = f('EBP_hz');
+        this.Vd_m3 = f('Vd_m3');
+        this.no = f('no');
+        this.SPLmax_dB = f('SPLmax_dB');
+        this.SPLmaxLF_dB = f('SPLmaxLF_dB');
+        this.USPL_dB = f('USPL_dB');
+        this.alfaVC_per_K = f('alfaVC_per_K');
+        this.Rt_K_per_W = f('Rt_K_per_W');
+        this.Ct_J_per_K = f('Ct_J_per_K');
+        this.gamma_m_per_s2_A = f('gamma_m_per_s2_A');
+        this.Rme_kg_per_s = f('Rme_kg_per_s');
+        this.Mpow_N_per_sqrtW = f('Mpow_N_per_sqrtW');
+        this.Mcost_kg_per_s = f('Mcost_kg_per_s');
+        this.Gloss = f('Gloss');
+        // The air this driver's calculations used, written back by `resolve()` as `'C'`: the
+        // project's, or with no project the app's environment defaults. A record's own c/roo feed
+        // no calculation.
+        this.c_m_per_s = f('c_m_per_s');
+        this.roo_kg_per_m3 = f('roo_kg_per_m3');
+        this.Vcd_m = f('Vcd_m');
+        this.Hg_m = f('Hg_m');
+        this.Hc_m = f('Hc_m');
+        this.freq_low_hz = f('freq_low_hz');
+        this.freq_high_hz = f('freq_high_hz');
+        this.power_peak_W = f('power_peak_W');
+        this.weight_kg = f('weight_kg');
+        this.Thick_m = descriptiveDimension('Thick_m');
+        this.Depth_m = f('Depth_m');
+        this.MagDepth_m = f('MagDepth_m');
+        this.Magnet_m = f('Magnet_m');
+        this.Basket_m = f('Basket_m', v => driver.basketRangeWarning(v));
+        this.Outer_m = descriptiveDimension('Outer_m');
+        this.OuterX_m = descriptiveDimension('OuterX_m');
+        this.OuterY_m = descriptiveDimension('OuterY_m');
+        this.DVol_m3 = f('DVol_m3');
+    }
+
+    /** T11: every driver quantity `solveDriver` can derive is written back into the record as a
+     *  `'C'` entry — the record is a CACHE the solver keeps current, never a value computed
+     *  fresh at read time and left unstored (supersedes the earlier QO127 "stated-only, nothing
+     *  writes back" framing). Runs the engine over this window's own 44 handles, caches the
+     *  issues, and returns them; `air` is the driver's own resolved `{ rho, c }`. */
+    resolve(air: Air): readonly DriverIssue[] {
+        const wiringIssues = this.#resolveWiring();
+        const params = {
+            Fs_hz: this.Fs_hz, Re_ohm: this.Re_ohm, Znom_ohm: this.Znom_ohm, Le_H: this.Le_H,
+            fLe_hz: this.fLe_hz, KLe_H_sqrtHz: this.KLe_H_sqrtHz, Qes: this.Qes, Qms: this.Qms,
+            Qts: this.Qts, Vas_m3: this.Vas_m3, Sd_m2: this.Sd_m2, Dd_m: this.Dd_m, BL_Tm: this.BL_Tm,
+            Mms_kg: this.Mms_kg, Cms_m_per_N: this.Cms_m_per_N, Rms_kg_per_s: this.Rms_kg_per_s,
+            EBP_hz: this.EBP_hz, Xmax_m: this.Xmax_m, Vd_m3: this.Vd_m3, Hc_m: this.Hc_m, Hg_m: this.Hg_m,
+            Pe_W: this.Pe_W, no: this.no, SPLref_dB: NO_SLOT, SPL_dB: this.SPL_dB,
+            USPL_dB: this.USPL_dB, SPLmax_dB: this.SPLmax_dB, SPLmaxLF_dB: this.SPLmaxLF_dB,
+            Rme_kg_per_s: this.Rme_kg_per_s, Mpow_N_per_sqrtW: this.Mpow_N_per_sqrtW,
+            Mcost_kg_per_s: this.Mcost_kg_per_s, gamma_m_per_s2_A: this.gamma_m_per_s2_A, Gloss: this.Gloss,
+            Vcd_m: this.Vcd_m, Depth_m: this.Depth_m, MagDepth_m: this.MagDepth_m, Magnet_m: this.Magnet_m,
+            DVol_m3: this.DVol_m3, c_m_per_s: this.c_m_per_s, roo_kg_per_m3: this.roo_kg_per_m3,
+            Re_terminal_ohm: NO_SLOT, BL_terminal_Tm: NO_SLOT, numVC: this.numVC,
+            wiring: this.VCCon,
+        } satisfies DriverSolverParams;
+        this.#issues = [...this.#driver.solve(params, air), ...wiringIssues];
+        this.#markDq(params, this.#issues);
+        return this.#issues;
+    }
+
+    /** No VCCon or numVC default (QO900 R1). For 2 or more coils, a wiring the record does not
+     *  state is inferred from a printed per-coil nominal where it can be, and stored calculated;
+     *  otherwise it is unknown. A record with fewer coils keeps whatever VCCon it holds: nothing
+     *  reads it. Returns the wiring issues (QO909): "not stated" for 2 or more coils with no
+     *  wiring, "inferred" as a note, and a multi-coil title with no coil count. */
+    #resolveWiring(): WiringIssue[] {
+        const numVC = this.numVC.value;
+        if (numVC === null) return titleNamesSeveralCoils(this.#title()) ? [this.#issueEngine.multiCoilWithoutNumVC()] : [];
+        if (numVC < 2 || this.VCCon.entered) return [];
+        const inference = inferMeasuredWiring(this.#title(), this.Re_ohm.value, numVC);
+        if (inference === null || inference.wiring === null) {
+            if (this.VCCon.value !== null) this.VCCon.setNotAvailable();
+            return [this.#issueEngine.wiringNotStated(numVC)];
+        }
+        const wiring = inference.wiring === 'series' ? VoiceCoilWiring.Series : VoiceCoilWiring.Parallel;
+        if (this.VCCon.value !== wiring) this.VCCon.setCalculated(wiring);
+        return [this.#issueEngine.wiringInferred(inference.wiring, inference.Re_ohm, inference.perCoilNominal_ohm)];
+    }
+
+    /** Clears `dq` on every quantity, then applies each issue's OWN formula only to the handles
+     *  that issue names — 44 independent quantities, where one relation's DQ has nothing to do
+     *  with an unrelated field (S2-7d2). `DRIVER_QUANTITY_NAMES` is the handle list stated where
+     *  the compiler can check it; `Object.keys(handles)` would answer `string[]`. */
+    #markDq(
+        handles: Readonly<Record<DriverQuantityName, Pick<Calculatable<unknown>, 'setDq'>>>,
+        issues: readonly DriverIssue[],
+    ): void {
+        const mark = (key: DriverQuantityName, dq: readonly DqIssue[]): void => handles[key].setDq(dq);
+        DRIVER_QUANTITY_NAMES.forEach(key => mark(key, []));
+        issues.forEach(issue => {
+            // The wiring warnings mark the field they are about; the inferred wiring is a note
+            // and marks nothing.
+            if (issue.kind === 'wiring-not-stated') return mark('wiring', [issue]);
+            if (issue.kind === 'multi-coil-without-numvc') return mark('numVC', [issue]);
+            if (issue.kind === 'wiring-inferred') return;
+            if ('field' in issue) {
+                // An `OutOfRangeIssue.field` is plain `string` (D14's mark shape is shared across every
+                // domain), so it is matched against the quantity list rather than narrowed from it.
+                DRIVER_QUANTITY_NAMES.filter(key => key === issue.field).forEach(key => mark(key, [issue]));
+                return;
+            }
+            issue.fields.forEach(field => mark(field, [issue]));
+        });
+    }
+
+    /** This spec's 44 handles, shaped as `DriverSolverParams` for `SimulationEngine.sweep()`/
+     *  `maxCurves()` (S2-10: "`OpenIsdDriverSpec` structurally satisfies `DriverSolverParams`")
+     *  — true for 40 of the 44 by name; the other four are ADAPTED: `SPLref_dB`/
+     *  `Re_terminal_ohm`/`BL_terminal_Tm` have no storage slot (`NO_SLOT`), and `wiring` is
+     *  spelled `VCCon` here and carries a `VoiceCoilWiring` member, not the bare
+     *  `'series'|'parallel'` union.
+     *
+     *  `air`: the circuit's air is the PROJECT's, when one is given — the driver's own
+     *  `c_m_per_s`/`roo_kg_per_m3` are display-only and feed no calculation
+     *  (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md). A caller with no
+     *  project (a standalone driver's own chart) uses `solverParams()`, which carries the
+     *  driver's own stated pair; `solverParamsIn(air)` is the project's. */
+    solverParams(): DriverSolverParams {
+        const measured = this.VCCon.value;
+        const wiring: Wiring | null = measured === null ? null : measured === VoiceCoilWiring.Series ? 'series' : 'parallel';
+        const wiringInput: SolverInput<Wiring> = { value: wiring, entered: this.VCCon.entered };
+
+        // The amplifier sees the figures in the wiring the user builds with.
+        const terminal = this.terminalMotor();
+        return {
+            ...this,
+            SPLref_dB: NO_SLOT,
+            Re_terminal_ohm: computedSlot(terminal.Re_ohm),
+            BL_terminal_Tm: computedSlot(terminal.BL_Tm),
+            wiring: wiringInput,
+        };
+    }
+
+    /** Re, BL, Le and Znom as the amplifier sees them: converted from the measured wiring to
+     *  "Coil wiring" when the project chose another one and the driver can be rewired, otherwise
+     *  as published. The stored figures are never changed. */
+    terminalMotor(): TerminalMotor {
+        const published: TerminalMotor = {
+            Re_ohm: this.Re_ohm.value, BL_Tm: this.BL_Tm.value, Le_H: this.Le_H.value, Znom_ohm: this.Znom_ohm.value,
+        };
+        const mine = this.#myWiring();
+        const measured = this.VCCon.value;
+        const Re = published.Re_ohm;
+        if (mine === undefined || measured === null || Re === null) return published;
+        // An absent BL has nothing to convert: it goes through as 1 and comes back absent.
+        const result = this.#driver.convertWiring({...published, Re_ohm: Re, BL_Tm: published.BL_Tm ?? 1}, this.numVC.value, measured, mine, this.#coilWiringReBlOnly());
+        return result.converted ? {...result.motor, BL_Tm: published.BL_Tm === null ? null : result.motor.BL_Tm} : published;
+    }
+
+    /** `solverParams` with the circuit's air taken from `air` (the project's) instead of the driver's own pair. */
+    solverParamsIn(air: Air): DriverSolverParams {
+        return { ...this.solverParams(), c_m_per_s: computedSlot(air.c()), roo_kg_per_m3: computedSlot(air.rho()) };
+    }
+
+    /** `solverParams`' values as plain data for `SimulationEngine.sweep`/`maxCurves`, with the
+     *  entered BL WinISD's entered-BL mix reads (null when BL is derived). */
+    sweepDriver(): SweepDriver {
+        return { values: valuesOf(this.solverParams()), winisdBL_Tm: this.#enteredBL() };
+    }
+
+    /** `sweepDriver` with the circuit's air taken from `air` (the project's). */
+    sweepDriverIn(air: Air): SweepDriver {
+        return { values: valuesOf(this.solverParamsIn(air)), winisdBL_Tm: this.#enteredBL() };
+    }
+
+    #enteredBL(): number | null {
+        return this.BL_Tm.entered ? this.terminalMotor().BL_Tm : null;
+    }
+
+    /** The issues the last `resolve()` produced — empty before the first one has run. */
+    issues(): readonly DriverIssue[] {
+        return this.#issues;
+    }
+}
+
+/** Each handle's value, named field by field: `DriverSolverParams`' keys are not a list the
+ *  compiler can hand back typed. */
+function valuesOf(p: DriverSolverParams): DriverValues {
+    return {
+        Fs_hz: p.Fs_hz.value, Re_ohm: p.Re_ohm.value, Znom_ohm: p.Znom_ohm.value, Le_H: p.Le_H.value,
+        fLe_hz: p.fLe_hz.value, KLe_H_sqrtHz: p.KLe_H_sqrtHz.value, Qes: p.Qes.value, Qms: p.Qms.value,
+        Qts: p.Qts.value, Vas_m3: p.Vas_m3.value, Sd_m2: p.Sd_m2.value, Dd_m: p.Dd_m.value,
+        BL_Tm: p.BL_Tm.value, Mms_kg: p.Mms_kg.value, Cms_m_per_N: p.Cms_m_per_N.value, Rms_kg_per_s: p.Rms_kg_per_s.value,
+        EBP_hz: p.EBP_hz.value, Xmax_m: p.Xmax_m.value, Vd_m3: p.Vd_m3.value, Hc_m: p.Hc_m.value,
+        Hg_m: p.Hg_m.value, Pe_W: p.Pe_W.value, no: p.no.value, SPLref_dB: p.SPLref_dB.value,
+        SPL_dB: p.SPL_dB.value, USPL_dB: p.USPL_dB.value, SPLmax_dB: p.SPLmax_dB.value, SPLmaxLF_dB: p.SPLmaxLF_dB.value,
+        Rme_kg_per_s: p.Rme_kg_per_s.value, Mpow_N_per_sqrtW: p.Mpow_N_per_sqrtW.value, Mcost_kg_per_s: p.Mcost_kg_per_s.value,
+        gamma_m_per_s2_A: p.gamma_m_per_s2_A.value, Gloss: p.Gloss.value, Vcd_m: p.Vcd_m.value,
+        Depth_m: p.Depth_m.value, MagDepth_m: p.MagDepth_m.value, Magnet_m: p.Magnet_m.value,
+        DVol_m3: p.DVol_m3.value, c_m_per_s: p.c_m_per_s.value, roo_kg_per_m3: p.roo_kg_per_m3.value,
+        Re_terminal_ohm: p.Re_terminal_ohm.value, BL_terminal_Tm: p.BL_terminal_Tm.value, numVC: p.numVC.value,
+        wiring: p.wiring.value,
+    };
+}

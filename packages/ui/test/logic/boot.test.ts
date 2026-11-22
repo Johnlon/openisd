@@ -1,0 +1,204 @@
+/**
+ * Startup is a sequence, not a set of flags that happen to fire in a helpful order.
+ *
+ * Both faults reported on 2026-09-25 were ordering faults: a panel restored from the stored
+ * view mounted before anything had established whether a project existed, and persistence was
+ * armed on a boot that had failed to restore. `bootApplication` states the order once —
+ * share link, session, legacy project, view, panels — and nothing in it runs before the phase
+ * it depends on has returned.
+ */
+import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {createEngine} from '@openisd/design/engine';
+import {OpenISDProject, ProjectBuilder} from '@openisd/design';
+import type {OpenProjectSession, ProjectRepo, ViewSnapshot} from '@openisd/persistence';
+import {bootApplication, type BootDeps} from '../../src/logic/boot.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {AppState} from '../../src/logic/appState.js';
+import type {PresentationState} from '../../src/logic/presentationState.js';
+import type {Telemetry} from '../../src/logic/telemetry/telemetry.js';
+
+let appState: AppState;
+let presentationState: PresentationState;
+let telemetry: Telemetry;
+
+beforeEach(() => {
+  telemetry = {record: vi.fn(), flush: vi.fn()};
+  const fixture = createAppStateFixture(undefined, telemetry);
+  appState = fixture.appState;
+  presentationState = fixture.presentation;
+});
+
+const engine = createEngine();
+
+function project(name: string): OpenISDProject {
+  const p = ProjectBuilder.empty(engine);
+  p.name.set(name);
+  p.save();
+  return p;
+}
+
+interface Recorded {
+  readonly log: string[];
+  readonly deps: BootDeps;
+}
+
+/** Deps whose every door records that it was asked, so the order is observable. */
+function recording(overrides: {
+  hash?: () => Awaited<ReturnType<ProjectRepo['loadFromHash']>>;
+  session?: () => OpenProjectSession | string[] | null;
+  view?: () => ViewSnapshot | null;
+  recordedProjectId?: () => string | null;
+} = {}): Recorded {
+  const log: string[] = [];
+  const deps: BootDeps = {
+    projectRepo: {
+      loadFromHash: async () => { log.push('hash'); return overrides.hash ? overrides.hash() : null; },
+      loadOpenProjects: () => { log.push('session'); return overrides.session ? overrides.session() : null; },
+      loadFromStorage: () => { log.push('legacy'); return null; },
+      keepRefusedEntries: entries => { log.push(`keep ${entries.length}`); return 0; },
+    },
+    viewStateRepo: {load: () => { log.push('view'); return overrides.view ? overrides.view() : null; }},
+    logging: {flash: (m: string) => { log.push('flash: ' + m); }},
+    appState, presentation: presentationState,
+    recordedProjectId: overrides.recordedProjectId ?? (() => null),
+  };
+  return {log, deps};
+}
+
+beforeEach(() => {
+  while (appState.openProjects().length > 0) appState.removeProject(appState.openProjects().length - 1);
+  presentationState.editDriver = false;
+  presentationState.editDriverInfo = false;
+  presentationState.ui.originalWhatIfOpen = false;
+  presentationState.ui.originalEditorOpen = false;
+});
+
+describe('bootApplication', () => {
+  it('runs its phases in one stated order', async () => {
+    const {log, deps} = recording();
+    await bootApplication(deps);
+    expect(log).toEqual(['hash', 'session', 'legacy', 'view']);
+  });
+
+  it('a share link ends the restore — no session, legacy or stored view is consulted', async () => {
+    const {log, deps} = recording({hash: () => ({project: project('shared'), view: {ui: {}}})});
+    await bootApplication(deps);
+    expect(log).toEqual(['hash']);
+    expect(appState.focusedProject()?.name.value).toBe('shared');
+  });
+
+  // A share link was counted as a restore.
+  it('a project opened from a share link is counted as a share, not a restore', async () => {
+    const {deps} = recording({hash: () => ({project: project('shared'), view: {ui: {}}})});
+    await bootApplication(deps);
+    expect(telemetry.record).toHaveBeenCalledWith(expect.objectContaining({kind: 'project_open', source: 'share'}));
+    expect(telemetry.record).not.toHaveBeenCalledWith(expect.objectContaining({kind: 'project_open', source: 'restore'}));
+  });
+
+  it('restores the session projects', async () => {
+    const session = {projects: [project('one'), project('two')], focusedIndex: 1, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
+    const {deps} = recording({session: () => session});
+    await bootApplication(deps);
+    expect(appState.openProjects()).toHaveLength(2);
+    expect(appState.focusedProject()?.name.value).toBe('two');
+  });
+
+  // QO946.c240: Eight restored projects were eight events.
+  it('reports the projects restored at start-up as one projects_restored with the count, and no project_open', async () => {
+    const session = {projects: [project('one'), project('two'), project('three')], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
+    const {deps} = recording({session: () => session});
+
+    await bootApplication(deps);
+
+    expect(telemetry.record).toHaveBeenCalledWith({kind: 'projects_restored', count: 3});
+    expect(telemetry.record).toHaveBeenCalledTimes(1);
+    expect(telemetry.record).not.toHaveBeenCalledWith(expect.objectContaining({kind: 'project_open'}));
+  });
+
+  // bugs/BUG_20261005_project-selection-lost-on-reload.md
+  it('restores which session projects had their trace hidden', async () => {
+    const hidden = project('one');
+    const session = {projects: [hidden, project('two')], focusedIndex: 1, refused: [], refusedEntries: [], traceHidden: new Set([hidden])};
+    const {deps} = recording({session: () => session});
+    await bootApplication(deps);
+    expect(appState.openProjects().map(p => appState.isTraceVisible(p))).toEqual([false, true]);
+  });
+
+  it('keeps a restored session project\'s unsaved edits unsaved, so Revert still works', async () => {
+    const edited = project('edited');
+    const savedName = edited.name.value;
+    edited.name.set('edited, not saved');
+    expect(edited.isModified()).toBe(true);
+    const {deps} = recording({session: () => ({projects: [edited], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()})});
+    await bootApplication(deps);
+    expect(appState.focusedProject()?.isModified()).toBe(true);
+    expect(await appState.focusedProject()?.cancel(async () => true)).toBe(true);
+    expect(appState.focusedProject()?.name.value).toBe(savedName);
+  });
+
+  it('keeps an entry it could not read as a refused copy, and says so', async () => {
+    const session = {projects: [project('one')], focusedIndex: 0, refused: ['entry b: nope'], refusedEntries: [{id: 'b', text: '{bad'}], traceHidden: new Set<OpenISDProject>()};
+    const {log, deps} = recording({session: () => session});
+    await bootApplication(deps);
+    expect(log).toContain('keep 1');
+    expect(log.some(l => l.startsWith('flash:'))).toBe(true);
+    expect(appState.openProjects()).toHaveLength(1);
+  });
+
+  // T829: the driver editor's typed values and the What-if's values are never stored, so a panel reopened by a
+  // reload would show the old values as if nothing was lost. The stored open flags are not restored.
+  it('does not reopen a panel the stored view left open: its contents were not kept', async () => {
+    const session = {projects: [project('one')], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
+    const {deps} = recording({session: () => session, view: () => ({ui: {originalWhatIfOpen: true, originalEditorOpen: true}})});
+    await bootApplication(deps);
+    expect(presentationState.editDriver).toBe(false);
+    expect(presentationState.editDriverInfo).toBe(false);
+    expect(presentationState.ui.originalWhatIfOpen).toBe(false);
+    expect(presentationState.ui.originalEditorOpen).toBe(false);
+  });
+
+  // Close the last project, reload, and the last project came back.
+  it('a stored session with no open projects opens nothing — the stored project is not reopened', async () => {
+    const {log, deps} = recording({session: () => ({projects: [], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()})});
+    await bootApplication(deps);
+    expect(log).not.toContain('legacy');
+    expect(appState.openProjects()).toHaveLength(0);
+  });
+
+  it('opens no panel when the boot ended with no project', async () => {
+    const {deps} = recording({view: () => ({ui: {originalWhatIfOpen: true, originalEditorOpen: true}})});
+    await bootApplication(deps);
+    expect(presentationState.editDriver).toBe(false);
+    expect(presentationState.editDriverInfo).toBe(false);
+  });
+
+  it('a recorded project id focuses that project after session restore', async () => {
+    const session = {projects: [project('one'), project('two')], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
+    const {deps} = recording({
+      session: () => session,
+      recordedProjectId: () => session.projects[1].uuid(),
+    });
+    await bootApplication(deps);
+    expect(appState.focusedProject()?.name.value).toBe('two');
+  });
+
+  it('a recorded project id that does not match any open project changes nothing', async () => {
+    const session = {projects: [project('one')], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
+    const {deps} = recording({
+      session: () => session,
+      recordedProjectId: () => 'non-existent-uuid',
+    });
+    await bootApplication(deps);
+    expect(appState.focusedProject()?.name.value).toBe('one');
+  });
+
+  it('a missing recorded project id (null) changes nothing', async () => {
+    const session = {projects: [project('one'), project('two')], focusedIndex: 1, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
+    const {deps} = recording({
+      session: () => session,
+      recordedProjectId: () => null,
+    });
+    await bootApplication(deps);
+    expect(appState.focusedProject()?.name.value).toBe('two');
+  });
+});

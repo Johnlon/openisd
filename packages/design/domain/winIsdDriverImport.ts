@@ -1,0 +1,233 @@
+/**
+ * `.wdr` (read by `WinISDDriver.fromWdrIni`) -> an `OpenISDDeviceJson` record. Split out of
+ * `openisdSchema.ts` (that file declares data shapes only) — this is logic: reading WinISD's
+ * fixed 48-row structure into the record's spec entries, with WinISD's own coercion rules for
+ * `VCCon` and `numVC`.
+ */
+import {WinISDDriver} from '../winisd/index.js';
+import type {WdrCell} from '../winisd/winisdDriver.js';
+import {newUuid} from './newUuid.js';
+import {CURRENT_SCHEMA_VERSION} from './schemaVersion.js';
+import type {DriverError} from '../engine/index.js';
+import {isDriverDimension} from './openisdSchema.js';
+import type {DriverSpecsSection, OpenISDDeviceJson, SpecEntryJson, WiringEntryJson} from './openisdSchema.js';
+import {VoiceCoilWiring} from './voiceCoilWiring.js';
+
+/** WinISD's `VCCon` code for a wiring (`docs/design/WINISD_SCHEMA.md` §3.2): 1 = parallel,
+ *  2 = series. The record stores the name (QO914, #514); the code exists only in the `.wdr`/`.wpr`
+ *  files, and both directions are stated here, next to each other. An unknown wiring is written
+ *  as 1, WinISD's own default (QO900 R1). */
+export function wdrVCConCode(wiring: VoiceCoilWiring | null): '1' | '2' {
+    return wiring === VoiceCoilWiring.Series ? '2' : '1';
+}
+
+/** The wiring a `.wdr` `VCCon` code states, or null when the code is neither 1 nor 2. */
+function wiringOfWdrVCConCode(code: number): VoiceCoilWiring | null {
+    if (code === 1) return VoiceCoilWiring.Parallel;
+    if (code === 2) return VoiceCoilWiring.Series;
+    return null;
+}
+
+/**
+ * `.wdr` (read by `WinISDDriver.fromWdrIni`) -> an `OpenISDDeviceJson` record.
+ * Decision table (ParState mark × value in file):
+ *
+ *   E + 0        → entered, value 0  (warn on export — may be a failed scrape)
+ *   E + nonzero  → entered, value
+ *   C + any      → nothing  (derived, never stored; re-derived from entered fields)
+ *   N + 0        → nothing
+ *   N + nonzero  → entered, value
+ *   key absent   → nothing
+ *
+ * `Xlim` is excluded even when marked entered: its cell always carries an empty value
+ * (`WinISDDriver`'s own doc — `.wdr` has no key for it), so there is no real number to store.
+ *
+ * There is no source document, so every field this record can source is marked `manual`
+ * (`SourceRole.MANUAL` — "a hand-entered value", `record_registries.py`).
+
+ */
+/**
+ * `VCCon` as a record entry: the wiring Re and BL were measured in (QO97, kept by QO900 R1), read
+ * on PRESENCE rather than on its ParState mark — except a C mark.
+ *
+ * WinISD writes no instruction to slot 46, so it leaves `N` there while the `VCCon=` row still
+ * states a wiring — 520 of the 524 corpus files (`drivers/mysamples/PARSTATE-FINDINGS.md`). Reading
+ * this row on its mark, as every other row is read, loses every series wiring in the corpus.
+ * OpenISD marks the row C when the wiring is not stated (QO900 R1); a C row is a placeholder,
+ * not a measured wiring, and reads as unknown.
+ *
+ * `1` and `2` are the whole encoding. Anything else is omitted with a warning — NOT a
+ * `dq_calculated` mark on the record; coercion is a parse event and the record stays clean.
+ */
+function wdrVCConEntry(
+    cell: WdrCell,
+    warnings: DriverError[],
+): WiringEntryJson | undefined {
+    const raw = cell.value.trim();
+    if (raw.length === 0 || cell.state === 'calculated') return undefined;
+    const stated = Number(raw);
+    const wiring = wiringOfWdrVCConCode(stated);
+    if (wiring !== null) {
+        return {state: 'E', value: wiring};
+    }
+    // Out of range for the two-position dropdown WinISD's own UI offers (1 parallel, 2 series)
+    // — not a value a human could have entered, so it is omitted rather than coerced into an
+    // entered fact: the wiring reads as unknown, the same as an absent key.
+    warnings.push({
+        level: 'warn', field: 'VCCon',
+        message: `VCCon=${stated} is not 1 (parallel) or 2 (series) — omitted, the wiring reads as unknown`,
+    });
+    return undefined;
+}
+
+/**
+ * `numVC` coil count must be integer 1..4. Outside that, read as 1.
+ * Coercion is a parse event — warning emitted, no dq_calculated on the record.
+ */
+function wdrNumVCEntry(
+    cell: { value: string },
+    warnings: DriverError[],
+): SpecEntryJson {
+    const stated = Number(cell.value);
+    if (Number.isInteger(stated) && stated >= 1 && stated <= 4) {
+        return {state: 'E', value: stated};
+    }
+    warnings.push({
+        level: 'warn', field: 'numVC',
+        message: `numVC=${stated} is not a coil count between 1 and 4 — read as 1`,
+    });
+    return {state: 'E', value: 1};
+}
+
+/** Read the `.wdr` row `wdrKey` into the record's spec entries, under `schemaKey`. C (derived) is
+ *  always skipped; N (blank) is skipped unless it carries a non-zero value (3rd-party writers
+ *  have broken parstate); VCCon reads strictly on presence. */
+function readSpecEntryInto(
+    entries: Record<string, SpecEntryJson | WiringEntryJson>,
+    wdr: WinISDDriver,
+    schemaKey: keyof DriverSpecsSection,
+    wdrKey: string,
+    warnings: DriverError[],
+): void {
+    const cell = wdr.cell(wdrKey);
+    const numValue = Number(cell.value);
+    if (!Number.isFinite(numValue) && (Number.isNaN(numValue) || !isDriverDimension(schemaKey))) {
+        // Text where a number belongs: a .wdr holds only a flag and a number, so
+        // the cell is left out, and the user is told whatever its ParState mark says.
+        warnings.push({
+            level: 'warn', field: wdrKey,
+            message: `${wdrKey} is "${cell.value}", not a number: left out`,
+        });
+        return;
+    }
+    const shouldImport =
+        cell.state === 'entered'
+        || (cell.state === 'not-available' && numValue !== 0)
+        || wdrKey === 'VCCon';
+    if (!shouldImport) return;
+    if (wdrKey === 'VCCon') {
+        const entry = wdrVCConEntry(cell, warnings);
+        if (entry) entries[schemaKey] = entry;
+    } else if (wdrKey === 'numVC') {
+        entries[schemaKey] = wdrNumVCEntry(cell, warnings);
+    } else {
+        entries[schemaKey] = {state: 'E', value: numValue};
+    }
+}
+
+export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
+    { record: OpenISDDeviceJson; warnings: DriverError[] } {
+
+    const warnings: DriverError[] = [];
+    const named = (text: string | undefined) => text && text.length > 0 ? text : 'n/a';
+    const brand = named(wdr.headerField('brand'));
+    const model = named(wdr.headerField('model'));
+    const manufacturer = named(wdr.headerField('manufacturer'));
+
+    const specEntries: Record<string, SpecEntryJson | WiringEntryJson> = {};
+    // THE FIXED 48-ROW STRUCTURE, each row read explicitly into its schema key — no row list, no
+    // key map: the calls below ARE the rows, and each names the schema entry it is stored under
+    // and the `.wdr` row it is read from.
+    readSpecEntryInto(specEntries, wdr, 'Qts', 'Qts', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Znom_ohm', 'Znom', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Fs_hz', 'Fs', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Pe_W', 'Pe', warnings);
+    readSpecEntryInto(specEntries, wdr, 'SPL_dB', 'SPL', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Re_ohm', 'Re', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Le_H', 'Le', warnings);
+    readSpecEntryInto(specEntries, wdr, 'fLe_hz', 'fLe', warnings);
+    readSpecEntryInto(specEntries, wdr, 'KLe_H_sqrtHz', 'KLe', warnings);
+    readSpecEntryInto(specEntries, wdr, 'BL_Tm', 'BL', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Xmax_m', 'Xmax', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Cms_m_per_N', 'Cms', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Qms', 'Qms', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Qes', 'Qes', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Rms_kg_per_s', 'Rms', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Mms_kg', 'Mms', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Sd_m2', 'Sd', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Vas_m3', 'Vas', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Vd_m3', 'Vd', warnings);
+    readSpecEntryInto(specEntries, wdr, 'no', 'no', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Dd_m', 'Dd', warnings);
+    readSpecEntryInto(specEntries, wdr, 'EBP_hz', 'EBP', warnings);
+    readSpecEntryInto(specEntries, wdr, 'numVC', 'numVC', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Hc_m', 'Hc', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Hg_m', 'Hg', warnings);
+    readSpecEntryInto(specEntries, wdr, 'SPLmax_dB', 'SPLmax', warnings);
+    readSpecEntryInto(specEntries, wdr, 'SPLmaxLF_dB', 'SPLmaxLF', warnings);
+    readSpecEntryInto(specEntries, wdr, 'USPL_dB', 'USPL', warnings);
+    readSpecEntryInto(specEntries, wdr, 'alfaVC_per_K', 'alfaVC', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Rt_K_per_W', 'Rt', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Ct_J_per_K', 'Ct', warnings);
+    readSpecEntryInto(specEntries, wdr, 'gamma_m_per_s2_A', 'gamma', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Rme_kg_per_s', 'Rme', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Mpow_N_per_sqrtW', 'Mpow', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Mcost_kg_per_s', 'Mcost', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Gloss', 'Gloss', warnings);
+    readSpecEntryInto(specEntries, wdr, 'VCCon', 'VCCon', warnings);
+    readSpecEntryInto(specEntries, wdr, 'c_m_per_s', 'c', warnings);
+    readSpecEntryInto(specEntries, wdr, 'roo_kg_per_m3', 'roo', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Thick_m', 'Thick', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Depth_m', 'Depth', warnings);
+    readSpecEntryInto(specEntries, wdr, 'MagDepth_m', 'MagDepth', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Magnet_m', 'Magnet', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Basket_m', 'Basket', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Outer_m', 'Outer', warnings);
+    readSpecEntryInto(specEntries, wdr, 'Vcd_m', 'Vcd', warnings);
+    readSpecEntryInto(specEntries, wdr, 'DVol_m3', 'DVol', warnings);
+
+    // `Re` and `BL` are stored as the file states them: the whole driver's, in the file's own
+    // `VCCon` wiring, which is kept as the measured wiring (QO900 R1).
+
+    // Optional: present only when the header line is non-blank, so a `.wdr` that never states
+    // one produces no field — not an empty string standing in for "unstated"
+    // (bugs/archive/BUG_20260903_wdr_reader_drops_providedby_comment_dateadded_on_every_round_trip.md).
+    const stated = (text: string | undefined) =>
+        text && text.length > 0 ? {value: text} : undefined;
+    const providedBy = stated(wdr.headerField('providedBy'));
+    const comment = stated(wdr.headerField('comment'));
+    const added = stated(wdr.headerField('dateAdded'));
+
+    // A driver-only `.wdr` has no field for OID's `driver_type` — WinISD's format never had one
+    // to lose. `[DRIVERTYPE ...]` in `Comment=` is OpenISD's own tag for it (same mechanism as
+    // `[DQ]`/`[ENV]`; see
+    // bugs/archive/BUG_20260907_driver_type_has_no_wdr_slot_so_every_loaded_driver_becomes_a_woofer.md).
+    // A file with no tag — every real WinISD file — falls back to `woofer`, today's behaviour.
+    const record: OpenISDDeviceJson = {
+        uuid: {value: newUuid()},
+        manufacturer: {value: manufacturer},
+        brand: {value: brand},
+        model: {value: model},
+        // A WinISD file states no short code (QO259).
+        sku: {value: ''},
+        driver_type: {value: [...(wdr.driverTypes() ?? ['woofer'])]},
+        data_sources: {value: {}},
+        ...(providedBy ? {provided_by: providedBy} : {}),
+        ...(comment ? {comment} : {}),
+        ...(added ? {added} : {}),
+        specs: {woofer: specEntries},
+        // Re and BL as the file states them: a current-version record (QO900 R1).
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+    };
+    return {record, warnings};
+}

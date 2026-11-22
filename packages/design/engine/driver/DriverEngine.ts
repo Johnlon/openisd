@@ -1,0 +1,526 @@
+/**
+ * Thiele-Small driver parameter derivation.
+ *
+ * Equations:
+ *   https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
+ *
+ * Authoritative source (paywalled):
+ *   Small, R.H. "Direct-Radiator Loudspeaker System Analysis." JAES 20(5) 1972.
+ *   https://aes.org/e-lib/browse.cfm?elib=2008
+ *
+ * WinISD .wdr parse/serialise and ParState provenance live in @openisd/winisd, not
+ * here — this module is pure physics with no file-format concern (ARCHITECTURE.md §2).
+ */
+
+import type {Air} from '../air.js';
+import {
+    referenceEfficiency,
+    splFromEfficiency
+} from '../efficiency.js';
+import type {
+    DriverSolverParams,
+    DriverValues,
+    SolverField,
+    SolverInput,
+} from '../solverTypes.js';
+import {approximateCharts, missingDependencies, resultRefused} from '../consistency.js';
+import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue, WiringIssue} from '../consistency.js';
+import {geometryRefusal} from '../dvolRelation.js';
+import {basketRangeWarning, checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
+import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
+import {coilAlfaVC_per_K, convertWiring, hotRe, perCoilResistanceFactor} from '../solvers/driverQuantities.js';
+import type {WiringConversion, WiredMotor} from '../solvers/driverQuantities.js';
+import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
+import {
+  CMS_FROM_VAS_SD_ROUTE, ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTE_FORMULAS, DRIVER_ROUTES, EBP_AFTER_FIXED_POINT_ROUTE,
+  efficiencyBandwidthProduct, MMS_FROM_FS_CMS_ROUTE,
+  RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
+} from './routes/index.js';
+import {driverCircuitFieldIssues} from './circuitDiagnostics.js';
+import type {DriverCircuitFieldIssue} from './circuitDiagnostics.js';
+import type {DriverRoute, RouteFormulas} from './routes/index.js';
+
+/** WinISD's fallback for a driver with a Qts and neither Qes nor Qms (decompile `fr_45e090`: `+0x4c8 = 2*Qts`):
+ *  both Q's are twice Qts, which makes the total Q equal Qts. */
+const WINISD_Q_FALLBACK_FACTOR = 2;
+
+export type DriverQuantityName = keyof DriverSolverParams;
+/** `WiringIssue`s are the domain's: the engine's own solve never raises one. */
+export type DriverIssue = CalculationIssue<DriverQuantityName> | OutOfRangeIssue | WiringIssue;
+export type DriverPrerequisite = CalculationPrerequisite<DriverQuantityName>;
+
+// ---------------------------------------------------------------------------------------------
+// DRIVER CONSISTENCY — moved from consistency.ts (S2-10): `checkConsistency` needs
+// `solveValues`, which became private to this file, so the two live together, same as
+// every other node's solve+check pair above. `consistency.ts` keeps only the generic
+// CalculationIssue/SolveRoute vocabulary every node's issues share.
+// ---------------------------------------------------------------------------------------------
+
+/** Every field this module's relations read or predict is numeric — `wiring` is the one
+ *  non-numeric driver quantity, and `numVC` is a `SolverInput` with no `.precision` of its own;
+ *  no relation below names either: the relations run on the published figures whatever the
+ *  coils and their wiring (QO900 R1). */
+type NumericDriverQuantityName = Exclude<DriverQuantityName, 'wiring' | 'numVC'>;
+
+/** Every numeric driver quantity — what a calculated value's inherited width is measured over. */
+const NUMERIC_QUANTITY_NAMES = Object.freeze([
+  'Fs_hz', 'Re_ohm', 'Znom_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Qes', 'Qms', 'Qts', 'Vas_m3',
+  'Sd_m2', 'Dd_m', 'BL_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s', 'EBP_hz', 'Xmax_m', 'Vd_m3',
+  'Hc_m', 'Hg_m', 'Pe_W', 'no', 'SPLref_dB', 'SPL_dB', 'USPL_dB', 'SPLmax_dB', 'SPLmaxLF_dB',
+  'Rme_kg_per_s', 'Mpow_N_per_sqrtW', 'Mcost_kg_per_s', 'gamma_m_per_s2_A', 'Gloss', 'Vcd_m',
+  'Depth_m', 'MagDepth_m', 'Magnet_m', 'DVol_m3', 'c_m_per_s', 'roo_kg_per_m3',
+  'Re_terminal_ohm', 'BL_terminal_Tm',
+] as const satisfies readonly NumericDriverQuantityName[]);
+/** Fails to compile when a numeric quantity is added to `DriverSolverParams` and not listed above. */
+type _MissingFromNumericQuantityNames = Exclude<NumericDriverQuantityName, typeof NUMERIC_QUANTITY_NAMES[number]>;
+type _AssertNumericQuantityNamesComplete = _MissingFromNumericQuantityNames extends never ? true : never;
+const _assertNumericQuantityNamesComplete: _AssertNumericQuantityNamesComplete = true;
+void _assertNumericQuantityNamesComplete;
+
+/** Central-difference step, as a fraction of an input's own half-width: small enough that the
+ *  slope is the derivative, large enough to stay clear of float noise. */
+const DERIVATIVE_STEP = 1e-3;
+
+/** A handle's own value, entered-only — a value the solver itself derived is never fed back in
+ *  as if it had been typed (matches `checkConsistency`'s own contract). */
+function enteredDriverValue(field: SolverInput): number | undefined {
+  return field.entered ? field.value ?? undefined : undefined;
+}
+
+/** A refusal for each geometry dimension the user left blank and the relation gave no answer for
+ *  because its answer contradicts the geometry (`geometryRefusal`). */
+function geometryRefusals(entered: DriverWorkingSet, solved: DriverWorkingSet): DriverIssue[] {
+  const dims = {Dd: solved.Dd_m, Vcd: solved.Vcd_m, DVol: solved.DVol_m3, Depth: solved.Depth_m, MagDepth: solved.MagDepth_m, Magnet: solved.Magnet_m};
+  const targets = [['DVol', 'DVol_m3'], ['Depth', 'Depth_m'], ['MagDepth', 'MagDepth_m'], ['Magnet', 'Magnet_m']] as const;
+  return targets.flatMap(([name, key]) => {
+    if (entered[key] != null || solved[key] != null) return [];
+    const reason = geometryRefusal(name, dims);
+    return reason === null ? [] : [resultRefused(key, reason)];
+  });
+}
+
+/** Write `value` onto a non-entered handle: derived, with the width its entered inputs give
+ *  it, when present; `not-available` when not. An entered handle is never touched. */
+function writeDriverBack(field: SolverField, value: number | undefined, width: number | undefined): void {
+  if (field.entered) return;
+  if (value != null) field.setCalculated(value, undefined, width); else field.setNotAvailable();
+}
+
+/** A file can also carry an invalid dimension marked calculated. Keep it visible until cleared. */
+function writeDriverDimensionBack(field: SolverField, value: number | undefined, width: number | undefined): void {
+  const current = field.value;
+  if (current !== null && (!Number.isFinite(current) || current <= 0)) return;
+  writeDriverBack(field, value, width);
+}
+
+/** Efficiency Bandwidth Product, Fs / Qes (`efficiencyBandwidthProduct`). */
+const ebp = efficiencyBandwidthProduct;
+
+/** The driver area of the engine: the T/S consistency solve over a driver's own handles, the
+ *  derived indicators a picker shows (EBP and its verdict, reference efficiency and SPL, the
+ *  source-loaded Qts), the terminal quantities of a multi-coil driver, and the physical-range
+ *  check on one raw value. */
+export interface DriverEngine {
+  /** The one driver call to reach for (T10/T11): every entered T/S value's own handle, read
+   *  into a private working set, solved and checked by the consistency group, with every derived
+   *  value written back onto its handle via `setCalculated` (or `setNotAvailable`). Entered
+   *  values — including `wiring` — are never overwritten. `air` is the project's resolved
+   *  `{ rho, c }` (or, with no project, the app's environment defaults): every calculation uses
+   *  it, and `c_m_per_s`/`roo_kg_per_m3` are written back as `'C'` showing it, an entered pair
+   *  included — a driver record's own c and roo feed no calculation. `air` is
+   *  always there: a caller whose project has none does not call. */
+  solve(params: DriverSolverParams, air: Air): DriverIssue[];
+  /** The consistency relations over plain values, in `air`: every quantity derivable from the
+   *  stated ones, returned with the stated ones. A stated value is never overwritten, except a
+   *  stated `c_m_per_s`/`roo_kg_per_m3`, which come back as `air`'s. The handle solve above runs
+   *  this same group. */
+  solveValues(stated: DriverWorkingSet, air: Air): DriverWorkingSet;
+  /** `values` as the circuit takes them, the way WinISD builds its simulation (decompile `fr_45e090`):
+   *  Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms, and the
+   *  terminal BL from Re, Fs, Qes and that Cms. The entered Cms, Mms and Rms are not read.
+   *  A driver with a Qts but neither Qes nor Qms gets WinISD's fallback, Qes = Qms = 2·Qts.
+   *  Each is replaced only where its own inputs are positive and the result is positive;
+   *  otherwise the stated value stands. `air` is the project's. */
+  circuitValues(values: DriverValues, air: Air): DriverValues;
+  /** Missing circuit values that have a box in the driver editor. */
+  circuitFieldIssues(values: DriverValues, air: Air): readonly DriverCircuitFieldIssue[];
+  /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
+  ebp(Fs_hz: number, Qes: number): number;
+  /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
+  ebpSuitability(EBP_hz: number): EbpSuitability;
+  /** Reference efficiency, in the stated air. */
+  referenceEfficiency(Fs: number, Vas: number, Qes: number, air: Air): number;
+  /** SPL for a given efficiency, in the stated air. */
+  splFromEfficiency(no: number, air: Air): number;
+  /** Qts as the amplifier's source impedance loads it: WinISD folds Rg into Qes before
+   *  designing — Qes' = Qes·(Re+Rg)/Re, Qts = 1/(1/Qms + 1/Qes'). Falls back to `fallbackQts`
+   *  when Qms/Qes/Re are unavailable (a driver carrying only Qts).
+   *  winisd_research/spec/S04_sealed_box.md §2. */
+  sourceLoadedQts(qms: number, qes: number, re: number, rg: number, fallbackQts: number): number;
+  /** `sourceLoadedQts` with the voice coil heated by `dT_K` as well: the hot coil's extra resistance
+   *  `Re·alfaVC·ΔT` is in series with Rg, so Qes' = Qes·(Re + Rg + Re·alfaVC·ΔT)/Re = Qes·(hotRe + Rg)/Re
+   *  (WinISD `fr_45e090`, 0x45e150-0x45e183; winisd_research/spec/S04_sealed_box.md section 2, quirk Q8). The
+   *  chart circuit puts the same hot Re plus Rg in series with the coil (`circuit.ts` `coilRdc`). */
+  heatedSourceLoadedQts(
+    qms: number, qes: number, re: number, rg: number, alfaVC_per_K: number, dT_K: number, fallbackQts: number,
+  ): number;
+  /** A multi-coil driver's published Re/BL/Le/Znom, measured in `measured`, as they are in
+   *  `target`, for `numVC` identical coils; or why not. Never written over the stored figures. */
+  convertWiring(motor: WiredMotor, numVC: number | null, measured: Wiring | null, target: Wiring, reBlOnly?: boolean): WiringConversion;
+  /** The factor that turns a resistance printed per coil (Re, Znom) into the figure for `coils` identical coils wired
+   *  `wiring`: series N, parallel 1/N (QO915). */
+  perCoilResistanceFactor(coils: number, wiring: Wiring): number;
+  /** Re at a voice-coil temperature rise: `Re·(1 + alfaVC·ΔT)`. WinISD drives from it and
+   *  states maximum power into it. */
+  hotRe(Re_ohm: number, alfaVC_per_K: number, dT_K: number): number;
+  /** The voice-coil temperature coefficient the sums heat Re with: the driver's `alfaVC_per_K` when stated and not 0,
+   *  else the project's; the project's only with `winisdProjectAlfaVC` (WinISD's sum). QO953.c16. The one place that
+   *  chooses: the Box readout, the charts and the Signal tab's power all take it from here (`driveLoadOf`). */
+  coilAlfaVC_per_K(driverAlfaVC_per_K: number | null, projectAlfaVC_per_K: number, winisdProjectAlfaVC: boolean): number;
+  /** Whether a single raw reading can win selection for this field. */
+  isPhysicallyPlausible(field: string, value: number): boolean;
+  /** The out-of-range issue one RAW reading of `field` raises (limit and side), or nothing. */
+  rangeIssue(field: string, value: number): OutOfRangeIssue | undefined;
+  /** The warning for a basket diameter outside its normal range. */
+  basketRangeWarning: typeof basketRangeWarning;
+  /** Sealed resonance and Qtc read off a swept impedance curve, rather than computed. */
+  findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null;
+  /** The formulas `solve` works quantities out by: one per route, with its text and inputs, in the order it tries them.
+   *  The Driver Editor's formula panel shows these (T902). */
+  routeFormulas(): RouteFormulas;
+}
+
+export class DriverEngineImpl implements DriverEngine {
+  constructor(
+    private readonly routes: RouteGroup,
+    private readonly consistency: ConsistencyCheck,
+  ) {}
+
+  routeFormulas(): RouteFormulas {
+    return DRIVER_ROUTE_FORMULAS;
+  }
+
+  /** Shared with the consistency group and the sweep, so these stay free functions and the
+   *  area publishes them as-is. */
+  readonly ebp = ebp;
+  readonly convertWiring = convertWiring;
+  readonly perCoilResistanceFactor = perCoilResistanceFactor;
+  readonly hotRe = hotRe;
+  readonly coilAlfaVC_per_K = coilAlfaVC_per_K;
+  readonly isPhysicallyPlausible = isPhysicallyPlausible;
+  readonly rangeIssue = rangeIssue;
+  readonly basketRangeWarning = basketRangeWarning;
+
+  circuitValues(values: DriverValues, air: Air): DriverValues {
+    const positive = (x: number | null | undefined): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
+    const {Fs_hz, Vas_m3, Sd_m2, Qts} = values;
+    const fallback = !positive(values.Qes) && !positive(values.Qms) && positive(Qts) ? WINISD_Q_FALLBACK_FACTOR * Qts : null;
+    const Qes = fallback ?? values.Qes;
+    const Qms = fallback ?? values.Qms;
+    const routeValue = (route: DriverRoute, working: DriverWorkingSet): number | null => {
+      const v = route.value(working);
+      return positive(v) ? v : null;
+    };
+    const Cms = positive(air.c()) && positive(air.rho()) && positive(Vas_m3) && positive(Sd_m2)
+      ? routeValue(CMS_FROM_VAS_SD_ROUTE, {Vas_m3, Sd_m2, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()}) : null;
+    const Cms_m_per_N = Cms ?? values.Cms_m_per_N;
+    const Mms = positive(Fs_hz) && positive(Cms_m_per_N)
+      ? routeValue(MMS_FROM_FS_CMS_ROUTE, {Fs_hz, Cms_m_per_N}) : null;
+    const Mms_kg = Mms ?? values.Mms_kg;
+    const Rms = positive(Fs_hz) && positive(Qms) && positive(Mms_kg)
+      ? routeValue(RMS_FROM_FS_MMS_QMS_ROUTE, {Fs_hz, Qms, Mms_kg}) : null;
+    const Re_terminal_ohm = values.Re_terminal_ohm;
+    const BL = positive(Re_terminal_ohm) && positive(Fs_hz) && positive(Qes) && positive(Cms_m_per_N)
+      ? Math.sqrt(Re_terminal_ohm / (2 * Math.PI * Fs_hz * Qes * Cms_m_per_N)) : null;
+    return {
+      ...values, Qes, Qms, Cms_m_per_N, Mms_kg, Rms_kg_per_s: Rms ?? values.Rms_kg_per_s,
+      BL_terminal_Tm: positive(BL) ? BL : values.BL_terminal_Tm,
+    };
+  }
+
+  circuitFieldIssues(values: DriverValues, air: Air): readonly DriverCircuitFieldIssue[] {
+    const resolved = this.circuitValues(values, air);
+    return driverCircuitFieldIssues({...resolved, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()});
+  }
+
+  /** The driver handle solve (T10/T11): build a private, entered-only `DriverWorkingSet` working
+   *  set from the handles, run `solveValues`/`checkConsistency` on it unchanged, write
+   *  every derived (non-entered) value back via `setCalculated` (or `setNotAvailable` when it
+   *  cannot solve), and return the issues. `wiring` is a discrete entered input, never derived, so
+   *  it is read but never written back. `air` is the air every calculation uses (matching
+   *  `VentEngine.solve`/`PrEngine.solve`'s own `air` parameter); `c_m_per_s`/`roo_kg_per_m3` write
+   *  back as `'C'` showing it, an entered pair included. */
+  solve(params: DriverSolverParams, air: Air): DriverIssue[] {
+    const working: DriverWorkingSet = {
+      Fs_hz: enteredDriverValue(params.Fs_hz), Re_ohm: enteredDriverValue(params.Re_ohm),
+      Znom_ohm: enteredDriverValue(params.Znom_ohm), Le_H: enteredDriverValue(params.Le_H),
+      fLe_hz: enteredDriverValue(params.fLe_hz), KLe_H_sqrtHz: enteredDriverValue(params.KLe_H_sqrtHz),
+      Qes: enteredDriverValue(params.Qes), Qms: enteredDriverValue(params.Qms), Qts: enteredDriverValue(params.Qts),
+      Vas_m3: enteredDriverValue(params.Vas_m3), Sd_m2: enteredDriverValue(params.Sd_m2), Dd_m: enteredDriverValue(params.Dd_m),
+      BL_Tm: enteredDriverValue(params.BL_Tm), Mms_kg: enteredDriverValue(params.Mms_kg),
+      Cms_m_per_N: enteredDriverValue(params.Cms_m_per_N), Rms_kg_per_s: enteredDriverValue(params.Rms_kg_per_s),
+      EBP_hz: enteredDriverValue(params.EBP_hz), Xmax_m: enteredDriverValue(params.Xmax_m), Vd_m3: enteredDriverValue(params.Vd_m3),
+      Hc_m: enteredDriverValue(params.Hc_m), Hg_m: enteredDriverValue(params.Hg_m), Pe_W: enteredDriverValue(params.Pe_W),
+      no: enteredDriverValue(params.no), SPLref_dB: enteredDriverValue(params.SPLref_dB), SPL_dB: enteredDriverValue(params.SPL_dB),
+      USPL_dB: enteredDriverValue(params.USPL_dB), SPLmax_dB: enteredDriverValue(params.SPLmax_dB),
+      SPLmaxLF_dB: enteredDriverValue(params.SPLmaxLF_dB), Rme_kg_per_s: enteredDriverValue(params.Rme_kg_per_s),
+      Mpow_N_per_sqrtW: enteredDriverValue(params.Mpow_N_per_sqrtW), Mcost_kg_per_s: enteredDriverValue(params.Mcost_kg_per_s),
+      gamma_m_per_s2_A: enteredDriverValue(params.gamma_m_per_s2_A), Gloss: enteredDriverValue(params.Gloss),
+      Vcd_m: enteredDriverValue(params.Vcd_m), Depth_m: enteredDriverValue(params.Depth_m), MagDepth_m: enteredDriverValue(params.MagDepth_m),
+      Magnet_m: enteredDriverValue(params.Magnet_m), DVol_m3: enteredDriverValue(params.DVol_m3),
+      c_m_per_s: air.c(), roo_kg_per_m3: air.rho(),
+      Re_terminal_ohm: enteredDriverValue(params.Re_terminal_ohm),
+      BL_terminal_Tm: enteredDriverValue(params.BL_terminal_Tm), numVC: enteredDriverValue(params.numVC),
+      wiring: params.wiring.value ?? undefined,
+    };
+
+    const solved = this.solveValues(working, air);
+    const issues: DriverIssue[] = [
+      ...this.checkConsistency(working, params, air), ...checkRange(params),
+    ];
+    issues.push(...geometryRefusals(working, solved));
+    const widths = this.calculatedWidths(working, solved, air, field => params[field].precision ?? 0);
+
+    writeDriverBack(params.Fs_hz, solved.Fs_hz, widths.Fs_hz); writeDriverBack(params.Re_ohm, solved.Re_ohm, widths.Re_ohm);
+    writeDriverBack(params.Znom_ohm, solved.Znom_ohm, widths.Znom_ohm); writeDriverBack(params.Le_H, solved.Le_H, widths.Le_H);
+    writeDriverBack(params.fLe_hz, solved.fLe_hz, widths.fLe_hz); writeDriverBack(params.KLe_H_sqrtHz, solved.KLe_H_sqrtHz, widths.KLe_H_sqrtHz);
+    writeDriverBack(params.Qes, solved.Qes, widths.Qes); writeDriverBack(params.Qms, solved.Qms, widths.Qms); writeDriverBack(params.Qts, solved.Qts, widths.Qts);
+    writeDriverBack(params.Vas_m3, solved.Vas_m3, widths.Vas_m3); writeDriverBack(params.Sd_m2, solved.Sd_m2, widths.Sd_m2); writeDriverBack(params.Dd_m, solved.Dd_m, widths.Dd_m);
+    writeDriverBack(params.BL_Tm, solved.BL_Tm, widths.BL_Tm); writeDriverBack(params.Mms_kg, solved.Mms_kg, widths.Mms_kg);
+    writeDriverBack(params.Cms_m_per_N, solved.Cms_m_per_N, widths.Cms_m_per_N); writeDriverBack(params.Rms_kg_per_s, solved.Rms_kg_per_s, widths.Rms_kg_per_s);
+    writeDriverBack(params.EBP_hz, solved.EBP_hz, widths.EBP_hz); writeDriverBack(params.Xmax_m, solved.Xmax_m, widths.Xmax_m); writeDriverBack(params.Vd_m3, solved.Vd_m3, widths.Vd_m3);
+    writeDriverBack(params.Hc_m, solved.Hc_m, widths.Hc_m); writeDriverBack(params.Hg_m, solved.Hg_m, widths.Hg_m); writeDriverBack(params.Pe_W, solved.Pe_W, widths.Pe_W);
+    writeDriverBack(params.no, solved.no, widths.no); writeDriverBack(params.SPLref_dB, solved.SPLref_dB, widths.SPLref_dB); writeDriverBack(params.SPL_dB, solved.SPL_dB, widths.SPL_dB);
+    writeDriverBack(params.USPL_dB, solved.USPL_dB, widths.USPL_dB); writeDriverBack(params.SPLmax_dB, solved.SPLmax_dB, widths.SPLmax_dB);
+    writeDriverBack(params.SPLmaxLF_dB, solved.SPLmaxLF_dB, widths.SPLmaxLF_dB); writeDriverBack(params.Rme_kg_per_s, solved.Rme_kg_per_s, widths.Rme_kg_per_s);
+    writeDriverBack(params.Mpow_N_per_sqrtW, solved.Mpow_N_per_sqrtW, widths.Mpow_N_per_sqrtW); writeDriverBack(params.Mcost_kg_per_s, solved.Mcost_kg_per_s, widths.Mcost_kg_per_s);
+    writeDriverBack(params.gamma_m_per_s2_A, solved.gamma_m_per_s2_A, widths.gamma_m_per_s2_A); writeDriverBack(params.Gloss, solved.Gloss, widths.Gloss);
+    writeDriverDimensionBack(params.Vcd_m, solved.Vcd_m, widths.Vcd_m);
+    writeDriverDimensionBack(params.Depth_m, solved.Depth_m, widths.Depth_m);
+    writeDriverDimensionBack(params.MagDepth_m, solved.MagDepth_m, widths.MagDepth_m);
+    writeDriverDimensionBack(params.Magnet_m, solved.Magnet_m, widths.Magnet_m);
+    writeDriverDimensionBack(params.DVol_m3, solved.DVol_m3, widths.DVol_m3);
+    writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm, widths.Re_terminal_ohm);
+    writeDriverBack(params.BL_terminal_Tm, solved.BL_terminal_Tm, widths.BL_terminal_Tm);
+    params.c_m_per_s.setCalculated(air.c());
+    params.roo_kg_per_m3.setCalculated(air.rho());
+
+    return issues;
+  }
+
+  /**
+   * Solve every derivable Thiele/Small field from whatever is already present in `p`, without
+   * requiring a complete set: an entered (non-null) value is NEVER overwritten (WinISD's
+   * fixed-E override semantics). The routes that derive each quantity live in `./routes`
+   * (`DRIVER_ROUTES`, in WinISD's own site order); this adds the values that come after the
+   * fixed point. Callers that need partial derivation (an in-progress edit, not yet complete
+   * enough to simulate, e.g. the live driver editor) call this directly.
+   *
+   * All equations: https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters
+   *
+   * The result is a SUPERSET of the input: every quantity handed in comes back out, plus what the
+   * solver derived. `numVC` and `wiring` ride along untouched and are not read: a datasheet's Re
+   * and BL are the whole driver's, in the wiring it was measured in, and the relations hold for
+   * them as published (QO900 R1).
+   */
+  solveValues(p: DriverWorkingSet, air: Air): DriverWorkingSet {
+    const r = this.solveGroup(p, air);
+
+    // THE TERMINAL VALUES, LAST: the stored figures, which the sweep REQUIRES. Here rather than at
+    // the caller, so no caller can forget them.
+    if (r.Re_terminal_ohm == null && r.Re_ohm != null) r.Re_terminal_ohm = r.Re_ohm;
+    if (r.BL_terminal_Tm == null && r.BL_Tm != null) r.BL_terminal_Tm = r.BL_Tm;
+
+    return r;
+  }
+
+  /** The consistency group alone, without the terminal values. */
+  private solveGroup(p: DriverWorkingSet, air: Air): DriverWorkingSet {
+    // `run` puts `air` into the working set's c/roo, so the result shows the air used.
+    const r = this.routes.run(p, air);
+
+    // EBP (Fs/Qes) likewise: a real derivable field, computed once every input it needs is
+    // available, through the SAME `ebp` formula the area publishes for every other caller —
+    // never recomputed ad hoc downstream. Its route also gives the formula panel its text.
+    const ebpValue = EBP_AFTER_FIXED_POINT_ROUTE.value(r);
+    if (ebpValue !== null) r.EBP_hz = ebpValue;
+
+    return r;
+  }
+
+  /**
+   * Each derived quantity's half-width: Σ |∂f/∂x|·d(x) over every entered input x with a
+   * half-width d(x) — the guaranteed first-order bound, winisd_tools' former `lib/precision.py`
+   * (CALCULATIONS.md §1.3, interval arithmetic). Slopes are central differences through the
+   * solve itself. A quantity no entered width reaches is absent.
+   */
+  private calculatedWidths(
+    entered: DriverWorkingSet,
+    resolved: DriverWorkingSet,
+    air: Air,
+    widthOf: (field: NumericDriverQuantityName) => number,
+  ): Partial<Record<NumericDriverQuantityName, number>> {
+    const widths: Partial<Record<NumericDriverQuantityName, number>> = {};
+    for (const field of NUMERIC_QUANTITY_NAMES) {
+      const x = entered[field];
+      const d = widthOf(field);
+      if (typeof x !== 'number' || !(d > 0)) continue;
+      const step = d * DERIVATIVE_STEP;
+      const up = this.solveValues(withQuantity(entered, field, x + step), air);
+      const down = this.solveValues(withQuantity(entered, field, x - step), air);
+      for (const other of NUMERIC_QUANTITY_NAMES) {
+        if (entered[other] != null || typeof resolved[other] !== 'number') continue;
+        const hi = up[other];
+        const lo = down[other];
+        if (typeof hi !== 'number' || typeof lo !== 'number') continue;
+        const contribution = Math.abs((hi - lo) / (2 * step)) * d;
+        if (contribution > 0 && isFinite(contribution)) widths[other] = (widths[other] ?? 0) + contribution;
+      }
+    }
+    return widths;
+  }
+
+  /**
+   * Every entered value's disagreement with what the OTHER entered values imply for it, beyond
+   * their own combined rounding precision — plus, for `Qts`, whether the group can even be
+   * solved at all. `entered` is the driver's own stated numerics; a value the solver itself
+   * derived is never fed back in as if the human had typed it. `params` supplies each entered
+   * field's own precision (D13: the reading's stated `read_precision`, or else half the last
+   * decimal it was typed to) — the source of truth for how wide that field's own rounding
+   * interval is, never recomputed from the resolved number here.
+   */
+  private checkConsistency(entered: DriverWorkingSet, params: DriverSolverParams, air: Air): DriverIssue[] {
+    const issues: DriverIssue[] = this.consistency.check(
+      entered, stated => this.solveGroup(stated, air), field => params[field].precision ?? 0);
+
+    // Qts has no route besides Qes+Qms (WinISD has no third input to this triple) — a driver
+    // stating fewer than two of the three cannot solve it, and the caller needs to know exactly
+    // which field is missing to unblock it. Checked on ENTERED COUNT, not on whether Qts resolved
+    // to a number: an entered Qts always "resolves" to its own stated value regardless of whether
+    // the group is otherwise solvable, so checking `resolvedValues.Qts` alone let a driver stating
+    // Qts ALONE pass as consistent — the group structurally still has no independent route to
+    // confirm it (S9a Cluster 6).
+    const enteredTrioCount = (['Qts', 'Qes', 'Qms'] as const).filter(f => entered[f] != null).length;
+    if (entered.Qts != null && entered.Qes == null && entered.Qms == null) {
+      // WinISD still draws the charts, from Qes = Qms = 2·Qts (`circuitValues`); they are approximate.
+      issues.push(approximateCharts('Qts', ['Qts', 'Qes', 'Qms'],
+        'Only Qts is stated, so Qes and Qms are taken as twice Qts, as WinISD does. The charts are approximate - state Qes and Qms for accurate ones.'));
+    } else if (enteredTrioCount < 2) {
+      const missing: NumericDriverQuantityName[] = (['Qes', 'Qms'] as const).filter(f => entered[f] == null);
+      issues.push(missingDependencies('Qts',
+        [{ formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing }]));
+    }
+
+    return issues;
+  }
+
+  ebpSuitability(EBP_hz: number): EbpSuitability {
+    if (EBP_hz < 50) return 'sealed';
+    if (EBP_hz > 100) return 'vented';
+    return 'either';
+  }
+
+  referenceEfficiency(Fs: number, Vas: number, Qes: number, air: Air): number {
+    return referenceEfficiency(Fs, Vas, Qes, air.c());
+  }
+
+  splFromEfficiency(no: number, air: Air): number {
+    return splFromEfficiency(no, air.rho(), air.c());
+  }
+
+  /**
+   * Driver total Q loaded by a series source resistance Rg (amplifier output impedance + wiring +
+   * crossover DCR — the Signal tab's "Series resistance", state.P.Rs). Rg adds to the voice-coil
+   * Re in the electrical-loss branch, so it RAISES the electrical Q: Qes' = Qes·(Re+Rg)/Re, and
+   * hence the total Q Qts = 1/(1/Qms + 1/Qes'). WinISD folds this into the sealed Fsc/Qtc it
+   * reports; ignoring Rg gives a visibly wrong resonance and Qtc (e.g. the Dayton E150HE-44 in a
+   * 6 L box at Ql=10/Qa=100/Rg=0.1 reads 63.22 Hz/0.592 instead of WinISD's 63.18 Hz/0.599).
+   *
+   * Falls back to `fallbackQts` when Qms/Qes/Re are unavailable (a driver carrying only Qts).
+   * Reference: winisd_research/spec/S04_sealed_box.md §2.
+   */
+  sourceLoadedQts(
+    qms: number, qes: number, re: number, rg: number, fallbackQts: number,
+  ): number {
+    return this.heatedSourceLoadedQts(qms, qes, re, rg, 0, 0, fallbackQts);
+  }
+
+  heatedSourceLoadedQts(
+    qms: number, qes: number, re: number, rg: number, alfaVC_per_K: number, dT_K: number, fallbackQts: number,
+  ): number {
+    if (!(qms > 0) || !(qes > 0) || !(re > 0)) return fallbackQts;
+    const qesLoaded = (qes * (hotRe(re, alfaVC_per_K, dT_K) + Math.max(0, rg))) / re;
+    return 1 / (1 / qms + 1 / qesLoaded);
+  }
+
+  /**
+   * Finds the actual system resonance (Fsc) and Q (Qtc) from the simulated impedance curve
+   * of a sealed/closed box, taking box leakage/absorption losses into account (TS method).
+   */
+  findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null {
+    if (!result || result.fs.length === 0 || !Re || Re <= 0) return null;
+
+    let maxZ = -1;
+    let peakIdx = -1;
+    for (let i = 0; i < result.fs.length; i++) {
+      if (result.zmag[i] > maxZ) {
+        maxZ = result.zmag[i];
+        peakIdx = i;
+      }
+    }
+
+    if (peakIdx === -1 || maxZ <= Re) return null;
+
+    const peakFreq = result.fs[peakIdx];
+    // r0 = maxZ/Re is always > 1 here: the guard above already refused maxZ <= Re, and Re > 0
+    // was refused earlier still, so a "r0 <= 1" guard here could never fire — removed rather
+    // than left as dead defensive code.
+    const r0 = maxZ / Re;
+    const Z_target = Re * Math.sqrt(r0);
+
+    // Find f1 (below peakIdx)
+    let f1 = -1;
+    for (let i = peakIdx; i >= 0; i--) {
+      if (result.zmag[i] <= Z_target) {
+        const fA = result.fs[i];
+        const fB = result.fs[i + 1];
+        const zA = result.zmag[i];
+        const zB = result.zmag[i + 1];
+        // zB is the previous loop iteration's point (one step towards the peak): it failed this
+        // same "<= Z_target" test, so zB > Z_target >= zA strictly — zA and zB can never be
+        // equal, so the interpolation denominator is never zero.
+        f1 = fA + (Z_target - zA) * (fB - fA) / (zB - zA);
+        break;
+      }
+    }
+
+    // Find f2 (above peakIdx)
+    let f2 = -1;
+    for (let i = peakIdx; i < result.fs.length; i++) {
+      if (result.zmag[i] <= Z_target) {
+        const fA = result.fs[i - 1];
+        const fB = result.fs[i];
+        const zA = result.zmag[i - 1];
+        const zB = result.zmag[i];
+        // zA is the previous loop iteration's point (one step towards the peak): it failed this
+        // same "<= Z_target" test, so zA > Z_target >= zB strictly — never equal to zB.
+        f2 = fA + (Z_target - zA) * (fB - fA) / (zB - zA);
+        break;
+      }
+    }
+
+    if (f1 === -1 || f2 === -1 || f2 <= f1) {
+      return { Fsc: peakFreq, Qtc: 0 };
+    }
+
+    const Qmc = (peakFreq * Math.sqrt(r0)) / (f2 - f1);
+    const Qtc = Qmc / r0;
+
+    return { Fsc: peakFreq, Qtc };
+  }
+}
+
+/** The driver area alone: its routes and consistency relations, which read no app setting. */
+export function createDriverEngine(): DriverEngine {
+  return new DriverEngineImpl(new RouteGroup(DRIVER_ROUTES), new ConsistencyCheck(DRIVER_RELATIONS));
+}

@@ -1,0 +1,67 @@
+/**
+ * The writer side of the bundled catalogue's indexes.
+ *
+ * `scripts/bundle-drivers.mjs` (under vite-node) opens each corpus record as a domain object and
+ * calls these to produce the row `drivers-index.json` / `passive-radiators-index.json` carry for
+ * it. The row is composed from the app's own functions — `displayNameOf`, `chipsOf`,
+ * `driverHasDqIssues`, `radiatorHasDqIssues`, `dataSource`, the spec fields — so the picker lists
+ * off the index exactly what it would have computed from the record, and the bundler restates
+ * none of it. A staleness gate holds the rows the bundler wrote against these functions.
+ *
+ * `discontinued` is the one input the record cannot give (it lives in the scraper's driver.json), so
+ * the bundler passes it in.
+ *
+ * Figures are `.value` — the value the app shows, stated or solved — matching what
+ * `specSummaryOf` gave the filter when the picker held domain objects. Absent stays null.
+ */
+import type {OpenISDDriverStandalone, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import type {BundledDriverIndexRow, BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
+import {SizeClass} from '@openisd/design/filter';
+import {chipsOf, displayNameOf, driverHasDqIssues, radiatorHasDqIssues} from './driverDisplay.js';
+
+export function bundledDriverIndexRowOf(driver: OpenISDDriverStandalone, path: string, discontinued: boolean): BundledDriverIndexRow {
+  const s = driver.specs;
+  const chips = chipsOf(driver);
+  return {
+    uuid: driver.uuid(),
+    path,
+    name: displayNameOf(driver),
+    dq: driverHasDqIssues(driver),
+    discontinued,
+    datasheet: driver.dataSource('manufacturer_datasheet'),
+    productPage: driver.dataSource('manufacturer_product_page'),
+    listingPage: driver.dataSource('manufacturer_listing_page'),
+    chips: chips.types,
+    canonical: chips.canonical,
+    Fs_hz: s.Fs_hz.value,
+    Sd_m2: s.Sd_m2.value,
+    Xmax_m: s.Xmax_m.value,
+    Vd_m3: s.Vd_m3.value,
+    Znom_ohm: s.Znom_ohm.value,
+    freq_low_hz: s.freq_low_hz.value,
+    freq_high_hz: s.freq_high_hz.value,
+    sizeFromSd_in: SizeClass.ofSd(s.Sd_m2.value)?.inches ?? null,
+  };
+}
+
+export function bundledPassiveRadiatorIndexRowOf(radiator: OpenISDPassiveRadiatorStandalone, path: string, discontinued: boolean): BundledPassiveRadiatorIndexRow {
+  const s = radiator.spec;
+  return {
+    uuid: radiator.uuid(),
+    path,
+    name: displayNameOf(radiator),
+    dq: radiatorHasDqIssues(radiator),
+    discontinued,
+    datasheet: radiator.dataSource('manufacturer_datasheet'),
+    productPage: radiator.dataSource('manufacturer_product_page'),
+    listingPage: radiator.dataSource('manufacturer_listing_page'),
+    Fs_hz: s.Fs_hz.value,
+    Sd_m2: s.Sd_m2.value,
+    Xmax_m: s.Xmax_m.value,
+    Vd_m3: s.Vd_m3.value,
+    Mms_kg: s.Mms_kg.value,
+    Cms_m_per_N: s.Cms_m_per_N.value,
+    Vas_m3: s.Vas_m3.value,
+    Qms: s.Qms.value,
+  };
+}

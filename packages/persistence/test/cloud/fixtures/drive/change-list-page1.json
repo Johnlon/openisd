@@ -1,0 +1,26 @@
+{
+  "kind": "drive#changeList",
+  "nextPageToken": "changes-page-2-token",
+  "changes": [
+    {
+      "fileId": "file-1",
+      "file": {
+        "id": "file-1",
+        "name": "project-abc-123.owpr",
+        "mimeType": "text/plain",
+        "headRevisionId": "rev-1",
+        "appProperties": {
+          "app": "openisd",
+          "kind": "project",
+          "uuid": "abc-123",
+          "layout": "2",
+          "parentRevision": "rev-0",
+          "seq": "5",
+          "writer": "device-1",
+          "hash": "a1b2c3d4e5f6",
+          "deleted": "0"
+        }
+      }
+    }
+  ]
+}

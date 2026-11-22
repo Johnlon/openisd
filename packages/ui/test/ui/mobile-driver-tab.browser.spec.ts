@@ -1,0 +1,104 @@
+/**
+ * The mobile Driver tab. Select/Edit reuse the app's existing global overlays (DriverBrowser,
+ * DriverEditorModal) unchanged — these specs prove the mobile tab reaches the editor, not that
+ * the overlays themselves behave correctly (`mobile-driver-browser`, `mobile-driver-editor` and
+ * their own spec files cover that).
+ */
+import {readFileSync} from 'node:fs';
+import {expect, openAMobileProject, test} from '../fixtures.js';
+import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+
+const B_AND_C_18NW100 = readFileSync('packages/ui/public/drivers/b-c-speakers/18nw100-4.json');
+
+test.beforeEach(async ({ appPage: page }) => {
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await openAMobileProject(page);
+  await page.locator('.mob-tab', { hasText: 'Driver' }).click();
+});
+
+test('shows the driver identity and the Select/Edit actions', async ({ appPage: page }) => {
+  await expect(page.locator('.mob-cname')).toBeVisible();
+  await expect(page.getByText('Select driver')).toBeVisible();
+  await expect(page.getByText('Edit')).toBeVisible();
+});
+
+test('Edit opens the driver editor modal', async ({ appPage: page }) => {
+  await page.getByText('Edit', { exact: true }).click();
+  await expect(page.locator('.de-modal')).toBeVisible();
+});
+
+// QO941: the wiring of several drivers is gone (WinISD has none); the one wiring control is the driver's coils (my-wiring.browser.spec.ts).
+test('changing the number of drivers writes the project', async ({ appPage: page }) => {
+  await page.locator('#mob-n-drivers').selectOption('2');
+  await expect(page.locator('#mob-n-drivers')).toHaveValue('2');
+});
+
+// QO946.c118: the band over the count is headed User options, as the passive radiator's.
+test('page order matches the mock: name, buttons, User options band, count, Key figures band, five figures, then the consistency checks', async ({ appPage: page }) => {
+  await page.setViewportSize({ width: 374, height: 705 });
+  const kids = await page.locator('.mob-classic').evaluate(root => [...root.children].map(e => ({
+    cls: e.className,
+    text: (e instanceof HTMLElement ? e.innerText : '').replace(/\s+/g, ' ').trim(),
+  })));
+  expect(kids.map(k => k.text.split(' ')[0])).toEqual(['Tang', 'Select', 'USER', 'Drivers', 'KEY', 'Fs', 'Qts', 'Vas', 'Re', 'Xmax', '⚠']);
+  expect(kids.filter(k => k.cls.includes('mob-band')).map(k => k.text)).toEqual(['USER OPTIONS ?', 'KEY FIGURES ?']);
+});
+
+test('tapping a key figure opens the driver editor', async ({ appPage: page }) => {
+  await page.locator('.mob-ui-field', { hasText: 'Qts' }).click();
+  await expect(page.locator('.de-modal')).toBeVisible();
+});
+
+test('dragging a key figure to scroll does not open the driver editor', async ({ appPage: page }) => {
+  await page.setViewportSize({width: 374, height: 400});
+  const row = page.locator('.mob-ui-field', {hasText: 'Qts'});
+  await row.scrollIntoViewIfNeeded();
+  const bounds = (await row.boundingBox())!;
+  const content = page.locator('.mob-content');
+  const top = await content.evaluate(el => el.scrollTop);
+  const cdp = await page.context().newCDPSession(page);
+  const x = bounds.x + bounds.width / 2, y = bounds.y + bounds.height / 2;
+  await cdp.send('Input.dispatchTouchEvent', {type: 'touchStart', touchPoints: [{x, y, id: 1}]});
+  for (let i = 1; i <= 8; i++) {
+    await cdp.send('Input.dispatchTouchEvent', {type: 'touchMove', touchPoints: [{x, y: y - 15 * i, id: 1}]});
+  }
+  await expect.poll(() => content.evaluate(el => el.scrollTop)).not.toBe(top);
+  await cdp.send('Input.dispatchTouchEvent', {type: 'touchEnd', touchPoints: []});
+  await expect(page.locator('.de-modal')).toHaveCount(0);
+});
+
+test('no sideways scroll and nothing cut at 374x705', async ({ appPage: page }) => {
+  await page.setViewportSize({ width: 374, height: 705 });
+  const over = await page.locator('.mob-classic').evaluate(el => el.scrollWidth - el.clientWidth);
+  expect(over).toBeLessThanOrEqual(0);
+});
+
+test('the Select driver button text is visible against its background', async ({ appPage: page }) => {
+  await page.setViewportSize({ width: 374, height: 705 });
+  const button = page.getByRole('button', { name: 'Select driver' });
+  await expect(button).toBeVisible();
+  const colours = await button.evaluate(el => {
+    const s = getComputedStyle(el);
+    return { text: s.color, background: s.backgroundColor };
+  });
+  expect(colours.text).not.toBe(colours.background);
+});
+
+test('the Driver tab lists the driver\'s consistency checks (B&C 18NW100-4: BL disagrees)', async ({ appPage: page }) => {
+  await page.getByRole('button', {name: 'Select driver'}).click();
+  await page.locator('.driver-library input[type="file"]').setInputFiles({
+    name: '18nw100-4.owdr', mimeType: 'application/json', buffer: B_AND_C_18NW100,
+  });
+  await expect(page.locator('.driver-library .preview')).toBeVisible();
+  await page.locator('.driver-library .use-btn').click();
+  await expect(page.locator('.wb-modal')).toHaveCount(0);
+  const summary = page.locator('.driver-consistency-summary');
+  await expect(summary).toBeVisible();
+  await expect(page.locator('.de-body')).toHaveCount(0);
+  await summary.click();
+  await expect(page.locator('.de-body')).toBeVisible();
+  const list = page.locator('.de-dq-list');
+  await expect(list).toBeVisible();
+  await expect(list).toContainText('force factor (BL) stated as 24.7 Tm, the others imply 26.7 Tm, 7.7% apart');
+});

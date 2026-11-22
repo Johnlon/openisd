@@ -1,0 +1,50 @@
+{
+  "kind": "drive#changeList",
+  "newStartPageToken": "new-start-token-456",
+  "changes": [
+    {
+      "kind": "drive#change",
+      "type": "file",
+      "fileId": "file-1",
+      "file": {
+        "id": "file-1",
+        "name": "project-abc-123.owpr",
+        "mimeType": "text/plain",
+        "headRevisionId": "rev-1",
+        "appProperties": {
+          "app": "openisd",
+          "kind": "project",
+          "uuid": "abc-123",
+          "layout": "2",
+          "parentRevision": "rev-0",
+          "seq": "5",
+          "writer": "device-1",
+          "hash": "a1b2c3d4e5f6",
+          "deleted": "0"
+        }
+      }
+    },
+    {
+      "kind": "drive#change",
+      "type": "file",
+      "fileId": "file-2",
+      "file": {
+        "id": "file-2",
+        "name": "driver-def-456.json",
+        "mimeType": "application/json",
+        "headRevisionId": "rev-2",
+        "appProperties": {
+          "app": "openisd",
+          "kind": "driver",
+          "uuid": "def-456",
+          "layout": "2",
+          "parentRevision": "rev-1",
+          "seq": "3",
+          "writer": "device-2",
+          "hash": "b2c3d4e5f6a7",
+          "deleted": "0"
+        }
+      }
+    }
+  ]
+}

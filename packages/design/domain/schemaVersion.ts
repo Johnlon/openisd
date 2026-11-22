@@ -1,0 +1,90 @@
+/**
+ * Schema version numbers for saved data (QO395). A saved project (.owpr), a saved
+ * driver (.owdr, stored record) and openisd.json carry `schemaVersion`. The slim format is 3, and
+ * 4 stores a multi-coil driver's Re and BL as published, 5 holds the coil wiring in a project's `VCCon`, 6 adds the project's driver wiring keys; a file with none is 2. Load upgrades it
+ * one step at a time, on the parsed JSON, BEFORE the strict
+ * schema reads it (the schema refuses undeclared keys, so removed fields must be gone first).
+ * A file newer than this app knows is refused with a message saying so: never a blank, never a
+ * silent drop of what the older app cannot read.
+ */
+import {withoutRetiredSpecKeys} from './retiredSpecKeys.js';
+import {withSlimModel} from './slimModel.js';
+import {withMultiCoilAsPublished} from './multiCoilAsPublished.js';
+import {withCoilWiringAsVCCon} from './coilWiringAsVCCon.js';
+
+export const CURRENT_SCHEMA_VERSION = 6;
+/** What a file with no `schemaVersion` is: everything saved before versions existed. */
+export const UNVERSIONED_SCHEMA_VERSION = 2;
+
+type PlainRecord = Record<string, unknown>;
+
+/** One step: a value saved at `from`, as a value saved at `from + 1`. */
+export interface UpgradeStep {
+    readonly from: number;
+    readonly upgrade: (value: PlainRecord) => PlainRecord;
+}
+
+export type UpgradeResult = {readonly value: unknown} | {readonly refusal: string};
+
+function isRecord(v: unknown): v is PlainRecord {
+    return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+function recordOr(upgraded: unknown, fallback: PlainRecord): PlainRecord {
+    return isRecord(upgraded) ? upgraded : fallback;
+}
+
+/** 2 to 3: the retired spec keys go, and the record becomes the slim model (`slimModel.ts`): the
+ *  stated reading precision moves onto each entered value, then readings, origin, quality and the
+ *  rest are dropped.
+ *  3 to 4: a multi-coil driver's per-coil Re and BL become the published figures, and a defaulted
+ *  wiring becomes unknown (`multiCoilAsPublished.ts`, QO908).
+ *  4 to 5: a project's saved `wiring` key is renamed `VCCon`, its value kept as saved; `coilWiring` (test site only)
+ *  becomes `VCCon` and wins where both exist (`coilWiringAsVCCon.ts`, QO946.c18, c23).
+ *  5 to 6: nothing changes (absent `driverWiring` and `winisdOneDriverImpedance` mean Parallel and off); the step exists so that an
+ *  older app refuses a version 6 file as made by a newer OpenISD (QO946.c129-c131, plan 4.2). */
+const UPGRADE_STEPS: readonly UpgradeStep[] = Object.freeze([
+    Object.freeze({from: 2, upgrade: (value: PlainRecord) => recordOr(withSlimModel(withoutRetiredSpecKeys(value)), value)}),
+    Object.freeze({from: 3, upgrade: (value: PlainRecord) => recordOr(withMultiCoilAsPublished(value), value)}),
+    Object.freeze({from: 4, upgrade: (value: PlainRecord) => recordOr(withCoilWiringAsVCCon(value), value)}),
+    Object.freeze({from: 5, upgrade: (value: PlainRecord) => value}),
+]);
+
+/**
+ * `value` built now from a source that states its figures as published — a `driver.json`, a
+ * `.wdr` — stamped with the current version, so no upgrade step meant for saved data runs on it:
+ * the retired spec keys go, and the load still makes it slim.
+ */
+export function asCurrentRecord(value: PlainRecord): PlainRecord {
+    return {...recordOr(withoutRetiredSpecKeys(value), value), schemaVersion: CURRENT_SCHEMA_VERSION};
+}
+
+function versionOf(value: PlainRecord): number | string {
+    if (!('schemaVersion' in value)) return UNVERSIONED_SCHEMA_VERSION;
+    const v = value.schemaVersion;
+    if (typeof v === 'number' && Number.isInteger(v) && v >= UNVERSIONED_SCHEMA_VERSION) return v;
+    return `schemaVersion must be a whole number of ${UNVERSIONED_SCHEMA_VERSION} or more, not ${JSON.stringify(v)}.`;
+}
+
+/**
+ * `value`, parsed from JSON and not yet validated, upgraded to `current`, with `schemaVersion`
+ * set. `value` itself is not changed. A value that is not an object comes back as it was for the
+ * schema to refuse.
+ */
+export function upgradeToCurrent(value: unknown, current: number = CURRENT_SCHEMA_VERSION, steps: readonly UpgradeStep[] = UPGRADE_STEPS): UpgradeResult {
+    if (!isRecord(value)) return {value};
+    const version = versionOf(value);
+    if (typeof version === 'string') return {refusal: version};
+    if (version > current) {
+        return {refusal: `This file was saved by a newer OpenISD (schema version ${version}; this app reads up to ${current}). Please update the app to open it.`};
+    }
+    let upgraded: PlainRecord = value;
+    for (let at = version; at < current; at++) {
+        const step = steps.find(s => s.from === at);
+        upgraded = step === undefined ? upgraded : step.upgrade(upgraded);
+    }
+    // A build before the slim model stamped 3 on records that still had the old fields (T668): the
+    // slim model is applied again to the current version, which changes nothing in a slim record.
+    const settled = current === CURRENT_SCHEMA_VERSION ? recordOr(withSlimModel(upgraded), upgraded) : upgraded;
+    return {value: {...settled, schemaVersion: current}};
+}

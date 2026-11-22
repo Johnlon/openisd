@@ -1,0 +1,430 @@
+// Conversion utilities mapping unvalidated input -> domain classes -> project states.
+// These only depend on public methods from `openisdDomain.ts` and schemas from `openisdSchema.ts`.
+// Layout: exported functions -> private helpers -> builder classes.
+
+import {
+    type DriverDeviceJson,
+    type OpenISDBoxJson,
+    type OpenISDProjectJson,
+} from './openisdSchema.js';
+import {emptyBoxJson} from './boxDefaults.js';
+import {enteredEntry} from './specEntry.js';
+import {displayedHalfWidth} from './precision.js';
+import {NumberField} from '../fields/field.js';
+import {OpenISDDriver} from './driver/openISDDriver.js';
+import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
+import {OpenISDProject} from './project/openISDProject.js';
+import {type Engine, type VentedAlignment} from '../engine/index.js';
+import {DEFAULT_ALFAVC_PER_K, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VC_TEMP_RISE_K} from '../fields/defaults.js';
+import {type AppContext, dateStamp, realAppContext} from './appContext.js';
+
+// ── BUILDING A PROJECT — the wizard's path in, and the only way to make an `OpenISDProject` ──
+
+export class ProjectBuilder {
+    readonly #driver: OpenISDDriver;
+    readonly #engine: Engine;
+    readonly #appContext: AppContext;
+
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext = realAppContext) {
+        this.#driver = driver;
+        this.#engine = engine;
+        this.#appContext = appContext;
+    }
+
+    /** A blank project: a blank driver in a sealed box of no volume. States no physical value
+     *  of its own — the wizard repopulates the driver from the one the user picks. */
+    static empty(engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
+        return new ProjectBuilder(OpenISDDriver.empty(engine, appContext), engine, appContext).sealed().volume_m3(0).build();
+    }
+
+    sealed(): SealedProjectBuilder {
+        return new SealedProjectBuilder(this.#driver, this.#engine, this.#appContext);
+    }
+
+    vented(): VentedProjectBuilder {
+        return new VentedProjectBuilder(this.#driver, this.#engine, this.#appContext);
+    }
+
+    bandpass4(): Bandpass4ProjectBuilder {
+        return new Bandpass4ProjectBuilder(this.#driver, this.#engine, this.#appContext);
+    }
+
+    bandpass6(): TwoChamberProjectBuilder {
+        return new TwoChamberProjectBuilder(this.#driver, this.#engine, 'bandpass6', this.#appContext);
+    }
+
+    abc(): TwoChamberProjectBuilder {
+        return new TwoChamberProjectBuilder(this.#driver, this.#engine, 'abc', this.#appContext);
+    }
+
+    passiveRadiator(): PassiveRadiatorProjectBuilder {
+        return new PassiveRadiatorProjectBuilder(this.#driver, this.#engine, this.#appContext);
+    }
+}
+
+/** Shared assembly. Each specialised builder decides the box record; this turns it into a
+ *  managed project, so there is ONE place a project comes into existence. */
+export abstract class BoxProjectBuilder {
+    /** The driver OBJECT, not its record. A record could not be read out of it anyway — only
+     *  `OpenISDDriver` and its subclasses can reach a driver's storage — and it does not need to
+     *  be: `build()` hands the object to the project's own embedded driver, which copies it in. */
+    protected readonly driver: OpenISDDriver;
+    /** The one calculation surface, on its way to the project this builder will assemble. */
+    protected readonly engine: Engine;
+    /** The project's fresh identity comes from here, not from a direct `newUuid()` call — see
+     *  `appContext.ts`. */
+    protected readonly appContext: AppContext;
+
+    protected constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+        this.driver = driver;
+        this.engine = engine;
+        this.appContext = appContext;
+    }
+
+    /** An inert box holding a blank radiator. */
+    protected emptyBox(): OpenISDBoxJson {
+        return emptyBoxJson(OpenISDPassiveRadiatorStandalone.empty(this.appContext).clonePassiveRadiator());
+    }
+
+    /** Puts the chosen radiator into the built project's box; null when none was chosen. */
+    private placeRadiator: ((box: OpenISDProject['box']['passiveRadiator']) => void) | null = null;
+
+    /**
+     * Selects the radiator this project's passive-radiator box holds, in place of the blank one.
+     * Available on EVERY builder: a project carries its radiator whatever box type is active.
+     *
+     * Takes an ALREADY-VALIDATED radiator. Kept as the OBJECT; `build()` has the box's own
+     * radiator copy it in, since the record is private to the radiator.
+     */
+    radiator(radiator: OpenISDPassiveRadiatorStandalone): this {
+        this.placeRadiator = box => box.configurePR(radiator);
+        return this;
+    }
+
+    /** As `radiator`, for one already adopted and then edited (the New Project wizard's copy): it
+     *  goes in as it stands, so nothing the person typed is dropped. */
+    editedRadiator(radiator: OpenISDPassiveRadiatorStandalone): this {
+        this.placeRadiator = box => box.holdEditedPR(radiator);
+        return this;
+    }
+
+    protected abstract boxRecord(): OpenISDBoxJson;
+
+    /** Writes a specialised builder can only make against the live project (a design needs the
+     *  project's own Rs and Ql). Runs after `wrap()`, before the starting values. */
+    protected afterWrap(project: OpenISDProject): void {
+        void project;
+    }
+
+    /**
+     * Assemble the project — the LAST thing, once every part has been collected.
+     *
+     * The driver goes in AS THE RECORD IS BUILT. A builder and a driver are sibling domain classes
+     * in this module, so reading the driver's record here is friend access, which this module has
+     * and uses; there is no boundary to cross. Constructing a blank driver first and overwriting
+     * it one line later invented a record for a driver that was already in hand.
+     */
+    build(): OpenISDProject {
+        const project = OpenISDProject.wrap(
+            {...this.prototypeProjectJson(this.driver.toOpenIsdDeviceJson()), box: this.boxRecord()},
+            this.engine,
+            this.appContext,
+        );
+        this.placeRadiator?.(project.box.passiveRadiator);
+        this.afterWrap(project);
+        // Whatever the builder was not told gets the box type's starting values — one
+        // implementation, shared with a later box-type switch (`OpenISDBox.applyStartingValues`).
+        project.box.applyStartingValues();
+        // Those writes land in `#edited`, because every write does. A project the user has just
+        // created has no UNSAVED changes, though — so the assembled state IS its saved baseline.
+        // Without this a new project is born modified, and Cancel would discard its own driver.
+        project.save();
+        return project;
+    }
+
+    /**
+     * A new project's record: the chosen driver, the box being built, and defaults for everything a
+     * project has not been told yet.
+     *
+     * THE DRIVER IS A PARAMETER because a project cannot exist without one — `new ProjectBuilder()` takes a
+     * validated `OpenISDDriver` before a builder is even returned. Copied on the way in (`{...}`), so
+     * the project owns its own record and later edits do not reach back into a My Drivers entry or a
+     * bundle row.
+     *
+     * NOTE: this function builds a half-finished project from a driver and leaves the other fields with placeholder values
+     * such as null. It is called from the builder, which should construct a finished project itself; avoid extending it.
+     * The builder also overwrites parts of the result straight away, for example:
+     * this.placeRadiator?.(project.box.passiveRadiator);
+     */
+    prototypeProjectJson(driver: DriverDeviceJson): OpenISDProjectJson {
+        return {
+            driverEmbedding: {
+                device: {...driver},
+                nDrivers: 1,
+                vcTempRise_K: DEFAULT_VC_TEMP_RISE_K,
+                Rs_ohm: DEFAULT_SOURCE_RESISTANCE_OHM,
+                driverAddedMass_kg: 0,
+                alfaVC_per_K: DEFAULT_ALFAVC_PER_K,
+                loading: 'standard',
+                winisdIsobarik: false,
+            },
+            box: this.emptyBox(),
+            // A new project copies the app's temperature, humidity and pressure in as entered; c and
+            // ρ are left to the air solver. The copy is a snapshot: no link to the Options after it.
+            environment: {
+                temperature_K: enteredEntry(this.engine.environment.appAir.temperature()),
+                humidity_pct: enteredEntry(this.engine.environment.appAir.humidity()),
+                pressure_Pa: enteredEntry(this.engine.environment.appAir.pressure()),
+            },
+            signal: {},
+            meta: {
+                name: '',
+                // Blank, never a guess, when the platform user is not known — `''` is the only
+                // way this plain-string config field (no provenance) can spell absence.
+                creator: this.appContext.platformUser() ?? '',
+                created: dateStamp(this.appContext.now()),
+                modified: dateStamp(this.appContext.now()),
+                description: '',
+            },
+            filters: {filters: []},
+            advanced: {
+                forceFlatResponse: false,
+                useTransmissionLinePortModel: false,
+                rgAtDriverSide: false,
+                circuitModel: 'winisd',
+                splGraphIsXmaxLimited: false,
+                winisdDriverModel: false,
+                winisdVaModel: false,
+                winisdWrapPhase: true,
+                winisdFlatModel: true,
+            },
+            charts: {},
+        };
+    }
+}
+
+class SealedProjectBuilder extends BoxProjectBuilder {
+    #volume: number | null = null;
+    #qtc: number | null = null;
+
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+        super(driver, engine, appContext);
+    }
+
+    volume_m3(v: number): this {
+        this.#volume = v;
+        return this;
+    }
+
+    /** The system Q the box is designed for, entered: the volume is then calculated from it. A stated
+     *  volume wins. */
+    qtc(v: number): this {
+        this.#qtc = v;
+        return this;
+    }
+
+    protected boxRecord(): OpenISDBoxJson {
+        const box = this.emptyBox();
+        const fromQtc = this.#volume === null && this.#qtc !== null;
+        return {
+            ...box,
+            boxType: 'sealed',
+            sealed: {
+                ...box.sealed,
+                volume_m3: fromQtc ? null : this.#volume ?? 0,
+                ...(fromQtc && this.#qtc !== null ? {Qtc: enteredEntry(this.#qtc)} : {}),
+            },
+        };
+    }
+}
+
+class VentedProjectBuilder extends BoxProjectBuilder {
+    #volume: number | null = null;
+    #tuning: number | null = null;
+    #alignment: VentedAlignment | null = null;
+
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+        super(driver, engine, appContext);
+    }
+
+    volume_m3(v: number): this {
+        this.#volume = v;
+        return this;
+    }
+
+    tuning_goal_hz(v: number): this {
+        this.#tuning = v;
+        return this;
+    }
+
+    /** Volume and tuning from the named alignment, designed for the driver as the project drives
+     *  it (its own Rs and Ql) — what the wizard's vented step chooses. An explicit `volume_m3`
+     *  wins over it. */
+    alignment(a: VentedAlignment): this {
+        this.#alignment = a;
+        return this;
+    }
+
+    protected override afterWrap(project: OpenISDProject): void {
+        if (this.#alignment === null || this.#volume !== null) return;
+        const design = project.driver.ventedDesign(this.#alignment, project.driveLoad, project.box.vented.losses.Ql.value);
+        if (!design) return;
+        project.box.vented.volume_m3.set(design.Vb);
+        project.box.vented.tuning_goal_hz.set(design.Fb, displayedHalfWidth(NumberField.BOX_FB_HZ));
+    }
+
+    protected boxRecord(): OpenISDBoxJson {
+        const box = this.emptyBox();
+        return {
+            ...box,
+            boxType: 'vented',
+            vented: {
+                ...box.vented,
+                chamber: {
+                    ...box.vented.chamber,
+                    volume_m3: this.#volume ?? 0,
+                    ...(this.#tuning === null ? {} : {tuning_goal_hz: enteredEntry(this.#tuning)}),
+                },
+            },
+        };
+    }
+}
+
+/** Bandpass 4th order: a SEALED rear chamber (no tuning of its own — its resonance is
+ *  calculated) and a vented front one. */
+class Bandpass4ProjectBuilder extends BoxProjectBuilder {
+    #rearVolume: number | null = null;
+    #frontVolume: number | null = null;
+    #frontTuning: number | null = null;
+
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+        super(driver, engine, appContext);
+    }
+
+    rearVolume_m3(v: number): this {
+        this.#rearVolume = v;
+        return this;
+    }
+
+    frontVolume_m3(v: number): this {
+        this.#frontVolume = v;
+        return this;
+    }
+
+    frontTuning_hz(v: number): this {
+        this.#frontTuning = v;
+        return this;
+    }
+
+    protected boxRecord(): OpenISDBoxJson {
+        const box = this.emptyBox();
+        return {
+            ...box,
+            boxType: 'bandpass4',
+            bandpass4: {
+                ...box.bandpass4,
+                rear: {...box.bandpass4.rear, volume_m3: this.#rearVolume ?? 0},
+                front: {
+                    ...box.bandpass4.front,
+                    volume_m3: this.#frontVolume ?? 0,
+                    ...(this.#frontTuning === null ? {} : {tuning_goal_hz: enteredEntry(this.#frontTuning)}),
+                },
+            },
+        };
+    }
+}
+
+/** Bandpass 6th order and ABC: two INDEPENDENTLY tunable chambers. Identical to build — they
+ *  differ in their ports (ABC adds a third, connecting one), which is set afterwards through
+ *  the box surface, not here. */
+class TwoChamberProjectBuilder extends BoxProjectBuilder {
+    readonly #kind: 'bandpass6' | 'abc';
+    #rearVolume: number | null = null;
+    #rearTuning: number | null = null;
+    #frontVolume: number | null = null;
+    #frontTuning: number | null = null;
+
+    constructor(driver: OpenISDDriver, engine: Engine, kind: 'bandpass6' | 'abc', appContext: AppContext) {
+        super(driver, engine, appContext);
+        this.#kind = kind;
+    }
+
+    rearVolume_m3(v: number): this {
+        this.#rearVolume = v;
+        return this;
+    }
+
+    rearTuning_hz(v: number): this {
+        this.#rearTuning = v;
+        return this;
+    }
+
+    frontVolume_m3(v: number): this {
+        this.#frontVolume = v;
+        return this;
+    }
+
+    frontTuning_hz(v: number): this {
+        this.#frontTuning = v;
+        return this;
+    }
+
+    protected boxRecord(): OpenISDBoxJson {
+        const box = this.emptyBox();
+        const k = this.#kind;
+        const chambers = {
+            rear: {
+                ...box[k].rear,
+                volume_m3: this.#rearVolume ?? 0,
+                ...(this.#rearTuning === null ? {} : {tuning_goal_hz: enteredEntry(this.#rearTuning)}),
+            },
+            front: {
+                ...box[k].front,
+                volume_m3: this.#frontVolume ?? 0,
+                ...(this.#frontTuning === null ? {} : {tuning_goal_hz: enteredEntry(this.#frontTuning)}),
+            },
+        };
+        return {...box, boxType: k, [k]: {...box[k], ...chambers}};
+    }
+}
+
+/** A passive-radiator box cannot be valid without a RADIATOR — the one box type whose builder
+ *  demands a second component, which is exactly why it has a builder of its own. */
+class PassiveRadiatorProjectBuilder extends BoxProjectBuilder {
+    #volume: number | null = null;
+    #tuning: number | null = null;
+    #count = 1;
+
+    constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
+        super(driver, engine, appContext);
+    }
+
+    volume_m3(v: number): this {
+        this.#volume = v;
+        return this;
+    }
+
+    tuning_goal_hz(v: number): this {
+        this.#tuning = v;
+        return this;
+    }
+
+    count(v: number): this {
+        this.#count = v;
+        return this;
+    }
+
+    protected boxRecord(): OpenISDBoxJson {
+        const box = this.emptyBox();
+        return {
+            ...box,
+            boxType: 'box-passive-radiator',
+            passiveRadiator: {
+                ...box.passiveRadiator,
+                volume_m3: this.#volume ?? 0,
+                ...(this.#tuning === null ? {} : {tuning_goal_hz: enteredEntry(this.#tuning)}),
+                count: this.#count,
+            },
+        };
+    }
+}

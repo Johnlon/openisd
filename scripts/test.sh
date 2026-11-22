@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+# `npm test` — the project's test entry point.
+#
+#   npm test                                       full gate: unit suite, then browser suite
+#   npm test packages/design/test/domain/driver-record.test.ts           ONE vitest file
+#   npm test packages/ui/test/ui/visual.browser.spec.ts    ONE playwright spec
+#
+# WHY THIS SCRIPT EXISTS. The entry point used to be the literal string
+# `npm run test:unit && bash scripts/test-browser.sh`. npm appends a script's arguments to the
+# END of that string, so `npm test <one-file>` ran the WHOLE unit suite (vitest never saw the
+# path) and then handed the path to Playwright — which for a vitest file matches nothing. A
+# request for one file therefore ran everything, or ran everything and then failed. AGENTS.md:42
+# tells every contributor and agent to run the single target file during the TDD loop, and this
+# is the command they reach for; it has to mean what it says.
+#
+# The two suites take DIFFERENT runners, so one path cannot simply be forwarded to both. The
+# suffix decides, using playwright.config.js's own testMatch convention: *.browser.spec.ts is a
+# Playwright spec, anything else is vitest. An argument that names no target at all is an ERROR
+# — silently widening a narrow request to the full suite is the failure this script removes.
+set -euo pipefail
+# Must run in Git Bash on Windows (MSYSTEM set) or WSL (microsoft in /proc/version).
+# PowerShell/cmd have no /proc, so they are still rejected.
+{ [ -n "${MSYSTEM:-}" ] || [ "$(uname -s)" = Linux ]; } || { echo "ERROR: must run in Git Bash on Windows, WSL or Linux, not PowerShell/cmd" >&2; exit 1; }
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# ── Baseline pictures are drawn by CI's test machine only (T799) ─────────────────────────────
+# A picture drawn here is not what the suite's browser job draws; T791 committed 37 of them and main went red.
+# --update-snapshots / -u is refused on every machine that cannot draw like CI, whatever spec it names.
+if ! bash "$SCRIPT_DIR/visual/can-draw.sh"; then
+  for arg in "$@"; do
+    case "$arg" in
+      -u|--update-snapshots|--update-snapshots=*) update_flag=1 ;;
+    esac
+  done
+  if [ -n "${update_flag:-}" ] || [ -n "${npm_config_update_snapshots:-}" ]; then
+    cat >&2 <<EOF
+ERROR: this machine cannot draw baseline pictures: they must be what CI's test machine draws (docs/design/VISUAL_BASELINES.md).
+Commit your work, then run:  bash scripts/visual/update.sh
+It has CI draw every screen on your commit and brings the pictures back, stamped; nothing is drawn here.
+EOF
+    exit 1
+  fi
+fi
+
+# ── npm eats leading flags, so "no arguments" can be a LIE ───────────────────────────────────
+# `npm test --workers=1` never reaches this script as an argument: npm claims every leading
+# `--flag` as its own config and turns it into `npm_config_workers=1` in the environment. The
+# script would see $# = 0 and launch the FULL browser suite — the precise accident this file
+# exists to prevent, and one that costs a whole Playwright run on a box where concurrent suites
+# manufacture false failures. The swallowed flag is still visible in the environment, so look
+# for the ones that can only have come from a test runner and refuse.
+SWALLOWED=""
+for f in workers headed ui debug grep grep_invert update_snapshots last_failed retries trace \
+         project reporter coverage watch shard max_failures timeout; do
+  var="npm_config_$f"
+  if [ -n "${!var:-}" ]; then SWALLOWED="$SWALLOWED --${f//_/-}=${!var}"; fi
+done
+
+# ── No arguments: the full gate, both suites, unit first (fail fast on the cheap one) ────────
+if [ "$#" -eq 0 ]; then
+  if [ -n "$SWALLOWED" ]; then
+    cat >&2 <<EOF
+ERROR: npm swallowed your flags, so this script received NO arguments:$SWALLOWED
+
+Running the full suite is not a safe reading of that. Put the flags after a bare \`--\`, which
+is what stops npm claiming them:
+
+  npm test -- packages/ui/test/ui/visual.browser.spec.ts --workers=1
+  npm test -- packages/design/test/domain/driver-record.test.ts
+
+Or call the runner directly. \`npm test\` with genuinely no arguments is the full gate.
+EOF
+    exit 1
+  fi
+  if [ "${OPENISD_FULL_GATE:-}" != "1" ]; then
+    cat >&2 <<EOF
+ERROR: the full suite is not run by hand. Name the specs for your change:
+
+  bash scripts/test.sh packages/design/test/engine/circuit.test.ts
+  bash scripts/test.sh packages/ui/test/ui/visual.browser.spec.ts
+
+The full suite runs in the post-land run only (.claude/rules/verify.md).
+EOF
+    exit 1
+  fi
+  # Both halves always run, then the verdict (a flaky spec is a red; there is no rerun).
+  unit=0; browser=0
+  bash "$SCRIPT_DIR/quiet-test.sh" npx vitest run || unit=$?
+  bash "$SCRIPT_DIR/test-browser.sh" || browser=$?
+  [ "$unit" = 0 ] && [ "$browser" = 0 ] || exit 1
+  exit 0
+fi
+
+# ── Arguments: route to the runner that owns the named target ────────────────────────────────
+for arg in "$@"; do
+  case "$arg" in
+    *.browser.spec.ts)
+      exec bash "$SCRIPT_DIR/suite-lock.sh" shared -- bash "$SCRIPT_DIR/quiet-test.sh" bash "$SCRIPT_DIR/test-browser.sh" "$@"
+      ;;
+    *.test.sh)
+      exec bash "$SCRIPT_DIR/quiet-test.sh" bash "$@"
+      ;;
+  esac
+done
+
+for arg in "$@"; do
+  case "$arg" in
+    -*) ;;                       # a flag names no target
+    */*|*.test.ts|*.test.js|*.test.mjs)
+      exec bash "$SCRIPT_DIR/quiet-test.sh" npx vitest run "$@"
+      ;;
+  esac
+done
+
+cat >&2 <<EOF
+ERROR: no test target in the arguments: $*
+
+An argument list with no file, directory or spec in it is not a narrow run, and this script
+will not silently expand it into the full suite. Name a target:
+
+  npm test packages/design/test/domain/driver-record.test.ts           one vitest file
+  npm test packages/ui/test/ui/visual.browser.spec.ts    one playwright spec (add --workers=1)
+  npm test                                               the full gate, both suites
+
+A *.browser.spec.ts target goes to scripts/test-browser.sh; anything else goes to vitest.
+EOF
+exit 1

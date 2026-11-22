@@ -1,0 +1,12 @@
+[Unit]
+Description=Heavy build/test work - one shared ceiling for every agent session
+
+[Slice]
+# Admission (scripts/budget.sh) keeps the running jobs inside scripts/budget.conf's BUDGET_MB, so there is no
+# MemoryHigh throttle: past it the kernel slowed every job in the slice, the suite's browsers included (F45).
+# MemoryMax is only a backstop for a runaway; it sits above the admitted total and does not fire in normal running.
+CPUQuota=800%
+CPUWeight=20
+IOWeight=20
+MemoryMax=13G
+MemorySwapMax=0

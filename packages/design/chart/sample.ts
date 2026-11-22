@@ -1,0 +1,72 @@
+/** Lookups into a plotted series: linear interpolation, nearest peak or trough. */
+
+/** The chart cursor's readout value: linear interpolation between the two already-plotted
+ *  points straddling `x` (clamped to the series' own ends outside its range). `xs` must be
+ *  sorted ascending and non-empty, and hold at least one point — the caller (which already
+ *  built the series to draw the chart) guarantees this. */
+export function interpolatedY(xs: readonly number[], ys: readonly number[], x: number): number {
+  if (x <= xs[0]) return ys[0];
+  if (x >= xs[xs.length - 1]) return ys[ys.length - 1];
+  let i = 1;
+  while (i < xs.length && xs[i] < x) i++;
+  const t = (x - xs[i - 1]) / (xs[i] - xs[i - 1]);
+  return ys[i - 1] + t * (ys[i] - ys[i - 1]);
+}
+
+/** The lowest frequency at which the trace reaches `level`: linear interpolation between the
+ *  two samples straddling it, or the first sample itself when the trace starts at or above it.
+ *  `xs` ascending; non-finite samples are skipped; null when the trace never reaches `level`. */
+export function crossingFrequency(xs: readonly number[], ys: readonly number[], level: number): number | null {
+  let prev = -1;
+  for (let i = 0; i < xs.length; i++) {
+    if (!isFinite(ys[i])) continue;
+    if (ys[i] >= level) {
+      if (prev < 0) return xs[i];
+      return xs[prev] + (xs[i] - xs[prev]) * (level - ys[prev]) / (ys[i] - ys[prev]);
+    }
+    prev = i;
+  }
+  return null;
+}
+
+/** The index i of each segment i-1 → i of a phase trace (degrees) that changes by more than 180°:
+ *  the jump across the ±180° cut, which joins two samples that are close in phase. Segments
+ *  touching a non-finite sample are never listed. */
+export function wrapSegments(ys: readonly number[]): number[] {
+  const out: number[] = [];
+  for (let i = 1; i < ys.length; i++) {
+    if (isFinite(ys[i - 1]) && isFinite(ys[i]) && Math.abs(ys[i] - ys[i - 1]) > 180) out.push(i);
+  }
+  return out;
+}
+
+export type SnapDirection = 'left' | 'right';
+export type SnapExtremum = 'max' | 'min';
+
+/** The local peak (`max`) or trough (`min`) of a series nearest `f` by log distance, searching
+ *  only the `direction` side of `f`; null when none qualifies. With `f` null the whole series is
+ *  searched and distance is measured from its middle sample. Non-finite samples never qualify. */
+export function snapFrequency(
+  xs: readonly number[], ys: readonly number[], f: number | null, direction: SnapDirection, extremum: SnapExtremum,
+): number | null {
+  const candidates: number[] = [];
+  for (let i = 1; i < ys.length - 1; i++) {
+    if (!isFinite(ys[i])) continue;
+    const peak = ys[i] > ys[i - 1] && ys[i] > ys[i + 1];
+    const trough = ys[i] < ys[i - 1] && ys[i] < ys[i + 1];
+    if (extremum === 'max' ? !peak : !trough) continue;
+    if (f !== null) {
+      if (direction === 'left' && xs[i] >= f) continue;
+      if (direction === 'right' && xs[i] <= f) continue;
+    }
+    candidates.push(i);
+  }
+  if (!candidates.length) return null;
+  const from = f ?? xs[Math.floor(xs.length / 2)];
+  let best = candidates[0], bestD = Infinity;
+  for (const i of candidates) {
+    const d = Math.abs(Math.log10(xs[i]) - Math.log10(from));
+    if (d < bestD) { bestD = d; best = i; }
+  }
+  return xs[best];
+}

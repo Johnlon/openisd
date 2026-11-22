@@ -1,0 +1,280 @@
+import {
+  type DeviceName,
+  type OAuthConfig,
+  SYNC_AFTER_EDIT_MS,
+} from '@openisd/design/cloud';
+import {
+  OPENISD_MY_DRIVERS_KEY,
+  OPENISD_MY_PASSIVE_RADIATORS_KEY,
+  type AppSettingsRepo,
+  type AuthStorage,
+  type CloudSession,
+  type CloudSync,
+  type KeyValueStorage,
+  type LayoutRules,
+  type ProjectRepo,
+  type RedirectGuard,
+  type RunLock,
+  type RunOutcome,
+  type SessionLocation,
+  type StorageBackup,
+  type SyncEngine,
+  type SyncLedger,
+  type SyncScheduler,
+  type SyncTriggers,
+  type Timer,
+  createCloudSync,
+  createDriveStore,
+  createFavouritesRepo,
+  createFetchHttp,
+  createGoogleRevoker,
+  createImplicitSession,
+  createProjectDocs,
+  createBinMarkDocs,
+  type ProjectBin,
+  type ProjectBinMarks,
+  createSavedEntries,
+  createSavedEntryDocs,
+  createSingletonDocs,
+  createSyncEngine,
+  createSyncLedger,
+  createAccountNamer,
+  createSyncScheduler,
+  relistOnce,
+  createTokenStore,
+} from '@openisd/persistence';
+
+class InMemoryLock implements RunLock {
+  private chain: Promise<unknown> = Promise.resolve();
+
+  async withLock<T>(_name: string, f: () => Promise<T>): Promise<T> {
+    const next = this.chain.then(f, f);
+    this.chain = next;
+    return next;
+  }
+}
+
+function createNavigatorLockAdapter(locks: LockManager): RunLock {
+  return {
+    async withLock<T>(name: string, f: () => Promise<T>): Promise<T> {
+      return locks.request(name, () => f());
+    },
+  };
+}
+
+export function createDefaultRunLock(): RunLock {
+  if (
+    typeof navigator !== 'undefined' &&
+    'locks' in navigator &&
+    navigator.locks !== undefined &&
+    navigator.locks !== null &&
+    typeof navigator.locks.request === 'function'
+  ) {
+    return createNavigatorLockAdapter(navigator.locks);
+  }
+  return new InMemoryLock();
+}
+
+export function createBrowserTimer(): Timer {
+  return {
+    after(ms: number, f: () => void): () => void {
+      const handle = setTimeout(f, ms);
+      return () => clearTimeout(handle);
+    },
+    every(ms: number, f: () => void): () => void {
+      const handle = setInterval(f, ms);
+      return () => clearInterval(handle);
+    },
+  };
+}
+
+
+export interface CloudSyncWiringDeps {
+  readonly storage: KeyValueStorage & AuthStorage;
+  readonly projectRepo: ProjectRepo;
+  readonly projectBin: ProjectBin;
+  readonly binMarks: ProjectBinMarks;
+  readonly appSettingsRepo: AppSettingsRepo;
+  readonly backup: StorageBackup;
+  readonly rules: LayoutRules;
+  readonly config: OAuthConfig;
+  readonly guard: RedirectGuard;
+  readonly fetch: typeof fetch;
+  /** Whether the browser says it is online; a failed request is "offline" only when it is not. */
+  readonly online: () => boolean;
+  readonly timer: Timer;
+  readonly lock: RunLock;
+  readonly visible: () => boolean;
+  readonly location: SessionLocation;
+  readonly random: () => Uint8Array;
+  readonly now: () => number;
+  readonly deviceName: DeviceName;
+  /** Told after each run of the saved projects its pulls replaced, so open ones can follow. */
+  readonly projectsPulled: (pulled: readonly PulledProject[]) => void;
+  /** Called at the start of every scheduled run, before it reads the store: the open projects' unsaved
+   *  edits are written to their saved entries, so the run sends the whole project (QO946.c248). */
+  readonly beforeRun: () => void;
+}
+
+/** A saved project a pull replaced, and the device that saved what replaced it ('' when unknown). */
+export interface PulledProject {
+  readonly id: string;
+  readonly from: string;
+  /** The text this device's store held for the project until the pull. */
+  readonly before: string;
+  /** The conflict copy the run kept this device's version as, or null when there was no conflict. */
+  readonly copyId: string | null;
+}
+
+export interface CloudSyncWiring {
+  readonly cloudSync: CloudSync;
+  readonly triggers: SyncTriggers;
+  readonly scheduler: SyncScheduler;
+  readonly session: CloudSession;
+  readonly ledger: SyncLedger;
+  readonly engine: SyncEngine;
+}
+
+/** Builds sync over a writable store; the caller never builds it on a read-only one. */
+export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWiring {
+  const {now, random, timer, lock, visible, location} = deps;
+
+  const tokenStore = createTokenStore(deps.storage);
+  const revoker = createGoogleRevoker(createFetchHttp(deps.fetch, deps.online));
+  const session = createImplicitSession({
+    config: deps.config,
+    store: tokenStore,
+    guard: deps.guard,
+    revoker,
+    location,
+    clock: now,
+    random,
+  });
+
+  const driveStore = createDriveStore({
+    http: createFetchHttp(deps.fetch, deps.online),
+    session,
+  });
+
+  const ledger = createSyncLedger({
+    storage: deps.storage,
+    random,
+  });
+  relistOnce(deps.storage, ledger);
+
+  // Built after the engine; the engine's progress and the project docs' events reach it through this.
+  let cloudSync: CloudSync | null = null;
+  // Handed over when the run ends, not during it: following them writes to the store.
+  let pulled: PulledProject[] = [];
+  const projectDocs = createProjectDocs({
+    repo: deps.projectRepo,
+    rules: deps.rules,
+    now,
+    binned: id => deps.projectBin.isBinned(id),
+    restoredFromBin: (name, editedOn) => cloudSync?.restoredFromBin(name, editedOn),
+    replaced: (id, from, before) => { pulled = [...pulled.filter(p => p.id !== id), {id, from, before, copyId: null}]; },
+    keptCopy: (id, copyId) => { pulled = pulled.map(p => (p.id === id ? {...p, copyId} : p)); },
+  });
+  const binMarkDocs = createBinMarkDocs({marks: deps.binMarks, rules: deps.rules});
+
+  const driverEntries = createSavedEntries<unknown>(
+    deps.storage,
+    { key: OPENISD_MY_DRIVERS_KEY, open: r => r, snapshot: v => v },
+    deps.backup,
+  );
+  const driverDocs = createSavedEntryDocs({
+    repo: driverEntries,
+    rules: deps.rules,
+    now,
+  });
+
+  const prEntries = createSavedEntries<unknown>(
+    deps.storage,
+    { key: OPENISD_MY_PASSIVE_RADIATORS_KEY, open: r => r, snapshot: v => v },
+    deps.backup,
+  );
+  const prDocs = createSavedEntryDocs({
+    repo: prEntries,
+    rules: deps.rules,
+    now,
+  });
+
+  const settingsDocs = createSingletonDocs({
+    repo: deps.appSettingsRepo,
+    rules: deps.rules,
+    now,
+  });
+
+  const favouritesDocs = createSingletonDocs({
+    repo: createFavouritesRepo(deps.storage, deps.backup),
+    rules: deps.rules,
+    now,
+  });
+
+
+  const engine = createSyncEngine({
+    cloud: driveStore,
+    local: [projectDocs, binMarkDocs, driverDocs, prDocs, settingsDocs, favouritesDocs],
+    ledger,
+    backup: deps.backup,
+    layout: deps.rules.layout,
+    now,
+    deviceName: deps.deviceName,
+    progress: {
+      started: () => cloudSync?.runStarted(),
+      pushed: (count) => cloudSync?.runPushed(count),
+      moved: (activity) => cloudSync?.runMoved(activity),
+    },
+  });
+
+  const namer = createAccountNamer({
+    grant: () => session.grant(),
+    identity: driveStore,
+    nameAccount: (email) => session.nameAccount(email),
+    onRefused: (fault) => cloudSync?.accountRefused(fault),
+  });
+
+  // Every scheduled run first writes the open projects' unsaved edits to the store, so it sends what is on screen.
+  const scheduledEngine: SyncEngine = {
+    run: () => { deps.beforeRun(); return engine.run(); },
+    pendingLocal: () => engine.pendingLocal(),
+    notOnDrive: () => engine.notOnDrive(),
+  };
+  const scheduler = createSyncScheduler({
+    engine: scheduledEngine,
+    session,
+    namer,
+    timer,
+    now,
+    lock,
+    visible,
+    onOutcome: (outcome: RunOutcome) => {
+      cloudSync?.onOutcome(outcome);
+      if (pulled.length === 0) return;
+      const handed = pulled;
+      pulled = [];
+      deps.projectsPulled(handed);
+    },
+    // A Save and an edit wait the same few seconds before their run (QO946.c248).
+    debounce_ms: SYNC_AFTER_EDIT_MS,
+    focusGap_ms: 30000,
+    tick_ms: 60000,
+  });
+
+  cloudSync = createCloudSync({
+    session,
+    scheduler,
+    ledger,
+    engine,
+    now,
+  });
+
+  return {
+    cloudSync,
+    triggers: scheduler,
+    scheduler,
+    session,
+    ledger,
+    engine,
+  };
+}

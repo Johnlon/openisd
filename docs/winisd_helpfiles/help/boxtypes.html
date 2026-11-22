@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Box Types: The Great Debate
+    </title>
+    <link rel="stylesheet" href="../winisd.css" type="text/css" />
+  </head>
+  <body>
+    <p class="header">
+      Linearteam WinISD Pro
+    </p>
+    <h1>
+      Box Types: The Great Debate
+    </h1>
+    <p>
+      The debate over which design (Sealed vs. Vented vs. Passive radiator vs. Bandpass) is best
+      will, like abortion, likely never end. Suffice it to say that no ONE design is best. They
+      each have their Pro's and Con's. Anyone who tries to convince you otherwise is, at best, a
+      well intentioned fool.
+    </p>
+    <p>
+      The keyword when considering which type of enclosure to use is...Trade-Off. There are
+      trade-offs between box types, as well as trade-offs within box types.
+    </p>
+    <p>
+      Let's first begin with the Sealed box. This type of box is completely air tight, and uses the
+      air trapped inside of the box as a suspension (like squeezing an empty plastic Coke bottle
+      with the cap on) for the woofer. The "stiffness" of the suspension is determined by the size
+      of the box in relation to the design of the woofer. A larger suspension (bigger box) will
+      allow the woofer to move more freely, thereby yielding a lower bass response, but at a price
+      in power handling, of course. Likewise, a smaller box will raise the low bass cutoff
+      frequency, but will be able to withstand more power. There is a practical limit as to the
+      upper and lower extremes here as well. You can achieve extremely low cutoff frequencies with
+      sealed boxes, if you use so called Linkwitz-Transform equalizer.
+    </p>
+    <p>
+      Increasing the box size decreases the Qtc of the box. Lowering the box size raises the Qtc of
+      the box. The suggested range of the Qtc is between 0.5 and 2.0 (the Qtc rating is listed in
+      the Project Window under the Box tab). Overall, here's the scoop on the Sealed box:
+    </p>
+    <ul>
+      <li>Pluses
+        <ul>
+          <li>Easiest of all boxes to design and construct.
+          </li>
+          <li>Can better handle ultra-low (&lt;30 Hz) frequencies without destroying the woofer.
+          </li>
+          <li>Generally the most accurate box in the mid-bass frequencies (better transient
+          response...notes in quick succession are more well defined).
+          </li>
+          <li>Can be used with motion feedback.
+          </li>
+        </ul>
+      </li>
+      <li>Minuses
+        <ul>
+          <li>Low bass response not as good as in a vented box.
+          </li>
+          <li>Lower efficiency than that of a vented box.
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      Now, let's move on to the vented, or bass-reflex design. This design incorporates one or more
+      tubes or "ports" which allow air to travel in and out of the box as the speaker cone moves in
+      and out. The number of and size of the ports determines the -3dB point of the box.
+      Frequencies which fall below the -3dB point aren't reproduced very well by the box. Here's
+      the scoop on the vented box:
+    </p>
+    <ul>
+      <li>Pluses
+        <ul>
+          <li>Better low frequency response.
+          </li>
+          <li>Better efficiency.
+          </li>
+          <li>Better power handling in vicinity of tuning frequency.
+          </li>
+        </ul>
+      </li>
+      <li>Minuses
+        <ul>
+          <li>More difficult to design/build. If tuning frequency needs to be small, in small box,
+          port length often becomes too awkward to realize properly. In such cases Passive radiator
+          system may be favorable.
+          </li>
+          <li>Frequencies below tuning can cause the woofer to overextend itself and therefore be
+          damaged (an electronic low frequency filter can remedy this problem, so called 6th order
+          alignment).
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      Passive radiator box is a variation of ported box. There, the mass is mounted in very
+      compliant surround. Advantages and disadvantages over ported box are as follows:
+    </p>
+    <ul>
+      <li>Pluses
+        <ul>
+          <li>Very low tuning frequencies can be realized in small boxes.
+          </li>
+          <li>No port noise
+          </li>
+        </ul>
+      </li>
+      <li>Minuses
+        <ul>
+          <li>Passive radiator may run out of excursion at low frequencies
+          </li>
+          <li>As passive radiator has finite compliance, it creates notch in frequency response at
+          passive radiator's resonance frequency. That notch may impair transient response.
+          </li>
+          <li>Passive radiator unit is not normally suitable for horizontal mounting.
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      And finally, the bandpass box. This design must always be accompanied by a second set of
+      speakers which will play the "mid-bass" frequencies. This is clearly the most difficult box
+      to design and build, and is not intended for beginners. The bandpass box is designed to pass
+      only a small range of bass frequencies. This design allows the user to select very specific
+      woofers to meet very specific needs. Each box/woofer design covers its own part of the
+      spectrum which allows for a more even sound output across the entire spectrum as a whole.
+    </p>
+    <p>
+      The only real minuses to the bandpass design is that it is a monumental undertaking to
+      properly design and setup a complete system successfully. I recommend you experiment with the
+      sealed and/or vented designs first, and then go out and buy a book which deals with bandpass
+      design/construction prior to building your first bandpass system. With your book in hand, use
+      WinISD to do all the "what-if" scenarios for you. WinISD will go as deep as you want it to!
+    </p>
+    <hr />
+    <p class="footer">
+      This page originally written by JJ Richard (JJRichard@linearteam.org) and revised by Janne
+      Ahonen (janne@linearteam.org)
+    </p>
+  </body>
+</html>

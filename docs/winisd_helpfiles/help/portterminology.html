@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Port terminology
+    </title>
+    <link rel="stylesheet" href="../winisd.css" type="text/css" />
+  </head>
+  <body>
+    <p class="header">
+      Linearteam WinISD Pro
+    </p>
+    <h1>
+      Port terminology: Physical/acoustical length, end correction
+    </h1>
+    <p>
+      If you have read articles on port design on the Internet, you have probably stumbled on
+      various terms involving ports. This document is to explain some of those terms.
+    </p>
+    <hr />
+    <h3>
+      <a name="effradius" id="effradius">Effective radius/diameter</a>
+    </h3>
+    <p>
+      If your port has some other shaped cross-section than circular, then we'll need to calculate
+      effective radius or diameter. Effective radius is radius of the circle, which has same
+      cross-section area than non-circular object. For ports, only inside area contributes to port
+      area, not it's walls. For calculating effective port radius/diameter, use following
+      formulas:<br />
+      effective radius = sqrt(S/pi) and<br />
+      effective diameter = sqrt(4&#183;S/pi),<br />
+      where sqrt means square root.<br />
+      <br />
+      For example, you have square port which has 100 square inches of cross-section area, what is
+      effective diameter and radius?<br />
+      <br />
+      Now, just plugging the values to above formula we get:<br />
+      radius = sqrt(100/pi) = 5.642 inches<br />
+      diameter = sqrt(4&#183;100/pi) = 11.284 inches.<br />
+      <br />
+      Of course, diameter could have been easily obtained from radius by just multiplying radius by
+      two.
+    </p>
+    <hr />
+    <h3>
+      <a name="acoulen" id="acoulen">Acoustical length</a>
+    </h3>
+    <p>
+      First, we need to discuss what is the idea behind port, and how it works. Basically, port
+      forms a mass-spring resonance circuit with enclosure volume compliance. Helmholtz was first
+      to discover such a resonator, hence it was named after him. Mass in port resonates with
+      compliance of box air. By tuning the enclosure, we chose mass in port, so that resonates at
+      desired frequency. As our port will have some area, we can calculate, how long this "tube"
+      should be to have desired mass. This length is so called "acoustical length" of our port.
+    </p><img src="images/portdrawing02.png" alt="Image" />
+    <hr />
+    <h3>
+      <a name="physlen" id="physlen">Physical length</a>
+    </h3>
+    <p>
+      Unfortunately, effect of the port doesn't stop at the end of our port. Moving mass extends
+      somewhat beyond of the port. Researchers of acoustics say that radiation impedance has
+      reactive component, mass. So if we make our port length equal to calculated acoustical
+      length, we'll find out that tuning frequency is lower than what was expected. We can make
+      good approximation to this extra mass by adding this radiation load mass from desired port
+      mass and then calculating required port length.
+    </p><img src="images/portdrawing.png" alt="Image" />
+    <p>
+      By default, WinISD assumes that you are going to mount your port above way. And therefore
+      gives you physical length of your port assuming mounting like in above figures. See also
+      <a href="../faq/faq.html#FAQ_3_1">FAQ 3.1</a>.
+    </p>
+    <hr />
+    <h3>
+      <a name="endcorr" id="endcorr">End correction</a>
+    </h3>
+    <p>
+      End correction factor is analytically or empirically determined factor, how much port extends
+      beyond its physical ends. For free end, end correction is 0.30665 times port effective
+      diameter. For flanged end, more analytical expression is available, 4/(3&#183;pi) ~= 0.42441 times
+      port effective diameter. Flanged end is calculated assuming that tube terminates to infinite
+      baffle. Which is not exactly true, but.. Following table summarizes various port
+      configuration types and their total end correction factors (refer to above picture to various
+      end types):
+    </p>
+    <table>
+      <caption>
+        Summary of end correction values
+      </caption>
+      <tr>
+        <td>
+          Port configuration
+        </td>
+        <td>
+          end correction 1
+        </td>
+        <td>
+          end correction 2
+        </td>
+        <td>
+          Total end correction
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Two free ends
+        </td>
+        <td>
+          0.30665
+        </td>
+        <td>
+          0.30665
+        </td>
+        <td>
+          0.6133
+        </td>
+      </tr>
+      <tr>
+        <td>
+          One flanged and one free end
+        </td>
+        <td>
+          0.42441
+        </td>
+        <td>
+          0.30665
+        </td>
+        <td>
+          0.7311
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Two flanged ends
+        </td>
+        <td>
+          0.42441
+        </td>
+        <td>
+          0.42441
+        </td>
+        <td>
+          0.8488
+        </td>
+      </tr>
+    </table>
+    <p>
+      Physical port length is obtained by subtracting port effective diameter multiplied by
+      suitable end correction value from port's acoustical length.
+    </p>
+  </body>
+</html>

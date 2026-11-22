@@ -1,0 +1,17 @@
+{
+  "id": "file-new",
+  "name": "project-new-789.owpr",
+  "mimeType": "text/plain",
+  "headRevisionId": "rev-new",
+  "appProperties": {
+    "app": "openisd",
+    "kind": "project",
+    "uuid": "new-789",
+    "layout": "2",
+    "parentRevision": null,
+    "seq": "1",
+    "writer": "device-1",
+    "hash": "d4e5f6a7b8c9",
+    "deleted": "0"
+  }
+}

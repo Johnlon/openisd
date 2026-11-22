@@ -1,0 +1,484 @@
+
+import type { Engine } from '@openisd/design/engine';
+import { AllChartData, DPAL, referenceLineColors, type ChartData, type Design } from '@openisd/design/chart';
+import { buildProjectsArchive, parseProjectsArchive, type OpenISDProject } from '@openisd/design';
+import { savedNotice } from '@openisd/design/fields';
+import { createExportNotice } from './exportNotice.js';
+import { storedUseOf } from './storedUse.js';
+import {
+  type DesignFiles,
+  driverToWdrBytes,
+} from './fileImportExport.js';
+import type {ConfirmPort} from './confirmPort.js';
+/**
+ * Design I/O orchestration — Save the committed project to browser storage, Save As the project
+ * (.owpr) to the filesystem,
+ * export a WinISD .wpr project or a .wdr driver, copy a share link, import a .wdr/.wpr/.owdr/
+ * .owpr file, and the About text. Lives in a composable, not in the shell, so the toolbar and
+ * the export menu reuse ONE implementation — no duplication.
+ *
+ * This file is ORCHESTRATION ONLY: filename bookkeeping and flashing messages, calling the
+ * FOCUSED PROJECT's own file-IO methods (`.exportDriverWdr()`/`.exportWpr()`/`.importWpr()`/…,
+ * QO78: file IO lives in the domain module that owns what it reads/writes)
+ * and the injected `FileStorage` (WHERE bytes go AND the retained file handle, `fileStorage.ts`).
+ * It holds no driver value in any form — the driver crosses this file only as the managed
+ * layer's serialised text (`persistedDriver`, QO73) or as opaque export bytes.
+ *
+ * Save As writes to a file the user picked via the File System Access API (Chromium),
+ * retaining the handle so Save As overwrites the SAME file; browsers without the API
+ * (Firefox/Safari) fall back to a plain download. WPR/driver export and Share stay
+ * one-way downloads/links — there is nothing to "overwrite" for those.
+ *
+ * The file name IS the project name (@openisd/persistence projectFile.ts): picking a file on Save As
+ * renames the project to match, and opening a file names the project after the file it came
+ * from — the name stored inside the file never contradicts the name on disk.
+ */
+import {watch} from 'vue';
+import type {AppState} from './appState.js';
+import type {PresentationState} from './presentationState.js';
+import {
+  type BackupRepo,
+  copyOfName,
+  createFileSave,
+  type FileOpen,
+  type FileNaming,
+  type FileStorage,
+  projectFilename,
+  projectNameFromFilename,
+  type ProjectRepo,
+  type HistoryFile,
+  type RestoreOptions,
+  type RestoreResult,
+  type StorageUsage
+} from '@openisd/persistence';
+import {NoTelemetry, type Telemetry} from './telemetry/telemetry.js';
+import type {SaveFormat} from './telemetry/events.js';
+import {FeatureUse} from './telemetry/featureUse.js';
+import {projectDriverTelemetry} from './telemetry/projectDriver.js';
+import {setShareUrl} from './urlAppState.js';
+import type {Logging} from '../logging/flash.js';
+import {readDriverFileText} from './driverFileText.js';
+import {displayNameOf} from './driverDisplay.js';
+import {DriverFileFormat, formatOf, OpenableFiles, ProjectFileFormat, sniff} from '../fileFormat.js';
+import type {RecentActions} from './telemetry/errorContext.js';
+
+function sanitizeFilename(name: string | undefined): string {
+  return (name || 'design').replace(/[^\w.-]+/g, '_');
+}
+
+export interface DesignIO {
+  /** Tells the user a new project was not made because browser storage is full, and offers the projects list. */
+  reportStorageFull(): Promise<void>;
+  saveProject(): Promise<boolean>;
+  saveProjectRecord(project: OpenISDProject): Promise<boolean>;
+  /** Save every open project that has unsaved edits to browser storage, the unfocused ones
+   *  too. Resolves with how many were saved. */
+  saveAllProjects(): Promise<number>;
+  saveProjectAs(): Promise<void>;
+  shareLink(): Promise<void>;
+  exportWdr(): void;
+  exportWpr(): void;
+  exportOwdr(): void;
+  /** Settles once the file is read and imported (or the failure shown); it never rejects. */
+  importFile(f: File): Promise<void>;
+  /** File > Open: the system open dialog with one "OpenISD and WinISD files" filter; the picked
+   *  file goes to `importFile`. Where the browser has no such dialog, calls `fallback` (the
+   *  shell's own file input, whose `change` reaches `importFile`). */
+  openFromDisk(fallback: () => void): Promise<void>;
+  /** Download a snapshot of every persisted key (`BackupRepo.exportAll`) as one JSON file —
+   *  the Options dialog's "Backup" section. Not project-scoped like everything else here, but
+   *  the same one-shot-download shape as `exportWdr`/`exportWpr`, so it reuses this module's
+   *  `download` rather than a second `FileSave` instance. */
+  exportProjectsArchive(): void;
+  exportBackup(): void;
+  /** A chart's data table as a CSV file named after the focused project and the chart; a popup says what was saved. */
+  downloadChartData(data: ChartData): void;
+  /** Every chart the focused project can draw, as CSV files plus the project file, in one ZIP named after the project; a popup says what was saved. */
+  downloadAllChartData(): void;
+  /** A chart's data table onto the clipboard, tab separated; a message says it was copied or why not. */
+  copyChartData(data: ChartData): Promise<void>;
+  /** Save a stored backup (`StorageHistory.exportFile`) as a file. */
+  saveStoredBackup(file: HistoryFile): void;
+  /** Restore every persisted key from a previously-downloaded backup file. Pure pass-through to
+   *  `BackupRepo.importAll` — confirming with the user and reloading afterwards is the Options
+   *  dialog's own job, not this module's. */
+  importBackup(json: string, options: RestoreOptions): RestoreResult;
+}
+
+/**
+ * Built ONCE by the composition root and handed to every consumer. Every shell's Save button
+ * and the shared ExportMenu must agree on which file is open; a second construction would
+ * give each its own `FileStorage` (and so its own retained handle), so Save As in the menu and
+ * Save in the toolbar would track different files. Session-only either way — the File System
+ * Access API does not persist handles across a page load.
+ */
+function isRec(v: unknown): v is Record<string, unknown> { return typeof v === 'object' && v !== null && !Array.isArray(v); }
+export function createApplicationIO(deps: {
+  engine: Engine;
+  logging: Logging;
+  fileStorage: FileStorage;
+  fileOpen: FileOpen;
+  projectRepo: ProjectRepo;
+  files: DesignFiles;
+  backup: BackupRepo;
+  storageUsage: StorageUsage;
+  confirmPort: ConfirmPort;
+  appState: AppState;
+  presentation: PresentationState;
+  telemetry?: Telemetry;
+  featureUse?: FeatureUse;
+  actions?: RecentActions;
+}): DesignIO {
+  const telemetry: Telemetry = deps.telemetry ?? new NoTelemetry();
+  const featureUse = deps.featureUse ?? new FeatureUse(telemetry, deps.actions);
+  const recordSave = (format: SaveFormat, project: OpenISDProject | null): void =>
+    telemetry.record({kind: 'project_save', format, box: project?.box.boxType.value ?? '', ...(project ? projectDriverTelemetry(project.driver) : {})});
+  const { currentViewSnapshot, driverName, focusedProject, isModified, markProjectSaved, openProjectOnce, openProjects, newProjectDriver, requireFocusedProject } = deps.appState;
+  const presentationState = deps.presentation;
+  // Save/export/share operate on committed project state. An open What-if? is transient, so
+  // these boundaries cancel it before reading or promoting anything.
+  function endWhatIfBeforeIO(): void {
+    focusedProject()?.cancelWhatIf();
+    presentationState.editDriver = false;
+  }
+  const flash = (msg: string) => deps.logging.flash(msg);
+  const exportNotice = createExportNotice(deps.confirmPort);
+  const { download } = createFileSave();
+
+  // Renaming the project retargets the file. Browsers cannot rename a file on disk, so the
+  // honest equivalent is to let go of the retained handle: the next Save prompts for a
+  // location, with the new name already filled in. Without this, renaming would keep silently
+  // overwriting the file that still carries the OLD name — the one thing the name↔file rule
+  // forbids. `FileStorage` retains the handle itself; this only asks it to forget.
+  watch(() => focusedProject()?.name.value ?? null, (name) => {
+    if (name === null) return;
+    const openName = deps.fileStorage.openFileName();
+    if (openName && projectNameFromFilename(openName) !== name) deps.fileStorage.forget();
+  });
+
+  function owprNaming(suggestedName: string): FileNaming {
+    return { suggestedName, mime: ProjectFileFormat.Owpr.mime, label: ProjectFileFormat.Owpr.label, ext: '.' + ProjectFileFormat.Owpr.value };
+  }
+
+  /** Adopt the picked file's name as the project name — the file names the project. */
+  function adoptFileName(fileName: string | null, fallbackFilename: string): void {
+    requireFocusedProject().name.set(projectNameFromFilename(fileName || fallbackFilename));
+  }
+
+  function exportProjectsArchive(): void {
+    featureUse.feature('export');
+    const fileName = `openisd-projects-${new Date().toISOString().slice(0, 10)}.json`;
+    // Every stored project, and for one that is open, the open project as it is now (its unsaved
+    // changes too), never both.
+    const open = openProjects();
+    const all: OpenISDProject[] = [];
+    for (const stored of deps.projectRepo.listStoredProjects()) {
+      const holder = open.find(p => deps.projectRepo.storedIdOf(p) === stored.id);
+      const project = holder ?? deps.projectRepo.loadStoredProject(stored.id);
+      if (!Array.isArray(project)) all.push(project);
+    }
+    for (const p of open) {
+      if (deps.projectRepo.storedIdOf(p) === null && !all.includes(p)) all.push(p);
+    }
+
+    download(fileName, buildProjectsArchive(all), 'application/json');
+    recordSave('archive', null);
+    exportNotice.exported({kind: 'projects', count: all.length}, fileName);
+  }
+
+  /** A save the store refused: the project keeps its stored version and its unsaved changes,
+   *  and the user is told, with an offer to export every project. */
+  async function handleSaveFailure(): Promise<void> {
+    const confirmed = await deps.confirmPort.ask({
+      title: 'Could not save',
+      message: 'Browser storage is full. Export all projects to a file?',
+      confirmLabel: 'Export',
+      cancelLabel: 'Not now',
+    });
+    if (confirmed) {
+      exportProjectsArchive();
+    } else {
+      flash('Could not save: browser storage is full');
+    }
+  }
+
+  /** A new project the store would not take was not made: say so, and offer the projects list. */
+  async function reportStorageFull(): Promise<void> {
+    const show = await deps.confirmPort.ask({
+      title: 'Browser storage is full',
+      message: 'The new project was not made. Delete old projects to make room, then try again.',
+      confirmLabel: 'Show projects',
+      cancelLabel: 'Close',
+    });
+    if (show) deps.presentation.projectsRequests++;
+  }
+
+  /** Save — commit the edited project and refresh the browser-storage copy. */
+  async function saveProject(): Promise<boolean> {
+    return saveProjectRecord(requireFocusedProject());
+  }
+
+  /** Save one named open project without changing which project is focused. */
+  async function saveProjectRecord(project: OpenISDProject): Promise<boolean> {
+    deps.actions?.record('save-project');
+    if (project === focusedProject()) endWhatIfBeforeIO();
+    else project.cancelWhatIf();
+    // Storage first: a refused write must leave the project showing its unsaved changes. What is stored is the
+    // project as saved (no unsaved layer): Cloud sync sends that checkpoint, and Revert returns to it (QO946.c248).
+    const result = deps.projectRepo.saveToStorage(project.committedSnapshot());
+    if (result.kind === 'failed') {
+      await handleSaveFailure();
+      return false;
+    }
+    project.save();
+    if (project === focusedProject()) markProjectSaved();
+    recordSave('stored', project);
+    return true;
+  }
+
+  /** Save all — Save for every open project with unsaved edits, not only the focused one. */
+  async function saveAllProjects(): Promise<number> {
+    deps.actions?.record('save-all-projects');
+    endWhatIfBeforeIO();
+    const dirty = openProjects().filter(p => p.isModified());
+    let savedCount = 0;
+    for (const project of dirty) {
+      project.cancelWhatIf();
+      const result = deps.projectRepo.saveToStorage(project.committedSnapshot());
+      if (result.kind === 'failed') {
+        await handleSaveFailure();
+        return savedCount; // stop saving on failure; this project still shows its unsaved changes
+      }
+      project.save();
+      savedCount++;
+      recordSave('stored', project);
+    }
+    flash(savedNotice(savedCount, storedUseOf(deps.projectRepo, deps.storageUsage)));
+    return savedCount;
+  }
+
+  /**
+   * Save As — always prompts for a new file location. With a file already open this is
+   * making a COPY of it, so the suggested name is "Copy of <project>": accepting the default
+   * gives a genuinely new project rather than a second file claiming the same name.
+   */
+  async function saveProjectAs(): Promise<void> {
+    featureUse.feature('save_file');
+    endWhatIfBeforeIO();
+    const hadOpenFile = deps.fileStorage.openFileName() != null;
+    const currentName = requireFocusedProject().name.value;
+    const suggested = projectFilename(hadOpenFile ? copyOfName(currentName) : currentName);
+    const result = await deps.projectRepo.saveToNewFile(requireFocusedProject(), owprNaming(suggested));
+    if (result.cancelled) return;
+    adoptFileName(result.name, suggested);
+    const fileName = result.name ?? suggested;
+    if (!result.written) {
+      recordSave('owpr', requireFocusedProject());
+      flash(isModified.value ? `Project downloaded as ${fileName}. It stays marked unsaved.` : `Project downloaded as ${fileName}`);
+      return;
+    }
+    markProjectSaved();
+    recordSave('owpr', requireFocusedProject());
+    flash(`Project saved as ${fileName}`);
+  }
+
+  // shareLink() carries the WHOLE app state (see persist.ts's
+  // stateToUrl docstring) — chart cursor, panel layout, unit tokens — not just the domain
+  // project `ManagedProject.encodeShareLink` models. It therefore calls the project
+  // repo's `stateToUrl` rather than the managed method, whose share-link pair is scoped to
+  // the project record alone (a narrower, domain-only link for other consumers).
+  async function shareLink(): Promise<void> {
+    featureUse.feature('share_link');
+    const url = await deps.projectRepo.stateToUrl(requireFocusedProject(), currentViewSnapshot());
+    setShareUrl(url);
+    const showLink = (): void => flash(`Could not copy the share link. Copy it from here: ${url}`);
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(() => flash('Share link copied to clipboard'), showLink);
+    } else { showLink(); }
+  }
+
+  function exportWdr(): void {
+    featureUse.feature('export');
+    endWhatIfBeforeIO();
+    const fileName = sanitizeFilename(driverName.value) + '.wdr';
+    const { value: bytes, errors } = driverToWdrBytes(requireFocusedProject().driver);
+    if (!bytes) { flash(`Could not export ${fileName}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
+    download(fileName, bytes, DriverFileFormat.Wdr.mime);
+    flash(`Driver exported as ${fileName}`);
+  }
+
+  function exportOwdr(): void {
+    featureUse.feature('export');
+    endWhatIfBeforeIO();
+    const fileName = sanitizeFilename(driverName.value) + '.owdr';
+    download(fileName, deps.files.driverToOwdrBytes(requireFocusedProject().driver), DriverFileFormat.Owdr.mime);
+    flash(`Driver exported as ${fileName}`);
+  }
+
+  /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
+  function exportWpr(): void {
+    featureUse.feature('export');
+    endWhatIfBeforeIO();
+    const fileName = sanitizeFilename(driverName.value) + '.wpr';
+    const { value: bytes, errors } = deps.files.projectToWprBytes(requireFocusedProject());
+    if (!bytes) { flash(`Could not export ${fileName}: ${errors[0]?.message ?? 'the project is incomplete'}`); return; }
+    download(fileName, bytes, ProjectFileFormat.Wpr.mime);
+    recordSave('wpr', requireFocusedProject());
+    // What the export changed to keep WinISD working (e.g. a filter order clamped to 10).
+    const filterWarnings = errors.filter(e => e.field === 'Filters');
+    flash(`Project exported as ${fileName}` + (filterWarnings.length ? `: ${filterWarnings.map(e => e.message).join('; ')}` : ''));
+  }
+
+  /** Load a driver/design from a picked File. */
+  function importFile(f: File): Promise<void> {
+    featureUse.feature('import');
+    const failed = (reason: string) => flash(`Could not import ${f.name}: ${reason}`);
+    return readDriverFileText(f).then(({ text }) => {
+      try {
+        const format = formatOf(f.name) ?? sniff(new TextEncoder().encode(text));
+        /** What the load repaired in the opened project, one line each under the opening message (QO953.c31). */
+        let repairs: readonly string[] = [];
+
+        if (format === DriverFileFormat.Wdr || format === DriverFileFormat.Owdr) {
+          const { value: driver, errors } = deps.files.driverFromText(text, format);
+          if (!driver) throw new Error(errors[0]?.message ?? `could not read ${format.value}`);
+          // A driver file with a project open SWAPS the driver in place; with none open it is
+          // recognised as a DRIVER (not a project) and starts the New Project wizard with it
+          // pre-loaded — the user then chooses the box type and volume (BUG_20260912).
+          // A user's own file: its name and id stay on the device.
+          telemetry.record({ kind: 'driver_pick', source: 'import', id: '', name: '' });
+          const open = focusedProject();
+          if (open) {
+            open.loadDriver(driver);
+          } else {
+            newProjectDriver.value = driver;
+            presentationState.newProjectOpen = true;
+          }
+          deps.fileStorage.forget();
+          flash(`Driver imported from ${f.name}: ${displayNameOf(driver)}`);
+          return;
+        } else if (format === ProjectFileFormat.Wpr) {
+          const { value: project, errors, loadRepairs, notes } = deps.files.projectFromText(text, ProjectFileFormat.Wpr);
+          if (!project) throw new Error(errors[0]?.message ?? 'could not read .wpr');
+          project.name.set(projectNameFromFilename(f.name));
+          // Naming it after the file it came from is part of LOADING it, not a user edit: the
+          // loaded design is the ground state, so it is committed before the project is opened.
+          // Without this every opened project reads as unsaved — Revert armed, the unsaved dot
+          // lit, and closing it challenges the user over changes nobody made.
+          project.save();
+          // The open is IDENTIFIED by the file it came from (its name and exact content): opening
+          // the SAME file again switches to the tab already holding it instead of adding a second
+          // (BUG_20261009_same-project-opens-many-times).
+          openProjectOnce(project, {kind: 'file', name: f.name, content: text});
+          repairs = [...(notes ?? []), ...loadRepairs.map(repair => repair.text)];
+        } else if (format === ProjectFileFormat.Owpr || /^\s*\{/.test(text)) {
+          
+          let isArchive = false;
+          try {
+            const parsed: unknown = JSON.parse(text);
+            isArchive = isRec(parsed) && 'projects' in parsed && Array.isArray(parsed.projects);
+          } catch { /* not json */ }
+
+          if (isArchive) {
+            const result = parseProjectsArchive(text, projectText => deps.projectRepo.readProjectText(projectText));
+            if (result.kind === 'failed') {
+              throw new Error(result.reason);
+            }
+            const { added } = deps.projectRepo.importArchive(result.projects);
+            flash(`Imported ${added} projects from ${f.name}`);
+            deps.fileStorage.forget();
+            return;
+          }
+
+          const { value: project, errors, loadRepairs } = deps.files.projectFromText(text, ProjectFileFormat.Owpr);
+          if (!project) {
+            // `errors[0]` alone is what the message shows — one line is all a toast has room for —
+            // but a schema mismatch commonly raises several field-level issues at once (QO152),
+            // and the FIRST one is rarely the most informative. Logging every one to the console
+            // is what turns "the browser suite times out for 60s" into a diagnosable failure.
+            // eslint-disable-next-line no-console
+            console.error(`Could not read "${f.name}":`, errors.map(e => e.message).join('\n'));
+            throw new Error(errors[0]?.message ?? 'could not read the project file');
+          }
+          project.name.set(projectNameFromFilename(f.name));
+          project.save();   // the loaded design is the ground state — see the .wpr branch above
+          openProjectOnce(project, {kind: 'file', name: f.name, content: text});
+          repairs = loadRepairs.map(repair => repair.text);
+        } else {
+          throw new Error('it is not an OpenISD or WinISD file');
+        }
+        deps.fileStorage.forget();
+        flash([`Project imported from ${f.name}`, ...repairs].join('\n'));
+      } catch (err) { failed(err instanceof Error ? err.message : String(err)); }
+    }, (err: Error) => { failed(err.message); });
+  }
+
+  async function openFromDisk(fallback: () => void): Promise<void> {
+    const pick = await deps.fileOpen.pickFile(OpenableFiles.PICKER_FILTER);
+    switch (pick.kind) {
+      case 'picked': await importFile(pick.file); return;
+      case 'unsupported': fallback(); return;
+      case 'cancelled': return;
+    }
+  }
+
+  function exportBackup(): void {
+    featureUse.feature('backup');
+    const fileName = `openisd-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    download(fileName, deps.backup.exportAll(), 'application/json');
+    flash(`Backup downloaded as ${fileName}`);
+  }
+
+  function downloadChartData(data: ChartData): void {
+    featureUse.feature('chart_data');
+    const fileName = data.fileName(requireFocusedProject().name.value);
+    download(fileName, data.csv(), 'text/csv');
+    exportNotice.exported({kind: 'chartData', chart: data.chartName}, fileName);
+  }
+
+  function downloadAllChartData(): void {
+    featureUse.feature('chart_data');
+    const project = requireFocusedProject();
+    const p = deps.appState.syncedP.value;
+    const design: Design = {
+      driver: project.driver.specs.sweepDriver(),
+      box: project.box.boxType.value,
+      P: p,
+      curves: deps.appState.curvesData.value,
+      maxCurves: deps.appState.maxData.value ?? undefined,
+      name: project.name.value || driverName.value,
+      color: DPAL[0],
+      sortIndex: openProjects().indexOf(project),
+    };
+    const all = AllChartData.of(project.name.value, project.charts, deps.engine, p.fmin, p.fmax, design,
+      deps.appState.allIssues.value, referenceLineColors(deps.presentation.ui.chartColors), deps.files.projectToOwprText(project));
+    download(all.zipName, all.zip(), 'application/zip');
+    exportNotice.exported({kind: 'allChartData', charts: all.chartCount}, all.zipName);
+  }
+
+  async function copyChartData(data: ChartData): Promise<void> {
+    featureUse.feature('chart_data');
+    try {
+      await navigator.clipboard.writeText(data.text());
+      flash(`Copied the ${data.chartName} chart data`);
+    } catch {
+      flash(`Could not copy the ${data.chartName} chart data: the browser refused the clipboard`);
+    }
+  }
+
+  function saveStoredBackup(file: HistoryFile): void {
+    download(file.fileName, file.text, 'application/json');
+    flash(`Backup saved as ${file.fileName}`);
+  }
+
+  function importBackup(json: string, options: RestoreOptions): RestoreResult {
+    const result = deps.backup.importAll(json, options);
+    if (result.kind === 'ok') featureUse.feature('restore');
+    return result;
+  }
+
+  return {
+    reportStorageFull, saveProject, saveProjectRecord, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
+    exportBackup, downloadChartData, downloadAllChartData, copyChartData, saveStoredBackup, importBackup,
+  };
+}

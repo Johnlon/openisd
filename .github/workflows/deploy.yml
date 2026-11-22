@@ -1,0 +1,107 @@
+name: deploy
+
+# Rebuilds the three Pages sites from the GitHub Releases and deploys them: openisd.app from this
+# repo's Pages, test.openisd.app and snapshots.openisd.app as the gh-pages branch of
+# Johnlon/openisd-test and Johnlon/openisd-snapshots (T398). Never runs on a push to main by itself:
+# build.yml calls it after a snapshot build, release.yml after a release changes.
+# scripts/hosting/assemble-site.sh builds them, scripts/hosting/push-site.sh publishes the two
+# others; this file only checks out, calls them and uploads. Each of the two repos has a deploy key
+# with write access; its private half is this repo's secret TEST_SITE_DEPLOY_KEY or
+# SNAPSHOTS_SITE_DEPLOY_KEY.
+on:
+  workflow_call:
+    inputs:
+      publish_production:
+        description: Publish the approved build to openisd.app
+        required: false
+        type: boolean
+        default: false
+      expected_build_id:
+        required: false
+        type: string
+  workflow_dispatch:
+    inputs:
+      publish_production:
+        description: Publish to openisd.app only after release approval
+        required: false
+        default: false
+        type: boolean
+      expected_build_id:
+        description: Required build ID to verify after production deployment
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: bash scripts/hosting/assemble-site.sh build/site
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: publish test.openisd.app
+        env:
+          DEPLOY_KEY: ${{ secrets.TEST_SITE_DEPLOY_KEY }}
+        run: |
+          printf '%s\n' "$DEPLOY_KEY" > "$RUNNER_TEMP/key" && chmod 600 "$RUNNER_TEMP/key"
+          GIT_SSH_COMMAND="ssh -i $RUNNER_TEMP/key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
+            bash scripts/hosting/push-site.sh build/site/test git@github.com:Johnlon/openisd-test.git
+      - name: publish snapshots.openisd.app
+        env:
+          DEPLOY_KEY: ${{ secrets.SNAPSHOTS_SITE_DEPLOY_KEY }}
+        run: |
+          printf '%s\n' "$DEPLOY_KEY" > "$RUNNER_TEMP/key" && chmod 600 "$RUNNER_TEMP/key"
+          GIT_SSH_COMMAND="ssh -i $RUNNER_TEMP/key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
+            bash scripts/hosting/push-site.sh build/site/snapshots git@github.com:Johnlon/openisd-snapshots.git
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./build/site/prod
+
+  deploy:
+    needs: assemble
+    if: ${{ inputs.publish_production && inputs.expected_build_id != '' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.retry.outputs.page_url || steps.deployment.outputs.page_url }}
+    steps:
+      # Pages refuses a deployment while another is in progress; one retry rides that out.
+      - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - id: retry
+        if: steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+      - name: Verify production serves the expected release
+        if: ${{ inputs.expected_build_id != '' }}
+        env:
+          EXPECTED_BUILD_ID: ${{ inputs.expected_build_id }}
+        run: |
+          for attempt in $(seq 1 18); do
+            actual_build_id="$(curl --silent --show-error --fail \
+              --header 'Cache-Control: no-cache' \
+              "https://openisd.app/build-info.json?deploy-check=${GITHUB_RUN_ID}-${attempt}" \
+              | node -e 'let input="";process.stdin.on("data",chunk=>input+=chunk).on("end",()=>{try{process.stdout.write(JSON.parse(input).version ?? "")}catch{process.exitCode=1}})' 2>/dev/null || true)"
+            if [ "$actual_build_id" = "$EXPECTED_BUILD_ID" ]; then
+              echo "Production build $actual_build_id matches the promoted release."
+              exit 0
+            fi
+            echo "Waiting for production build $EXPECTED_BUILD_ID (currently ${actual_build_id:-unavailable}; attempt $attempt/18)."
+            sleep 10
+          done
+          echo "Production did not reach $EXPECTED_BUILD_ID." >&2
+          exit 1

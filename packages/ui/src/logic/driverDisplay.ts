@@ -1,0 +1,387 @@
+/**
+ * Display and search logic for one driver — what it is called, and what classification chips
+ * it gets. Neither is a domain fact: `OpenISDDriver` states T/S parameters and a stated
+ * `driver_type`, never a display string or a chip set, so this logic lives here rather than on
+ * the driver itself: it is display and search logic, not domain logic.
+ */
+import {driverInfoRows, type OpenISDDriver, type OpenISDDriverStandalone, type OpenISDPassiveRadiatorStandalone, type ProvenanceLetter, type Readable} from '@openisd/design';
+import type {BundledDriverIndexRow, BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
+import {Chip, DriverType, SizeClass} from '@openisd/design/filter';
+import {isoDay, NumberField} from '@openisd/design/fields';
+import {DriverScope} from '../driverScope.js';
+
+/** One row of the preview pane's spec table. `value` is already formatted for display. */
+export enum PreviewSpecKind { Number = 'number', Text = 'text' }
+export interface PreviewSpec {
+  kind: PreviewSpecKind; label: string; value: string | null; unit?: string;
+  /** Stated or calculated, for a spec field; null for a row that is not one (Type). */
+  provenance: ProvenanceLetter | null;
+  /** The tooltip; empty where the row has none. */
+  title: string;
+}
+
+/** Everything the filter bar can ask of a driver, as data. The controls holding these values
+ *  live in `driverBrowsingState.ts`; the question they add up to is answered by `matchesCriteria`. */
+export interface SearchCriteria {
+  /** Space-separated tokens, all of which must appear in the driver's display name. */
+  query: string;
+  /** chip id → 'include' | 'exclude'. */
+  typeStates: Record<string, string>;
+  /** Hz */
+  fsMin: string; fsMax: string;
+  /** Hz: the range a driver's stated range must cover. */
+  rangeFrom: string; rangeTo: string;
+  /** The Range checkbox: whether drivers that state no range stay in the list while the Range boxes are in use. */
+  rangeKeepUnstated: boolean;
+  /** cm² */
+  sdMin: string; sdMax: string;
+  /** Nominal impedances to admit, as strings: '4', '8', '16'. */
+  selZ: string[];
+  /** Size classes to admit, as `SizeClass.value` strings: '6.5', '8'. Matched on the class worked out from Sd. */
+  sizes: string[];
+  /** When true only subjects whose id is in `favorites` are admitted. */
+  favoritesOnly: boolean;
+  favorites: readonly string[];
+}
+
+/** What the filter bar reads about one candidate — named once, built two ways: from a bundled
+ *  index row (the picker lists rows, no domain object) and from a My Drivers domain object. */
+export interface SearchSubject {
+  /** The record uuid — what a favourite is recognised by. */
+  readonly id: string;
+  readonly name: string;
+  /** `chipsOf(...).types` — the type-chip vocabulary. */
+  readonly chips: readonly string[];
+  readonly Fs_hz: number | null;
+  readonly Sd_m2: number | null;
+  readonly Znom_ohm: number | null;
+  /** The frequency range the maker states. */
+  readonly freq_low_hz: number | null;
+  readonly freq_high_hz: number | null;
+  /** The size class worked out from Sd (search only), inches. */
+  readonly sizeFromSd_in: number | null;
+}
+
+export function searchSubjectOfDriver(driver: OpenISDDriverStandalone): SearchSubject {
+  const s = specSummaryOf(driver);
+  return { id: driver.uuid(), name: displayNameOf(driver), chips: chipsOf(driver).types, Fs_hz: s.Fs, Sd_m2: s.Sd, Znom_ohm: s.Znom,
+    freq_low_hz: driver.specs.freq_low_hz.value, freq_high_hz: driver.specs.freq_high_hz.value,
+    sizeFromSd_in: SizeClass.ofSd(s.Sd)?.inches ?? null };
+}
+
+export function searchSubjectOfIndexRow(row: BundledDriverIndexRow): SearchSubject {
+  return { id: row.uuid, name: row.name, chips: row.chips, Fs_hz: row.Fs_hz, Sd_m2: row.Sd_m2, Znom_ohm: row.Znom_ohm,
+    freq_low_hz: row.freq_low_hz, freq_high_hz: row.freq_high_hz,
+    sizeFromSd_in: row.sizeFromSd_in };
+}
+
+/** The stated T/S numbers of one driver's active section, plus its derived inductance — the
+ *  one place those reads live for display and search. Values are SI, exactly as the record
+ *  states them; `null` where the driver states nothing. */
+export function specSummaryOf(driver: OpenISDDriver): {
+  Fs: number | null; Sd: number | null; Re: number | null;
+  Qts: number | null; Qes: number | null; Qms: number | null;
+  Vas: number | null; Xmax: number | null; Le: number | null;
+  Znom: number | null; Pe: number | null;
+} {
+  const s = driver.specs;
+  return {
+    Fs: s.Fs_hz.value, Sd: s.Sd_m2.value, Re: s.Re_ohm.value,
+    Qts: s.Qts.value, Qes: s.Qes.value, Qms: s.Qms.value,
+    Vas: s.Vas_m3.value, Xmax: s.Xmax_m.value, Le: s.Le_H.value,
+    Znom: s.Znom_ohm.value, Pe: s.Pe_W.value,
+  };
+}
+
+/** The preview pane's spec table for one driver: every spec field it holds (`driverInfoRows`),
+ *  then its type. */
+export function previewSpecsOf(driver: OpenISDDriver): PreviewSpec[] {
+  const rows: PreviewSpec[] = driverInfoRows(driver).map(r => ({
+    kind: PreviewSpecKind.Number, label: r.label, value: r.value, unit: r.unit, provenance: r.provenance, title: r.title,
+  }));
+  const canonical = chipsOf(driver).canonical;
+  if (canonical && canonical !== DriverType.Unclassified.display) {
+    rows.push({kind: PreviewSpecKind.Text, label: 'Type', value: canonical, provenance: null, title: ''});
+  }
+  return rows;
+}
+
+/** The preview pane's text block for one driver — meta and provenance, read off the driver's
+ *  own accessors. */
+export function previewTextOf(driver: OpenISDDriver): {
+  brand: string | null; model: string | null; series: string | null; sku: string | null;
+  manufacturer: string | null; providedBy: string | null; added: string | null;
+  description: string | null; comment: string | null;
+} {
+  const s = (v: string | null | undefined): string | null => (v && v.length > 0 ? v : null);
+  return {
+    brand: s(driver.brand.value),
+    model: s(driver.model.value),
+    series: s(driver.series.value),
+    sku: s(driver.sku.value),
+    manufacturer: s(driver.manufacturer.value),
+    providedBy: s(driver.providedBy.value),
+    added: s(isoDay(driver.added.value ?? '')),
+    description: s(driver.description.value),
+    comment: s(driver.comment.value),
+  };
+}
+
+/** How a subject answers the stated range filter: off (no box filled), covers, short (it stops short of what
+ *  was typed, so it leaves the list) or notStated (it does not state an end that was asked about, so it stays). */
+export type StatedRangeResult = 'off' | 'covers' | 'short' | 'notStated';
+
+/** Filling one box checks only that end. A stated end that falls short decides, even if the other end is not stated. */
+export function statedRangeResult(subject: SearchSubject, c: SearchCriteria): StatedRangeResult {
+  const from = parseFloat(c.rangeFrom), to = parseFloat(c.rangeTo);
+  const askFrom = isFinite(from), askTo = isFinite(to);
+  if (!askFrom && !askTo) return 'off';
+  const low = subject.freq_low_hz, high = subject.freq_high_hz;
+  if (askFrom && low !== null && low > from) return 'short';
+  if (askTo && high !== null && high < to) return 'short';
+  if ((askFrom && low === null) || (askTo && high === null)) return 'notStated';
+  return 'covers';
+}
+
+/**
+ * The filter bar as a single predicate over a subject — every control at the top of the browser,
+ * in one place. Shared by the bundled pool and by My Drivers because a filter that skips a section
+ * is not a filter (`openisd-ui-design.md` §"Filters apply to every list").
+ */
+export function matchesCriteria(subject: SearchSubject, c: SearchCriteria): boolean {
+  const name = subject.name.toLowerCase();
+  const tokens = c.query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (tokens.length && !tokens.every(t => name.includes(t))) return false;
+
+  const types = subject.chips;
+  const included = Object.keys(c.typeStates).filter(k => c.typeStates[k] === 'include');
+  const excluded = Object.keys(c.typeStates).filter(k => c.typeStates[k] === 'exclude');
+  const UNCLASSIFIED = Chip.Unclassified.value;
+  const isUnclassified = types.length === 0;
+  if (included.length &&
+      !((included.includes(UNCLASSIFIED) && isUnclassified) ||
+        included.filter(t => t !== UNCLASSIFIED).some(t => types.includes(t)))) return false;
+  if (excluded.includes(UNCLASSIFIED) && isUnclassified) return false;
+  if (excluded.filter(t => t !== UNCLASSIFIED).some(t => types.includes(t))) return false;
+
+  const { Fs_hz: Fs, Sd_m2: Sd, Znom_ohm: Znom } = subject;
+  const fsMinV = parseFloat(c.fsMin), fsMaxV = parseFloat(c.fsMax);
+  const sdMinV = parseFloat(c.sdMin), sdMaxV = parseFloat(c.sdMax);
+  if (isFinite(fsMinV) && !(Fs != null && Fs >= fsMinV)) return false;
+  if (isFinite(fsMaxV) && !(Fs != null && Fs <= fsMaxV)) return false;
+  if (isFinite(sdMinV) && !(Sd != null && Sd * 1e4 >= sdMinV)) return false;
+  if (isFinite(sdMaxV) && !(Sd != null && Sd * 1e4 <= sdMaxV)) return false;
+  const range = statedRangeResult(subject, c);
+  if (range === 'short' || (range === 'notStated' && !c.rangeKeepUnstated)) return false;
+  if (c.selZ.length &&
+      !c.selZ.some(oz => Znom != null && Math.abs(Znom - parseFloat(oz)) < 1.5)) return false;
+
+  if (!SizeClass.admits(c.sizes, subject.sizeFromSd_in)) return false;
+
+  if (c.favoritesOnly && !c.favorites.includes(subject.id)) return false;
+  return true;
+}
+
+/** A min–max box pair in words: "Fs 20–40 Hz", "Fs ≥ 20 Hz", "Fs ≤ 40 Hz", or null when both are empty. */
+function rangeLabel(name: string, min: string, max: string, unit: string): string | null {
+  const lo = min.trim(), hi = max.trim();
+  if (lo && hi) return `${name} ${lo}–${hi} ${unit}`;
+  if (lo) return `${name} ≥ ${lo} ${unit}`;
+  if (hi) return `${name} ≤ ${hi} ${unit}`;
+  return null;
+}
+
+/** The stated range boxes in words: "Range 40–2000 Hz", "Range from 40 Hz", "Range to 2000 Hz", or null when both are empty. */
+function statedRangeLabel(from: string, to: string, unit: string, keepUnstated: boolean): string | null {
+  const lo = from.trim(), hi = to.trim();
+  const tail = keepUnstated ? '' : ', stated only';
+  if (lo && hi) return `Range ${lo}–${hi} ${unit}${tail}`;
+  if (lo) return `Range from ${lo} ${unit}${tail}`;
+  if (hi) return `Range to ${hi} ${unit}${tail}`;
+  return null;
+}
+
+/**
+ * Every filter that is on, in words, in the order the filter bar shows them. The list keeps its filters
+ * between openings, so it must say which are on: an empty list with no hint is the bug this answers.
+ * The scope counts when it is not All, since it narrows the list like any filter.
+ */
+export function activeFilterLabels(c: SearchCriteria, scope: DriverScope): string[] {
+  const labels: string[] = [];
+  const query = c.query.trim();
+  if (query) labels.push(`"${query}"`);
+  for (const chip of Chip.ALL) {
+    const state = c.typeStates[chip.value];
+    if (state === 'include') labels.push(chip.label);
+    else if (state === 'exclude') labels.push(`not ${chip.label}`);
+  }
+  // The filter boxes take Fs in its base unit (Hz) and Sd in cm² (`matchesCriteria`); the labels name those units.
+  const fs = rangeLabel('Fs', c.fsMin, c.fsMax, NumberField.FS_HZ.unitLabel());
+  if (fs) labels.push(fs);
+  const range = statedRangeLabel(c.rangeFrom, c.rangeTo, NumberField.FS_HZ.unitLabel(), c.rangeKeepUnstated);
+  if (range) labels.push(range);
+  const sd = rangeLabel('Sd', c.sdMin, c.sdMax, NumberField.SD_M2.unitLabel('cm2'));
+  if (sd) labels.push(sd);
+  if (c.selZ.length) labels.push(`Z ${c.selZ.map(z => `${z}${NumberField.ZNOM_OHM.unitLabel()}`).join(' or ')}`);
+  const size = SizeClass.filterLabel(c.sizes);
+  if (size) labels.push(size);
+  if (scope !== DriverScope.All) labels.push(`${scope.label} only`);
+  if (c.favoritesOnly) labels.push('Favorites');
+  return labels;
+}
+
+/** Whether a driver has missing core T/S fields or non-positive values that indicate DQ issues. */
+export function driverHasDqIssues(driver: OpenISDDriver): boolean {
+  const s = specSummaryOf(driver);
+  return s.Fs === null || s.Fs <= 0 || s.Qts === null || s.Qts <= 0 || s.Vas === null || s.Vas <= 0;
+}
+
+/** The radiator's counterpart to `driverHasDqIssues` — the ⚠ on a bundled radiator row.
+ *  What tuning one needs: Fs and Sd stated and positive, and a moving mass or a compliance
+ *  usable. Proposed rule, 2026-09-14. */
+export function radiatorHasDqIssues(radiator: OpenISDPassiveRadiatorStandalone): boolean {
+  const s = radiator.spec;
+  const Fs = s.Fs_hz.value, Sd = s.Sd_m2.value;
+  const Mms = s.Mms_kg.value, Cms = s.Cms_m_per_N.value;
+  const usable = (v: number | null): boolean => v !== null && v > 0;
+  return !usable(Fs) || !usable(Sd) || !(usable(Mms) || usable(Cms));
+}
+
+/** A device that states a brand and a model — what naming one on screen needs, and all it
+ *  needs. Structural rather than `OpenISDDevice`, which `domain/index.ts` does not export: a
+ *  driver and a passive radiator both satisfy it, and neither has to be named here. */
+interface NameableDevice {
+  readonly brand: Readable<string>;
+  readonly model: Readable<string>;
+}
+
+/** What this device is called on screen: `<brand> <model>`, or `'Driver'` when it states
+ *  neither. Single-device contexts (the editor, a preview pane) — a list across many devices
+ *  reads this per row, not a separate flattened field. Serves passive radiators too: a radiator
+ *  is named exactly as a driver is. */
+export function displayNameOf(driver: NameableDevice): string {
+  return [driver.brand.value, driver.model.value].filter(s => s.length > 0).join(' ').trim() || 'Driver';
+}
+
+/** One passive-radiator row, as the PR browser renders it: strings only. The radiator itself
+ *  stops here — a component holding the domain object would bind its template to the record's
+ *  shape and could not be mounted over a substitute (A9), so the row carries the `id` the
+ *  component emits back and this layer looks the radiator up again. */
+export interface PassiveRadiatorRow {
+  /** What the caller identifies this radiator by, and what a click emits: the storage uuid for a
+   *  saved radiator, the record uuid for a bundled one. */
+  id: string;
+  name: string;
+  /** `radiatorHasDqIssues` — the ⚠ on the row. */
+  dq: boolean;
+  /** The three numbers the row's tooltip quotes, formatted with their unit. `'—'` when the
+   *  radiator states nothing — a datasheet publishes Sd/Cms and routinely leaves Mms blank. */
+  sd: string;
+  mms: string;
+  cms: string;
+}
+
+/** A radiator the caller knows by an id — a My PRs entry. */
+export interface PassiveRadiatorEntry {
+  readonly id: string;
+  readonly radiator: OpenISDPassiveRadiatorStandalone;
+}
+
+/** The three figures a row's tooltip quotes, formatted with their unit; `'—'` when the radiator
+ *  states nothing — a datasheet publishes Sd/Cms and routinely leaves Mms blank. */
+function radiatorRow(id: string, name: string, dq: boolean, sd: number | null, mms: number | null, cms: number | null): PassiveRadiatorRow {
+  return {
+    id,
+    name,
+    dq,
+    sd: sd === null ? '—' : NumberField.SD_M2.format(sd) + NumberField.SD_M2.unitLabel(),
+    mms: mms === null ? '—' : NumberField.MMS_KG.format(mms) + NumberField.MMS_KG.unitLabel(),
+    cms: cms === null ? '—' : NumberField.CMS_M_PER_N.format(cms) + NumberField.CMS_M_PER_N.unitLabel(),
+  };
+}
+
+/** The PR browser's My PRs rows. Takes each radiator with the id its caller knows it by, and
+ *  returns what the list renders — no radiator on the way out. */
+export function passiveRadiatorRows(entries: readonly PassiveRadiatorEntry[]): PassiveRadiatorRow[] {
+  return entries.map(({ id, radiator }) => radiatorRow(
+    id, displayNameOf(radiator), radiatorHasDqIssues(radiator),
+    radiator.spec.Sd_m2.value, radiator.spec.Mms_kg.value, radiator.spec.Cms_m_per_N.value,
+  ));
+}
+
+/** The PR browser's bundled rows, straight off the index — the id is the record uuid, which is
+ *  what `BundledPassiveRadiatorRepo.load()` takes. */
+export function bundledPassiveRadiatorRows(rows: readonly BundledPassiveRadiatorIndexRow[]): PassiveRadiatorRow[] {
+  return rows.map(r => radiatorRow(r.uuid, r.name, r.dq, r.Sd_m2, r.Mms_kg, r.Cms_m_per_N));
+}
+
+// Name-based matching takes priority over T/S params.
+//   sub ⊂ woofer ⊂ bass · mid-bass ⊂ woofer + mid · full-range = woofer + mid + tweet + bass
+//   BMR = mid + tweet · PR = orthogonal
+const TWEET_PAT     = /\btweet(er)?\b|dome.tweeter|ribbon.tweeter|\bplanar\b|\bAMT\b|air.motion/i;
+const SUB_PAT       = /\bsub(woofer)?\b|sub[-_ ]/i;
+const WOOFER_PAT    = /\bwoofer\b/i;
+const MIDBASS_PAT   = /\bmid[-_ ]?(bass|woof(er)?)\b|\bmidbass\b/i;
+const MIDRANGE_PAT  = /\bmid[-_ ]?range\b|\bmidrange\b/i;
+const FULLRANGE_PAT = /\bfull[-_ ]?range\b|\bfullrange\b/i;
+const BMR_PAT       = /\bBMR\b|balanced.mode/i;
+const PR_PAT        = /\bpassive.radiator\b|\bP\.?R\.?\b/i;
+const COAX_PAT      = /\bcoax(ial)?\b|coaxial/i;
+
+/**
+ * Classification chips for one driver — the scraper-stated `driver_type` when it names a
+ * canonical `DriverType`, else the display name, else T/S parameters.
+ *
+ * Returns chip `.value` strings, not `Chip` members: the result is stored in a Vue ref, and the
+ * reactive proxy would break `===` identity on a member held there. `.value` is the serialised
+ * form, exactly as for the `driver_type` wire string.
+ */
+export function chipsOf(driver: OpenISDDriver): { types: string[]; canonical: string } {
+  const nm = displayNameOf(driver);
+  const spec = driver.specs;
+  const Fs = spec.Fs_hz.value;
+  const Sd = spec.Sd_m2.value;
+  const roles = DriverType.parseRoles(driver.driverTypes());
+
+  const of = (t: DriverType) => ({ types: t.chips.map(c => c.value), canonical: t.display });
+
+  // 1. The scraper-written `driver_type` is authoritative when it is a canonical
+  //    DriverType — project it onto the chips the member itself carries and stop.
+  //    Never compare against a bare string; DriverType.parse is the one boundary.
+  if (roles.length > 0) return { types: DriverType.chipValuesOf(roles), canonical: DriverType.displayOf(roles) };
+
+  // 2. No usable driver_type — most bundled records carry `driver_type: null` — so
+  //    fall back to the product name, then to T/S parameters.
+  const types = new Set<Chip>();
+  const canonical: string[] = [];
+
+  if (PR_PAT.test(nm))   return of(DriverType.PassiveRadiator);
+  if (COAX_PAT.test(nm)) return of(DriverType.Coaxial);
+
+  if (TWEET_PAT.test(nm)) {
+    types.add(Chip.Tweet);
+    // Name-only refinement: the wire contract has no ribbon/planar member, so these
+    // labels are display detail the enum deliberately does not carry.
+    if (/\bAMT\b|air.motion/i.test(nm))  canonical.push(DriverType.Amt.display);
+    else if (/\bribbon\b/i.test(nm))     canonical.push('Ribbon Tweeter');
+    else if (/\bplanar\b/i.test(nm))     canonical.push('Planar Tweeter');
+    else                                 canonical.push(DriverType.Tweeter.display);
+  }
+  const add = (t: DriverType) => {
+    for (const c of t.chips) types.add(c);
+    canonical.push(t.display);
+  };
+  if (SUB_PAT.test(nm))                              add(DriverType.Subwoofer);
+  if (MIDBASS_PAT.test(nm))                          add(DriverType.MidBass);
+  if (WOOFER_PAT.test(nm) && !MIDBASS_PAT.test(nm))  add(DriverType.Woofer);
+  if (MIDRANGE_PAT.test(nm))                         add(DriverType.Midrange);
+  if (FULLRANGE_PAT.test(nm))                        add(DriverType.FullRange);
+  if (BMR_PAT.test(nm))                              add(DriverType.Bmr);
+
+  if (types.size > 0) return { types: [...types].map(c => c.value), canonical: canonical.join(' / ') };
+
+  const SdCm2 = Sd != null ? Sd * 1e4 : null;
+  if (SdCm2 != null && SdCm2 < 12) return of(DriverType.Tweeter);
+  if (Fs != null && Fs < 40)       return of(DriverType.Subwoofer);
+  return { types: [], canonical: DriverType.Unclassified.display };
+}

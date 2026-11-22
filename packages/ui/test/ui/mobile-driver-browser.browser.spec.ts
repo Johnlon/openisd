@@ -1,0 +1,102 @@
+/**
+ * The driver picker (DriverBrowser.vue's .wb-modal, shared with desktop) on a genuinely short
+ * phone viewport: something eclipsed the bottom of
+ * the Use and Cancel buttons when picking a driver.
+ *
+ * .wb-modal was fixed at 770x535 with only a weak max-width/max-height safety net (the same gap
+ * DriverEditorModal's .de-modal had before its own App.vue override) — on a viewport shorter
+ * than ~630px (535px / the 85vh cap), the modal's real height clamped below what the list +
+ * preview + footer need. 412x600 reproduces that: narrow AND short, not just narrow.
+ */
+import {expect, openAMobileProject, test} from '../fixtures.js';
+import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+
+test.beforeEach(async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 600 });
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await openAMobileProject(page);
+  await page.locator('.mob-tab', { hasText: 'Driver' }).click();
+});
+
+test('the driver picker fills the short viewport instead of clamping to a fixed height', async ({ page }) => {
+  await page.getByText('Select driver').click();
+  const modal = page.locator('.overlay.on .wb-modal');
+  await expect(modal).toBeVisible();
+  const box = await modal.boundingBox();
+  expect(box).not.toBeNull();
+  // Was a fixed 535px regardless of viewport; now full-height, so it must fill the vast
+  // majority of a 600px-tall viewport (leaving no room for the old fixed cap to still apply).
+  expect(box!.height).toBeGreaterThan(560);
+});
+
+test('Cancel and Use stay inside the visible viewport, not clipped off the bottom', async ({ page }) => {
+  await page.getByText('Select driver').click();
+  await page.locator('.dlist .ditem, .dlist .my-ditem').first().click();
+
+  const useBtn = page.locator('.use-btn');
+  const cancelBtn = page.locator('.cancel-btn');
+  await expect(useBtn).toBeVisible();
+  await expect(cancelBtn).toBeVisible();
+
+  const viewport = page.viewportSize();
+  expect(viewport).not.toBeNull();
+  const useBox = await useBtn.boundingBox();
+  const cancelBox = await cancelBtn.boundingBox();
+  expect(useBox).not.toBeNull();
+  expect(cancelBox).not.toBeNull();
+  expect(useBox!.y + useBox!.height).toBeLessThanOrEqual(viewport!.height);
+  expect(cancelBox!.y + cancelBox!.height).toBeLessThanOrEqual(viewport!.height);
+
+  // A real click lands — not just present in the DOM but actually hittable (the original bug
+  // was something ELSE painting over this exact region, which also blocks clicks).
+  await cancelBtn.click();
+  await expect(page.locator('.use-btn')).toHaveCount(0);
+});
+
+test('the selected-driver summary has the same clear inner gutter as the wizard preview', async ({page}) => {
+  await page.getByText('Select driver').click();
+  await page.locator('.dlist .ditem, .dlist .my-ditem').first().click();
+  const preview = page.locator('.driver-library .preview');
+  await expect(preview).toBeVisible();
+  await expect(preview).toHaveCSS('padding-top', '12px');
+  await expect(preview).toHaveCSS('padding-right', '16px');
+  await expect(preview).toHaveCSS('padding-bottom', '12px');
+  await expect(preview).toHaveCSS('padding-left', '16px');
+});
+
+test('the phone driver summary uses the same compact specification layout as the wizard', async ({page}) => {
+  await page.getByText('Select driver').click();
+  await page.locator('.dlist .ditem, .dlist .my-ditem').first().click();
+  const preview = page.locator('.driver-library .preview');
+  await expect(preview).toBeVisible();
+
+  const presentation = await preview.evaluate(element => ({
+    specColumns: getComputedStyle(element.querySelector('.prev-specs')!).gridTemplateColumns.split(' ').length,
+    labelDisplay: getComputedStyle(element.querySelector('.prev-src-lbl')!).display,
+    specFontSize: getComputedStyle(element.querySelector('.spec-row')!).fontSize,
+    metadataFontSize: getComputedStyle(element.querySelector('.prev-textinfo')!).fontSize,
+  }));
+  expect(presentation.specColumns, 'the phone driver summary should match the wizard’s two-column specification layout').toBe(2);
+  expect(presentation.labelDisplay, 'metadata labels should match the wizard’s inline-block presentation').toBe('inline-block');
+  expect(presentation.specFontSize).toBe('11px');
+  expect(presentation.metadataFontSize).toBe('11px');
+});
+
+// An empty driver list gives a hint, and Favorites is not selectable when empty. The phone skin shares the list, so the same answers hold here.
+test('with no favourites, Favorites is disabled; a filter that matches nothing offers Clear filters', async ({ page }) => {
+  await page.getByText('Select driver').click();
+  const rows = page.locator('.dlist .ditem');
+  await expect(rows.first()).toBeVisible();
+  const before = await rows.count();
+  await page.locator('.dl-filters-toggle').click(); // the favourites toggle sits behind Filters on the phone
+  await expect(page.locator('.fav-filter')).toBeDisabled();
+
+  await page.locator('.filter').fill('no driver is called this');
+  await expect(page.locator('.dlist')).toContainText('No drivers match');
+  const clear = page.locator('.dlist .filters-clear');
+  await expect(clear).toBeInViewport();
+  await clear.click();
+  await expect(rows).toHaveCount(before);
+  await expect(page.locator('.filters-on')).toHaveCount(0);
+});

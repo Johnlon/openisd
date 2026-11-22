@@ -1,0 +1,984 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import {
+  BodyHash,
+  DeviceName,
+  type DocId,
+  FileId,
+  RevisionId,
+  type SyncActivity,
+  bodyHashOf,
+} from '@openisd/design/cloud';
+import type { KeyValueStorage } from '../../src/storage/keyValueStorage.js';
+import { createSyncLedger, type SyncLedger } from '../../src/cloud/syncLedger.js';
+import type { StorageBackup, Guarded, BackupResult, PreRepairCopy, BackupInfo, RefusedCopy, RefusedCopyRecord } from '../../src/repos/storageBackup.js';
+import type { BackupReason } from '../../src/repos/storageSnapshot.js';
+import { FakeCloudStore } from './fakeCloudStore.js';
+import { FakeLocalDocs } from './fakeLocalDocs.js';
+import { createSyncEngine } from '../../src/cloud/syncEngine.js';
+
+class MemoryStorage implements KeyValueStorage {
+  private data = new Map<string, string>();
+  get(key: string) { return this.data.get(key) ?? null; }
+  set(key: string, value: string) { this.data.set(key, value); }
+  remove(key: string) { this.data.delete(key); }
+  watch() { return () => {}; }
+  keys() { return Array.from(this.data.keys()); }
+}
+
+class FakeBackup implements StorageBackup {
+  guardCalls = 0;
+  refuseGuard = false;
+
+  guard<T>(_reason: BackupReason, destructive: () => T): Guarded<T> {
+    this.guardCalls++;
+    if (this.refuseGuard) {
+      return { kind: 'refused', shortfall: { copyChars: 900, storeChars: 4000 } };
+    }
+    return { kind: 'ran', value: destructive() };
+  }
+
+  take(): BackupResult { return { kind: 'nothingToBackUp' }; }
+  list(): BackupInfo[] { return []; }
+  read(): string | null { return null; }
+  discard(): boolean { return false; }
+  keepPreRepairCopy(): void { /* no copies kept */ }
+  preRepairCopies(): PreRepairCopy[] { return []; }
+  readPreRepairCopy(): string | null { return null; }
+  discardCopy(): boolean { return false; }
+  discardAll(): number { return 0; }
+  write(): boolean { return true; }
+  refuse(): boolean { return true; }
+  refusedCopies(): RefusedCopy[] { return []; }
+  readRefused(): RefusedCopyRecord | null { return null; }
+  discardRefused(): boolean { return false; }
+}
+
+describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
+  let cloud: FakeCloudStore;
+  let localProjects: FakeLocalDocs;
+  let localDrivers: FakeLocalDocs;
+  let localSettings: FakeLocalDocs;
+  let ledger: SyncLedger;
+  let backup: FakeBackup;
+  let nowMs: number;
+
+  const APP_LAYOUT = 2;
+  const project1Id: DocId = { kind: 'project', uuid: 'proj-1' };
+  const project2Id: DocId = { kind: 'project', uuid: 'proj-2' };
+  const settingsId: DocId = { kind: 'settings' };
+
+  const body1 = JSON.stringify({ name: 'Sub 12', volume: 45 });
+  const body1Updated = JSON.stringify({ name: 'Sub 12', volume: 50 });
+  const body2 = JSON.stringify({ name: 'Monitor 8', volume: 20 });
+  const bodySettings = JSON.stringify({ theme: 'dark' });
+  const bodySettingsUpdated = JSON.stringify({ theme: 'light' });
+
+  beforeEach(() => {
+    cloud = new FakeCloudStore();
+    localProjects = new FakeLocalDocs('project');
+    localDrivers = new FakeLocalDocs('driver');
+    localSettings = new FakeLocalDocs('settings');
+    ledger = createSyncLedger({
+      storage: new MemoryStorage(),
+      random: () => new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]),
+    });
+    backup = new FakeBackup();
+    nowMs = 1776100000000;
+  });
+
+  let progress: string[];
+  let moves: SyncActivity[];
+
+  function createEngine(layout = APP_LAYOUT) {
+    progress = [];
+    moves = [];
+    return createSyncEngine({
+      progress: { started: () => progress.push('started'), pushed: (n) => progress.push(`pushed ${n}`), moved: (a) => moves.push(a) },
+      cloud,
+      local: [localProjects, localDrivers, localSettings],
+      ledger,
+      backup,
+      layout,
+      now: () => nowMs,
+      deviceName: DeviceName.ofBrowser('', 0),
+    });
+  }
+
+  describe('Nothing is left pending after a synced run', () => {
+    async function firstSync() {
+      localProjects.docs = [
+        { id: project1Id, body: body1, layout: APP_LAYOUT },
+        { id: project2Id, body: body2, layout: APP_LAYOUT },
+      ];
+      localSettings.docs = [{ id: settingsId, body: '{"theme":"dark"}', layout: APP_LAYOUT }];
+      const engine = createEngine();
+      expect(await engine.run()).toMatchObject({ kind: 'synced' });
+      expect(engine.pendingLocal()).toBe(0);
+      // A second, idle run moves the change cursor past this device's own uploads.
+      expect(await engine.run()).toMatchObject({ kind: 'synced' });
+      return engine;
+    }
+
+    it('a second run with nothing changed pushes nothing and creates no files', async () => {
+      const engine = await firstSync();
+      const files = cloud.files.size;
+      expect(await engine.run()).toMatchObject({ kind: 'synced', pushed: 0, left: 0 });
+      expect(cloud.files.size).toBe(files);
+      expect(engine.pendingLocal()).toBe(0);
+    });
+
+    it('an edit after the first run is pushed as an update of the same file', async () => {
+      const engine = await firstSync();
+      const files = cloud.files.size;
+      localProjects.docs = [
+        { id: project1Id, body: body1Updated, layout: APP_LAYOUT },
+        { id: project2Id, body: body2, layout: APP_LAYOUT },
+      ];
+      expect(engine.pendingLocal()).toBe(1);
+      expect(await engine.run()).toMatchObject({ kind: 'synced', pushed: 1 });
+      expect(cloud.files.size).toBe(files);
+      expect(engine.pendingLocal()).toBe(0);
+    });
+
+    it('a delete after the first run reaches Drive as a tombstone', async () => {
+      const engine = await firstSync();
+      localProjects.docs = [{ id: project2Id, body: body2, layout: APP_LAYOUT }];
+      expect(engine.pendingLocal()).toBe(1);
+      expect(await engine.run()).toMatchObject({ kind: 'synced', pushed: 1 });
+      const deleted = [...cloud.files.values()].filter(f => f.meta.deleted).map(f => f.meta.id);
+      expect(deleted).toEqual([project1Id]);
+      expect(engine.pendingLocal()).toBe(0);
+    });
+
+    it('a pulled singleton the store re-saves in its own form is not left pending', async () => {
+      cloud.seedFile({
+        meta: {
+          id: settingsId, fileId: FileId.of('file-s')!, revision: RevisionId.of('rev-s')!, parentRevision: null,
+          layout: APP_LAYOUT, seq: 5, writer: 'device-other', device: '', deleted: false, remoteHash: bodyHashOf('{"theme":"light"}')!,
+        },
+        body: '{"theme":"light"}',
+      });
+      localSettings.docs = [{ id: settingsId, body: '{"theme":"dark"}', layout: APP_LAYOUT }];
+      localSettings.normalise = (body) => JSON.stringify({ ...JSON.parse(body), units: 'mm' });
+      const engine = createEngine();
+      expect(await engine.run()).toMatchObject({ kind: 'synced' });
+      expect(engine.pendingLocal()).toBe(0);
+    });
+  });
+
+  describe('Activity: one entry per item moved', () => {
+    it('a sent project, a received driver, then the project deleted here is named from what was remembered', async () => {
+      localProjects.docs = [{ id: project1Id, body: body1, layout: APP_LAYOUT }];
+      const driverId: DocId = { kind: 'driver', uuid: 'drv-1' };
+      const driverBody = JSON.stringify({ name: 'RS225' });
+      cloud.seedFile({
+        meta: {
+          id: driverId, fileId: FileId.of('file-d')!, revision: RevisionId.of('rev-d')!, parentRevision: null,
+          layout: APP_LAYOUT, seq: 4, writer: 'device-phone', device: 'iPhone', deleted: false, remoteHash: bodyHashOf(driverBody)!,
+        },
+        body: driverBody,
+      });
+      await createEngine().run();
+      expect(moves).toEqual([
+        { kind: 'moved', at_ms: nowMs, direction: 'down', change: 'saved', item: 'driver', name: 'RS225', device: 'iPhone' },
+        { kind: 'moved', at_ms: nowMs, direction: 'up', change: 'saved', item: 'project', name: 'Sub 12', device: '' },
+      ]);
+
+      localProjects.docs = [];
+      await createEngine().run();
+      expect(moves).toEqual([
+        { kind: 'moved', at_ms: nowMs, direction: 'up', change: 'deleted', item: 'project', name: 'Sub 12', device: '' },
+      ]);
+    });
+  });
+
+  describe('Duplicate Drive files', () => {
+    function copy(id: DocId, n: number, seq: number, body: string) {
+      cloud.seedFile({
+        meta: {
+          id, fileId: FileId.of(`dup-${n}`)!, revision: RevisionId.of(`rev-dup-${n}`)!, parentRevision: null,
+          layout: APP_LAYOUT, seq, writer: 'device-other', device: '', deleted: false, remoteHash: bodyHashOf(body)!,
+        },
+        body,
+      });
+    }
+
+    it('a full listing keeps the newest copy of each doc and deletes the others, never a doc listed once', async () => {
+      copy(project1Id, 1, 3, body1);
+      copy(project1Id, 2, 7, body1Updated);
+      copy(project1Id, 3, 5, body1);
+      copy(project2Id, 4, 2, body2);
+      const outcome = await createEngine().run();
+      expect(outcome).toMatchObject({ kind: 'synced', removedDuplicates: 2, skippedNewer: 0 });
+      expect(cloud.removeCalls.map(f => f.toString()).sort()).toEqual(['dup-1', 'dup-3']);
+      expect([...cloud.files.keys()].sort()).toEqual(['dup-2', 'dup-4']);
+      expect(localProjects.docs.find(d => d.id.kind === 'project' && d.id.uuid === project1Id.uuid)?.body).toBe(body1Updated);
+    });
+
+    it('nothing is deleted when every doc has one file', async () => {
+      copy(project1Id, 1, 3, body1);
+      copy(project2Id, 2, 2, body2);
+      expect(await createEngine().run()).toMatchObject({ kind: 'synced', removedDuplicates: 0, skippedNewer: 0 });
+      expect(cloud.removeCalls).toEqual([]);
+    });
+  });
+
+  describe('Upload concurrency', () => {
+    function newProjects(n: number) {
+      return Array.from({ length: n }, (_, i) => ({
+        id: { kind: 'project', uuid: `new-${i}` } as const,
+        body: JSON.stringify({ name: `Box ${i}`, volume: i + 1 }),
+        layout: APP_LAYOUT,
+      }));
+    }
+
+    function trackCreates(failAt: number | null = null) {
+      const seen = { inFlight: 0, maxInFlight: 0, calls: 0 };
+      const create = cloud.create.bind(cloud);
+      cloud.create = async (id, body, meta) => {
+        const call = seen.calls++;
+        seen.inFlight++;
+        seen.maxInFlight = Math.max(seen.maxInFlight, seen.inFlight);
+        await new Promise(resolve => setTimeout(resolve, 1));
+        seen.inFlight--;
+        if (call === failAt) return { kind: 'offline' };
+        return create(id, body, meta);
+      };
+      return seen;
+    }
+
+    it('uploads new items four at a time', async () => {
+      localProjects.docs = newProjects(10);
+      const seen = trackCreates();
+      const outcome = await createEngine().run();
+      expect(outcome).toMatchObject({ kind: 'synced', pushed: 10 });
+      expect(seen.maxInFlight).toBe(4);
+      expect(progress.filter(p => p.startsWith('pushed'))).toHaveLength(10);
+    });
+
+    it('an upload is reported as soon as it finishes, not when the whole run ends', async () => {
+      localProjects.docs = newProjects(2);
+      const create = cloud.create.bind(cloud);
+      let call = 0;
+      let reportedWhileSecondPending = -1;
+      cloud.create = async (id, body, meta) => {
+        const mine = call++;
+        if (mine === 1) {
+          // the second upload waits until the first has been reported
+          await new Promise(resolve => setTimeout(resolve, 20));
+          reportedWhileSecondPending = moves.length;
+        }
+        return create(id, body, meta);
+      };
+      await createEngine().run();
+      expect(reportedWhileSecondPending).toBe(1);
+    });
+
+    it('a failed upload stops new ones; those already sent still count', async () => {
+      localProjects.docs = newProjects(10);
+      const seen = trackCreates(1);
+      const outcome = await createEngine().run();
+      // Calls 0, 2, 3 and 4 were sent before call 1 failed; none starts after it.
+      expect(seen.calls).toBe(5);
+      expect(outcome).toMatchObject({ kind: 'stopped', reason: 'offline', pushedSoFar: 4 });
+    });
+  });
+
+  describe('Progress', () => {
+    it('reports the start of a run and each push as it lands', async () => {
+      localProjects.docs = [
+        { id: project1Id, body: body1, layout: APP_LAYOUT },
+        { id: project2Id, body: body2, layout: APP_LAYOUT },
+      ];
+      const outcome = await createEngine().run();
+      expect(outcome.kind).toBe('synced');
+      expect(progress).toEqual(['started', 'pushed 1', 'pushed 2']);
+    });
+  });
+
+  describe('Core invariants', () => {
+    it('equal hashes never make a copy: adopts revision without copy or push', async () => {
+      localProjects.docs = [{ id: project1Id, body: body1, layout: APP_LAYOUT }];
+      const hash1 = bodyHashOf(body1)!;
+
+      const fileId = FileId.of('file-p1')!;
+      const rev1 = RevisionId.of('rev-1')!;
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId,
+          revision: rev1,
+          parentRevision: null,
+          layout: APP_LAYOUT,
+          seq: 1,
+          writer: 'device-other',
+          device: '',
+          deleted: false,
+          remoteHash: hash1,
+        },
+        body: body1,
+      });
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      if (outcome.kind === 'synced') {
+        expect(outcome.conflicts).toHaveLength(0);
+        expect(outcome.pushed).toBe(0);
+      }
+      expect(localProjects.conflictCalls).toHaveLength(0);
+      expect(localProjects.putCalls).toHaveLength(0);
+      expect(backup.guardCalls).toBe(0);
+
+      const row = ledger.row(project1Id);
+      expect(row).not.toBeNull();
+      expect(row?.revision.toString()).toBe('rev-1');
+      expect(row?.hash.toString()).toBe(hash1.toString());
+    });
+
+    it('a push-only run takes no backup', async () => {
+      localProjects.docs = [{ id: project1Id, body: body1, layout: APP_LAYOUT }];
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      if (outcome.kind === 'synced') {
+        expect(outcome.pushed).toBe(1);
+        expect(outcome.pulled).toBe(0);
+      }
+      expect(backup.guardCalls).toBe(0);
+      expect(cloud.files.size).toBe(1);
+    });
+
+    it('a held doc (remote layout > app layout) blocks its local push and counts as held', async () => {
+      localProjects.docs = [{ id: project1Id, body: body1Updated, layout: APP_LAYOUT }];
+      const hash1 = bodyHashOf(body1)!;
+      const rev1 = RevisionId.of('rev-1')!;
+      ledger.set({
+        id: project1Id,
+        fileId: FileId.of('file-p1')!,
+        revision: rev1,
+        hash: hash1,
+        seq: 1,
+      });
+
+      // Remote has newer layout (layout 3 vs app layout 2)
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId: FileId.of('file-p1')!,
+          revision: RevisionId.of('rev-2')!,
+          parentRevision: rev1,
+          layout: 3,
+          seq: 2,
+          writer: 'device-other',
+          device: '',
+          deleted: false,
+          remoteHash: BodyHash.of('hash-future')!,
+        },
+        body: 'future-body',
+      });
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      if (outcome.kind === 'synced') {
+        expect(outcome.held).toBe(1);
+        expect(outcome.pushed).toBe(0);
+        expect(outcome.pulled).toBe(0);
+      }
+      // Local edit was blocked from pushing:
+      const cloudFile = cloud.files.get('file-p1');
+      expect(cloudFile?.meta.layout).toBe(3);
+    });
+
+    it('a remote doc at an older layout that migrates to the local body is the same doc: no conflict copy, and the upgraded doc is pushed', async () => {
+      const olderBody = JSON.stringify({ name: 'Sub 12', volume: 45 });
+      const migratedBody = JSON.stringify({ id: 'proj-1', name: 'Sub 12', volume: 45 });
+      localProjects.docs = [{ id: project1Id, body: migratedBody, layout: 3 }];
+      localProjects.migrator = doc => (doc.layout === 2 ? migratedBody : doc.body);
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId: FileId.of('file-p1')!,
+          revision: RevisionId.of('rev-1')!,
+          parentRevision: null,
+          layout: 2,
+          seq: 1,
+          writer: 'device-other',
+          device: '',
+          deleted: false,
+          remoteHash: bodyHashOf(olderBody)!,
+        },
+        body: olderBody,
+      });
+
+      const outcome = await createEngine(3).run();
+
+      expect(outcome.kind).toBe('synced');
+      if (outcome.kind === 'synced') expect(outcome.conflicts).toHaveLength(0);
+      expect(localProjects.conflictCalls).toHaveLength(0);
+      expect(cloud.files.size).toBe(1);
+      // The upgraded doc replaces the older one on Drive.
+      expect(cloud.files.get('file-p1')?.meta.layout).toBe(3);
+      expect(cloud.files.get('file-p1')?.body).toBe(migratedBody);
+    });
+
+    it('the fake plays the overwrite race: moved reply causes re-pull and conflict copy', async () => {
+      localProjects.docs = [{ id: project1Id, body: body1Updated, layout: APP_LAYOUT }];
+      const hash1 = bodyHashOf(body1)!;
+      const rev1 = RevisionId.of('rev-1')!;
+      const fileId = FileId.of('file-p1')!;
+
+      ledger.set({
+        id: project1Id,
+        fileId,
+        revision: rev1,
+        hash: hash1,
+        seq: 1,
+      });
+
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId,
+          revision: rev1,
+          parentRevision: null,
+          layout: APP_LAYOUT,
+          seq: 1,
+          writer: 'device-local',
+          device: '',
+          deleted: false,
+          remoteHash: hash1,
+        },
+        body: body1,
+      });
+
+      // Simulate concurrent update on cloud before push executes
+      cloud.simulateConcurrentUpdate(fileId, JSON.stringify({ name: 'Sub 12', volume: 60 }), {
+        seq: 2,
+        writer: 'device-concurrent',
+        device: 'iPhone',
+        hash: BodyHash.of('hash-concurrent')!,
+      });
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      if (outcome.kind === 'synced') {
+        expect(outcome.conflicts.length).toBeGreaterThan(0);
+      }
+      expect(moves).toContainEqual({ kind: 'keptBoth', at_ms: nowMs, item: 'project', name: 'Sub 12', copyName: 'Sub 12 (conflict)', device: 'iPhone' });
+      // Conflict copy was created locally and pushed as new doc, under its marked name:
+      expect(localProjects.conflictCalls).toHaveLength(1);
+      expect(cloud.files.size).toBe(2);
+      expect([...cloud.files.values()].map(f => f.body)).toContain(JSON.stringify({ name: 'Sub 12 (conflict)', volume: 50 }));
+    });
+  });
+
+  describe('Backup guard handling', () => {
+    it('takes ONE backup.guard when removing or replacing local data', async () => {
+      localProjects.docs = [{ id: project1Id, body: body1, layout: APP_LAYOUT }];
+      const hash1 = bodyHashOf(body1)!;
+      const rev1 = RevisionId.of('rev-1')!;
+      ledger.set({
+        id: project1Id,
+        fileId: FileId.of('file-p1')!,
+        revision: rev1,
+        hash: hash1,
+        seq: 1,
+      });
+
+      // Remote updated doc
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId: FileId.of('file-p1')!,
+          revision: RevisionId.of('rev-2')!,
+          parentRevision: rev1,
+          layout: APP_LAYOUT,
+          seq: 2,
+          writer: 'device-other',
+          device: '',
+          deleted: false,
+          remoteHash: bodyHashOf(body1Updated)!,
+        },
+        body: body1Updated,
+      });
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      expect(backup.guardCalls).toBe(1);
+    });
+
+    it('refuses removing/replacing step when backup is refused (noRoom), but pushes unblocked changes', async () => {
+      // Doc 1: clean local, remote delete -> needs removal (guarded)
+      localProjects.docs = [
+        { id: project1Id, body: body1, layout: APP_LAYOUT },
+        { id: project2Id, body: body2, layout: APP_LAYOUT }, // local new -> push
+      ];
+      const hash1 = bodyHashOf(body1)!;
+      const rev1 = RevisionId.of('rev-1')!;
+      ledger.set({
+        id: project1Id,
+        fileId: FileId.of('file-p1')!,
+        revision: rev1,
+        hash: hash1,
+        seq: 1,
+      });
+
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId: FileId.of('file-p1')!,
+          revision: RevisionId.of('rev-2')!,
+          parentRevision: rev1,
+          layout: APP_LAYOUT,
+          seq: 2,
+          writer: 'device-other',
+          device: '',
+          deleted: true,
+          remoteHash: null,
+        },
+        body: body1,
+      });
+
+      backup.refuseGuard = true;
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('refused');
+      if (outcome.kind === 'refused') {
+        expect(outcome).toMatchObject({ reason: 'noRoom', shortfall: { copyChars: 900, storeChars: 4000 } });
+      }
+      // Removal was refused:
+      expect(localProjects.docs.some(d => d.id.kind === 'project' && d.id.uuid === 'proj-1')).toBe(true);
+      // But push still happened:
+      expect(cloud.files.size).toBe(2);
+    });
+  });
+
+  describe('Failure mapping to RunOutcome', () => {
+    it('maps offline to stopped', async () => {
+      cloud.simulateOffline = true;
+      const engine = createEngine();
+      const outcome = await engine.run();
+      expect(outcome).toEqual({
+        kind: 'stopped',
+        reason: 'offline',
+        pushedSoFar: 0,
+        pendingLocal: 0,
+      });
+    });
+
+    it('maps quota to stopped', async () => {
+      cloud.simulateQuota = 1000;
+      const engine = createEngine();
+      const outcome = await engine.run();
+      expect(outcome).toEqual({
+        kind: 'stopped',
+        reason: 'quota',
+        pushedSoFar: 0,
+        pendingLocal: 0,
+      });
+    });
+
+    it('maps unauthorised to reconnect', async () => {
+      cloud.simulateUnauthorised = true;
+      const engine = createEngine();
+      const outcome = await engine.run();
+      expect(outcome).toEqual({
+        kind: 'reconnect',
+        pendingLocal: 0,
+      });
+    });
+
+    it('maps malformed to failed', async () => {
+      cloud.simulateMalformed = 'Invalid JSON response';
+      const engine = createEngine();
+      const outcome = await engine.run();
+      expect(outcome).toEqual({
+        kind: 'failed',
+        fault: { operation: 'request', status: 0, reason: 'Invalid JSON response', reply: '' },
+        pendingLocal: 0,
+      });
+    });
+
+    it('maps unreadable bucket to refused bucketUnreadable', async () => {
+      localProjects.unreadable = true;
+      const engine = createEngine();
+      const outcome = await engine.run();
+      expect(outcome.kind).toBe('refused');
+      if (outcome.kind === 'refused') {
+        expect(outcome.reason).toBe('bucketUnreadable');
+      }
+    });
+  });
+
+  describe('Section 5.5 Scenarios', () => {
+    it('Scenario 1: Edit project on A offline; edit same project on B; A comes online -> keep both', async () => {
+      // Local edit
+      localProjects.docs = [{ id: project1Id, body: body1Updated, layout: APP_LAYOUT }];
+      const hash1 = bodyHashOf(body1)!;
+      const rev1 = RevisionId.of('rev-1')!;
+      ledger.set({
+        id: project1Id,
+        fileId: FileId.of('file-p1')!,
+        revision: rev1,
+        hash: hash1,
+        seq: 1,
+      });
+
+      // Remote edit on B
+      const bodyB = JSON.stringify({ name: 'Sub 12', volume: 55 });
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId: FileId.of('file-p1')!,
+          revision: RevisionId.of('rev-2')!,
+          parentRevision: rev1,
+          layout: APP_LAYOUT,
+          seq: 2,
+          writer: 'device-B',
+          device: 'iPhone',
+          deleted: false,
+          remoteHash: bodyHashOf(bodyB)!,
+        },
+        body: bodyB,
+      });
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      if (outcome.kind === 'synced') {
+        expect(outcome.conflicts.length).toBe(1);
+      }
+      expect(moves).toContainEqual({ kind: 'keptBoth', at_ms: nowMs, item: 'project', name: 'Sub 12', copyName: 'Sub 12 (conflict)', device: 'iPhone' });
+      expect(localProjects.conflictCalls).toHaveLength(1);
+      // The copy goes to Drive under its marked name, so other devices see it marked too:
+      const driveBodies = [...cloud.files.values()].map(f => f.body);
+      expect(driveBodies).toContain(JSON.stringify({ name: 'Sub 12 (conflict)', volume: 50 }));
+      // B's edit is now the local project-1:
+      const p1 = localProjects.docs.find(d => d.id.kind === 'project' && d.id.uuid === 'proj-1');
+      expect(p1?.body).toBe(bodyB);
+      // Conflict copy was pushed:
+      expect(cloud.files.size).toBe(2);
+    });
+
+    it('Scenario 2: Both devices made the same edit -> adopt, no copy', async () => {
+      localProjects.docs = [{ id: project1Id, body: body1Updated, layout: APP_LAYOUT }];
+      const hash1 = bodyHashOf(body1)!;
+      const rev1 = RevisionId.of('rev-1')!;
+      ledger.set({
+        id: project1Id,
+        fileId: FileId.of('file-p1')!,
+        revision: rev1,
+        hash: hash1,
+        seq: 1,
+      });
+
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId: FileId.of('file-p1')!,
+          revision: RevisionId.of('rev-2')!,
+          parentRevision: rev1,
+          layout: APP_LAYOUT,
+          seq: 2,
+          writer: 'device-B',
+          device: '',
+          deleted: false,
+          remoteHash: bodyHashOf(body1Updated)!,
+        },
+        body: body1Updated,
+      });
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      if (outcome.kind === 'synced') {
+        expect(outcome.conflicts).toHaveLength(0);
+        expect(outcome.pushed).toBe(0);
+      }
+      expect(localProjects.conflictCalls).toHaveLength(0);
+    });
+
+    it('Scenario 3: Open project, autosave rewrites it, canonical hash unchanged -> not a local edit', async () => {
+      // Re-serialised with different whitespace/key order
+      const rewrittenBody = '{\n  "volume": 45,\n  "name": "Sub 12"\n}';
+      localProjects.docs = [{ id: project1Id, body: rewrittenBody, layout: APP_LAYOUT }];
+      const hash1 = bodyHashOf(body1)!;
+      const rev1 = RevisionId.of('rev-1')!;
+      ledger.set({
+        id: project1Id,
+        fileId: FileId.of('file-p1')!,
+        revision: rev1,
+        hash: hash1,
+        seq: 1,
+      });
+
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId: FileId.of('file-p1')!,
+          revision: rev1,
+          parentRevision: null,
+          layout: APP_LAYOUT,
+          seq: 1,
+          writer: 'device-local',
+          device: '',
+          deleted: false,
+          remoteHash: hash1,
+        },
+        body: body1,
+      });
+
+      const engine = createEngine();
+      expect(engine.pendingLocal()).toBe(0);
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      if (outcome.kind === 'synced') {
+        expect(outcome.pushed).toBe(0);
+      }
+    });
+
+    it('Scenario 4: Delete on A; edit on B -> B edit wins everywhere', async () => {
+      // Deleted locally on A
+      localProjects.docs = [];
+      const hash1 = bodyHashOf(body1)!;
+      const rev1 = RevisionId.of('rev-1')!;
+      ledger.set({
+        id: project1Id,
+        fileId: FileId.of('file-p1')!,
+        revision: rev1,
+        hash: hash1,
+        seq: 1,
+      });
+
+      // Edited on B
+      const bodyB = JSON.stringify({ name: 'Sub 12', volume: 60 });
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId: FileId.of('file-p1')!,
+          revision: RevisionId.of('rev-2')!,
+          parentRevision: rev1,
+          layout: APP_LAYOUT,
+          seq: 2,
+          writer: 'device-B',
+          device: '',
+          deleted: false,
+          remoteHash: bodyHashOf(bodyB)!,
+        },
+        body: bodyB,
+      });
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      // Local got the project back:
+      expect(localProjects.docs).toHaveLength(1);
+      expect(localProjects.docs[0].body).toBe(bodyB);
+    });
+
+    it('Scenario 5: Delete on A; B clean -> B removes it after whole-store backup; Drive keeps tombstone', async () => {
+      // Clean on B
+      localProjects.docs = [{ id: project1Id, body: body1, layout: APP_LAYOUT }];
+      const hash1 = bodyHashOf(body1)!;
+      const rev1 = RevisionId.of('rev-1')!;
+      ledger.set({
+        id: project1Id,
+        fileId: FileId.of('file-p1')!,
+        revision: rev1,
+        hash: hash1,
+        seq: 1,
+      });
+
+      // Tombstone on Drive
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId: FileId.of('file-p1')!,
+          revision: RevisionId.of('rev-2')!,
+          parentRevision: rev1,
+          layout: APP_LAYOUT,
+          seq: 2,
+          writer: 'device-A',
+          device: '',
+          deleted: true,
+          remoteHash: null,
+        },
+        body: body1,
+      });
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      expect(backup.guardCalls).toBe(1);
+      expect(localProjects.docs).toHaveLength(0);
+      expect(ledger.row(project1Id)).toBeNull();
+    });
+
+    it('Scenario 6: New device, first sync, empty local -> listAll, apply everything, ledger built', async () => {
+      localProjects.docs = [];
+      const hash1 = bodyHashOf(body1)!;
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId: FileId.of('file-p1')!,
+          revision: RevisionId.of('rev-1')!,
+          parentRevision: null,
+          layout: APP_LAYOUT,
+          seq: 1,
+          writer: 'device-other',
+          device: '',
+          deleted: false,
+          remoteHash: hash1,
+        },
+        body: body1,
+      });
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      if (outcome.kind === 'synced') {
+        expect(outcome.pulled).toBe(1);
+      }
+      expect(localProjects.docs).toHaveLength(1);
+      expect(ledger.row(project1Id)).not.toBeNull();
+    });
+
+    it('Scenario 7: User clears app folder in Drive settings -> local docs pushed back as new', async () => {
+      localProjects.docs = [{ id: project1Id, body: body1, layout: APP_LAYOUT }];
+      ledger.set({
+        id: project1Id,
+        fileId: FileId.of('file-old')!,
+        revision: RevisionId.of('rev-old')!,
+        hash: bodyHashOf(body1)!,
+        seq: 1,
+      });
+      // Cloud is completely empty
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      if (outcome.kind === 'synced') {
+        expect(outcome.pushed).toBe(1);
+      }
+      expect(cloud.files.size).toBe(1);
+    });
+
+    it('Scenario 8: Tombstones older than 90 days with no local reference are purged', async () => {
+      const ninetyOneDaysAgo = nowMs - 91 * 24 * 60 * 60 * 1000;
+      const fileId = FileId.of('file-tomb-old')!;
+      cloud.seedFile(
+        {
+          meta: {
+            id: project1Id,
+            fileId,
+            revision: RevisionId.of('rev-tomb')!,
+            parentRevision: null,
+            layout: APP_LAYOUT,
+            seq: 1,
+            writer: 'device-other',
+            device: '',
+            deleted: true,
+            remoteHash: null,
+          },
+          body: body1,
+        },
+        ninetyOneDaysAgo
+      );
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      expect(cloud.purgeCalls).toContainEqual(fileId);
+      expect(cloud.files.has('file-tomb-old')).toBe(false);
+    });
+  });
+
+  describe('Singletons (settings) with Lamport clock', () => {
+    it('applies remote settings when remote has higher seq', async () => {
+      localSettings.docs = [{ id: settingsId, body: bodySettingsUpdated, layout: APP_LAYOUT }];
+      const hashOriginal = bodyHashOf(bodySettings)!;
+      ledger.set({
+        id: settingsId,
+        fileId: FileId.of('file-settings')!,
+        revision: RevisionId.of('rev-1')!,
+        hash: hashOriginal,
+        seq: 1,
+      });
+
+      const bodyRemote = JSON.stringify({ theme: 'system' });
+      cloud.seedFile({
+        meta: {
+          id: settingsId,
+          fileId: FileId.of('file-settings')!,
+          revision: RevisionId.of('rev-2')!,
+          parentRevision: RevisionId.of('rev-1')!,
+          layout: APP_LAYOUT,
+          seq: 10,
+          writer: 'device-other',
+          device: '',
+          deleted: false,
+          remoteHash: bodyHashOf(bodyRemote)!,
+        },
+        body: bodyRemote,
+      });
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      expect(localSettings.docs[0].body).toBe(bodyRemote);
+    });
+  });
+
+  describe('Migration on read', () => {
+    it('migrates a layout 1 remote doc when app layout is 2', async () => {
+      localProjects.docs = [];
+      localProjects.migrator = (doc) => {
+        return JSON.stringify({ ...JSON.parse(doc.body), migrated: true });
+      };
+
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId: FileId.of('file-p1')!,
+          revision: RevisionId.of('rev-1')!,
+          parentRevision: null,
+          layout: 1, // older layout
+          seq: 1,
+          writer: 'device-other',
+          device: '',
+          deleted: false,
+          remoteHash: bodyHashOf(body1)!,
+        },
+        body: body1,
+      });
+
+      const engine = createEngine();
+      const outcome = await engine.run();
+
+      expect(outcome.kind).toBe('synced');
+      expect(localProjects.docs).toHaveLength(1);
+      expect(localProjects.docs[0].body).toContain('"migrated":true');
+    });
+  });
+});

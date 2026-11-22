@@ -1,0 +1,195 @@
+/**
+ * NumInput's up/down stepper (touch step buttons next to the value on the Box/Enclosure/Signal/Advanced tabs, side
+ * by side: value, then ▲▼, then the unit).
+ *
+ * The buttons step the digit the caret last sat on (0.1 where it never had one); an arrow key steps
+ * the digit at the caret. With the caret on the same digit they step the same amount, so this spec
+ * proves EQUIVALENCE, not a step formula of its own (that is `caretSpin`, unit-tested).
+ *
+ * Run at phone width (412×900), not just the forced mobile skin — the touch-target assertion
+ * needs the real narrow layout, not a wide window with the mobile skin switched on.
+ */
+import {expect, openAMobileProject, setFocusedBoxType, test} from '../fixtures.js';
+import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
+
+test.beforeEach(async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 900 });
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await openAMobileProject(page);
+});
+
+function fieldRow(page: import('playwright').Page, label: string) {
+  return mobileFieldRow(page, label);
+}
+
+test('a step button click moves the value by the exact same amount as an ArrowUp keypress', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Signal' }).click();
+  const row = fieldRow(page, 'Rs');
+  const input = row.locator('input');
+  const upBtn = row.locator('.num-stepper-btn').first(); // [▲, ▼] order — ▲ is first
+
+  // The button steps the digit the caret last sat on, so put the caret on the tenths digit first.
+  await input.focus();
+  await input.evaluate(el => { if (el instanceof HTMLInputElement) { const i = el.value.search(/[.,]/); el.setSelectionRange(i + 2, i + 2); } });
+  const before = Number(await input.inputValue());
+  await input.press('ArrowUp');
+  const afterArrow = Number(await input.inputValue());
+  const arrowDelta = afterArrow - before;
+  expect(arrowDelta).toBeGreaterThan(0);
+
+  await upBtn.click();
+  const afterClick = Number(await input.inputValue());
+  const clickDelta = afterClick - afterArrow;
+  expect(clickDelta).toBeGreaterThan(0);
+
+  expect(arrowDelta).toBeCloseTo(clickDelta, 9);
+});
+
+test('the down button undoes the up button exactly — same step size, opposite direction', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Signal' }).click();
+  const row = fieldRow(page, 'Rs');
+  const input = row.locator('input');
+  const [upBtn, downBtn] = await row.locator('.num-stepper-btn').all(); // [▲, ▼] order
+
+  const start = Number(await input.inputValue());
+  await upBtn.click();
+  const up = Number(await input.inputValue());
+  expect(up).toBeGreaterThan(start);
+
+  await downBtn.click();
+  const down = Number(await input.inputValue());
+  expect(down).toBeCloseTo(start, 9);
+});
+
+test('a long hold on ▲ takes 10 % steps and lands on a round value when released', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Signal' }).click();
+  const row = fieldRow(page, 'Rs');
+  const input = row.locator('input');
+  const upBtn = row.locator('.num-stepper-btn').first();
+
+  const start = Number(await input.inputValue());
+  const box = await upBtn.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.mouse.down();
+  await expect.poll(async () => Number(await input.inputValue())).toBeGreaterThan(start * 1.3);
+  await page.mouse.up();
+
+  const end = Number(await input.inputValue());
+  expect(end).toBeGreaterThan(start * 1.3);   // fine steps alone (~1 % each) could not get this far
+  expect(Number(end.toPrecision(2))).toBe(end);   // two significant digits at most
+});
+
+test('the stepper buttons meet a touch-sized minimum at phone width', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Box' }).click();
+  const btn = fieldRow(page, 'Vb').locator('.num-stepper-btn').first();
+  await expect(btn).toBeVisible();
+  const box = await btn.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.width).toBeGreaterThanOrEqual(28);
+  expect(box!.height).toBeGreaterThanOrEqual(18);
+});
+
+// Not covered here: `System input power` suppresses the stepper when `powerLocked` (the driver
+// has no usable Re, so P = V²/Re cannot be stated) — verified correct by inspection
+// (`showStepper = computed(() => props.stepper && !isReadonly.value)`, NumInput.vue), but that
+// state isn't reachable through the Driver Editor to drive an end-to-end check: Re is
+// `:mandatory="true"` there and the editor silently keeps the last value rather than accepting
+// a clear. It would need a driver fixture that never had a usable Re to begin with.
+
+test('holding the button repeats the step, not just one click\'s worth of movement', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Signal' }).click();
+  const row = fieldRow(page, 'Rs');
+  const input = row.locator('input');
+  const upBtn = row.locator('.num-stepper-btn').first(); // [▲, ▼] order — ▲ is first
+
+  // One plain click: the baseline, a single step's worth of movement.
+  const before = Number(await input.inputValue());
+  await upBtn.click();
+  const afterOneClick = Number(await input.inputValue());
+  const oneStep = afterOneClick - before;
+  expect(oneStep).toBeGreaterThan(0);
+
+  // Hold well past the 450ms initial delay plus a few 80ms repeats (NumInput.vue's
+  // startRepeat) — the total movement from holding must clearly exceed one step, proving the
+  // repeat actually fired more than once rather than just the initial press.
+  const box = await upBtn.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.mouse.down();
+  // Poll (not a fixed sleep) until the hold has clearly moved the value past one step's worth —
+  // proof the repeat fired again, not just the initial press — within a generous budget past
+  // the 450ms initial delay plus a few 80ms repeats (NumInput.vue's startRepeat).
+  await expect.poll(async () => Number(await input.inputValue()))
+    .toBeGreaterThan(afterOneClick + oneStep);
+  await page.mouse.up();
+});
+
+// focus on the tapped button, never the input (it pops the phone keyboard).
+test('pressing a step button focuses the button, not the field', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Box' }).click();
+  const other = fieldRow(page, 'Vb').locator('input');
+  await other.focus();
+  await page.locator('.mob-tab', { hasText: 'Signal' }).click();
+  const row = fieldRow(page, 'Rs');
+  const input = row.locator('input');
+  const btn = row.locator('.num-stepper-btn').first();
+  await btn.click();
+  await expect(btn).toBeFocused();
+  await expect(input).not.toBeFocused();
+});
+
+// a row with no unit (Qms) had its ▲▼ further right than its
+// neighbours. Every stepper lines up whether or not its row has a unit.
+test('a unitless row\'s step buttons line up with a row that has a unit', async ({ page }) => {
+  await setFocusedBoxType(page, 'box-passive-radiator');
+  await page.locator('#mob-pr-edit').click();   // Vas and Qms are in the radiator's editor (QO946.c115)
+  const editor = page.locator('.prd-panel');
+  const row = (label: string) => editor.locator('.ui-field').filter({has: page.locator('.ui-field-label', {hasText: new RegExp(`^${label}$`)})});
+  const withUnit = await row('Vas').locator('.num-stepper').boundingBox();
+  const unitless = await row('Qms').locator('.num-stepper').boundingBox();
+  expect(withUnit).not.toBeNull();
+  expect(unitless).not.toBeNull();
+  expect(Math.abs(unitless!.x + unitless!.width - (withUnit!.x + withUnit!.width))).toBeLessThan(1);
+});
+
+// Mobile fields that are inputs look like inputs.
+test('editable values have input boxes and calculated boxes remain readonly', async ({ page }) => {
+  await page.locator('.mob-tab', { hasText: 'Signal' }).click();
+  const input = fieldRow(page, 'Rs').locator('input');
+  const style = await input.evaluate(el => {
+    const s = getComputedStyle(el);
+    return { border: s.borderTopStyle, width: parseFloat(s.borderTopWidth), bg: s.backgroundColor };
+  });
+  expect(style.border).toBe('solid');
+  expect(style.width).toBeGreaterThan(0);
+  expect(style.bg).not.toBe('rgba(0, 0, 0, 0)');
+
+  // Readonly values use the production-style joined box.
+  // Native readonly semantics preserve selection/copy while preventing edits.
+  await page.locator('.mob-tab', { hasText: 'Box' }).click();
+  await page.locator('#mob-box-type').selectOption('bandpass4');
+  const readout=fieldRow(page,'Fsc');
+  const calculated=readout.locator('input');
+  await expect(calculated).toHaveAttribute('readonly');
+  await expect(readout.locator('.num-stepper-btn')).toHaveCount(0);
+  const value=await calculated.inputValue();
+  await calculated.focus();await calculated.pressSequentially('123');
+  await expect(calculated).toHaveValue(value);
+});
+
+// Field diagnostics 2026-10-02: a stepper tapped on a field holding 0 threw InvalidStateError
+// ("does not have an allowed value step") because the step was 'any' for a non-positive value.
+test('a step button on a field holding zero steps up instead of throwing', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', e => errors.push(e.message));
+  await page.locator('.mob-tab', { hasText: 'Signal' }).click();
+  const row = fieldRow(page, 'Rs');
+  const input = row.locator('input');
+  await input.fill('0');
+  await input.blur();
+  await row.locator('.num-stepper-btn').first().click();
+  expect(Number(await input.inputValue())).toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});

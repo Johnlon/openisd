@@ -1,0 +1,230 @@
+/**
+ * The bundler's bundling gate — scripts/bundle-drivers.mjs / bundleProjection.mjs.
+ *
+ * QO79 (final) and QO81: a driver is bundled with the usual health warnings visible in the UI and
+ * is never excluded because of missing spec parameters: every structurally readable record
+ * BUNDLES. Whether a driver can be simulated is DISPLAY INFORMATION ONLY — the ⚠ health badge
+ * the picker shows — never a bundling gate. Datasheet completeness was already settled wrong;
+ * simulatability-gating is now settled wrong too, permanently. This file must never
+ * reintroduce either as a bundling criterion.
+ */
+
+import {describe, it} from 'vitest';
+import assert from 'node:assert/strict';
+import {parse as parseYaml} from 'yaml';
+import {OpenISDDriver} from '@openisd/design';
+import {createEngine} from '@openisd/design/engine';
+import {driverHasDqIssues} from '../../src/logic/driverDisplay.js';
+import {isBundlable, project} from '../../../../scripts/bundleProjection.mjs';
+
+/** `yaml`'s `parse()` returns `any`; this fixture parser reads the boundary once and hands back
+ *  a plain object, never the library's untyped result. */
+function parseRecord(yamlText: string): object {
+  const parsed: unknown = parseYaml(yamlText);
+  if (typeof parsed !== 'object' || parsed === null) throw new Error('fixture YAML must parse to an object');
+  return parsed;
+}
+
+describe('bundle-drivers — bundling gates on structural readability alone', () => {
+  it('bundles a fully simulatable, structurally sound record', () => {
+    const full = parseRecord(`
+uuid:
+  value: 11111111-1111-1111-1111-111111111111
+quality:
+  confirmed_fields: []
+  fields_with_issues: []
+  missing: []
+  invalid: []
+  parse_errors: []
+  cross_source_only: []
+manufacturer:
+  value: GRS
+brand:
+  value: GRS
+model:
+  value: 8FR-8
+sku:
+  value: 8fr-8
+  grounds:
+    - origin: manufacturer_product_page
+      reading: 8fr-8
+driver_type:
+  value: [full-range]
+data_sources:
+  value: {}
+specs:
+  woofer:
+    Fs_hz:
+      state: E
+      value: 45.0
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          read_value: 45.0
+`);
+    assert.equal(isBundlable(project(full)), true);
+  });
+
+  it('THE RULING: a structurally sound record with no Fs (not simulatable) still bundles', () => {
+    const notSimulatable = parseRecord(`
+uuid:
+  value: 11111111-1111-1111-1111-111111111111
+quality:
+  confirmed_fields: []
+  fields_with_issues: []
+  missing: []
+  invalid: []
+  parse_errors: []
+  cross_source_only: []
+manufacturer:
+  value: GRS
+brand:
+  value: GRS
+model:
+  value: 8FR-8
+sku:
+  value: 8fr-8
+  grounds:
+    - origin: manufacturer_product_page
+      reading: 8fr-8
+driver_type:
+  value: [full-range]
+data_sources:
+  value: {}
+specs:
+  woofer: {}
+`);
+    const projected = project(notSimulatable);
+    assert.equal(
+      isBundlable(projected),
+      true,
+      'no driver is excluded for missing spec params (QO81) — Fs is a spec param like any other',
+    );
+    // The badge half of the QO79 ruling: a driver stating no spec parameters shows the warning.
+    assert.equal(
+      driverHasDqIssues(OpenISDDriver.empty(createEngine())),
+      true,
+      'a driver missing Fs, Qts and Vas bundles AND carries the health warning (QO79)',
+    );
+  });
+
+  it('excludes a structurally unreadable record (no `specs` container at all)', () => {
+    const unreadable = parseRecord(`
+manufacturer:
+  value: GRS
+brand:
+  value: GRS
+model:
+  value: 8FR-8
+`);
+    assert.equal('specs' in unreadable, false, 'the fixture must genuinely omit the key');
+    assert.equal(isBundlable(project(unreadable)), false);
+  });
+
+  it('excludes a record that has `specs` but no `quality` block at all — the second throw class recordStandingIsOk would hit', () => {
+    const noQuality = parseRecord(`
+manufacturer:
+  value: GRS
+brand:
+  value: GRS
+model:
+  value: 8FR-8
+sku:
+  value: 8fr-8
+driver_type:
+  value: [full-range]
+specs:
+  woofer:
+    Fs_hz:
+      state: E
+      value: 45.0
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          read_value: 45.0
+`);
+    assert.equal('quality' in noQuality, false, 'the fixture must genuinely omit the key');
+    assert.equal(isBundlable(project(noQuality)), false);
+  });
+
+  it('QO81: a record with a non-empty quality.missing (Cms) still bundles', () => {
+    const incomplete = parseRecord(`
+uuid:
+  value: 11111111-1111-1111-1111-111111111111
+quality:
+  confirmed_fields: []
+  fields_with_issues: []
+  missing: [Cms]
+  invalid: []
+  parse_errors: []
+  cross_source_only: []
+manufacturer:
+  value: GRS
+brand:
+  value: GRS
+model:
+  value: 8FR-8
+sku:
+  value: 8fr-8
+  grounds:
+    - origin: manufacturer_product_page
+      reading: 8fr-8
+driver_type:
+  value: [full-range]
+data_sources:
+  value: {}
+specs:
+  woofer:
+    Fs_hz:
+      state: E
+      value: 45.0
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          read_value: 45.0
+`);
+    assert.equal(isBundlable(project(incomplete)), true);
+  });
+
+  it('a structurally sound passive-radiator record (no woofer section) bundles — it is a device the app reads', () => {
+    const radiator = parseRecord(`
+uuid:
+  value: 11111111-1111-1111-1111-111111111111
+quality:
+  confirmed_fields: []
+  fields_with_issues: []
+  missing: []
+  invalid: []
+  parse_errors: []
+  cross_source_only: []
+manufacturer:
+  value: Dayton Audio
+brand:
+  value: Dayton Audio
+model:
+  value: ND140-PR
+sku:
+  value: nd140-pr
+  grounds:
+    - origin: manufacturer_product_page
+      reading: nd140-pr
+driver_type:
+  value: [passive-radiator]
+data_sources:
+  value: {}
+specs:
+  passive-radiator:
+    Fs_hz:
+      state: E
+      value: 45.0
+      origin: manufacturer_product_page
+      readings:
+        manufacturer_product_page:
+          read_value: 45.0
+`);
+    assert.ok('specs' in radiator, 'the fixture must genuinely carry a specs section');
+    const specs = radiator.specs;
+    assert.equal(typeof specs === 'object' && specs !== null && 'woofer' in specs, false, 'the fixture must genuinely be a radiator, not a driver');
+    assert.equal(isBundlable(project(radiator)), true);
+  });
+});

@@ -1,0 +1,1035 @@
+/**
+ * `driver.yml` text → `{ openisd, wdr, errors }` — the ONE entry `winisd_tools` calls in-process
+ * (embedded V8, through `bridge.ts`) to generate BOTH derived files for one corpus record.
+ *
+ * The design is `drivers/drivers.md` Part C. It lives in `packages/design/domain` — the `.wdr`
+ * transformer (`WinISDDriver`) it calls is imported from `../winisd`, not the other way round, so
+ * this file sits on the design side of that boundary.
+ *
+ * `openisd.yml` is `driver.yml` minus `scraper_meta`. The EMITTED KEY ORDER is sorted
+ * A→Z (recursively, via `sortKeysDeep`) so the written TEXT is canonical and bytewise
+ * deterministic — regenerating the corpus produces a stable diff.
+ *
+ * Every value crossing into the `.wdr` is already SI, in both directions — the record stores
+ * `Vas` in m³ and `Sd` in m², and a WinISD-written `.wdr` holds the same
+ * (`drivers/mysamples/winisd/probe-all-manu-populated.wdr`: `Vas=0.141584099539285`,
+ * `Sd=0.00177545544983551`). So this file converts no units, and a unit conversion appearing here
+ * later would be a bug, not a missing feature.
+ *
+ * The round-trip/diff tools this file's own writers and readers are proved against
+ * (`wdrDriverDiffs`, `oidDriverDiffs`, `textRoundTripDiff`, `wdrRecordRoundTripDiffs`,
+ * `jsonRoundTripDiffs`) live in `driverRoundTripDiffs.ts` — this file keeps the conversion logic
+ * itself.
+ */
+import { withoutScraperOnlyFields } from "./withoutScraperOnlyFields.js";
+import { parse as parseYmlToJs } from "yaml"; // driver.yml input; openisd/.wdr output is JSON/INI
+import {z} from "zod";
+
+import type {Calculated, Entered, Readable} from "./cell.js";
+import {OpenISDDriver, type OpenISDDriverStandalone} from "./driver/openISDDriver.js";
+import {OpenISDPassiveRadiatorStandalone} from "./passiveRadiator/openISDPassiveRadiatorStandalone.js";
+import {type DriverEngine, type DriverError, type Engine} from "../engine/index.js";
+
+import {type WdrCell, type WdrHeader, WinISDDriver,} from "../winisd/winisdDriver.js";
+import {winisdSafeText} from "../winisd/winisdSafeText.js";
+import type {CellState} from "../winisd/cellState.js";
+import {
+  type DriverSpec,
+  readingJsonSchema,
+  wiringReadingJsonSchema,
+} from "./openisdSchema.js";
+import {wdrVCConCode, winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
+import {asCurrentRecord} from "./schemaVersion.js";
+import {sortKeysDeep} from "./openIsdDeviceJsonIo.js";
+import {slimmedDevice} from "./slimModel.js";
+import {MeasurementNote} from "./measurementNote.js";
+import {dqMarks} from "./specEntry.js";
+import {MANUAL_CANDIDATES_KEY, chooseFieldValue, selectOrigin, selectWiringOrigin} from "./selectOrigin.js";
+import {sourceRank} from "./sourceRank.js";
+import {Corroboration, ReaderAgreement, corroborate, isRecognisedRejection, isUsable, readerVerdict, type Reading} from "./corroboration.js";
+import {Reader} from "./reader.js";
+import {DriverRoundTripCheck, type DriverFromRecord} from "./driverRoundTripDiffs.js";
+import {printsUnderOtherDefinition} from "./printedDefinitions.js";
+
+/** Both derived artefacts and every problem found producing them. `openisd`/`wdr` are null when a
+ *  blocking failure stopped that artefact being produced; `errors` is always an array. */
+export interface DriverYmlProjection {
+  openisd: string | null;
+  wdr: string | null;
+  errors: DriverError[];
+}
+
+/** The shared scraper-entry DQ pass when a library projection is not requested. */
+export interface DriverYmlDqWarnings {
+  warnings: DriverError[];
+  errors: DriverError[];
+}
+
+/** The scraper-only section. It is named ONCE, here, because this is the only place that drops
+ *  it — `drivers.md` Part A's structural drop is a property of `OpenISDDeviceJson`, which cannot
+ *  help a caller that must also emit YAML text preserving the source's key order. */
+const SCRAPER_ONLY_KEY = "scraper_meta";
+
+/** The scraper's list of everything it read that no field took (QT93). It is the scraper's own
+ *  store: accepted here and dropped, so it never reaches `openisd.json` or a `.wdr`. */
+const SCRAPER_PRINTED_KEY = "printed";
+
+/** What a field MEANS. It belongs to `driver.yml` and to nothing downstream: it has no place in
+ *  openisd work except where the bridge strips it. A consumer of an openisd record already knows what `Fs` is.
+ *
+ *  It sits at EVERY depth of a record — on each metadata envelope, on each `sku.grounds` entry and
+ *  on each spec entry — so removing it is a walk, not a top-level key filter like `scraper_meta`.
+ *  Stripping it HERE, before the record is checked, is what lets `OpenISDDeviceJson` refuse it
+ *  outright: that type states the shape of an OPENISD record, and `definition` is not part of one. */
+const DEAD_KEY = "definition";
+
+/** The app's own findings about a spec entry. `driver.yml` has no such key — it is not in that
+ *  schema, so the scraper cannot write it, and anything the bridge finds under it did not come
+ *  from the scraper (an old pipeline's range marks, a hand edit, a stale copy of a previous
+ *  openisd.yml). The app is the only producer: it recomputes the marks for
+ *  every driver quantity on load, but a field the solver never touches (`weight_kg`, `VCCon`,
+ *  the frequency and power limits) keeps whatever it was loaded with — so the key is dropped at
+ *  the boundary, not left for the loader. */
+const APP_ONLY_SPEC_ENTRY_KEY = "dq_calculated";
+
+/** The same value with every `definition` removed, at any depth. Rebuilt rather than deleted from,
+ *  for the reason `stripDefinitionField` gives: the parsed object is the round-trip's reference and
+ *  must not be mutated by the thing it is checking. */
+function stripDefinitionField(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(stripDefinitionField);
+  if (value === null || typeof value !== "object") return value;
+  const out: Record<string, unknown> = {};
+  for (const [key, v] of Object.entries(value)) {
+    if (key === DEAD_KEY) continue;
+    out[key] = stripDefinitionField(v);
+  }
+  return out;
+}
+
+/** The record's TOP-LEVEL metadata fields — `ScrapedField<T>` envelopes that carry `origin` in
+ *  `driver.yml` but not in `OpenISDDeviceJson` (the field's own name already says what it is; `origin` there is redundant with
+ *  the field name, unlike a spec entry's `readings`, which genuinely needs `origin` to say which
+ *  of several sources won). Named explicitly, not walked structurally: a spec entry ALSO has an
+ *  `origin` key, on a shape this strip must never touch. */
+const METADATA_FIELDS_WITH_DEAD_ORIGIN: readonly string[] = Object.freeze([
+  "manufacturer",
+  "brand",
+  "model",
+  "driver_type",
+  "categories",
+  "series",
+  "nominal_size_cm",
+  "product_image",
+  "description",
+  "surround_material",
+  "provided_by",
+  "comment",
+  "added",
+]);
+
+/** The record with `origin` dropped from each named metadata field's own envelope — never from
+ *  `specs`, `curves`, or `sku.grounds`, which keep it. */
+function stripMetadataOrigin(
+  record: Record<string, unknown>
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (
+      !METADATA_FIELDS_WITH_DEAD_ORIGIN.includes(key) ||
+      typeof value !== "object" ||
+      value === null
+    ) {
+      out[key] = value;
+      continue;
+    }
+    const field: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (k === "origin") continue;
+      field[k] = v;
+    }
+    out[key] = field;
+  }
+  return out;
+}
+
+/** The maker a record names (`manufacturer`, else `brand`), or null when it names none. */
+function makerOf(record: object): string | null {
+  for (const key of ["manufacturer", "brand"]) {
+    const entry: unknown = Reflect.get(record, key);
+    if (isKeyedObject(entry) && typeof entry.value === "string") return entry.value;
+  }
+  return null;
+}
+
+/** A plain keyed object — what `Object.entries` yields for any non-null object value. Written as
+ *  a guard rather than a cast so the compiler PROVES the shape instead of being told it. */
+function isKeyedObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+/** A per-coil figure as printed: "N x r" or "N × r" (e.g. "2 x 2.5 Ω"). */
+const PER_COIL_COUNT_TIMES = /^\s*(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)/i;
+/** A per-coil figure as printed: one term per coil, "r + r" (e.g. "2 + 2 ohms", "4+4 ohms"). */
+const PER_COIL_SUM = /^\s*(\d+(?:\.\d+)?)((?:\s*\+\s*\d+(?:\.\d+)?)+)/;
+
+/** Figures a sheet may print per coil, each stated for the measured wiring by `withPerCoilFiguresForWiring`. */
+const PER_COIL_FIELDS = Object.freeze(['Re_ohm', 'Znom_ohm'] as const);
+
+/** The coil count a per-coil quote prints ("2 x 2.5 Ω": 2; "2 + 2 ohms": 2), or null when it is not one. The "r + r" form
+ *  needs every term equal: unequal terms are not identical coils. */
+function perCoilCount(quote: string): number | null {
+  const times = PER_COIL_COUNT_TIMES.exec(quote);
+  if (times !== null) return Number(times[1]);
+  const sum = PER_COIL_SUM.exec(quote);
+  if (sum === null) return null;
+  const terms = [sum[1], ...sum[2].split('+').map(t => t.trim()).filter(t => t !== '')].map(Number);
+  return terms.every(t => t === terms[0]) ? terms.length : null;
+}
+
+/** Re and Znom printed per coil ("N x r", "r + r") stored as the measured wiring's value (QO915; QO919: the file may mark it
+ *  E though the bridge worked it out; BUG_20261115_multi-coil-znom-stored-per-coil): series N·r, parallel r/N, the read
+ *  precision scaled the same way. Needs the section's numVC of 2 or more and its VCCon naming the wiring; with the wiring
+ *  unstated the figure stays as printed, and the engine's "measured wiring not stated" warning stands.
+ *  Returns `fields` itself when nothing applies. */
+function withPerCoilFiguresForWiring(fields: Record<string, unknown>, driver: DriverEngine): Record<string, unknown> {
+  const numVC = fields.numVC;
+  const wiring = fields.VCCon;
+  if (!isKeyedObject(numVC) || numVC.state !== "E" || typeof numVC.value !== "number" || numVC.value < 2) return fields;
+  if (!isKeyedObject(wiring) || wiring.state !== "E") return fields;
+  if (wiring.value !== "series" && wiring.value !== "parallel") return fields;
+  let out = fields;
+  for (const field of PER_COIL_FIELDS) {
+    const entry = fields[field];
+    if (!isKeyedObject(entry) || entry.state !== "E" || typeof entry.value !== "number" || typeof entry.origin !== "string") continue;
+    const readings = entry.readings;
+    const winner = isKeyedObject(readings) ? readings[entry.origin] : undefined;
+    if (!isKeyedObject(winner) || typeof winner.actual_reading !== "string") continue;
+    const coils = perCoilCount(winner.actual_reading);
+    if (coils === null || coils < 2) continue;
+    const factor = driver.perCoilResistanceFactor(coils, wiring.value);
+    const scaledWinner = typeof winner.read_precision === "number"
+      ? { ...winner, read_precision: winner.read_precision * factor }
+      : winner;
+    out = {
+      ...out,
+      [field]: {
+        ...entry,
+        value: entry.value * factor,
+        readings: { ...(isKeyedObject(readings) ? readings : {}), [entry.origin]: scaledWinner },
+      },
+    };
+  }
+  return out;
+}
+
+/** A sensitivity whose winning reading the source printed at 2.83 V / 1 m is the USPL, entered as printed, not the 1 W SPL;
+ *  the engine works the SPL out from it and Re (QO962: the printed 2.83 V figure is kept and the engine
+ *  works out the 1 W one; this changes how drivers are stored). A figure printed at 1 W / 1 m, or with no condition, stays
+ *  the SPL. A section that already holds a USPL keeps both as they are. Returns `fields` itself when nothing applies. */
+function withSensitivityByCondition(fields: Record<string, unknown>): Record<string, unknown> {
+  const { SPL_dB: spl, ...others } = fields;
+  if (!isKeyedObject(spl) || spl.state !== "E" || typeof spl.origin !== "string" || "USPL_dB" in fields) return fields;
+  const readings = spl.readings;
+  const winner = isKeyedObject(readings) ? readings[spl.origin] : undefined;
+  if (!isKeyedObject(winner) || typeof winner.note !== "string") return fields;
+  if (MeasurementNote.parse(winner.note) !== MeasurementNote.At283V1m) return fields;
+  return { ...others, USPL_dB: spl };
+}
+
+/** One spec entry without the app-only key (`APP_ONLY_SPEC_ENTRY_KEY`). Rebuilt, not deleted
+ *  from, for the reason `stripDefinitionField` gives. */
+function entryWithoutAppOnlyKeys(entry: unknown): unknown {
+  if (!isKeyedObject(entry)) return entry;
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(entry)) {
+    if (key === APP_ONLY_SPEC_ENTRY_KEY) continue;
+    out[key] = value;
+  }
+  return out;
+}
+
+/** `origin`/`corroboration` on SCRAPER INPUT — dead on arrival, D9/D10/D11's entire point. The
+ *  bridge computes both itself (`projectScraperEntry`, below) and never trusts a scraped one; a
+ *  `driver.json` scraped before the scraper stopped writing them (`winisd_tools` T2/T3 deleted
+ *  `SpecEntry.origin`/`.corroboration`) still carries the stale pair, which would otherwise trip
+ *  `scraperEntrySchema`'s `strictObject` as an unknown key and make an otherwise-good record
+ *  fail to parse. Stripped only for the SCHEMA CHECK below — the returned `readings`/`dq_scraper`
+ *  never carried them anyway, since `scraperEntrySchema` has no slot for either. */
+const STALE_SCRAPER_ENTRY_KEYS: readonly string[] = Object.freeze(["origin", "corroboration"]);
+
+function entryForScraperSchema(entry: Record<string, unknown>): unknown {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(entry)) {
+    if (key === APP_ONLY_SPEC_ENTRY_KEY || STALE_SCRAPER_ENTRY_KEYS.includes(key)) continue;
+    out[key] = value;
+  }
+  return out;
+}
+
+/** `driver.yml`'s scraper-supplied shape for one field (D9/D11/D15) — every source's raw
+ *  reading, nothing app-computed. `readingJsonSchema` is reused from `openisdSchema.ts` rather
+ *  than duplicated, so a reading can never mean something different to the two schemas that
+ *  read it. */
+const scraperEntrySchema = z.strictObject({
+  readings: z.record(z.string(), readingJsonSchema).refine(
+    (r) => Object.keys(r).length > 0, "expected at least one reading"
+  ),
+  dq_scraper: dqMarks(),
+});
+
+/** One scraper-supplied entry as the schema parsed it. */
+type ScraperEntry = z.infer<typeof scraperEntrySchema>;
+
+/** `scraperEntrySchema` for VCCon (QO914, #514): each reading names the wiring, or is rejected
+ *  with no value read. */
+const wiringScraperEntrySchema = z.strictObject({
+  readings: z.record(z.string(), wiringReadingJsonSchema).refine(
+    (r) => Object.keys(r).length > 0, "expected at least one reading"
+  ),
+  dq_scraper: dqMarks(),
+});
+type WiringScraperEntry = z.infer<typeof wiringScraperEntrySchema>;
+
+/** A VCCon scraper entry once the app has picked its wiring. */
+type ProjectedWiringEntry =
+  | { state: "N"; readings: WiringScraperEntry["readings"] }
+  | { state: "E"; value: string; origin: string; readings: WiringScraperEntry["readings"] };
+
+/** Does any of `entry`'s readings carry a number as its `read_value`? */
+function hasNumericReadValue(entry: Record<string, unknown>): boolean {
+  const readings = entry.readings;
+  return isKeyedObject(readings)
+    && Object.values(readings).some(r => isKeyedObject(r) && typeof r.read_value === "number");
+}
+
+/** A scraper entry once the app has picked its value: no reading won (`N`), or one did (`E`). */
+type ProjectedEntry =
+  | { state: "N"; readings: ScraperEntry["readings"] }
+  | {
+      state: "E";
+      value: number;
+      origin: string;
+      corroboration: string;
+      readings: ScraperEntry["readings"];
+    };
+
+/** Orders `[role, reading]` pairs by role name. The pairs come from one record's entries, so two
+ *  never share a name. */
+function byRoleName([a]: readonly [string, unknown], [b]: readonly [string, unknown]): number {
+  return a < b ? -1 : 1;
+}
+
+/** A literal worth putting in a MISMATCH warning: what the source actually printed when we have
+ *  it, the parsed number otherwise. */
+function readingLiteral(r: Reading): string {
+  if (r.actual_reading !== undefined) return r.actual_reading;
+  return isUsable(r) ? String(r.read_value) : r.rejected;
+}
+
+
+
+/**
+ * Every string in the record, rewritten so WinISD can draw and store it
+ * (`../winisd/winisdSafeText.ts` holds the rules and the evidence for them).
+ *
+ * Applied HERE, on the record, rather than on either derived file: `openisd.json` and the `.wdr`
+ * are both built from this object, so one pass cleans both and they cannot disagree about a
+ * driver's name. It is also why it is not a replace over the serialized JSON — a rewrite that
+ * produces `"` would break the string escaping.
+ *
+ * Each rewrite becomes a `warn` naming the path it happened at, so a record whose model name was
+ * altered says so in `dq.alert` instead of changing quietly.
+ */
+function makeRecordTextWinisdSafe(
+  value: unknown,
+  path: string,
+  warnings: DriverError[]
+): unknown {
+  if (typeof value === "string") {
+    const safe = winisdSafeText(value);
+    for (const change of safe.changes) {
+      warnings.push({
+        level: "warn",
+        field: `winisd-safe-text:${path}`,
+        message:
+          `WinISD cannot carry ${describeCharacter(change.from)}; wrote ` +
+          `"${change.to}" in its place`,
+      });
+    }
+    return safe.text;
+  }
+  if (Array.isArray(value))
+    return value.map((item, index) =>
+      makeRecordTextWinisdSafe(item, `${path}.${index}`, warnings)
+    );
+  if (value === null || typeof value !== "object") return value;
+  return makeObjectTextWinisdSafe(value, path, warnings);
+}
+
+/** `makeRecordTextWinisdSafe` over an object's own entries: the same keys, each value rewritten. */
+function makeObjectTextWinisdSafe(
+  value: object,
+  path: string,
+  warnings: DriverError[]
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, v] of Object.entries(value)) {
+    out[key] = makeRecordTextWinisdSafe(
+      v,
+      path === "" ? key : `${path}.${key}`,
+      warnings
+    );
+  }
+  return out;
+}
+
+/** `«™» (U+2122)` — the character itself and its code point, so a reader of `dq.alert` can find
+ *  it in the source even when the terminal cannot draw it either. */
+function describeCharacter(character: string): string {
+  // `character` is one code point of a string, so `codePointAt(0)` is always a number.
+  const hex = Number(character.codePointAt(0)).toString(16).toUpperCase().padStart(4, "0");
+  return `"${character}" (U+${hex})`;
+}
+
+
+
+
+/** The `.wdr` mark an OpenISD field carries: E for entered, C for calculated, N for a null
+ *  value. The one place the three-way `CellState` is derived from the field's two flags. */
+function wdrStateOf(field: Readable<unknown> & Entered & Calculated): CellState {
+  if (field.entered) return "entered";
+  if (field.calculated) return "calculated";
+  return "not-available";
+}
+
+/** A parsed YAML document that is a mapping, as opposed to a scalar, a sequence or null. */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * `driver.yml` TEXT to an openisd RECORD: parse the YAML, insist the document is a mapping, and
+ * drop the keys an openisd record does not carry (`scraper_meta` at the top level, `definition` at
+ * every depth).
+ *
+ * Purely textual and structural — it knows nothing about drivers, radiators or the engine, so it
+ * is the transformation both device kinds share before either is built from the result.
+ *
+ * `{ok:false, error}` comes back in place of the record when the text is not an openisd record at
+ * all — tagged rather than an untagged `record | DriverError` union, because a `DriverError` is
+ * itself a plain object and so satisfies the same `isRecord` guard a caller would otherwise use
+ * to tell the two apart.
+ * Returned rather than thrown for the reason the entry point gives: the Python caller reads
+ * `errors`, and an exception crossing the V8 boundary is not something it can read.
+ */
+type OpenisdRecordResult =
+  | { ok: true; record: Record<string, unknown>; warnings: DriverError[] }
+  | { ok: false; error: DriverError };
+
+
+/**
+ * `VCCon` — the voice-coil connection row, which is MANDATORY in a `.wdr`: the wiring Re and BL
+ * were measured in.
+ *
+ * `1` = parallel, `2` = series (`wdrVCConCode`): `docs/design/WINISD_SCHEMA.md` §3.2, ParState slot 46.
+ *
+ * Marked E when the wiring is stated. When it is not (QO900 R1, overriding the 5 Oct "always E"
+ * ruling for this case): `1` marked C when unknown, the inferred wiring marked C when inferred.
+ * The reader reads a C row as unknown (`winIsdDriverImport.ts`), so the round trip is a fixed point.
+ */
+function wdrVCCon(spec: DriverSpec): WdrCell {
+  const cell = spec.VCCon;
+  return {
+    value: wdrVCConCode(cell.value),
+    state: cell.entered ? "entered" : "calculated",
+  };
+}
+
+/**
+ * OpenISD driver → `WinISDDriver` ready for `.wdr` serialisation.
+ * Decision table — `docs/design/WDR_LOGIC.md` "Converting OpenISD to .wdr":
+ *
+ * ParState fields:
+ *   entered       →  stated value,   mark E
+ *   calculated    →  derived value,  mark C
+ *   not-available, solver derives  →  solver value,  mark C
+ *   not-available, solver cannot   →  0,             mark N
+ *
+ * Exceptions (handled before the main loop, in file order):
+ *   VCCon entered parallel   →  1,  mark E
+ *   VCCon entered series     →  2,  mark E
+ *   VCCon inferred           →  1 or 2,  mark C
+ *   VCCon unknown            →  1,  mark C
+ *   numVC entered            →  stated count,  mark E
+ *   numVC not-available      →  1,             mark C  (WinISD needs a count; not the record's)
+ *   Xlim  entered            →  no key written, mark E on slot 10 only
+ *   Xlim  not-available      →  no key written, mark N on slot 10 only
+ *   c, roo (any)             →  air model value,  mark C
+ */
+
+/** One `.wdr` row, built from the OID field directly. The `.wdr` is a FIXED 48-row structure, so
+ *  each row is its own call naming the field, its `.wdr` row name, and whether WinISD derives the value (`calculable`) — the C-vs-E mark is
+ *  decided here, not looked up from a list.
+ *
+ *  Mark per `docs/design/WDR_LOGIC.md`'s middle rule (entered → E, derivable → C, otherwise → N):
+ *  an entered value is E; a derived one is C when WinISD itself would derive it, E otherwise (the
+ *  Sd ruling — openisd derives Sd from Dd beyond WinISD, so it is written E, never C). An absent value is written `0` mark N. */
+function wdrRow(
+  errors: DriverError[],
+  field: Pick<Readable<number | null>, "value"> & Entered,
+  calculable: boolean,
+  wdrName: string
+): readonly [string, WdrCell] {
+  const cell = field;
+  if (cell.value === null)
+    return [wdrName, { value: "0", state: "not-available" }];
+  // An ENTERED zero is written through as an entered zero, and flagged. A scraper that
+  // failed to read a number frequently yields 0, and 0 is a legitimate value for several of
+  // these fields, so nothing downstream can tell the two apart from the file alone. Corpus
+  // generation is the last point that still knows the value was *stated* rather than
+  // defaulted.
+  if (cell.entered && cell.value === 0) {
+    errors.push({
+      level: "warn",
+      field: wdrName,
+      message:
+        `${wdrName}: entered value is 0 - written as an entered 0; verify this is real and ` +
+        `not a failed extraction`,
+    });
+  }
+  const state =
+    cell.entered
+      ? "entered"
+      : calculable
+      ? "calculated"
+      : "entered";
+  return [wdrName, { value: String(cell.value), state }];
+}
+
+function rejectedReadingCommentLines(driver: OpenISDDriver): string[] {
+  const record = driver.toOpenIsdDeviceJson();
+  const specs = record.specs;
+  const sections = [specs.woofer, ...(specs.tweeter ? [specs.tweeter] : [])];
+  const lines: string[] = [];
+  for (const section of sections) {
+    for (const [field, entry] of Object.entries(section)) {
+      if (entry === undefined || !('state' in entry) || entry.state !== "N") continue;
+      const ranked = Object.entries(entry.readings ?? {}).sort(
+        ([a], [b]) => sourceRank(a) - sourceRank(b) || a.localeCompare(b)
+      );
+      for (const [role, r] of ranked) {
+        const reason = !isUsable(r) ? r.rejected : `impossible for ${field}`;
+        const textOrValue = r.actual_reading ?? (isUsable(r) ? String(r.read_value) : "");
+        const printedPart = textOrValue ? ` ${textOrValue}` : "";
+        lines.push(`${field}: ${role}${printedPart} — ${reason}`);
+      }
+    }
+  }
+  return lines;
+}
+
+/**
+ * What `Comment=` holds before any `[DQ]` lines: the driver's own comment when it has one (an
+ * incoming `.wdr` Comment returns unchanged), else its source URL — the manufacturer datasheet,
+ * else the product page, else the listing page — else nothing; plus any rejected readings
+ * (one line per field, plain text).
+ */
+function wdrCommentOf(driver: OpenISDDriver): string {
+  const own = driver.comment.value;
+  const baseComment =
+    own !== null && own !== ""
+      ? own
+      : (driver.dataSource("manufacturer_datasheet") ??
+        driver.dataSource("manufacturer_product_page") ??
+        driver.dataSource("manufacturer_listing_page") ??
+        "");
+  const rejectedLines = rejectedReadingCommentLines(driver);
+  const missingLines = rejectedLines.filter((l) => !baseComment.includes(l));
+  if (missingLines.length === 0) return baseComment;
+  if (!baseComment) return missingLines.join("\n");
+  return `${baseComment}\n${missingLines.join("\n")}`;
+}
+
+export function openIsdDriverToWinIsdDriver(
+  driver: OpenISDDriver,
+  errors: DriverError[],
+  dqLines: readonly string[] = []
+): WinISDDriver {
+  const header: WdrHeader = {
+    brand: driver.brand.value,
+    model: driver.model.value,
+    manufacturer: driver.manufacturer.value,
+    providedBy: driver.providedBy.value ?? "",
+    comment: wdrCommentOf(driver),
+    dateAdded: driver.added.value ?? "",
+  };
+
+  const spec = driver.specs;
+
+  // XLIM CROSSES AS A MARK AND NOTHING ELSE. WinISD's writer has no `Xlim=` key — it holds the
+  // field in its editor, gives it ParState slot 10, and discards the value on save
+  // (`XLIM_PARSTATE_SLOT`). The structure's last entry carries the mark alone.
+  const xlim = spec.Xlim_m;
+
+  // THE AIR THE FIGURES ASSUME. `c` and `roo` are the only two `.wdr` keys WinISD itself never
+  // leaves at zero: its own New → Save writes 343.684120962152 and 1.20095217714682, marked
+  // COMPUTED (`drivers/mysamples/winisd/probe-all-defaults.wdr`). A driver that states neither is
+  // not a driver measured in a vacuum — it is one measured in ordinary air — so writing 0 would
+  // publish a claim no record makes and no physics allows. This holds even for an embedded
+  // driver, whose own `c`/`roo` fields are always blank by design going forward (the project is
+  // their sole source while embedded, `OpenISDDriverEmbedded.update()`) — the file still needs
+  // a concrete pair for WinISD compatibility.
+  //
+  // THE WRITTEN VALUE comes from `solveConsistencyGroup()`, not the raw field getter: for a
+  // standalone driver it resolves to the same bare-reference default the field itself would
+  // report, but for an embedded driver it goes through `OpenISDDriverEmbedded`'s override of
+  // that method, which always reflects the project's CURRENT environment — including for a
+  // driver embedded before this rule existed and still carrying a stale entered value in its
+  // raw record (every project's `.owpr`/browser-storage load bypasses `update()`, so nothing
+  // retroactively clears that stale value; reading the raw field here would silently export it).
+  // The ENTERED/CALCULATED mark still comes from the plain field's own state, unchanged — the
+  // driver's record is the one source of truth for whether a human stated a value, the exporter
+  // does not decide that itself.
+  const cCell = spec.c_m_per_s;
+  const rooCell = spec.roo_kg_per_m3;
+
+  // An unstated coil count is written 1 marked C: WinISD needs a count, and the C mark says the
+  // record does not state one, so the reader leaves it unstated. WinISD's own New -> Save writes
+  // E here from a hardcoded store in its blank-driver init; that claims a reading nobody
+  // supplied (SPEC_ENGINE.md "openisd writes C in the numVC slot, not E").
+  const numVC = spec.numVC;
+
+  // THE FIXED 48-ROW STRUCTURE, each row written explicitly in WinISD's file order, plus Xlim's
+  // slot-10 mark last. `.wdr` is a FIXED structure — no loops, no row-order list: the sequence
+  // IS the order, and each row names the field, its `.wdr` key and whether WinISD derives it
+  // (`calculable`).
+  const wdrCells: Array<readonly [string, WdrCell]> = [
+    wdrRow(errors, spec.Qts, true, "Qts"),
+    wdrRow(errors, spec.Znom_ohm, true, "Znom"),
+    wdrRow(errors, spec.Fs_hz, true, "Fs"),
+    wdrRow(errors, spec.Pe_W, true, "Pe"),
+    wdrRow(errors, spec.SPL_dB, true, "SPL"),
+    wdrRow(errors, spec.Re_ohm, true, "Re"),
+    wdrRow(errors, spec.Le_H, false, "Le"),
+    wdrRow(errors, spec.fLe_hz, false, "fLe"),
+    wdrRow(errors, spec.KLe_H_sqrtHz, true, "KLe"),
+    wdrRow(errors, spec.BL_Tm, true, "BL"),
+    wdrRow(errors, spec.Xmax_m, false, "Xmax"),
+    wdrRow(errors, spec.Cms_m_per_N, true, "Cms"),
+    wdrRow(errors, spec.Qms, true, "Qms"),
+    wdrRow(errors, spec.Qes, true, "Qes"),
+    wdrRow(errors, spec.Rms_kg_per_s, true, "Rms"),
+    wdrRow(errors, spec.Mms_kg, true, "Mms"),
+    wdrRow(errors, spec.Sd_m2, true, "Sd"),
+    wdrRow(errors, spec.Vas_m3, true, "Vas"),
+    // Dia is Dd's old name; WinISD hides its box and writes 0, unmarked, in every file (QO398).
+    ["Dia", { value: "0", state: "not-available" }],
+    wdrRow(errors, spec.Vd_m3, true, "Vd"),
+    wdrRow(errors, spec.no, true, "no"),
+    wdrRow(errors, spec.Dd_m, true, "Dd"),
+    wdrRow(errors, spec.EBP_hz, true, "EBP"),
+    [
+      "numVC",
+      {
+        value: String(numVC.value ?? 1),
+        state: numVC.entered ? "entered" : "calculated",
+      },
+    ],
+    wdrRow(errors, spec.Hc_m, true, "Hc"),
+    wdrRow(errors, spec.Hg_m, true, "Hg"),
+    wdrRow(errors, spec.SPLmax_dB, true, "SPLmax"),
+    wdrRow(errors, spec.SPLmaxLF_dB, true, "SPLmaxLF"),
+    wdrRow(errors, spec.USPL_dB, true, "USPL"),
+    wdrRow(errors, spec.alfaVC_per_K, false, "alfaVC"),
+    wdrRow(errors, spec.Rt_K_per_W, false, "Rt"),
+    wdrRow(errors, spec.Ct_J_per_K, false, "Ct"),
+    wdrRow(errors, spec.gamma_m_per_s2_A, true, "gamma"),
+    wdrRow(errors, spec.Rme_kg_per_s, true, "Rme"),
+    wdrRow(errors, spec.Mpow_N_per_sqrtW, true, "Mpow"),
+    wdrRow(errors, spec.Mcost_kg_per_s, true, "Mcost"),
+    wdrRow(errors, spec.Gloss, true, "Gloss"),
+    ["VCCon", wdrVCCon(spec)],
+    [
+      "c",
+      {
+        value: String(cCell.value),
+        state: cCell.entered ? "entered" : "calculated",
+      },
+    ],
+    [
+      "roo",
+      {
+        value: String(rooCell.value),
+        state: rooCell.entered ? "entered" : "calculated",
+      },
+    ],
+    wdrRow(errors, spec.Thick_m, false, "Thick"),
+    wdrRow(errors, spec.Depth_m, true, "Depth"),
+    wdrRow(errors, spec.MagDepth_m, true, "MagDepth"),
+    wdrRow(errors, spec.Magnet_m, true, "Magnet"),
+    wdrRow(errors, spec.Basket_m, false, "Basket"),
+    wdrRow(errors, spec.Outer_m, false, "Outer"),
+    wdrRow(errors, spec.Vcd_m, false, "Vcd"),
+    wdrRow(errors, spec.DVol_m3, true, "DVol"),
+    // Xlim crosses as its slot-10 mark and nothing else — its own state (a cell with no value
+    // reads `not-available`), never a value.
+    ["Xlim", { value: "", state: wdrStateOf(xlim) }],
+  ];
+
+  return WinISDDriver.build(header, wdrCells, dqLines);
+}
+
+/** Driver file conversion — `driver.yml` to openisd + `.wdr`, and `.wdr` text back to a driver —
+ *  holding the one engine every driver it builds is given. */
+export class DriverRecordConverter {
+  readonly #roundTrip: DriverRoundTripCheck;
+
+  constructor(
+    private readonly engine: Engine,
+    private readonly driverFromRecord: DriverFromRecord = OpenISDDriver.fromConformingRecord,
+  ) {
+    this.#roundTrip = new DriverRoundTripCheck(engine, driverFromRecord);
+  }
+
+  /**
+   * `driver.yml` text in; `openisd.yml` text, `.wdr` text and every problem out.
+   * Never throws for bad INPUT: a record the caller could not have known was malformed comes back as
+   * an `errors` entry, because the Python caller's whole job is "call this, check `errors`" and an
+   * exception crossing the V8 boundary is not something it can read. A defect in THIS code is a
+   * different matter and is left to throw.
+   */
+  driverYmlToOpenisdAndWdr(
+    driverYmlText: string
+  ): DriverYmlProjection {
+    const parsed = this.#driverYmlToOpenisdRecord(driverYmlText);
+    if (!parsed.ok) {
+      return { openisd: null, wdr: null, errors: [parsed.error] };
+    }
+    const openisdJson = parsed.record;
+
+    const driverOrErrors = OpenISDDriver.fromConformingRecord(
+      openisdJson,
+      this.engine
+    );
+    if (Array.isArray(driverOrErrors)) {
+      // its an array of errors not a driver
+      const radiatorOrErrors =
+        OpenISDPassiveRadiatorStandalone.fromConformingRecord(openisdJson);
+      if (!Array.isArray(radiatorOrErrors)) {
+        // not an array so its the PR
+        return {
+          openisd: JSON.stringify(sortKeysDeep(radiatorOrErrors.toOpenIsdDeviceJson()), null, 2),
+          wdr: null,
+          errors: parsed.warnings,
+        };
+      }
+
+      const errors: DriverError[] = [...parsed.warnings];
+      // dedupe
+      for (const problem of new Set([...driverOrErrors, ...radiatorOrErrors])) {
+        errors.push({ level: "error", field: "record", message: problem });
+      }
+      return { openisd: JSON.stringify(sortKeysDeep(openisdJson), null, 2), wdr: null, errors };
+    }
+
+    // QO414: the record carries no data-quality marks; they are worked out
+    // live. A driver.json may carry `dq_scraper`; it is read and not carried across.
+    const exported = driverOrErrors.toOpenIsdDeviceJson();
+    const openisd = JSON.stringify(sortKeysDeep(exported), null, 2);
+
+    const errors: DriverError[] = [...parsed.warnings, ...driverOrErrors.dataQualityWarnings()];
+    const wdrDriver = openIsdDriverToWinIsdDriver(driverOrErrors, errors);
+
+    const wdr = wdrDriver.toWdrIni();
+    errors.push(...this.#roundTrip.roundTripProblems(driverOrErrors, openisd, wdr));
+    return { openisd, wdr, errors };
+  }
+
+  /** Run the same scraper-entry DQ pass without attempting an OpenISD or WinISD projection.
+   *
+   * The scraper pipeline uses this for records whose role is outside the library's
+   * woofer/passive-radiator boundary. Parsing and source corroboration stay in the shared
+   * private method; this boundary returns its warnings and errors without derived files.
+   */
+  driverYmlToDqWarnings(driverYmlText: string): DriverYmlDqWarnings {
+    const parsed = this.#driverYmlToOpenisdRecord(driverYmlText);
+    if (!parsed.ok) return { warnings: [], errors: [parsed.error] };
+    return {
+      warnings: parsed.warnings.filter(problem => problem.level === "warn"),
+      errors: parsed.warnings.filter(problem => problem.level === "error"),
+    };
+  }
+
+  /** `.wdr` text -> `OpenISDDriver` — the reverse of `openIsdDriverToWinIsdDriver`, for a caller
+   *  (a `.wdr`/`.owdr` file import) holding raw `.wdr` text rather than an already-parsed
+   *  `WinISDDriver`. Three steps, same chain `winIsdProjectToOpenIsdProject` uses for the driver
+   *  embedded in a `.wpr`'s `[Driver]` section: parse the INI, read it into an openisd record
+   *  (`winISDDriverToOpenISDDeviceJson` — recovers `driverType` from the `[DRIVERTYPE ...]` tag in
+   *  `Comment=` when present, `'woofer'` otherwise), then validate that record into a driver. */
+  winIsdDriverToOpenIsdDriver(
+    text: string
+  ): { value: OpenISDDriverStandalone | null; errors: DriverError[] } {
+    const errors: DriverError[] = [];
+    const wdrDriver = WinISDDriver.fromWdrIni(text);
+    const { record, warnings } = winISDDriverToOpenISDDeviceJson(wdrDriver);
+    errors.push(...warnings);
+
+    const driverOrErrors = this.driverFromRecord(record, this.engine);
+    if (Array.isArray(driverOrErrors)) {
+      for (const problem of driverOrErrors)
+        errors.push({ level: "error", field: "driver", message: problem });
+      return { value: null, errors };
+    }
+    return { value: driverOrErrors, errors };
+  }
+
+  #driverYmlToOpenisdRecord(
+    driverYmlText: string
+  ): OpenisdRecordResult {
+    let javascriptThing: unknown;
+    try {
+      javascriptThing = parseYmlToJs(driverYmlText);
+    } catch (err) {
+      return {
+        ok: false,
+        error: {
+          level: "error",
+          field: "driver.yml",
+          message:
+            "could not parse as YAML: " +
+            String(err),
+        },
+      };
+    }
+
+    if (!isRecord(javascriptThing)) {
+      return {
+        ok: false,
+        error: {
+          level: "error",
+          field: "driver.yml",
+          message:
+            "parsed to " +
+            (javascriptThing === null ? "null" : typeof javascriptThing) +
+            ", not a record",
+        },
+      };
+    }
+
+    // D9/D11 push a warning per MISMATCH field as a side effect of the walk below — collected here
+    // rather than discovered by re-walking the finished record a second time; the text pass below
+    // adds one per character it had to rewrite, to the same array.
+    const warnings: DriverError[] = [];
+    const record = this.#stripScraperOnlyFieldsFromJavascriptObject(withoutScraperOnlyFields(javascriptThing),  warnings);
+    // A reading the model refuses outright (a numeric VCCon, QO914) stops the record here.
+    const refusal = warnings.find((w) => w.level === "error");
+    if (refusal !== undefined) return { ok: false, error: refusal };
+
+    // The record leaves the bridge in the slim model (QO395): the readings, origin and verdicts above
+    // decided each value and its precision, and stay in driver.json.
+    // Its Re and BL are as published, so it is a current-version record (QO900 R1).
+    return { ok: true, record: asCurrentRecord(makeObjectTextWinisdSafe(slimmedDevice(record), "", warnings)), warnings };
+  }
+
+  /**
+   * `driver.yml`'s keys, in the file's own order, minus the scraper section.
+   *
+   * Rebuilt as a fresh object rather than `delete`d from the parsed one: the parsed object is the
+   * round-trip's reference (step 4 below) and must not be mutated by the thing it is checking.
+   *
+   * The spec keys pass through untouched — `driver.yml` spells them the openisd way (`Fs_hz`,
+   * `Vas_m3`, …), so no canonicalisation is wanted here.
+   */
+  #stripScraperOnlyFieldsFromJavascriptObject(
+    driverYml: object,
+    warnings: DriverError[]
+  ): Record<string, unknown> {
+    const out: Record<string, unknown> = {};
+    const candidates: unknown = Reflect.get(driverYml, MANUAL_CANDIDATES_KEY);
+    for (const [key, value] of Object.entries(driverYml)) {
+      if (key === SCRAPER_ONLY_KEY || key === SCRAPER_PRINTED_KEY || key === MANUAL_CANDIDATES_KEY) continue;
+      out[key] =
+        key === "specs"
+          ? this.#projectSpecs(stripDefinitionField(value), makerOf(driverYml), warnings)
+          : stripDefinitionField(chooseFieldValue(key, value, candidates));
+    }
+    return stripMetadataOrigin(out);
+  }
+
+  #projectSpecs(specs: unknown, maker: string | null, warnings: DriverError[]): unknown {
+    if (!isKeyedObject(specs)) return specs;
+    const sections: Record<string, unknown> = {};
+    for (const [sectionKey, section] of Object.entries(specs)) {
+      if (!isKeyedObject(section)) {
+        sections[sectionKey] = section;
+        continue;
+      }
+      const fields: Record<string, unknown> = {};
+      for (const [field, entry] of Object.entries(section)) {
+        const projected = this.#projectScraperEntry(entry, sectionKey, field, maker, warnings);
+        fields[field] = entryWithoutAppOnlyKeys(projected);
+      }
+      sections[sectionKey] = withPerCoilFiguresForWiring(withSensitivityByCondition(fields), this.engine.driver);
+    }
+    return sections;
+  }
+
+  /** One scraper-supplied spec entry — `scraperEntrySchema`'s shape — projected into the entry the
+   *  app schema now requires: `{state:'E', value, origin, corroboration, readings, dq_scraper}`
+   *  (D9's origin pick, D11's corroboration verdict; the app's one DQ implementation, computed HERE
+   *  and nowhere else — `crosscheck.py`'s TS port). `readings` still carries every reading,
+   *  rejected ones included: D9's own fallback tiers need to see them, and
+   *  `entryWithoutRejectedReadings` (run after this, unchanged) is what drops them from the copy
+   *  the app actually stores.
+   *
+   *  A MISMATCH verdict also pushes a warning naming every source's own reading — sources
+   *  disagreeing is worth a human's attention even though a value still gets written.
+   *
+   *  An entry that is not a scraper entry at all — already typed (`state` present, e.g. from a
+   *  hand-authored fixture), or shaped too strangely for `scraperEntrySchema` to accept — is
+   *  returned UNCHANGED: a calculated entry has nothing here to project, and a malformed one is
+   *  left for the record schema below to reject with its own real error rather than this function
+   *  inventing one. */
+  #projectScraperEntry(
+    entry: unknown,
+    section: string,
+    field: string,
+    maker: string | null,
+    warnings: DriverError[]
+  ): unknown {
+    if (!isKeyedObject(entry) || "state" in entry) return entry;
+    // A stale `dq_calculated` block (D22) or a stale `origin`/`corroboration` pair from a
+    // `driver.json` scraped before D9/D10/D11 (`entryForScraperSchema`, above) would otherwise trip
+    // `scraperEntrySchema`'s `strictObject` and silently fall through to "return entry unchanged"
+    // below.
+    if (field === "VCCon") return this.#projectWiringEntry(entry, section, warnings);
+    const parsed = scraperEntrySchema.safeParse(entryForScraperSchema(entry));
+    if (!parsed.success) return entry;
+    // A figure the maker prints under another definition (Purifi's EBP is Fs/Qts) is not this field's
+    // value: nothing wins, the reading stays, and the app calculates the field.
+    if (printsUnderOtherDefinition(maker, field)) {
+      const notThisQuantity: ProjectedEntry = { state: "N", readings: parsed.data.readings };
+      return notThisQuantity;
+    }
+    return this.#projectParsedEntry(parsed.data, section, field, warnings);
+  }
+
+  /** VCCon's scraper entry (QO914, #514): a reading's `read_value` is the wiring's name. A numeric
+   *  `read_value` is the retired 1/2 code, and the record is refused with an error naming the
+   *  field: there is one model version, so it is not translated. The winner is the stored name,
+   *  entered; sources naming different wirings push the same warning as any field's. */
+  #projectWiringEntry(entry: Record<string, unknown>, section: string, warnings: DriverError[]): unknown {
+    if (hasNumericReadValue(entry)) {
+      warnings.push({
+        level: "error",
+        field: `${section}.VCCon`,
+        message: 'a VCCon read_value is the wiring\'s name, "series" or "parallel" (QO914); a number (the retired 1/2 code) is refused',
+      });
+      return entry;
+    }
+    const parsed = wiringScraperEntrySchema.safeParse(entryForScraperSchema(entry));
+    if (!parsed.success) return entry;
+    const {readings} = parsed.data;
+    const named = Object.entries(readings).sort(byRoleName)
+      .flatMap(([role, r]) => "rejected" in r ? [] : [`${role}=${r.actual_reading ?? r.read_value}`]);
+    const wirings = new Set(Object.values(readings).flatMap(r => "rejected" in r ? [] : [r.read_value]));
+    if (wirings.size > 1) {
+      warnings.push({ level: "warn", field: `${section}.VCCon`, message: `sources disagree: ${named.join(", ")}` });
+    }
+    const origin = selectWiringOrigin(readings);
+    const projected: ProjectedWiringEntry = origin.kind === "none"
+      ? { state: "N", readings }
+      : { state: "E", value: origin.reading.read_value, origin: origin.role, readings };
+    return projected;
+  }
+
+  /** `#projectScraperEntry` for an entry that already parsed as `scraperEntrySchema`: always
+   *  projects, to an `N` entry when no reading wins or to an `E` entry carrying the winner. */
+  #projectParsedEntry(
+    scraped: ScraperEntry,
+    section: string,
+    field: string,
+    warnings: DriverError[]
+  ): ProjectedEntry {
+    const { readings } = scraped;
+    const originResult = selectOrigin(readings, field, (f, v) => this.engine.driver.isPhysicallyPlausible(f, v));
+    // A reading outside the selection band never becomes a value (T018: the field is N
+    // and the .wdr comment lists it). The tools still read the normal-band mark as a warning
+    // (winisd_tools BUG_20260823 range/calc marks; AI triage of calculation-field failures).
+    for (const [, r] of Object.entries(readings).sort(byRoleName)) {
+      if (!isUsable(r)) continue;
+      // An exact printed zero in a field that is physically positive is the same as not provided
+      // (the field is not available, so there is no value to be out of range).
+      if (r.read_value === 0) continue;
+      const issue = this.engine.driver.rangeIssue(field, r.read_value);
+      if (issue) warnings.push({ level: "warn", field, message: issue.text });
+    }
+    const corroboration = corroborate(readings);
+    if (corroboration === Corroboration.Mismatch) {
+      const parts = Object.entries(readings)
+        .sort(byRoleName)
+        .map(([role, r]) => `${role}=${readingLiteral(r)}`)
+        .join(", ");
+      warnings.push({
+        level: "warn",
+        field: `${section}.${field}`,
+        message: `sources disagree: ${parts}`,
+      });
+    }
+
+    // Reader agreement is derived from each datasheet reading's `reads` and never stored. Readers
+    // that disagree are a DQ warning showing every reader's read; a value only OCR read, with no
+    // text layer behind it, is a warning that it is unverified.
+    for (const [role, reading] of Object.entries(readings).sort(byRoleName)) {
+      const reads = reading.reads;
+      if (reads === undefined) continue;
+      const verdict = readerVerdict(reads);
+      if (verdict.agreement === ReaderAgreement.Disagree) {
+        const shown = Reader.ALL.flatMap((reader) => {
+          const read = reads[reader.value];
+          return read === undefined ? [] : [`${reader.value}=${read.actual_reading}`];
+        }).join(", ");
+        warnings.push({
+          level: "warn",
+          field: `${section}.${field}`,
+          message: `readers disagree on ${role}: ${shown}`,
+        });
+      }
+      if (verdict.unverified) {
+        warnings.push({
+          level: "warn",
+          field: `${section}.${field}`,
+          message: `${role} read by OCR only (${verdict.numbered.join(", ")}): no text layer confirmed it`,
+        });
+      }
+    }
+
+    for (const [role, r] of Object.entries(readings).sort(byRoleName)) {
+      if (!isUsable(r) && !isRecognisedRejection(r)) {
+        warnings.push({
+          level: "warn",
+          field: `${section}.${field}`,
+          message: `unrecognised rejection reason on ${role}: "${r.rejected}" (reading kept as written)`,
+        });
+      }
+    }
+
+    switch (originResult.kind) {
+      case "none": {
+        const notAvailable: ProjectedEntry = { state: "N", readings };
+        return notAvailable;
+      }
+      case "winner": {
+        const winner = originResult.reading;
+        const projected: ProjectedEntry = {
+          state: "E",
+          value: winner.read_value,
+          origin: originResult.role,
+          corroboration: corroboration.value,
+          readings,
+        };
+        return projected;
+      }
+    }
+  }
+}

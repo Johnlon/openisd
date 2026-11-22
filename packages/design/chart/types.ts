@@ -1,0 +1,95 @@
+/**
+ * Chart data shapes — what a curve builder returns and what a chart panel draws: plot series,
+ * plot bundles, the designs shown on a chart. Engine shapes (SweepResult, …) come from the engine.
+ */
+import type {ChartLayout} from './layout.js';
+import type {BoxType, MaxCurvesResult, SweepDriver, SweepResult} from '../engine/index.js';
+import type {FrequencyAxis, LevelAxis} from './axis.js';
+
+/** One plotted line. Optional fields are set only by the series that need them. */
+export interface Series {
+  xs: number[];
+  ys: number[];
+  color: string;
+  name: string;
+  dash?: boolean;
+  /** Per-point "Xmax is the limiting factor" flags — drives two-pass MaxSPL coloring. */
+  xlim?: boolean[];
+  /** A fixed level drawn for orientation (0 dB, −3 dB, F3, a limit), not a computed curve: the
+   *  chart's data table leaves it out. */
+  reference?: boolean;
+  /** The words written on the line itself where the chart labels its reference lines (the phone Graph page);
+   *  absent, the line's `name` is written. */
+  lineLabel?: string;
+  /** Legend-only entry with no drawn line. */
+  phantom?: boolean;
+  /** This is the focused project's own trace, not a compare overlay — the legend and the
+   *  line itself are drawn emphasized so it reads apart from the overlays around it. */
+  current?: boolean;
+  /** Line width in px, set only on the focused project's own trace; absent, the canvas draws its default. */
+  lineWidth?: number;
+  /** Phase traces only: index i of each segment i-1 → i that jumps across the ±180° cut, an
+   *  artefact the canvas draws dotted instead of as part of the line. */
+  wraps?: number[];
+}
+
+/** Where a trace first reaches `dropDb` below its passband: `f` in Hz, null when it never does. */
+export interface Rolloff {
+  label: string;
+  dropDb: number;
+  f: number | null;
+}
+
+/** A chart's full plot bundle. */
+export interface PlotData {
+  series: Series[];
+  ymin: number;
+  ymax: number;
+  logy: boolean;
+  unit: string;
+  fmin?: number;
+  fmax?: number;
+  /** Frequency axis the series are drawn on. */
+  freqAxis: FrequencyAxis;
+  /** Level axis over `ymin … ymax`. */
+  levelAxis: LevelAxis;
+  /** The current trace's F3 and F10 on the transfer function chart; empty on every other chart. */
+  rolloffs: readonly Rolloff[];
+  /** Where the plot, its title and its tick labels sit in the panel. */
+  layout: ChartLayout;
+}
+
+/**
+ * The sweep-range/display fields a chart panel and the Options dialog actually read — the rest
+ * of the engine's `SweepParams` (Vb, eg, losses, …) comes off the project itself
+ * (`OpenISDProject.sweep()`/`maxCurves()`) and is never read back out through a `Design`.
+ * `splXmaxLimited` chooses which SPL array to draw (`sw.splXlimCurve` vs `sw.spl`); `prXmax`
+ * is the passive radiator's own excursion limit, used only by the Excursion chart's PR trace.
+ * `portVelocityLimit_m_per_s` is the project's port air-velocity limit line; absent, none is drawn.
+ */
+export type PlotParams = {
+  fmin: number;
+  fmax: number;
+  splXmaxLimited?: boolean;
+  prXmax?: number;
+  portVelocityLimit_m_per_s?: number;
+};
+
+/** A design shown on a chart — the current design plus any pinned comparisons. */
+export interface Design {
+  driver: SweepDriver | null;
+  box: BoxType;
+  P: PlotParams;
+  curves: SweepResult | null;
+  maxCurves: MaxCurvesResult | undefined;
+  name?: string;
+  color?: string;
+  /** Trace visibility for compare overlays. Absent/true = shown; false = hidden from
+   * the graph. Additive: a design without this field is always drawn. */
+  visible?: boolean;
+  project?: { name: string; creator?: string; created?: string; modified?: string; description?: string };
+  ground?: string;
+  isModified?: boolean;
+  /** Position in the sidebar's project list — legend/draw order follows this, not "current first". */
+  sortIndex?: number;
+}

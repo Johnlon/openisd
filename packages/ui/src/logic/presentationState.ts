@@ -1,0 +1,197 @@
+/**
+ * `presentationState.ts` — PRESENTATION state: which dialog/panel is open, per-chart Y-axis
+ * zoom, unit/env/colour preferences (ARCHITECTURE.md §"Approved state stores — there are
+ * THREE, and no others"). It holds no domain value: `box`, driver, box/vent/PR fields, project
+ * metadata and every other design input live on `managedProject`/`appState.ts` and are read
+ * through them, never copied here.
+ *
+ * The graph cursor (crosshair/pinned/locked/drag-band) and open charts (`graphs`) used to
+ * live here — QO130 made them PROJECT-scoped instead (two open projects must not share one cursor), so they moved onto `OpenISDProject` itself
+ * (`.cursorF`/`.pinnedF`/`.cursorLocked`/`.dragRange`/`.graphs`). The cursor fields
+ * went further under QO168: a documented exception in
+ * `architecture-project-has-three-fields.test.ts`, never serialized anywhere.
+ *
+ * This module holds types and pure helpers only. The one live instance is built by
+ * `createPresentationState()`, called once by the composition root (`main.ts`) and reached by
+ * components through `useApp().presentation`.
+ */
+import {reactive} from 'vue';
+import type {YRange} from '../types.js';
+import type {ChartId} from '@openisd/design/engine';
+import type {OpenISDProject} from '@openisd/design';
+import {NumberField} from '@openisd/design/fields';
+
+/** The palette `assignTraceColor`/`cycleTraceColor` draw from — one project's own
+ *  legend/line colour, distinct from `ChartColors`' background/axis overrides below. */
+const TRACE_PALETTE = ['#c9c92e', '#e34b4b', '#3a7bd5', '#2e8b57', '#c23bc2', '#2ec9c9', '#e08a2e'];
+
+/** A user-chosen colour override for one chart element; absent key = default colour
+ *  (`OptionsModal.vue`'s "Plot Window" tab). */
+export interface ChartColors {
+  zeroDb?: string;
+  minus3Db?: string;
+  background?: string;
+  otherLines?: string;
+  labels?: string;
+  xmaxLimit?: string;
+  cursor?: string;
+  airSpeedLimit?: string;
+  selectedRange?: string;
+  [key: string]: string | undefined;
+}
+
+/** Shape of `ViewSnapshot.ui` (`@openisd/persistence`'s `ui: Record<string, unknown>`) that
+ *  this module actually reads and writes. */
+interface UiState {
+  [key: string]: unknown;
+  username?: string;
+  unitTokens?: Record<string, string>;
+  chartColors?: ChartColors;
+  /** Charts stacked to the chart area's height, Original skin (`CHARTS_HIGH_OPTIONS`). Absent
+   *  means `ORIGINAL_CHARTS_HIGH`. */
+  originalChartsHigh?: number;
+  /** Charts stacked to the chart area's height, Mobile skin. Absent means `MOBILE_CHARTS_HIGH`. */
+  mobileChartsHigh?: number;
+  /** The splash has been shown and dismissed once — it opens itself only for a visitor whose
+   *  stored view carries nothing (`SplashModal-hooks.ts`). */
+  splashSeen?: boolean;
+  /** Manual, persisted skin choice from the Info menu. Absent means "follow the viewport" —
+   *  `App.vue`'s `activeSkin` falls back to `narrowViewport` below. */
+  skinOverride?: SkinChoice;
+}
+
+/** A skin the person can choose from the Info menu. */
+export type SkinChoice = 'original' | 'mobile';
+
+/** `value` as a skin the app offers, or undefined for anything else (a saved view is outside data). */
+export function parseSkinChoice(value: unknown): SkinChoice | undefined {
+  return value === 'original' || value === 'mobile' ? value : undefined;
+}
+
+export interface PresentationState {
+  /** The New Project wizard is open. Lives here, not on a shell, because the empty-state
+   *  screen (no project open) also needs to open it and the shell is inside the null gate. */
+  newProjectOpen: boolean;
+  /** The Browse Drivers modal is open. */
+  browseOpen: boolean;
+  /** The What-if? panel is open. */
+  editDriver: boolean;
+  /** The Driver Editor modal (Brand/Model/Comment/Provided by) is open. */
+  editDriverInfo: boolean;
+  /** The Driver Editor opens with its "values disagree" list already showing (read once by the editor). */
+  editDriverShowDisagreements: boolean;
+  /** Per-chart Y-axis override; absent entry = auto-scale. Keyed by the chart, so a row in
+   *  the Options dialog cannot write under a key no chart reads. */
+  yRanges: Partial<Record<ChartId, YRange>>;
+  /** The swept frequency range every chart panel draws over — global, shared across every open
+   *  project (it was per-project via `sweepFmin_hz`/`sweepFmax_hz`, but a
+   *  project's chart zoom has no business surviving a switch to another project). It is also the
+   *  sweep's own frequency grid (`syncedP` → `p.sweep`). Saved with the view state
+   *  (`currentViewSnapshot`), like `yRanges`. */
+  sweepRange: {min: number; max: number};
+  /** Live `matchMedia` read of the mobile-skin breakpoint (`logic/viewport.ts`), seeded
+   *  synchronously by `App.vue` before its first render and kept live thereafter. NOT part of
+   *  `ui` and never persisted: it is an observation of the current device, not a choice — a
+   *  device that used to be narrow must not stay "mobile" after `viewStateRepo` replays an old
+   *  session on a different, wider screen. */
+  narrowViewport: boolean;
+  /** The Options modal is open. */
+  optionsOpen: boolean;
+  /** The Open Project dialog is open. */
+  openDialogOpen: boolean;
+  /** The full-screen Projects pane (mobile) is open. */
+  projectsPaneOpen: boolean;
+  /** Counts the requests to bring up the projects list (the phone Projects page, the desktop panel). */
+  projectsRequests: number;
+  /** The active mobile pane, or null when closed. */
+  mobilePane: string | null;
+  /** The active mobile destination. */
+  mobileDestination: string;
+  ui: UiState;
+  /** Reset every field's display unit back to its own default (undoes all unit toggling app-wide
+   *  — cm/L/g/Hz/K/Pa etc., whatever each field's `base` prop is), in one action. Does not touch
+   *  the design itself — this only affects how values are DISPLAYED, never the stored (SI) design. */
+  resetUnitTokens(): void;
+  /** Set (or, with `null`, clear) the manual skin override. `null` deletes the key rather than
+   *  storing a literal `null`, so a cleared override round-trips through `viewStateRepo` as
+   *  "absent" — the same state a visitor who never touched the toggle is in. */
+  setSkinOverride(skin: 'original' | 'mobile' | null): void;
+  /** The skin on screen: the manual override when set, otherwise the one the window width picks. */
+  shownSkin(): 'original' | 'mobile';
+}
+
+/** A fresh presentation state. Built once per app by the composition root, once per test. */
+export function createPresentationState(): PresentationState {
+  const s: PresentationState = reactive({
+    newProjectOpen: false,
+    browseOpen: false,
+    editDriver: false,
+    editDriverInfo: false,
+    editDriverShowDisagreements: false,
+    optionsOpen: false,
+    openDialogOpen: false,
+    projectsRequests: 0,
+    projectsPaneOpen: false,
+    mobilePane: null,
+    mobileDestination: 'box',
+    yRanges: {},
+    sweepRange: {min: NumberField.PLOT_RANGE_DEFAULT_HZ.min, max: NumberField.PLOT_RANGE_DEFAULT_HZ.max},
+    narrowViewport: false,
+    ui: {
+      unitTokens: {},
+    },
+    resetUnitTokens(): void {
+      s.ui.unitTokens = {};
+    },
+    setSkinOverride(skin: 'original' | 'mobile' | null): void {
+      if (skin === null) delete s.ui.skinOverride;
+      else s.ui.skinOverride = skin;
+    },
+    shownSkin(): 'original' | 'mobile' {
+      return s.ui.skinOverride ?? (s.narrowViewport ? 'mobile' : 'original');
+    },
+  });
+  return s;
+}
+
+/** The project's own trace/legend colour, saved in its project file (`OpenISDProject.traceColor`),
+ *  or the palette's first entry if `assignTraceColor` has never run for it (defensive default
+ *  only — every project entering the open-project registry gets one assigned). */
+export function traceColor(project: OpenISDProject): string {
+  return project.traceColor.value ?? TRACE_PALETTE[0];
+}
+
+/** Give `project` its own trace colour if it has none saved: the first palette entry not already
+ *  taken by one of `open`. Called once, when a project enters the open-project registry
+ *  (`appState.ts`'s `addProject`/`restoreProjects`) — never recomputed from list position
+ *  after that. A no-op if the project already carries one. */
+export function assignTraceColor(project: OpenISDProject, open: readonly OpenISDProject[]): void {
+  if (project.traceColor.value !== null) return;
+  const taken = new Set(open.map(p => p.traceColor.value).filter((c): c is string => c !== null));
+  project.stampTraceColor(TRACE_PALETTE.find(c => !taken.has(c)) ?? TRACE_PALETTE[open.length % TRACE_PALETTE.length]);
+}
+
+/** Advance the project's colour, skipping every colour already used by another open project.
+ *  With no open list supplied, preserves the toolbar's original palette rotation. */
+export function cycleTraceColor(project: OpenISDProject, open: readonly OpenISDProject[] = []): void {
+  const current = traceColor(project).toLowerCase();
+  const taken = new Set([current, ...open.filter(p => p !== project).map(p => traceColor(p).toLowerCase())]);
+  const index = TRACE_PALETTE.indexOf(current);
+  for (let offset = 1; offset <= TRACE_PALETTE.length; offset++) {
+    const colour = TRACE_PALETTE[(index + offset) % TRACE_PALETTE.length];
+    if (!taken.has(colour)) {project.traceColor.set(colour); return;}
+  }
+  // An odd stride visits every 24-bit RGB colour before repeating. Inspecting more
+  // candidates than occupied colours guarantees a free choice when the palette is full.
+  const rgbSpace = 0x1000000, stride = 0x9e3779;
+  for (let offset = 1; offset <= taken.size + 1; offset++) {
+    const colour = '#' + ((0x3a7bd5 + offset * stride) % rgbSpace).toString(16).padStart(6, '0');
+    if (!taken.has(colour)) {project.traceColor.set(colour); return;}
+  }
+}
+
+/** Copy the persisted chart definition, preserving the target's design and trace identity. */
+export function copyChartDefinition(source: OpenISDProject, target: OpenISDProject): void {
+  target.graphs.set([...source.graphs.value]);
+  target.sweepN.set(source.sweepN.value);
+}

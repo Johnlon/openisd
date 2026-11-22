@@ -1,0 +1,331 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>
+      Crossovers: Passive and Active
+    </title>
+    <link rel="stylesheet" href="../winisd.css" type="text/css" />
+  </head>
+  <body>
+    <p class="header">
+      Linearteam WinISD Pro
+    </p>
+    <h1>
+      Crossovers: Passive and Active
+    </h1>
+    <h3>
+      Passive Crossovers:
+    </h3>
+    <p>
+      Passive crossovers are installed in series with the speakers in your box, and serve to
+      "funnel" the output frequencies from your amp to the appropriate speaker in your box. Sending
+      low frequency notes to your tweeter will smoke it in no time flat. Sending high frequency
+      notes to your woofer wastes high frequency power that would be better utilized by your
+      tweeter. Your midrange fits in the middle there, and is subject to both scenarios.
+    </p>
+    <p>
+      Passive crossovers are constructed from capacitors and inductors:
+    </p>
+    <h4>
+      Capacitors
+    </h4>
+    <p>
+      Capacitors (caps) block low frequencies and pass high frequencies. Here's the electronic
+      symbol for a capacitor:
+    </p>
+    <p>
+      ------| |------
+    </p>
+    <p>
+      This is an accurate symbol in that it does a pretty good job of representing how a capacitor
+      is actually built. Instead of getting into plates and dielectrics and all the rest, we'll
+      just discuss how the thing functions. It's important to note that no electrical current flow
+      actually passes THROUGH a capacitor. Think of a capacitor like this...imagine a horizontal
+      pipe a foot long and about as big around as a coke can. Now, imagine that in the middle of
+      the pipe is a rubber diaphragm (if you were to look into the pipe, you couldn't see all the
+      way through..rather you'd see the rubber diaphragm in the middle of the pipe). Now, you
+      couldn't pass anything (such as a smaller diameter pole, for instance) THROUGH this pipe from
+      one end to the other. BUT, you could give the illusion of passing a pole BACK and FORTH
+      through the pipe if your were to alternately push and pull on two different poles that
+      actually met in the center of the pipe. As you push one way, the diaphragm will strecth a
+      little, and then as you push the other way, it would stretch back to the other side. To an
+      audience that didn't know any better, they'd swear that the pipe is indeed hollow!
+    </p>
+    <p>
+      This is how a capacitor affects electrical current. A direct current (DC) is completely
+      blocked, while an alternating current (AC) is able to pass. Since DC is essentially ZERO
+      Hertz, then it follows that maximum impedance is presented to LOW frequencies. The impedance
+      drops lower and lower as the frequency increases (the faster you push/pull on the poles, the
+      easier it becomes). Remember, a capacitor offers a "free ride" to HIGH frequencies.
+    </p>
+    <h4>
+      Inductors
+    </h4>
+    <p>
+      Inductors are the exact opposites of capacitors. An Inductor is a winding of wire which
+      serves to block high frequencies, while giving the low frequencies their "free ride"! The
+      electrical symbol for an inductor is:
+    </p>
+    <p>
+      __UUUUUU__ &lt;---pretend like that is a non-broken line.
+    </p>
+    <p>
+      Any time current flows in a wire, an electric field is produced around the wire. When the
+      current is then removed from the wire, the field "collapses". If you take a wire and wind it
+      into a coil, things get interesting. As you initially begin to pass current through the coil,
+      a field tries to build up around each winding in the coil (after all, it is in reality still
+      just one length of wire). Trouble is, that since the coils are all so close to each other,
+      they actually begin to interfere with each others progress! BUT, once a steady current flow
+      is established in the wire, the fields around the coils quit fighting. As long as that
+      current is kept constant, everbody is happy. When the current begins to change again, though
+      (such as when the current is increased or removed), they get to fighting again, and continue
+      to fight until the current quits changing. For this reason, inductors OPPOSE any CHANGE in
+      current.
+    </p>
+    <p>
+      As far as DC and low frequencies are concerned, the inductor isn't much of a big deal. But
+      for high frequencies which are always changing (and rapidly at that), the inductor is a bit
+      of a pain in the ass. Remember, the inductor offers a "free ride" to low frequencies.
+    </p>
+    <h4>
+      Caps and Inductors in action:
+    </h4>
+    <p>
+      Ok, we know that the impedance of caps and inductors change with corresponding changes in
+      input frequencies. The impedance that caps offer is called Capacitive Reactance (Xc), and is
+      measured in ohms, given by the formula:
+    </p>
+    <p>
+      Xc = 1/(2pi * F * C)
+    </p>
+    <p>
+      Where,<br />
+      <br />
+      Xc = Capacitive Reactance (ohms)<br />
+      2pi = 6.28<br />
+      F = Input Frequency<br />
+      C = Capacitance value of the capacitor itself (in Farads)<br />
+      <br />
+      The impedance that inductors offer is called (surprise) Inductive Reactance (Xl), and is also
+      measured in<br />
+      ohms, given by the formula:<br />
+      <br />
+      Xl = 2pi * F * L<br />
+      <br />
+      Where,<br />
+      <br />
+      Xl = Inductive Reactance (ohms)<br />
+      2pi = 6.28<br />
+      F = Input Frequency<br />
+      L = Inductance value of the inductor itself (in Henries)<br />
+      <br />
+      To put this in perspective, take a look at the following diagram of a typical 2 way passive
+      crossover<br />
+      design (2- way means a woofer and tweeter only, no midrange driver):<br />
+      <br />
+    </p><img src="images/2way1st.png" width="200" height="200" alt="Image" />
+    <p>
+      Here, you see that the inductor is in SERIES with the woofer (marked "lo"), and the cap is in
+      SERIES with the tweeter (marked "hi"). In keeping with what we discussed above, notice that
+      the inductor (who gives the free ride to low freqs) is indeed connected to the woofer. This
+      allows all the low, bass notes to travel to the woofer, and also blocks the high freqs from
+      reaching the woofer. Likewise, the cap is connected to the tweeter, which gives the free ride
+      to the high frequencies, while blocking those deadly low frequencies from reaching the
+      tweeter.
+    </p>
+    <p>
+      Naturally, the next logical question is "Yeah, but what size cap and inductor do I use?".
+      Good question. The first thing to determine, of course is what frequencies do you want to
+      chop off?
+    </p>
+    <p>
+      If you want to stop all frequencies above, say, 1500 Hz from reaching the woofer, then you
+      need to use an inductor that will offer the same impedance that the woofer is rated at, at
+      1500 Hz. For example, if you're using an 8 ohm woofer, and your cut-off frequency is to be
+      1500 Hz., then you need to choose an inductor whose impedance is 8 ohms at 1500 Hz!
+    </p>
+    <p>
+      Recall the formula for Inductive Reactance:<br />
+      <br />
+      Xl = 2pi * F * L<br />
+      <br />
+      Well, we know that we want the inductive reactance to be 8 ohms at an input frequency of 1500
+      Hz. So, plugging that in, we get:<br />
+      <br />
+      8 = 2pi * 1500 * L<br />
+      <br />
+      We need to get that L alone, so we divide both sides by (2pi * 1500):<br />
+      <br />
+      8/(2pi * 1500) = (2pi * 1500 * L)/(2pi * 1500)<br />
+      <br />
+      The (2pi * 1500) on the right side of the equation cancels itself out:<br />
+      <br />
+      8/(2pi * 1500) = L<br />
+      <br />
+      Ah, that's better. Breaking out the trusty calculator (or use the built in calculator in
+      Windows by clicking START, RUN, and type in CALC, and hit ENTER), we get:<br />
+      <br />
+      L = 0.0008493 Henries.<br />
+      <br />
+      Move the decimal 3 places to the right to get the answer in the more popular milli-Henries
+      (mH):<br />
+      <br />
+      L = 0.849 mH<br />
+    </p>
+    <p>
+      Now, suppose we want the same cutoff frequency for our tweeter. The same rule applies..we
+      need a cap that will offer 8 ohms (provided the tweeter is an 8 ohm tweeter, of course) at
+      1500 Hz. Looking at the formula for capacitive reactance (Xc) again:<br />
+      <br />
+      Xc = 1/(2pi * F * C)<br />
+      <br />
+      We get:<br />
+      <br />
+      8 = 1/(2pi * 1500 * C)<br />
+      <br />
+      We need to get that C alone, so begin by taking the inverse of each side:<br />
+      <br />
+      1/8 = (2pi * 1500 * C)/1 &lt;---the 1 cancels itself since any number divided by 1 is
+      itself.<br />
+      <br />
+      Which gives us:<br />
+      <br />
+      1/8 = (2pi * 1500 * C)<br />
+      Dividing both sides by (2pi * 1500) frees up the C:<br />
+      <br />
+      (1/8)/(2pi * 1500) = C<br />
+      <br />
+      Ah. Now for the calculator:<br />
+      <br />
+      C = 0.00001327 Farads<br />
+      <br />
+      Moving the decimal 6 places to the right gives us the answer in the popular micro-Farads
+      (uF):<br />
+      <br />
+      C = 13.27 uF<br />
+      <br />
+      <br />
+      Ok, so our cap is gonna need to be 13.3 uF, and our inductor needs to be 0.849mH in the
+      crossover. Look again at the diagram:<br />
+    </p><img src="images/2way1st.png" width="200" height="200" alt="Image" />
+    <p>
+      At 1500 Hz input frequency (from the + and - terminals in the diagram), our inductor, L, will
+      offer 8 ohms of reactance (resistance). Since the woofer is also rated at 8 ohms, this means
+      that the voltage being applied to the woofer is half of what it would be if the inductor
+      weren't there. This results in a 6 dB loss from the woofer at 1500 Hz. And remember,
+      inductors hate high frequencies! So that means that when a higher frequency comes along, the
+      reactance offered by the inductor will be even HIGHER than 8 ohms. In fact, for every octave
+      (doubling of) increase in frequency, the inductor will lower, or attenuate, the output from
+      the woofer by an additional 6 dB! This is referred to as a "6 dB/Octave" crossover (plug in
+      other frequency values into the inductive reactance formula and you can see how much
+      reactance the inductor offers to the circuit at those frequencies...remember to use 0.000849
+      as the value for H)....
+    </p>
+    <p>
+      Likewise, at 1500 Hz, the cap also offers 8 ohms of reactance, which cuts the output from the
+      tweeter by 6dB as well. And, since caps block low frequencies, each octave (doubling) of
+      frequency drop will cause a corresponding 6 dB of attenuation to the cap as well. Again, plug
+      in different values to the capacitive reactance formula and look at the different impedances
+      offered into the circuit by the cap at different freqs (remember to use 0.0000133 as the
+      value for F).
+    </p>
+    <p>
+      You can use these formulas to figure out which size caps or inductors are needed to cutoff
+      any speaker at any frequency.
+    </p>
+    <h4>
+      Going further:
+    </h4>
+    <p>
+      Sometimes, cutting off a speaker at a rate of 6 dB/Octave isn't enough. At 6 dB/Octave,
+      especially in high power systems, alot of lows are still powerful enough to get through and
+      damage the tweeters. In this case, a 12 dB/Octave crossover can be used to "steepen the
+      curve" of attenuation. In this case, the actual cutoff frequencies are still the same, but
+      for each corresponding octave change in frequency, the input to the respective driver is
+      reduced by 12 dB, instead of only 6 dB. How? Look at the following diagram:
+    </p><img src="images/2way2nd.png" width="200" height="200" alt="Image" />
+    <p>
+      In this design, BOTH the woofer and the tweeter are connected to an inductor AND a cap! We'll
+      stay away from the long math (just let WinISD <a href=
+      "../usingwinisd/FilterCalculator.html">figure it out</a> for you). However, a quick
+      explanation will clear it up for you.
+    </p>
+    <p>
+      First, let's look at the woofer. Inductor L1 is in SERIES with the woofer. This means that
+      any and all frequencies that pass through the woofer MUST also pass through L1. Well, L1
+      works just like he did before. He blocks the highs from reaching the woofer. But, since L1
+      can only block 6 dB/Octave's worth of high freqs, there are still some high freqs that sneak
+      through. Here's where cap C1 comes into play. Notice that C1 is wired in PARALLEL to the
+      woofer. This means that the cap can shunt, or bypass, frequencies around the woofer.
+      Remember, capacitors give high freqs a "free ride". So, any high freqs that sneak through L1
+      are given a shortcut by C1. Why should the high freqs bother going through the woofer when C1
+      is giving them a "free ride" straight over to the other side? What it all boils down to is
+      that L1 does his 6 dB/Octave's worth of work, and C1 does an additional 6 dB/Octave's worth
+      of work. Together, they combine to yield a net of 12 dB/Octave of attenuation!
+    </p>
+    <p>
+      Capacitor C2 and Inductor L2 work exactly the same routine on the tweeter. C2 blocks as many
+      lows as he can, and any lows that sneak through are given a free ride by L2.
+    </p>
+    <h4>
+      Notes and Caveats:
+    </h4>
+    <p>
+      Inductors and capacitors only come in certain values. Our circuit called for a 13.3 uF cap.
+      You're not going to find any 13.3 uF capacitors. However, 10 uF caps are quite common, and
+      using a slightly different value won't kill you. Also, the same is true for inductors. In
+      fact, you don't have to put a crossover network on your woofers...
+    </p>
+    <p>
+      12 dB/Octave passive crossovers can be dangerous to your amp. Look again at the 12 dB/Octave
+      crossover:
+    </p><img src="images/2way2nd.png" width="200" height="200" alt="Image" />
+    <p>
+      Notice that in each branch, the inductors and capacitors are in SERIES with each other (L1 is
+      in series with C1, and C2 is in series with L2). In each branch, the inductor and capacitor
+      are each chosen so as to offer 8 ohms of reactance at 1500 Hz. What this means is that at
+      1500 Hz, the cap is offering 8 ohms of capacitive reactance, and the inductor is offering 8
+      ohms of inductive reactance. Capacitive reactance and Inductive reactance are exact
+      opposites, and cancel each other out! If you have 23 ohms of capacitive reactance, and 18
+      ohms of inductive reactance in a circuit, the net reactance is 5 ohms (the difference of the
+      two). If the woofer or tweeter are removed from the circuit (become unplugged, or
+      electrically "open" during play), then what you have is 8 ohms of capacitive reactance, and 8
+      ohms of inductive reactance in that branch. Since the two reactances cancel each other out,
+      then the amplifier effectively sees a grand total of ZERO ohms at 1500 Hz! This will result
+      in a damaged amp. Keep this in mind when considering implementing a 12 dB/Octave passive
+      crossover into your system. Amps with built in short circuit protection will most likely
+      survive this scenario, however...
+    </p>
+    <h4>
+      Active Crossovers:
+    </h4>
+    <p>
+      Active crossovers are used mainly on multi-amp systems. Active crossovers are small,
+      electronic circuits which serve to separate frequencies at the "line-level", and send those
+      frequencies to separate amps. Each amp then plays the frequencies it's given. Each amp then
+      powers it's own special set of speakers (one amp for woofers, another amp for tweeters, etc.)
+    </p>
+    <p>
+      <a href="../usingwinisd/filtercalculator.html">WinISD will figure out</a> the values you need
+      to construct active crossovers, however, the in's and out's of the design of these devices is
+      way beyond the scope of this Help file. If you can't look at the diagrams and immediately
+      recongnize what components you need to buy and solder together, then don't even attempt it.
+      Go buy one from the store!
+    </p>
+    <p>
+      A good source for active filter design is:
+    </p>
+    <p>
+      Active Filter Cookbook (2nd Edition)<br />
+      Don Lancaster<br />
+      ISBN 0 7506 2986 X (Newnes)<br />
+      (c) 1996<br />
+    </p>
+    <hr />
+    <p class="footer">
+      This page written by JJ Richard (JJRichard@linearteam.org) and revised by Janne Ahonen
+      (janne@linearteam.org).
+    </p>
+  </body>
+</html>

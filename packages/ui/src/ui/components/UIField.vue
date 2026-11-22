@@ -1,0 +1,16 @@
+<script setup lang="ts">
+/** A field row bound to a cell that can be emptied: an emptied box clears it. See `UIFieldBody`. */
+import UIFieldBody from './UIFieldBody.vue';
+import type {ClearableUICell, UIFieldCommon} from './uiFieldBinding.js';
+
+withDefaults(defineProps<UIFieldCommon & {cell: ClearableUICell}>(), {
+  stepper: true,
+  defaulted: undefined,
+});
+</script>
+
+<template>
+  <UIFieldBody v-bind="$props" :binding="{kind: 'clearable', cell}">
+    <template v-for="(_, name) in $slots" #[name]="slotData"><slot :name="name" v-bind="slotData" /></template>
+  </UIFieldBody>
+</template>

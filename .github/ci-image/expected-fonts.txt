@@ -1,0 +1,84 @@
+/usr/share/fonts/opentype/font-awesome/FontAwesome.otf: FontAwesome
+/usr/share/fonts/truetype/dejavu/DejaVuMathTeXGyre.ttf: DejaVu Math TeX Gyre
+/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf: DejaVu Sans
+/usr/share/fonts/truetype/dejavu/DejaVuSans-BoldOblique.ttf: DejaVu Sans
+/usr/share/fonts/truetype/dejavu/DejaVuSans-ExtraLight.ttf: DejaVu Sans,DejaVu Sans Light
+/usr/share/fonts/truetype/dejavu/DejaVuSans-Oblique.ttf: DejaVu Sans
+/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf: DejaVu Sans
+/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf: DejaVu Sans,DejaVu Sans Condensed
+/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-BoldOblique.ttf: DejaVu Sans,DejaVu Sans Condensed
+/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Oblique.ttf: DejaVu Sans,DejaVu Sans Condensed
+/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed.ttf: DejaVu Sans,DejaVu Sans Condensed
+/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf: DejaVu Sans Mono
+/usr/share/fonts/truetype/dejavu/DejaVuSansMono-BoldOblique.ttf: DejaVu Sans Mono
+/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Oblique.ttf: DejaVu Sans Mono
+/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf: DejaVu Sans Mono
+/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf: DejaVu Serif
+/usr/share/fonts/truetype/dejavu/DejaVuSerif-BoldItalic.ttf: DejaVu Serif
+/usr/share/fonts/truetype/dejavu/DejaVuSerif-Italic.ttf: DejaVu Serif
+/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf: DejaVu Serif
+/usr/share/fonts/truetype/dejavu/DejaVuSerifCondensed-Bold.ttf: DejaVu Serif,DejaVu Serif Condensed
+/usr/share/fonts/truetype/dejavu/DejaVuSerifCondensed-BoldItalic.ttf: DejaVu Serif,DejaVu Serif Condensed
+/usr/share/fonts/truetype/dejavu/DejaVuSerifCondensed-Italic.ttf: DejaVu Serif,DejaVu Serif Condensed
+/usr/share/fonts/truetype/dejavu/DejaVuSerifCondensed.ttf: DejaVu Serif,DejaVu Serif Condensed
+/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf: Droid Sans Fallback
+/usr/share/fonts/truetype/font-awesome/fontawesome-webfont.ttf: FontAwesome
+/usr/share/fonts/truetype/lato/Lato-Black.ttf: Lato,Lato Black
+/usr/share/fonts/truetype/lato/Lato-BlackItalic.ttf: Lato,Lato Black
+/usr/share/fonts/truetype/lato/Lato-Bold.ttf: Lato
+/usr/share/fonts/truetype/lato/Lato-BoldItalic.ttf: Lato
+/usr/share/fonts/truetype/lato/Lato-Hairline.ttf: Lato,Lato Hairline
+/usr/share/fonts/truetype/lato/Lato-HairlineItalic.ttf: Lato,Lato Hairline
+/usr/share/fonts/truetype/lato/Lato-Heavy.ttf: Lato,Lato Heavy
+/usr/share/fonts/truetype/lato/Lato-HeavyItalic.ttf: Lato,Lato Heavy
+/usr/share/fonts/truetype/lato/Lato-Italic.ttf: Lato
+/usr/share/fonts/truetype/lato/Lato-Light.ttf: Lato,Lato Light
+/usr/share/fonts/truetype/lato/Lato-LightItalic.ttf: Lato,Lato Light
+/usr/share/fonts/truetype/lato/Lato-Medium.ttf: Lato,Lato Medium
+/usr/share/fonts/truetype/lato/Lato-MediumItalic.ttf: Lato,Lato Medium
+/usr/share/fonts/truetype/lato/Lato-Regular.ttf: Lato
+/usr/share/fonts/truetype/lato/Lato-Semibold.ttf: Lato,Lato Semibold
+/usr/share/fonts/truetype/lato/Lato-SemiboldItalic.ttf: Lato,Lato Semibold
+/usr/share/fonts/truetype/lato/Lato-Thin.ttf: Lato,Lato Thin
+/usr/share/fonts/truetype/lato/Lato-ThinItalic.ttf: Lato,Lato Thin
+/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf: Liberation Mono
+/usr/share/fonts/truetype/liberation/LiberationMono-BoldItalic.ttf: Liberation Mono
+/usr/share/fonts/truetype/liberation/LiberationMono-Italic.ttf: Liberation Mono
+/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf: Liberation Mono
+/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf: Liberation Sans
+/usr/share/fonts/truetype/liberation/LiberationSans-BoldItalic.ttf: Liberation Sans
+/usr/share/fonts/truetype/liberation/LiberationSans-Italic.ttf: Liberation Sans
+/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf: Liberation Sans
+/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Bold.ttf: Liberation Sans Narrow
+/usr/share/fonts/truetype/liberation/LiberationSansNarrow-BoldItalic.ttf: Liberation Sans Narrow
+/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Italic.ttf: Liberation Sans Narrow
+/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Regular.ttf: Liberation Sans Narrow
+/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf: Liberation Serif
+/usr/share/fonts/truetype/liberation/LiberationSerif-BoldItalic.ttf: Liberation Serif
+/usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf: Liberation Serif
+/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf: Liberation Serif
+/usr/share/fonts/truetype/noto/NotoMono-Regular.ttf: Noto Mono
+/usr/share/fonts/truetype/noto/NotoSansMono-Bold.ttf: Noto Sans Mono
+/usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf: Noto Sans Mono
+/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf: Ubuntu
+/usr/share/fonts/truetype/ubuntu/Ubuntu-BI.ttf: Ubuntu
+/usr/share/fonts/truetype/ubuntu/Ubuntu-C.ttf: Ubuntu
+/usr/share/fonts/truetype/ubuntu/Ubuntu-Italic[wdth,wght].ttf: Ubuntu
+/usr/share/fonts/truetype/ubuntu/Ubuntu-L.ttf: Ubuntu
+/usr/share/fonts/truetype/ubuntu/Ubuntu-LI.ttf: Ubuntu
+/usr/share/fonts/truetype/ubuntu/Ubuntu-M.ttf: Ubuntu
+/usr/share/fonts/truetype/ubuntu/Ubuntu-MI.ttf: Ubuntu
+/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf: Ubuntu
+/usr/share/fonts/truetype/ubuntu/Ubuntu-RI.ttf: Ubuntu
+/usr/share/fonts/truetype/ubuntu/Ubuntu-Th.ttf: Ubuntu
+/usr/share/fonts/truetype/ubuntu/UbuntuMono-B.ttf: Ubuntu Mono
+/usr/share/fonts/truetype/ubuntu/UbuntuMono-BI.ttf: Ubuntu Mono
+/usr/share/fonts/truetype/ubuntu/UbuntuMono-Italic[wght].ttf: Ubuntu Mono
+/usr/share/fonts/truetype/ubuntu/UbuntuMono-R.ttf: Ubuntu Mono
+/usr/share/fonts/truetype/ubuntu/UbuntuMono-RI.ttf: Ubuntu Mono
+/usr/share/fonts/truetype/ubuntu/UbuntuMono[wght].ttf: Ubuntu Mono
+/usr/share/fonts/truetype/ubuntu/UbuntuSans-Italic[wdth,wght].ttf: Ubuntu Sans
+/usr/share/fonts/truetype/ubuntu/UbuntuSansMono-Italic[wght].ttf: Ubuntu Sans Mono
+/usr/share/fonts/truetype/ubuntu/UbuntuSansMono[wght].ttf: Ubuntu Sans Mono
+/usr/share/fonts/truetype/ubuntu/UbuntuSans[wdth,wght].ttf: Ubuntu Sans
+/usr/share/fonts/truetype/ubuntu/Ubuntu[wdth,wght].ttf: Ubuntu

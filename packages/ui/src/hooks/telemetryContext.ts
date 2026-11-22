@@ -1,0 +1,55 @@
+import {type App, inject, type InjectionKey} from 'vue';
+import type {CrashReports} from '../logic/telemetry/crashReports.js';
+import type {LaunchReporter} from '../logic/telemetry/launch.js';
+import {FeatureUse} from '../logic/telemetry/featureUse.js';
+import {NoTelemetry} from '../logic/telemetry/telemetry.js';
+import type {Perf} from '../logic/telemetry/perf.js';
+import {PerfReporter, deviceFactsOf} from '../logic/telemetry/perf.js';
+import type {RadiatorPicks} from '../logic/telemetry/radiatorPick.js';
+
+import type {RecentActions} from '../logic/telemetry/errorContext.js';
+import {RecentActions as FallbackRecentActions} from '../logic/telemetry/errorContext.js';
+
+/** What the presentation layer is given of telemetry. */
+export interface TelemetryUi {
+  readonly crashReports: CrashReports;
+  readonly launch: LaunchReporter;
+  readonly featureUse: FeatureUse;
+  readonly actions: RecentActions;
+  readonly radiatorPicks: RadiatorPicks;
+  readonly perf: Perf;
+}
+
+const TELEMETRY_UI: InjectionKey<TelemetryUi> = Symbol('openisd.telemetry');
+
+export function provideTelemetryUi(app: App, ui: TelemetryUi): void {
+  app.provide(TELEMETRY_UI, ui);
+}
+
+export function useTelemetryUi(): TelemetryUi {
+  const ui = inject(TELEMETRY_UI);
+  if (!ui) throw new Error('useTelemetryUi(): telemetry was not provided by the composition root');
+  return ui;
+}
+
+/** The page session's feature-use recorder; records nothing where no composition root provided one (unit tests of a hook). */
+export function useFeatureUse(): FeatureUse {
+  return inject(TELEMETRY_UI, null)?.featureUse ?? new FeatureUse(new NoTelemetry());
+}
+
+/** The page session's recent-action recorder; records nothing where no composition root provided one. */
+export function useRecentActions(): RecentActions {
+  return inject(TELEMETRY_UI, null)?.actions ?? new FallbackRecentActions();
+}
+
+/** The page session's passive-radiator pick recorder; records nothing where no composition root provided one. */
+export function useRadiatorPicks(): RadiatorPicks {
+  return inject(TELEMETRY_UI, null)?.radiatorPicks ?? {bundled: () => undefined, saved: () => undefined};
+}
+
+/** The page's timing marks; times nothing where no composition root provided one. */
+export function usePerf(): Perf {
+  return inject(TELEMETRY_UI, null)?.perf ?? new PerfReporter({
+    telemetry: new NoTelemetry(), now: () => 0, afterPaint: () => undefined, skin: () => 'original', device: deviceFactsOf({}),
+  });
+}

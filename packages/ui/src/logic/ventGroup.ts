@@ -1,0 +1,110 @@
+/**
+ * The vent group's UI seam. The physics — which of volume, diameter, tuning and length is HELD and
+ * which is SOLVED, the Helmholtz relation itself, reachability — lives on `OpenISDProject`
+ * (`cell()`/`enter()`/`clear()`/`recalc()`), the owner of the state. This module keeps
+ * only what is genuinely a UI concern: the members the shells bind (`VentMember`), the E/C/N letter
+ * the badges show, and the solve-suspension that parks `appState.ts`'s coarse auto-solve watch
+ * so one user action produces one solve (and a wholesale restore is adopted verbatim,
+ * byte-identical — docs/design/STATE_MODEL.md rule 3).
+ */
+import type {OpenISDProject, Vent} from '@openisd/design';
+import type {ProvenanceLetter} from '@openisd/design';
+
+/** The vent group of the project's adopted box type: the front chamber's on a 4th-order bandpass,
+ *  the vented box's otherwise. The domain owns that choice (`Box.ventGroupOf`). */
+function group(p: OpenISDProject) {
+  return p.box.ventGroupOf(p.box.boxType.value);
+}
+
+/** One user action, one solve: the domain solves inside the write, and the suspension parks the
+ *  auto-solve watch. */
+function act(p: OpenISDProject, write: () => void): void {
+  suspendVentSolve(() => {
+    p.batch(() => {
+      write();
+      p.recalc();
+    });
+  });
+}
+
+/** Enter one port's cross-sectional area: the port's diameter (or height, for a slotted one) and,
+ *  where the tuning is held, its length follow in the same solve. */
+export function enterVentArea(p: OpenISDProject, vent: Vent, area_m2: number): void {
+  act(p, () => vent.area_m2.set(area_m2));
+}
+
+/** A vent-group member the user can enter — held until cleared. */
+export interface VentInput {
+  enter(p: OpenISDProject, value: number): void;
+}
+/** A member that can be handed back: it becomes `C` if the remaining entered set determines it,
+ *  `N` if nothing can. */
+export interface VentClearable {
+  clear(p: OpenISDProject): void;
+}
+/** A member that shows an E/C/N badge: `E` entered and locked · `C` calculated · `N` not
+ *  available. */
+export interface VentBadged {
+  state(p: OpenISDProject): ProvenanceLetter;
+}
+
+/**
+ * The vent group's members. Volume, diameter, tuning and length are tied by the Helmholtz
+ * relation; width and height are what a slotted vent states in place of a diameter.
+ */
+export class VentMember {
+  /** Mandatory on a vented box, so it has no cleared state. */
+  static readonly VOLUME: VentInput & VentBadged = Object.freeze({
+    enter: (p: OpenISDProject, value: number) => act(p, () => group(p).volume_m3.set(value)),
+    state: (p: OpenISDProject) => group(p).volume_m3.provenance,
+  });
+
+  static readonly DIAMETER: VentInput & VentClearable & VentBadged = Object.freeze({
+    enter: (p: OpenISDProject, value: number) => act(p, () => group(p).vent.diameter_m.set(value)),
+    clear: (p: OpenISDProject) => act(p, () => group(p).vent.diameter_m.clear()),
+    state: (p: OpenISDProject) => group(p).vent.diameter_m.provenance,
+  });
+
+  static readonly WIDTH: VentInput = Object.freeze({
+    enter: (p: OpenISDProject, value: number) => act(p, () => group(p).vent.width_m.set(value)),
+  });
+
+  static readonly HEIGHT: VentInput = Object.freeze({
+    enter: (p: OpenISDProject, value: number) => act(p, () => group(p).vent.height_m.set(value)),
+  });
+
+  private constructor() {}
+}
+
+/** The tuning the CURRENT vent length actually delivers. */
+export function ventAchievedFb(p: OpenISDProject): number | null {
+  return p.ventAchievedFb.value;
+}
+
+/** The highest tuning this volume and port area can reach with ANY vent (L = 0). */
+export function ventMaxReachableFb(p: OpenISDProject): number | null {
+  return p.ventMaxReachableFb.value;
+}
+
+// ---- Restore suspension (docs/design/STATE_MODEL.md rule 3: "Cancel means byte-identical") -----------
+// A restore assigns a whole persisted snapshot — both the entered set AND both members'
+// values. There is nothing to recompute, and recomputing is exactly what breaks
+// byte-identity: the solver would reproduce the calculated member from a value that was
+// rounded on the way to storage, landing on a different double. Restores therefore run
+// inside suspendVentSolve(), which parks the store's watcher while the assignment happens.
+let suspended = false;
+
+/** True while a restore is in flight — the store's watcher checks this and does not solve. */
+export function ventSolveSuspended(): boolean {
+  return suspended;
+}
+
+/**
+ * Run `fn` with vent solving parked, so a wholesale restore is adopted verbatim.
+ * Re-entrant-safe and exception-safe: the flag is always cleared.
+ */
+export function suspendVentSolve<T>(fn: () => T): T {
+  const prev = suspended;
+  suspended = true;
+  try { return fn(); } finally { suspended = prev; }
+}

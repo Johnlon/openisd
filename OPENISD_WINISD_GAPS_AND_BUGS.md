@@ -1,0 +1,27 @@
+# OpenISD vs WinISD — behaviour gaps
+
+How OpenISD behaves differently from WinISD 0.7, and what each difference costs. Each row links
+to the bug doc that tracks it.
+
+Sources:
+- [`docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md`](docs/research/CHART_REVIEW_WINISD_VS_OPENISD.md) — WinISD 0.7 under wine vs `Engine.sweep`, every chart, Tang Band W5-1138SMF in a 4.48 L sealed box.
+- [`docs/research/WINISD_PARITY.md`](docs/research/WINISD_PARITY.md) — Feature comparison matrix, field-by-field evidence ledger, and calculation axis discrepancy analysis.
+
+## Open
+
+| Behaviour                                                                                                    | Benefit of closing it                                       | Tracked in                                                                                                   |
+|--------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| Terminal Re/BL are in the model but no driver-editor field shows them.                                       | Users can see the voice-coil values WinISD writes back.     | —                                                                                                            |
+
+## Resolved
+
+- **Sealed-box leakage (Ql)**: the leak is WinISD's fixed Ral = Ql/(ωsc·Cab); raising Ql moves phase and group delay the same way as WinISD ([sealed-box-leakage](bugs/archive/BUG_20260924_sealed-box-leakage-modelled-as-damping-not-a-leak.md)).
+- **Transfer-function 0 dB reference**: the circuit's own HF asymptote, from the same parameters as the SPL ([tfmag-reference](bugs/archive/BUG_20260924_tfmag-reference-disagrees-with-own-passband-spl.md)).
+- **Air model**: the driver solve and the sweep use the same ρ and c ([air-models](bugs/archive/BUG_20260924_driver-solve-and-sweep-use-different-air-models.md)).
+- **Voice-coil inductance ($L_e$)**: `circuitModel` switch now controls $L_e$ in both electrical impedance ($Z_{el}$) and acoustic response ($Z_{\text{coil,AC}}$) together ([BUG_20260924](bugs/archive/BUG_20260924_voice-coil-inductance-affects-impedance-but-not-spl.md)).
+- **Drive Voltage ($e_g$)**: Drive voltage is sized as $e_g = \sqrt{P(R_e + R_s)}$, matching WinISD's reference-power convention.
+
+## Not a gap
+
+- **Max power and max SPL:** the difference came from the inputs, Pe 80 W vs 40 W. At matched Pe the two agree to 0.03% and 0.95%.
+- **W5-1138SMF passband SPL and resonance:** the driver record's own values contradict each other (Fs implies an Mms 12.2% off the entered Mms). Each program derives from a different consistent subset. The `inconsistent-inputs` DQ flags the affected fields.

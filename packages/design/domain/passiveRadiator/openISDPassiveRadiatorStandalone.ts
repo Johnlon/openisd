@@ -1,0 +1,94 @@
+import { realAppContext } from '../appContext.js';
+import type { AppContext } from '../appContext.js';
+import { asRadiatorDevice } from '../openisdSchema.js';
+import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
+import type { RadiatorDeviceJson } from '../openisdSchema.js';
+import type { Air, PrEngine, PrSpecIssue } from '../../engine/index.js';
+import { blankDeviceRecord } from '../driver/blankDeviceRecord.js';
+import { OpenISDPassiveRadiator } from './openISDPassiveRadiator.js';
+import { CURRENT_SCHEMA_VERSION } from '../schemaVersion.js';
+
+/** A radiator that belongs to no box — straight out of the bundle, or served from My PRs. The
+ *  ONLY radiator type the selector popup and the PR editor ever see, and what `configurePR()`
+ *  accepts. Its record has a `passive-radiator` section. Its
+ *  own concept, not "a driver that happens to be a PR": no shared ancestor with `OpenISDDriver`.
+ *  Same window-not-copy shape, same construction-time refusal, same eager-built fields.
+ *
+ *  `export`ed for `openisdTransforms.ts` (`conformingRecordToOpenIsdPassiveRadiatorStandalone`
+ *  and the PR builder call `wrap()`); `domain/index.ts` does not re-export it. */
+export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
+    /** A radiator stating nothing — the counterpart of `OpenISDDriver.empty()`, and how a PR
+     *  comes into existence before anyone has typed its parameters. `configurePR()` accepts it,
+     *  so a box can adopt one and the editor fills it in from there. */
+    static empty(appContext: AppContext = realAppContext): OpenISDPassiveRadiatorStandalone {
+        return OpenISDPassiveRadiatorStandalone.wrap(blankDeviceRecord({'passive-radiator': {}}, 'passive-radiator', appContext));
+    }
+
+    static fromConformingRecord(record: unknown): OpenISDPassiveRadiatorStandalone | string[] {
+        const conformed = OpenISDDeviceJson.fromConformingRecord(record);
+        if ('problems' in conformed) return conformed.problems;
+
+        const radiator = asRadiatorDevice(conformed.json);
+        if (radiator === null) return ['no passive-radiator section — this record is a driver, not a radiator'];
+        return OpenISDPassiveRadiatorStandalone.wrap(radiator);
+    }
+
+
+
+    /** `.owdr` text (OpenISD device JSON) back to a radiator, or the reasons it could not be read. The inverse of
+     *  `toOwdrText()`; a driver's file is refused. */
+    static fromOwdrText(text: string): OpenISDPassiveRadiatorStandalone | string[] {
+        const parsed = OpenISDDeviceJson.fromOpenisdDriverJson(text);
+        if ('problems' in parsed) return parsed.problems;
+        const radiator = asRadiatorDevice(parsed.json);
+        if (radiator === null) return ['this file is a driver, not a passive radiator'];
+        return OpenISDPassiveRadiatorStandalone.wrap(radiator);
+    }
+
+    private constructor(
+        read: () => RadiatorDeviceJson,
+        set: (json: RadiatorDeviceJson) => void,
+        conflicts: () => readonly PrSpecIssue[],
+        private readonly noteConflicts: (issues: readonly PrSpecIssue[]) => void,
+    ) {
+        super({get value() { return read(); }, set}, conflicts);
+    }
+
+    static wrap(json: RadiatorDeviceJson): OpenISDPassiveRadiatorStandalone {
+        let current = json;
+        let issues: readonly PrSpecIssue[] = [];
+        return new OpenISDPassiveRadiatorStandalone(() => current, (j) => {
+            current = j;
+        }, () => issues, (found) => {
+            issues = found;
+        });
+    }
+
+    /** Fill every figure the stated ones give and mark the stated ones that contradict each other,
+     *  for a radiator being edited outside a project (the New Project wizard's copy). */
+    resolve(pr: PrEngine, air: Air): void {
+        this.noteConflicts(this.spec.resolve(pr, air));
+    }
+
+    /** @internal The record a save writes, deep-cloned — the radiator's counterpart to
+     *  `OpenISDDriver.cloneDriver()`, and the persistence layer's one way to reach the raw
+     *  record it stores, never field by field. Clones before handing it out, so the caller can
+     *  store the result without aliasing this radiator's own live record. */
+    clonePassiveRadiator(): RadiatorDeviceJson {
+        return {...structuredClone(this.slot.value), schemaVersion: CURRENT_SCHEMA_VERSION};
+    }
+
+    /** The record as the app holds it — the radiator's counterpart of `OpenISDDriver.toOpenIsdDeviceJson()`,
+     *  so the scraper bridge and the bundler's round-trip gate read a radiator through the same
+     *  seam a driver has. Un-cloned, like the driver's: a caller that stores it clones it
+     *  (`clonePassiveRadiator()`). */
+    /** This radiator as `.owdr` text, the form `fromOwdrText` reads back (as `OpenISDDriver.toOwdrText()`). */
+    toOwdrText(): string {
+        return OpenISDDeviceJson.toOpenisdDriverJson(this.slot.value);
+    }
+
+    toOpenIsdDeviceJson(): RadiatorDeviceJson {
+        return this.slot.value;
+    }
+
+}

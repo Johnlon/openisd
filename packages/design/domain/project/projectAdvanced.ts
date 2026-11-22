@@ -1,0 +1,209 @@
+import {CompatSwitch} from './compatSwitch.js';
+import { focus } from '../cell.js';
+import type { SimpleField } from '../cell.js';
+import type { Filter } from '../../engine/index.js';
+import type { OpenISDProjectJson } from '../openisdSchema.js';
+
+/** A project's own advanced/compatibility window, built fresh on every access — same reasoning
+ *  as `driver`/`box`/`ProjectMeta`/`ProjectEnvironment`. `filters`
+ *  lives on its own top-level slot, not under `advanced`, so `wrap` takes both lenses; nothing
+ *  here needs the engine. */
+export class ProjectAdvanced {
+    static wrap(
+        advanced: SimpleField<OpenISDProjectJson['advanced']>,
+        filtersSlot: SimpleField<OpenISDProjectJson['filters']>,
+    ): ProjectAdvanced {
+        return new ProjectAdvanced(advanced, filtersSlot);
+    }
+
+    readonly #advanced: SimpleField<OpenISDProjectJson['advanced']>;
+    readonly #filtersSlot: SimpleField<OpenISDProjectJson['filters']>;
+
+    private constructor(
+        advanced: SimpleField<OpenISDProjectJson['advanced']>,
+        filtersSlot: SimpleField<OpenISDProjectJson['filters']>,
+    ) {
+        this.#advanced = advanced;
+        this.#filtersSlot = filtersSlot;
+    }
+
+    /** The signal-chain filter list. */
+    get filters(): SimpleField<readonly Filter[]> {
+        return focus(this.#filtersSlot, 'filters');
+    }
+
+    /** Force-flat auto-EQ — WinISD Advanced "Force flat response". */
+    get forceFlatResponse(): SimpleField<boolean> {
+        return focus(this.#advanced, 'forceFlatResponse');
+    }
+
+    /** Model ports as a lossy transmission line instead of a lumped mass — WinISD Advanced
+     *  "Use transmission line-model for port simulation". */
+    get useTransmissionLinePortModel(): SimpleField<boolean> {
+        return focus(this.#advanced, 'useTransmissionLinePortModel');
+    }
+
+    /** WinISD Advanced "Rg is at driver side" — whether the amplifier's source resistance
+     *  (`Rs_ohm`) is applied per driver or once across the whole array. */
+    get rgAtDriverSide(): SimpleField<boolean> {
+        return focus(this.#advanced, 'rgAtDriverSide');
+    }
+
+    /** WinISD Advanced "Simulate voice coil inductance" — includes Le in the acoustic circuit
+     *  model (gyrator) rather than just the impedance plot (winisd). 'winisdGyrator' is WinISD's
+     *  own inductance-on model. */
+    get circuitModel(): SimpleField<'winisd' | 'gyrator' | 'winisdGyrator'> {
+        return focus(this.#advanced, 'circuitModel');
+    }
+
+    /** WinISD Advanced "SPL graph is Xmax limited" — whether the SPL chart shows the
+     *  Xmax-backed-off curve instead of the unclamped one. Display only. */
+    get splGraphIsXmaxLimited(): SimpleField<boolean> {
+        return focus(this.#advanced, 'splGraphIsXmaxLimited');
+    }
+
+    /** WinISD Advanced / Compatibility "Two-BL driver" — whether engine sweeps
+     *  substitute the driver WinISD's own simulation acts on, `Mms = 1/((2π·Fs)²·Cms)`,
+     *  `Rms = 2π·Fs·Mms/Qms` and `BL = √(Re/(2π·Fs·Qes·Cms))`, for entered values that conflict
+     *  with them (measured 2026-09-26, docs/research/WINISD_PARITY.md). A WinISD bug (two BLs);
+     *  off where a project does not say. */
+    get winisdDriverModel(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdDriverModel');
+        return {
+            get value() { return lens.value ?? CompatSwitch.DRIVER_MODEL.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "Re without Rg": Re where Re + Rg belongs, as WinISD
+     *  does — the amplifier apparent load power chart P·Re·|Hf|²/|Z + Rg|, and the power/voltage
+     *  relation P = N·V²/Re (BUG_20260927_winisd-va-uses-re-not-re-plus-rg). Off: the apparent
+     *  power the amplifier delivers, P·(Re + Rg)·|Hf|²/|Z_amp|, and P = N·V²/(Re + Rg). Off where
+     *  a project does not say. */
+    get winisdVaModel(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdVaModel');
+        return {
+            get value() { return lens.value ?? CompatSwitch.VA_MODEL.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "Simplified ABC intra-port velocity": the ABC intra-chamber port velocity
+     *  chart as WinISD draws it, V/(jωMai + Zf), which omits the leak term Zf·jωMai/Ricl. Off: the
+     *  exact current through the port mass, V/[jωMai + Zf·(1 + jωMai/Ricl)]. On (WinISD) where a
+     *  project does not say. */
+    get winisdAbcIntraPortVelocity(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdAbcIntraPortVelocity');
+        return {
+            get value() { return lens.value ?? CompatSwitch.ABC_INTRA_PORT_VELOCITY.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "PR Npr resonance": the passive-radiator box's fixed leak and absorption
+     *  losses taken at WinISD's ωr = 1/√(Npr·Map·(Cab ∥ Npr·Cap)), Npr times below the tuning. Off:
+     *  the physical tuning. Off where a project does not say; no effect at Npr = 1. */
+    get winisdPrNprResonance(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdPrNprResonance');
+        return {
+            get value() { return lens.value ?? CompatSwitch.PR_NPR_RESONANCE.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "Bessel high-pass": Bessel high-pass filters as WinISD computes
+     *  them, (k·s)^n over the low-pass's own denominator. Off: the mirror of the low-pass (s → 1/s).
+     *  Off where a project does not say. */
+    get winisdBesselHighpass(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdBesselHighpass');
+        return {
+            get value() { return lens.value ?? CompatSwitch.BESSEL_HIGHPASS.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "ABC group delay": the ABC group delay as WinISD
+     *  computes it, the box stepped to f ± δ with the driver part held at f, so the driver's own
+     *  phase slope is left out. Off: −dφ/dω of the plotted phase. Off where a project does not say. */
+    get winisdAbcGroupDelay(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdAbcGroupDelay');
+        return {
+            get value() { return lens.value ?? CompatSwitch.ABC_GROUP_DELAY.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "Coil wiring: Re and BL only": WinISD's coil-wiring routine writes Re and BL and leaves Le and Znom as they
+     *  were. Off: Le and Znom convert with the wiring as well, which is the maths. Off where a project does not say. */
+    get winisdCoilWiringReBlOnly(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdCoilWiringReBlOnly');
+        return {
+            get value() { return lens.value ?? CompatSwitch.COIL_WIRING_RE_BL_ONLY.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "TL port without end correction": with the transmission-line port model on,
+     *  the port pipe is WinISD's, its length less the end correction, so the box tunes above Fb.
+     *  Off: the end correction stays and the box tunes at Fb. Off where a project does not say. */
+    get winisdTlPortNoEndCorrection(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdTlPortNoEndCorrection');
+        return {
+            get value() { return lens.value ?? CompatSwitch.TL_PORT_END_CORRECTION.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "Coil coefficient from project" (QO953.c16): the voice coil is heated with the project's
+     *  AlfaVC only, as WinISD does, whatever the driver states. Off: the driver's own AlfaVC when it is not 0, else the
+     *  project's. Off where a project does not say. */
+    get winisdProjectAlfaVC(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdProjectAlfaVC');
+        return {
+            get value() { return lens.value ?? CompatSwitch.PROJECT_ALFAVC.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "Phase wrapping": wraps phase curves to [-180°, +180°] (default).
+     *  Off: continuous unwrapped phase. On where a project does not say. */
+    get winisdWrapPhase(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdWrapPhase');
+        return {
+            get value() { return lens.value ?? CompatSwitch.WRAP_PHASE.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "Sealed picker volume": the sealed alignment picker gives WinISD's volume,
+     *  with a fixed Rg of 0.1 Ω and Qa of 100 and no box losses. Off: the volume at which the Box tab
+     *  shows the picked Qtc. Off where a project does not say. */
+    get winisdSealedPicker(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdSealedPicker');
+        return {
+            get value() { return lens.value ?? CompatSwitch.SEALED_PICKER.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "Uncapped flat response": "Force flat response" as WinISD does it, every
+     *  point to the transfer function's 0 dB, uncapped (BUG_20260928_force-flat-response-not-winisd).
+     *  Off: boost only, up to the passband reference, capped. On where a project does not say. */
+    get winisdFlatModel(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdFlatModel');
+        return {
+            get value() { return lens.value ?? CompatSwitch.FLAT_MODEL.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
+    /** WinISD Compatibility "Impedance of one driver": the impedance chart shows one driver, as WinISD's does. Off: the load the
+     *  amplifier sees for the project's Driver wiring. Off where a project does not say (QO946.c131). Saved and loaded only. */
+    get winisdOneDriverImpedance(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdOneDriverImpedance');
+        return {
+            get value() { return lens.value ?? CompatSwitch.ONE_DRIVER_IMPEDANCE.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+}
