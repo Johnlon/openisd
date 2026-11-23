@@ -1546,7 +1546,7 @@ export class EnumField extends Field {
     value: "project_driverWiring",
     label: "Driver wiring",
     options: DRIVER_WIRING_OPTIONS,
-    description: "Driver wiring\nHow the drivers are connected to the amplifier. Parallel: each driver gets the full amplifier voltage; the load is one driver's impedance divided by the number of drivers (4 × 8 Ω → 2 Ω). Series: the voltage is split between the drivers; the load is the impedance times the number (4 × 8 Ω → 32 Ω). This changes the impedance chart, the SPL and excursion for a given amplifier voltage, and how Rg acts. Not the same as Coil wiring, which connects the voice coils inside one driver.",
+    description: "Driver wiring\nHow the drivers are connected to the amplifier. Parallel: each driver gets the full amplifier voltage; the load is one driver's impedance divided by the number of drivers (4 × 6.8 Ω → 1.7 Ω). Series: the voltage is split between the drivers; the load is the impedance times the number (4 × 6.8 Ω → 27 Ω). This changes the impedance chart, the SPL and excursion for a given amplifier voltage, and how Rg acts. Not the same as Coil wiring, which connects the voice coils inside one driver.",
   });
 
   // ── Filters ───────────────────────────────────────────────────────────────────────────────

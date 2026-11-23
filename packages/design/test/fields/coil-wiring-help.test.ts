@@ -55,6 +55,11 @@ describe('the Driver wiring help (ticket 519)', () => {
     expect(PhoneHelp.DRIVER.rows).toContain(PhoneHelpRows.DRIVER_WIRING);
     expect(DesktopHelp.PLACEMENT.rows).toContain(PhoneHelpRows.DRIVER_WIRING);
   });
+
+  it('gives the 4 x 6.8 ohm example: Parallel 1.7 ohm, Series 27 ohm (the app shows 1.71 and 27.3)', () => {
+    expect(PhoneHelpRows.DRIVER_WIRING.text).toContain('(4 × 6.8 Ω → 1.7 Ω)');
+    expect(PhoneHelpRows.DRIVER_WIRING.text).toContain('(4 × 6.8 Ω → 27 Ω)');
+  });
 });
 
 describe('the phone Driver help lists Driver wiring only when its caption is on screen (T882)', () => {
