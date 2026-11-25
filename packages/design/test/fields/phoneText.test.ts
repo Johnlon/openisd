@@ -114,8 +114,27 @@ describe('phone text', () => {
 
 describe('the passive radiator\'s 2× rule line', () => {
   it('names the displacement the radiators need and how many of this radiator give it', () => {
-    expect(PhoneBoxText.twoTimesRule(173.9e-6, 1)).toBe('2× rule: radiators need ≥ 174 cm³ — 1 of these is enough');
-    expect(PhoneBoxText.twoTimesRule(400e-6, 3)).toBe('2× rule: radiators need ≥ 400 cm³ — needs 3 of these');
+    expect(PhoneBoxText.twoTimesRule(173.9e-6, 1)).toBe('2× rule: radiators need ≥ 174 cm³ — 1 of these meets the guideline');
+    expect(PhoneBoxText.twoTimesRule(400e-6, 3)).toBe('2× rule: radiators need ≥ 400 cm³ — 3 of these meet the guideline');
+  });
+});
+
+describe('the passive radiator excursion warning', () => {
+  it('states the signal, affected frequencies and minimum radiator count', () => {
+    const text = PhoneBoxText.radiatorExcursionWarning(1, 10, 2.83, [{fromHz: 24, toHz: 32}], 2);
+    expect(text).toContain('10.00 W signal and current filters');
+    expect(text).toContain('1 radiator exceeds Xmax approximately between 24.0 and 32.0 Hz');
+    expect(text).toContain('use at least 2 radiators and/or reduce the signal power and/or adjust the filters');
+  });
+
+  it('does not suggest an unverified count and names every affected band', () => {
+    const text = PhoneBoxText.radiatorExcursionWarning(2, null, 2.83, [
+      {fromHz: 20, toHz: 24}, {fromHz: 30, toHz: 30},
+    ], null);
+    expect(text).toContain('2.83 V signal');
+    expect(text).toContain('2 radiators exceed Xmax approximately between 20.0 and 24.0 Hz and at 30.0 Hz');
+    expect(text).not.toContain('at least');
+    expect(text).toContain('reduce the signal power and/or adjust the filters');
   });
 });
 });

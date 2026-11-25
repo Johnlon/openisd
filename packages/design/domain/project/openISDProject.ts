@@ -27,6 +27,8 @@ import { storedTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, 
 import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
+import type { PassiveRadiatorAssessment } from '../../engine/simulation/SimulationEngine.js';
+import {FixedAir} from '../../engine/air.js';
 import { withNullEmbeddedDriverId } from './nullDriverId.js';
 import type { ProjectIssues } from './projectIssues.js';
 import { ProjectCoilWiring } from './projectCoilWiring.js';
@@ -987,6 +989,14 @@ export class OpenISDProject {
      *  project itself needs to sweep (its box volume, its drive voltage) is not yet stated. */
     sweep(P: FrequencyGrid): SweepSolveResult {
         return sweepOf(this.#sweepSource(), P);
+    }
+
+    passiveRadiatorAssessment(P: FrequencyGrid): PassiveRadiatorAssessment | null {
+        const plan = this.sweepPlan(P);
+        if (plan.kind !== 'ready' || plan.job.box !== 'box-passive-radiator') return null;
+        const {job} = plan;
+        return this.#engine.simulation.passiveRadiatorAssessment(job.driver, job.Le_H,
+            {...job.sweep, air: new FixedAir(job.air)}, this.box.passiveRadiator.radiator.spec.Xmax_m.value);
     }
 
     /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweep`,

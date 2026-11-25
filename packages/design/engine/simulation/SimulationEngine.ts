@@ -24,7 +24,9 @@ import {driverCircuitIssues, hasCircuitFields, missingCircuitFields} from '../dr
 import type {DriverCircuitIssue, ReadyCircuitReadings} from '../driver/circuitDiagnostics.js';
 import {createDriverEngine} from '../driver/DriverEngine.js';
 import type {DriverEngine, DriverIssue, DriverPrerequisite} from '../driver/DriverEngine.js';
-import type {PrIssue} from '../pr/PrEngine.js';
+import type {PrEngine, PrIssue} from '../pr/PrEngine.js';
+import {PrEngineImpl} from '../pr/PrEngine.js';
+import {ConsistencyCheck, RADIATOR_RELATIONS, RADIATOR_ROUTES, RouteGroup} from '../driver/routes/index.js';
 import type {VentIssue} from '../vent/VentEngine.js';
 import {hotRe, isobarikPair, withAddedMass} from '../solvers/driverQuantities.js';
 import {isobarikImpedanceScale, isobarikMotorScale, physicalPairWiring, wiredIsobarikPair} from '../solvers/isobarikWiring.js';
@@ -335,6 +337,7 @@ function classifyArrays(
  *  a box, the enclosure-parameter precondition the circuit needs met, and the readouts and
  *  postcondition classifiers a chart applies to a swept result. */
 export interface SimulationEngine {
+  passiveRadiatorAssessment(drv: SweepDriver, Le_H: number | undefined, P: SweepParams, xmax_m: number | null): PassiveRadiatorAssessment | null;
   /** The response, one complex value per frequency. */
   sweep(drv: SweepDriver, Le_H: number | undefined, box: BoxType, P: SweepParams): SweepSolveResult;
   /** The limit curves — how loud before excursion or port velocity gives out. */
@@ -372,6 +375,11 @@ export interface SimulationEngine {
   classifyMaxFinite(mx: MaxCurvesResult): DriverError | null;
 }
 
+export interface PassiveRadiatorAssessment {
+  readonly exceededBands: readonly {readonly fromHz: number; readonly toHz: number}[];
+  readonly minimumCount: number | null;
+}
+
 /** The simulation area alone, for a thread that only sweeps. It reads no app setting, so it takes none;
  *  the whole engine comes from `createEngine`. */
 /** The largest finite value of `values` times `scale`, and the frequency it sits at (the first, on a tie). */
@@ -385,12 +393,44 @@ function peakOf(fs: readonly number[], values: readonly number[], scale: number)
 }
 
 export function createSimulationEngine(): SimulationEngine {
-  return new SimulationEngineImpl(createDriverEngine());
+  return new SimulationEngineImpl(createDriverEngine(), new PrEngineImpl(new RouteGroup(RADIATOR_ROUTES), new ConsistencyCheck(RADIATOR_RELATIONS)));
 }
 
 export class SimulationEngineImpl implements SimulationEngine {
   /** `driver` turns the stated T/S values into the ones the circuit runs on (`circuitValues`). */
-  constructor(private readonly driver: DriverEngine) {}
+  constructor(private readonly driver: DriverEngine, private readonly pr: PrEngine) {}
+
+  passiveRadiatorAssessment(drv: SweepDriver, Le_H: number | undefined, P: SweepParams, xmax_m: number | null): PassiveRadiatorAssessment | null {
+    const {prNum, prMmd, prMadd, prSd, prCms} = P;
+    if (xmax_m === null || !Number.isFinite(xmax_m) || xmax_m <= 0 || prNum === undefined || !Number.isInteger(prNum) || prNum < 1 ||
+        prMmd === undefined || prMadd === undefined || prSd === undefined || prCms === undefined ||
+        ![P.Vb, prMmd, prSd, prCms, P.air.c(), P.air.rho()].every(v => Number.isFinite(v) && v > 0) ||
+        !Number.isFinite(prMadd) || prMadd < 0) return null;
+    const current = this.sweep(drv, Le_H, 'box-passive-radiator', P).values;
+    if (current === null || current.fs.length === 0 || current.excPR.length !== current.fs.length ||
+        !current.fs.every(Number.isFinite) || !current.excPR.every(Number.isFinite)) return null;
+    const exceededBands: {fromHz: number; toHz: number}[] = [];
+    for (let i = 0; i < current.fs.length; i++) {
+      if (current.excPR[i]! <= xmax_m * 1000) continue;
+      const fromHz = current.fs[i]!;
+      while (i + 1 < current.fs.length && current.excPR[i + 1]! > xmax_m * 1000) i++;
+      exceededBands.push({fromHz, toHz: current.fs[i]!});
+    }
+    if (exceededBands.length === 0) return {exceededBands, minimumCount: prNum};
+    const tuning = this.pr.tuning({Vb: P.Vb, prMmd, prMadd, prSd, prCms, prNum}, P.air);
+    if (!Number.isFinite(tuning) || tuning <= 0) return {exceededBands, minimumCount: null};
+    for (let count = 1; count <= NumberField.PR_NUM.limits.max; count++) {
+      const totalMass = this.pr.massForFp({Vb: P.Vb, prMmd, prMadd, prSd, prCms, prNum: count}, tuning, P.air);
+      const addedMass = totalMass - prMmd;
+      if (!Number.isFinite(addedMass) || addedMass < 0) continue;
+      const candidate = this.sweep(drv, Le_H, 'box-passive-radiator', {...P, prNum: count, prMadd: addedMass, Fr: tuning}).values;
+      if (candidate === null || candidate.excPR.length !== current.fs.length || !candidate.excPR.every(Number.isFinite)) {
+        return {exceededBands, minimumCount: null};
+      }
+      if (candidate.excPR.every(value => value <= xmax_m * 1000)) return {exceededBands, minimumCount: count};
+    }
+    return {exceededBands, minimumCount: null};
+  }
 
   publishSweep(result: SweepSolveResult): SweepSolveResult {
     if (result.values === null) return result;

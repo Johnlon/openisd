@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import {shallowRef} from 'vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
+import RenameProjectDialog from '../../components/RenameProjectDialog.vue';
 import {useOriginalProjectList, type OriginalProjectListProps, type OriginalProjectListEmit} from '../../../hooks/OriginalProjectList-hooks.js';
 const props = defineProps<OriginalProjectListProps>();
 const emit = defineEmits<OriginalProjectListEmit>();
-const {emptyBinLabel, PROJECT_LIST_TEXT, PROJECT_LIST_SCOPES, setScope, editingRow, editingName, startRename, setRenameInput, commitRename, cancelRename, searchInputRef, listRef, focusSearchOrList, menuOpen, openRowMenu, openRowContextMenu, onSortChange, onQueryInput, onToggleShow, onRowClick, handleMenuAction, colourInput, onColourClick, openColourPicker, onColourInput, desktopMenuItems} = useOriginalProjectList(props, emit);
+const renameRow = shallowRef<OriginalProjectListProps['projectRows'][number] | null>(null);
+const {emptyBinLabel, PROJECT_LIST_TEXT, PROJECT_LIST_SCOPES, setScope, editingRow, editingName, setRenameInput, commitRename, cancelRename, searchInputRef, listRef, focusSearchOrList, menuOpen, openRowMenu, openRowContextMenu, onSortChange, onQueryInput, onToggleShow, onRowClick, handleMenuAction, colourInput, onColourClick, openColourPicker, onColourInput, desktopMenuItems} = useOriginalProjectList(props, emit);
 defineExpose({focusSearchOrList});
 </script>
 
@@ -120,12 +123,13 @@ defineExpose({focusSearchOrList});
               @keydown.escape.stop.prevent="cancelRename"
               @blur="commitRename"
             >
-            <span
+            <button
               v-else
+              type="button"
               class="project-name"
               :title="row.name"
-              @dblclick.stop="startRename(row)"
-            >{{ row.name }}</span>
+              @click.stop="renameRow = row"
+            >{{ row.name }}</button>
             <span
               v-for="t in row.tags"
               :key="t.kind"
@@ -221,6 +225,8 @@ defineExpose({focusSearchOrList});
         {{ item.label }}
       </button>
     </div>
+    <RenameProjectDialog v-if="renameRow" :name="renameRow.name" :phone="false"
+      @cancel="renameRow = null" @save="name => { if (renameRow) emit('rename', renameRow, name); renameRow = null; }" />
   </div>
 </template>
 
@@ -436,6 +442,12 @@ defineExpose({focusSearchOrList});
 }
 
 .project-name {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   flex: 1 1 auto;
   min-width: 0;
   display: block;

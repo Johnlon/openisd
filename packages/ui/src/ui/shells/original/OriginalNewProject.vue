@@ -307,7 +307,7 @@ function handleCreate() {
 .driver-specs-preview { display: inline-flex; gap: 12px; font-size: 12px; color: #556; margin-left: auto; }
 /* The library sets its own height here: the overlay gives it a 535px window, the wizard has no window to fill. */
 .np-library { height: 420px; }
-.field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.field-row { display: flex; align-items: center; gap: var(--ctl-group-gap); margin-bottom: var(--ctl-row-gap); }
 .step-content :deep(.ui-field) { margin-bottom: 10px; }
 .field { display: flex; align-items: center; gap: 6px; }
 .field label { color: #333; display: inline-block; min-width: 150px; }

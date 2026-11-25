@@ -70,7 +70,7 @@ class EngineImpl implements Engine {
   readonly pr: PrEngine = new PrEngineImpl(
     new RouteGroup(RADIATOR_ROUTES), new ConsistencyCheck(RADIATOR_RELATIONS));
   readonly filters: FilterEngine = new FilterEngineImpl();
-  readonly simulation: SimulationEngine = new SimulationEngineImpl(this.driver);
+  readonly simulation: SimulationEngine = new SimulationEngineImpl(this.driver, this.pr);
   readonly box: BoxEngine = new BoxEngineImpl();
 
   constructor(settings: AppSettings) {

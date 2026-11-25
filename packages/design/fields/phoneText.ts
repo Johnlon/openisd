@@ -94,7 +94,28 @@ export class PhoneBoxText {
    *  radiator. `required_m3` is twice the drivers' displacement; `count` the engine's smallest count reaching it. */
   static twoTimesRule(required_m3: number, count: number): string {
     const need = `2× rule: radiators need ≥ ${Math.round(required_m3 * 1e6)} cm³`;
-    return count <= 1 ? `${need} — 1 of these is enough` : `${need} — needs ${count} of these`;
+    return `${need} — ${count} of these ${count === 1 ? 'meets' : 'meet'} the guideline`;
+  }
+
+  static radiatorExcursionWarning(
+    count: number,
+    power_W: number | null,
+    voltage_V: number,
+    bands: readonly {readonly fromHz: number; readonly toHz: number}[],
+    minimumCount: number | null,
+  ): string {
+    const signal = power_W === null
+      ? `${NumberField.SIGNAL_DRIVEV_V.format(voltage_V)} V`
+      : `${NumberField.SIGNAL_PIN_W.format(power_W)} W`;
+    const ranges = bands.map(({fromHz, toHz}) =>
+      fromHz === toHz
+        ? `at ${NumberField.PLOT_FMIN_HZ.format(fromHz)} Hz`
+        : `approximately between ${NumberField.PLOT_FMIN_HZ.format(fromHz)} and ${NumberField.PLOT_FMAX_HZ.format(toHz)} Hz`).join(' and ');
+    const radiators = count === 1 ? 'radiator exceeds' : 'radiators exceed';
+    const changes = minimumCount === null
+      ? 'reduce the signal power and/or adjust the filters'
+      : `use at least ${minimumCount} radiators and/or reduce the signal power and/or adjust the filters`;
+    return `With your ${signal} signal and current filters, ${count} ${radiators} Xmax ${ranges}. To bring it within Xmax you must ${changes}.`;
   }
 }
 

@@ -10,7 +10,7 @@ import {PHONE_SIZES} from '../fixtures/phoneSizes.js';
 import type {Page} from '@playwright/test';
 
 /** The sample project's 2× rule line: its driver's Vd is 86.95 cm³, so radiators need 2 × 86.95 = 173.9 cm³; its radiator gives that alone. */
-const TWO_TIMES_RULE = "2× rule: radiators need ≥ 174 cm³ — 1 of these is enough";
+const TWO_TIMES_RULE = "2× rule: radiators need ≥ 174 cm³ — 1 of these meets the guideline";
 type BoxOption = 'sealed' | 'vented' | 'box-passive-radiator' | 'bandpass4' | 'bandpass6' | 'abc';
 
 const LOSSES = 'Box losses (Qa, Ql, Qp)…';

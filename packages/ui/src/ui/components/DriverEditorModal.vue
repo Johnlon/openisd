@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {DateField, isoDay, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
-import {computed, nextTick, onBeforeUnmount, provide, ref, watch} from 'vue';
+import {computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch} from 'vue';
 import {createPhoneLabelColumn, type PhoneLabelColumn} from '../../hooks/phoneLabelColumn.js';
 import type {NumSpecField} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
@@ -23,6 +23,7 @@ import {provideCellScope} from './cellScope.js';
 import {provideEditedDriver} from '../../hooks/refusalSeen.js';
 import {createRefusalLedger, provideRefusalLedger} from '../../logic/refusalLedger.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
+import {driverEditorTabFor} from '../../logic/driverEditorDestination.js';
 import {DriverFileFormat} from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
 import MobileKeyStrip from '../shells/mobile/MobileKeyStrip.vue';
@@ -70,7 +71,9 @@ const TABS: Tab[] = ['General', 'Parameters', 'Advanced', 'Dimensions'];
 // What subject is open, fixed for the dialog's whole lifetime (selection is not consulted
 // again until this dialog closes).
 const subject = selection.editSubject();
-const tab = ref<Tab>('Parameters');
+const requestedProblemField = presentationState.driverProblemField;
+const tab = ref<Tab>(requestedProblemField === null ? 'Parameters' : driverEditorTabFor(requestedProblemField));
+presentationState.driverProblemField = null;
 const project = useFocusedProject();
 
 // The title names WHICH driver is on screen, because this one dialog edits two subjects with
@@ -279,6 +282,16 @@ provide(FIELD_EDIT_MODE, {
 // beside its right edge when there is room, its left edge otherwise — so it can never cover the
 // dialog it is inspecting, at any viewport size.
 const modalRootEl = ref<HTMLElement | null>(null);
+onMounted(() => {
+  if (requestedProblemField === null) return;
+  void nextTick(() => {
+    const field = Array.from(modalRootEl.value?.querySelectorAll<HTMLElement>('[data-field-key]') ?? [])
+      .find(element => element.dataset.fieldKey === requestedProblemField);
+    field?.scrollIntoView({block: 'nearest'});
+    const input = field?.querySelector<HTMLElement>('input, select, textarea');
+    (input ?? field?.querySelector<HTMLElement>('button'))?.focus();
+  });
+});
 // On the phone the label column follows the longest label shown (the desktop skin sizes its own).
 let phoneLabelColumn: PhoneLabelColumn | null = null;
 watch(modalRootEl, el => { phoneLabelColumn?.stop(); phoneLabelColumn = el !== null && props.skin !== undefined ? createPhoneLabelColumn(el) : null; }, {flush: 'post'});
@@ -1145,7 +1158,7 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
 .de-fld { position: relative; }
 .de-desktop.de-inspecting { --de-field-columns:3; margin-left:12px; margin-right:auto; max-width:calc(100vw - 236px) !important; }
 .de-desktop .de-fld { display: flex; flex-direction: column; gap: 2px; margin-bottom: 3px; width: fit-content; justify-self: start; }
-.de-desktop .de-fld :deep(label) { font-size: 11px; color: var(--mut); white-space: nowrap; }
+.de-desktop .de-fld :deep(label) { font-size: var(--ctl-font-size); color: var(--mut); white-space: nowrap; }
 .de-desktop .de-fld input, .de-desktop .de-fld select { padding: 2px 5px; border: 1px solid var(--line); border-radius: 3px; font: inherit; background: var(--panel); color: var(--fg); }
 /* A unit button wider than two characters ("mm/N", "1000/K", "kg/m³") takes its width from its
    text; 34px is the minimum. bugs/BUG_20261019_driver-editor-unit-buttons-overflow.md */
@@ -1240,7 +1253,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
   /* 4 field-slots per row, 4 tracks each (label/value/unit/alert) = 16 tracks. A `.de-fld`
      subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
      spanned the whole row and the tab rendered as one field per line instead of four. */
-  grid-template-columns: repeat(var(--de-field-columns,4), max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px) !important;
+  grid-template-columns: repeat(var(--de-field-columns,4), max-content 132px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px) !important;
   /* 2px between tracks: 15 gaps across 16 tracks; at 6px the grid was wider than the modal's body in Chromium and wider still in Firefox, so the body scrolled sideways. */
   gap: 3px 0 !important;
   align-items: center !important;
@@ -1312,10 +1325,10 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
    it past Voicecoils' own column-1 slot (already taken) into column 1 of the NEXT row. */
 /* Advanced: Density (second slot, last row) shows a 73px number beside the 60px kg/m³ chip, which needs a 150px input track; 136px clipped it. Only that slot widens. */
 .de-desktop .de-params.de-adv {
-  grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px repeat(2, max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px) !important;
+  grid-template-columns: max-content 132px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px repeat(2, max-content 132px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px) !important;
 }
 .de-desktop.de-inspecting .de-params.de-adv {
-  grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important;
+  grid-template-columns: max-content 132px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 132px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important;
 }
 .de-desktop .de-conn { grid-column: 1 / span 4 !important; }
 /* "Parallel"/"Series" plus the native select arrow need the whole value track, the width of the number boxes above (field-layout rule 4) —
@@ -1368,7 +1381,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
    columns of them overran the modal and forced a sideways scroll. */
 .de-desktop .de-cols {
   display: grid !important;
-  grid-template-columns: repeat(var(--de-field-columns,4), max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px) !important;
+  grid-template-columns: repeat(var(--de-field-columns,4), max-content 132px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px) !important;
   gap: 6px 12px !important;
   align-items: center !important;
 }
@@ -1523,14 +1536,14 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
   .de-desktop { --de-field-columns: 3; }
   .de-desktop.de-inspecting { --de-field-columns:2; }
   /* Advanced grid: same column count as the other tabs; slot 2 keeps its 150px Density track. */
-  .de-desktop .de-params.de-adv { grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important; }
-  .de-desktop.de-inspecting .de-params.de-adv { grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important; }
+  .de-desktop .de-params.de-adv { grid-template-columns: max-content 132px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 132px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important; }
+  .de-desktop.de-inspecting .de-params.de-adv { grid-template-columns: max-content 132px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important; }
 }
 @media (max-width: 900px) {
   .de-desktop { --de-field-columns: 2; }
   .de-desktop.de-inspecting { --de-field-columns:1; }
-  .de-desktop .de-params.de-adv { grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important; }
-  .de-desktop.de-inspecting .de-params.de-adv { grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important; }
+  .de-desktop .de-params.de-adv { grid-template-columns: max-content 132px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important; }
+  .de-desktop.de-inspecting .de-params.de-adv { grid-template-columns: max-content 132px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important; }
 }
 </style>
 

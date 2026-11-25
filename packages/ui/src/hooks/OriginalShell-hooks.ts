@@ -18,7 +18,7 @@ import { useDismissOnOutside } from './dismissOnOutside.js';
 import {compatSwitchSetter} from './compatSwitch.js';
 import type {ComputedRef, Ref} from 'vue';
 import {reportDisagreementsSeen} from '../logic/telemetry/valuesProblem.js';
-import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
+import {computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
 import {createProjectBinView, type ProjectListRow} from './projectBinView.js';
 import {copyChartDefinition, cycleTraceColor, traceColor} from '../logic/presentationState.js';
@@ -45,8 +45,9 @@ import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {OriginalFilters} from './OriginalFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, SimpleField, Writable} from '@openisd/design';
 import {marksOfCell, type FieldMarks} from '../logic/cellDataQuality.js';
+import {chartProblemDestination, collectProjectProblems, marksForProblemFields, projectProblemFieldId, projectProblemFields, type ProblemDestination, type ProjectProblem} from '../logic/projectProblems.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
-import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
+import {createBoxLosses, createBoxVolume, createChamberFields, createRadiatorExcursionWarning, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
 import {createErrorSwitches} from './errorSwitches.js';
 import type {ChartId} from '@openisd/design/engine';
@@ -199,6 +200,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const featureUse = useFeatureUse();
   const { selectedBox, pending, isDual, boxLabel, showEnclosureTab } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable, featureUse });
+  const prExcursionWarning = createRadiatorExcursionWarning(project, selectedBox, projectChanged, () => presentationState.sweepRange);
   const enclosureNavLabel = computed(() =>
     selectedBox.value === 'box-passive-radiator' ? 'Passive Radiator'
       : selectedBox.value === 'sealed' ? 'Closed'
@@ -768,6 +770,82 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
    *  buttons and the placeholders to stand in for the chart, tab pane and project list. */
   const focused = computed(() => focusedProject());
   const projectOpen = computed(() => focusedProject() != null);
+  const problemsOpen = ref(false);
+  const radiatorProblemField = ref<string | null>(null);
+  const problemFilterId = ref<string | null>(null);
+  watch(prEditor.cells, cells => { if (cells === null) radiatorProblemField.value = null; });
+  const projectProblems = computed(() => {
+    void projectChanged.value;
+    if (!projectOpen.value) return [];
+    const fields = projectProblemFields(project.value);
+    const marks = marksForProblemFields(fields);
+    function addUniqueProblem(kind: string, text: string, destination: ProblemDestination): void {
+      const duplicate = marks.some(mark => mark.issue.text === text && mark.destination.tab === destination.tab &&
+        (destination.tab !== 'enclosure' || mark.destination.field.startsWith('radiator.') === destination.field.startsWith('radiator.')));
+      if (!duplicate) marks.push({issue: {kind, text}, destination});
+    }
+    const driver = project.value.driver;
+    if (!driver.brand.value.trim()) addUniqueProblem('driver-identity', 'Brand is not set.', {tab: 'driver', field: 'brand'});
+    if (!driver.model.value.trim()) addUniqueProblem('driver-identity', 'Model is not set.', {tab: 'driver', field: 'model'});
+    for (const issue of driver.chartFieldIssues()) {
+      addUniqueProblem(issue.kind, issue.text, {tab: 'driver', field: issue.field});
+    }
+    for (const issue of allIssues.value) {
+      const destination = chartProblemDestination(issue.field, fields);
+      addUniqueProblem('chart', issue.message, destination);
+    }
+    for (const message of prExcursionWarning.value) {
+      marks.push({issue: {kind: 'radiator-excursion', text: message}, destination: {tab: 'enclosure', field: 'count'}});
+    }
+    for (const filter of originalFilters.filters.value) {
+      const message = originalFilters.issueText(filter);
+      if (message !== null) marks.push({issue: {kind: 'filter', text: message}, destination: {tab: 'filters', field: filter.id ?? ''}});
+    }
+    return collectProjectProblems(marks);
+  });
+  function goToProjectProblem(problem: ProjectProblem): void {
+    const destination = problem.destinations[0];
+    if (!destination) return;
+    problemsOpen.value = false;
+    if (destination.tab === 'chart') {
+      void nextTick(() => chartStackEl.value?.focus());
+      return;
+    }
+    chartMax.value = false;
+    bottomCollapsed.value = false;
+    activeTab.value = destination.tab;
+    if (destination.tab === 'driver' && !destination.field.startsWith('project.')) {
+      presentationState.driverProblemField = destination.field;
+      startEdit();
+    }
+    if (destination.tab === 'enclosure' && destination.field.startsWith('radiator.')) {
+      radiatorProblemField.value = destination.field.slice('radiator.'.length);
+      startEditPR();
+    }
+    if (destination.tab === 'filters' && destination.field !== '') {
+      problemFilterId.value = null;
+      void nextTick(() => { problemFilterId.value = destination.field; });
+    }
+    if (destination.tab === 'box' && destination.field.startsWith('losses.')) {
+      const chamber = destination.field.split('.')[1];
+      if (chamber === 'whole' || chamber === 'rear' || chamber === 'front') lossesOpen.value = chamber;
+    }
+    let target = destination;
+    if (destination.tab === 'enclosure' && destination.field.endsWith('.area_m2')) {
+      const portName = destination.field.split('.')[0];
+      const port = ventPorts.value.find(item => item.name === portName);
+      if (port) target = {tab: 'enclosure', field: `${port.name}.${port.vent.shape.value === 'slotted' ? 'width_m' : 'diameter_m'}`};
+    }
+    const id = projectProblemFieldId(target, ventPorts.value.length);
+    if (id) void nextTick(() => document.getElementById(id)?.focus());
+  }
+  function projectProblemText(problem: ProjectProblem): string {
+    const destination = problem.destinations[0];
+    const field = destination?.field.split('.').at(-1) ?? '';
+    const label = NumberField.named(field)?.fullLabel;
+    const subject = destination?.tab === 'driver' ? 'Driver' : destination?.field.startsWith('radiator.') ? 'Passive radiator' : null;
+    return [subject, label, problem.text].filter(Boolean).join(': ');
+  }
 
   const errorSwitches = createErrorSwitches({project, projectChanged});
   /** The WinISD deviations whose cue sits by the chart picker: shown on an open chart. */
@@ -836,7 +914,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     chartLabel, chartItems, selectChart, toggleChart,
     hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
     startNudge, stopNudge, cursorHz, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectValue, selectedOption,
-    WINISD_TRACE, cycleColor, resetChartView, chartMax,
+    WINISD_TRACE, cycleColor, resetChartView, chartMax, problemsOpen, projectProblems, goToProjectProblem, projectProblemText, radiatorProblemField, problemFilterId,
     mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown,
     projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
@@ -857,7 +935,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     model, startEdit, showDriverDisagreements, showDriverInfo: driverBrowsing.showProjectDriverInfo, startWhatIf, driverConsistencyReasons,
     activeVent, activeTuning, ventPorts, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, prEditor, startEditPR, defineNewPREntry, prInfoOpen, prInfo, openPRInfo,
-    prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,
+    prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh, prExcursionWarning,
     fmt,
     advTemp, advHumidity, advPressure, advAir, advSoundVelocity, advAirDensity,
     envTempDq, envHumidityDq, envPressureDq, resetAirToAppDefaults,

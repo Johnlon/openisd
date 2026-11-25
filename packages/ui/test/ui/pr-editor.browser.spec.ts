@@ -268,12 +268,12 @@ test.describe('phone', () => {
     await expect(page.locator('#mob-pr-key-sd')).toHaveValue('202.00');
     await expect(page.locator('#mob-pr-key-vd')).toHaveValue(/^242/);   // 202 cm² × 12 mm = 242.4 cm³
     // Hand-worked (plan): driver Tang Band W5-1138SMF Vd 86.95 cm³, one driver → radiators need ≥ 173.9 cm³; ASP190 Vd 242.4 cm³ → one is enough.
-    await expect(page.locator('#mob-pr-two-times')).toHaveText('2× rule: radiators need ≥ 174 cm³ — 1 of these is enough');
+    await expect(page.locator('#mob-pr-two-times')).toHaveText('2× rule: radiators need ≥ 174 cm³ — 1 of these meets the guideline');
     // Three drivers need ≥ 3 × 2 × 86.95 = 521.7 cm³: 521.7 / 242.4 = 2.15, so three of these.
     await page.locator('.mob-tab', {hasText: 'Driver'}).click();
     await page.locator('#mob-n-drivers').selectOption('3');
     await page.locator('.mob-tab', {hasText: 'Box'}).click();
-    await expect(page.locator('#mob-pr-two-times')).toHaveText('2× rule: radiators need ≥ 522 cm³ — needs 3 of these');
+    await expect(page.locator('#mob-pr-two-times')).toHaveText('2× rule: radiators need ≥ 522 cm³ — 3 of these meet the guideline');
     await page.locator('#mob-pr-key-mms').click();
     await expect(page.getByRole('dialog', {name: EDITOR})).toBeVisible();
     await page.getByRole('dialog', {name: EDITOR}).getByRole('button', {name: 'Cancel', exact: true}).click();

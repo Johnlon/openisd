@@ -16,7 +16,7 @@ import {useMobileEnclosureTab} from '../../../hooks/MobileEnclosureTab-hooks.js'
 const {
   project, selectedBox,
   ventSections, tuningNoteShown,
-  prResonanceMassDq, prFsMass_hz,
+  prResonanceMassDq, prFsMass_hz, prExcursionWarning,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, prEditor, startEditPR, defineNewPREntry, prInfoOpen, prInfo, openPRInfo, prKeyFigures, prTwoTimesRule,
   VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS,
   FB_TARGET_TIP, VENT_GEOMETRY_TIP,
@@ -85,7 +85,7 @@ const {
 
     <section class="mob-csection">
     <PhoneBand :section="PhoneHelp.USER_OPTIONS" />
-    <UIFixedField class="mob-ui-field" input-id="mob-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" @update:value="n => project.box.passiveRadiator.count.set(n)" />
+    <UIFixedField class="mob-ui-field" input-id="mob-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :dq-warnings="prExcursionWarning" @update:value="n => project.box.passiveRadiator.count.set(n)" />
     <UIField class="mob-ui-field" :field="NumberField.PR_MADD_G" :label="PhoneLabels.PR_ADDED_MASS" :cell="project.box.passiveRadiator.addedMass_kg" stepper />
     <UIFixedField class="mob-ui-field" :field="NumberField.PR_FSMASS_HZ" :label="PhoneLabels.PR_FPR_MASS" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly plain />
     </section>

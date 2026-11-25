@@ -80,6 +80,8 @@ export interface PresentationState {
   editDriverInfo: boolean;
   /** The Driver Editor opens with its "values disagree" list already showing (read once by the editor). */
   editDriverShowDisagreements: boolean;
+  /** Driver field requested by the desktop project-problems list, consumed when the editor opens. */
+  driverProblemField: string | null;
   /** Per-chart Y-axis override; absent entry = auto-scale. Keyed by the chart, so a row in
    *  the Options dialog cannot write under a key no chart reads. */
   yRanges: Partial<Record<ChartId, YRange>>;
@@ -128,6 +130,7 @@ export function createPresentationState(): PresentationState {
     editDriver: false,
     editDriverInfo: false,
     editDriverShowDisagreements: false,
+    driverProblemField: null,
     optionsOpen: false,
     openDialogOpen: false,
     projectsRequests: 0,

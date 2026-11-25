@@ -59,7 +59,7 @@ const {
   chartLabel, chartItems, selectChart, toggleChart,
   hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
   startNudge, stopNudge, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectedOption,
-  WINISD_TRACE, cycleColor, resetChartView, chartMax,
+  WINISD_TRACE, cycleColor, resetChartView, chartMax, problemsOpen, projectProblems, goToProjectProblem, projectProblemText, radiatorProblemField, problemFilterId,
   mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown,
   setTraceVisible, projectDisplayName, project, projectOpen,
   requestCloseProject, closeChallenge, saveThenClose, closeProject,
@@ -82,7 +82,7 @@ const {
   model, startEdit, showDriverDisagreements, showDriverInfo, startWhatIf, driverConsistencyReasons,
   ventPorts, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, prEditor, startEditPR, defineNewPREntry, prInfoOpen, prInfo, openPRInfo,
-  prResonanceMassDq, prFsMass_hz,
+  prResonanceMassDq, prFsMass_hz, prExcursionWarning,
   advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
   envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
@@ -312,7 +312,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
       <!-- top-right quadrant: graph -->
       <div class="graph-area">
         <div class="graph-wrap">
-          <div v-if="projectOpen && !pending" ref="chartStackEl" class="chart-stack" :style="chartStackStyle">
+          <div v-if="projectOpen && !pending" ref="chartStackEl" class="chart-stack" tabindex="-1" :style="chartStackStyle">
             <div v-for="id in openCharts" :key="id" class="chart-cell">
               <GraphPanel :chartId="id" :bare="true" :primaryColor="WINISD_TRACE" :overlays="overlays" />
               <button v-if="openCharts.length > 1" class="chart-close" title="Remove this chart from the stack" @click="toggleChart(id)">✕</button>
@@ -416,7 +416,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <DesktopBand :section="rearChamberHelp" @help="openSectionHelp" />
                 <div class="field-row"><UIField class="field" input-id="og-box-volume" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" /></div>
                 <div class="field-row">
-                  <UIField v-if="rearTuningCell && (selectedBox === 'bandpass6' || selectedBox === 'abc')" class="field" :field="NumberField.BOX_FRC_HZ" :cell="rearTuningCell" />
+                  <UIField v-if="rearTuningCell && (selectedBox === 'bandpass6' || selectedBox === 'abc')" class="field" input-id="og-rear-tuning" :field="NumberField.BOX_FRC_HZ" :cell="rearTuningCell" />
                   <UIFixedField v-else class="field" :field="NumberField.BOX_REARRESONANCE_HZ" :label="selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq'" :value="rearResonance" readonly />
                 </div>
                 <div v-if="selectedBox === 'bandpass4'" class="field-row">
@@ -521,7 +521,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <div>
                 <DesktopBand :section="userOptionsHelp" @help="openSectionHelp" />
                 <div class="field-row" style="margin-bottom:3px;">
-                  <UIFixedField class="field" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" @update:value="n => project.box.passiveRadiator.count.set(n)" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined" />
+                  <UIFixedField class="field" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :dq-warnings="prExcursionWarning" @update:value="n => project.box.passiveRadiator.count.set(n)" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined" />
                 </div>
                 <div class="field-row" style="margin-bottom:3px;">
                   <UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" />
@@ -589,7 +589,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 
         <!-- ===== Filters tab — OriginalFilters, wired to the project's filter chain ===== -->
         <section class="tab-section" :class="{ active: activeTab === 'filters' }">
-          <OriginalFilters :api="originalFilters" />
+          <OriginalFilters :api="originalFilters" :problem-filter-id="problemFilterId" />
         </section>
 
         <!-- ===== Signal tab ===== -->
@@ -603,9 +603,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             </div>
             <div>
               <DesktopBand :section="signalSourceHelp" @help="openSectionHelp" />
-              <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :min="minimumPower" :readonly="powerLocked" /></div>
-              <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_DRIVEV_V" :cell="project.driveVoltage_V" /></div>
-              <div class="field-row"><UIFixedField class="field" :field="NumberField.SIGNAL_RS_OHM" :value="rsOhm" @update:value="v => project.Rs_ohm.set(v)" /></div>
+              <div class="field-row"><UIField class="field" input-id="og-signal-power" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :min="minimumPower" :readonly="powerLocked" /></div>
+              <div class="field-row"><UIField class="field" input-id="og-signal-voltage" :field="NumberField.SIGNAL_DRIVEV_V" :cell="project.driveVoltage_V" /></div>
+              <div class="field-row"><UIFixedField class="field" input-id="og-signal-resistance" :field="NumberField.SIGNAL_RS_OHM" :value="rsOhm" @update:value="v => project.Rs_ohm.set(v)" /></div>
             </div>
           </div>
         </section>
@@ -616,13 +616,13 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div class="adv-left-col">
               <div class="adv-air-fields">
                 <div class="adv-air-col">
-                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-warnings="envTempDq.warnings" :dq-state="envTempDq.dqState" stepper allow-out-of-range /></div>
-                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-warnings="envHumidityDq.warnings" :dq-state="envHumidityDq.dqState" stepper /></div>
-                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-warnings="envPressureDq.warnings" :dq-state="envPressureDq.dqState" stepper allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" input-id="og-air-temperature" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-warnings="envTempDq.warnings" :dq-state="envTempDq.dqState" stepper allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" input-id="og-air-humidity" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-warnings="envHumidityDq.warnings" :dq-state="envHumidityDq.dqState" stepper /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" input-id="og-air-pressure" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-warnings="envPressureDq.warnings" :dq-state="envPressureDq.dqState" stepper allow-out-of-range /></div>
                 </div>
                 <div class="adv-air-col">
-                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-warnings="envSoundVelocityDq.warnings" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range /></div>
-                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-warnings="envAirDensityDq.warnings" :dq-state="envAirDensityDq.dqState" allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" input-id="og-air-sound-speed" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-warnings="envSoundVelocityDq.warnings" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" input-id="og-air-density" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-warnings="envAirDensityDq.warnings" :dq-state="envAirDensityDq.dqState" allow-out-of-range /></div>
                 <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
                 </div>
               </div>
@@ -746,7 +746,19 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 
     <ProvenanceLegend>
       <span v-if="isModified" class="unsaved-label" title="This project has unsaved changes."><span class="unsaved-dot"></span>Unsaved changes</span>
+      <button v-if="projectOpen" type="button" class="project-problems-button" :aria-expanded="problemsOpen" @click="problemsOpen = !problemsOpen">⚠ {{ projectProblems.length }} tracked {{ projectProblems.length === 1 ? 'problem' : 'problems' }}</button>
     </ProvenanceLegend>
+    <div v-if="projectOpen && problemsOpen" class="project-problems-panel" role="dialog" aria-label="Project problems">
+      <div class="project-problems-heading"><strong>Project problems</strong><button type="button" aria-label="Close project problems" @click="problemsOpen = false">✕</button></div>
+      <p>Some project warnings may not yet appear in this list.</p>
+      <p v-if="projectProblems.length === 0">No tracked problems.</p>
+      <ul v-else>
+        <li v-for="(problem, index) in projectProblems" :key="index">
+          <span>{{ projectProblemText(problem) }}</span>
+          <button type="button" @click="goToProjectProblem(problem)">Go to</button>
+        </li>
+      </ul>
+    </div>
 
     <!-- ===== Box losses modal: the one chamber set whose Advanced-> opened it ===== -->
     <div class="overlay" :class="{ open: lossesOpen !== null }" @click.self="lossesOpen = null">
@@ -758,10 +770,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <div class="modal-body">
           <template v-for="g in openLossGroups" :key="g.chamber">
             <div v-if="g.heading !== null" class="section-header">{{ g.heading }}</div>
-            <div class="field-row"><UISettlingField class="field" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" @clear="g.Ql.clear()" /></div>
-            <div class="field-row"><UISettlingField class="field" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" @clear="g.Qa.clear()" /></div>
-            <div class="field-row" v-if="g.Qp !== null"><UISettlingField class="field" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" @clear="g.Qp?.clear()" /></div>
-            <div class="field-row" v-if="g.Qicl !== null"><UISettlingField class="field" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" @clear="g.Qicl?.clear()" /></div>
+            <div class="field-row"><UISettlingField class="field" :input-id="`og-losses-${g.chamber}-ql`" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" @clear="g.Ql.clear()" /></div>
+            <div class="field-row"><UISettlingField class="field" :input-id="`og-losses-${g.chamber}-qa`" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" @clear="g.Qa.clear()" /></div>
+            <div class="field-row" v-if="g.Qp !== null"><UISettlingField class="field" :input-id="`og-losses-${g.chamber}-qp`" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" @clear="g.Qp?.clear()" /></div>
+            <div class="field-row" v-if="g.Qicl !== null"><UISettlingField class="field" :input-id="`og-losses-${g.chamber}-qicl`" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" @clear="g.Qicl?.clear()" /></div>
           </template>
           <p class="hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
         </div>
@@ -848,7 +860,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
     <PRBrowser v-if="prBrowseOpen" :editor="prEditor" @close="prBrowseOpen = false"
       @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
     <PRInfoDialog v-if="prInfoOpen && prInfo" :info="prInfo" @close="prInfoOpen = false" />
-    <PREditorDialog v-if="!prBrowseOpen && prEditor.cells.value" :editor="prEditor" :cells="prEditor.cells.value" />
+    <PREditorDialog v-if="!prBrowseOpen && prEditor.cells.value" :editor="prEditor" :cells="prEditor.cells.value" :initial-field="radiatorProblemField" />
 
     <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
 
@@ -886,6 +898,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    `.field` styling as every other field here. */
 .original-root *, .original-root *::before, .original-root *::after { box-sizing: border-box; }
 .original-root {
+  position:relative;
   /* Light-theme palette overrides — like .classic-root. Without these, reused
      components + the global `button { color: var(--fg) }` reset inherit the app's
      dark-theme --fg (near-white) and render invisibly on the skin's light fills. */
@@ -895,9 +908,17 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   --chart-cross:#00000055; --chart-band:rgba(0,0,0,0.05); --chart-band-line:rgba(0,0,0,0.3);
   --readout-bg:rgba(248,250,252,0.92);
   display:flex; flex-direction:column; width:100%; height:100vh; background:#f2f2f2;
-  overflow:hidden; color:#1a1a1a; font-family:var(--font-ui); font-size:14px;
+  overflow:hidden; color:#1a1a1a; font-family:var(--font-ui); font-size:var(--ctl-font-size);
 }
-.original-root button, .original-root select, .original-root input, .original-root textarea { font-family:inherit; font-size:14px; }
+.original-root button, .original-root select, .original-root input, .original-root textarea { font-family:inherit; font-size:var(--ctl-font-size); }
+.project-problems-button { margin-left:auto; border:0; padding:0 4px; background:transparent; color:var(--bad); cursor:pointer; }
+.project-problems-panel { position:absolute; z-index:40; right:8px; bottom:25px; width:min(560px, calc(100% - 16px)); max-height:min(60vh, 480px); overflow:auto; padding:12px; border:1px solid var(--line); background:var(--panel); box-shadow:0 3px 12px #0003; }
+.project-problems-heading { display:flex; justify-content:space-between; align-items:center; }
+.project-problems-heading button { border:0; background:transparent; cursor:pointer; }
+.project-problems-panel p { margin:8px 0; }
+.project-problems-panel ul { margin:0; padding:0; list-style:none; }
+.project-problems-panel li { display:flex; gap:12px; align-items:start; justify-content:space-between; padding:8px 0; border-top:1px solid var(--line); }
+.project-problems-panel li button { flex:none; }
 
 .app-icon { width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #888, #333 70%); display:inline-block; }
 .app-brand { display:flex; align-items:center; gap:6px; flex:0 0 auto; min-width:0; overflow:hidden; white-space:nowrap; font-weight:600; }
@@ -1171,6 +1192,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   margin-top: 2px;
   margin-bottom: 1px;
   line-height: 1.15;
+  font-size: var(--ctl-nav-font-size);
 }
 .panel-title { color:#7d9fc9; font-weight:600; margin-bottom:4px; font-size:14px; }
 /* In a short window the nav column scrolls rather than squeezing the project drawer until its footer buttons are cut (T737). */
@@ -1206,7 +1228,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .project-nav li {
   padding: 2px 6px;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--ctl-nav-font-size);
   font-weight: 500;
   border: none;
   border-radius: 4px;
@@ -1251,7 +1273,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .graph-empty-link:hover { color:#0b4f9e; }
 
 /* ---------- Content panel ---------- */
-.content-panel { grid-area:content; max-height:60vh; min-height:267px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:7px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
+.content-panel { grid-area:content; max-height:60vh; min-height:242px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:7px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
 .content-tabs { flex:1 1 auto; min-width:0; min-height:0; overflow-y:auto; display:flex; flex-direction:column; }
 .save-rail { flex:none; display:flex; flex-direction:column; align-items:stretch; gap:6px; align-self:stretch; }
 .save-rail > .tab-help-btn { align-self:flex-end; }
@@ -1268,7 +1290,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .save-rail .revert-btn:disabled { background:#e8e8e8; border-color:#ccc; color:#999; font-weight:normal; cursor:default; }
 /* Every tab stacks in ONE grid cell and only the active one is visible, so the panel is as deep as
    the tallest tab shown and stays that deep while the tab is switched. `.content-panel` min-height is
-   the tallest tab of any box type (bandpass6 or ABC, slotted, 267 px, measured by original-bottom-panel-height), so
+   the tallest tab of any box type, measured by original-bottom-panel-height, so
    the height never changes with box type either. */
 .content-tabs { display:grid; grid-template-columns:minmax(0,1fr); }
 .tab-section { grid-area:1 / 1; visibility:hidden; overflow:hidden; min-height:0; }
@@ -1316,8 +1338,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .vent-pane-tight .vent-port-row { gap:8px; }
 .vent-pane-tight .vent-port-row > .field:not(.ui-field) { display:grid; grid-template-rows:auto auto; justify-content:start; align-items:center; column-gap:4px; row-gap:0; }
 .vent-pane-tight .vent-port-row > .field:not(.ui-field) > label { grid-row:1; width:auto; }
-.vent-pane-tight .field:not(.ui-field) select { grid-row:2; width:138px; height:20px; padding:0 6px; }
-.vent-pane-tight .vent-groups { gap:16px; }
+.vent-pane-tight .field:not(.ui-field) select { grid-row:2; width:138px; height:var(--ctl-h); box-sizing:border-box; padding:0 6px; }
+.vent-pane-tight .vent-groups { gap:var(--ctl-row-gap); }
 .vent-pane-tight .vent-port-row { display:grid; grid-template-columns:repeat(2,max-content); gap:8px; }
 .vent-labels-left .vent-port-row > .field:not(.ui-field) { grid-template-columns:var(--label-w,var(--ctl-label-w)) 138px; grid-template-rows:auto; }
 .vent-labels-left .vent-port-row > .field:not(.ui-field) > label { grid-column:1; grid-row:1; }
@@ -1325,14 +1347,14 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* One layout at every width: every port value in one column; row 2 is Number of ports with the shape toggle beside it. */
 /* Each column is as wide as its fields: the label columns follow their longest label (labelColumns.ts). */
 .port-columns .vent-col, .port-columns .vent-settings-col { width:max-content; flex:none; }
-.port-columns .vent-col { display:grid; grid-template-columns:max-content; column-gap:8px; row-gap:2px; align-content:start; align-items:center; }
+.port-columns .vent-col { display:grid; grid-template-columns:max-content; column-gap:8px; row-gap:var(--ctl-compact-row-gap); align-content:start; align-items:center; }
 .port-columns .vent-col-band { grid-column:1 / -1; grid-row:1; }
 .port-columns .vent-port-row { display:contents; }
 .port-columns .vent-port-row > .field { grid-column:1; }
-.port-columns .vent-port-row.port-count-row { display:flex; grid-column:1; align-items:center; gap:6px; min-width:0; }
-.port-columns .vent-port-row.port-count-row > .field.port-count-field:not(.ui-field) { grid-template-columns:119px 93px; }
+.port-columns .vent-port-row.port-count-row { display:flex; grid-column:1; align-items:center; gap:var(--ctl-row-gap); min-width:0; }
+.port-columns .vent-port-row.port-count-row > .field.port-count-field:not(.ui-field) { grid-template-columns:var(--label-w,var(--ctl-label-w)) 93px; column-gap:2px; }
 .port-columns .vent-port-row.port-count-row > .field.port-count-field:not(.ui-field) select { width:93px; }
-.port-columns .port-count-row > .port-shape-toggle { height:20px; margin-right:2px; }
+.port-columns .port-count-row > .port-shape-toggle { height:var(--ctl-h); margin-right:2px; }
 .port-columns .port-tuning-row > .ui-field, .port-columns .port-tuning-placeholder { grid-column:1; grid-row:2; }
 .port-columns .port-tuning-placeholder { min-height:var(--ctl-h,20px); }
 .port-columns .vent-port-row > .field:not(.ui-field) { grid-template-columns:var(--label-w,var(--ctl-label-w)) var(--port-select-w); }
@@ -1371,7 +1393,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   width: 100px;
   margin-right: 6px;
 }
-.field-row { display:flex; align-items:baseline; gap:8px; margin-bottom:6px; flex-wrap:nowrap; justify-content:flex-start; }
+.field-row { display:flex; align-items:baseline; gap:var(--ctl-group-gap); margin-bottom:var(--ctl-row-gap); flex-wrap:nowrap; justify-content:flex-start; }
 .field:not(.ui-field) { display:flex; align-items:baseline; gap:4px; justify-content:flex-start; flex:none; }
 .field:where(:not(.ui-field)) label { color:#333; display:inline-block; width:var(--label-w, 150px); text-align:left; flex:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .field:where(:not(.ui-field)) input[type=text], .field:where(:not(.ui-field)) input[type=number], .field:where(:not(.ui-field)) select,

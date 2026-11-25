@@ -62,3 +62,32 @@ test('the ▲▼ pair is one size on the wizard and the Box tab (Options joins w
   expect(new Set(optFooter).size, `Options footer: ${optFooter.join(', ')}`).toBe(1);
   expect(optFooter[0]?.split('x')[1]).toBe(String(DesktopSizes.FOOTER_BTN_H_PX));
 });
+
+for (const [box, tab] of [['bandpass6', '6th Order Bandpass'], ['abc', 'ABC']] as const) {
+  test(`${tab} port controls use the shared desktop size and remain usable`, async ({page}) => {
+    await page.goto('/');
+    await openAProject(page);
+    await page.locator('#og-box-type').selectOption(box);
+    await page.locator('.project-nav li', {hasText: new RegExp(`^${tab}$`)}).click();
+    const pane = page.locator('.tab-section.active');
+    const controls = pane.locator('.port-count-row select, .port-shape-toggle, .vent-port-row select:not([id])');
+    const sizes = await controls.evaluateAll(elements => elements.map(element => ({
+      height: Math.round(element.getBoundingClientRect().height),
+      font: getComputedStyle(element).fontSize,
+    })));
+    expect(sizes).toHaveLength(box === 'abc' ? 9 : 6);
+    expect(sizes.every(size => size.height === DesktopSizes.CONTROL_H_PX && size.font === `${DesktopSizes.CONTROL_FONT_PX}px`)).toBe(true);
+
+    const count = pane.locator('.port-count-row select').first();
+    await count.selectOption('2');
+    await expect(count).toHaveValue('2');
+    const correction = pane.locator('.vent-port-row select:not([id])').first();
+    const correctionValue = await correction.locator('option').nth(1).getAttribute('value');
+    expect(correctionValue).not.toBeNull();
+    await correction.selectOption(correctionValue!);
+    await expect(correction).toHaveValue(correctionValue!);
+    for (const toggle of await pane.locator('.port-shape-toggle').all()) await toggle.click();
+    expect(await pane.evaluate(element => element.scrollHeight <= element.clientHeight)).toBe(true);
+    expect(await pane.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+  });
+}

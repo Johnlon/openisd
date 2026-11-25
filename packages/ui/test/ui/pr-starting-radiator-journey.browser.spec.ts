@@ -55,7 +55,7 @@ test.describe('Journey: the starting passive radiator meets the 2x rule the Box 
       const required_cm3 = Number(/≥ (\d+) cm³/.exec(line)?.[1]);
       expect(Number.isFinite(required_cm3), `the line states a displacement: "${line}"`).toBe(true);
       expect(vd_cm3 * count + 1, `the radiator shows Vd ${vd_cm3} cm³ x ${count}; the line asks for ${required_cm3} cm³: "${line}"`).toBeGreaterThanOrEqual(required_cm3);
-      expect(line, `the project has ${count} radiator(s)`).toMatch(count > 1 ? /of these/ : /1 of these is enough/);
+      expect(line, `the project has ${count} radiator(s)`).toMatch(count > 1 ? /of these/ : /1 of these meets the guideline/);
     });
   }
 });

@@ -9,7 +9,7 @@ import type {ComputedRef, Ref} from 'vue';
 import {computed, ref, watch} from 'vue';
 import type {BoxLossGroup, LossChamber, OpenISDProject} from '@openisd/design';
 import type {BoxType} from '@openisd/design/engine';
-import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
+import {BOX_TYPE_OPTIONS, PhoneBoxText} from '@openisd/design/fields';
 import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
 
 // ---- Sealed / PR readouts (unit-testable, real domain) ------------------------
@@ -22,6 +22,30 @@ export interface SealedReadoutsDeps {
   project: ComputedRef<OpenISDProject>;
   selectedBox: Ref<BoxType>;
   projectChanged: Ref<number>;
+}
+
+/** Warning attached to the radiator count on both Box views. */
+export function createRadiatorExcursionWarning(
+  project: ComputedRef<OpenISDProject>,
+  selectedBox: Ref<BoxType>,
+  changed: Ref<number>,
+  sweepRange: () => {min: number; max: number},
+) {
+  return computed<readonly string[]>(() => {
+    void changed.value;
+    if (selectedBox.value !== 'box-passive-radiator') return [];
+    const p = project.value;
+    const range = sweepRange();
+    const assessment = p.passiveRadiatorAssessment({fmin: range.min, fmax: range.max});
+    if (assessment === null || assessment.exceededBands.length === 0) return [];
+    return [PhoneBoxText.radiatorExcursionWarning(
+      p.box.passiveRadiator.count.value,
+      p.driveVoltage_V.entered ? null : p.powerDrive_W.value,
+      p.driveVoltage_V.value,
+      assessment.exceededBands,
+      assessment.minimumCount,
+    )];
+  });
 }
 
 export function createSealedReadouts({ project, selectedBox, projectChanged: changed }: SealedReadoutsDeps) {

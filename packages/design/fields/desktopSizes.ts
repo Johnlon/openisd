@@ -4,7 +4,15 @@
  */
 export class DesktopSizes {
   /** The height of every number box, pick list and ▲▼ button. */
-  static readonly CONTROL_H_PX = 28;
+  static readonly CONTROL_H_PX = 24;
+  /** The text size of desktop fields and controls. */
+  static readonly CONTROL_FONT_PX = 13;
+  /** The text size of the desktop project navigation. */
+  static readonly NAV_FONT_PX = 16;
+  /** Spacing between desktop field rows and related controls. */
+  static readonly ROW_GAP_PX = 4;
+  static readonly GROUP_GAP_PX = 6;
+  static readonly COMPACT_ROW_GAP_PX = 1;
   /** The width of one ▲ or ▼ button. */
   static readonly STEPPER_W_PX = 18;
   /** The label column of a field row, where the row does not choose its own. */
@@ -27,6 +35,11 @@ export class DesktopSizes {
   static cssVars(): ReadonlyMap<string, string> {
     return new Map([
       ['--ctl-h', `${DesktopSizes.CONTROL_H_PX}px`],
+      ['--ctl-font-size', `${DesktopSizes.CONTROL_FONT_PX}px`],
+      ['--ctl-nav-font-size', `${DesktopSizes.NAV_FONT_PX}px`],
+      ['--ctl-row-gap', `${DesktopSizes.ROW_GAP_PX}px`],
+      ['--ctl-group-gap', `${DesktopSizes.GROUP_GAP_PX}px`],
+      ['--ctl-compact-row-gap', `${DesktopSizes.COMPACT_ROW_GAP_PX}px`],
       ['--ctl-stepper-w', `${DesktopSizes.STEPPER_W_PX}px`],
       [DesktopSizes.DEFAULT_LABEL_COLUMN_VAR, `${DesktopSizes.LABEL_COL_PX}px`],
       ['--ctl-label-slot', `${DesktopSizes.LABEL_SLOT_PX}px`],

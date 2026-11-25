@@ -16,7 +16,7 @@ import {provideCellScope} from './cellScope.js';
 import {PHONE_DRIVER_EDITOR_SKIN} from './driverEditorSkin.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 
-const props = defineProps<{ editor: PassiveRadiatorEditorView; cells: PassiveRadiatorStepCells; phone?: boolean }>();
+const props = defineProps<{ editor: PassiveRadiatorEditorView; cells: PassiveRadiatorStepCells; phone?: boolean; initialField?: string | null }>();
 const {title, name, savedNote, autoCalculate, inspect, provenance, identity, setIdentity, ok, cancel, reset, saveToMyPRs,
   setAutoCalculate, setInspect, inspectField, exportFile, importText} = props.editor;
 
@@ -28,7 +28,12 @@ provideCellScope({ revision, written: () => { revision.value++; } });
 // A new radiator starts on General at its name; an existing one opens on Parameters without the keyboard.
 const tab = ref<'general' | 'parameters'>(name.value === '' ? 'general' : 'parameters');
 const panelEl = ref<HTMLElement | null>(null);
-onMounted(() => { if (name.value === '') panelEl.value?.querySelector<HTMLInputElement>('#pr-editor-name')?.focus(); });
+onMounted(() => {
+  if (props.initialField) {
+    const row = ROWS.find(item => item.key === props.initialField);
+    if (row) panelEl.value?.querySelector<HTMLInputElement>(`#${row.id}`)?.focus();
+  } else if (name.value === '') panelEl.value?.querySelector<HTMLInputElement>('#pr-editor-name')?.focus();
+});
 const more = ref(false);
 function fromMore(action: () => void): void { more.value = false; action(); }
 useEscToClose(() => true, cancel);

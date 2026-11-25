@@ -128,7 +128,7 @@
 .joined-fields:not(.app-root-mobile) .short-pick-fields .ui-field.ui-field[data-field] {--joined-box:90px;}
 .joined-fields:not(.app-root-mobile) .short-pick-fields .ui-pick-field.ui-pick-common {--pick-width:calc(90px + 4px);}
 /* The dense vent pane keeps its existing caption scale and drops only absent spinner tracks. */
-.joined-fields:not(.app-root-mobile) .vent-pane-tight .field > label {font-size:11px;line-height:12px;}
+.joined-fields:not(.app-root-mobile) .vent-pane-tight .field > label {font-size:var(--ctl-font-size);line-height:normal;}
 .joined-fields:not(.app-root-mobile) .vent-pane-tight .ui-field.ui-field[data-field]:not(:has(.num-stepper)) {--joined-buttons:0px;}
 
 /* A unit's spelling must not change the outline or the unit rail within these groups. */
@@ -161,6 +161,8 @@
 /* Every desktop label is one line, in a column as wide as its group's longest label plus the warning slot
    (labelColumns.ts, DesktopSizes.labelColumnPx): the slot is the only blank before the box (QO466.c12). */
 .joined-fields:not(.app-root-mobile) .ui-field.ui-field:is([data-field],.joined-field) > label {margin-right:var(--ctl-label-slot,22px);max-width:calc(100% - var(--ctl-label-slot,22px));white-space:nowrap;}
+.joined-fields:not(.app-root-mobile) .ui-field.ui-field:is([data-field],.joined-field) > label,
+.joined-fields:not(.app-root-mobile) .ui-pick-field:not(.mob-ui-field) > label {font-size:var(--ctl-font-size);}
 
 /* Text and choice rows reserve the same warning rail as numeric rows. */
 .joined-fields:not(.app-root-mobile) .ui-pick-field:not(.mob-ui-field) {
@@ -170,7 +172,7 @@
 .joined-fields:not(.app-root-mobile) .ui-pick-field > label {padding-right:var(--ctl-label-slot,22px);box-sizing:border-box;white-space:nowrap;}
 
 /* Give the requested larger port captions their glyph width plus one warning slot. */
-.joined-fields:not(.app-root-mobile) .port-columns .field > label {font-size:12px;line-height:14px;}
+.joined-fields:not(.app-root-mobile) .port-columns .field > label {font-size:var(--ctl-font-size);line-height:normal;}
 /* Air labels gain 22px while their value boxes lose 22px; total group width is unchanged. */
 
 /* Every air box is the same width, wide enough for Pa (field-layout rule 4). */

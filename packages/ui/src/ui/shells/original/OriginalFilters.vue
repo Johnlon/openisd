@@ -8,7 +8,7 @@
  * Each editor takes its own `Filter` variant as a typed prop and calls the `api.editX` for that
  * variant — never a per-field string route.
  */
-import {computed, ref} from 'vue';
+import {computed, nextTick, ref, watch} from 'vue';
 import type {FilterType} from '@openisd/design/engine';
 import {DesktopLabels, PHONE_FILTER_CHIPS} from '@openisd/design/fields';
 import {inputChecked} from '../../../logic/domEvents.js';
@@ -22,7 +22,8 @@ import StaticGainEditor from './filters/StaticGainEditor.vue';
 import RaisedCosineEditor from './filters/RaisedCosineEditor.vue';
 import ShelfEditor from './filters/ShelfEditor.vue';
 
-const {api} = defineProps<{ api: OriginalFiltersAPI }>();
+const props = defineProps<{ api: OriginalFiltersAPI; problemFilterId?: string | null }>();
+const {api} = props;
 const filters = computed(() => api.filters.value);
 
 /** One quick-add button per type, WinISD's Filter Editor "Filter type" order, then the two
@@ -35,6 +36,17 @@ const BADGE: Record<FilterType, string> = {
 
 /** Which row is open for editing — presentation state, this tab's alone. */
 const editing = ref<string | null>(null);
+const root = ref<HTMLElement | null>(null);
+watch(() => props.problemFilterId, id => {
+  if (!id) return;
+  editing.value = id;
+  void nextTick(() => {
+    const row = Array.from(root.value?.querySelectorAll<HTMLElement>('[data-filter-id]') ?? [])
+      .find(element => element.dataset.filterId === id);
+    row?.scrollIntoView({block: 'nearest'});
+    row?.querySelector<HTMLElement>('.filter-edit-body input')?.focus();
+  });
+});
 
 function addFilter(type: FilterType) { editing.value = api.add(type); }
 function removeFilter(id: string | undefined) {
@@ -46,14 +58,14 @@ function toggleEdit(id: string | undefined) { editing.value = editing.value === 
 </script>
 
 <template>
-  <section class="og-filters">
+  <section ref="root" class="og-filters">
     <div class="filters-quickadd">
       <button v-for="q in QUICK_ADD" :key="q.type" class="action-btn" @click="addFilter(q.type)">{{ q.label }}</button>
     </div>
 
     <div class="filters-list">
       <p v-if="!filters.length" class="hint" style="padding:8px 10px">No filters active.</p>
-      <div v-for="(f, i) in filters" :key="f.id ?? i"
+      <div v-for="(f, i) in filters" :key="f.id ?? i" :data-filter-id="f.id"
            class="filter-row-inline" :class="{ editing: editing === f.id, 'filter-disabled': !f.enabled }">
         <div class="filter-row-head">
           <input type="checkbox" :checked="f.enabled" title="Bypass / enable this filter" @click.stop

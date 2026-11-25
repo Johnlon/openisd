@@ -8,7 +8,7 @@ import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useFeatureUse} from './telemetryContext.js';
 import {useApp} from '../logic/app.js';
 import {appPassiveRadiatorFiles} from './passiveRadiatorEditor.js';
-import {createSealedReadouts, createSelectedBox} from './boxFields.js';
+import {createRadiatorExcursionWarning, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {useRadiatorPicks} from './telemetryContext.js';
@@ -29,9 +29,10 @@ export interface PassiveRadiatorKeyFigures {
 export function useMobileEnclosureTab() {
   const {boxTypeIsSimulatable, focusedProject, projectChanged} = useApp().appState;
   const project = useFocusedProject();
-  const { engine, myPassiveRadiators, bundledPassiveRadiators } = useApp();
+  const { engine, myPassiveRadiators, bundledPassiveRadiators, presentation } = useApp();
 
   const { selectedBox } = createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable, featureUse: useFeatureUse() });
+  const prExcursionWarning = createRadiatorExcursionWarning(project, selectedBox, projectChanged, () => presentation.sweepRange);
   const {
     activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
   } = createVentReadouts({ project, projectChanged, selectedBox, vent: engine.vent });
@@ -73,7 +74,7 @@ export function useMobileEnclosureTab() {
     ventSections, tuningNoteShown,
     project, selectedBox,
     activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
-    prResonanceMassDq, prFsMass_hz, prNaturalFh,
+    prResonanceMassDq, prFsMass_hz, prNaturalFh, prExcursionWarning,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, prEditor, startEditPR, defineNewPREntry, prInfoOpen, prInfo, openPRInfo, prKeyFigures, prTwoTimesRule,
     VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS,
     FB_TARGET_TIP, VENT_GEOMETRY_TIP,

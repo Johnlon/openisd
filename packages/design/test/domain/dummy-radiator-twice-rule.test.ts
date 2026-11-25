@@ -38,7 +38,7 @@ describe('the starting dummy radiator meets the engine\'s 2× rule', () => {
       const needed = engine.pr.countForTwiceDisplacement(prVd, driverVd, n);
       expect(needed).not.toBeNull();
       expect(needed!).toBeLessThanOrEqual(pr.count.value);
-      expect(PhoneBoxText.twoTimesRule(engine.pr.twiceDriverDisplacement(driverVd, n)!, needed!)).toContain('1 of these is enough');
+      expect(PhoneBoxText.twoTimesRule(engine.pr.twiceDriverDisplacement(driverVd, n)!, needed!)).toContain('1 of these meets the guideline');
       // The radiator's own displacement is the one the engine gives for its Sd and Xmax.
       expect(spec.Vd_m3.value).toBe(prVd);
     });

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import {ref, shallowRef} from 'vue';
+import type {OpenISDProject} from '@openisd/design';
+import RenameProjectDialog from '../../components/RenameProjectDialog.vue';
 // The mobile shell — routes between the Design tabs and the full-screen Graph destination.
 // Holds NO logic: every ref/computed/write lives in `useMobileShell()`
 // (src/hooks/MobileShell-hooks.ts), mirroring OriginalShell.vue's own 1-to-1 hook rule.
@@ -47,7 +50,18 @@ const {
   disconnectCloud, openConflict,
 } = useMobileShell();
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
-const { projectChanged } = useApp().appState;
+const { projectChanged, focusedProject } = useApp().appState;
+const renamingProject = shallowRef<OpenISDProject | null>(null);
+const renameOpen = ref(false);
+function startProjectRename(): void {
+  renamingProject.value = focusedProject();
+  renameOpen.value = renamingProject.value !== null;
+}
+function saveProjectRename(name: string): void {
+  renamingProject.value?.name.set(name);
+  renameOpen.value = false;
+  renamingProject.value = null;
+}
 provideCellScope({ revision: projectChanged, written: () => {} });
 const winisdDifferences = injectWinisdDifferencesModal();
 const announcements = useAnnouncementCenter();
@@ -70,7 +84,7 @@ const diagnostics = injectDiagnosticsModal();
         <img src="/icon.svg" alt="" aria-hidden="true">
         <span>OpenISD</span>
       </div>
-      <button v-if="projectTitle" type="button" class="mob-project-title" :title="projectTitle" @click="openProjectsPane"><span class="mob-project-title-text">{{ projectTitle }}</span></button>
+      <button v-if="projectTitle" type="button" class="mob-project-title" :title="projectTitle" @click="startProjectRename"><span class="mob-project-title-text">{{ projectTitle }}</span></button>
       <CloudSyncBadge
         v-if="cloudEnabled"
         class="mob-header-sync"
@@ -265,6 +279,8 @@ const diagnostics = injectDiagnosticsModal();
 
     <OptionsModal v-if="optionsOpen" class="mob-options" @close="optionsOpen = false" />
   </div>
+  <RenameProjectDialog v-if="renameOpen && renamingProject" :name="renamingProject.name.value" :phone="true"
+    @cancel="renameOpen = false; renamingProject = null" @save="saveProjectRename" />
 </template>
 
 <style scoped>
